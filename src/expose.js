@@ -2,6 +2,8 @@
 
 const React = require( 'react' );
 
+let expose_ctr = 0;
+
 module.exports.mixin = function( id ) {
 	return {
 		componentWillMount: function() {
@@ -33,7 +35,12 @@ module.exports.Component = class ExposeComponent extends React.Component {
 	}
 
 	expose( id ){
-		this._expose_id = id;
+		if( !id ) {
+			this._expose_id = 'state' + expose_ctr;
+			expose_ctr++;
+		} else {
+			this._expose_id = id;
+		}
 		if( module.exports.states[ this._expose_id ] ){
 			console.error( 'Error, expose component exposed an id that already exists', this.expose_id, this.props );
 		}

@@ -1,15 +1,26 @@
 'use strict';
 
+const React = require( 'react' );
 const expose = require( './expose' );
 const DOM = require( 'react-dom-factories' );
+
+const CardTeamList = require( 'card-team-list' );
 
 module.exports = class MainContainer extends expose.Component {
 	constructor( props ) {
 		super( props );
 		this.expose( 'main' );
 		this.state = {
-			current_file: null
+			page: 'CardTeamList'
 		};
+	}
+
+	renderCard( card_name ){
+		if( card_name === 'CardTeamList' ) {
+			return React.createElement( CardTeamList );
+		} else {
+			return DOM.div( {}, 'Error, no card named: ' + card_name );
+		}
 	}
 
 	render() {
@@ -19,7 +30,7 @@ module.exports = class MainContainer extends expose.Component {
 					height: window.innerHeight + 'px'
 				}
 			},
-			DOM.div()
+			this.renderCard( this.state.page )
 		);
 	}
 };

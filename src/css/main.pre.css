@@ -6,4 +6,38 @@ body {
   margin: 0px;
   font-size: 14px;
   font-family: '$css.font.main';
+  box-sizing: border-box;
+}
+
+.delete-button {
+	color: #914343;
+	font-size: 24px;
+}
+.delete-button:hover {
+	filter: brightness(125%);
+}
+
+.card-title {
+	width: 100%;
+	padding: 10px 0px;
+	font-weight: bold;
+	color: $css.colors.TEXT_LIGHT;
+	background-color: $css.colors.SECONDARY;
+	border-bottom: 4px solid $css.colors.SECONDARY_ALT;
+	margin-bottom: 2px;
+	font-size: 48px;
+	text-align: center;
+}
+
+.list-item {
+	padding: 10px 10px;
+	margin: 10px;
+	border-radius: 4px;
+	border: 1px solid $css.colors.PRIMARY_ALT;
+	background-color: $css.colors.PRIMARY;
+	font-size: 24px;
+}
+
+.list-item:hover {
+	filter: brightness(125%);
 }
