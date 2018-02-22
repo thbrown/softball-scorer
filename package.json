@@ -4,7 +4,13 @@
   "description": "This program scores softball players.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build-vendor": "node build.js build-vendor",
+    "build": "node build.js build",
+    "build-css": "node build.js build-css",
+    "watch": "node build.js watch",
+    "run": "node src-srv",
+    "clean": "node build.js clean",
+    "start": "node ."
   },
   "repository": {
     "type": "git",
@@ -15,5 +21,29 @@
   "bugs": {
     "url": "https://github.com/thbrown/softball-scorer/issues"
   },
-  "homepage": "https://github.com/thbrown/softball-scorer#readme"
+  "homepage": "https://github.com/thbrown/softball-scorer#readme",
+  "dependencies": {
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-dom-factories": "^1.0.2"
+  },
+  "devDependencies": {
+    "browserify": "^14.3.0",
+    "uglify-js": "^2.6.1",
+    "uglifycss": "0.0.26",
+    "watchify": "^3.9.0"
+  },
+  "config": {
+    "vendor_modules": [
+      "react",
+      "react-dom"
+    ],
+    "bundles": {
+      "vendor": "build/vendor.js",
+      "main": {
+        "out": "build/main.js",
+        "entry": "src/index.js"
+      }
+    }
+  }
 }

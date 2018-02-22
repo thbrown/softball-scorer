@@ -1,0 +1,9 @@
+body {
+  background: $css.colors.BG;
+  position: absolute;
+  width: 100%;
+  overflow: hidden;
+  margin: 0px;
+  font-size: 14px;
+  font-family: '$css.font.main';
+}
