@@ -1,16 +1,53 @@
 body {
   background: $css.colors.BG;
+  color: $css.colors.TEXT_LIGHT;
   position: absolute;
   width: 100%;
-  overflow: hidden;
   margin: 0px;
   font-size: 14px;
   font-family: '$css.font.main';
   box-sizing: border-box;
 }
 
+.handle {
+}
+
+.page-error {
+  text-align: center;
+  font-size: 24px;
+  padding: 5px;
+}
+
+.confirm-button {
+  background-color: $css.colors.CONFIRM;
+  padding: 5px;
+  width: 80px;
+  margin: 5px;
+  text-align: center;
+  cursor: pointer;
+  color: $css.colors.TEXT_LIGHT;
+}
+
+.confirm-button:hover {
+  background-color: rgb( 50%, 50%, 50%);
+}
+
+.cancel-button {
+  background-color: $css.colors.CANCEL;
+  padding: 5px;
+  width: 80px;
+  margin: 5px;
+  text-align: center;
+  cursor: pointer;
+  color: $css.colors.TEXT_LIGHT;
+}
+
+.cancel-button:hover {
+  background-color: rgb( 50%, 50%, 50%);
+}
+
 .delete-button {
-	color: #914343;
+	color: #f55;
 	font-size: 24px;
 }
 .delete-button:hover {
@@ -19,20 +56,22 @@ body {
 
 .card-title {
 	width: 100%;
-	padding: 10px 0px;
 	font-weight: bold;
 	color: $css.colors.TEXT_LIGHT;
 	background-color: $css.colors.SECONDARY;
 	border-bottom: 4px solid $css.colors.SECONDARY_ALT;
 	margin-bottom: 2px;
-	font-size: 48px;
+	font-size: 24px;
 	text-align: center;
+  line-height: 50px;
+  min-height: 52px;
 }
 
 .list-item {
 	padding: 10px 10px;
 	margin: 10px;
 	border-radius: 4px;
+  color: $css.colors.TEXT_LIGHT;
 	border: 1px solid $css.colors.PRIMARY_ALT;
 	background-color: $css.colors.PRIMARY;
 	font-size: 24px;
@@ -40,4 +79,59 @@ body {
 
 .list-item:hover {
 	filter: brightness(125%);
+}
+
+.table-row {
+  padding: 10px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-around;
+  font-size: 16px;
+  width: calc( 100% - 20px );
+  color: $css.colors.TEXT_LIGHT;
+  background-color: $css.colors.PRIMARY;
+  border-bottom: 1px solid $css.colors.PRIMARY_ALT;
+}
+
+.lineup-row {
+  padding: 4px 0px;
+  display: flex;
+  justify-content: space-around;
+  font-size: 16px;
+  color: $css.colors.TEXT_LIGHT;
+  background-color: $css.colors.PRIMARY;
+}
+
+.lineup-box {
+  background-color: white;
+  width: 38px;
+  height: 40px;
+  border-top: 1px solid $css.colors.TEXT_DARK;
+  border-bottom: 1px solid $css.colors.TEXT_DARK;
+  border-right: 1px solid $css.colors.TEXT_DARK;
+  text-align: center;
+}
+
+.lineup-box:hover {
+  filter: brightness(75%);
+}
+
+.result-button {
+  width: 40px;
+  padding: 5px;
+  color: $css.colors.TEXT_LIGHT;
+  background-color: $css.colors.PRIMARY;
+  border: 1px solid $css.colors.PRIMARY_ALT;
+  border-radius: 5px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.no-select {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }

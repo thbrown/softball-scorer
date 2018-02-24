@@ -6,11 +6,11 @@ const PORT = 8888;
 
 process.on( 'SIGINT', function() {
 	console.log( 'SIGINT' );
-	process.exit();
+	process.exit( 0 );
 } );
 process.on( 'SIGTERM', function() {
 	console.log( 'SIGTERM' );
-	process.exit();
+	process.exit( 0 );
 } );
 process.on( 'exit', function() {
 	process.stdout.write( "Bye\n" );

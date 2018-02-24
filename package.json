@@ -25,7 +25,8 @@
   "dependencies": {
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
-    "react-dom-factories": "^1.0.2"
+    "react-dom-factories": "^1.0.2",
+    "react-draggable": "^3.0.5"
   },
   "devDependencies": {
     "browserify": "^14.3.0",
