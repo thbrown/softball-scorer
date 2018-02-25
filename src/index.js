@@ -5,7 +5,6 @@ const MainContainer = require( './main-container' );
 
 window.React = React;
 
-
 // Prepend polyfill
 // from: https://github.com/jserz/js_piece/blob/master/DOM/ParentNode/prepend()/prepend().md
 ( function( arr ) {

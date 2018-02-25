@@ -2,6 +2,7 @@
 
 const http = require( 'http' );
 const fs = require( 'fs' );
+const URL = require( 'url' );
 let exp;
 
 let BASEDIR = false;
@@ -13,27 +14,30 @@ const _handlers = {
 	DELETE: {}
 };
 
-const parse_url = function( url ) {
+const parse_url = function( request ) {
+	let urlp = URL.parse( request.url, true );
+	let url = urlp.pathname;
 	let path = url.split( /\/|\\/ );
+
 	let ret = {
 		extension: '',
 		filename: '',
-		url: path.join( '/' )
+		url: url
 	};
 
-	if( path[ 1 ].toLowerCase() === 'server' ) {
+	if ( path[ 1 ].toLowerCase() === 'server' ) {
 		ret.url = '/topkek';
 		return ret;
 	}
 
 	let match = path.slice( -1 )[ 0 ].match( /\.(.*?)$/ );
-	if( match ) {
+	if ( match ) {
 		ret.extension = ( match[ 1 ] || '' ).toLowerCase();
 	}
 
 	ret.filename = path.slice( -1 )[ 0 ];
 
-	if( path.length === 2 && path.slice( -1 )[ 0 ].length <= 1 ) {
+	if ( path.length === 2 && path.slice( -1 )[ 0 ].length <= 1 ) {
 		ret.extension = 'html';
 		ret.filename = 'index';
 		ret.url = '/index.html';
@@ -42,6 +46,8 @@ const parse_url = function( url ) {
 	let spl = ret.url.split( '/' );
 	ret.event_url = spl[ 1 ];
 	ret.event_args = spl.slice( 2 );
+	ret.request = request;
+	ret.headers = request.headers;
 
 	return ret;
 };
@@ -111,7 +117,7 @@ exp = {
 	start: function( port, basedir ) {
 		BASEDIR = basedir || false;
 		return http.createServer( function( request, response ) {
-			let url_obj = parse_url( request.url );
+			let url_obj = parse_url( request );
 			let method = request.method.toUpperCase();
 			console.info( method, request.url );
 
@@ -158,6 +164,18 @@ exp = {
 	},
 	del: function( name, func ) {
 		exp.on( 'DELETE', name, func );
+	},
+
+	read_index: function( cb ) {
+		let new_url = '';
+		if( BASEDIR ){
+			new_url = BASEDIR + '/index.html';
+		} else {
+			new_url = __dirname + '/../index.html';
+		}
+		fs.readFile( new_url, function( err, data ) {
+			cb( err, data );
+		} );
 	},
 
 	reply: function( response, data ) {
