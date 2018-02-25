@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/thbrown/softball-scorer#readme",
   "dependencies": {
+    "pg": "^7.4.1",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-dom-factories": "^1.0.2"
