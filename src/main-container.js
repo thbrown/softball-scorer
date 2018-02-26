@@ -55,12 +55,12 @@ module.exports = class MainContainer extends expose.Component {
 			if( !player ){
 				console.error( 'no player', this.state.player );
 			}
-			let atbat = state.getAtbat( team.id, game.id, player.id, this.state.atbat );
+			let plateAppearance = state.getPlateAppearance( team.id, game.id, player.id, this.state.plateAppearance );
 			return React.createElement( CardAtBat, {
 				team: team,
 				game: game,
 				player: player,
-				atbat: atbat
+				plateAppearance: plateAppearance
 			} );
 		} else {
 			return DOM.div( {

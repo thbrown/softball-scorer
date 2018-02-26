@@ -15,12 +15,15 @@ module.exports = class CardPlayerList extends expose.Component {
 	}
 
 	renderPlayerList(){
+		console.log("Rendering player list");
 		const s = state.getState();
 		let elems = s.players.filter( ( player ) => {
 			return this.props.team.games.reduce( ( result, game ) => {
 				return result || game.lineup.indexOf( player.id ) > -1;
 			}, false );
 		} ).map( ( player ) => {
+			console.log(player);
+			let stats = state.buildStatsObject(player.id, this.props.team.id);
 			return DOM.div( {
 				player_id: player.id,
 				key: 'player' + player.id,
@@ -35,11 +38,11 @@ module.exports = class CardPlayerList extends expose.Component {
 				DOM.div( {
 					style: {
 					}
-				}, 0.754 ),
+				}, stats.avg ),
 				DOM.div( {
 					style: {
 					}
-				}, 4 )
+				}, stats.ab )
 			);
 		} );
 

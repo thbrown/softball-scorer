@@ -12,7 +12,7 @@ const normalize = function( x, A, B, C, D ) {
 	return C + ( x - A ) * ( D - C ) / ( B - A );
 };
 
-module.exports = class CardAtbat extends expose.Component {
+module.exports = class CardAtBat extends expose.Component {
 	constructor( props ) {
 		super( props );
 		this.expose();
@@ -25,7 +25,7 @@ module.exports = class CardAtbat extends expose.Component {
 		};
 
 		this.handleButtonClick = function( result ) {
-			state.updateAtbatResult( this.props.atbat, result );
+			state.updatePlateAppearanceResult( this.props.PlateAppearance, result );
 		};
 
 		this.handleDragStart = function( result ) {
@@ -59,14 +59,14 @@ module.exports = class CardAtbat extends expose.Component {
 			let new_x = Math.floor( normalize( x, x_left, x_right, 0, 400 ) );
 			let new_y = Math.floor( normalize( y, y_top, y_bottom, 0, 400 ) );
 
-			state.updateAtbatLocation( this.props.atbat, [ new_x, new_y ] );
+			state.updatePlateAppearanceLocation( this.props.PlateAppearance, [ new_x, new_y ] );
 		};
 	}
 
 	renderButtonList(){
-		if( !this.props.game || !this.props.team || !this.props.player || !this.props.atbat ) {
-			console.log( 'game:', this.props.game, 'team:', this.props.team, 'player:', this.props.player, 'atbat:', this.props.atbat );
-			return DOM.div( { className: 'page-error' }, 'Atbat: No game or team or player or atbat exists.' );
+		if( !this.props.game || !this.props.team || !this.props.player || !this.props.PlateAppearance ) {
+			console.log( 'game:', this.props.game, 'team:', this.props.team, 'player:', this.props.player, 'PlateAppearance:', this.props.PlateAppearance );
+			return DOM.div( { className: 'page-error' }, 'PlateAppearance: No game or team or player or PlateAppearance exists.' );
 		}
 
 		let elems = [ '', '0', '1', '2', '3', '4i', '4o', 'BB', 'E' ].map( ( result ) => {
@@ -75,7 +75,7 @@ module.exports = class CardAtbat extends expose.Component {
 				className: 'result-button',
 				onClick: this.handleButtonClick.bind( this, result ),
 				style: {
-					backgroundColor: this.props.atbat.result === result ? css.colors.CANCEL : null
+					backgroundColor: this.props.PlateAppearance.result === result ? css.colors.CANCEL : null
 				}
 			}, result );
 		} );
@@ -91,9 +91,9 @@ module.exports = class CardAtbat extends expose.Component {
 	renderField(){
 		let x = -1;
 		let y = -1;
-		if( this.props.atbat.location ){
-			x = this.props.atbat.location[ 0 ];
-			y = this.props.atbat.location[ 1 ];
+		if( this.props.PlateAppearance.location ){
+			x = this.props.PlateAppearance.location[ 0 ];
+			y = this.props.PlateAppearance.location[ 1 ];
 		}
 
 		let new_x = Math.floor( normalize( x, 0, 400, 0, window.innerWidth ) );
@@ -172,7 +172,7 @@ module.exports = class CardAtbat extends expose.Component {
 				DOM.div( {
 					style: {
 					}
-				}, this.props.player.name + ' #' + this.props.atbat.atbat_count )
+				}, this.props.player.name + ' #' + this.props.PlateAppearance.PlateAppearance_count )
 			),
 			DOM.div( { style: { height: '40px', lineHeight: '35px' } }, 'Result:' ),
 			this.renderButtonList(),

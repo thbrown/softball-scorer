@@ -67,10 +67,17 @@ http_server.get( 'state_debug', ( obj, resp ) => {
 
 function getStatePromise() {
 	return new Promise(function(resolve,reject) {
-		var players = queryPromise(`SELECT * FROM public.players`);
+		var players = queryPromise(`
+			SELECT 
+			  id as id,
+			  name as name,
+			  gender as gender,
+			  picture as picture
+			FROM public.players
+		`);
 		
 		var teams = queryPromise(`
-		SELECT
+			SELECT
 			  teams.id as team_id, 
 			  teams.name as team_name,
 			  games.id as game_id,
@@ -80,9 +87,9 @@ function getStatePromise() {
 			  games.score_us as score_us, 
 			  games.score_them as score_them,
 			  plate_appearances.id as plate_appearance_id, 
-			  plate_appearances.result as plate_appearance_result,
-			  plate_appearances.location as plate_appearance_hit_location,
-			  plate_appearances.plate_appearances_index as plate_appearance_index,
+			  plate_appearances.result as result,
+			  plate_appearances.location as location,
+			  plate_appearances.plate_appearances_index as index,
 			  plate_appearances.player_id as player_id,
 			  sub_lineup.lineup as lineup,
 			  sub_roster.roster as roster
@@ -90,12 +97,12 @@ function getStatePromise() {
 			  public.plate_appearances
 			FULL JOIN public.games ON public.games.id=public.plate_appearances.game_id
 			FULL JOIN (SELECT public.players_games.game_id as game_id, string_agg(public.players_games.player_id::character, ', ' order by public.players_games.lineup_index) as lineup
-				FROM public.players_games
-				GROUP BY players_games.game_id) as sub_lineup ON sub_lineup.game_id=public.games.id
+			  FROM public.players_games
+			  GROUP BY players_games.game_id) as sub_lineup ON sub_lineup.game_id=public.games.id
 			FULL JOIN public.teams ON public.games.team_id=public.teams.id
 			FULL JOIN (SELECT public.players_teams.team_id as team_id, string_agg(public.players_teams.player_id::character, ', ') as roster
-				FROM public.players_teams
-				GROUP BY public.players_teams.team_id) as sub_roster ON sub_roster.team_id=public.teams.id
+			  FROM public.players_teams
+			  GROUP BY public.players_teams.team_id) as sub_roster ON sub_roster.team_id=public.teams.id
 			ORDER BY
 			  teams.id ASC,
 			  games.id ASC;
@@ -121,9 +128,11 @@ function getStatePromise() {
 					teamIdSet.add(plateAppearance.team_id);
 					var newTeam = {};
 					newTeam.games = [];
-					newTeam.team_id = plateAppearance.team_id;
+					newTeam.id = plateAppearance.team_id;
 					newTeam.name = plateAppearance.team_name;
-					newTeam.roster = plateAppearance.roster;
+					if(plateAppearance.roster) {
+						newTeam.roster = plateAppearance.roster.split(',').map(Number);
+					}
 					teams.push(newTeam);
 				}
 
@@ -131,23 +140,27 @@ function getStatePromise() {
 					gameIdSet.add(plateAppearance.game_id);
 					var newGame = {};
 					newGame.plateAppearances = [];
-					newGame.game_id = plateAppearance.game_id;
+					newGame.id = plateAppearance.game_id;
 					newGame.opponent = plateAppearance.game_opponent;
 					newGame.date = plateAppearance.game_date;
 					newGame.park = plateAppearance.game_park;
 					newGame.score_us = plateAppearance.score_us;
 					newGame.score_them = plateAppearance.score_them;
-					newGame.lineup = plateAppearance.lineup;
+					if(plateAppearance.lineup) {
+						newGame.lineup = plateAppearance.lineup.split(',').map(Number);
+					}
 					newTeam.games.push(newGame);
 				}
 
-				if(plateAppearance.ab_id) {
+				if(plateAppearance.plate_appearance_id) {
 					var newPlateAppearance = {};
-					newPlateAppearance.plateAppearance_id = plateAppearance.ab_id;
+					newPlateAppearance.id = plateAppearance.plate_appearance_id;
 					newPlateAppearance.player_id = plateAppearance.player_id;
-					newPlateAppearance.result = plateAppearance.ab_result;
-					newPlateAppearance.location = plateAppearance.ab_hit_location;
-					newPlateAppearance.plateAppearanceIndex = plateAppearance.ab_index;
+					newPlateAppearance.result = plateAppearance.result;
+					if(plateAppearance.location) {
+						newPlateAppearance.location = plateAppearance.location.split(',').map(Number);
+					}
+					newPlateAppearance.plateAppearanceIndex = plateAppearance.index;
 					newGame.plateAppearances.push(newPlateAppearance);
 				}
 			}
@@ -178,8 +191,3 @@ function queryPromise(queryString) {
 		});
 	});
 }
-
-
-
-
-	

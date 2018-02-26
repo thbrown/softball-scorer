@@ -3,138 +3,181 @@
 const expose = require( 'expose' );
 
 let STATE = {
-	teams: [ {
-		id: 1,
-		name: 'Pizza Team',
-		picture: '',
-		players: [
-			1,
-			2,
-			3,
-			4,
-			5,
-			6,
-			7,
-			8,
-			9,
-			10
-		],
-		games: [ {
-			id: 1,
-			name: 'Pizza Team vs Upslope',
-			lineup: [
-				4,
-				2,
-				3,
-				1,
-				6,
-				5,
-				10,
-				7,
-				9,
-				8
-			],
-			atbats: [ {
-				atbat_count: 1,
-				player: 4,
-				location: [ 200, 100 ],
-				result: '1'
-			} ]
-		} ]
-	}, {
-		id: 2,
-		name: 'Dance Party Team',
-		picture: '',
-		players: [
-			1,
-			2,
-			3,
-			4,
-			5,
-			6,
-			7,
-			8,
-			9,
-			10
-		],
-		games: [ {
-			id: 2,
-			name: 'Dance Party Team vs Upslope',
-			lineup: [
-				1,
-				2,
-				3,
-				4
-			],
-			atbats: [ {
-				atbat_count: 1,
-				player: 4,
-				location: [ 200, 100 ],
-				result: '1'
-			} ]
-		} ]
-	} ],
-	players: [ {
-		id: 1,
-		name: 'Thomas',
-		picture: '/assets/img/default.png',
-		gender: 'm',
-		stats: {}
-	}, {
-		id: 2,
-		name: 'Benjaminbread',
-		picture: '/assets/img/default.png',
-		gender: 'm',
-		stats: {}
-	}, {
-		id: 3,
-		name: 'Morgan',
-		picture: '/assets/img/default.png',
-		gender: 'f',
-		stats: {}
-	}, {
-		id: 4,
-		name: 'Lauren',
-		picture: '/assets/img/default.png',
-		gender: 'f',
-		stats: {}
-	}, {
-		id: 5,
-		name: 'Katelyn',
-		picture: '/assets/img/default.png',
-		gender: 'f',
-		stats: {}
-	}, {
-		id: 6,
-		name: 'Katie',
-		picture: '/assets/img/default.png',
-		gender: 'f',
-		stats: {}
-	}, {
-		id: 7,
-		name: 'Becca',
-		picture: '/assets/img/default.png',
-		gender: 'f',
-		stats: {}
-	}, {
-		id: 8,
-		name: 'Misha',
-		picture: '/assets/img/default.png',
-		gender: 'm',
-		stats: {}
-	}, {
-		id: 9,
-		name: 'Shane',
-		picture: '/assets/img/default.png',
-		gender: 'm',
-		stats: {}
-	}, {
-		id: 10,
-		name: 'Geoff',
-		picture: '/assets/img/default.png',
-		gender: 'm',
-		stats: {}
-	} ]
+  "players": [
+    {
+      "id": 1,
+      "name": "Harry",
+      "gender": "M",
+      "picture": null
+    },
+    {
+      "id": 2,
+      "name": "Ron",
+      "gender": "M",
+      "picture": null
+    },
+    {
+      "id": 3,
+      "name": "Hermione",
+      "gender": "F",
+      "picture": null
+    },
+    {
+      "id": 4,
+      "name": "Luna",
+      "gender": "F",
+      "picture": null
+    }
+  ],
+  "teams": [
+    {
+      "games": [
+        {
+          "plateAppearances": [
+            {
+              "id": 3,
+              "player_id": 1,
+              "result": "4",
+              "location": [
+                1,
+                2
+              ],
+              "plateAppearanceIndex": 1
+            },
+            {
+              "id": 8,
+              "player_id": 2,
+              "result": "3",
+              "location": [
+                11,
+                12
+              ],
+              "plateAppearanceIndex": 2
+            },
+            {
+              "id": 7,
+              "player_id": 2,
+              "result": "0",
+              "location": [
+                9,
+                10
+              ],
+              "plateAppearanceIndex": 1
+            },
+            {
+              "id": 6,
+              "player_id": 3,
+              "result": "2",
+              "location": [
+                7,
+                8
+              ],
+              "plateAppearanceIndex": 2
+            },
+            {
+              "id": 5,
+              "player_id": 3,
+              "result": "1",
+              "location": [
+                5,
+                6
+              ],
+              "plateAppearanceIndex": 1
+            },
+            {
+              "id": 4,
+              "player_id": 1,
+              "result": "3",
+              "location": [
+                3,
+                4
+              ],
+              "plateAppearanceIndex": 2
+            }
+          ],
+          "id": 1,
+          "opponent": "Upslope",
+          "date": "2008-02-21T07:00:00.000Z",
+          "park": "Stazio",
+          "score_us": 10,
+          "score_them": 9,
+          "lineup": [
+            2,
+            1,
+            3
+          ]
+        },
+        {
+          "plateAppearances": [],
+          "id": 3,
+          "opponent": "Nobody",
+          "date": "2020-01-23T07:00:00.000Z",
+          "park": "Fed Center",
+          "score_us": 1,
+          "score_them": 1,
+          "lineup": [
+            2,
+            1,
+            3
+          ]
+        }
+      ],
+      "id": 1,
+      "name": "Screwballs",
+      "roster": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "games": [
+        {
+          "plateAppearances": [
+            {
+              "id": 10,
+              "player_id": 4,
+              "result": "0",
+              "location": [
+                15,
+                16
+              ],
+              "plateAppearanceIndex": 2
+            },
+            {
+              "id": 9,
+              "player_id": 4,
+              "result": "2",
+              "location": [
+                13,
+                14
+              ],
+              "plateAppearanceIndex": 1
+            }
+          ],
+          "id": 2,
+          "opponent": "Downslope",
+          "date": "2008-03-31T06:00:00.000Z",
+          "park": "Mapleton",
+          "score_us": 11,
+          "score_them": 2,
+          "lineup": [
+            4
+          ]
+        }
+      ],
+      "id": 2,
+      "name": "Mom's Spaghetti",
+      "roster": [
+        4
+      ]
+    },
+    {
+      "games": [],
+      "id": 3,
+      "name": "Empty Team"
+    }
+  ]
 };
 
 exports.getQueryObj = function(){
@@ -197,7 +240,7 @@ exports.getPlayer = function( player_id, state ){
 	}, null );
 };
 
-exports.getAtbat = function( team_id, game_id, player_id, atbat_index ){
+exports.getPlateAppearance = function( team_id, game_id, player_id, plateAppearance_index ){
 	let team = exports.getTeam( team_id );
 	let game = exports.getGame( game_id );
 	let player = exports.getPlayer( player_id );
@@ -205,14 +248,15 @@ exports.getAtbat = function( team_id, game_id, player_id, atbat_index ){
 		return null;
 	}
 
-	for( let atbat of game.atbats ) {
-		if( atbat.player === player.id && atbat.atbat_count === atbat_index ){
-			return atbat;
+	if(plateAppearance.length) {
+		for( let i = 0 ; i < plateAppearance.length; i++) {
+			if( game.plateAppearances[i].player_id === player.id && i === plateAppearance_index ){
+				return game.plateAppearances[i];
+			}
 		}
 	}
 
-	game.atbats.push( {
-		atbat_count: atbat_index,
+	game.plateAppearances.push( {
 		player: player_id,
 		location: false,
 		result: ''
@@ -221,13 +265,13 @@ exports.getAtbat = function( team_id, game_id, player_id, atbat_index ){
 	return null;
 };
 
-exports.updateAtbatResult = function( atbat, result ){
-	atbat.result = result;
+exports.updatePlateAppearanceResult = function( plateAppearance, result ){
+	plateAppearance.result = result;
 	exports.setState( STATE );
 };
 
-exports.updateAtbatLocation = function( atbat, location ){
-	atbat.location = location;
+exports.updatePlateAppearanceLocation = function( plateAppearance, location ){
+	plateAppearance.location = location;
 	exports.setState( STATE );
 };
 
@@ -257,7 +301,7 @@ exports.addTeam = function( team_name ){
 		id: id,
 		name: team_name,
 		picture: '',
-		players: [],
+		roster: [],
 		games: []
 	};
 	new_state.teams.push( team );
@@ -292,7 +336,7 @@ exports.addGame = function( team_id, opposing_team_name ){
 		id: id,
 		name: team.name + " vs " + opposing_team_name,
 		lineup: last_lineup,
-		atbats: []
+		plateAppearances: []
 	};
 	team.games.push( game );
 	exports.setState( new_state );
@@ -306,5 +350,20 @@ exports.removeTeam = function( team_id ){
 	} );
 	exports.setState( new_state );
 };
+
+exports.buildStatsObject = function ( player_id, team_id ) {
+	let state = exports.getState();
+	let team = exports.getTeam( team_id, state );
+	if(team.games) {
+		for(let game = 0; game < team.games.length; game ++) {
+			if(team.games[game].plateAppearances) {
+				for(let plateAppearance = 0; plateAppearance > team.games[game].plateAppearances.length; plateAppearance++) {
+					console.log(team.games.plateAppearances[plateAppearance]);
+				}
+			}
+		}
+	}
+	return {ab:100, avg:.312}
+}
 
 window.state = exports;

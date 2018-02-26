@@ -34,11 +34,11 @@ module.exports = class CardLineup extends expose.Component {
 			} );
 		}.bind( this );
 
-		this.handleBoxClick = function( player, atbat_ct ) {
+		this.handleBoxClick = function( player, plateAppearance_ct ) {
 			expose.set_state( 'main', {
 				page: 'Atbat',
 				player: player.id,
-				atbat: atbat_ct
+				plateAppearance: plateAppearance_ct
 			} );
 		}.bind( this );
 
@@ -99,10 +99,10 @@ module.exports = class CardLineup extends expose.Component {
 
 			let elems = [];
 			for( let i = 0; i < 7; i++ ){
-				let atbat = state.getAtbat( this.props.team.id, this.props.game.id, player.id, i + 1 );
+				let plateAppearance = state.getPlateAppearance( this.props.team.id, this.props.game.id, player.id, i + 1 );
 				let text = '';
-				if( atbat ){
-					text = atbat.result;
+				if( plateAppearance ){
+					text = plateAppearance.result;
 				}
 				elems.push( DOM.div( {
 					key: 'box' + ( i + 1 ),
