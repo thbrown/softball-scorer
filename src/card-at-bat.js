@@ -25,14 +25,14 @@ module.exports = class CardAtBat extends expose.Component {
 		};
 
 		this.handleButtonClick = function( result ) {
-			state.updatePlateAppearanceResult( this.props.PlateAppearance, result );
+			state.updatePlateAppearanceResult( this.props.plateAppearance, result );
 		};
 
-		this.handleDragStart = function( result ) {
+		this.handleDragStart = function() {
 
 		};
 
-		this.handleDragStop = function( result ) {
+		this.handleDragStop = function() {
 			let elem = document.getElementById( 'baseball' );
 			let coords = elem.style.transform.replace( /px/g, '' ).replace( /translate/, '' ).slice( 1, -1 ).split( ',' ).map( i => parseInt( i ) );
 
@@ -59,23 +59,22 @@ module.exports = class CardAtBat extends expose.Component {
 			let new_x = Math.floor( normalize( x, x_left, x_right, 0, 400 ) );
 			let new_y = Math.floor( normalize( y, y_top, y_bottom, 0, 400 ) );
 
-			state.updatePlateAppearanceLocation( this.props.PlateAppearance, [ new_x, new_y ] );
+			state.updatePlateAppearanceLocation( this.props.plateAppearance, [ new_x, new_y ] );
 		};
 	}
 
 	renderButtonList(){
-		if( !this.props.game || !this.props.team || !this.props.player || !this.props.PlateAppearance ) {
-			console.log( 'game:', this.props.game, 'team:', this.props.team, 'player:', this.props.player, 'PlateAppearance:', this.props.PlateAppearance );
+		if( !this.props.game || !this.props.team || !this.props.player || !this.props.plateAppearance ) {
 			return DOM.div( { className: 'page-error' }, 'PlateAppearance: No game or team or player or PlateAppearance exists.' );
 		}
 
-		let elems = [ '', '0', '1', '2', '3', '4i', '4o', 'BB', 'E' ].map( ( result ) => {
+		let elems = [ '', '0', '1', '2', '3', '4i', '4o', 'BB', 'E' ].map( ( result, i ) => {
 			return DOM.div( {
-				key: result + ' ' + result,
+				key: i + ' ' + result,
 				className: 'result-button',
 				onClick: this.handleButtonClick.bind( this, result ),
 				style: {
-					backgroundColor: this.props.PlateAppearance.result === result ? css.colors.CANCEL : null
+					backgroundColor: this.props.plateAppearance.result === result ? css.colors.CANCEL : null
 				}
 			}, result );
 		} );
@@ -91,9 +90,9 @@ module.exports = class CardAtBat extends expose.Component {
 	renderField(){
 		let x = -1;
 		let y = -1;
-		if( this.props.PlateAppearance.location ){
-			x = this.props.PlateAppearance.location[ 0 ];
-			y = this.props.PlateAppearance.location[ 1 ];
+		if( this.props.plateAppearance.location ){
+			x = this.props.plateAppearance.location[ 0 ];
+			y = this.props.plateAppearance.location[ 1 ];
 		}
 
 		let new_x = Math.floor( normalize( x, 0, 400, 0, window.innerWidth ) );
@@ -130,8 +129,6 @@ module.exports = class CardAtBat extends expose.Component {
 			key: 'baseball',
 			axis: 'both',
 			allowAnyClick: true,
-			//handle: '.handle',
-			//defaultPosition: { x: 0, y: 0 },
 			position: { x: 0, y: 0 },
 			grid: [ 1, 1 ],
 			onStart: this.handleDragStart.bind( this ),
@@ -172,7 +169,7 @@ module.exports = class CardAtBat extends expose.Component {
 				DOM.div( {
 					style: {
 					}
-				}, this.props.player.name + ' #' + this.props.PlateAppearance.PlateAppearance_count )
+				}, this.props.player.name + ' #' + this.props.plateAppearance.plateAppearanceIndex )
 			),
 			DOM.div( { style: { height: '40px', lineHeight: '35px' } }, 'Result:' ),
 			this.renderButtonList(),

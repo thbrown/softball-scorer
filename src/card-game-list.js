@@ -54,7 +54,7 @@ module.exports = class CardGameList extends expose.Component {
 					style: {
 						maxWidth: '300px'
 					}
-				}, game.name ),
+				}, 'Opp. ' + game.opponent ),
 				DOM.div( {
 					className: 'delete-button',
 					onClick: this.handleDeleteClick.bind( this, game )
