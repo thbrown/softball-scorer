@@ -73,7 +73,7 @@ module.exports = class CardLineup extends expose.Component {
 
 		let elems = this.props.game.lineup.map( ( player_id ) => {
 			let player = state.getPlayer( player_id );
-
+			
 			let player_name = DOM.div( {
 				key: 'name',
 				className: 'handle',
@@ -104,6 +104,7 @@ module.exports = class CardLineup extends expose.Component {
 				if( plateAppearance ){
 					text = plateAppearance.result;
 				}
+				
 				elems.push( DOM.div( {
 					key: 'box' + ( i + 1 ),
 					onClick: this.handleBoxClick.bind( this, player, i + 1 ),
@@ -122,6 +123,7 @@ module.exports = class CardLineup extends expose.Component {
 					justifyContent: 'flex-start'
 				}
 			}, elems );
+				
 
 			let div = DOM.div( {
 				id: 'lineup_' + player.id,
@@ -137,6 +139,7 @@ module.exports = class CardLineup extends expose.Component {
 				boxes,
 				del
 			);
+
 
 			return React.createElement( Draggable, {
 				key: 'lineup-draggable' + player.id,

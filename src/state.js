@@ -33,7 +33,7 @@ let STATE = {
 					"plateAppearances": [ {
 							"id": 3,
 							"player_id": 1,
-							"result": "4",
+							"result": "4i",
 							"location": [
 								1,
 								2
@@ -252,16 +252,29 @@ exports.getPlateAppearance = function( team_id, game_id, player_id, pa_index ) {
 	let obj = {
 		"player_id": player_id,
 		"result": '',
-		"location": [
-			0,
-			0
-		],
+		"location": [],
 		"plateAppearanceIndex": pa_index
 	};
 
 	game.plateAppearances.push( obj );
 
 	return obj;
+
+};
+
+exports.getPlateAppearances = function( team_id, player_id ) {
+	let team = exports.getTeam( team_id );
+	let plateAppearances = [];
+
+	if ( team.games ) {
+		team.games.forEach( game => {
+			if ( game.plateAppearances ) {
+				const plateAppearancesThisGame = game.plateAppearances.filter(pa => player_id == pa.player_id);
+				plateAppearances = plateAppearances.concat(plateAppearancesThisGame);
+			}
+		});
+	}
+	return plateAppearances;
 };
 
 exports.updatePlateAppearanceResult = function( plateAppearance, result ) {
@@ -333,7 +346,7 @@ exports.addGame = function( team_id, opposing_team_name ) {
 	}
 	let game = {
 		id: id,
-		name: team.name + " vs " + opposing_team_name,
+		opponent: opposing_team_name,
 		lineup: last_lineup,
 		plateAppearances: []
 	};
@@ -350,19 +363,67 @@ exports.removeTeam = function( team_id ) {
 	exports.setState( new_state );
 };
 
-exports.buildStatsObject = function( player_id, team_id ) {
+exports.buildStatsObject = function( team_id, player_id ) {
 	let state = exports.getState();
 	let team = exports.getTeam( team_id, state );
-	if ( team.games ) {
-		for ( let game = 0; game < team.games.length; game++ ) {
-			if ( team.games[ game ].plateAppearances ) {
-				for ( let plateAppearance = 0; plateAppearance > team.games[ game ].plateAppearances.length; plateAppearance++ ) {
-					console.log( team.games.plateAppearances[ plateAppearance ] );
+
+	let stats = {};
+	stats.plateAppearances = 0;
+	stats.totalBasesByHit = 0;
+	stats.atBats = 0;
+	stats.hits = 0;
+	stats.doubles = 0;
+	stats.triples = 0;
+	stats.insideTheParkHR = 0;
+	stats.outsideTheParkHR = 0;
+	stats.reachsOnError = 0;
+	stats.walks = 0;
+
+	let plateAppearances = exports.getPlateAppearances(team_id, player_id);
+
+	plateAppearances.forEach( pa => {
+		if(pa.result) {
+			stats.plateAppearances++;
+			if(pa.result == "BB") {
+				stats.walks++; // Boo!
+			} else {
+				stats.atBats++;
+				if(pa.result == "E") {
+					stats.reachsOnError++;
+				} else if (pa.result == 0) {
+					// Intantionally blank
+				} else {
+					stats.hits++;
+					if(pa.result == "1") {
+						stats.totalBasesByHit++;
+					} else if(pa.result == "2") {
+						stats.doubles++;
+						stats.totalBasesByHit += 2;
+					} else if(pa.result == "3") {
+						stats.triples++;
+						stats.totalBasesByHit += 3;
+					} else if(pa.result == "4i") {
+						stats.insideTheParkHR++;
+						stats.totalBasesByHit += 4;
+					} else if(pa.result == "4o") {
+						stats.outsideTheParkHR++;
+						stats.totalBasesByHit += 4;
+					} 
 				}
 			}
 		}
+	});
+
+	if(stats.atBats != 0) {
+		stats.battingAverage = (stats.hits/stats.atBats).toFixed(3);
+		stats.sluggingPercentage = (stats.totalBasesByHit/stats.atBats).toFixed(3);
+	} else {
+		stats.battingAverage = "-";
+		stats.sluggingPercentage = "-";
 	}
-	return { ab: 100, avg: .312 };
+
+
+	return stats;
 };
 
 window.state = exports;

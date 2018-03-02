@@ -17,13 +17,12 @@ module.exports = class CardPlayerList extends expose.Component {
 	renderPlayerList(){
 		console.log("Rendering player list");
 		const s = state.getState();
-		let elems = s.players.filter( ( player ) => {
+		let players = s.players.filter( ( player ) => {
 			return this.props.team.games.reduce( ( result, game ) => {
 				return result || game.lineup.indexOf( player.id ) > -1;
 			}, false );
 		} ).map( ( player ) => {
-			console.log(player);
-			let stats = state.buildStatsObject(player.id, this.props.team.id);
+			let stats = state.buildStatsObject(this.props.team.id, player.id);
 			return DOM.div( {
 				player_id: player.id,
 				key: 'player' + player.id,
@@ -32,19 +31,96 @@ module.exports = class CardPlayerList extends expose.Component {
 			},
 				DOM.div( {
 					style: {
-						width: '200px'
+						width: '100px'
 					}
 				}, player.name ),
 				DOM.div( {
 					style: {
 					}
-				}, stats.avg ),
+				}, stats.battingAverage ),
 				DOM.div( {
 					style: {
 					}
-				}, stats.ab )
+				}, stats.atBats ),
+				DOM.div( {
+					style: {
+					}
+				}, stats.sluggingPercentage ),
+				DOM.div( {
+					style: {
+					}
+				}, stats.doubles ),
+				DOM.div( {
+					style: {
+					}
+				}, stats.triples ),
+				DOM.div( {
+					style: {
+					}
+				}, stats.insideTheParkHR ),
+				DOM.div( {
+					style: {
+					}
+				}, stats.outsideTheParkHR ),
+				DOM.div( {
+					style: {
+					}
+				}, stats.walks ),
+				DOM.div( {
+					style: {
+					}
+				}, stats.reachsOnError )
 			);
 		} );
+
+		let header = DOM.div( {
+					key: 'header',
+					className: 'table-row',
+				}, DOM.span( {
+					style: {
+						width: '100px'
+					}
+				}, "Name" ),
+				DOM.span( {
+					style: {
+					}
+				}, "BA" ),
+				DOM.span( {
+					style: {
+					}
+				}, "AB" ),
+				DOM.span( {
+					style: {
+					}
+				}, "SLG" ),
+				DOM.div( {
+					style: {
+					}
+				}, "2B" ),
+				DOM.div( {
+					style: {
+					}
+				}, "3B" ),
+				DOM.div( {
+					style: {
+					}
+				}, "HRI" ),
+				DOM.div( {
+					style: {
+					}
+				}, "HRO" ),
+				DOM.div( {
+					style: {
+					}
+				}, "BB" ),
+				DOM.div( {
+					style: {
+					}
+				}, "ROE" ));
+
+		let elems = [];
+		elems.push(header);
+		elems.push(players);
 
 		return DOM.div( {
 
