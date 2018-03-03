@@ -19,10 +19,11 @@ body {
 }
 
 .back-arrow {
-  padding-left: 8px;
-  padding-top: 12px;
-  height: 40px;
-  width: 40px;
+  position: absolute;
+  left: 0;
+  padding: 9px 8px 0 8px;
+  height: $css.sizes.BACK_ARROW;
+  width: $css.sizes.BACK_ARROW;
 }
 
 .card-title {
@@ -107,28 +108,37 @@ body {
 
 /* Dialog styles */
 
-.confirm-dialog {
+.dialog {
   position: absolute;
-  width: calc( 100% - 8px );
+  width: calc( 100% - 40px );
   top: 200px;
   background-color: $css.colors.PRIMARY_LIGHT;
   border: 4px solid $css.colors.SECONDARY_DARK;
   border-radius: 8px;
   color: $css.colors.TEXT_DARK;
+  padding: 16px;
 }
 
 .dialog-text {
-  padding: 18px;
-  min-height: 50px;
   font-size: 18px;
   color: $css.colors.TEXT_DARK;
+}
+
+.dialog-input-box {
+  background-color: $css.colors.WHITE;
+  border-radius: 4px;
+  color: $css.colors.TEXT_DARK;
+  font-size: 18px;
+  margin-top: 24px;
+  padding: 8px;
+  width: calc(100% - 18px);
 }
 
 .dialog-button {
   border-radius: 4px;
   cursor: pointer;
   font-size: 18px;
-  margin: 8px;
+  margin: 24px 8px 0 8px;
   padding: 12px;
   text-align: center;
   width: 80px;

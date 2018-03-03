@@ -168,21 +168,12 @@ module.exports = class CardLineup extends expose.Component {
 			},
 			DOM.div( {
 				className: 'card-title',
-				style: {
-				}
 			},
-				DOM.div( {
+			DOM.img( {
+					src: 'assets/ic_arrow_back_white_36dp_1x.png',
+					className: 'back-arrow',
 					onClick: this.handleBackClick,
-					dangerouslySetInnerHTML: {
-						__html: '&#9664;'
-					},
-					style: {
-						float: 'left',
-						width: '0px',
-						padding: '4px',
-						fontSize: '32px',
-					}
-				} ),
+				}),
 				DOM.div( {
 					style: {
 					}

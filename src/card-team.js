@@ -46,10 +46,6 @@ module.exports = class CardTeam extends expose.Component {
 			},
 			DOM.div( {
 				className: 'card-title',
-				style: {
-					display: 'flex',
-					justifyContent: 'space-between'
-				}
 			},
 				DOM.img( {
 					src: 'assets/ic_arrow_back_white_36dp_1x.png',
@@ -57,19 +53,28 @@ module.exports = class CardTeam extends expose.Component {
 					onClick: this.handleBackClick,
 				}),
 				DOM.div( {
-					onClick: this.handleTabClick.bind( this, 'players' ),
 					style: {
-						width: '45%',
-						borderBottom: this.state.tab === 'players' ? '5px solid ' + css.colors.TEXT_LIGHT : 'none',
+						display: 'flex',
+						justifyContent: 'space-between',
+						// Adjusting for back-arrow.
+						marginLeft: '60px',
 					}
-				}, 'Players' ),
-				DOM.div( {
-					onClick: this.handleTabClick.bind( this, 'games' ),
-					style: {
-						width: '45%',
-						borderBottom: this.state.tab === 'games' ? '5px solid ' + css.colors.TEXT_LIGHT : 'none',
-					}
-				}, 'Games' )
+				},
+					DOM.div( {
+						onClick: this.handleTabClick.bind( this, 'players' ),
+						style: {
+							width: '50%',
+							borderBottom: this.state.tab === 'players' ? '5px solid ' + css.colors.TEXT_LIGHT : 'none',
+						}
+					}, 'Players' ),
+					DOM.div( {
+						onClick: this.handleTabClick.bind( this, 'games' ),
+						style: {
+							width: '50%',
+							borderBottom: this.state.tab === 'games' ? '5px solid ' + css.colors.TEXT_LIGHT : 'none',
+						}
+					}, 'Games' )
+				),
 			),
 			subcard
 		);

@@ -17,21 +17,10 @@ module.exports = class NotificationDialog extends React.Component {
 
 	render() {
 		return DOM.div( {
-			style: {
-				position: 'absolute',
-				width: 'calc( 100% - 8px )',
-				top: '200px',
-				backgroundColor: css.colors.PRIMARY_ALT,
-				border: '4px solid ' + css.colors.SECONDARY,
-				color: css.colors.TEXT_DARK
-			}
+			className: 'dialog'
 		},
 			DOM.div( {
-				style: {
-					padding: '5px',
-					minHeight: '50px',
-					fontSize: '18px'
-				}
+				className: 'dialog-text',
 			}, this.props.text ),
 			DOM.div( {
 				style: {
@@ -40,11 +29,11 @@ module.exports = class NotificationDialog extends React.Component {
 				}
 			},
 				DOM.div( {
-					className: 'confirm-button',
+					className: 'dialog-button confirm-button',
 					onClick: this.handleConfirmClick
 				}, DOM.span( {
 					className: 'no-select'
-				}, 'Okay' ) )
+				}, 'Got it' ) )
 			)
 		);
 	}

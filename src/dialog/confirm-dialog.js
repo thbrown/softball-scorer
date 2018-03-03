@@ -21,7 +21,7 @@ module.exports = class ConfirmDialog extends React.Component {
 
 	render() {
 		return DOM.div( {
-			className: 'confirm-dialog',
+			className: 'dialog',
 		},
 			DOM.div( {
 				className: 'dialog-text',

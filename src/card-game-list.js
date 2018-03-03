@@ -28,7 +28,7 @@ module.exports = class CardGameList extends expose.Component {
 		};
 
 		this.handleCreateClick = function(){
-			dialog.show_input( 'Other Team Name', ( opposing_team_name ) => {
+			dialog.show_input( 'Opponent Name', ( opposing_team_name ) => {
 				let game = state.addGame( this.props.team.id, opposing_team_name );
 				expose.set_state( 'main', {
 					page: 'Lineup',
