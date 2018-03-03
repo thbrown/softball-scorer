@@ -14,7 +14,7 @@ module.exports = class CardGameList extends expose.Component {
 		this.state = {};
 
 		this.handleDeleteClick = function( game, ev ){
-			dialog.show_confirm( 'Are you sure you want to delete the game "' + game.name + '"?', () => {
+			dialog.show_confirm( 'Are you sure you want to delete the game vs "' + game.opponent + '"?', () => {
 				state.removeGame( game.id, this.props.team.id );
 			} );
 			ev.stopPropagation();

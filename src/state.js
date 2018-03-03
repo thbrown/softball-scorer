@@ -206,6 +206,24 @@ exports.removeTeam = function( team_id ) {
 	exports.setState( new_state );
 };
 
+exports.removeGame = function( game_id, team_id ) {
+	let new_state = exports.getState();
+	let team = exports.getTeam( team_id );
+	var index = new_state.teams.indexOf(team);
+
+	team.games = team.games.filter( game => {
+		return game.id !== game_id;
+	} );
+
+	if (index > -1) {
+    	new_state.teams[index] = team;
+	} else {
+		console.log("Game not found " + game_id);
+	}
+
+	exports.setState( new_state );
+};
+
 exports.buildStatsObject = function( team_id, player_id ) {
 	let state = exports.getState();
 	let team = exports.getTeam( team_id, state );
