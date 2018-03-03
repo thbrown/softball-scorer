@@ -9,9 +9,6 @@ body {
   box-sizing: border-box;
 }
 
-.handle {
-}
-
 .page-error {
   text-align: center;
   font-size: 24px;
@@ -58,6 +55,8 @@ body {
 
 .delete-button {
   cursor: pointer;
+  height: 28px;
+  width: 28px;
 }
 
 .table-row {
@@ -73,18 +72,31 @@ body {
 }
 
 .lineup-row {
-  padding: 4px 0px;
-  display: flex;
-  justify-content: space-around;
-  font-size: 16px;
+  background-color: $css.colors.SECONDARY;
+  border-radius: 4px;
   color: $css.colors.TEXT_LIGHT;
-  background-color: $css.colors.PRIMARY;
+  display: flex;
+  font-size: 18px;
+  justify-content: space-around;
+  margin: 10px;
+  padding: 10px 10px;
+}
+
+.player-name {
+  color: $css.colors.TEXT_LIGHT;
+  font-size: 18px;
+  line-height: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 64px;
 }
 
 .lineup-box {
   background-color: white;
+  color: $css.colors.TEXT_DARK;
   width: 38px;
   height: 40px;
+  line-height: 40px;
   border-top: 1px solid $css.colors.TEXT_DARK;
   border-bottom: 1px solid $css.colors.TEXT_DARK;
   border-right: 1px solid $css.colors.TEXT_DARK;
@@ -96,14 +108,13 @@ body {
 }
 
 .result-button {
-  width: 40px;
-  padding: 5px;
+  width: 48px;
+  padding: 12px;
   color: $css.colors.TEXT_LIGHT;
-  background-color: $css.colors.PRIMARY;
-  border: 1px solid $css.colors.SECONDARY;
-  border-radius: 5px;
+  border: 2px solid $css.colors.SECONDARY;
+  border-radius: 4px;
   text-align: center;
-  font-size: 14px;
+  font-size: 18px;
 }
 
 /* Dialog styles */

@@ -76,27 +76,17 @@ module.exports = class CardLineup extends expose.Component {
 			
 			let player_name = DOM.div( {
 				key: 'name',
-				className: 'handle',
-				style: {
-					color: 'white',
-					fontSize: '14px',
-					width: '64px',
-					overflow: 'hidden',
-					textOverflow: 'ellipsis'
-				}
+				className: 'player-name',
 			}, player.name );
 
-			let del = DOM.div( {
-				key: 'del',
-				className: 'delete-button',
-				onClick: this.handleDeleteClick.bind( this, player ),
-				style: {
-					fontSize: '16px',
-					lineHeight: '40px',
-					padding: '2px'
-				}
-			}, 'X' );
-
+			let del = DOM.img( {
+					src: 'assets/ic_close_white_24dp_1x.png',
+					className: 'delete-button',
+					style: {
+					  paddingTop: '6px',
+					},
+					onClick: this.handleDeleteClick.bind( this, player )
+				});
 			let elems = [];
 			for( let i = 0; i < 7; i++ ){
 				let plateAppearance = state.getPlateAppearance( this.props.team.id, this.props.game.id, player.id, i + 1 );
@@ -109,11 +99,6 @@ module.exports = class CardLineup extends expose.Component {
 					key: 'box' + ( i + 1 ),
 					onClick: this.handleBoxClick.bind( this, player, i + 1 ),
 					className: 'lineup-box',
-					style: {
-						textAlign: 'center',
-						color: 'black',
-						lineHeight: '40px'
-					}
 				}, DOM.div( {}, text ) ) );
 			}
 
@@ -130,10 +115,6 @@ module.exports = class CardLineup extends expose.Component {
 				key: 'lineup' + player.id,
 				className: 'lineup-row',
 				//onClick: this.handleButtonClick.bind( this, team )
-				style: {
-					display: 'flex',
-					justifyContent: 'space-around'
-				}
 			},
 				player_name,
 				boxes,

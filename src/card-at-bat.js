@@ -68,7 +68,7 @@ module.exports = class CardAtBat extends expose.Component {
 			return DOM.div( { className: 'page-error' }, 'PlateAppearance: No game or team or player or PlateAppearance exists.' );
 		}
 
-		let elems = [ '', '0', '1', '2', '3', '4i', '4o', 'BB', 'E' ].map( ( result, i ) => {
+		let elems = [ '', 'Out', '1B', '2B', '3B', 'HRi', 'HRo', 'BB', 'E', 'FC' ].map( ( result, i ) => {
 			return DOM.div( {
 				key: i + ' ' + result,
 				className: 'result-button',
@@ -79,12 +79,22 @@ module.exports = class CardAtBat extends expose.Component {
 			}, result );
 		} );
 
-		return DOM.div( {
-			style: {
-				display: 'flex',
-				justifyContent: 'space-around'
-			}
-		}, elems );
+		return DOM.div( {},
+			DOM.div( {
+				style: {
+					display: 'flex',
+					justifyContent: 'space-around',
+					margin: '4px',
+				}
+			}, elems.slice(0, 5) ),
+			DOM.div( {
+				style: {
+					display: 'flex',
+					justifyContent: 'space-around',
+					margin: '4px',
+				}
+			}, elems.slice(5, elems.length) ),
+		);
 	}
 
 	renderField(){
@@ -138,7 +148,7 @@ module.exports = class CardAtBat extends expose.Component {
 			draggable: true,
 			src: 'assets/baseball.png',
 			style: {
-				width: '100px'
+				width: '75px'
 			}
 		} ) );
 	}
@@ -162,11 +172,9 @@ module.exports = class CardAtBat extends expose.Component {
 				DOM.div( {
 					style: {
 					}
-				}, this.props.player.name + ' #' + this.props.plateAppearance.plateAppearanceIndex )
+				}, this.props.player.name + ' PA #' + this.props.plateAppearance.plateAppearanceIndex )
 			),
-			DOM.div( { style: { height: '40px', lineHeight: '35px' } }, 'Result:' ),
 			this.renderButtonList(),
-			DOM.div( { style: { height: '40px' } } ),
 			this.renderField(),
 			this.renderBaseball()
 		);
