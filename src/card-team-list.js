@@ -47,22 +47,19 @@ module.exports = class CardTeamList extends expose.Component {
 					justifyContent: 'space-between'
 				}
 			},
-				DOM.p( {}, team.name ),
-				DOM.p( {
+				DOM.div( {}, team.name ),
+				DOM.img( {
+					src: 'assets/ic_close_white_24dp_1x.png',
 					className: 'delete-button',
 					onClick: this.handleDeleteClick.bind( this, team )
-				}, 'X' )
+				})
 			);
 		} );
 
 		elems.push( DOM.div( {
 			key: 'newteam',
-			className: 'list-item',
+			className: 'list-item add-list-item',
 			onClick: this.handleCreateClick,
-			style: {
-				backgroundColor: css.colors.BG,
-				color: 'gray',
-			}
 		}, '+ Add New Team' ) );
 
 		return DOM.div( {

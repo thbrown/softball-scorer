@@ -1,6 +1,6 @@
 body {
-  background: $css.colors.BG;
-  color: $css.colors.TEXT_LIGHT;
+  background: $css.colors.PRIMARY;
+  color: $css.colors.TEXT_DARK;
   position: absolute;
   width: 100%;
   margin: 0px;
@@ -18,53 +18,23 @@ body {
   padding: 5px;
 }
 
-.confirm-button {
-  background-color: $css.colors.CONFIRM;
-  padding: 5px;
-  width: 80px;
-  margin: 5px;
-  text-align: center;
-  cursor: pointer;
-  color: $css.colors.TEXT_LIGHT;
-}
-
-.confirm-button:hover {
-  background-color: rgb( 50%, 50%, 50%);
-}
-
-.cancel-button {
-  background-color: $css.colors.CANCEL;
-  padding: 5px;
-  width: 80px;
-  margin: 5px;
-  text-align: center;
-  cursor: pointer;
-  color: $css.colors.TEXT_LIGHT;
-}
-
-.cancel-button:hover {
-  background-color: rgb( 50%, 50%, 50%);
-}
-
-.delete-button {
-	color: #f55;
-	font-size: 24px;
-}
-.delete-button:hover {
-	filter: brightness(125%);
+.back-arrow {
+  padding-left: 8px;
+  padding-top: 12px;
+  height: 40px;
+  width: 40px;
 }
 
 .card-title {
 	width: 100%;
 	font-weight: bold;
 	color: $css.colors.TEXT_LIGHT;
-	background-color: $css.colors.SECONDARY;
-	border-bottom: 4px solid $css.colors.SECONDARY_ALT;
+	background-color: $css.colors.PRIMARY_DARK;
 	margin-bottom: 2px;
-	font-size: 24px;
+	font-size: 32px;
 	text-align: center;
-  line-height: 50px;
-  min-height: 52px;
+  line-height: 58px;
+  min-height: 58px;
 }
 
 .list-item {
@@ -72,13 +42,21 @@ body {
 	margin: 10px;
 	border-radius: 4px;
   color: $css.colors.TEXT_LIGHT;
-	border: 1px solid $css.colors.PRIMARY_ALT;
-	background-color: $css.colors.PRIMARY;
+	background-color: $css.colors.SECONDARY;
 	font-size: 24px;
 }
 
-.list-item:hover {
-	filter: brightness(125%);
+.list-item:hover, .list-item:active {
+	background-color: $css.colors.SECONDARY_LIGHT;
+}
+
+.add-list-item {
+  background-color: $css.colors.PRIMARY_DARK;
+  color: $css.colors.TEXT_LIGHT;
+}
+
+.delete-button {
+  cursor: pointer;
 }
 
 .table-row {
@@ -90,7 +68,7 @@ body {
   width: calc( 100% - 20px );
   color: $css.colors.TEXT_LIGHT;
   background-color: $css.colors.PRIMARY;
-  border-bottom: 1px solid $css.colors.PRIMARY_ALT;
+  border-bottom: 1px solid $css.colors.SECONDARY;
 }
 
 .lineup-row {
@@ -112,7 +90,7 @@ body {
   text-align: center;
 }
 
-.lineup-box:hover {
+.lineup-box:hover, .lineup-box:active {
   filter: brightness(75%);
 }
 
@@ -121,10 +99,57 @@ body {
   padding: 5px;
   color: $css.colors.TEXT_LIGHT;
   background-color: $css.colors.PRIMARY;
-  border: 1px solid $css.colors.PRIMARY_ALT;
+  border: 1px solid $css.colors.SECONDARY;
   border-radius: 5px;
   text-align: center;
   font-size: 14px;
+}
+
+/* Dialog styles */
+
+.confirm-dialog {
+  position: absolute;
+  width: calc( 100% - 8px );
+  top: 200px;
+  background-color: $css.colors.PRIMARY_LIGHT;
+  border: 4px solid $css.colors.SECONDARY_DARK;
+  border-radius: 8px;
+  color: $css.colors.TEXT_DARK;
+}
+
+.dialog-text {
+  padding: 18px;
+  min-height: 50px;
+  font-size: 18px;
+  color: $css.colors.TEXT_DARK;
+}
+
+.dialog-button {
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 18px;
+  margin: 8px;
+  padding: 12px;
+  text-align: center;
+  width: 80px;
+}
+
+.confirm-button {
+  background-color: $css.colors.SECONDARY;
+  color: $css.colors.TEXT_LIGHT;
+}
+
+.confirm-button:hover, .confirm-button:active {
+  background-color: $css.colors.SECONDARY_DARK;
+}
+
+.cancel-button {
+  background-color: $css.colors.SECONDARY_LIGHT;
+  color: $css.colors.TEXT_LIGHT;
+}
+
+.cancel-button:hover, .cancel-button:active {
+  background-color: $css.colors.SECONDARY_DARK;
 }
 
 .no-select {

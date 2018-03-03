@@ -21,21 +21,10 @@ module.exports = class ConfirmDialog extends React.Component {
 
 	render() {
 		return DOM.div( {
-			style: {
-				position: 'absolute',
-				width: 'calc( 100% - 8px )',
-				top: '200px',
-				backgroundColor: css.colors.PRIMARY_ALT,
-				border: '4px solid ' + css.colors.SECONDARY,
-				color: css.colors.TEXT_DARK
-			}
+			className: 'confirm-dialog',
 		},
 			DOM.div( {
-				style: {
-					padding: '5px',
-					minHeight: '50px',
-					fontSize: '18px'
-				}
+				className: 'dialog-text',
 			}, this.props.text ),
 			DOM.div( {
 				style: {
@@ -44,17 +33,17 @@ module.exports = class ConfirmDialog extends React.Component {
 				}
 			},
 				DOM.div( {
-					className: 'confirm-button',
+					className: 'dialog-button confirm-button',
 					onClick: this.handleConfirmClick
 				}, DOM.span( {
 					className: 'no-select'
 				}, 'Yes' ) ),
 				DOM.div( {
-					className: 'cancel-button',
+					className: 'dialog-button cancel-button',
 					onClick: this.handleCancelClick
 				}, DOM.span( {
 					className: 'no-select'
-				}, 'No' ) )
+				}, 'Cancel' ) )
 			)
 		);
 	}

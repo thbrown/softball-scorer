@@ -54,22 +54,19 @@ module.exports = class CardGameList extends expose.Component {
 					style: {
 						maxWidth: '300px'
 					}
-				}, 'Opp. ' + game.opponent ),
-				DOM.div( {
+				}, 'Vs. ' + game.opponent ),
+				DOM.img( {
+					src: 'assets/ic_close_white_24dp_1x.png',
 					className: 'delete-button',
 					onClick: this.handleDeleteClick.bind( this, game )
-				}, 'X' )
+				})
 			);
 		} );
 
 		elems.push( DOM.div( {
 			key: 'newteam',
-			className: 'list-item',
+			className: 'list-item add-list-item',
 			onClick: this.handleCreateClick,
-			style: {
-				backgroundColor: css.colors.BG,
-				color: 'gray',
-			}
 		}, '+ Add New Game' ) );
 
 		return DOM.div( {
