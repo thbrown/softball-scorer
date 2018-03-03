@@ -2,176 +2,19 @@
 
 const expose = require( 'expose' );
 
-let STATE = {
-	"players": [ {
-			"id": 1,
-			"name": "Harry",
-			"gender": "M",
-			"picture": null
-		},
-		{
-			"id": 2,
-			"name": "Ron",
-			"gender": "M",
-			"picture": null
-		},
-		{
-			"id": 3,
-			"name": "Hermione",
-			"gender": "F",
-			"picture": null
-		},
-		{
-			"id": 4,
-			"name": "Luna",
-			"gender": "F",
-			"picture": null
-		}
-	],
-	"teams": [ {
-			"games": [ {
-					"plateAppearances": [ {
-							"id": 3,
-							"player_id": 1,
-							"result": "4i",
-							"location": [
-								1,
-								2
-							],
-							"plateAppearanceIndex": 1
-						},
-						{
-							"id": 8,
-							"player_id": 2,
-							"result": "3",
-							"location": [
-								11,
-								12
-							],
-							"plateAppearanceIndex": 2
-						},
-						{
-							"id": 7,
-							"player_id": 2,
-							"result": "0",
-							"location": [
-								9,
-								10
-							],
-							"plateAppearanceIndex": 1
-						},
-						{
-							"id": 6,
-							"player_id": 3,
-							"result": "2",
-							"location": [
-								7,
-								8
-							],
-							"plateAppearanceIndex": 2
-						},
-						{
-							"id": 5,
-							"player_id": 3,
-							"result": "1",
-							"location": [
-								5,
-								6
-							],
-							"plateAppearanceIndex": 1
-						},
-						{
-							"id": 4,
-							"player_id": 1,
-							"result": "3",
-							"location": [
-								3,
-								4
-							],
-							"plateAppearanceIndex": 2
-						}
-					],
-					"id": 1,
-					"opponent": "Upslope",
-					"date": "2008-02-21T07:00:00.000Z",
-					"park": "Stazio",
-					"score_us": 10,
-					"score_them": 9,
-					"lineup": [
-						2,
-						1,
-						3
-					]
-				},
-				{
-					"plateAppearances": [],
-					"id": 3,
-					"opponent": "Nobody",
-					"date": "2020-01-23T07:00:00.000Z",
-					"park": "Fed Center",
-					"score_us": 1,
-					"score_them": 1,
-					"lineup": [
-						2,
-						1,
-						3
-					]
-				}
-			],
-			"id": 1,
-			"name": "Screwballs",
-			"roster": [
-				1,
-				2,
-				3
-			]
-		},
-		{
-			"games": [ {
-				"plateAppearances": [ {
-						"id": 10,
-						"player_id": 4,
-						"result": "0",
-						"location": [
-							15,
-							16
-						],
-						"plateAppearanceIndex": 2
-					},
-					{
-						"id": 9,
-						"player_id": 4,
-						"result": "2",
-						"location": [
-							13,
-							14
-						],
-						"plateAppearanceIndex": 1
-					}
-				],
-				"id": 2,
-				"opponent": "Downslope",
-				"date": "2008-03-31T06:00:00.000Z",
-				"park": "Mapleton",
-				"score_us": 11,
-				"score_them": 2,
-				"lineup": [
-					4
-				]
-			} ],
-			"id": 2,
-			"name": "Mom's Spaghetti",
-			"roster": [
-				4
-			]
-		},
-		{
-			"games": [],
-			"id": 3,
-			"name": "Empty Team"
-		}
-	]
-};
+let STATE = {};
+
+exports.updateState = function(callback) {
+	var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+            STATE = JSON.parse(xmlHttp.responseText);
+            callback();
+        }
+    }
+    xmlHttp.open("GET", "http://localhost:8888/state", true);
+    xmlHttp.send(null);
+}
 
 exports.getQueryObj = function() {
 	let queryString = window.location.search || '';

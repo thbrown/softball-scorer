@@ -10,6 +10,7 @@ if ( process.argv.length !== 4 && process.argv.length !== 2 ) {
 	console.log( 'Usage: ' + __filename + ' <username> <password>' );
 	process.exit( -1 );
 } else if ( process.argv.length === 2 ) {
+	console.log( 'Warning: running without database connection' );
 	USE_PG = false;
 }
 
@@ -67,7 +68,7 @@ http_server.post( 'test', ( obj, resp, data ) => {
 
 http_server.get( 'state', ( obj, resp ) => {
 	if( !USE_PG ) {
-		return http_server.reply( resp, { error: 'PG Not enabled on server' } );
+		return http_server.reply( resp, SAMPLE_STATE );
 	}
 
 	getStatePromise().then( function( result ) { http_server.reply( resp, result ); } );
@@ -75,7 +76,7 @@ http_server.get( 'state', ( obj, resp ) => {
 
 http_server.get( 'state_debug', ( obj, resp ) => {
 	if( !USE_PG ) {
-		return http_server.reply( resp, { error: 'PG Not enabled on server' } );
+		return http_server.reply( resp, JSON.stringify(SAMPLE_STATE, null, 2 ));
 	}
 
 	getStatePromise().then( function( result ) { http_server.reply( resp, JSON.stringify( result, null, 2 ) ); } );
@@ -148,6 +149,8 @@ function getStatePromise() {
 					newTeam.name = plateAppearance.team_name;
 					if ( plateAppearance.roster ) {
 						newTeam.roster = plateAppearance.roster.split( ',' ).map( Number );
+					} else {
+						newTeam.roster = [];
 					}
 					teams.push( newTeam );
 				}
@@ -164,6 +167,8 @@ function getStatePromise() {
 					newGame.score_them = plateAppearance.score_them;
 					if ( plateAppearance.lineup ) {
 						newGame.lineup = plateAppearance.lineup.split( ',' ).map( Number );
+					} else {
+						newGame.lineup = [];
 					}
 					newTeam.games.push( newGame );
 				}
@@ -207,3 +212,174 @@ function queryPromise( queryString ) {
 		} );
 	} );
 }
+
+let SAMPLE_STATE = {
+	"players": [ {
+			"id": 1,
+			"name": "Harry",
+			"gender": "M",
+			"picture": null
+		},
+		{
+			"id": 2,
+			"name": "Ron",
+			"gender": "M",
+			"picture": null
+		},
+		{
+			"id": 3,
+			"name": "Hermione",
+			"gender": "F",
+			"picture": null
+		},
+		{
+			"id": 4,
+			"name": "Luna",
+			"gender": "F",
+			"picture": null
+		}
+	],
+	"teams": [ {
+			"games": [ {
+					"plateAppearances": [ {
+							"id": 3,
+							"player_id": 1,
+							"result": "4i",
+							"location": [
+								1,
+								2
+							],
+							"plateAppearanceIndex": 1
+						},
+						{
+							"id": 8,
+							"player_id": 2,
+							"result": "3",
+							"location": [
+								11,
+								12
+							],
+							"plateAppearanceIndex": 2
+						},
+						{
+							"id": 7,
+							"player_id": 2,
+							"result": "0",
+							"location": [
+								9,
+								10
+							],
+							"plateAppearanceIndex": 1
+						},
+						{
+							"id": 6,
+							"player_id": 3,
+							"result": "2",
+							"location": [
+								7,
+								8
+							],
+							"plateAppearanceIndex": 2
+						},
+						{
+							"id": 5,
+							"player_id": 3,
+							"result": "1",
+							"location": [
+								5,
+								6
+							],
+							"plateAppearanceIndex": 1
+						},
+						{
+							"id": 4,
+							"player_id": 1,
+							"result": "3",
+							"location": [
+								3,
+								4
+							],
+							"plateAppearanceIndex": 2
+						}
+					],
+					"id": 1,
+					"opponent": "Upslope",
+					"date": "2008-02-21T07:00:00.000Z",
+					"park": "Stazio",
+					"score_us": 10,
+					"score_them": 9,
+					"lineup": [
+						2,
+						1,
+						3
+					]
+				},
+				{
+					"plateAppearances": [],
+					"id": 3,
+					"opponent": "Nobody",
+					"date": "2020-01-23T07:00:00.000Z",
+					"park": "Fed Center",
+					"score_us": 1,
+					"score_them": 1,
+					"lineup": [
+						2,
+						1,
+						3
+					]
+				}
+			],
+			"id": 1,
+			"name": "Screwballs",
+			"roster": [
+				1,
+				2,
+				3
+			]
+		},
+		{
+			"games": [ {
+				"plateAppearances": [ {
+						"id": 10,
+						"player_id": 4,
+						"result": "0",
+						"location": [
+							15,
+							16
+						],
+						"plateAppearanceIndex": 2
+					},
+					{
+						"id": 9,
+						"player_id": 4,
+						"result": "2",
+						"location": [
+							13,
+							14
+						],
+						"plateAppearanceIndex": 1
+					}
+				],
+				"id": 2,
+				"opponent": "Downslope",
+				"date": "2008-03-31T06:00:00.000Z",
+				"park": "Mapleton",
+				"score_us": 11,
+				"score_them": 2,
+				"lineup": [
+					4
+				]
+			} ],
+			"id": 2,
+			"name": "Mom's Spaghetti",
+			"roster": [
+				4
+			]
+		},
+		{
+			"games": [],
+			"id": 3,
+			"name": "Empty Team"
+		}
+	]
+};

@@ -67,8 +67,8 @@ module.exports = class CardLineup extends expose.Component {
 
 	renderLineupPlayerList(){
 		if( !this.props.game || !this.props.team ) {
-			console.log( 'game:', this.props.game, 'team:', this.props.team );
-			return DOM.div( { className: 'page-error' }, 'Lineup: No game or team exists.' );
+			console.log( 'game:', this.props.game, 'team:', this.props.team, 'lineup:', !this.props.game.lineup  );
+			return DOM.div( { className: 'page-error' }, 'Lineup: No game, team, or lineup exist.' );
 		}
 
 		let elems = this.props.game.lineup.map( ( player_id ) => {

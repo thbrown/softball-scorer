@@ -10,6 +10,7 @@ const CardTeamList = require( 'card-team-list' );
 const CardTeam = require( 'card-team' );
 const CardLineup = require( 'card-lineup' );
 const CardAtBat = require( 'card-at-bat' );
+const CardLoading = require( 'card-loading' );
 
 const qs = state.getQueryObj();
 
@@ -19,7 +20,7 @@ module.exports = class MainContainer extends expose.Component {
 		this.expose( 'main' );
 		this.state = {
 			render: true,
-			page: qs.page || 'TeamList',
+			page: qs.page || 'Loading',
 			team: parseInt( qs.team ) || 1,
 			game: parseInt( qs.game ) || 1,
 			player: parseInt( qs.player ) || 1,
@@ -28,7 +29,9 @@ module.exports = class MainContainer extends expose.Component {
 	}
 
 	renderCard( card_name ){
-		if( card_name === 'TeamList' ) {
+		if( card_name === 'Loading' ) {
+			return React.createElement( CardLoading );
+		} else if( card_name === 'TeamList' ) {
 			return React.createElement( CardTeamList );
 		} else if( card_name === 'Team' ) {
 			let team = state.getTeam( this.state.team );
