@@ -8,7 +8,7 @@ const Draggable = require( 'react-draggable' );
 
 const state = require( 'state' );
 
-module.exports = class CardAtBat extends expose.Component {
+module.exports = class CardLoading extends expose.Component {
 	constructor( props ) {
 		super( props );
 		this.expose();

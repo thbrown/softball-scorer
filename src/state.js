@@ -224,6 +224,12 @@ exports.removeGame = function( game_id, team_id ) {
 	exports.setState( new_state );
 };
 
+exports.removePlayerFromLineup = function( lineup, player_id ) {
+	let index = lineup.indexOf( player_id );
+	lineup.splice(index, 1);
+	exports.setState( STATE );
+};
+
 exports.buildStatsObject = function( team_id, player_id ) {
 	let state = exports.getState();
 	let team = exports.getTeam( team_id, state );

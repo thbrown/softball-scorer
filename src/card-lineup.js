@@ -23,15 +23,16 @@ module.exports = class CardLineup extends expose.Component {
 
 		this.handleDeleteClick = function( player, ev ){
 			dialog.show_confirm( 'Do you want to remove "' + player.name + '" from the lineup?', () => {
-				//state.removeFromLineup( game.id, this.props.team.id );
+				state.removePlayerFromLineup( this.props.game.lineup, player.id );
 			} );
 			ev.stopPropagation();
 		};
 
 		this.handleCreateClick = function(){
-			dialog.show_input( 'Other Team Name', ( opposing_team_name ) => {
-				state.addGame( this.props.team.id, opposing_team_name );
-			} );
+			dialog.show_notification('This doesn\'t work yet');
+			// dialog.show_input( 'Player Name', ( player_name ) => {
+			// 	state.addPlayerToLineup( player_name );
+			// } );
 		}.bind( this );
 
 		this.handleBoxClick = function( player, plateAppearance_ct ) {
@@ -113,7 +114,8 @@ module.exports = class CardLineup extends expose.Component {
 			let div = DOM.div( {
 				id: 'lineup_' + player.id,
 				key: 'lineup' + player.id,
-				className: 'lineup-row',
+				// "handle" needed for drag and drop to work
+				className: 'lineup-row handle',
 				//onClick: this.handleButtonClick.bind( this, team )
 			},
 				player_name,
@@ -134,6 +136,12 @@ module.exports = class CardLineup extends expose.Component {
 				onDrag: this.handleDrag.bind( this, player )
 			}, div );
 		} );
+
+		elems.push( DOM.div( {
+			key: 'newplayer',
+			className: 'list-item add-list-item',
+			onClick: this.handleCreateClick,
+		}, '+ Add New Player' ) );
 
 		elems.unshift( DOM.div( { key: 'lineup-padding', id: 'lineup-padding', style: { 'display': 'none', height: '52px' } } ) );
 
