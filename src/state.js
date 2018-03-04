@@ -164,19 +164,19 @@ exports.addTeam = function( team_name ) {
 	return team;
 };
 
-exports.addPlayer = function( player_name ) {
-	const id = exports.getNextPlayerId();
-	let new_state = exports.getState();
-	let player = {
-		id: id,
-		name: player_name,
-		picture: '',
-		stats: {}
-	};
-	new_state.players.push( player );
-	exports.setState( new_state );
-	return player;
-};
+// exports.addPlayerToLineup = function( player_name ) {
+// 	const id = exports.getNextPlayerId();
+// 	let new_state = exports.getState();
+// 	let player = {
+// 		id: id,
+// 		name: player_name,
+// 		picture: '',
+// 		stats: {}
+// 	};
+// 	new_state.players.push( player );
+// 	exports.setState( new_state );
+// 	return player;
+// };
 
 exports.addGame = function( team_id, opposing_team_name ) {
 	let new_state = exports.getState();

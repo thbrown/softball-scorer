@@ -29,7 +29,7 @@ module.exports = class NotificationDialog extends React.Component {
 				}
 			},
 				DOM.div( {
-					className: 'dialog-button confirm-button',
+					className: 'button confirm-button',
 					onClick: this.handleConfirmClick
 				}, DOM.span( {
 					className: 'no-select'

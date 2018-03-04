@@ -117,6 +117,19 @@ body {
   font-size: 18px;
 }
 
+.player-input-label {
+  font-size: 24px;
+  margin: 16px 0 0 16px;
+}
+
+.player-input {
+  margin: 16px;
+  border-radius: 4px;
+  font-size: 18px;
+  padding: 8px;
+  width: calc(100% - 32px);
+}
+
 /* Dialog styles */
 
 .dialog {
@@ -145,7 +158,7 @@ body {
   width: calc(100% - 18px);
 }
 
-.dialog-button {
+.button {
   border-radius: 4px;
   cursor: pointer;
   font-size: 18px;
