@@ -17,7 +17,7 @@ module.exports = class CardLineup extends expose.Component {
 
 		this.handleBackClick = function() {
 			expose.set_state( 'main', {
-				page: 'Team'
+				page: 'Team',
 			} );
 		};
 
@@ -29,10 +29,9 @@ module.exports = class CardLineup extends expose.Component {
 		};
 
 		this.handleCreateClick = function(){
-			dialog.show_notification('This doesn\'t work yet');
-			// dialog.show_input( 'Player Name', ( player_name ) => {
-			// 	state.addPlayerToLineup( player_name );
-			// } );
+			expose.set_state( 'main', {
+				page: 'PlayerSelection'
+			} );
 		}.bind( this );
 
 		this.handleBoxClick = function( player, plateAppearance_ct ) {
@@ -114,8 +113,7 @@ module.exports = class CardLineup extends expose.Component {
 			let div = DOM.div( {
 				id: 'lineup_' + player.id,
 				key: 'lineup' + player.id,
-				// "handle" needed for drag and drop to work
-				className: 'lineup-row handle',
+				className: 'lineup-row',
 				//onClick: this.handleButtonClick.bind( this, team )
 			},
 				player_name,
@@ -127,7 +125,7 @@ module.exports = class CardLineup extends expose.Component {
 			return React.createElement( Draggable, {
 				key: 'lineup-draggable' + player.id,
 				axis: 'y',
-				handle: '.handle',
+				handle: '.player-name',
 				//defaultPosition: { x: 0, y: 0 },
 				position: { x: 0, y: 0 },
 				grid: [ 1, 1 ],
