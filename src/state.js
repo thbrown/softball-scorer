@@ -29,7 +29,7 @@ exports.updateState = function(callback) {
 	        } 
         }
     }
-    xmlHttp.open("GET", "http://pizzaman:8888/state", true);
+    xmlHttp.open("GET", "http://localhost:8888/state", true);
     xmlHttp.send(null);
     
 }
@@ -52,17 +52,22 @@ exports.merge = function(mine, ancestor, yours) {
 		let yourChangesWin = objectMerge.diff3(yours, ancestor, mine);
 		if(JSON.stringify(myChangesWin) === JSON.stringify(yourChangesWin)) { // Does this need to be stable to prevent different orderings from returning false
 			console.log("Remote and local changes merged (No Conflicts)");
+			console.log(JSON.stringify(myChangesWin,null,2));
 			let myChangesWinResult = objectMerge.patch(ancestor,myChangesWin);
 			return myChangesWinResult;
 		} else {
+			console.log(JSON.stringify(myChangesWin,null,2));
+			console.log(JSON.stringify(yourChangesWin,null,2));
 			console.log("Conflicts! Local changes and remote changes were detected but not merged due to conflicts");
 			throw "Conflicts detected" 
 		}
 	} else if(!isEmpty(myChangesOnly)) {
 		console.log("Local changes merged");
+		console.log(JSON.stringify(myChangesOnly,null,2));
 		return objectMerge.patch(ancestor,myChangesOnly);
 	} else if(!isEmpty(yourChangesOnly)) {
 		console.log("Remote changes merged");
+		console.log(JSON.stringify(yourChangesOnly,null,2));
 		return objectMerge.patch(ancestor,yourChangesOnly);
 	}  else {
 		console.log("No changes detected");

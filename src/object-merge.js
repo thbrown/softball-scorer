@@ -118,7 +118,6 @@ let patch = function(toPatch, patchObj) {
 		if(isRoot(patchObj[key])) {
 			let op = patchObj[key].op;
 			let value = patchObj[key].key;
-			console.log(op);
 			if(op == "Delete") {
 				if(Array.isArray(toPatch)) {
 					let delIndex = toPatch.findIndex(v => getUniqueId(v) == patchObj[key]);
@@ -173,7 +172,7 @@ let patch = function(toPatch, patchObj) {
 	return toPatch; // This modifies the passed in object, is returning that object misleading?
 }
 
-// Reutrns true if none of the object's properties are objects themselves.
+// Returns true if none of the object's properties are objects themselves.
 let isRoot = function (obj) {
 	let keys = Object.keys(obj);
 	for (var i = 0; i < keys.length; i++) {
