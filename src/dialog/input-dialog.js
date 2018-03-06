@@ -8,15 +8,8 @@ module.exports = class InputDialog extends React.Component {
 	constructor( props ){
 		super( props );
 
-		let value = '';
-		if( this.props.node ){
-			value = this.props.node.content;
-		} else if( this.props.default_text ){
-			value = this.props.default_text;
-		}
-
 		this.state = {
-			value: value
+			value: this.getNodeOrDefaultText()
 		};
 
 		this.handleInputChange = ( ev ) => {
@@ -38,40 +31,32 @@ module.exports = class InputDialog extends React.Component {
 		document.getElementById( 'InputDialog-input' ).focus();
 	}
 
+	getNodeOrDefaultText() {
+		if( this.props.node ){
+			return this.props.node.content;
+		} else if( this.props.default_text ){
+			return this.props.default_text;
+		}
+		return undefined;
+	}
+
 	render() {
 		return DOM.div( {
-			style: {
-				position: 'absolute',
-				width: 'calc( 100% - 8px )',
-				top: '200px',
-				backgroundColor: css.colors.PRIMARY_ALT,
-				border: '4px solid ' + css.colors.SECONDARY,
-				color: css.colors.TEXT_DARK
-			}
+			className: 'dialog'
 		},
 			DOM.div( {
+				className: 'dialog-text'
+			}, this.getNodeOrDefaultText() ),
+			DOM.textarea( {
+				id: 'InputDialog-input',
+				onChange: this.handleInputChange,
+				placeholder: this.state.value,
+				className: 'dialog-input-box',
 				style: {
-					padding: '5px'
+					whiteSpace: this.props.whiteSpace ? 'pre' : '',
+					height: this.props.node ? '360px' : '36px'
 				}
-			}, 'Provide Input' ),
-			DOM.div( {
-				style: {
-					padding: '5px'
-				}
-			},
-				DOM.textarea( {
-					id: 'InputDialog-input',
-					onChange: this.handleInputChange,
-					value: this.state.value,
-					style: {
-						whiteSpace: this.props.whiteSpace ? 'pre' : '',
-						backgroundColor: css.colors.BG,
-						color: css.colors.TEXT_LIGHT,
-						width: '100%',
-						height: this.props.node ? '300px' : '20px'
-					}
-				} )
-			),
+			} ),
 			DOM.div( {
 				style: {
 					display: 'flex',
@@ -79,13 +64,13 @@ module.exports = class InputDialog extends React.Component {
 				}
 			},
 				DOM.div( {
-					className: 'confirm-button',
+					className: 'dialog-button confirm-button',
 					onClick: this.handleConfirmClick
 				}, DOM.span( {
 					className: 'no-select'
-				}, 'Okay' ) ),
+				}, 'Submit' ) ),
 				DOM.div( {
-					className: 'cancel-button',
+					className: 'dialog-button cancel-button',
 					onClick: this.handleCancelClick
 				}, DOM.span( {
 					className: 'no-select'

@@ -17,20 +17,20 @@ module.exports = class CardLineup extends expose.Component {
 
 		this.handleBackClick = function() {
 			expose.set_state( 'main', {
-				page: 'Team'
+				page: 'Team',
 			} );
 		};
 
 		this.handleDeleteClick = function( player, ev ){
 			dialog.show_confirm( 'Do you want to remove "' + player.name + '" from the lineup?', () => {
-				//state.removeFromLineup( game.id, this.props.team.id );
+				state.removePlayerFromLineup( this.props.game.lineup, player.id );
 			} );
 			ev.stopPropagation();
 		};
 
 		this.handleCreateClick = function(){
-			dialog.show_input( 'Other Team Name', ( opposing_team_name ) => {
-				state.addGame( this.props.team.id, opposing_team_name );
+			expose.set_state( 'main', {
+				page: 'PlayerSelection'
 			} );
 		}.bind( this );
 
@@ -76,27 +76,17 @@ module.exports = class CardLineup extends expose.Component {
 			
 			let player_name = DOM.div( {
 				key: 'name',
-				className: 'handle',
-				style: {
-					color: 'white',
-					fontSize: '14px',
-					width: '64px',
-					overflow: 'hidden',
-					textOverflow: 'ellipsis'
-				}
+				className: 'player-name',
 			}, player.name );
 
-			let del = DOM.div( {
-				key: 'del',
-				className: 'delete-button',
-				onClick: this.handleDeleteClick.bind( this, player ),
-				style: {
-					fontSize: '16px',
-					lineHeight: '40px',
-					padding: '2px'
-				}
-			}, 'X' );
-
+			let del = DOM.img( {
+					src: 'assets/ic_close_white_24dp_1x.png',
+					className: 'delete-button',
+					style: {
+					  paddingTop: '6px',
+					},
+					onClick: this.handleDeleteClick.bind( this, player )
+				});
 			let elems = [];
 			for( let i = 0; i < 7; i++ ){
 				let plateAppearance = state.getPlateAppearance( this.props.team.id, this.props.game.id, player.id, i + 1 );
@@ -109,11 +99,6 @@ module.exports = class CardLineup extends expose.Component {
 					key: 'box' + ( i + 1 ),
 					onClick: this.handleBoxClick.bind( this, player, i + 1 ),
 					className: 'lineup-box',
-					style: {
-						textAlign: 'center',
-						color: 'black',
-						lineHeight: '40px'
-					}
 				}, DOM.div( {}, text ) ) );
 			}
 
@@ -130,10 +115,6 @@ module.exports = class CardLineup extends expose.Component {
 				key: 'lineup' + player.id,
 				className: 'lineup-row',
 				//onClick: this.handleButtonClick.bind( this, team )
-				style: {
-					display: 'flex',
-					justifyContent: 'space-around'
-				}
 			},
 				player_name,
 				boxes,
@@ -144,7 +125,7 @@ module.exports = class CardLineup extends expose.Component {
 			return React.createElement( Draggable, {
 				key: 'lineup-draggable' + player.id,
 				axis: 'y',
-				handle: '.handle',
+				handle: '.player-name',
 				//defaultPosition: { x: 0, y: 0 },
 				position: { x: 0, y: 0 },
 				grid: [ 1, 1 ],
@@ -153,6 +134,12 @@ module.exports = class CardLineup extends expose.Component {
 				onDrag: this.handleDrag.bind( this, player )
 			}, div );
 		} );
+
+		elems.push( DOM.div( {
+			key: 'newplayer',
+			className: 'list-item add-list-item',
+			onClick: this.handleCreateClick,
+		}, '+ Add New Player' ) );
 
 		elems.unshift( DOM.div( { key: 'lineup-padding', id: 'lineup-padding', style: { 'display': 'none', height: '52px' } } ) );
 
@@ -168,21 +155,12 @@ module.exports = class CardLineup extends expose.Component {
 			},
 			DOM.div( {
 				className: 'card-title',
-				style: {
-				}
 			},
-				DOM.div( {
+			DOM.img( {
+					src: 'assets/ic_arrow_back_white_36dp_1x.png',
+					className: 'back-arrow',
 					onClick: this.handleBackClick,
-					dangerouslySetInnerHTML: {
-						__html: '&#9664;'
-					},
-					style: {
-						float: 'left',
-						width: '0px',
-						padding: '4px',
-						fontSize: '32px',
-					}
-				} ),
+				}),
 				DOM.div( {
 					style: {
 					}

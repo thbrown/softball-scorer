@@ -28,7 +28,7 @@ module.exports = class CardGameList extends expose.Component {
 		};
 
 		this.handleCreateClick = function(){
-			dialog.show_input( 'Other Team Name', ( opposing_team_name ) => {
+			dialog.show_input( 'Opponent Name', ( opposing_team_name ) => {
 				let game = state.addGame( this.props.team.id, opposing_team_name );
 				expose.set_state( 'main', {
 					page: 'Lineup',
@@ -54,22 +54,19 @@ module.exports = class CardGameList extends expose.Component {
 					style: {
 						maxWidth: '300px'
 					}
-				}, 'Opp. ' + game.opponent ),
-				DOM.div( {
+				}, 'Vs. ' + game.opponent ),
+				DOM.img( {
+					src: 'assets/ic_close_white_24dp_1x.png',
 					className: 'delete-button',
 					onClick: this.handleDeleteClick.bind( this, game )
-				}, 'X' )
+				})
 			);
 		} );
 
 		elems.push( DOM.div( {
 			key: 'newteam',
-			className: 'list-item',
+			className: 'list-item add-list-item',
 			onClick: this.handleCreateClick,
-			style: {
-				backgroundColor: css.colors.BG,
-				color: 'gray',
-			}
 		}, '+ Add New Game' ) );
 
 		return DOM.div( {

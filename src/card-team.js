@@ -46,40 +46,35 @@ module.exports = class CardTeam extends expose.Component {
 			},
 			DOM.div( {
 				className: 'card-title',
-				style: {
-					display: 'flex',
-					justifyContent: 'space-between'
-				}
 			},
-				DOM.div( {
+				DOM.img( {
+					src: 'assets/ic_arrow_back_white_36dp_1x.png',
+					className: 'back-arrow',
 					onClick: this.handleBackClick,
-					dangerouslySetInnerHTML: {
-						__html: '&#9664;'
-					},
-					style: {
-						width: '10%',
-						padding: '4px',
-						fontSize: '32px',
-					}
-				} ),
+				}),
 				DOM.div( {
-					onClick: this.handleTabClick.bind( this, 'players' ),
 					style: {
-						padding: '6px 0px',
-						fontSize: '32px',
-						width: '40%',
-						backgroundColor: this.state.tab === 'players' ? css.colors.PRIMARY : css.colors.BG
+						display: 'flex',
+						justifyContent: 'space-between',
+						// Adjusting for back-arrow.
+						marginLeft: '60px',
 					}
-				}, 'Players' ),
-				DOM.div( {
-					onClick: this.handleTabClick.bind( this, 'games' ),
-					style: {
-						padding: '6px 0px',
-						fontSize: '32px',
-						width: '40%',
-						backgroundColor: this.state.tab === 'games' ? css.colors.PRIMARY : css.colors.BG
-					}
-				}, 'Games' )
+				},
+					DOM.div( {
+						onClick: this.handleTabClick.bind( this, 'players' ),
+						style: {
+							width: '50%',
+							borderBottom: this.state.tab === 'players' ? '5px solid ' + css.colors.TEXT_LIGHT : 'none',
+						}
+					}, 'Players' ),
+					DOM.div( {
+						onClick: this.handleTabClick.bind( this, 'games' ),
+						style: {
+							width: '50%',
+							borderBottom: this.state.tab === 'games' ? '5px solid ' + css.colors.TEXT_LIGHT : 'none',
+						}
+					}, 'Games' )
+				),
 			),
 			subcard
 		);

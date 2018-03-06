@@ -68,23 +68,33 @@ module.exports = class CardAtBat extends expose.Component {
 			return DOM.div( { className: 'page-error' }, 'PlateAppearance: No game or team or player or PlateAppearance exists.' );
 		}
 
-		let elems = [ '', '0', '1', '2', '3', '4i', '4o', 'BB', 'E' ].map( ( result, i ) => {
+		let elems = [ '', 'Out', '1B', '2B', '3B', 'HRi', 'HRo', 'BB', 'E', 'FC' ].map( ( result, i ) => {
 			return DOM.div( {
 				key: i + ' ' + result,
 				className: 'result-button',
 				onClick: this.handleButtonClick.bind( this, result ),
 				style: {
-					backgroundColor: this.props.plateAppearance.result === result ? css.colors.CANCEL : null
+					backgroundColor: this.props.plateAppearance.result === result ? css.colors.SECONDARY : null
 				}
 			}, result );
 		} );
 
-		return DOM.div( {
-			style: {
-				display: 'flex',
-				justifyContent: 'space-around'
-			}
-		}, elems );
+		return DOM.div( {},
+			DOM.div( {
+				style: {
+					display: 'flex',
+					justifyContent: 'space-around',
+					margin: '4px',
+				}
+			}, elems.slice(0, 5) ),
+			DOM.div( {
+				style: {
+					display: 'flex',
+					justifyContent: 'space-around',
+					margin: '4px',
+				}
+			}, elems.slice(5, elems.length) ),
+		);
 	}
 
 	renderField(){
@@ -138,7 +148,7 @@ module.exports = class CardAtBat extends expose.Component {
 			draggable: true,
 			src: 'assets/baseball.png',
 			style: {
-				width: '100px'
+				width: '75px'
 			}
 		} ) );
 	}
@@ -154,26 +164,17 @@ module.exports = class CardAtBat extends expose.Component {
 				style: {
 				}
 			},
-				DOM.div( {
+				DOM.img( {
+					src: 'assets/ic_arrow_back_white_36dp_1x.png',
+					className: 'back-arrow',
 					onClick: this.handleBackClick,
-					dangerouslySetInnerHTML: {
-						__html: '&#9664;'
-					},
-					style: {
-						float: 'left',
-						width: '0px',
-						padding: '4px',
-						fontSize: '32px',
-					}
-				} ),
+				}),
 				DOM.div( {
 					style: {
 					}
-				}, this.props.player.name + ' #' + this.props.plateAppearance.plateAppearanceIndex )
+				}, this.props.player.name + ' PA #' + this.props.plateAppearance.plateAppearanceIndex )
 			),
-			DOM.div( { style: { height: '40px', lineHeight: '35px' } }, 'Result:' ),
 			this.renderButtonList(),
-			DOM.div( { style: { height: '40px' } } ),
 			this.renderField(),
 			this.renderBaseball()
 		);
