@@ -32,6 +32,15 @@ module.exports = class CardTeamList extends expose.Component {
 				state.addTeam( name );
 			} );
 		};
+
+		this.handleSyncClick = function() {
+			console.log("Starging Sync");
+			state.updateState( (status) => {console.log("Done with sync: " + status)} );
+		};
+
+		this.handlePushClick = function() {
+			console.log(this);
+		};
 	}
 
 	renderTeamList(){
@@ -64,6 +73,26 @@ module.exports = class CardTeamList extends expose.Component {
 				color: 'gray',
 			}
 		}, '+ Add New Team' ) );
+
+		elems.push( DOM.div( {
+			key: 'sync',
+			className: 'list-item',
+			onClick: this.handleSyncClick.bind( this ),
+			style: {
+				backgroundColor: css.colors.BG,
+				color: 'gray',
+			}
+		}, 'Sync' ) );
+
+		elems.push( DOM.div( {
+			key: 'push',
+			className: 'list-item',
+			onClick: this.handlePushClick.bind( this),
+			style: {
+				backgroundColor: css.colors.BG,
+				color: 'gray',
+			}
+		}, 'Push' ) );
 
 		return DOM.div( {
 

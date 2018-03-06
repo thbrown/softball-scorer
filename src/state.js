@@ -1,19 +1,73 @@
 'use strict';
 
 const expose = require( 'expose' );
+const objectMerge = require( 'object-merge.js' );
 
-let STATE = {};
+let DATABASE_STATE;
+let STATE;
 
 exports.updateState = function(callback) {
+	// TODO: block concurrent syncs
+	if(!STATE) {
+		// TODO: Load from local storage
+	}
+
 	var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-            STATE = JSON.parse(xmlHttp.responseText);
-            callback();
+        	try {
+	        	if(STATE) {
+	        		STATE = exports.merge(STATE, DATABASE_STATE, JSON.parse(xmlHttp.responseText));
+	        	} else {
+	            	STATE = JSON.parse(xmlHttp.responseText);
+	        	}
+	        	DATABASE_STATE = JSON.parse(xmlHttp.responseText);
+	        	callback("Success");
+	        } catch(error) {
+	        	callback(error);
+	        	console.log(error);
+	        } 
         }
     }
-    xmlHttp.open("GET", "http://localhost:8888/state", true);
+    xmlHttp.open("GET", "http://pizzaman:8888/state", true);
     xmlHttp.send(null);
+    
+}
+
+function isEmpty(obj) {
+    for(var prop in obj) {
+        if(obj.hasOwnProperty(prop))
+            return false;
+    }
+
+    return JSON.stringify(obj) === JSON.stringify({});
+}
+
+exports.merge = function(mine, ancestor, yours) {
+
+	let myChangesOnly = objectMerge.diff(ancestor, mine);
+	let yourChangesOnly = objectMerge.diff(ancestor, yours);
+	if(!isEmpty(myChangesOnly) && !isEmpty(yourChangesOnly)) {
+		let myChangesWin = objectMerge.diff3(mine, ancestor, yours);
+		let yourChangesWin = objectMerge.diff3(yours, ancestor, mine);
+		if(JSON.stringify(myChangesWin) === JSON.stringify(yourChangesWin)) { // Does this need to be stable to prevent different orderings from returning false
+			console.log("Remote and local changes merged (No Conflicts)");
+			let myChangesWinResult = objectMerge.patch(ancestor,myChangesWin);
+			return myChangesWinResult;
+		} else {
+			console.log("Conflicts! Local changes and remote changes were detected but not merged due to conflicts");
+			throw "Conflicts detected" 
+		}
+	} else if(!isEmpty(myChangesOnly)) {
+		console.log("Local changes merged");
+		return objectMerge.patch(ancestor,myChangesOnly);
+	} else if(!isEmpty(yourChangesOnly)) {
+		console.log("Remote changes merged");
+		return objectMerge.patch(ancestor,yourChangesOnly);
+	}  else {
+		console.log("No changes detected");
+		return ancestor;
+	}
 }
 
 exports.getQueryObj = function() {
