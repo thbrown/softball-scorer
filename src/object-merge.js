@@ -21,9 +21,7 @@ let diffInternal = function(mine, theirs, path, result) {
 		let orderA = moveA.map(v => getUniqueId(v));
 		let orderB = moveB.map(v => getUniqueId(v));
 		if(!arraysEqual(orderA, orderB)) {
-			// This is not great.
-			// There should not be anything in mine or theirs that has this key. We'll try to make it unique enough.
-			let someHopefullyUniqueKey = "ReOrder" + b_crc32(JSON.stringify(orderA));
+			let someHopefullyUniqueKey = "ReOrder"; // + b_crc32(JSON.stringify(orderA)); // I don't think this needs to be unique anymore
 			addToResult(result, path, someHopefullyUniqueKey, "ReOrder", JSON.stringify(orderA), JSON.stringify(orderB));
 		}
 		for(let i = 0; i < moveA.length; i++) {

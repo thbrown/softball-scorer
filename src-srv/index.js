@@ -103,13 +103,13 @@ function getStatePromise() {
 			  games.park as game_park, 
 			  games.score_us as score_us, 
 			  games.score_them as score_them,
+			  games.lineup_type as lineup_type,
 			  plate_appearances.id as plate_appearance_id, 
 			  plate_appearances.result as result,
 			  plate_appearances.location as location,
-			  plate_appearances.plate_appearances_index as index,
+			  plate_appearances.index_in_game as index,
 			  plate_appearances.player_id as player_id,
-			  sub_lineup.lineup as lineup,
-			  sub_roster.roster as roster
+			  sub_lineup.lineup as lineup
 			FROM 
 			  public.plate_appearances
 			FULL JOIN public.games ON public.games.id=public.plate_appearances.game_id
@@ -117,12 +117,10 @@ function getStatePromise() {
 			  FROM public.players_games
 			  GROUP BY players_games.game_id) as sub_lineup ON sub_lineup.game_id=public.games.id
 			FULL JOIN public.teams ON public.games.team_id=public.teams.id
-			FULL JOIN (SELECT public.players_teams.team_id as team_id, string_agg(public.players_teams.player_id::character, ', ') as roster
-			  FROM public.players_teams
-			  GROUP BY public.players_teams.team_id) as sub_roster ON sub_roster.team_id=public.teams.id
 			ORDER BY
 			  teams.id ASC,
-			  games.id ASC;
+			  games.id ASC,
+			  index ASC;
 		` );
 
 		Promise.all( [ players, teams ] ).then( function( values ) {
@@ -330,6 +328,7 @@ let SAMPLE_STATE = {
 				}
 			],
 			"id": 1,
+			"lineup_type":1,
 			"name": "Screwballs",
 			"roster": [
 				1,
@@ -371,6 +370,7 @@ let SAMPLE_STATE = {
 				]
 			} ],
 			"id": 2,
+			"lineup_type": 2,
 			"name": "Mom's Spaghetti",
 			"roster": [
 				4

@@ -22,7 +22,7 @@ module.exports = class CardGameList extends expose.Component {
 
 		this.handleGameClick = function( game ) {
 			expose.set_state( 'main', {
-				page: 'Lineup',
+				page: 'Game',
 				game: game.id
 			} );
 		};
@@ -31,7 +31,7 @@ module.exports = class CardGameList extends expose.Component {
 			dialog.show_input( 'Opponent Name', ( opposing_team_name ) => {
 				let game = state.addGame( this.props.team.id, opposing_team_name );
 				expose.set_state( 'main', {
-					page: 'Lineup',
+					page: 'Game',
 					game: game.id
 				} );
 			} );

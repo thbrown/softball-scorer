@@ -15,12 +15,6 @@ module.exports = class CardLineup extends expose.Component {
 		this.expose();
 		this.state = {};
 
-		this.handleBackClick = function() {
-			expose.set_state( 'main', {
-				page: 'Team',
-			} );
-		};
-
 		this.handleDeleteClick = function( player, ev ){
 			dialog.show_confirm( 'Do you want to remove "' + player.name + '" from the lineup?', () => {
 				state.removePlayerFromLineup( this.props.game.lineup, player.id );
@@ -87,17 +81,19 @@ module.exports = class CardLineup extends expose.Component {
 					},
 					onClick: this.handleDeleteClick.bind( this, player )
 				});
+
 			let elems = [];
-			for( let i = 0; i < 7; i++ ){
-				let plateAppearance = state.getPlateAppearance( this.props.team.id, this.props.game.id, player.id, i + 1 );
+			let plateAppearances = state.getPlateAppearancesForPlayerInGame( player.id, this.props.game.id);
+			for( let i = 0; i < plateAppearances.length; i++ ){
+				let plateAppearance = plateAppearances[i];
 				let text = '';
 				if( plateAppearance ){
 					text = plateAppearance.result;
 				}
 				
 				elems.push( DOM.div( {
-					key: 'box' + ( i + 1 ),
-					onClick: this.handleBoxClick.bind( this, player, i + 1 ),
+					key: 'box' + i,
+					onClick: this.handleBoxClick.bind( this, player, plateAppearance.id ),
 					className: 'lineup-box',
 				}, DOM.div( {}, text ) ) );
 			}
@@ -120,7 +116,6 @@ module.exports = class CardLineup extends expose.Component {
 				boxes,
 				del
 			);
-
 
 			return React.createElement( Draggable, {
 				key: 'lineup-draggable' + player.id,
@@ -153,19 +148,6 @@ module.exports = class CardLineup extends expose.Component {
 				style: {
 				}
 			},
-			DOM.div( {
-				className: 'card-title',
-			},
-			DOM.img( {
-					src: 'assets/ic_arrow_back_white_36dp_1x.png',
-					className: 'back-arrow',
-					onClick: this.handleBackClick,
-				}),
-				DOM.div( {
-					style: {
-					}
-				}, 'Lineup' )
-			),
 			this.renderLineupPlayerList()
 		);
 	}

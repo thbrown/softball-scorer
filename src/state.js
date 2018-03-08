@@ -136,32 +136,35 @@ exports.getPlayer = function( player_id, state ) {
 	}, null );
 };
 
-exports.getPlateAppearance = function( team_id, game_id, player_id, pa_index ) {
-	let team = exports.getTeam( team_id );
-	let game = exports.getGame( game_id );
-	let player = exports.getPlayer( player_id );
-	if ( !team || !game || !player ) {
-		return null;
-	}
-
-	for ( let i = 0; i < game.plateAppearances.length; i++ ) {
-		let pa = game.plateAppearances[ i ];
-		if ( pa.player_id === player.id && pa.plateAppearanceIndex === pa_index ) {
-			return pa;
+// TODO: allow for passing team and game ids to improve perf
+exports.getPlateAppearance = function( pa_id, state ) {
+	for ( let team of ( state || STATE ).teams ) {
+		for ( let game of team.games ) {
+			for ( let pa of game.plateAppearances ) {
+				if ( pa.id === pa_id ) {
+					return pa;
+				}
+			}
 		}
 	}
+	return null;
+};
 
-	let obj = {
-		"player_id": player_id,
-		"result": '',
-		"location": [],
-		"plateAppearanceIndex": pa_index
-	};
+exports.getPlateAppearancesForGame = function( game_id ) {
+	let game = exports.getGame( game_id );
+	if (!game) {
+		return null;
+	}
+	return game.plateAppearances;
+};
 
-	game.plateAppearances.push( obj );
-
-	return obj;
-
+exports.getPlateAppearancesForPlayerInGame = function( player_id, game_id ) {
+	let game = exports.getGame( game_id );
+	let player = exports.getPlayer( player_id );
+	if (!game || !player ) {
+		return null;
+	}
+	return game.plateAppearances.filter( pa => pa.player_id == player_id );
 };
 
 exports.getPlateAppearances = function( team_id, player_id ) {

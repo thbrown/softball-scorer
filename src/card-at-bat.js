@@ -20,7 +20,7 @@ module.exports = class CardAtBat extends expose.Component {
 
 		this.handleBackClick = function() {
 			expose.set_state( 'main', {
-				page: 'Lineup'
+				page: 'Game'
 			} );
 		};
 

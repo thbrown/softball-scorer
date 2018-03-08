@@ -8,7 +8,7 @@ const css = require( 'css' );
 const state = require( 'state' );
 const CardTeamList = require( 'card-team-list' );
 const CardTeam = require( 'card-team' );
-const CardLineup = require( 'card-lineup' );
+const CardGame = require( 'card-game' );
 const CardAtBat = require( 'card-at-bat' );
 const CardLoading = require( 'card-loading' );
 
@@ -38,10 +38,10 @@ module.exports = class MainContainer extends expose.Component {
 			return React.createElement( CardTeam, {
 				team: team
 			} );
-		} else if( card_name === 'Lineup' ) {
+		} else if( card_name === 'Game' ) {
 			let team = state.getTeam( this.state.team );
 			let game = state.getGame( this.state.game );
-			return React.createElement( CardLineup, {
+			return React.createElement( CardGame, {
 				team: team,
 				game: game
 			} );
@@ -58,7 +58,7 @@ module.exports = class MainContainer extends expose.Component {
 			if( !player ){
 				console.error( 'no player', this.state.player );
 			}
-			let plateAppearance = state.getPlateAppearance( team.id, game.id, player.id, this.state.plateAppearance );
+			let plateAppearance = state.getPlateAppearance( this.state.plateAppearance );
 			return React.createElement( CardAtBat, {
 				team: team,
 				game: game,
