@@ -77,7 +77,7 @@ module.exports = class CardScorer extends expose.Component {
 			let player_name = DOM.div( {
 				key: 'name' + i,
 				className: 'player-name',
-			}, player.name );
+			}, plateAppearance.plateAppearanceIndex + ") " + player.name );
 
 			let box = DOM.div( {
 					key: 'box' + i,
@@ -101,11 +101,11 @@ module.exports = class CardScorer extends expose.Component {
 
 		elems.push(DOM.hr({key: 'divider'}));
 
-		let currentBatter = order.getNthBatter(this.props.game.id, 0);
+		let currentBatter = order.getNthBatter(this.props.game.id, 1);
 		let currentBatterEl = DOM.div( {
 			key: 'currentBatter',
 			className: 'player-name',
-			}, "At Bat " + currentBatter.name );
+			}, "At Bat - " + (currentBatter ? currentBatter.name : "-"));
 		elems.push( DOM.div( {
 			id: 'currentBatter',
 			key: 'currentBatterKey',
@@ -114,11 +114,11 @@ module.exports = class CardScorer extends expose.Component {
 			currentBatterEl
 		));
 
-		let onDeckBatterBatter = order.getNthBatter(this.props.game.id, 1);
+		let onDeckBatterBatter = order.getNthBatter(this.props.game.id, 2);
 		let onDeckBatterEl = DOM.div( {
 			key: 'onDeckBatter',
 			className: 'player-name',
-			}, "On Deck " +onDeckBatterBatter.name );
+			}, "On Deck - " + (onDeckBatterBatter ? onDeckBatterBatter.name : "-"));
 		elems.push( DOM.div( {
 			id: 'onDeckBatterBatter',
 			key: 'onDeckBatterKey',
@@ -127,11 +127,11 @@ module.exports = class CardScorer extends expose.Component {
 			onDeckBatterEl
 		));
 
-		let inTheHoleBatter = order.getNthBatter(this.props.game.id, 2);
+		let inTheHoleBatter = order.getNthBatter(this.props.game.id, 3);
 		let inTheHoleBatterEl = DOM.div( {
 			key: 'inTheHoleBatter',
 			className: 'player-name',
-			}, "In the hole " + inTheHoleBatter.name );
+			}, "In the Hole - " + (inTheHoleBatter ? inTheHoleBatter.name : "-"));
 		elems.push( DOM.div( {
 			id: 'inTheHoleBatter',
 			key: 'inTheHoleBatterKey',
