@@ -6,11 +6,13 @@ const DOM = require( 'react-dom-factories' );
 const css = require( 'css' );
 
 const state = require( 'state' );
-const CardTeamList = require( 'card-team-list' );
-const CardTeam = require( 'card-team' );
 const CardGame = require( 'card-game' );
 const CardAtBat = require( 'card-at-bat' );
+const CardLineup = require( 'card-lineup' );
 const CardLoading = require( 'card-loading' );
+const CardPlayerSelection = require( 'card-player-selection' );
+const CardTeam = require( 'card-team' );
+const CardTeamList = require( 'card-team-list' );
 
 const qs = state.getQueryObj();
 
@@ -64,6 +66,19 @@ module.exports = class MainContainer extends expose.Component {
 				game: game,
 				player: player,
 				plateAppearance: plateAppearance
+			} );
+		} else if ( card_name === 'PlayerSelection' ) {
+			let team = state.getTeam( this.state.team );
+			if( !team ) {
+				console.error( 'no team', this.state.team );
+			}
+			let game = state.getGame( this.state.game );
+			if( !game ){
+				console.error( 'no game', this.state.game );
+			}
+			return React.createElement( CardPlayerSelection, {
+				team: team,
+				game: game,
 			} );
 		} else {
 			return DOM.div( {

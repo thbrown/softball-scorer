@@ -64,13 +64,13 @@ module.exports = class InputDialog extends React.Component {
 				}
 			},
 				DOM.div( {
-					className: 'dialog-button confirm-button',
+					className: 'button confirm-button',
 					onClick: this.handleConfirmClick
 				}, DOM.span( {
 					className: 'no-select'
 				}, 'Submit' ) ),
 				DOM.div( {
-					className: 'dialog-button cancel-button',
+					className: 'button cancel-button',
 					onClick: this.handleCancelClick
 				}, DOM.span( {
 					className: 'no-select'
