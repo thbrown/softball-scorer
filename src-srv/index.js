@@ -163,6 +163,7 @@ function getStatePromise() {
 					newGame.park = plateAppearance.game_park;
 					newGame.score_us = plateAppearance.score_us;
 					newGame.score_them = plateAppearance.score_them;
+					newGame.lineup_type = plateAppearance.lineup_type;
 					if ( plateAppearance.lineup ) {
 						newGame.lineup = plateAppearance.lineup.split( ',' ).map( Number );
 					} else {
@@ -306,6 +307,7 @@ let SAMPLE_STATE = {
 					"park": "Stazio",
 					"score_us": 10,
 					"score_them": 9,
+					"lineup_type":1,
 					"lineup": [
 						2,
 						1,
@@ -320,6 +322,7 @@ let SAMPLE_STATE = {
 					"park": "Fed Center",
 					"score_us": 1,
 					"score_them": 1,
+					"lineup_type":1,
 					"lineup": [
 						2,
 						1,
@@ -328,7 +331,6 @@ let SAMPLE_STATE = {
 				}
 			],
 			"id": 1,
-			"lineup_type":1,
 			"name": "Screwballs",
 			"roster": [
 				1,
@@ -365,12 +367,12 @@ let SAMPLE_STATE = {
 				"park": "Mapleton",
 				"score_us": 11,
 				"score_them": 2,
+				"lineup_type":2,
 				"lineup": [
 					4
 				]
 			} ],
 			"id": 2,
-			"lineup_type": 2,
 			"name": "Mom's Spaghetti",
 			"roster": [
 				4

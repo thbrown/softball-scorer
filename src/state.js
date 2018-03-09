@@ -351,7 +351,6 @@ exports.buildStatsObject = function( team_id, player_id ) {
 		stats.sluggingPercentage = "-";
 	}
 
-
 	return stats;
 };
 

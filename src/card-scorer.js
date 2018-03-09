@@ -6,6 +6,7 @@ const DOM = require( 'react-dom-factories' );
 const css = require( 'css' );
 const dialog = require( 'dialog' );
 const Draggable = require( 'react-draggable' );
+const order = require( 'batting-order' );
 
 const state = require( 'state' );
 
@@ -87,7 +88,7 @@ module.exports = class CardScorer extends expose.Component {
 			let div = DOM.div( {
 				id: 'pa_' + plateAppearance.id,
 				key: 'pa' + plateAppearance.id,
-				className: 'lineup-row',
+				className: 'scorer-row',
 				//onClick: this.handleButtonClick.bind( this, team )
 			},
 				player_name,
@@ -97,6 +98,53 @@ module.exports = class CardScorer extends expose.Component {
 			elems.push(div);
 
 		}
+
+		elems.push(DOM.hr({key: 'divider'}));
+
+		let currentBatter = order.getNthBatter(this.props.game.id, 0);
+		let currentBatterEl = DOM.div( {
+			key: 'currentBatter',
+			className: 'player-name',
+			}, "At Bat " + currentBatter.name );
+		elems.push( DOM.div( {
+			id: 'currentBatter',
+			key: 'currentBatterKey',
+			className: 'future-batter-row',
+		},
+			currentBatterEl
+		));
+
+		let onDeckBatterBatter = order.getNthBatter(this.props.game.id, 1);
+		let onDeckBatterEl = DOM.div( {
+			key: 'onDeckBatter',
+			className: 'player-name',
+			}, "On Deck " +onDeckBatterBatter.name );
+		elems.push( DOM.div( {
+			id: 'onDeckBatterBatter',
+			key: 'onDeckBatterKey',
+			className: 'future-batter-row',
+		},
+			onDeckBatterEl
+		));
+
+		let inTheHoleBatter = order.getNthBatter(this.props.game.id, 2);
+		let inTheHoleBatterEl = DOM.div( {
+			key: 'inTheHoleBatter',
+			className: 'player-name',
+			}, "In the hole " + inTheHoleBatter.name );
+		elems.push( DOM.div( {
+			id: 'inTheHoleBatter',
+			key: 'inTheHoleBatterKey',
+			className: 'future-batter-row',
+		},
+			inTheHoleBatterEl
+		));
+
+		//console.log(order.getNthBatter(this.props.game.id, 0));
+		//console.log(order.getNthBatter(this.props.game.id, 1));
+		//console.log(order.getNthBatter(this.props.game.id, 2));
+
+
 		/*
 		let elems = this.props.game.lineup.map( ( player_id ) => {
 			let player = state.getPlayer( player_id );
