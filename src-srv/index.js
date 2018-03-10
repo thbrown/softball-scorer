@@ -189,7 +189,11 @@ function getStatePromise() {
 					newPlateAppearance.player_id = plateAppearance.player_id;
 					newPlateAppearance.result = plateAppearance.result;
 					if ( plateAppearance.location ) {
-						newPlateAppearance.location = plateAppearance.location.split( ',' ).map( Number );
+						let locationArray = plateAppearance.location.split( ',' ).map( Number );
+						newPlateAppearance.location = {
+							"x":locationArray[0],
+							"y":locationArray[1]
+						}
 					}
 					newPlateAppearance.plateAppearanceIndex = plateAppearance.index;
 					newGame.plateAppearances.push( newPlateAppearance );
@@ -255,60 +259,60 @@ let SAMPLE_STATE = {
 							"id": 3,
 							"player_id": 1,
 							"result": "4i",
-							"location": [
-								1,
-								2
-							],
+							"location": {
+								"x":13,
+								"y":14
+							},
 							"plateAppearanceIndex": 1
 						},
 						{
 							"id": 8,
 							"player_id": 2,
 							"result": "3",
-							"location": [
-								11,
-								12
-							],
+							"location": {
+								"x":13,
+								"y":14
+							},
 							"plateAppearanceIndex": 2
 						},
 						{
 							"id": 7,
 							"player_id": 2,
 							"result": "0",
-							"location": [
-								9,
-								10
-							],
+							"location": {
+								"x":13,
+								"y":14
+							},
 							"plateAppearanceIndex": 3
 						},
 						{
 							"id": 6,
 							"player_id": 3,
 							"result": "2",
-							"location": [
-								7,
-								8
-							],
+							"location": {
+								"x":13,
+								"y":14
+							},
 							"plateAppearanceIndex": 4
 						},
 						{
 							"id": 5,
 							"player_id": 3,
 							"result": "1",
-							"location": [
-								5,
-								6
-							],
+							"location": {
+								"x":13,
+								"y":14
+							},
 							"plateAppearanceIndex": 5
 						},
 						{
 							"id": 4,
 							"player_id": 1,
 							"result": "3",
-							"location": [
-								3,
-								4
-							],
+							"location": {
+								"x":13,
+								"y":14
+							},
 							"plateAppearanceIndex": 6
 						}
 					],
@@ -350,20 +354,20 @@ let SAMPLE_STATE = {
 						"id": 10,
 						"player_id": 4,
 						"result": "0",
-						"location": [
-							15,
-							16
-						],
+						"location": {
+							"x":13,
+							"y":14
+						},
 						"plateAppearanceIndex": 2
 					},
 					{
 						"id": 9,
 						"player_id": 4,
 						"result": "2",
-						"location": [
-							13,
-							14
-						],
+						"location": {
+							"x":13,
+							"y":14
+						},
 						"plateAppearanceIndex": 1
 					}
 				],

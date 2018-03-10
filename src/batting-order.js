@@ -55,13 +55,13 @@ let genderAlternatingOrder = function(plateAppearances, lineup, n) {
 		let femalePlateApearances = plateAppearances.filter(pa => state.getPlayer(pa.player_id).gender == "F");
 		let mostRecentFemalePlateAppearance = femalePlateApearances.length == 0 ? null : femalePlateApearances.reduce( ( prev, curr ) => curr.plateAppearanceIndex > prev.plateAppearanceIndex ? curr : prev);
 		let femaleLineup = lineup.map(player_id => state.getPlayer(player_id)).filter(player => player.gender == "F").map(player => player.id);
-		let startLookingIndex = mostRecentFemalePlateAppearance ? femaleLineup.findIndex(v => v == mostRecentFemalePlateAppearance.player_id) : 0;
+		let startLookingIndex = mostRecentFemalePlateAppearance ? femaleLineup.findIndex(v => v == mostRecentFemalePlateAppearance.player_id) : femaleLineup.length-1;
 		return state.getPlayer(femaleLineup[(startLookingIndex+Math.floor((n+1)/2))%femaleLineup.length]);
 	} else {
 		let malePlateApearances = plateAppearances.filter(pa => state.getPlayer(pa.player_id).gender == "M");
 		let mostRecentMalePlateAppearance = malePlateApearances.length == 0 ? null : malePlateApearances.reduce( ( prev, curr ) => curr.plateAppearanceIndex > prev.plateAppearanceIndex ? curr : prev);
 		let maleLineup = lineup.map(player_id => state.getPlayer(player_id)).filter(player => player.gender == "M").map(player => player.id);
-		let startLookingIndex = mostRecentMalePlateAppearance ? maleLineup.findIndex(v => v == mostRecentMalePlateAppearance.player_id) : 0;
+		let startLookingIndex = mostRecentMalePlateAppearance ? maleLineup.findIndex(v => v == mostRecentMalePlateAppearance.player_id) : maleLineup.length-1;
 		return state.getPlayer(maleLineup[(startLookingIndex+Math.floor((n+1)/2))%maleLineup.length]);
 	}
 }

@@ -217,7 +217,8 @@ exports.updatePlateAppearanceResult = function( plateAppearance, result ) {
 };
 
 exports.updatePlateAppearanceLocation = function( plateAppearance, location ) {
-	plateAppearance.location = location;
+	plateAppearance.location.x = location[0];
+	plateAppearance.location.y = location[1];
 	exports.setState( STATE );
 };
 
