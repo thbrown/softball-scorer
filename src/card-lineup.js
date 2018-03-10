@@ -24,7 +24,7 @@ module.exports = class CardLineup extends expose.Component {
 
 		this.handleCreateClick = function(){
 			expose.set_state( 'main', {
-				page: 'PlayerSelection'
+				page: 'PlayerSelection',
 			} );
 		}.bind( this );
 

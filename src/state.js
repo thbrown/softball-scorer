@@ -157,6 +157,10 @@ exports.getPlayer = function( player_id, state ) {
 	}, null );
 };
 
+exports.getAllPlayers = function () {
+	return STATE.players;
+};
+
 // TODO: allow for passing team and game ids to improve perf
 exports.getPlateAppearance = function( pa_id, state ) {
 	for ( let team of ( state || STATE ).teams ) {
@@ -245,6 +249,11 @@ exports.addTeam = function( team_name ) {
 	new_state.teams.push( team );
 	exports.setState( new_state );
 	return team;
+};
+
+exports.addPlayerToLineup = function( lineup, player_id ) {
+	lineup.push(player_id);
+	exports.setState( STATE );
 };
 
 // exports.addPlayerToLineup = function( player_name ) {

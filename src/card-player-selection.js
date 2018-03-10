@@ -6,37 +6,44 @@ const expose = require( './expose' );
 const DOM = require( 'react-dom-factories' );
 const css = require( 'css' );
 
-const languages = [
-	{
-		name: 'C',
-		year: 1972
-	},
-];
+const state = require( 'state' );
 
 module.exports = class CardPlayerSelection extends expose.Component {
 	constructor( props ) {
 		super( props );
 		this.expose();
+
 		this.state = {
 			value: '',
-			players: [] // TODO
+			suggestions: [],
+			player: undefined,
 		};
 
 		this.handleBackClick = () => {
 			expose.set_state( 'main', {
-				page: 'Lineup'
+				page: 'Game'
 			} );
 		};
 
 		this.handleInputChange = ( ev ) => {
 			this.setState( {
 				value: ev.target.value
-			} );
+			})
 		};
 
 		this.handleSubmitClick = () => {
-			console.log('submit');
+			// console.log(this.state.player);
+			state.addPlayerToLineup( this.props.game.lineup, this.state.player.id );
+			expose.set_state( 'main', {
+				page: 'Game'
+			} );
 		}
+
+		this.onChange = (event, { newValue }) => {
+			this.setState({
+				value: newValue
+			});
+		};
 	}
 
 	renderPlayerSelection() {
@@ -78,6 +85,10 @@ module.exports = class CardPlayerSelection extends expose.Component {
 	renderSubmitButton() {
 		return DOM.div( {
 			className: 'button confirm-button',
+			style: {
+				marginTop: '48px',
+				marginLeft: '16px',
+			},
 			onClick: this.handleSubmitClick
 		}, DOM.span( {
 			className: 'no-select'
@@ -87,52 +98,66 @@ module.exports = class CardPlayerSelection extends expose.Component {
 
 	renderPlayerSelection() {
 		const { value, suggestions } = this.state;
-    const inputProps = {
-      placeholder: "Type 'c'",
-      value,
-      onChange: this.onChange
-    };
-		return (
-			<Autosuggest 
-			suggestions={suggestions}
-			onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
-			onSuggestionsClearRequested={this.onSuggestionsClearRequested}
-			getSuggestionValue={this.getSuggestionValue}
-			renderSuggestion={this.renderSuggestion}
-			onSuggestionSelected={this.onSuggestionSelected}
-			inputProps={inputProps}/>
-			);
+		const inputProps = {
+			placeholder: "Player Name",
+			value,
+			onChange: this.onChange.bind(this)
+		};
+		return React.createElement( Autosuggest, 
+			{
+				suggestions: this.state.suggestions,
+				onSuggestionsFetchRequested: this.onSuggestionsFetchRequested.bind(this),
+				getSuggestionValue: this.getSuggestionValue.bind(this),
+				renderSuggestion: this.renderSuggestion.bind(this),
+				onSuggestionsClearRequested: this.onSuggestionsClearRequested.bind(this),
+				onSuggestionSelected: this.onSuggestionSelected.bind(this),
+				inputProps: inputProps,
+			});
 	}
 
-	onChange(event, { newValue, method }) {
-		this.setState({
-			value: newValue
+	getSuggestions(value) {
+		const inputValue = value.trim().toLowerCase();
+		const inputLength = inputValue.length;
+
+		// This could be more efficient.
+		const players = state.getAllPlayers();
+		const playersAlreadyInLineup = this.props.game.lineup;
+
+		const suggestions = inputLength === 0 ? [] : players.filter(player => {
+			if (playersAlreadyInLineup.includes(player.id)) {
+				return false;
+			}
+			return player.name.toLowerCase().slice(0, inputLength) === inputValue;
 		});
+		if (suggestions.length === 0) {
+			return [
+				{ isAddNew: true }
+			];
+		}
+		return suggestions;
 	}
 
 	getSuggestionValue(suggestion) {
 		if (suggestion.isAddNew) {
 			return this.state.value;
 		}
-
 		return suggestion.name;
 	}
 
 	renderSuggestion(suggestion) {
-		// if (suggestion.isAddNew) {
-		// 	return (
-		// 	<span>
-		// 	[+] Add new: <strong>{this.state.value}</strong>
-		// 	</span>
-		// 	);
-		// }
+		if (suggestion.isAddNew) {
+			return DOM.span(
+				{},
+				'[+] Add new: ' + this.state.value
+				);
+		}
 
-		return suggestion.name;
+		return DOM.div({}, suggestion.name);
 	}
 
 	onSuggestionsFetchRequested({ value }) {
 		this.setState({
-			suggestions: getSuggestions(value)
+			suggestions: this.getSuggestions(value)
 		});
 	}
 
@@ -144,7 +169,10 @@ module.exports = class CardPlayerSelection extends expose.Component {
 
 	onSuggestionSelected(event, { suggestion }) {
 		if (suggestion.isAddNew) {
-			console.log('Add new:', this.state.value);
+			console.log('This does not work yet', this.state.value);
 		}
+		this.setState({
+			player: suggestion,
+		});
 	}
 };

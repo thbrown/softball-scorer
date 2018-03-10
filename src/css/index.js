@@ -1,5 +1,7 @@
 'use strict';
 
+// Color Theme
+// https://material.io/color/#!/?view.left=0&view.right=0&primary.color=4caf50&secondary.color=775447
 module.exports = {
 	font: {
 		main: 'Trebuchet MS',
