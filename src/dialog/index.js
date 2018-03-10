@@ -16,9 +16,9 @@ let on_key_down = function(	ev ){
 	if( require_shift ) {
 		t = ev.shiftKey;
 	}
-	if( ev.keyCode === 13 && t ) { //enter
+	if( ev.keyCode === 13 && t ) { // enter
 		window.current_confirm();
-	} else if( ev.keyCode === 27 ) { //esc
+	} else if( ev.keyCode === 27 ) { // esc
 		window.current_cancel();
 	}
 };

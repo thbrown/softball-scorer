@@ -256,19 +256,20 @@ exports.addPlayerToLineup = function( lineup, player_id ) {
 	exports.setState( STATE );
 };
 
-// exports.addPlayerToLineup = function( player_name ) {
-// 	const id = exports.getNextPlayerId();
-// 	let new_state = exports.getState();
-// 	let player = {
-// 		id: id,
-// 		name: player_name,
-// 		picture: '',
-// 		stats: {}
-// 	};
-// 	new_state.players.push( player );
-// 	exports.setState( new_state );
-// 	return player;
-// };
+exports.addPlayer = function( player_name, gender ) {
+	const id = exports.getNextPlayerId();
+	let new_state = exports.getState();
+	let player = {
+		id: id,
+		name: player_name,
+		gender: gender,
+		picture: '',
+		stats: {}
+	};
+	new_state.players.push( player );
+	exports.setState( new_state );
+	return player;
+};
 
 exports.addGame = function( team_id, opposing_team_name ) {
 	let new_state = exports.getState();
