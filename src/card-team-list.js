@@ -41,6 +41,20 @@ module.exports = class CardTeamList extends expose.Component {
 		this.handlePushClick = function() {
 			console.log(this);
 		};
+
+		this.handleSaveClick = function() {
+			var today = new Date().getTime();
+			this.download(JSON.stringify(state.getState()), 'save' + today + '.json', 'text/plain');
+		};
+	}
+
+	// https://stackoverflow.com/questions/34156282/how-do-i-save-json-to-local-text-file
+	download(text, name, type) {
+	    var a = document.createElement("a");
+	    var file = new Blob([text], {type: type});
+	    a.href = URL.createObjectURL(file);
+	    a.download = name;
+	    a.click();
 	}
 
 	renderTeamList(){
@@ -72,14 +86,14 @@ module.exports = class CardTeamList extends expose.Component {
 		}, '+ Add New Team' ) );
 
 		elems.push( DOM.div( {
-			key: 'sync',
+			key: 'pull',
 			className: 'list-item',
 			onClick: this.handleSyncClick.bind( this ),
 			style: {
 				backgroundColor: css.colors.BG,
 				color: 'gray',
 			}
-		}, 'Sync' ) );
+		}, 'Pull' ) );
 
 		elems.push( DOM.div( {
 			key: 'push',
@@ -90,6 +104,16 @@ module.exports = class CardTeamList extends expose.Component {
 				color: 'gray',
 			}
 		}, 'Push' ) );
+
+		elems.push( DOM.div( {
+			key: 'save',
+			className: 'list-item',
+			onClick: this.handleSaveClick.bind( this),
+			style: {
+				backgroundColor: css.colors.BG,
+				color: 'gray',
+			}
+		}, 'Save as File' ) );
 
 		return DOM.div( {
 
