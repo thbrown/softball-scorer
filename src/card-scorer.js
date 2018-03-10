@@ -29,11 +29,20 @@ module.exports = class CardScorer extends expose.Component {
 			} );
 		}.bind( this );
 
-		this.handleBoxClick = function( player, plateAppearance_ct ) {
+		this.handleBoxClick = function( player, plateAppearance_id ) {
 			expose.set_state( 'main', {
 				page: 'Atbat',
 				player: player.id,
-				plateAppearance: plateAppearance_ct
+				plateAppearance: plateAppearance_id
+			} );
+		}.bind( this );
+
+		this.handleNewPlateAppearanceClick = function( player, game_id, team_id ) {
+			let plateAppearance = state.addPlateAppearance( player.id, game_id, team_id );
+			expose.set_state( 'main', {
+				page: 'Atbat',
+				player: player.id,
+				plateAppearance: plateAppearance.id
 			} );
 		}.bind( this );
 
@@ -106,12 +115,20 @@ module.exports = class CardScorer extends expose.Component {
 			key: 'currentBatter',
 			className: 'player-name',
 			}, "At Bat - " + (currentBatter ? currentBatter.name : "-"));
+
+		let newPa = DOM.div( {
+					key: 'newPa',
+					onClick: this.handleNewPlateAppearanceClick.bind( this, currentBatter, this.props.game.id, this.props.team.id ),
+					className: 'lineup-box',
+		}, DOM.div( {}, '+' ) );
+
 		elems.push( DOM.div( {
 			id: 'currentBatter',
 			key: 'currentBatterKey',
 			className: 'future-batter-row',
 		},
-			currentBatterEl
+			currentBatterEl,
+			newPa
 		));
 
 		let onDeckBatterBatter = order.getNthBatter(this.props.game.id, 2);
@@ -139,85 +156,6 @@ module.exports = class CardScorer extends expose.Component {
 		},
 			inTheHoleBatterEl
 		));
-
-		//console.log(order.getNthBatter(this.props.game.id, 0));
-		//console.log(order.getNthBatter(this.props.game.id, 1));
-		//console.log(order.getNthBatter(this.props.game.id, 2));
-
-
-		/*
-		let elems = this.props.game.lineup.map( ( player_id ) => {
-			let player = state.getPlayer( player_id );
-			
-			let player_name = DOM.div( {
-				key: 'name',
-				className: 'player-name',
-			}, player.name );
-
-			let del = DOM.img( {
-					src: 'assets/ic_close_white_24dp_1x.png',
-					className: 'delete-button',
-					style: {
-					  paddingTop: '6px',
-					},
-					onClick: this.handleDeleteClick.bind( this, player )
-				});
-			let elems = [];
-
-			for( let i = 0; i < 3; i++ ){
-				let plateAppearance = state.getPlateAppearance( this.props.team.id, this.props.game.id, player.id, i + 1 );
-				let text = '';
-				if( plateAppearance ){
-					text = plateAppearance.result;
-				}
-				
-				elems.push( DOM.div( {
-					key: 'box' + ( i + 1 ),
-					onClick: this.handleBoxClick.bind( this, player, i + 1 ),
-					className: 'lineup-box',
-				}, DOM.div( {}, text ) ) );
-			}
-
-			let boxes = DOM.div( {
-				style: {
-					display: 'flex',
-					justifyContent: 'flex-start'
-				}
-			}, elems );
-				
-
-			let div = DOM.div( {
-				id: 'lineup_' + player.id,
-				key: 'lineup' + player.id,
-				className: 'lineup-row',
-				//onClick: this.handleButtonClick.bind( this, team )
-			},
-				player_name,
-				boxes,
-				del
-			);
-
-
-			return React.createElement( Draggable, {
-				key: 'lineup-draggable' + player.id,
-				axis: 'y',
-				handle: '.player-name',
-				//defaultPosition: { x: 0, y: 0 },
-				position: { x: 0, y: 0 },
-				grid: [ 1, 1 ],
-				onStart: this.handleDragStart.bind( this, player ),
-				onStop: this.handleDragStop.bind( this, player ),
-				onDrag: this.handleDrag.bind( this, player )
-			}, div );
-		} );
-
-
-		elems.push( DOM.div( {
-			key: 'newplayer',
-			className: 'list-item add-list-item',
-			onClick: this.handleCreateClick,
-		}, '+ Add New Player' ) );
-*/
 
 		elems.unshift( DOM.div( { key: 'lineup-padding', id: 'lineup-padding', style: { 'display': 'none', height: '52px' } } ) );
 

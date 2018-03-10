@@ -46,6 +46,7 @@ module.exports = class MainContainer extends expose.Component {
 				game: game
 			} );
 		} else if( card_name === 'Atbat' ) {
+			// Why aren't all these Ids??
 			let team = state.getTeam( this.state.team );
 			if( !team ) {
 				console.error( 'no team', this.state.team );

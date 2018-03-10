@@ -112,6 +112,27 @@ exports.getNextGameId = function() {
 	}, 1 ) + 1;
 };
 
+exports.getNextPlateAppearanceId = function() {
+	return STATE.teams.reduce( ( prev, curr ) => {
+		const id = curr.games.reduce( ( prev, curr ) => {
+			const id2 = curr.plateAppearances.reduce( ( prev, curr ) => {
+				return curr.id > prev ? curr.id : prev;
+			}, 1 );
+			return id2 > prev ? id2 : prev;
+		}, 1 );
+		return id > prev ? id : prev;
+	}, 1 ) + 1;
+};
+
+exports.getNextPlateAppearanceNumber = function( game_id ) {
+	let plateAppearances = state.getGame( game_id ).plateAppearances;
+	let nextPlateAppearanceIndex = 1; // Start at 0 or 1?
+	if(plateAppearances && plateAppearances.length > 0) {
+		nextPlateAppearanceIndex = Math.max.apply(Math,plateAppearances.map(function(o){return o.plateAppearanceIndex;})) + 1;
+	}
+	return nextPlateAppearanceIndex;
+}
+
 exports.getGame = function( game_id, state ) {
 	for ( let team of ( state || STATE ).teams ) {
 		for ( let game of team.games ) {
@@ -259,6 +280,24 @@ exports.addGame = function( team_id, opposing_team_name ) {
 	exports.setState( new_state );
 	return game;
 };
+
+exports.addPlateAppearance = function ( player_id, game_id, team_id ) {
+	let new_state = exports.getState();
+	let game = exports.getGame( game_id );
+	let plateAppearances = game.plateAppearances;
+	let plateAppearanceIndex = exports.getNextPlateAppearanceNumber( game_id );
+	let id = exports.getNextPlateAppearanceId();
+	let plateAppearance = {
+		id: id,
+		player_id: player_id,
+		game_id: game_id,
+		team_id: team_id,
+		plateAppearanceIndex: plateAppearanceIndex
+	};
+	plateAppearances.push( plateAppearance );
+	exports.setState( new_state );
+	return plateAppearance;
+}
 
 exports.removeTeam = function( team_id ) {
 	let new_state = exports.getState();
