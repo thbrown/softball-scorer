@@ -39,7 +39,18 @@ module.exports = class CardTeamList extends expose.Component {
 		};
 
 		this.handlePushClick = function() {
-			console.log(this);
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", state.getServerUrl('/state') , true);
+			xhr.setRequestHeader('Content-Type', 'application/json');
+			xhr.onreadystatechange = function() {
+			    if (xhr.readyState == XMLHttpRequest.DONE) {
+			        console.log(xhr);
+			    }
+			}
+			xhr.send(JSON.stringify({
+			    local: JSON.stringify(state.getState()),
+			    ancestor: JSON.stringify(state.getAncestorState())
+			}));
 		};
 
 		this.handleSaveClick = function() {

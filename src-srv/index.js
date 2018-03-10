@@ -66,6 +66,16 @@ http_server.post( 'test', ( obj, resp, data ) => {
 	http_server.reply( resp, 'This is a test POST result' );
 } );
 
+http_server.post( 'state', ( obj, resp, data ) => {
+	if( !USE_PG ) {
+		return http_server.reply( resp, 'Server was not started with db access' );
+	}
+	console.log(data);
+	console.log(resp);
+	//const objectMerge = require( 'object-merge.js' );
+	http_server.reply( resp, 'Got the post resuilts' );
+} );
+
 http_server.get( 'state', ( obj, resp ) => {
 	if( !USE_PG ) {
 		return http_server.reply( resp, SAMPLE_STATE );
@@ -123,6 +133,7 @@ function getStatePromise() {
 			  index ASC;
 		` );
 
+		// It looks like thes two objects could get out of sync if a save to the db happened between select requests.
 		Promise.all( [ players, teams ] ).then( function( values ) {
 			var state = {};
 
@@ -268,7 +279,7 @@ let SAMPLE_STATE = {
 								9,
 								10
 							],
-							"plateAppearanceIndex": 1
+							"plateAppearanceIndex": 3
 						},
 						{
 							"id": 6,
@@ -278,7 +289,7 @@ let SAMPLE_STATE = {
 								7,
 								8
 							],
-							"plateAppearanceIndex": 2
+							"plateAppearanceIndex": 4
 						},
 						{
 							"id": 5,
@@ -288,7 +299,7 @@ let SAMPLE_STATE = {
 								5,
 								6
 							],
-							"plateAppearanceIndex": 1
+							"plateAppearanceIndex": 5
 						},
 						{
 							"id": 4,
@@ -298,7 +309,7 @@ let SAMPLE_STATE = {
 								3,
 								4
 							],
-							"plateAppearanceIndex": 2
+							"plateAppearanceIndex": 6
 						}
 					],
 					"id": 1,
@@ -331,12 +342,7 @@ let SAMPLE_STATE = {
 				}
 			],
 			"id": 1,
-			"name": "Screwballs",
-			"roster": [
-				1,
-				2,
-				3
-			]
+			"name": "Screwballs"
 		},
 		{
 			"games": [ {
@@ -373,15 +379,13 @@ let SAMPLE_STATE = {
 				]
 			} ],
 			"id": 2,
-			"name": "Mom's Spaghetti",
-			"roster": [
-				4
-			]
+			"name": "Mom's Spaghetti"
 		},
 		{
 			"games": [],
 			"id": 3,
-			"name": "Empty Team"
+			"name": "Empty Team",
+			"lineup_type":2
 		}
 	]
 };

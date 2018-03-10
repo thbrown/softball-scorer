@@ -6,6 +6,10 @@ const objectMerge = require( 'object-merge.js' );
 let DATABASE_STATE;
 let STATE;
 
+exports.getServerUrl = function(path) {
+	return "http://localhost:8888" + path;
+}
+
 exports.updateState = function(callback) {
 	// TODO: block concurrent syncs
 	if(!STATE) {
@@ -29,7 +33,7 @@ exports.updateState = function(callback) {
 	        } 
         }
     }
-    xmlHttp.open("GET", "http://localhost:8888/state", true);
+    xmlHttp.open("GET", exports.getServerUrl('/state') , true);
     xmlHttp.send(null);
     
 }
@@ -225,6 +229,10 @@ exports.updateLineup = function( lineup, player_id, position_index ) {
 	return lineup;
 };
 
+exports.getAncestorState = function() {
+	return DATABASE_STATE;
+}
+
 exports.getState = function() {
 	return STATE;
 };
@@ -283,6 +291,7 @@ exports.addGame = function( team_id, opposing_team_name ) {
 		id: id,
 		opponent: opposing_team_name,
 		lineup: last_lineup,
+		lineup_type: 2,
 		plateAppearances: []
 	};
 	team.games.push( game );
