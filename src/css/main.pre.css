@@ -143,9 +143,16 @@ body {
   font-size: 18px;
 }
 
-.player-input-label {
-  font-size: 24px;
-  margin: 16px 0 0 16px;
+.radio-button {
+  display: flex;
+  flex-direction: column;
+  color: $css.colors.TEXT_LIGHT;
+  font-size: 18px;
+  margin: 16px 16px 0 16px;
+}
+
+.radio-button-option {
+  margin: 8px 0;
 }
 
 /* It's possible to make these have prettier names */

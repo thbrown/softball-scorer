@@ -14,9 +14,11 @@ module.exports = class CardPlayerSelection extends expose.Component {
 		this.expose();
 
 		this.state = {
-			value: '',
+			playerNameValue: '',
 			suggestions: [],
 			player: undefined,
+			createNewPlayer: false,
+			gender: undefined,
 		};
 
 		this.handleBackClick = () => {
@@ -25,14 +27,21 @@ module.exports = class CardPlayerSelection extends expose.Component {
 			} );
 		};
 
-		this.handleInputChange = ( ev ) => {
+		this.handleRadioButtonChange = ( event ) => {
 			this.setState( {
-				value: ev.target.value
+				gender: event.target.value
 			})
 		};
 
 		this.handleSubmitClick = () => {
-			// console.log(this.state.player);
+			if (this.state.createNewPlayer) {
+				console.log(this.state.playerNameValue);
+				console.log(this.state.gender);
+				this.state.player = 
+					state.addPlayer(
+						this.state.playerNameValue,
+						this.state.gender);
+			}
 			state.addPlayerToLineup( this.props.game.lineup, this.state.player.id );
 			expose.set_state( 'main', {
 				page: 'Game'
@@ -41,22 +50,9 @@ module.exports = class CardPlayerSelection extends expose.Component {
 
 		this.onChange = (event, { newValue }) => {
 			this.setState({
-				value: newValue
+				playerNameValue: newValue
 			});
 		};
-	}
-
-	renderPlayerSelection() {
-		return DOM.div( {} , 
-			DOM.div( {
-				className: 'player-input-label'
-			}, 'Player Name' ),
-			DOM.input( {
-				onChange: this.handleInputChange,
-				placeholder: 'Player Name',
-				className: 'player-input',
-			},  )
-		)
 	}
 
 	render() {
@@ -78,6 +74,7 @@ module.exports = class CardPlayerSelection extends expose.Component {
 				}, 'Player' )
 			),
 			this.renderPlayerSelection(),
+			this.maybeRenderGenderRadioButton(),
 			this.renderSubmitButton(),
 		);
 	}
@@ -86,7 +83,6 @@ module.exports = class CardPlayerSelection extends expose.Component {
 		return DOM.div( {
 			className: 'button confirm-button',
 			style: {
-				marginTop: '48px',
 				marginLeft: '16px',
 			},
 			onClick: this.handleSubmitClick
@@ -96,11 +92,52 @@ module.exports = class CardPlayerSelection extends expose.Component {
 		);
 	}
 
+	maybeRenderGenderRadioButton() {
+		if (this.state.createNewPlayer) {
+			return DOM.div(
+				{
+					className: 'radio-button',
+				},
+				DOM.div(
+				{
+					className: 'radio-button-option',
+				},
+					DOM.input( {
+						type: 'radio',
+						name: 'gender',
+						value: 'M',
+						id: 'maleGenderChoice',
+						onChange: this.handleRadioButtonChange,
+					}),
+					DOM.label( {
+						htmlFor: 'maleGenderChoice',
+					}, 'Male'),
+				),
+				DOM.div(
+				{
+					className: 'radio-button-option',
+				},
+					DOM.input( {
+						type: 'radio',
+						name: 'gender',
+						value: 'F',
+						id: 'femaleGenderChoice',
+						onChange: this.handleRadioButtonChange,
+					}),
+					DOM.label( {
+						htmlFor: 'femaleGenderChoice',
+					}, 'Female'),
+				)
+			);
+		}
+		return null;
+	}
+
 	renderPlayerSelection() {
-		const { value, suggestions } = this.state;
+		const { playerNameValue, suggestions } = this.state;
 		const inputProps = {
 			placeholder: "Player Name",
-			value,
+			value: playerNameValue,
 			onChange: this.onChange.bind(this)
 		};
 		return React.createElement( Autosuggest, 
@@ -139,7 +176,7 @@ module.exports = class CardPlayerSelection extends expose.Component {
 
 	getSuggestionValue(suggestion) {
 		if (suggestion.isAddNew) {
-			return this.state.value;
+			return this.state.playerNameValue;
 		}
 		return suggestion.name;
 	}
@@ -148,7 +185,7 @@ module.exports = class CardPlayerSelection extends expose.Component {
 		if (suggestion.isAddNew) {
 			return DOM.span(
 				{},
-				'[+] Add new: ' + this.state.value
+				'[+] Add new: ' + this.state.playerNameValue
 				);
 		}
 
@@ -169,10 +206,14 @@ module.exports = class CardPlayerSelection extends expose.Component {
 
 	onSuggestionSelected(event, { suggestion }) {
 		if (suggestion.isAddNew) {
-			console.log('This does not work yet', this.state.value);
+			this.setState({
+				createNewPlayer: true
+			});
+		} else {
+			this.setState({
+				player: suggestion,
+				createNewPlayer: false,
+			});
 		}
-		this.setState({
-			player: suggestion,
-		});
 	}
 };
