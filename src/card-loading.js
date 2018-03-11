@@ -20,7 +20,7 @@ module.exports = class CardLoading extends expose.Component {
 			expose.set_state( 'main', {
 				page: 'TeamList'
 			});
-		});
+		}, false);
 	}
 
 	render() {

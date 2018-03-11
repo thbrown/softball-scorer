@@ -2,6 +2,7 @@
 
 const http_server = require( './http-server' );
 const { Pool, Client } = require( 'pg' );
+const objectMerge = require( '../object-merge.js' );
 
 let PORT = 8888;
 let USE_PG = true;
@@ -67,13 +68,33 @@ http_server.post( 'test', ( obj, resp, data ) => {
 } );
 
 http_server.post( 'state', ( obj, resp, data ) => {
+
+	let responseObject = {};
 	if( !USE_PG ) {
-		return http_server.reply( resp, 'Server was not started with db access' );
+		responseObject.status = "FAIL";
+		responseObject.reason = "POSTGRES NOT SETUP";
+		return http_server.reply( resp, JSON.stringify(responseObject) );
 	}
-	console.log(data);
-	console.log(resp);
-	//const objectMerge = require( 'object-merge.js' );
-	http_server.reply( resp, 'Got the post resuilts' );
+	//console.log(data);
+	//console.log(resp);
+	
+	getStatePromise().then( function( result ) { 
+		var ancestorDiffs = objectMerge.diff(result, JSON.parse(data.ancestor));
+		if(Object.keys(ancestorDiffs).length === 0 && ancestorDiffs.constructor === Object) {
+
+			var patch = objectMerge.diff(result, JSON.parse(data.local));
+			console.log(JSON.stringify(patch, null,2));
+
+
+			responseObject.status = "SUCCESS";
+			responseObject.reason = "";
+		} else {
+			responseObject.status = "FAIL";
+			responseObject.reason = "PENDING CHANGES - PULL FIRST";
+		}
+		http_server.reply( resp, JSON.stringify(responseObject) );
+	});
+
 } );
 
 http_server.get( 'state', ( obj, resp ) => {
@@ -108,7 +129,7 @@ function getStatePromise() {
 			  teams.id as team_id, 
 			  teams.name as team_name,
 			  games.id as game_id,
-			  games.date as game_date, 
+			  extract (epoch from games.date) as game_date, 
 			  games.opponent as game_opponent, 
 			  games.park as game_park, 
 			  games.score_us as score_us, 

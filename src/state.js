@@ -1,7 +1,7 @@
 'use strict';
 
 const expose = require( 'expose' );
-const objectMerge = require( 'object-merge.js' );
+const objectMerge = require( '../object-merge.js' );
 
 let DATABASE_STATE;
 let STATE;
@@ -10,32 +10,52 @@ exports.getServerUrl = function(path) {
 	return "http://localhost:8888" + path;
 }
 
-exports.updateState = function(callback) {
-	// TODO: block concurrent syncs
-	if(!STATE) {
-		// TODO: Load from local storage
-	}
+exports.updateState = function(callback, force) { // TODO: swap param order?
+	// TODO: block concurrent syncs or at least disable the buttons in the ui
+	if(!STATE && localStorage && localStorage.LOCAL_STATE && localStorage.DATABASE_STATE) {
+		// TODO: do we need to do some basic validation here?
+	    STATE = JSON.parse(localStorage.LOCAL_STATE);
+	    DATABASE_STATE = JSON.parse(localStorage.DATABASE_STATE);
+	    console.log("State loaded from local storage");
+	    callback("Success");
+	    
+	    // Re-render the page
+	    expose.set_state( 'main', {
+			render: true
+		} );
+	} else {
+		var xmlHttp = new XMLHttpRequest();
+	    xmlHttp.onreadystatechange = function() { 
+	        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+	        	try {
+		        	if(STATE && (force === false)) {
+		        		STATE = exports.merge(STATE, DATABASE_STATE, JSON.parse(xmlHttp.responseText));
+		        	} else {
+		            	STATE = JSON.parse(xmlHttp.responseText);
+		        	}
+		        	DATABASE_STATE = JSON.parse(xmlHttp.responseText);
+		        	console.log("State loaded from API call");
+		        	callback("Success");
 
-	var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-        	try {
-	        	if(STATE) {
-	        		STATE = exports.merge(STATE, DATABASE_STATE, JSON.parse(xmlHttp.responseText));
-	        	} else {
-	            	STATE = JSON.parse(xmlHttp.responseText);
-	        	}
-	        	DATABASE_STATE = JSON.parse(xmlHttp.responseText);
-	        	callback("Success");
-	        } catch(error) {
-	        	callback(error);
-	        	console.log(error);
-	        } 
-        }
-    }
-    xmlHttp.open("GET", exports.getServerUrl('/state') , true);
-    xmlHttp.send(null);
-    
+		       		// Re-render the page
+				    expose.set_state( 'main', {
+						render: true
+					} );
+		        } catch(error) {
+		        	callback(error);
+		        	console.log("There was an error while attempting to load state from API call");
+		        	console.log(error);
+		        }
+	        }
+	    }
+	    xmlHttp.open("GET", exports.getServerUrl('/state') , true);
+	    xmlHttp.send(null);
+	}
+}
+
+exports.saveStateToLocalStorage = function() {
+	localStorage.setItem("LOCAL_STATE", JSON.stringify(STATE));
+	localStorage.setItem("DATABASE_STATE", JSON.stringify(DATABASE_STATE));
 }
 
 function isEmpty(obj) {
