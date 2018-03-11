@@ -123,9 +123,7 @@ body {
   height: 40px;
   width: 38px;
   line-height: 40px;
-  border-top: 1px solid $css.colors.TEXT_DARK;
-  border-bottom: 1px solid $css.colors.TEXT_DARK;
-  border-right: 1px solid $css.colors.TEXT_DARK;
+  border: 1px solid $css.colors.TEXT_DARK;
   text-align: center;
 }
 
