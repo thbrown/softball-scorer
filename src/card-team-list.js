@@ -35,11 +35,38 @@ module.exports = class CardTeamList extends expose.Component {
 
 		this.handleSyncClick = function() {
 			console.log("Starging Sync");
-			state.updateState( (status) => {console.log("Done with sync: " + status)} );
+			state.updateState((status) => {console.log("Done with sync: " + status)} , false);
+			expose.set_state( 'main', {
+				page: 'TeamList'
+			});
+		};
+
+		this.handleHardSyncClick = function( ev ) {
+			dialog.show_confirm( 'Are you sure you want do a hard pull? This will erase all local changes.', () => {
+				state.updateState((status) => {console.log("Done with sync: " + status)} , true);
+			} );
+			ev.stopPropagation();
 		};
 
 		this.handlePushClick = function() {
-			console.log(this);
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", state.getServerUrl('/state') , true);
+			xhr.setRequestHeader('Content-Type', 'application/json');
+			xhr.onreadystatechange = function() {
+			    if (xhr.readyState == XMLHttpRequest.DONE) {
+			        let response = JSON.parse(xhr.response);
+			        if(response.status == "FAIL") {
+			        	console.log("FAIL: " + response.reason);
+			        } else if (response.status == "SUCCESS") {
+			        	console.log("WOOT!!!");
+			        	// Update state, hard pull
+			        }
+			    }
+			}
+			xhr.send(JSON.stringify({
+			    local: JSON.stringify(state.getState()),
+			    ancestor: JSON.stringify(state.getAncestorState())
+			}));
 		};
 
 		this.handleSaveClick = function() {
@@ -85,6 +112,7 @@ module.exports = class CardTeamList extends expose.Component {
 			onClick: this.handleCreateClick,
 		}, '+ Add New Team' ) );
 
+		// TODO: re-render
 		elems.push( DOM.div( {
 			key: 'pull',
 			className: 'list-item',
@@ -95,10 +123,21 @@ module.exports = class CardTeamList extends expose.Component {
 			}
 		}, 'Pull' ) );
 
+		// TODO: re-render
+		elems.push( DOM.div( {
+			key: 'hardPull',
+			className: 'list-item',
+			onClick: this.handleHardSyncClick.bind( this ),
+			style: {
+				backgroundColor: css.colors.BG,
+				color: 'gray',
+			}
+		}, 'Hard Pull' ) );
+
 		elems.push( DOM.div( {
 			key: 'push',
 			className: 'list-item',
-			onClick: this.handlePushClick.bind( this),
+			onClick: this.handlePushClick.bind( this ),
 			style: {
 				backgroundColor: css.colors.BG,
 				color: 'gray',
@@ -108,7 +147,7 @@ module.exports = class CardTeamList extends expose.Component {
 		elems.push( DOM.div( {
 			key: 'save',
 			className: 'list-item',
-			onClick: this.handleSaveClick.bind( this),
+			onClick: this.handleSaveClick.bind( this ),
 			style: {
 				backgroundColor: css.colors.BG,
 				color: 'gray',

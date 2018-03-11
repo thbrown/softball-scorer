@@ -15,7 +15,6 @@ module.exports = class CardPlayerList extends expose.Component {
 	}
 
 	renderPlayerList(){
-		console.log("Rendering player list");
 		const s = state.getState();
 		let players = s.players.filter( ( player ) => {
 			return this.props.team.games.reduce( ( result, game ) => {

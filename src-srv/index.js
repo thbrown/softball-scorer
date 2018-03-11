@@ -2,6 +2,7 @@
 
 const http_server = require( './http-server' );
 const { Pool, Client } = require( 'pg' );
+const objectMerge = require( '../object-merge.js' );
 
 let PORT = 8888;
 let USE_PG = true;
@@ -66,6 +67,36 @@ http_server.post( 'test', ( obj, resp, data ) => {
 	http_server.reply( resp, 'This is a test POST result' );
 } );
 
+http_server.post( 'state', ( obj, resp, data ) => {
+
+	let responseObject = {};
+	if( !USE_PG ) {
+		responseObject.status = "FAIL";
+		responseObject.reason = "POSTGRES NOT SETUP";
+		return http_server.reply( resp, JSON.stringify(responseObject) );
+	}
+	//console.log(data);
+	//console.log(resp);
+	
+	getStatePromise().then( function( result ) { 
+		var ancestorDiffs = objectMerge.diff(result, JSON.parse(data.ancestor));
+		if(Object.keys(ancestorDiffs).length === 0 && ancestorDiffs.constructor === Object) {
+
+			var patch = objectMerge.diff(result, JSON.parse(data.local));
+			console.log(JSON.stringify(patch, null,2));
+
+
+			responseObject.status = "SUCCESS";
+			responseObject.reason = "";
+		} else {
+			responseObject.status = "FAIL";
+			responseObject.reason = "PENDING CHANGES - PULL FIRST";
+		}
+		http_server.reply( resp, JSON.stringify(responseObject) );
+	});
+
+} );
+
 http_server.get( 'state', ( obj, resp ) => {
 	if( !USE_PG ) {
 		return http_server.reply( resp, SAMPLE_STATE );
@@ -98,7 +129,7 @@ function getStatePromise() {
 			  teams.id as team_id, 
 			  teams.name as team_name,
 			  games.id as game_id,
-			  games.date as game_date, 
+			  extract (epoch from games.date) as game_date, 
 			  games.opponent as game_opponent, 
 			  games.park as game_park, 
 			  games.score_us as score_us, 
@@ -123,6 +154,7 @@ function getStatePromise() {
 			  index ASC;
 		` );
 
+		// It looks like thes two objects could get out of sync if a save to the db happened between select requests.
 		Promise.all( [ players, teams ] ).then( function( values ) {
 			var state = {};
 
@@ -178,7 +210,11 @@ function getStatePromise() {
 					newPlateAppearance.player_id = plateAppearance.player_id;
 					newPlateAppearance.result = plateAppearance.result;
 					if ( plateAppearance.location ) {
-						newPlateAppearance.location = plateAppearance.location.split( ',' ).map( Number );
+						let locationArray = plateAppearance.location.split( ',' ).map( Number );
+						newPlateAppearance.location = {
+							"x":locationArray[0],
+							"y":locationArray[1]
+						}
 					}
 					newPlateAppearance.plateAppearanceIndex = plateAppearance.index;
 					newGame.plateAppearances.push( newPlateAppearance );
@@ -244,61 +280,61 @@ let SAMPLE_STATE = {
 							"id": 3,
 							"player_id": 1,
 							"result": "4i",
-							"location": [
-								1,
-								2
-							],
+							"location": {
+								"x":13,
+								"y":14
+							},
 							"plateAppearanceIndex": 1
 						},
 						{
 							"id": 8,
 							"player_id": 2,
 							"result": "3",
-							"location": [
-								11,
-								12
-							],
+							"location": {
+								"x":13,
+								"y":14
+							},
 							"plateAppearanceIndex": 2
 						},
 						{
 							"id": 7,
 							"player_id": 2,
 							"result": "0",
-							"location": [
-								9,
-								10
-							],
-							"plateAppearanceIndex": 1
+							"location": {
+								"x":13,
+								"y":14
+							},
+							"plateAppearanceIndex": 3
 						},
 						{
 							"id": 6,
 							"player_id": 3,
 							"result": "2",
-							"location": [
-								7,
-								8
-							],
-							"plateAppearanceIndex": 2
+							"location": {
+								"x":13,
+								"y":14
+							},
+							"plateAppearanceIndex": 4
 						},
 						{
 							"id": 5,
 							"player_id": 3,
 							"result": "1",
-							"location": [
-								5,
-								6
-							],
-							"plateAppearanceIndex": 1
+							"location": {
+								"x":13,
+								"y":14
+							},
+							"plateAppearanceIndex": 5
 						},
 						{
 							"id": 4,
 							"player_id": 1,
 							"result": "3",
-							"location": [
-								3,
-								4
-							],
-							"plateAppearanceIndex": 2
+							"location": {
+								"x":13,
+								"y":14
+							},
+							"plateAppearanceIndex": 6
 						}
 					],
 					"id": 1,
@@ -331,12 +367,7 @@ let SAMPLE_STATE = {
 				}
 			],
 			"id": 1,
-			"name": "Screwballs",
-			"roster": [
-				1,
-				2,
-				3
-			]
+			"name": "Screwballs"
 		},
 		{
 			"games": [ {
@@ -344,20 +375,20 @@ let SAMPLE_STATE = {
 						"id": 10,
 						"player_id": 4,
 						"result": "0",
-						"location": [
-							15,
-							16
-						],
+						"location": {
+							"x":13,
+							"y":14
+						},
 						"plateAppearanceIndex": 2
 					},
 					{
 						"id": 9,
 						"player_id": 4,
 						"result": "2",
-						"location": [
-							13,
-							14
-						],
+						"location": {
+							"x":13,
+							"y":14
+						},
 						"plateAppearanceIndex": 1
 					}
 				],
@@ -373,15 +404,13 @@ let SAMPLE_STATE = {
 				]
 			} ],
 			"id": 2,
-			"name": "Mom's Spaghetti",
-			"roster": [
-				4
-			]
+			"name": "Mom's Spaghetti"
 		},
 		{
 			"games": [],
 			"id": 3,
-			"name": "Empty Team"
+			"name": "Empty Team",
+			"lineup_type":2
 		}
 	]
 };

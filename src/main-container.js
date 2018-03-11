@@ -31,6 +31,10 @@ module.exports = class MainContainer extends expose.Component {
 	}
 
 	renderCard( card_name ){
+		if ( card_name !== 'Loading' ) {
+			state.saveStateToLocalStorage();
+		}
+
 		if( card_name === 'Loading' ) {
 			return React.createElement( CardLoading );
 		} else if( card_name === 'TeamList' ) {

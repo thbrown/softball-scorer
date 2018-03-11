@@ -101,8 +101,8 @@ module.exports = class CardAtBat extends expose.Component {
 		let x = -1;
 		let y = -1;
 		if( this.props.plateAppearance.location ){
-			x = this.props.plateAppearance.location[ 0 ];
-			y = this.props.plateAppearance.location[ 1 ];
+			x = this.props.plateAppearance.location.x;
+			y = this.props.plateAppearance.location.y;
 		}
 
 		let new_x = Math.floor( normalize( x, 0, 400, 0, window.innerWidth ) );
