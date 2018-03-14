@@ -8,7 +8,6 @@ const css = require( 'css' );
 const state = require( 'state' );
 const CardGame = require( 'card-game' );
 const CardAtBat = require( 'card-at-bat' );
-const CardLineup = require( 'card-lineup' );
 const CardLoading = require( 'card-loading' );
 const CardPlayerSelection = require( 'card-player-selection' );
 const CardTeam = require( 'card-team' );
@@ -22,7 +21,7 @@ module.exports = class MainContainer extends expose.Component {
 		this.expose( 'main' );
 		this.state = {
 			render: true,
-			page: qs.page || 'Loading',
+			page: 'Loading',
 			team: parseInt( qs.team ) || 1,
 			game: parseInt( qs.game ) || 1,
 			player: parseInt( qs.player ) || 1,

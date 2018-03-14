@@ -8,63 +8,65 @@ let STATE;
 
 exports.getServerUrl = function(path) {
 	return "http://localhost:8888" + path;
-}
+};
 
 exports.updateState = function(callback, force) { // TODO: swap param order?
-	// TODO: block concurrent syncs or at least disable the buttons in the ui
-	if(!STATE && localStorage && localStorage.LOCAL_STATE && localStorage.DATABASE_STATE) {
-		// TODO: do we need to do some basic validation here?
-	    STATE = JSON.parse(localStorage.LOCAL_STATE);
-	    DATABASE_STATE = JSON.parse(localStorage.DATABASE_STATE);
-	    console.log("State loaded from local storage");
-	    callback("Success");
-	    
-	    // Re-render the page
-	    expose.set_state( 'main', {
-			render: true
-		} );
-	} else {
-		var xmlHttp = new XMLHttpRequest();
-	    xmlHttp.onreadystatechange = function() { 
-	        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-	        	try {
-		        	if(STATE && (force === false)) {
-		        		STATE = exports.merge(STATE, DATABASE_STATE, JSON.parse(xmlHttp.responseText));
-		        	} else {
-		            	STATE = JSON.parse(xmlHttp.responseText);
-		        	}
-		        	DATABASE_STATE = JSON.parse(xmlHttp.responseText);
-		        	console.log("State loaded from API call");
-		        	callback("Success");
 
-		       		// Re-render the page
-				    expose.set_state( 'main', {
-						render: true
-					} );
-		        } catch(error) {
-		        	callback(error);
-		        	console.log("There was an error while attempting to load state from API call");
-		        	console.log(error);
-		        }
-	        }
-	    }
-	    xmlHttp.open("GET", exports.getServerUrl('/state') , true);
-	    xmlHttp.send(null);
+	let should_load_from_local_state = !STATE && localStorage && localStorage.LOCAL_STATE && localStorage.DATABASE_STATE;
+
+	// TODO: block concurrent syncs or at least disable the buttons in the ui
+	if( should_load_from_local_state ) {
+		// TODO: do we need to do some basic validation here?
+		try {
+			STATE = JSON.parse(localStorage.LOCAL_STATE);
+			DATABASE_STATE = JSON.parse(localStorage.DATABASE_STATE);
+			console.log("State loaded from local storage");
+			callback( null, STATE );
+		} catch( e ) {
+			console.warn( 'Error loading from local state:', e );
+			should_load_from_local_state = false;
+		}
 	}
-}
+
+	if( !should_load_from_local_state ) {
+		var xmlHttp = new XMLHttpRequest();
+		// use fetch api for this instead of xmlhttp, its much easier (uses promises)
+		xmlHttp.onreadystatechange = function() {
+			if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
+				try {
+					if(STATE && (force === false)) {
+						STATE = exports.merge(STATE, DATABASE_STATE, JSON.parse(xmlHttp.responseText));
+					} else {
+						STATE = JSON.parse(xmlHttp.responseText);
+					}
+					DATABASE_STATE = JSON.parse(xmlHttp.responseText);
+					console.log("State loaded from API call");
+					callback( null, STATE );
+				} catch(error) {
+					callback( error );
+					console.log("There was an error while attempting to load state from API call");
+					console.log(error);
+				}
+			}
+		};
+		xmlHttp.open("GET", exports.getServerUrl('/state') , true);
+		xmlHttp.send(null);
+	}
+};
 
 exports.saveStateToLocalStorage = function() {
 	localStorage.setItem("LOCAL_STATE", JSON.stringify(STATE));
 	localStorage.setItem("DATABASE_STATE", JSON.stringify(DATABASE_STATE));
-}
+};
 
 function isEmpty(obj) {
-    for(var prop in obj) {
-        if(obj.hasOwnProperty(prop))
-            return false;
-    }
+	for(var prop in obj) {
+		if(obj.hasOwnProperty(prop)) {
+			return false;
+		}
+	}
 
-    return JSON.stringify(obj) === JSON.stringify({});
+	return JSON.stringify(obj) === JSON.stringify({});
 }
 
 exports.merge = function(mine, ancestor, yours) {
@@ -83,7 +85,7 @@ exports.merge = function(mine, ancestor, yours) {
 			console.log(JSON.stringify(myChangesWin,null,2));
 			console.log(JSON.stringify(yourChangesWin,null,2));
 			console.log("Conflicts! Local changes and remote changes were detected but not merged due to conflicts");
-			throw "Conflicts detected" 
+			throw "Conflicts detected";
 		}
 	} else if(!isEmpty(myChangesOnly)) {
 		console.log("Local changes merged");
@@ -93,11 +95,11 @@ exports.merge = function(mine, ancestor, yours) {
 		console.log("Remote changes merged");
 		console.log(JSON.stringify(yourChangesOnly,null,2));
 		return objectMerge.patch(ancestor,yourChangesOnly);
-	}  else {
+	} else {
 		console.log("No changes detected");
 		return ancestor;
 	}
-}
+};
 
 exports.getQueryObj = function() {
 	let queryString = window.location.search || '';
@@ -149,13 +151,13 @@ exports.getNextPlateAppearanceId = function() {
 };
 
 exports.getNextPlateAppearanceNumber = function( game_id ) {
-	let plateAppearances = state.getGame( game_id ).plateAppearances;
+	let plateAppearances = exports.getGame( game_id ).plateAppearances;
 	let nextPlateAppearanceIndex = 1; // Start at 0 or 1?
 	if(plateAppearances && plateAppearances.length > 0) {
 		nextPlateAppearanceIndex = Math.max.apply(Math,plateAppearances.map(function(o){return o.plateAppearanceIndex;})) + 1;
 	}
 	return nextPlateAppearanceIndex;
-}
+};
 
 exports.getGame = function( game_id, state ) {
 	for ( let team of ( state || STATE ).teams ) {
@@ -213,7 +215,7 @@ exports.getPlateAppearancesForPlayerInGame = function( player_id, game_id ) {
 	if (!game || !player ) {
 		return null;
 	}
-	return game.plateAppearances.filter( pa => pa.player_id == player_id );
+	return game.plateAppearances.filter( pa => pa.player_id === player_id );
 };
 
 exports.getPlateAppearances = function( team_id, player_id ) {
@@ -223,7 +225,7 @@ exports.getPlateAppearances = function( team_id, player_id ) {
 	if ( team.games ) {
 		team.games.forEach( game => {
 			if ( game.plateAppearances ) {
-				const plateAppearancesThisGame = game.plateAppearances.filter(pa => player_id == pa.player_id);
+				const plateAppearancesThisGame = game.plateAppearances.filter(pa => player_id === pa.player_id);
 				plateAppearances = plateAppearances.concat(plateAppearancesThisGame);
 			}
 		});
@@ -252,7 +254,7 @@ exports.updateLineup = function( lineup, player_id, position_index ) {
 
 exports.getAncestorState = function() {
 	return DATABASE_STATE;
-}
+};
 
 exports.getState = function() {
 	return STATE;
@@ -337,7 +339,7 @@ exports.addPlateAppearance = function ( player_id, game_id, team_id ) {
 	plateAppearances.push( plateAppearance );
 	exports.setState( new_state );
 	return plateAppearance;
-}
+};
 
 exports.removeTeam = function( team_id ) {
 	let new_state = exports.getState();
@@ -357,7 +359,7 @@ exports.removeGame = function( game_id, team_id ) {
 	} );
 
 	if (index > -1) {
-    	new_state.teams[index] = team;
+		new_state.teams[index] = team;
 	} else {
 		console.log("Game not found " + game_id);
 	}
@@ -372,9 +374,6 @@ exports.removePlayerFromLineup = function( lineup, player_id ) {
 };
 
 exports.buildStatsObject = function( team_id, player_id ) {
-	let state = exports.getState();
-	let team = exports.getTeam( team_id, state );
-
 	let stats = {};
 	stats.plateAppearances = 0;
 	stats.totalBasesByHit = 0;
@@ -392,31 +391,31 @@ exports.buildStatsObject = function( team_id, player_id ) {
 	plateAppearances.forEach( pa => {
 		if(pa.result) {
 			stats.plateAppearances++;
-			if(pa.result == "BB") {
+			if(pa.result === "BB") {
 				stats.walks++; // Boo!
 			} else {
 				stats.atBats++;
-				if(pa.result == "E") {
+				if(pa.result === "E") {
 					stats.reachsOnError++;
 				} else if (pa.result == 0) {
 					// Intantionally blank
 				} else {
 					stats.hits++;
-					if(pa.result == "1") {
+					if(pa.result === "1") {
 						stats.totalBasesByHit++;
-					} else if(pa.result == "2") {
+					} else if(pa.result === "2") {
 						stats.doubles++;
 						stats.totalBasesByHit += 2;
-					} else if(pa.result == "3") {
+					} else if(pa.result === "3") {
 						stats.triples++;
 						stats.totalBasesByHit += 3;
-					} else if(pa.result == "4i") {
+					} else if(pa.result === "4i") {
 						stats.insideTheParkHR++;
 						stats.totalBasesByHit += 4;
-					} else if(pa.result == "4o") {
+					} else if(pa.result === "4o") {
 						stats.outsideTheParkHR++;
 						stats.totalBasesByHit += 4;
-					} 
+					}
 				}
 			}
 		}

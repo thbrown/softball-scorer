@@ -201,7 +201,8 @@ exp.get_mime_type = function( extension ) {
 		ico: 'image/x-icon',
 		csv: 'text/csv',
 		woff: 'font/woff',
-		woff2: 'font/woff2'
+		woff2: 'font/woff2',
+		svg:  'image/svg+xml'
 	};
 
 	return mimes[ extension ] || 'text/plain';

@@ -1,7 +1,8 @@
+/*eslint no-process-exit:*/
 'use strict';
 
 const http_server = require( './http-server' );
-const { Pool, Client } = require( 'pg' );
+const { Pool } = require( 'pg' );
 const objectMerge = require( '../object-merge.js' );
 
 let PORT = 8888;
@@ -18,6 +19,7 @@ if ( process.argv.length !== 4 && process.argv.length !== 2 ) {
 const user = process.argv[ 2 ];
 const password = process.argv[ 3 ];
 let pool = null;
+let SAMPLE_STATE = null;
 
 if( USE_PG ) {
 	let pgurl = '35.197.35.206';
@@ -31,7 +33,7 @@ if( USE_PG ) {
 	} );
 
 	// Test connection
-	pool.connect( function( err, client, done ) {
+	pool.connect( function( err ) {
 		if ( err ) {
 			console.log( "There was a problem getting db connection:" );
 			console.log( err );
@@ -77,8 +79,8 @@ http_server.post( 'state', ( obj, resp, data ) => {
 	}
 	//console.log(data);
 	//console.log(resp);
-	
-	getStatePromise().then( function( result ) { 
+
+	getStatePromise().then( function( result ) {
 		var ancestorDiffs = objectMerge.diff(result, JSON.parse(data.ancestor));
 		if(Object.keys(ancestorDiffs).length === 0 && ancestorDiffs.constructor === Object) {
 
@@ -214,7 +216,7 @@ function getStatePromise() {
 						newPlateAppearance.location = {
 							"x":locationArray[0],
 							"y":locationArray[1]
-						}
+						};
 					}
 					newPlateAppearance.plateAppearanceIndex = plateAppearance.index;
 					newGame.plateAppearances.push( newPlateAppearance );
@@ -248,7 +250,7 @@ function queryPromise( queryString ) {
 	} );
 }
 
-let SAMPLE_STATE = {
+SAMPLE_STATE = {
 	"players": [ {
 			"id": 1,
 			"name": "Harry",

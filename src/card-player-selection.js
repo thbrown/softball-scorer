@@ -30,14 +30,14 @@ module.exports = class CardPlayerSelection extends expose.Component {
 		this.handleRadioButtonChange = ( event ) => {
 			this.setState( {
 				gender: event.target.value
-			})
+			});
 		};
 
 		this.handleSubmitClick = () => {
 			if (this.state.createNewPlayer) {
 				console.log(this.state.playerNameValue);
 				console.log(this.state.gender);
-				this.state.player = 
+				this.state.player =
 					state.addPlayer(
 						this.state.playerNameValue,
 						this.state.gender);
@@ -46,7 +46,7 @@ module.exports = class CardPlayerSelection extends expose.Component {
 			expose.set_state( 'main', {
 				page: 'Game'
 			} );
-		}
+		};
 
 		this.onChange = (event, { newValue }) => {
 			this.setState({
@@ -75,7 +75,7 @@ module.exports = class CardPlayerSelection extends expose.Component {
 			),
 			this.renderPlayerSelection(),
 			this.maybeRenderGenderRadioButton(),
-			this.renderSubmitButton(),
+			this.renderSubmitButton()
 		);
 	}
 
@@ -111,7 +111,7 @@ module.exports = class CardPlayerSelection extends expose.Component {
 					}),
 					DOM.label( {
 						htmlFor: 'maleGenderChoice',
-					}, 'Male'),
+					}, 'Male')
 				),
 				DOM.div(
 				{
@@ -126,7 +126,7 @@ module.exports = class CardPlayerSelection extends expose.Component {
 					}),
 					DOM.label( {
 						htmlFor: 'femaleGenderChoice',
-					}, 'Female'),
+					}, 'Female')
 				)
 			);
 		}
@@ -134,13 +134,13 @@ module.exports = class CardPlayerSelection extends expose.Component {
 	}
 
 	renderPlayerSelection() {
-		const { playerNameValue, suggestions } = this.state;
+		const { playerNameValue } = this.state;
 		const inputProps = {
 			placeholder: "Player Name",
 			value: playerNameValue,
 			onChange: this.onChange.bind(this)
 		};
-		return React.createElement( Autosuggest, 
+		return React.createElement( Autosuggest,
 			{
 				suggestions: this.state.suggestions,
 				onSuggestionsFetchRequested: this.onSuggestionsFetchRequested.bind(this),

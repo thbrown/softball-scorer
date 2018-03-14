@@ -35,15 +35,18 @@ module.exports = class CardTeamList extends expose.Component {
 
 		this.handleSyncClick = function() {
 			console.log("Starging Sync");
-			state.updateState((status) => {console.log("Done with sync: " + status)} , false);
-			expose.set_state( 'main', {
-				page: 'TeamList'
-			});
+			state.updateState((status) => {
+				console.log("Done with sync: " + status);
+				expose.set_state( 'main', { render: true } );
+			} , false );
 		};
 
 		this.handleHardSyncClick = function( ev ) {
 			dialog.show_confirm( 'Are you sure you want do a hard pull? This will erase all local changes.', () => {
-				state.updateState((status) => {console.log("Done with sync: " + status)} , true);
+				state.updateState((status) => {
+					console.log("Done with sync: " + status);
+					expose.set_state( 'main', { render: true } );
+				} , true);
 			} );
 			ev.stopPropagation();
 		};
@@ -53,19 +56,19 @@ module.exports = class CardTeamList extends expose.Component {
 			xhr.open("POST", state.getServerUrl('/state') , true);
 			xhr.setRequestHeader('Content-Type', 'application/json');
 			xhr.onreadystatechange = function() {
-			    if (xhr.readyState == XMLHttpRequest.DONE) {
-			        let response = JSON.parse(xhr.response);
-			        if(response.status == "FAIL") {
-			        	console.log("FAIL: " + response.reason);
-			        } else if (response.status == "SUCCESS") {
-			        	console.log("WOOT!!!");
-			        	// Update state, hard pull
-			        }
-			    }
-			}
+				if (xhr.readyState === XMLHttpRequest.DONE) {
+					let response = JSON.parse(xhr.response);
+					if(response.status === "FAIL") {
+						console.log("FAIL: " + response.reason);
+					} else if (response.status === "SUCCESS") {
+						console.log("WOOT!!!");
+						// Update state, hard pull
+					}
+				}
+			};
 			xhr.send(JSON.stringify({
-			    local: JSON.stringify(state.getState()),
-			    ancestor: JSON.stringify(state.getAncestorState())
+				local: JSON.stringify(state.getState()),
+				ancestor: JSON.stringify(state.getAncestorState())
 			}));
 		};
 
@@ -76,12 +79,13 @@ module.exports = class CardTeamList extends expose.Component {
 	}
 
 	// https://stackoverflow.com/questions/34156282/how-do-i-save-json-to-local-text-file
+	// This only works in desktop chrome
 	download(text, name, type) {
-	    var a = document.createElement("a");
-	    var file = new Blob([text], {type: type});
-	    a.href = URL.createObjectURL(file);
-	    a.download = name;
-	    a.click();
+		var a = document.createElement("a");
+		var file = new Blob([text], {type: type});
+		a.href = URL.createObjectURL(file);
+		a.download = name;
+		a.click();
 	}
 
 	renderTeamList(){

@@ -81,3 +81,5 @@ module.exports.get_state = function( id ){
 		return {};
 	}
 };
+
+global.expose = module.exports;

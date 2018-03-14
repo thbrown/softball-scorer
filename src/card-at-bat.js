@@ -33,34 +33,49 @@ module.exports = class CardAtBat extends expose.Component {
 		};
 
 		this.handleDragStop = function() {
-			let elem = document.getElementById( 'baseball' );
-			let coords = elem.style.transform.replace( /px/g, '' ).replace( /translate/, '' ).slice( 1, -1 ).split( ',' ).map( i => parseInt( i ) );
+			//lame way to make this run after the mouseup event
+			setTimeout( () => {
+				let new_x = ( this.mx - 10 ) / window.innerWidth;
+				let new_y = ( this.my - 10 ) / window.innerWidth;
 
-			let x = coords[ 0 ];
-			let y = coords[ 1 ];
-
-			let y_bottom = -50;
-			let y_top = -415;
-			let x_left = -50;
-			let x_right = 310;
-
-			if( x < x_left ) {
-				x = x_left;
-			} else if( x > x_right ) {
-				x = x_right;
-			}
-
-			if( y < y_top ) {
-				y = y_top;
-			} else if( y > y_bottom ) {
-				y = y_bottom;
-			}
-
-			let new_x = Math.floor( normalize( x, x_left, x_right, 0, 400 ) );
-			let new_y = Math.floor( normalize( y, y_top, y_bottom, 0, 400 ) );
-
-			state.updatePlateAppearanceLocation( this.props.plateAppearance, [ new_x, new_y ] );
+				state.updatePlateAppearanceLocation( this.props.plateAppearance, [ new_x, new_y ] );
+			}, 1 );
 		};
+	}
+
+	componentDidMount(){
+		this.onmouseup = ( ev ) => {
+			let ballfield = document.getElementById( 'ballfield' );
+
+			if( ev.changedTouches ) {
+				this.mx = ev.changedTouches[ 0 ].pageX - ballfield.offsetLeft;
+				this.my = ev.changedTouches[ 0 ].pageY - ballfield.offsetTop + document.body.scrollTop;
+			} else {
+				this.mx = ev.clientX - ballfield.offsetLeft;
+				this.my = ev.clientY - ballfield.offsetTop + document.body.scrollTop;
+			}
+
+			if( this.mx < 0 ) {
+				this.mx = 0;
+			}
+
+			if( this.my < 0 ) {
+				this.my = 0;
+			}
+
+			if( this.my > parseInt( ballfield.style.height ) )
+			{
+				this.my = parseInt( ballfield.style.height );
+			}
+		};
+
+		window.addEventListener( 'mouseup', this.onmouseup );
+		window.addEventListener( 'touchend', this.onmouseup );
+	}
+
+	componentWillUnmount() {
+		window.removeEventListener( 'mouseup', this.onmouseup );
+		window.removeEventListener( 'touchend', this.onmouseup );
 	}
 
 	renderButtonList(){
@@ -93,7 +108,7 @@ module.exports = class CardAtBat extends expose.Component {
 					justifyContent: 'space-around',
 					margin: '4px',
 				}
-			}, elems.slice(5, elems.length) ),
+			}, elems.slice(5, elems.length) )
 		);
 	}
 
@@ -105,23 +120,12 @@ module.exports = class CardAtBat extends expose.Component {
 			y = this.props.plateAppearance.location.y;
 		}
 
-		let new_x = Math.floor( normalize( x, 0, 400, 0, window.innerWidth ) );
-		let new_y = Math.floor( normalize( y, 0, 400, 0, window.innerWidth ) );
+		let new_x = Math.floor( normalize( x, 0, 1, 0, window.innerWidth ) );
+		let new_y = Math.floor( normalize( y, 0, 1, 0, window.innerWidth ) );
 
-		return DOM.div( {
-			style: {
-				position: 'relative',
-				borderTop: '1px solid white',
-				borderBottom: '1px solid white'
-			}
-		},
-			DOM.img( {
-				src: 'assets/ballfield.png',
-				style: {
-					width: '100%'
-				}
-			} ),
-			x > -1 ? DOM.img( {
+		let indicator = null;
+		if( x > -1 ) {
+			indicator = DOM.img( {
 				draggable: true,
 				src: 'assets/baseball-blue.png',
 				style: {
@@ -130,7 +134,28 @@ module.exports = class CardAtBat extends expose.Component {
 					left: new_x + 'px',
 					top: new_y + 'px'
 				}
-			} ) : null
+			} );
+		}
+
+		return DOM.div( {
+			id: 'ballfield',
+			style: {
+				position: 'relative',
+				borderTop: '1px solid white',
+				borderBottom: '1px solid white',
+				width: ( window.innerWidth - 2 ) + 'px',
+				height: ( window.innerWidth - 2 ) + 'px',
+				overflow: 'hidden'
+			}
+		},
+			DOM.img( {
+				draggable: true,
+				src: 'assets/ballfield2.png',
+				style: {
+					width: '100%'
+				}
+			} ),
+			indicator
 		);
 	}
 
@@ -145,7 +170,7 @@ module.exports = class CardAtBat extends expose.Component {
 			onStop: this.handleDragStop.bind( this),
 		}, DOM.img( {
 			id: 'baseball',
-			draggable: true,
+			draggable: false,
 			src: 'assets/baseball.png',
 			style: {
 				width: '75px'
