@@ -9,7 +9,7 @@ let diffInternal = function(mine, theirs, path, result) {
 	if(Array.isArray(mine) && Array.isArray(theirs)) {
 		let deletes = mine.filter(x => !theirs.find(v => getUniqueId(v) === getUniqueId(x)));
 		deletes.forEach( 
-			(del) => {addToResult(result,path,getUniqueId(del),"Delete")}
+			(del) => {addToResult(result, path, getUniqueId(del), "Delete")}
 		);
 		let adds = theirs.filter(x => !mine.find(v => getUniqueId(v) === getUniqueId(x)));
 		adds.forEach( 
@@ -31,11 +31,11 @@ let diffInternal = function(mine, theirs, path, result) {
 	} else if ((mine !== null && typeof mine === 'object') && (mine !== null && typeof mine === 'object')) {
 		let deletes = Object.keys(mine).filter(x => !Object.keys(theirs).find(v => getUniqueId(mine[v]) === getUniqueId(mine[x])));
 		deletes.forEach( 
-			(del) => {addToResult(result,path,getUniqueId(del),"Delete")}
+			(del) => {addToResult(result, path, getUniqueId(del), "Delete")}
 		);
 		let adds = Object.keys(theirs).filter(x => !Object.keys(mine).find(v => getUniqueId(v) === getUniqueId(x)));
 		adds.forEach( 
-			(add) => {		console.log(adds); return addToResult(result,path,getUniqueId(add),"Add",theirs[add]);}
+			(add) => {return addToResult(result, path, getUniqueId(add), "Add", theirs[add]);}
 		);
 		let commonProps = Object.keys(theirs).filter(x => Object.keys(mine).find(v => getUniqueId(v) === getUniqueId(x)));
 		commonProps.forEach( prop => {
@@ -50,13 +50,6 @@ let diffInternal = function(mine, theirs, path, result) {
 	}
 	return result;
 }
-
-/*
-let patchToSql() {
-	"INSERT INTO " + table table(column1, column2, …) VALUES
- (value1, value2, …);
-}
-*/
 
 // https://stackoverflow.com/questions/41239651/javascript-check-if-two-arrays-are-equal-when-arrays-contain-an-object-and-an
 let arraysEqual = function (arr1, arr2) {

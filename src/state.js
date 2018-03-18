@@ -7,7 +7,7 @@ let DATABASE_STATE;
 let STATE;
 
 exports.getServerUrl = function(path) {
-	return "http://localhost:8888" + path;
+	return "http://pizzaman:8888" + path;
 };
 
 exports.updateState = function(callback, force) { // TODO: swap param order?
@@ -239,6 +239,7 @@ exports.updatePlateAppearanceResult = function( plateAppearance, result ) {
 };
 
 exports.updatePlateAppearanceLocation = function( plateAppearance, location ) {
+	plateAppearance.location = {};
 	plateAppearance.location.x = location[0];
 	plateAppearance.location.y = location[1];
 	exports.setState( STATE );

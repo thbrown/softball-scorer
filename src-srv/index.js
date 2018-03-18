@@ -4,6 +4,7 @@
 const http_server = require( './http-server' );
 const { Pool } = require( 'pg' );
 const objectMerge = require( '../object-merge.js' );
+const sqlGen = require( './sql-gen.js' );
 
 let PORT = 8888;
 let USE_PG = true;
@@ -19,7 +20,6 @@ if ( process.argv.length !== 4 && process.argv.length !== 2 ) {
 const user = process.argv[ 2 ];
 const password = process.argv[ 3 ];
 let pool = null;
-let SAMPLE_STATE = null;
 
 if( USE_PG ) {
 	let pgurl = '35.197.35.206';
@@ -77,27 +77,42 @@ http_server.post( 'state', ( obj, resp, data ) => {
 		responseObject.reason = "POSTGRES NOT SETUP";
 		return http_server.reply( resp, JSON.stringify(responseObject) );
 	}
-	//console.log(data);
-	//console.log(resp);
 
-	getStatePromise().then( function( result ) {
+	getStatePromise().then( function( result ) { 
+
 		var ancestorDiffs = objectMerge.diff(result, JSON.parse(data.ancestor));
 		if(Object.keys(ancestorDiffs).length === 0 && ancestorDiffs.constructor === Object) {
 
 			var patch = objectMerge.diff(result, JSON.parse(data.local));
 			console.log(JSON.stringify(patch, null,2));
 
-
+			let sqlToRun = sqlGen.getSqlFromPatch(patch);
+			console.log(sqlToRun);
+			/*
+			parameterizedQueryPromise(text0 , values).then(res => {
+				responseObject.status = "SUCCESS";
+				http_server.reply( resp, JSON.stringify(responseObject) );
+			}).catch(err => {
+				responseObject.status = "FAIL";
+				responseObject.reason = err;
+				http_server.reply( resp, JSON.stringify(responseObject) );
+			});
+			*/
+			
 			responseObject.status = "SUCCESS";
-			responseObject.reason = "";
+			http_server.reply( resp, JSON.stringify(responseObject) );
+
+
 		} else {
 			responseObject.status = "FAIL";
 			responseObject.reason = "PENDING CHANGES - PULL FIRST";
+			http_server.reply( resp, JSON.stringify(responseObject) );
 		}
-		http_server.reply( resp, JSON.stringify(responseObject) );
 	});
 
 } );
+
+
 
 http_server.get( 'state', ( obj, resp ) => {
 	if( !USE_PG ) {
@@ -139,7 +154,8 @@ function getStatePromise() {
 			  games.lineup_type as lineup_type,
 			  plate_appearances.id as plate_appearance_id, 
 			  plate_appearances.result as result,
-			  plate_appearances.location as location,
+			  plate_appearances.hit_location_x as x,
+			  plate_appearances.hit_location_y as y,
 			  plate_appearances.index_in_game as index,
 			  plate_appearances.player_id as player_id,
 			  sub_lineup.lineup as lineup
@@ -211,12 +227,9 @@ function getStatePromise() {
 					newPlateAppearance.id = plateAppearance.plate_appearance_id;
 					newPlateAppearance.player_id = plateAppearance.player_id;
 					newPlateAppearance.result = plateAppearance.result;
-					if ( plateAppearance.location ) {
-						let locationArray = plateAppearance.location.split( ',' ).map( Number );
-						newPlateAppearance.location = {
-							"x":locationArray[0],
-							"y":locationArray[1]
-						};
+					newPlateAppearance.location = {
+						"x": plateAppearance.x,
+						"y": plateAppearance.y
 					}
 					newPlateAppearance.plateAppearanceIndex = plateAppearance.index;
 					newGame.plateAppearances.push( newPlateAppearance );
@@ -250,7 +263,27 @@ function queryPromise( queryString ) {
 	} );
 }
 
-SAMPLE_STATE = {
+function parameterizedQueryPromise( queryString, values ) {
+	return new Promise( function( resolve, reject ) {
+		pool.connect( function( err, client, done ) {
+			if ( err ) {
+				console.log( "There was a problem getting db connection:" );
+				console.log( err );
+				process.exit( 1 );
+			}
+
+			client.query(queryString, values, (err, res) => {
+				if (err) {
+					console.log(err.stack)
+				} else {
+					console.log(res.rows[0])
+				}
+			})
+		} );
+	} );
+}
+
+let SAMPLE_STATE = {
 	"players": [ {
 			"id": 1,
 			"name": "Harry",
