@@ -82,12 +82,38 @@ http_server.post( 'state', ( obj, resp, data ) => {
 
 		var ancestorDiffs = objectMerge.diff(result, JSON.parse(data.ancestor));
 		if(Object.keys(ancestorDiffs).length === 0 && ancestorDiffs.constructor === Object) {
-
+			// Diff the client's data with the db data to get the patch we need to apply
 			var patch = objectMerge.diff(result, JSON.parse(data.local));
 			console.log(JSON.stringify(patch, null,2));
 
+			// Get the sql from the patch
 			let sqlToRun = sqlGen.getSqlFromPatch(patch);
 			console.log(sqlToRun);
+
+			// Run the sql in a single transaction
+			(async () => {
+				const client = await pool.connect();
+				try {
+					await client.query('BEGIN');
+
+					for(let i = 0; i < sqlToRun.length; i++) {
+						console.log("Executing:", sqlToRun[i]);
+						let previousPrimaryKey = await client.query(sqlToRun[i].query, sqlToRun[i].values);
+					}
+
+					await client.query('COMMIT');
+					responseObject.status = "SUCCESS";
+				} catch (e) {
+					await client.query('ROLLBACK');
+					console.log(e);
+					responseObject.status = "FAIL";
+					responseObject.reason = "DB QUERY ERROR - " + JSON.stringify(e);
+				} finally {
+					client.release();
+					http_server.reply( resp, JSON.stringify(responseObject) );
+				}
+			})().catch(e => console.error(e.stack));
+
 			/*
 			parameterizedQueryPromise(text0 , values).then(res => {
 				responseObject.status = "SUCCESS";
@@ -98,10 +124,6 @@ http_server.post( 'state', ( obj, resp, data ) => {
 				http_server.reply( resp, JSON.stringify(responseObject) );
 			});
 			*/
-			
-			responseObject.status = "SUCCESS";
-			http_server.reply( resp, JSON.stringify(responseObject) );
-
 
 		} else {
 			responseObject.status = "FAIL";

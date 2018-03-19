@@ -1,8 +1,6 @@
 
-// Begin: Stuff to move to a different file ------------------
-
 let tableReferences = ['teams', 'players', 'plateAppearances', 'games', 'lineup'];
-let tableNames = ['teams', 'players', 'plate_appearances', 'games', 'player_games'];
+let tableNames = ['teams', 'players', 'plate_appearances', 'games', 'players_games'];
 
 let getSqlFromPatch = function(patch) {
 	let result = [];
@@ -24,7 +22,7 @@ let getSqlFromPatchInternal = function(patch, path, result) {
 				// We have to delete references first
 				if(applicableTable == "teams") {
 					result.push({
-						query:"DELETE FROM games WHERE game_id IN (SELECT id FROM games WHERE team_id IN ($1))",
+						query:"DELETE FROM players_games WHERE game_id IN ((SELECT id FROM games WHERE team_id IN ($1)))",
 						values:[value.key]
 					});
 					result.push({
@@ -39,7 +37,7 @@ let getSqlFromPatchInternal = function(patch, path, result) {
 
 				if(applicableTable == "games") {
 					result.push({
-						query:"DELETE FROM player_games WHERE game_id IN ($1)",
+						query:"DELETE FROM players_games WHERE game_id IN ($1)",
 						values:[value.key]
 					});
 					result.push({
@@ -76,13 +74,13 @@ let getSqlFromPatchInternal = function(patch, path, result) {
 				let oldOrder = param1.split(',');
 				let newOrder = param2.split(',');
 
-				if(applicableTable != "player_games") {
+				if(applicableTable != "players_games") {
 					throw "Something unexpected was reordered!" + applicableTable; // The only thing that should be re-orederable is the lineup, other things are all ordered by primary key
 				}
 
 				for(let entry = 0; entry < oldOrder.length; entry++) {
 					result.push({
-						query:"UPDATE player_games SET lineup_index = (SELECT lineup_index FROM players_games WHERE id = $1) WHERE id IN ($2);",
+						query:"UPDATE players_games SET lineup_index = (SELECT lineup_index FROM players_games WHERE id = $1) WHERE id IN ($2);",
 						values:[oldOrder[entry], newOrder[entry]]
 					});
 				}
@@ -109,14 +107,14 @@ let printInsertStatementsFromPatch = function(obj, parents, result) {
 
 	if(obj.players) {
 		result.push({
-			query:"INSERT INTO players (name, gender) VALUES($1, $2);",
+			query:"INSERT INTO players (name, gender) VALUES($1, $2) RETURNING id;",
 			values:[obj.players.name, obj.players.gender]
 		});
 	} 
 	
 	if(obj.teams) {
 		result.push({
-			query:"INSERT INTO teams (name) VALUES($1);",
+			query:"INSERT INTO teams (name) VALUES($1) RETURNING id;",
 			values:[obj.teams.name]
 		});
 		if(obj.teams.games) {
@@ -131,7 +129,7 @@ let printInsertStatementsFromPatch = function(obj, parents, result) {
 	
 	if(obj.games) {
 		result.push({
-			query:"INSERT INTO games (date, opponent, park, score_us, score_them, team_id, lineup_type) VALUES($1, $2, $3, $4, $5, $6, $7);",
+			query:"INSERT INTO games (date, opponent, park, score_us, score_them, team_id, lineup_type) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id;",
 			values:[obj.games.date, obj.games.opponent, obj.games.park, obj.games.score_us, obj.games.score_them, parents.teamId, obj.games.lineup_type]
 		});
 		if(obj.games.plateAppearances) {
@@ -154,18 +152,18 @@ let printInsertStatementsFromPatch = function(obj, parents, result) {
 	
 	if(obj.lineup) {
 		result.push({
-			query:"UPDATE players_games SET lineup_index = lineup_index + 1 WHERE lineup_index >= $1 AND game_id = $2;",
+			query:"UPDATE players_games SET lineup_index = lineup_index + 1 WHERE lineup_index >= $1 AND game_id = $2 RETURNING id",
 			values:[obj.position, parents.gameId]
 		});
 		result.push({
-			query:"INSERT INTO players_games (player_id, game_id, lineup_index) VALUES($1, $2, $3);",
+			query:"INSERT INTO players_games (player_id, game_id, lineup_index) VALUES($1, $2, $3) RETURNING id",
 			values:[obj.lineup, parents.gameId, obj.position]
 		});
 	}
 	
 	if(obj.plateAppearances) {
 		result.push({
-			query:"INSERT INTO plate_appearances (result, player_id, game_id, team_id, hit_location_x, hit_location_y, index_in_game) VALUES($1, $2, $3, $4, $5, $6);",
+			query:"INSERT INTO plate_appearances (result, player_id, game_id, team_id, hit_location_x, hit_location_y, index_in_game) VALUES($1, $2, $3, $4, $5, $6) RETURNING id;",
 			values:[obj.plateAppearances.result, obj.plateAppearances.player_id, obj.plateAppearances.game_id, obj.plateAppearances.team_id, obj.plateAppearances.location.x, obj.plateAppearances.location.y, obj.plateAppearances.index_in_game]
 		});
 	}
@@ -177,10 +175,8 @@ let printInsertStatementsFromRaw = function(obj, parents, result) {
 
 	if(obj.players) {
 		for(let i = 0; i < obj.players.length; i++) {
-			//console.log('INSERT INTO players (name, gender) VALUES($1, $2);')
-			//console.log(obj.players[i].name, obj.players[i].gender);
 			result.push({
-				query:"INSERT INTO players (name, gender) VALUES($1, $2);",
+				query:"INSERT INTO players (name, gender) VALUES($1, $2) RETURNING id;",
 				values:[obj.players[i].name, obj.players[i].gender]
 			});
 		}
@@ -188,10 +184,8 @@ let printInsertStatementsFromRaw = function(obj, parents, result) {
 	
 	if(obj.teams) {
 		for(let i = 0; i < obj.teams.length; i++) {
-			//console.log('INSERT INTO teams (name) VALUES($1);')
-			//console.log(obj.teams[i].name);
 			result.push({
-				query:"INSERT INTO teams (name) VALUES($1);",
+				query:"INSERT INTO teams (name) VALUES($1) RETURNING id;",
 				values:[obj.teams[i].name]
 			});
 			if(obj.teams[i].games) {
@@ -207,10 +201,8 @@ let printInsertStatementsFromRaw = function(obj, parents, result) {
 	
 	if(obj.games && obj.games.length > 0) {
 		for(let i = 0; i < obj.games.length; i++) {
-			//console.log('INSERT INTO games (date, opponent, park, score_us, score_them, team_id, lineup_type) VALUES($1, $2, $3, $4, $5, $6, $7);')
-			//console.log(obj.games[i].date, obj.games[i].opponent, obj.games[i].park, obj.games[i].score_us, obj.games[i].score_them, parents.teamId, obj.games[i].lineup_type);
 			result.push({
-				query:"INSERT INTO games (date, opponent, park, score_us, score_them, team_id, lineup_type) VALUES($1, $2, $3, $4, $5, $6, $7);",
+				query:"INSERT INTO games (date, opponent, park, score_us, score_them, team_id, lineup_type) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id;",
 				values:[obj.games[i].date, obj.games[i].opponent, obj.games[i].park, obj.games[i].score_us, obj.games[i].score_them, parents.teamId, obj.games[i].lineup_type]
 			});
 			if(obj.games[i].plateAppearances) {
@@ -234,10 +226,8 @@ let printInsertStatementsFromRaw = function(obj, parents, result) {
 	
 	if(obj.lineup && obj.lineup.length > 0) {
 		for(let i = 0; i < obj.lineup.length; i++) {
-			//console.log('INSERT INTO players_games (player_id, game_id, lineup_index) VALUES($1, $2, $3);');
-			//console.log(obj.lineup[i], parents.gameId, i+1);
 			result.push({
-				query:"INSERT INTO players_games (player_id, game_id, lineup_index) VALUES($1, $2, $3);",
+				query:"INSERT INTO players_games (player_id, game_id, lineup_index) VALUES($1, $2, $3) RETURNING id;",
 				values:[obj.lineup[i], parents.gameId, i+1]
 			});
 		}
@@ -245,10 +235,8 @@ let printInsertStatementsFromRaw = function(obj, parents, result) {
 	
 	if(obj.plateAppearances && obj.plateAppearances.length > 0) {
 		for(let i = 0; i < obj.plateAppearances.length; i++) {
-			//console.log('INSERT INTO plate_appearances (result, player_id, game_id, team_id, hit_location_x, hit_location_y, index_in_game) VALUES($1, $2, $3, $4. $5, $6);');
-			//console.log(obj.plateAppearances[i].result, obj.plateAppearances[i].player_id, parents.gameId, parents.teamId, obj.plateAppearances[i].location.x, obj.plateAppearances[i].location.y, obj.plateAppearances[i].index_in_game);
 			result.push({
-				query:"INSERT INTO plate_appearances (result, player_id, game_id, team_id, hit_location_x, hit_location_y, index_in_game) VALUES($1, $2, $3, $4. $5, $6);",
+				query:"INSERT INTO plate_appearances (result, player_id, game_id, team_id, hit_location_x, hit_location_y, index_in_game) VALUES($1, $2, $3, $4. $5, $6) RETURNING id;",
 				values:[obj.plateAppearances[i].result, obj.plateAppearances[i].player_id, parents.gameId, parents.teamId, obj.plateAppearances[i].location.x, obj.plateAppearances[i].location.y, obj.plateAppearances[i].index_in_game]
 			});
 		}
@@ -275,14 +263,11 @@ let getTableFromReference = function(reference) {
 // If 'key' is a table reference, it is returned. Otherwise, this function returns the latest value in the 'path' array that is a table reference. 
 let getTableReferenceFromPath = function(path, key) {
 	// Map JSON names to db table names
-
 	if(tableReferences.indexOf(key) >= 0) {
-		//console.log("Key is tableRef " + key + " " + tableNames[tableReferences.indexOf(key)]);
 		return tableReferences[tableReferences.indexOf(key)];
 	}
 	for(let i = (path.length-1); i >= 0; i--) {
 		if(tableReferences.indexOf(path[i]) >= 0) {
-			//console.log("Path has tableRef " + path[i] + " " + tableNames[tableReferences.indexOf(path[i])]);
 			return tableReferences[tableReferences.indexOf(path[i])];
 		}
 	}
