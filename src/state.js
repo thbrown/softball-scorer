@@ -41,7 +41,7 @@ exports.updateState = function(callback, force) { // TODO: swap param order?
 					}
 					DATABASE_STATE = JSON.parse(xmlHttp.responseText);
 					console.log("State loaded from API call");
-					callback( null, STATE );
+					callback( "SUCCESS", STATE );
 				} catch(error) {
 					callback( error );
 					console.log("There was an error while attempting to load state from API call");
@@ -316,6 +316,10 @@ exports.addGame = function( team_id, opposing_team_name ) {
 		id: id,
 		opponent: opposing_team_name,
 		lineup: last_lineup,
+		date: (new Date().getTime()),
+		park: "Stazio",
+		score_us: 0,
+		score_them: 0,
 		lineup_type: 2,
 		plateAppearances: []
 	};

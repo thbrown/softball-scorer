@@ -82,11 +82,11 @@ http_server.post( 'state', ( obj, resp, data ) => {
 
 		var ancestorDiffs = objectMerge.diff(result, JSON.parse(data.ancestor));
 		if(Object.keys(ancestorDiffs).length === 0 && ancestorDiffs.constructor === Object) {
-			// Diff the client's data with the db data to get the patch we need to apply
+			// Diff the client's data with the db data to get the patch we need to apply to make the database match the client
 			var patch = objectMerge.diff(result, JSON.parse(data.local));
 			console.log(JSON.stringify(patch, null,2));
 
-			// Get the sql from the patch
+			// Generate sql based off the patch
 			let sqlToRun = sqlGen.getSqlFromPatch(patch);
 			console.log(sqlToRun);
 
@@ -96,9 +96,41 @@ http_server.post( 'state', ( obj, resp, data ) => {
 				try {
 					await client.query('BEGIN');
 
+					let idMap = {'teams':{}, 'players':{}, 'plate_appearances':{}, 'games':{}, 'players_games':{}};
 					for(let i = 0; i < sqlToRun.length; i++) {
+						// Replace 'values' that are client ids with their corresponding server ids
+						if(sqlToRun[i].idReplacements) {
+							for(let j = 0; j < sqlToRun[i].idReplacements.length; j++) {
+								let oldValue = sqlToRun[i].idReplacements[j].clinetId;
+								let table = sqlToRun[i].idReplacements[j].table;
+								let newValue = idMap[table][oldValue];
+								if(newValue === undefined) {
+									newValue = oldValue; // Client id matches the server id (or the order of the query's is wrong)
+								}
+								let indexToReplace = sqlToRun[i].idReplacements[j].valuesIndex;
+								sqlToRun[i].values[indexToReplace] = newValue;
+							}
+						}
+
+						// Run the query!
 						console.log("Executing:", sqlToRun[i]);
-						let previousPrimaryKey = await client.query(sqlToRun[i].query, sqlToRun[i].values);
+						let insertedPrimaryKey = await client.query(sqlToRun[i].query, sqlToRun[i].values);
+
+						// Map client ids to server ids so we can replace them in subsequent queries
+						if(parseInt(insertedPrimaryKey.rows.length) === 1) {
+							let primaryKey = insertedPrimaryKey.rows[0].id;
+							if(sqlToRun[i].mapReturnValueTo && sqlToRun[i].mapReturnValueTo.table && sqlToRun[i].mapReturnValueTo.clientId) {
+								idMap[sqlToRun[i].mapReturnValueTo.table][sqlToRun[i].mapReturnValueTo.clientId] = primaryKey;
+							} else {
+								console.log(sqlToRun, insertedPrimaryKey);
+								console.log("insertedPrimaryKey has values no clientId was assigned to map");
+								throw "ERROR: NO CLINET ID MAPPING";
+							}
+						} else if (parseInt(insertedPrimaryKey.rows.length) !== 0) {
+							console.log(insertedPrimaryKey);
+							console.log(insertedPrimaryKey);
+							throw "ERROR: UNEXPECTED NUMBER OF RESULTS RETURNED";
+						}
 					}
 
 					await client.query('COMMIT');
@@ -184,7 +216,7 @@ function getStatePromise() {
 			FROM 
 			  public.plate_appearances
 			FULL JOIN public.games ON public.games.id=public.plate_appearances.game_id
-			FULL JOIN (SELECT public.players_games.game_id as game_id, string_agg(public.players_games.player_id::character, ', ' order by public.players_games.lineup_index) as lineup
+			FULL JOIN (SELECT public.players_games.game_id as game_id, string_agg(public.players_games.player_id::text, ', ' order by public.players_games.lineup_index) as lineup
 			  FROM public.players_games
 			  GROUP BY players_games.game_id) as sub_lineup ON sub_lineup.game_id=public.games.id
 			FULL JOIN public.teams ON public.games.team_id=public.teams.id

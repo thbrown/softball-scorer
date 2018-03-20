@@ -61,8 +61,12 @@ module.exports = class CardTeamList extends expose.Component {
 					if(response.status === "FAIL") {
 						console.log("FAIL: " + response.reason);
 					} else if (response.status === "SUCCESS") {
-						console.log("WOOT!!!");
-						// Update state, hard pull
+						console.log("PUSH WAS SUCCESSFUL! Performing hard sync to reconcile ids");
+						state.updateState((status) => {
+							console.log("Done with hard sync: " + status);
+							expose.set_state( 'main', { render: true } );
+						} , true);
+
 					}
 				}
 			};
