@@ -11,7 +11,8 @@ var NODE_PATH = '';
 
 var env = Object.create( process.env );
 env.NPM_CONFIG_COLOR = 'always';
-env.NODE_PATH = env.NODE_PATH + ';' + __dirname + '\\src';
+env.NODE_PATH = __dirname + '/src';
+console.log( 'NODE PATH', env.NODE_PATH );
 var _execute = function( cmd, cb ) {
 	console.log( cmd );
 	var obj = shell.exec( cmd, {
