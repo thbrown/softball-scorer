@@ -12,7 +12,7 @@ var NODE_PATH = '';
 var env = Object.create( process.env );
 env.NPM_CONFIG_COLOR = 'always';
 env.NODE_PATH = __dirname + '/src';
-console.log( 'NODE PATH', env.NODE_PATH );
+
 var _execute = function( cmd, cb ) {
 	console.log( cmd );
 	var obj = shell.exec( cmd, {
@@ -30,8 +30,8 @@ var rules = {
 
 	'build-vendor': function( cb ) {
 		var vendor_bundle = process.env.npm_package_config_bundles_vendor;
-		//var cmd = `${NODE_PATH} browserify ${_vendor_exports().join(' ')} | uglifyjs -c --screw-ie8 > ${vendor_bundle}`;
-		var cmd = `${NODE_PATH} browserify ${_vendor_exports().join(' ')} > ${vendor_bundle}`;
+		var cmd = `${NODE_PATH} browserify ${_vendor_exports().join(' ')} | minify > ${vendor_bundle}`;
+		//var cmd = `${NODE_PATH} browserify ${_vendor_exports().join(' ')} > ${vendor_bundle}`;
 		_execute( cmd, cb );
 	},
 	'build-prod': function( cb ) {
@@ -41,7 +41,7 @@ var rules = {
 			}
 			var entry = process.env.npm_package_config_bundles_main_entry;
 			var bundle = process.env.npm_package_config_bundles_main_out;
-			var cmd = `${NODE_PATH} browserify ${_vendor_imports().join(' ')} ${entry} | uglifyjs -c --screw-ie8 > ${bundle}`;
+			var cmd = `${NODE_PATH} browserify ${_vendor_imports().join(' ')} ${entry} | minify > ${bundle}`;
 			_execute( cmd, cb );
 		} );
 	},
