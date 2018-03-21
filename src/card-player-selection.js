@@ -35,8 +35,6 @@ module.exports = class CardPlayerSelection extends expose.Component {
 
 		this.handleSubmitClick = () => {
 			if (this.state.createNewPlayer) {
-				console.log(this.state.playerNameValue);
-				console.log(this.state.gender);
 				this.state.player =
 					state.addPlayer(
 						this.state.playerNameValue,

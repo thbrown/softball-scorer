@@ -390,6 +390,7 @@ exports.buildStatsObject = function( team_id, player_id ) {
 	stats.outsideTheParkHR = 0;
 	stats.reachsOnError = 0;
 	stats.walks = 0;
+	stats.fieldersChoice = 0;
 
 	let plateAppearances = exports.getPlateAppearances(team_id, player_id);
 
@@ -398,26 +399,30 @@ exports.buildStatsObject = function( team_id, player_id ) {
 			stats.plateAppearances++;
 			if(pa.result === "BB") {
 				stats.walks++; // Boo!
+			} else if (!pa.result || pa.result === "") {
+				// Intantionally blank
 			} else {
 				stats.atBats++;
 				if(pa.result === "E") {
 					stats.reachsOnError++;
-				} else if (pa.result == 0) {
+				} else if (pa.result === "FC") {
+					stats.fieldersChoice++;
+				} else if (pa.result === "Out") {
 					// Intantionally blank
 				} else {
 					stats.hits++;
 					if(pa.result === "1") {
 						stats.totalBasesByHit++;
-					} else if(pa.result === "2") {
+					} else if(pa.result === "2B") {
 						stats.doubles++;
 						stats.totalBasesByHit += 2;
-					} else if(pa.result === "3") {
+					} else if(pa.result === "3B") {
 						stats.triples++;
 						stats.totalBasesByHit += 3;
-					} else if(pa.result === "4i") {
+					} else if(pa.result === "HRi") {
 						stats.insideTheParkHR++;
 						stats.totalBasesByHit += 4;
-					} else if(pa.result === "4o") {
+					} else if(pa.result === "HRo") {
 						stats.outsideTheParkHR++;
 						stats.totalBasesByHit += 4;
 					}

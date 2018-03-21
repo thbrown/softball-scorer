@@ -46,10 +46,17 @@ let getSqlFromPatchInternal = function(patch, path, result) {
 					});
 				}
 
-				result.push({
-					query:"DELETE FROM " + applicableTable + " WHERE id IN ($1)",
-					values:[value.key]
-				});
+				if(applicableTable === "players_games") {
+					result.push({
+						query:"DELETE FROM " + applicableTable + " WHERE player_id IN ($1) AND game_id IN ($2)",
+						values:[value.key, getIdFromPath(path, "games")]
+					});
+				} else {
+					result.push({
+						query:"DELETE FROM " + applicableTable + " WHERE id IN ($1)",
+						values:[value.key]
+					});
+				}
 			} else if(op == "ArrayAdd") {
 				// We need to add the key back to the object
 				let insertObject = {};
@@ -174,9 +181,15 @@ let printInsertStatementsFromPatch = function(obj, parents, result) {
 	}
 	
 	if(obj.plateAppearances) {
+		let x;
+		let y;
+		if(obj.plateAppearances[i].location) {
+			x = obj.plateAppearances[i].location.x;
+			y = obj.plateAppearances[i].location.y;
+		}
 		result.push({
 			query:"INSERT INTO plate_appearances (result, player_id, game_id, team_id, hit_location_x, hit_location_y, index_in_game) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id;",
-			values:[obj.plateAppearances.result, "REPLACE_ME_PLAYERS", "REPLACE_ME_GAMES", "REPLACE_ME_TEAMS", obj.plateAppearances.location.x, obj.plateAppearances.location.y, obj.plateAppearances.plateAppearanceIndex],
+			values:[obj.plateAppearances.result, "REPLACE_ME_PLAYERS", "REPLACE_ME_GAMES", "REPLACE_ME_TEAMS", x, y, obj.plateAppearances.plateAppearanceIndex],
 			idReplacements:[
 				{valuesIndex:1, table:"players", clinetId: obj.plateAppearances.player_id},
 				{valuesIndex:2, table:"games", clinetId: parents.gameId},
@@ -264,9 +277,15 @@ let printInsertStatementsFromRaw = function(obj, parents, result) {
 	
 	if(obj.plateAppearances && obj.plateAppearances.length > 0) {
 		for(let i = 0; i < obj.plateAppearances.length; i++) {
+			let x;
+			let y;
+			if(obj.plateAppearances[i].location) {
+				x = obj.plateAppearances[i].location.x;
+				y = obj.plateAppearances[i].location.y;
+			}
 			result.push({
 				query:"INSERT INTO plate_appearances (result, player_id, game_id, team_id, hit_location_x, hit_location_y, index_in_game) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id;",
-				values:[obj.plateAppearances[i].result, "REPLACE_ME_PLAYERS", "REPLACE_ME_GAMES", "REPLACE_ME_TEAMS", obj.plateAppearances[i].location.x, obj.plateAppearances[i].location.y, obj.plateAppearances[i].plateAppearanceIndex],
+				values:[obj.plateAppearances[i].result, "REPLACE_ME_PLAYERS", "REPLACE_ME_GAMES", "REPLACE_ME_TEAMS", x, y, obj.plateAppearances[i].plateAppearanceIndex],
 				idReplacements:[
 					{valuesIndex:1, table:"players", clinetId: obj.plateAppearances[i].player_id},
 					{valuesIndex:2, table:"games", clinetId: parents.gameId},
@@ -310,10 +329,19 @@ let getTableReferenceFromPath = function(path, key) {
 	return null;
 }
 
-let getIdFromPath = function(path) {
-	for(let i = (path.length-1); i >= 0; i--) {
-		if(isNumeric(path[i])) {
-			return path[i];
+// Returns the id of type from the path. If no path is specified, returns latest id.
+let getIdFromPath = function(path, type) {
+	if(type) {
+		for(let i = (path.length-1); i >= 0; i--) {
+			if(isNumeric(path[i])) {
+				return path[i];
+			}
+		}
+	} else {
+		for(let i = (path.length-1); i >= 0; i--) {
+			if(path[i] === type) {
+				return path[i+1];
+			}
 		}
 	}
 }
