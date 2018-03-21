@@ -41,7 +41,7 @@ exports.updateState = function(callback, force) { // TODO: swap param order?
 					}
 					DATABASE_STATE = JSON.parse(xmlHttp.responseText);
 					console.log("State loaded from API call");
-					callback( "SUCCESS", STATE );
+					callback( null, STATE );
 				} catch(error) {
 					callback( error );
 					console.log("There was an error while attempting to load state from API call");
