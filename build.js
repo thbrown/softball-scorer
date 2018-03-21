@@ -30,7 +30,7 @@ var rules = {
 
 	'build-vendor': function( cb ) {
 		var vendor_bundle = process.env.npm_package_config_bundles_vendor;
-		var cmd = `${NODE_PATH} browserify ${_vendor_exports().join(' ')} | minify > ${vendor_bundle}`;
+		var cmd = `${NODE_PATH} browserify ${_vendor_exports().join(' ')} | babel-minify --mangle true > ${vendor_bundle}`;
 		//var cmd = `${NODE_PATH} browserify ${_vendor_exports().join(' ')} > ${vendor_bundle}`;
 		_execute( cmd, cb );
 	},
@@ -41,7 +41,7 @@ var rules = {
 			}
 			var entry = process.env.npm_package_config_bundles_main_entry;
 			var bundle = process.env.npm_package_config_bundles_main_out;
-			var cmd = `${NODE_PATH} browserify ${_vendor_imports().join(' ')} ${entry} | minify > ${bundle}`;
+			var cmd = `${NODE_PATH} browserify ${_vendor_imports().join(' ')} ${entry} | babel-minify --mangle true > ${bundle}`;
 			_execute( cmd, cb );
 		} );
 	},
@@ -49,7 +49,7 @@ var rules = {
 		var entry = process.env.npm_package_config_bundles_main_entry;
 		var bundle = process.env.npm_package_config_bundles_main_out;
 		var cmd =
-			`${NODE_PATH} browserify ${_dev_flags()} ${_vendor_imports().join(' ')} ${entry} -o ${bundle}`;
+			`${NODE_PATH} browserify ${_dev_flags()} ${_vendor_imports().join(' ')} ${entry} | babel-minify --mangle true > ${bundle}`;
 		build_css( ( err ) => {
 			if ( err ) {
 				console.error( 'ERROR', err );
