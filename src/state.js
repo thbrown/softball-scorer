@@ -7,7 +7,7 @@ let DATABASE_STATE;
 let STATE;
 
 exports.getServerUrl = function(path) {
-	return "http://pizzaman:8888" + path;
+	return window.location.href + path;
 };
 
 exports.updateState = function(callback, force) { // TODO: swap param order?
@@ -49,7 +49,7 @@ exports.updateState = function(callback, force) { // TODO: swap param order?
 				}
 			}
 		};
-		xmlHttp.open("GET", exports.getServerUrl('/state') , true);
+		xmlHttp.open("GET", exports.getServerUrl('state') , true);
 		xmlHttp.send(null);
 	}
 };

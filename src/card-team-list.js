@@ -53,7 +53,7 @@ module.exports = class CardTeamList extends expose.Component {
 
 		this.handlePushClick = function() {
 			var xhr = new XMLHttpRequest();
-			xhr.open("POST", state.getServerUrl('/state') , true);
+			xhr.open("POST", state.getServerUrl('state') , true);
 			xhr.setRequestHeader('Content-Type', 'application/json');
 			xhr.onreadystatechange = function() {
 				if (xhr.readyState === XMLHttpRequest.DONE) {
