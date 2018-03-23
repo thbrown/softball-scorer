@@ -1,7 +1,7 @@
 {
   "name": "softball-scorer",
   "version": "1.0.0",
-  "description": "This program scores softball players.",
+  "description": "This program tracks scores softball teams.",
   "main": "index.js",
   "scripts": {
     "build-vendor": "node build.js build-vendor",
@@ -16,7 +16,7 @@
     "type": "git",
     "url": "git+https://github.com/thbrown/softball-scorer.git"
   },
-  "author": "Brown Bros",
+  "author": "Browns and Co.",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/thbrown/softball-scorer/issues"
@@ -31,8 +31,8 @@
     "react-draggable": "^3.0.5"
   },
   "devDependencies": {
+    "babel-minify": "^0.3.0",
     "browserify": "^14.3.0",
-    "uglify-js": "^2.6.1",
     "uglifycss": "0.0.26",
     "watchify": "^3.9.0"
   },
