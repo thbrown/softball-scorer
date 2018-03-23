@@ -142,7 +142,7 @@ let printInsertStatementsFromPatch = function(obj, parents, result) {
 			query:"INSERT INTO games (date, opponent, park, score_us, score_them, team_id, lineup_type) VALUES(to_timestamp($1), $2, $3, $4, $5, $6, $7) RETURNING id;",
 			values:[obj.games.date, obj.games.opponent, obj.games.park, obj.games.score_us, obj.games.score_them, "REPLACE_ME_TEAMS", obj.games.lineup_type],
 			idReplacements:[
-				{valuesIndex:5, table:"teams", clinetId: parents.teamId},
+				{valuesIndex:5, table:"teams", clientId: parents.teamId},
 			],
 			mapReturnValueTo: {clientId: obj.games.id, table: "games"}
 		});
@@ -173,8 +173,8 @@ let printInsertStatementsFromPatch = function(obj, parents, result) {
 			query:"INSERT INTO players_games (player_id, game_id, lineup_index) VALUES($1, $2, $3) RETURNING id",
 			values:["REPLACE_ME_PLAYERS", "REPLACE_ME_GAMES", obj.position+1], // lineup oredering starts at 1 not 0
 			idReplacements:[
-				{valuesIndex:0, table:"players", clinetId: obj.lineup},
-				{valuesIndex:1, table:"games", clinetId: parents.gameId}
+				{valuesIndex:0, table:"players", clientId: obj.lineup},
+				{valuesIndex:1, table:"games", clientId: parents.gameId}
 			],
 			mapReturnValueTo: {clientId: "There is no client id for this table" , table: "players_games"}
 		});
@@ -191,9 +191,9 @@ let printInsertStatementsFromPatch = function(obj, parents, result) {
 			query:"INSERT INTO plate_appearances (result, player_id, game_id, team_id, hit_location_x, hit_location_y, index_in_game) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id;",
 			values:[obj.plateAppearances.result, "REPLACE_ME_PLAYERS", "REPLACE_ME_GAMES", "REPLACE_ME_TEAMS", x, y, obj.plateAppearances.plateAppearanceIndex],
 			idReplacements:[
-				{valuesIndex:1, table:"players", clinetId: obj.plateAppearances.player_id},
-				{valuesIndex:2, table:"games", clinetId: parents.gameId},
-				{valuesIndex:3, table:"teams", clinetId: parents.teamId}
+				{valuesIndex:1, table:"players", clientId: obj.plateAppearances.player_id},
+				{valuesIndex:2, table:"games", clientId: parents.gameId},
+				{valuesIndex:3, table:"teams", clientId: parents.teamId}
 			],
 			mapReturnValueTo: {clientId: obj.plateAppearances.id, table: "plate_appearances"}
 		});
@@ -238,7 +238,7 @@ let printInsertStatementsFromRaw = function(obj, parents, result) {
 				query:"INSERT INTO games (date, opponent, park, score_us, score_them, team_id, lineup_type) VALUES(to_timestamp($1), $2, $3, $4, $5, $6, $7) RETURNING id;",
 				values:[obj.games[i].date, obj.games[i].opponent, obj.games[i].park, obj.games[i].score_us, obj.games[i].score_them, "REPLACE_ME_TEAMS", obj.games[i].lineup_type],
 				idReplacements:[
-					{valuesIndex:5, table:"teams", clinetId: parents.teamId}
+					{valuesIndex:5, table:"teams", clientId: parents.teamId}
 				],
 				mapReturnValueTo: {clientId: obj.games[i].id, table: "games"}
 			});
@@ -267,8 +267,8 @@ let printInsertStatementsFromRaw = function(obj, parents, result) {
 				query:"INSERT INTO players_games (player_id, game_id, lineup_index) VALUES($1, $2, $3) RETURNING id;",
 				values:["REPLACE_ME_PLAYERS", "REPLACE_ME_GAMES", i+1],
 				idReplacements:[
-					{valuesIndex:0, table:"players", clinetId: obj.lineup[i]},
-					{valuesIndex:1, table:"games", clinetId: parents.gameId}
+					{valuesIndex:0, table:"players", clientId: obj.lineup[i]},
+					{valuesIndex:1, table:"games", clientId: parents.gameId}
 				],
 				mapReturnValueTo: {clientId: "There is no client id for this table" , table: "players_games"}
 			});
@@ -287,9 +287,9 @@ let printInsertStatementsFromRaw = function(obj, parents, result) {
 				query:"INSERT INTO plate_appearances (result, player_id, game_id, team_id, hit_location_x, hit_location_y, index_in_game) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id;",
 				values:[obj.plateAppearances[i].result, "REPLACE_ME_PLAYERS", "REPLACE_ME_GAMES", "REPLACE_ME_TEAMS", x, y, obj.plateAppearances[i].plateAppearanceIndex],
 				idReplacements:[
-					{valuesIndex:1, table:"players", clinetId: obj.plateAppearances[i].player_id},
-					{valuesIndex:2, table:"games", clinetId: parents.gameId},
-					{valuesIndex:3, table:"teams", clinetId: parents.teamId}
+					{valuesIndex:1, table:"players", clientId: obj.plateAppearances[i].player_id},
+					{valuesIndex:2, table:"games", clientId: parents.gameId},
+					{valuesIndex:3, table:"teams", clientId: parents.teamId}
 				],
 				mapReturnValueTo: {clientId: obj.plateAppearances[i].id, table: "plate_appearances"}
 			});

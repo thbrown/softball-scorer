@@ -1,0 +1,418 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.5.12
+-- Dumped by pg_dump version 10.2
+
+-- Started on 2018-03-22 22:28:15
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- TOC entry 1 (class 3079 OID 12361)
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- TOC entry 2160 (class 0 OID 0)
+-- Dependencies: 1
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = public, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- TOC entry 182 (class 1259 OID 16493)
+-- Name: plate_appearances; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE plate_appearances (
+    id integer NOT NULL,
+    result text,
+    player_id integer,
+    game_id integer,
+    team_id integer,
+    index_in_game integer,
+    hit_location_x real,
+    hit_location_y real
+);
+
+
+ALTER TABLE plate_appearances OWNER TO postgres;
+
+--
+-- TOC entry 181 (class 1259 OID 16491)
+-- Name: AtBats_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE "AtBats_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE "AtBats_id_seq" OWNER TO postgres;
+
+--
+-- TOC entry 2161 (class 0 OID 0)
+-- Dependencies: 181
+-- Name: AtBats_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE "AtBats_id_seq" OWNED BY plate_appearances.id;
+
+
+--
+-- TOC entry 184 (class 1259 OID 16502)
+-- Name: games; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE games (
+    id integer NOT NULL,
+    date date,
+    opponent text,
+    park text,
+    score_us integer,
+    score_them integer,
+    team_id integer,
+    lineup_type integer
+);
+
+
+ALTER TABLE games OWNER TO postgres;
+
+--
+-- TOC entry 183 (class 1259 OID 16500)
+-- Name: Games_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE "Games_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE "Games_id_seq" OWNER TO postgres;
+
+--
+-- TOC entry 2162 (class 0 OID 0)
+-- Dependencies: 183
+-- Name: Games_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE "Games_id_seq" OWNED BY games.id;
+
+
+--
+-- TOC entry 186 (class 1259 OID 16511)
+-- Name: players; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE players (
+    id integer NOT NULL,
+    name text,
+    gender text,
+    picture text,
+    CONSTRAINT gender_enum CHECK ((gender = ANY (ARRAY['F'::text, 'M'::text])))
+);
+
+
+ALTER TABLE players OWNER TO postgres;
+
+--
+-- TOC entry 185 (class 1259 OID 16509)
+-- Name: Players_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE "Players_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE "Players_id_seq" OWNER TO postgres;
+
+--
+-- TOC entry 2163 (class 0 OID 0)
+-- Dependencies: 185
+-- Name: Players_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE "Players_id_seq" OWNED BY players.id;
+
+
+--
+-- TOC entry 188 (class 1259 OID 16526)
+-- Name: teams; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE teams (
+    id integer NOT NULL,
+    name text
+);
+
+
+ALTER TABLE teams OWNER TO postgres;
+
+--
+-- TOC entry 187 (class 1259 OID 16524)
+-- Name: Teams_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE "Teams_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE "Teams_id_seq" OWNER TO postgres;
+
+--
+-- TOC entry 2164 (class 0 OID 0)
+-- Dependencies: 187
+-- Name: Teams_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE "Teams_id_seq" OWNED BY teams.id;
+
+
+--
+-- TOC entry 190 (class 1259 OID 16599)
+-- Name: players_games; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE players_games (
+    id integer NOT NULL,
+    player_id integer,
+    game_id integer,
+    lineup_index integer
+);
+
+
+ALTER TABLE players_games OWNER TO postgres;
+
+--
+-- TOC entry 189 (class 1259 OID 16597)
+-- Name: players_games_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE players_games_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE players_games_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2165 (class 0 OID 0)
+-- Dependencies: 189
+-- Name: players_games_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE players_games_id_seq OWNED BY players_games.id;
+
+
+--
+-- TOC entry 2014 (class 2604 OID 16505)
+-- Name: games id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY games ALTER COLUMN id SET DEFAULT nextval('"Games_id_seq"'::regclass);
+
+
+--
+-- TOC entry 2013 (class 2604 OID 16496)
+-- Name: plate_appearances id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY plate_appearances ALTER COLUMN id SET DEFAULT nextval('"AtBats_id_seq"'::regclass);
+
+
+--
+-- TOC entry 2015 (class 2604 OID 16514)
+-- Name: players id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY players ALTER COLUMN id SET DEFAULT nextval('"Players_id_seq"'::regclass);
+
+
+--
+-- TOC entry 2018 (class 2604 OID 16602)
+-- Name: players_games id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY players_games ALTER COLUMN id SET DEFAULT nextval('players_games_id_seq'::regclass);
+
+
+--
+-- TOC entry 2017 (class 2604 OID 16529)
+-- Name: teams id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY teams ALTER COLUMN id SET DEFAULT nextval('"Teams_id_seq"'::regclass);
+
+
+--
+-- TOC entry 2020 (class 2606 OID 16534)
+-- Name: plate_appearances AtBats_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY plate_appearances
+    ADD CONSTRAINT "AtBats_pkey" PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2024 (class 2606 OID 16536)
+-- Name: games Games_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY games
+    ADD CONSTRAINT "Games_pkey" PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2028 (class 2606 OID 16540)
+-- Name: teams Teams_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY teams
+    ADD CONSTRAINT "Teams_pkey" PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2022 (class 2606 OID 16628)
+-- Name: plate_appearances game_index_unique; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY plate_appearances
+    ADD CONSTRAINT game_index_unique UNIQUE (game_id, index_in_game);
+
+
+--
+-- TOC entry 2026 (class 2606 OID 16542)
+-- Name: players id; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY players
+    ADD CONSTRAINT id PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2030 (class 2606 OID 16606)
+-- Name: players_games players_games_lineupIndex_game_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY players_games
+    ADD CONSTRAINT "players_games_lineupIndex_game_id_key" UNIQUE (lineup_index, game_id);
+
+
+--
+-- TOC entry 2032 (class 2606 OID 16604)
+-- Name: players_games players_games_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY players_games
+    ADD CONSTRAINT players_games_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2033 (class 2606 OID 16543)
+-- Name: plate_appearances AtBats_game_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY plate_appearances
+    ADD CONSTRAINT "AtBats_game_id_fkey" FOREIGN KEY (game_id) REFERENCES games(id);
+
+
+--
+-- TOC entry 2034 (class 2606 OID 16548)
+-- Name: plate_appearances AtBats_player_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY plate_appearances
+    ADD CONSTRAINT "AtBats_player_id_fkey" FOREIGN KEY (player_id) REFERENCES players(id);
+
+
+--
+-- TOC entry 2035 (class 2606 OID 16553)
+-- Name: plate_appearances AtBats_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY plate_appearances
+    ADD CONSTRAINT "AtBats_team_id_fkey" FOREIGN KEY (team_id) REFERENCES teams(id);
+
+
+--
+-- TOC entry 2036 (class 2606 OID 16579)
+-- Name: games games_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY games
+    ADD CONSTRAINT games_team_id_fkey FOREIGN KEY (team_id) REFERENCES teams(id);
+
+
+--
+-- TOC entry 2038 (class 2606 OID 16645)
+-- Name: players_games players_games_game_id_fley; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY players_games
+    ADD CONSTRAINT players_games_game_id_fley FOREIGN KEY (game_id) REFERENCES games(id);
+
+
+--
+-- TOC entry 2037 (class 2606 OID 16612)
+-- Name: players_games players_games_player_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY players_games
+    ADD CONSTRAINT players_games_player_id_fkey FOREIGN KEY (player_id) REFERENCES players(id);
+
+
+--
+-- TOC entry 2159 (class 0 OID 0)
+-- Dependencies: 6
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+-- Completed on 2018-03-22 22:28:22
+
+--
+-- PostgreSQL database dump complete
+--
+
