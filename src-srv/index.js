@@ -9,20 +9,22 @@ const sqlGen = require( './sql-gen.js' );
 let PORT = 8888;
 let USE_PG = true;
 
-if ( process.argv.length !== 4 && process.argv.length !== 2 ) {
-	console.log( 'Usage: ' + __filename + ' <username> <password>' );
+if ( process.argv.length !== 5 && process.argv.length !== 2 ) {
+	console.log( 'Usage: ' + __filename + ' <postgres_url> <postgres_username> <postgres_password>' );
+	console.log( 'Assumes postgres is running on port 5432' );
 	process.exit( -1 );
 } else if ( process.argv.length === 2 ) {
 	console.log( 'Warning: running without database connection' );
 	USE_PG = false;
 }
 
-const user = process.argv[ 2 ];
-const password = process.argv[ 3 ];
+const pgurl = process.argv[ 2 ];
+const user = process.argv[ 3 ];
+const password = process.argv[ 4 ];
+
 let pool = null;
 
 if( USE_PG ) {
-	let pgurl = '35.197.35.206';
 	console.log( 'Connecting to pg', pgurl );
 	pool = new Pool( {
 		user: user,
@@ -101,7 +103,7 @@ http_server.post( 'state', ( obj, resp, data ) => {
 						// Replace 'values' that are client ids with their corresponding server ids
 						if(sqlToRun[i].idReplacements) {
 							for(let j = 0; j < sqlToRun[i].idReplacements.length; j++) {
-								let oldValue = sqlToRun[i].idReplacements[j].clinetId;
+								let oldValue = sqlToRun[i].idReplacements[j].clientId;
 								let table = sqlToRun[i].idReplacements[j].table;
 								let newValue = idMap[table][oldValue];
 								if(newValue === undefined) {
@@ -124,7 +126,7 @@ http_server.post( 'state', ( obj, resp, data ) => {
 							} else {
 								console.log(sqlToRun, insertedPrimaryKey);
 								console.log("insertedPrimaryKey has values no clientId was assigned to map");
-								throw "ERROR: NO CLINET ID MAPPING";
+								throw "ERROR: NO CLIENT ID MAPPING";
 							}
 						} else if (parseInt(insertedPrimaryKey.rows.length) !== 0) {
 							console.log(insertedPrimaryKey);
