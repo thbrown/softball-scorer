@@ -183,9 +183,9 @@ let printInsertStatementsFromPatch = function(obj, parents, result) {
 	if(obj.plateAppearances) {
 		let x;
 		let y;
-		if(obj.plateAppearances[i].location) {
-			x = obj.plateAppearances[i].location.x;
-			y = obj.plateAppearances[i].location.y;
+		if(obj.plateAppearances.location) {
+			x = obj.plateAppearances.location.x;
+			y = obj.plateAppearances.location.y;
 		}
 		result.push({
 			query:"INSERT INTO plate_appearances (result, player_id, game_id, team_id, hit_location_x, hit_location_y, index_in_game) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id;",
