@@ -97,6 +97,7 @@ http_server.post( 'state', ( obj, resp, data ) => {
 				const client = await pool.connect();
 				try {
 					await client.query('BEGIN');
+					await client.query('SET CONSTRAINTS ALL DEFERRED');
 
 					let idMap = {'teams':{}, 'players':{}, 'plate_appearances':{}, 'games':{}, 'players_games':{}};
 					for(let i = 0; i < sqlToRun.length; i++) {
