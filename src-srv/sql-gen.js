@@ -22,7 +22,7 @@ let getSqlFromPatchInternal = function(patch, path, result) {
 				// We have to delete references first
 				if(applicableTable == "teams") {
 					result.push({
-						query:"DELETE FROM players_games WHERE game_id IN ((SELECT id FROM games WHERE team_id IN ($1)))",
+						query:"DELETE FROM players_games WHERE game_id IN ((SELECT id FROM games WHERE team_id IN ($1)))", // Can't we just user getIdFromPath(path, "games") here insted of subquery
 						values:[value.key]
 					});
 					result.push({
@@ -48,7 +48,11 @@ let getSqlFromPatchInternal = function(patch, path, result) {
 
 				if(applicableTable === "players_games") {
 					result.push({
-						query:"DELETE FROM " + applicableTable + " WHERE player_id IN ($1) AND game_id IN ($2)",
+						query:"UPDATE players_games SET lineup_index = lineup_index - 1 WHERE lineup_index >= (SELECT lineup_index FROM players_games WHERE game_id = $2 AND player_id = $1) AND game_id = $2",
+						values:[value.key, getIdFromPath(path, "games")]
+					});
+					result.push({
+						query:"DELETE FROM players_games WHERE player_id IN ($1) AND game_id IN ($2)",
 						values:[value.key, getIdFromPath(path, "games")]
 					});
 				} else {
@@ -85,12 +89,28 @@ let getSqlFromPatchInternal = function(patch, path, result) {
 					throw "Something unexpected was reordered!" + applicableTable; // The only thing that should be re-orederable is the lineup, other things are all ordered by primary key
 				}
 
+				let reOrderQuery = 
+				`UPDATE players_games AS pg SET lineup_index = c.lineup_index FROM (values`;
+				let values = [getIdFromPath(path, "games")];
 				for(let entry = 0; entry < oldOrder.length; entry++) {
-					result.push({
-						query:"UPDATE players_games SET lineup_index = (SELECT lineup_index FROM players_games WHERE id = $1) WHERE id IN ($2);",
-						values:[oldOrder[entry], newOrder[entry]]
-					});
+					reOrderQuery += `($1, $${entry*2+2}, (SELECT lineup_index FROM players_games WHERE player_id = $${entry*2+3} AND game_id = $1))`
+					if(entry !== (oldOrder.length - 1)){
+						reOrderQuery += ",";
+					}
+					values.push(newOrder[entry]);
+					values.push(oldOrder[entry]);
 				}
+				reOrderQuery += `) AS c(game_id, player_id, lineup_index) WHERE c.player_id = pg.player_id::text AND c.game_id = pg.game_id;`; 
+				// Idk why we don't need ::text on pg.game_id above, I needed it for the raw query
+
+				console.log(reOrderQuery);
+				console.log(values);
+
+				result.push({
+					query: reOrderQuery,
+					values: values
+				});
+
 			} else if(op == "Edit") {
 				result.push({
 					query:"UPDATE " + applicableTable + " SET " + getColNameFromJSONValue(value.key) + " = $1 WHERE id IN ($2);",

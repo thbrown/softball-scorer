@@ -5,7 +5,7 @@
 -- Dumped from database version 9.5.12
 -- Dumped by pg_dump version 10.2
 
--- Started on 2018-03-22 22:28:15
+-- Started on 2018-03-24 12:57:35
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -309,6 +309,15 @@ ALTER TABLE ONLY teams
 
 
 --
+-- TOC entry 2030 (class 2606 OID 16651)
+-- Name: players_games enforce_unique_lineup_index; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY players_games
+    ADD CONSTRAINT enforce_unique_lineup_index UNIQUE (game_id, lineup_index) DEFERRABLE;
+
+
+--
 -- TOC entry 2022 (class 2606 OID 16628)
 -- Name: plate_appearances game_index_unique; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
@@ -324,15 +333,6 @@ ALTER TABLE ONLY plate_appearances
 
 ALTER TABLE ONLY players
     ADD CONSTRAINT id PRIMARY KEY (id);
-
-
---
--- TOC entry 2030 (class 2606 OID 16606)
--- Name: players_games players_games_lineupIndex_game_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY players_games
-    ADD CONSTRAINT "players_games_lineupIndex_game_id_key" UNIQUE (lineup_index, game_id);
 
 
 --
@@ -410,7 +410,7 @@ GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2018-03-22 22:28:22
+-- Completed on 2018-03-24 12:57:50
 
 --
 -- PostgreSQL database dump complete
