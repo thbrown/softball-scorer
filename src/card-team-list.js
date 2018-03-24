@@ -34,9 +34,16 @@ module.exports = class CardTeamList extends expose.Component {
 		};
 
 		this.handleSyncClick = function() {
-			console.log("Starging Sync");
-			state.updateState((status) => {
-				console.log("Done with sync: " + status);
+			let buttonDiv = document.getElementById('pull');
+			buttonDiv.innerHTML = "Pull (In Progress)";
+			state.updateState((error) => {
+				if(error) {
+					buttonDiv.innerHTML = "Pull - Error: " + error;
+					console.log("Pull failed: " + error);
+				} else {
+					buttonDiv.innerHTML = "Pull";
+					console.log("Pull Succeeded");
+				}
 				expose.set_state( 'main', { render: true } );
 			} , false );
 		};
@@ -52,6 +59,9 @@ module.exports = class CardTeamList extends expose.Component {
 		};
 
 		this.handlePushClick = function() {
+			let buttonDiv = document.getElementById('push');
+			buttonDiv.innerHTML = "Push (In Progress)";
+
 			var xhr = new XMLHttpRequest();
 			xhr.open("POST", state.getServerUrl('state') , true);
 			xhr.setRequestHeader('Content-Type', 'application/json');
@@ -59,8 +69,10 @@ module.exports = class CardTeamList extends expose.Component {
 				if (xhr.readyState === XMLHttpRequest.DONE) {
 					let response = JSON.parse(xhr.response);
 					if(response.status === "FAIL") {
+						buttonDiv.innerHTML = "Push - Error: " + response.reason;
 						console.log("FAIL: " + response.reason);
 					} else if (response.status === "SUCCESS") {
+						buttonDiv.innerHTML = "Push";
 						console.log("PUSH WAS SUCCESSFUL! Performing hard sync to reconcile ids");
 						state.updateState((status) => {
 							console.log("Done with hard sync: " + status);
@@ -123,6 +135,7 @@ module.exports = class CardTeamList extends expose.Component {
 		// TODO: re-render
 		elems.push( DOM.div( {
 			key: 'pull',
+			id: 'pull',
 			className: 'list-item',
 			onClick: this.handleSyncClick.bind( this ),
 			style: {
@@ -134,6 +147,7 @@ module.exports = class CardTeamList extends expose.Component {
 		// TODO: re-render
 		elems.push( DOM.div( {
 			key: 'hardPull',
+			id: 'hardPull',
 			className: 'list-item',
 			onClick: this.handleHardSyncClick.bind( this ),
 			style: {
@@ -144,6 +158,7 @@ module.exports = class CardTeamList extends expose.Component {
 
 		elems.push( DOM.div( {
 			key: 'push',
+			id: 'push',
 			className: 'list-item',
 			onClick: this.handlePushClick.bind( this ),
 			style: {
