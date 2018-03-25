@@ -266,3 +266,9 @@ body {
   -ms-user-select: none;
   user-select: none;
 }
+
+.highlight {
+  background-color: $css.colors.TEXT_LIGHT;
+  margin: -5px;
+  padding: 1px;
+}
