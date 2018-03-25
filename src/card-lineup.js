@@ -67,7 +67,7 @@ module.exports = class CardLineup extends expose.Component {
 
 		this.handleDrag = function( player ) {
 			// Hide all other highlights
-			let highlights = document.getElementsByClassName("highlight");
+			let highlights = Array.from(document.getElementsByClassName("highlight"));
 			for(let i = 0; i < highlights.length; i++) {
 				highlights[i].hidden = true;
 			}
@@ -78,13 +78,15 @@ module.exports = class CardLineup extends expose.Component {
 			let diff = Math.floor( deltaY / 60 );
 
 			let position_index = this.props.game.lineup.indexOf( player.id );
+
+			highlights.splice(position_index, 1);
+
 			let new_position_index = this.clamp(position_index + diff + 1, 0, highlights.length - 1);
 
-			console.log(new_position_index, highlights.length);
 			try {
 				highlights[new_position_index].hidden = false;	
 			} catch (e) {
-				console.log(highlights,new_position_index);
+				console.log("Error",highlights,new_position_index);
 			}
 		};
 	}
