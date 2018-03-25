@@ -15,6 +15,10 @@ module.exports = class CardLineup extends expose.Component {
 		this.expose();
 		this.state = {};
 
+		this.clamp = function(num, min, max) {
+		  return num <= min ? min : num >= max ? max : num;
+		}
+
 		this.handleDeleteClick = function( player, ev ){
 			dialog.show_confirm( 'Do you want to remove "' + player.name + '" from the lineup?', () => {
 				state.removePlayerFromLineup( this.props.game.lineup, player.id );
@@ -41,31 +45,66 @@ module.exports = class CardLineup extends expose.Component {
 			elem.style[ 'z-index' ] = 100;
 			elem.style.position = 'absolute';
 		};
+
 		this.handleDragStop = function( player ) {
+			// Hide all other highlights
+			let highlights = document.getElementsByClassName("highlight");
+			for(let i = 0; i < highlights.length; i++) {
+				highlights[i].hidden = true;
+			}
+
 			let elem = document.getElementById( 'lineup_' + player.id );
 			elem.style[ 'z-index' ] = 1;
 			elem.style.position = null;
 
 			let deltaY = parseInt( elem.style.transform.slice( 15 ) ) - 15;
-			let diff = Math.floor( deltaY / 52 );
+			let diff = Math.floor( deltaY / 60 );
 
 			let position_index = this.props.game.lineup.indexOf( player.id );
-			let new_position_index = position_index + diff + 1;
+			let new_position_index = this.clamp(position_index + diff + 1, 0, highlights.length - 1);
 			state.updateLineup( this.props.game.lineup, player.id, new_position_index );
 		};
 
-		this.handleDrag = function() {
+		this.handleDrag = function( player ) {
+			// Hide all other highlights
+			let highlights = document.getElementsByClassName("highlight");
+			for(let i = 0; i < highlights.length; i++) {
+				highlights[i].hidden = true;
+			}
 
+			let elem = document.getElementById( 'lineup_' + player.id );
+
+			let deltaY = parseInt( elem.style.transform.slice( 15 ) ) - 15;
+			let diff = Math.floor( deltaY / 60 );
+
+			let position_index = this.props.game.lineup.indexOf( player.id );
+			let new_position_index = this.clamp(position_index + diff + 1, 0, highlights.length - 1);
+
+			console.log(new_position_index, highlights.length);
+			try {
+				highlights[new_position_index].hidden = false;	
+			} catch (e) {
+				console.log(highlights,new_position_index);
+			}
 		};
 	}
 
-	renderLineupPlayerList(){
+	renderLineupPlayerList() {
 		if( !this.props.game || !this.props.team ) {
 			console.log( 'game:', this.props.game, 'team:', this.props.team, 'lineup:', !this.props.game.lineup  );
 			return DOM.div( { className: 'page-error' }, 'Lineup: No game, team, or lineup exist.' );
 		}
 
-		let elems = this.props.game.lineup.map( ( player_id ) => {
+		let pageElems = [];
+
+		pageElems.push(DOM.div( {
+			key: 'highlightOne',
+			className: 'highlight',
+			hidden: true
+		},));
+
+	 	for(let h = 0; h < this.props.game.lineup.length; h++) {
+	 		let player_id = this.props.game.lineup[h];
 			let player = state.getPlayer( player_id );
 			
 			let player_name = DOM.div( {
@@ -105,7 +144,6 @@ module.exports = class CardLineup extends expose.Component {
 				}
 			}, elems );
 				
-
 			let div = DOM.div( {
 				id: 'lineup_' + player.id,
 				key: 'lineup' + player.id,
@@ -117,7 +155,7 @@ module.exports = class CardLineup extends expose.Component {
 				del
 			);
 
-			return React.createElement( Draggable, {
+			let playerDiv = React.createElement( Draggable, {
 				key: 'lineup-draggable' + player.id,
 				axis: 'y',
 				handle: '.player-name',
@@ -128,19 +166,29 @@ module.exports = class CardLineup extends expose.Component {
 				onStop: this.handleDragStop.bind( this, player ),
 				onDrag: this.handleDrag.bind( this, player )
 			}, div );
-		} );
 
-		elems.push( DOM.div( {
+			pageElems.push(playerDiv);
+
+			let highlight = DOM.div( {
+				key: 'highlight' + player.id,
+				className: 'highlight',
+				hidden: true
+			},);
+
+			pageElems.push(highlight);
+		}
+
+		pageElems.push( DOM.div( {
 			key: 'newplayer',
 			className: 'list-item add-list-item',
 			onClick: this.handleCreateClick,
 		}, '+ Add New Player' ) );
 
-		elems.unshift( DOM.div( { key: 'lineup-padding', id: 'lineup-padding', style: { 'display': 'none', height: '52px' } } ) );
+		pageElems.unshift( DOM.div( { key: 'lineup-padding', id: 'lineup-padding', style: { 'display': 'none', height: '52px' } } ) );
 
 		return DOM.div( {
 
-		}, elems );
+		}, pageElems );
 	}
 
 	render() {
