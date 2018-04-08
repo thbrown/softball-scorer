@@ -2,8 +2,6 @@
 
 const expose = require( './expose' );
 const DOM = require( 'react-dom-factories' );
-const css = require( 'css' );
-const dialog = require( 'dialog' );
 
 const state = require( 'state' );
 
