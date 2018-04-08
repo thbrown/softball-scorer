@@ -3,7 +3,6 @@
 const React = require( 'react' );
 const expose = require( './expose' );
 const DOM = require( 'react-dom-factories' );
-const css = require( 'css' );
 const dialog = require( 'dialog' );
 const Draggable = require( 'react-draggable' );
 
@@ -15,18 +14,54 @@ module.exports = class CardLineup extends expose.Component {
 		this.expose();
 		this.state = {};
 
-		this.clamp = function(num, min, max) {
-		  return num <= min ? min : num >= max ? max : num;
-		}
+		this.elemHeight = 76;
 
-		this.handleDeleteClick = function( player, ev ){
+		const hideHighlights = () => {
+			let highlights = document.getElementsByClassName( 'highlight' );
+			for ( let i = 0; i < highlights.length; i++ ) {
+				highlights[ i ].style.visibility = 'hidden';
+			}
+		};
+
+		const showHighlight = ( i ) => {
+			let elem = document.getElementById( 'highlight' + i );
+			if( elem ) {
+				elem.style.visibility = 'visible';
+			}
+		};
+
+		const getInds = ( elem, index ) => {
+			const deltaY = parseInt( elem.style.transform.slice( 15 ) ) - 15;
+			const diff = Math.floor( deltaY / this.elemHeight ) + 1;
+			let highlight_index = index + diff;
+			if( diff >= 0 ) {
+				highlight_index++;
+			}
+			if( highlight_index <= -1 ) {
+				highlight_index = 0;
+			}
+			if( highlight_index > this.props.game.lineup.length ){
+				highlight_index = this.props.game.lineup.length;
+			}
+			let new_position_index = highlight_index;
+			if( diff >= 0 ) {
+				new_position_index--;
+			}
+			return { highlight_index, new_position_index };
+		};
+
+		this.clamp = function( num, min, max ) {
+			return num <= min ? min : num >= max ? max : num;
+		};
+
+		this.handleDeleteClick = function( player, ev ) {
 			dialog.show_confirm( 'Do you want to remove "' + player.name + '" from the lineup?', () => {
 				state.removePlayerFromLineup( this.props.game.lineup, player.id );
 			} );
 			ev.stopPropagation();
 		};
 
-		this.handleCreateClick = function(){
+		this.handleCreateClick = function() {
 			expose.set_state( 'main', {
 				page: 'PlayerSelection',
 			} );
@@ -41,144 +76,134 @@ module.exports = class CardLineup extends expose.Component {
 		}.bind( this );
 
 		this.handleDragStart = function( player ) {
+			//this.disableTouchAction();
 			let elem = document.getElementById( 'lineup_' + player.id );
 			elem.style[ 'z-index' ] = 100;
 			elem.style.position = 'absolute';
+			document.getElementById( 'lineup-padding' ).style.display = 'block';
 		};
 
-		this.handleDragStop = function( player ) {
-			// Hide all other highlights
-			let highlights = document.getElementsByClassName("highlight");
-			for(let i = 0; i < highlights.length; i++) {
-				highlights[i].hidden = true;
-			}
-
+		this.handleDragStop = function( player, index ) {
+			//this.enableTouchAction();
+			hideHighlights();
 			let elem = document.getElementById( 'lineup_' + player.id );
 			elem.style[ 'z-index' ] = 1;
 			elem.style.position = null;
-
-			let deltaY = parseInt( elem.style.transform.slice( 15 ) ) - 15;
-			let diff = Math.floor( deltaY / 60 );
-
-			let position_index = this.props.game.lineup.indexOf( player.id );
-			let new_position_index = this.clamp(position_index + diff + 1, 0, highlights.length - 1);
+			document.getElementById( 'lineup-padding' ).style.display = 'none';
+			const { new_position_index } = getInds( elem, index );
 			state.updateLineup( this.props.game.lineup, player.id, new_position_index );
 		};
 
-		this.handleDrag = function( player ) {
-			// Hide all other highlights
-			let highlights = Array.from(document.getElementsByClassName("highlight"));
-			for(let i = 0; i < highlights.length; i++) {
-				highlights[i].hidden = true;
-			}
-
-			let elem = document.getElementById( 'lineup_' + player.id );
-
-			let deltaY = parseInt( elem.style.transform.slice( 15 ) ) - 15;
-			let diff = Math.floor( deltaY / 60 );
-
-			let position_index = this.props.game.lineup.indexOf( player.id );
-
-			highlights.splice(position_index, 1);
-
-			let new_position_index = this.clamp(position_index + diff + 1, 0, highlights.length - 1);
-
-			try {
-				highlights[new_position_index].hidden = false;	
-			} catch (e) {
-				console.log("Error",highlights,new_position_index);
-			}
+		this.handleDrag = function( player, index ) {
+			hideHighlights();
+			const elem = document.getElementById( 'lineup_' + player.id );
+			const { highlight_index } = getInds( elem, index );
+			showHighlight( highlight_index );
 		};
 	}
 
+	disableTouchAction() {
+		Array.prototype.forEach.call( document.getElementsByClassName( 'lineup-row' ), ( elem ) => {
+			elem.style[ 'touch-action' ] = 'none';
+		} );
+	}
+
+	enableTouchAction() {
+		Array.prototype.forEach.call( document.getElementsByClassName( 'lineup-row' ), ( elem ) => {
+			elem.style[ 'touch-action' ] = null;
+		} );
+	}
+
+	componentDidMount() {
+		//this.enableTouchAction();
+	}
+
 	renderLineupPlayerList() {
-		if( !this.props.game || !this.props.team ) {
-			console.log( 'game:', this.props.game, 'team:', this.props.team, 'lineup:', !this.props.game.lineup  );
+		if ( !this.props.game || !this.props.team ) {
+			console.log( 'game:', this.props.game, 'team:', this.props.team, 'lineup:', !this.props.game.lineup );
 			return DOM.div( { className: 'page-error' }, 'Lineup: No game, team, or lineup exist.' );
 		}
 
 		let pageElems = [];
 
-		pageElems.push(DOM.div( {
-			key: 'highlightOne',
-			className: 'highlight',
-			hidden: true
-		},));
-
-	 	for(let h = 0; h < this.props.game.lineup.length; h++) {
-	 		let player_id = this.props.game.lineup[h];
-			let player = state.getPlayer( player_id );
-			
-			let player_name = DOM.div( {
+		pageElems = pageElems.concat( this.props.game.lineup.map( ( player_id, index ) => {
+			const player = state.getPlayer( player_id );
+			const plateAppearances = state.getPlateAppearancesForPlayerInGame( player.id, this.props.game.id );
+			let elems = [];
+			elems.push( DOM.div( {
+				key: 'handle',
+				className: 'player-drag-handle',
+			}, DOM.img( {
+				src: 'assets/drag-handle.png',
+				style: {
+					height: '40px'
+				}
+			} ) ) );
+			elems.push( DOM.div( {
 				key: 'name',
 				className: 'player-name',
-			}, player.name );
-
-			let del = DOM.img( {
-					src: 'assets/ic_close_white_24dp_1x.png',
-					className: 'delete-button',
-					style: {
-					  paddingTop: '6px',
-					},
-					onClick: this.handleDeleteClick.bind( this, player )
-				});
-
-			let elems = [];
-			let plateAppearances = state.getPlateAppearancesForPlayerInGame( player.id, this.props.game.id);
-			for( let i = 0; i < plateAppearances.length; i++ ){
-				let plateAppearance = plateAppearances[i];
-				let text = '';
-				if( plateAppearance ){
-					text = plateAppearance.result;
-				}
-				
-				elems.push( DOM.div( {
-					key: 'box' + i,
-					onClick: this.handleBoxClick.bind( this, player, plateAppearance.id ),
-					className: 'lineup-box',
-				}, DOM.div( {}, text ) ) );
-			}
-
-			let boxes = DOM.div( {
+			}, player.name ) );
+			elems.push( DOM.div( {
+				key: 'boxes',
 				style: {
 					display: 'flex',
 					justifyContent: 'flex-start'
 				}
-			}, elems );
-				
-			let div = DOM.div( {
-				id: 'lineup_' + player.id,
-				key: 'lineup' + player.id,
-				className: 'lineup-row',
-				//onClick: this.handleButtonClick.bind( this, team )
-			},
-				player_name,
-				boxes,
-				del
-			);
+			}, plateAppearances.map( ( pa, i ) => {
+					pa = pa || {};
+					return DOM.div( {
+						key: 'box' + i,
+						onClick: this.handleBoxClick.bind( this, player, pa.id ),
+						className: 'lineup-box',
+					}, DOM.div( {}, pa.result || '' ) );
+				} )
+			) );
+			elems.push( DOM.img( {
+				key: 'del',
+				src: 'assets/ic_close_white_24dp_1x.png',
+				className: 'delete-button',
+				style: {
+					paddingTop: '6px',
+				},
+				onClick: this.handleDeleteClick.bind( this, player )
+			} ) );
 
-			let playerDiv = React.createElement( Draggable, {
+			return React.createElement( Draggable, {
 				key: 'lineup-draggable' + player.id,
 				axis: 'y',
-				handle: '.player-name',
+				handle: '.player-drag-handle',
 				//defaultPosition: { x: 0, y: 0 },
 				position: { x: 0, y: 0 },
 				grid: [ 1, 1 ],
 				onStart: this.handleDragStart.bind( this, player ),
-				onStop: this.handleDragStop.bind( this, player ),
-				onDrag: this.handleDrag.bind( this, player )
-			}, div );
-
-			pageElems.push(playerDiv);
-
-			let highlight = DOM.div( {
-				key: 'highlight' + player.id,
+				onStop: this.handleDragStop.bind( this, player, index ),
+				onDrag: this.handleDrag.bind( this, player, index )
+			}, DOM.div( {
+					id: 'lineup_' + player.id,
+					className: 'lineup-row',
+				}, elems )
+			);
+		} ).reduce( ( acc, next, i ) => {
+			acc.push( DOM.div( {
+				key: 'highlight' + ( i ),
+				id: 'highlight' + ( i ),
 				className: 'highlight',
-				hidden: true
-			},);
+				style: {
+					visibility: 'hidden'
+				}
+			} ) );
+			acc.push( next );
+			return acc;
+		}, [] ) );
 
-			pageElems.push(highlight);
-		}
+		pageElems.push( DOM.div( {
+			id: 'highlight' + this.props.game.lineup.length,
+			key: 'highlight' + this.props.game.lineup.length,
+			className: 'highlight',
+			style: {
+				visibility: 'hidden'
+			}
+		} ) );
 
 		pageElems.push( DOM.div( {
 			key: 'newplayer',
@@ -186,17 +211,21 @@ module.exports = class CardLineup extends expose.Component {
 			onClick: this.handleCreateClick,
 		}, '+ Add New Player' ) );
 
-		pageElems.unshift( DOM.div( { key: 'lineup-padding', id: 'lineup-padding', style: { 'display': 'none', height: '52px' } } ) );
+		pageElems.unshift( DOM.div( {
+			key: 'lineup-padding',
+			id: 'lineup-padding',
+			style: {
+				display: 'none',
+				height: '4px'
+			}
+		} ) );
 
-		return DOM.div( {
-
-		}, pageElems );
+		return DOM.div( {}, pageElems );
 	}
 
 	render() {
 		return DOM.div( {
-				style: {
-				}
+				style: {}
 			},
 			this.renderLineupPlayerList()
 		);

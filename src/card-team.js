@@ -74,7 +74,7 @@ module.exports = class CardTeam extends expose.Component {
 							borderBottom: this.state.tab === 'games' ? '5px solid ' + css.colors.TEXT_LIGHT : 'none',
 						}
 					}, 'Games' )
-				),
+				)
 			),
 			subcard
 		);
