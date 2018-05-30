@@ -13,6 +13,12 @@ module.exports = class CardTeamList extends expose.Component {
 		this.expose();
 		this.state = {};
 
+		this.handleBackClick = function() {
+			expose.set_state( 'main', {
+				page: 'Menu'
+			} );
+		};
+
 		this.handleButtonClick = function( team ){
 			expose.set_state( 'main', {
 				page: 'Team',
@@ -32,76 +38,6 @@ module.exports = class CardTeamList extends expose.Component {
 				state.addTeam( name );
 			} );
 		};
-
-		this.handleSyncClick = function() {
-			let buttonDiv = document.getElementById('pull');
-			buttonDiv.innerHTML = "Pull (In Progress)";
-			state.updateState((error) => {
-				if(error) {
-					buttonDiv.innerHTML = "Pull - Error: " + error;
-					console.log("Pull failed: " + error);
-				} else {
-					buttonDiv.innerHTML = "Pull";
-					console.log("Pull Succeeded");
-				}
-				expose.set_state( 'main', { render: true } );
-			} , false );
-		};
-
-		this.handleHardSyncClick = function( ev ) {
-			dialog.show_confirm( 'Are you sure you want do a hard pull? This will erase all local changes.', () => {
-				state.updateState((status) => {
-					console.log("Done with sync: " + status);
-					expose.set_state( 'main', { render: true } );
-				} , true);
-			} );
-			ev.stopPropagation();
-		};
-
-		this.handlePushClick = function() {
-			let buttonDiv = document.getElementById('push');
-			buttonDiv.innerHTML = "Push (In Progress)";
-
-			var xhr = new XMLHttpRequest();
-			xhr.open("POST", state.getServerUrl('state') , true);
-			xhr.setRequestHeader('Content-Type', 'application/json');
-			xhr.onreadystatechange = function() {
-				if (xhr.readyState === XMLHttpRequest.DONE) {
-					let response = JSON.parse(xhr.response);
-					if(response.status === "FAIL") {
-						buttonDiv.innerHTML = "Push - Error: " + response.reason;
-						console.log("FAIL: " + response.reason);
-					} else if (response.status === "SUCCESS") {
-						buttonDiv.innerHTML = "Push";
-						console.log("PUSH WAS SUCCESSFUL! Performing hard sync to reconcile ids");
-						state.updateState((status) => {
-							console.log("Done with hard sync: " + status);
-							expose.set_state( 'main', { render: true } );
-						} , true);
-
-					}
-				}
-			};
-			xhr.send(JSON.stringify({
-				local: JSON.stringify(state.getState()),
-				ancestor: JSON.stringify(state.getAncestorState())
-			}));
-		};
-
-		this.handleSaveClick = function() {
-			var today = new Date().getTime();
-			this.download(JSON.stringify(state.getState()), 'save' + today + '.json', 'text/plain');
-		};
-	}
-
-	// https://stackoverflow.com/questions/34156282/how-do-i-save-json-to-local-text-file
-	// This only works in desktop chrome
-	download(text, name, type) {
-		var a = document.createElement("a");
-		var file = new Blob([text], {type: type});
-		a.href = URL.createObjectURL(file);
-		a.download = name;
-		a.click();
 	}
 
 	renderTeamList(){
@@ -132,51 +68,6 @@ module.exports = class CardTeamList extends expose.Component {
 			onClick: this.handleCreateClick,
 		}, '+ Add New Team' ) );
 
-		// TODO: re-render
-		elems.push( DOM.div( {
-			key: 'pull',
-			id: 'pull',
-			className: 'list-item',
-			onClick: this.handleSyncClick.bind( this ),
-			style: {
-				backgroundColor: css.colors.BG,
-				color: 'gray',
-			}
-		}, 'Pull' ) );
-
-		// TODO: re-render
-		elems.push( DOM.div( {
-			key: 'hardPull',
-			id: 'hardPull',
-			className: 'list-item',
-			onClick: this.handleHardSyncClick.bind( this ),
-			style: {
-				backgroundColor: css.colors.BG,
-				color: 'gray',
-			}
-		}, 'Hard Pull' ) );
-
-		elems.push( DOM.div( {
-			key: 'push',
-			id: 'push',
-			className: 'list-item',
-			onClick: this.handlePushClick.bind( this ),
-			style: {
-				backgroundColor: css.colors.BG,
-				color: 'gray',
-			}
-		}, 'Push' ) );
-
-		elems.push( DOM.div( {
-			key: 'save',
-			className: 'list-item',
-			onClick: this.handleSaveClick.bind( this ),
-			style: {
-				backgroundColor: css.colors.BG,
-				color: 'gray',
-			}
-		}, 'Save as File' ) );
-
 		return DOM.div( {
 
 		}, elems );
@@ -189,7 +80,21 @@ module.exports = class CardTeamList extends expose.Component {
 			},
 			DOM.div( {
 				className: 'card-title'
-			}, 'Teams' ),
+			}, 				
+				DOM.img( {
+					src: 'assets/ic_arrow_back_white_36dp_1x.png',
+					className: 'back-arrow',
+					onClick: this.handleBackClick,
+				}),
+				DOM.div( {
+					style: {
+						// display: 'flex',
+						justifyContent: 'space-between',
+						// Adjusting for back-arrow.
+						marginLeft: '60px',
+					}
+				}, 'Teams' ),
+			),
 			this.renderTeamList()
 		);
 	}

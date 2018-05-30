@@ -23,12 +23,19 @@
   },
   "homepage": "https://github.com/thbrown/softball-scorer#readme",
   "dependencies": {
+    "bcrypt": "^2.0.1",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "express-session": "^1.15.6",
+    "passport": "^0.4.0",
+    "passport-local": "^1.0.0",
     "pg": "^7.4.1",
     "react": "^16.2.0",
     "react-autosuggest": "^9.3.4",
     "react-dom": "^16.2.0",
     "react-dom-factories": "^1.0.2",
-    "react-draggable": "^3.0.5"
+    "react-draggable": "^3.0.5",
+    "serve-favicon": "^2.5.0"
   },
   "devDependencies": {
     "babel-minify": "^0.3.0",

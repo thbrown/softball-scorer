@@ -1,10 +1,19 @@
 /*eslint no-process-exit:*/
 'use strict';
 
-const http_server = require( './http-server' );
 const { Pool } = require( 'pg' );
 const objectMerge = require( '../object-merge.js' );
 const sqlGen = require( './sql-gen.js' );
+
+const http = require('http');
+const path = require('path');
+const express = require('express');
+const passport = require('passport');
+const passportSession = require('express-session');
+const LocalStrategy = require('passport-local').Strategy;
+const bodyParser = require('body-parser');
+const favicon = require('serve-favicon');
+const bcrypt = require('bcrypt');
 
 let PORT = 8888;
 let USE_PG = true;
@@ -56,28 +65,73 @@ process.on( 'exit', function() {
 	process.stdout.write( 'Bye\n' );
 } );
 
-http_server.start( PORT, __dirname + '/..' );
-console.log( 'Now listening on port: ' + PORT );
 
-//localhost:8080/test as a GET request will trigger this function
-http_server.get( 'test', ( obj, resp ) => {
-	console.log( 'Triggered "test" GET request' );
-	http_server.reply( resp, 'This is a test GET result' );
+// Authentication
+passport.use(new LocalStrategy({
+    usernameField: 'email',
+    passwordField: 'password'
+},
+async function(email, password, cb) {
+  	console.log("Checking credentials...", email);
+
+  	try {
+		let userInfo = '$2b$10$SHhKuShxzLyTw27N9pYyr.lxX/uESRdLad7SPWeqsUuqd2AXU4Yz6';//await self.databaseCalls.getLinkIdAndPassword(linkAsHex);
+
+		let isValid = false;
+	  	if(userInfo && userInfo.password && email) {
+		  	isValid = await bcrypt.compare(password, userInfo.password);
+		}
+
+		if(isValid) {
+			console.log("Login accepted");
+			let sessionInfo = {
+				link: link
+			}
+			cb(null,sessionInfo);
+		} else {
+			cb(null, false);
+			console.log("Login rejected");
+		}
+	} catch (error) {
+		console.log(error);
+		cb(null, false);
+	}
+}));
+
+passport.serializeUser(function(sessionInfo, cb) {
+	console.log("Serializing", sessionInfo);
+	cb(null, sessionInfo);
+});
+
+passport.deserializeUser(async function(sessionInfo, cb) {
+	cb(null, sessionInfo);
+});
+
+const app = express();
+app.disable('x-powered-by');
+
+const server = http.createServer(app);
+
+// Middleware
+app.use(favicon(__dirname + '/fav-icon.png'));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(passportSession({ secret: 'o6TjCBAL5USjcuvlodSq', resave: false, saveUninitialized: false})); //  , cookie: { secure: false }
+app.use(passport.initialize());
+app.use(passport.session());
+app.use('/build', express.static(path.join(__dirname+'/../build').normalize()));
+app.use('/assets', express.static(path.join(__dirname+'/../assets').normalize()));
+
+app.get( '/', ( req,res ) => {
+	res.sendFile(path.join(__dirname+'/../index.html').normalize());
 } );
 
-//localhost:8080/test as a POST request will trigger this function
-http_server.post( 'test', ( obj, resp, data ) => {
-	console.log( 'Triggered "test" POST request', data );
-	http_server.reply( resp, 'This is a test POST result' );
-} );
-
-http_server.post( 'state', ( obj, resp, data ) => {
+app.post( '/state', ( req,res ) => {
 
 	let responseObject = {};
 	if( !USE_PG ) {
 		responseObject.status = "FAIL";
 		responseObject.reason = "POSTGRES NOT SETUP";
-		return http_server.reply( resp, JSON.stringify(responseObject) );
+		return res.send( resp, JSON.stringify(responseObject) );
 	}
 
 	getStatePromise().then( function( result ) { 
@@ -145,7 +199,7 @@ http_server.post( 'state', ( obj, resp, data ) => {
 					responseObject.reason = "DB QUERY ERROR - " + JSON.stringify(e);
 				} finally {
 					client.release();
-					http_server.reply( resp, JSON.stringify(responseObject) );
+					res.send( JSON.stringify(responseObject) );
 				}
 			})().catch(e => console.error(e.stack));
 
@@ -163,29 +217,35 @@ http_server.post( 'state', ( obj, resp, data ) => {
 		} else {
 			responseObject.status = "FAIL";
 			responseObject.reason = "PENDING CHANGES - PULL FIRST";
-			http_server.reply( resp, JSON.stringify(responseObject) );
+			res.send( JSON.stringify(responseObject) );
 		}
 	});
 
 } );
 
-
-
-http_server.get( 'state', ( obj, resp ) => {
+app.get( '/state', ( req,res ) => {
 	if( !USE_PG ) {
-		return http_server.reply( resp, SAMPLE_STATE );
+		return res.send( SAMPLE_STATE );
 	}
 
-	getStatePromise().then( function( result ) { http_server.reply( resp, result ); } );
+	getStatePromise().then( function( result ) { res.send( result ); } );
 } );
 
-http_server.get( 'state_debug', ( obj, resp ) => {
+app.get( '/state_debug', ( obj, resp ) => {
 	if( !USE_PG ) {
-		return http_server.reply( resp, JSON.stringify(SAMPLE_STATE, null, 2 ));
+		return res.send( resp, JSON.stringify(SAMPLE_STATE, null, 2 ));
 	}
 
-	getStatePromise().then( function( result ) { http_server.reply( resp, JSON.stringify( result, null, 2 ) ); } );
+	getStatePromise().then( function( result ) { res.send( JSON.stringify( result, null, 2 ) ); } );
 } );
+
+app.post( '/login', ( req,res ) => {
+	console.log(req);
+} );
+
+this.server = server.listen(PORT, function listening() {
+  console.log('Compute server: Listening on %d', server.address().port);
+});
 
 function getStatePromise() {
 	return new Promise( function( resolve, reject ) {

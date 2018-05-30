@@ -12,6 +12,8 @@ const CardLoading = require( 'card-loading' );
 const CardPlayerSelection = require( 'card-player-selection' );
 const CardTeam = require( 'card-team' );
 const CardTeamList = require( 'card-team-list' );
+const CardMenu = require( 'card-menu' );
+const CardAuth = require( 'card-auth' );
 
 const qs = state.getQueryObj();
 
@@ -36,6 +38,10 @@ module.exports = class MainContainer extends expose.Component {
 
 		if( card_name === 'Loading' ) {
 			return React.createElement( CardLoading );
+		} else if( card_name === 'Menu' ) {
+			return React.createElement( CardMenu );
+		} else if( card_name === 'Auth' ) {
+			return React.createElement( CardAuth );
 		} else if( card_name === 'TeamList' ) {
 			return React.createElement( CardTeamList );
 		} else if( card_name === 'Team' ) {
