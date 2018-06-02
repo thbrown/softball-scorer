@@ -10,7 +10,7 @@ exports.getServerUrl = function(path) {
 	return window.location.href + path;
 };
 
-exports.updateState = function(callback, force) { // TODO: swap param order?
+exports.updateState = function(callback, force) { // TODO: swap param order
 
 	let should_load_from_local_state = !STATE && localStorage && localStorage.LOCAL_STATE && localStorage.DATABASE_STATE;
 
@@ -30,7 +30,7 @@ exports.updateState = function(callback, force) { // TODO: swap param order?
 
 	if( !should_load_from_local_state ) {
 		var xmlHttp = new XMLHttpRequest();
-		// use fetch api for this instead of xmlhttp, its much easier (uses promises)
+		// TODO: use fetch api for this instead of xmlhttp, its much easier (uses promises)
 		xmlHttp.onreadystatechange = function() {
 			if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
 				try {
