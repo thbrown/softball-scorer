@@ -349,18 +349,18 @@ let getTableReferenceFromPath = function(path, key) {
 	return null;
 }
 
-// Returns the id of type from the path. If no path is specified, returns latest id.
+// Returns the id of type from the path. If no type is specified, returns latest id.
 let getIdFromPath = function(path, type) {
 	if(type) {
 		for(let i = (path.length-1); i >= 0; i--) {
-			if(isNumeric(path[i])) {
-				return path[i];
+			if(path[i] === type) {
+				return path[i+1];
 			}
 		}
 	} else {
 		for(let i = (path.length-1); i >= 0; i--) {
-			if(path[i] === type) {
-				return path[i+1];
+			if(isNumeric(path[i])) {
+				return path[i];
 			}
 		}
 	}

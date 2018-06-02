@@ -64,18 +64,17 @@ module.exports = class CardTeam extends expose.Component {
 			xhr.setRequestHeader('Content-Type', 'application/json');
 			xhr.onreadystatechange = function() {
 				if (xhr.readyState === XMLHttpRequest.DONE) {
-					let response = JSON.parse(xhr.response);
-					if(response.status === "FAIL") {
-						buttonDiv.innerHTML = "Push - Error: " + response.reason;
-						console.log("FAIL: " + response.reason);
-					} else if (response.status === "SUCCESS") {
+					console.log("Status", xhr.status);
+					if(xhr.status === 204) {
 						buttonDiv.innerHTML = "Push";
 						console.log("PUSH WAS SUCCESSFUL! Performing hard sync to reconcile ids");
 						state.updateState((status) => {
 							console.log("Done with hard sync: " + status);
 							expose.set_state( 'main', { render: true } );
 						} , true);
-
+					} else if (response.status === "SUCCESS") {
+						buttonDiv.innerHTML = "Push - Error: " + response.errors[0];
+						console.log("FAIL: " + response.errors[0]);
 					}
 				}
 			};
@@ -87,7 +86,7 @@ module.exports = class CardTeam extends expose.Component {
 
 		this.handleSaveClick = function() {
 			var today = new Date().getTime();
-			this.download(JSON.stringify(state.getState()), 'save' + today + '.json', 'text/plain');
+			this.download(JSON.stringify(state.getState(), null, 2), 'save' + today + '.json', 'text/plain');
 		};
 	}
 
