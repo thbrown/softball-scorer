@@ -1,14 +1,18 @@
+const HandledError = require( './handled-error.js' );
 
 let tableReferences = ['teams', 'players', 'plateAppearances', 'games', 'lineup'];
 let tableNames = ['teams', 'players', 'plate_appearances', 'games', 'players_games'];
 
-let getSqlFromPatch = function(patch) {
+let getSqlFromPatch = function(patch, accountId) {
 	let result = [];
-	getSqlFromPatchInternal(patch, [], result);
+	getSqlFromPatchInternal(patch, [], result, accountId);
 	return result;
 }
 
-let getSqlFromPatchInternal = function(patch, path, result) {
+let getSqlFromPatchInternal = function(patch, path, result, accountId) {
+	if(accountId === undefined) {
+		throw new HandledError(500,"Internal Server Error", "Tried to generate sql while accoutnId was undefined (no account loged in)");
+	}
 	let keys = Object.keys(patch);
 	for (var i = 0; i < keys.length; i++) {
 		let key = keys[i];
@@ -22,43 +26,43 @@ let getSqlFromPatchInternal = function(patch, path, result) {
 				// We have to delete references first
 				if(applicableTable == "teams") {
 					result.push({
-						query:"DELETE FROM players_games WHERE game_id IN ((SELECT id FROM games WHERE team_id IN ($1)))", // Can't we just user getIdFromPath(path, "games") here insted of subquery
-						values:[value.key]
+						query:"DELETE FROM players_games WHERE game_id IN ($1) AND account_id IN ($2)",
+						values:[getIdFromPath(path, "games"), accountId] // Not value.key?
 					});
 					result.push({
-						query:"DELETE FROM plate_appearances WHERE team_id IN ($1)",
-						values:[value.key]
+						query:"DELETE FROM plate_appearances WHERE team_id IN ($1) AND account_id IN ($2)",
+						values:[value.key, accountId]
 					});
 					result.push({
-						query:"DELETE FROM games WHERE team_id IN ($1)",
-						values:[value.key]
+						query:"DELETE FROM games WHERE team_id IN ($1) AND account_id IN ($2)",
+						values:[value.key, accountId]
 					});
 				}
 
 				if(applicableTable == "games") {
 					result.push({
-						query:"DELETE FROM players_games WHERE game_id IN ($1)",
-						values:[value.key]
+						query:"DELETE FROM players_games WHERE game_id IN ($1) account_id IN ($2)",
+						values:[value.key, accountId]
 					});
 					result.push({
-						query:"DELETE FROM plate_appearances WHERE game_id IN ($1)",
-						values:[value.key]
+						query:"DELETE FROM plate_appearances WHERE game_id IN ($1) account_id IN ($2)",
+						values:[value.key, accountId]
 					});
 				}
 
 				if(applicableTable === "players_games") {
 					result.push({
-						query:"UPDATE players_games SET lineup_index = lineup_index - 1 WHERE lineup_index >= (SELECT lineup_index FROM players_games WHERE game_id = $2 AND player_id = $1) AND game_id = $2",
-						values:[value.key, getIdFromPath(path, "games")]
+						query:"UPDATE players_games SET lineup_index = lineup_index - 1 WHERE lineup_index >= (SELECT lineup_index FROM players_games WHERE game_id = $2 AND player_id = $1 AND account_id = $3) AND game_id = $2 AND account_id = $3",
+						values:[value.key, getIdFromPath(path, "games"), accountId]
 					});
 					result.push({
-						query:"DELETE FROM players_games WHERE player_id IN ($1) AND game_id IN ($2)",
-						values:[value.key, getIdFromPath(path, "games")]
+						query:"DELETE FROM players_games WHERE player_id IN ($1) AND game_id IN ($2) AND account_id IN ($3)",
+						values:[value.key, getIdFromPath(path, "games"), accountId]
 					});
 				} else {
 					result.push({
-						query:"DELETE FROM " + applicableTable + " WHERE id IN ($1)",
-						values:[value.key]
+						query:"DELETE FROM " + applicableTable + " WHERE id IN ($1) AND account_id IN ($2)",
+						values:[value.key, accountId]
 					});
 				}
 			} else if(op == "ArrayAdd") {
@@ -77,7 +81,7 @@ let getSqlFromPatchInternal = function(patch, path, result) {
 					parents.gameId = path[3];
 					insertObject.position = value.param2; // lineup is not based on primary key ordering so we need to specify a position
 				}
-				printInsertStatementsFromPatch(insertObject, parents, result);
+				printInsertStatementsFromPatch(insertObject, parents, result, accountId);
 			} else if(op == "ReOrder") {
 				let param1 = value.param1.substring(1, value.param1.length-1);
 				let param2 = value.param2.substring(1, value.param2.length-1);
@@ -91,17 +95,18 @@ let getSqlFromPatchInternal = function(patch, path, result) {
 
 				let reOrderQuery = 
 				`UPDATE players_games AS pg SET lineup_index = c.lineup_index FROM (values`;
-				let values = [getIdFromPath(path, "games")];
+				let values = [getIdFromPath(path, "games"), accountId];
 				for(let entry = 0; entry < oldOrder.length; entry++) {
-					reOrderQuery += `($1, $${entry*2+2}, (SELECT lineup_index FROM players_games WHERE player_id = $${entry*2+3} AND game_id = $1))`
+					reOrderQuery += `($1, $${entry*2+3}, (SELECT lineup_index FROM players_games WHERE player_id = $${entry*2+4} AND game_id = $1 AND account_id = $2))`
 					if(entry !== (oldOrder.length - 1)){
 						reOrderQuery += ",";
 					}
 					values.push(newOrder[entry]);
 					values.push(oldOrder[entry]);
 				}
-				reOrderQuery += `) AS c(game_id, player_id, lineup_index) WHERE c.player_id = pg.player_id::text AND c.game_id = pg.game_id;`; 
+				reOrderQuery += `) AS c(game_id, player_id, lineup_index) WHERE c.player_id = pg.player_id::text AND c.game_id = pg.game_id AND account_id = $2;`; 
 				// Idk why we don't need ::text on pg.game_id above, I needed it for the raw query
+
 
 				console.log(reOrderQuery);
 				console.log(values);
@@ -113,8 +118,8 @@ let getSqlFromPatchInternal = function(patch, path, result) {
 
 			} else if(op == "Edit") {
 				result.push({
-					query:"UPDATE " + applicableTable + " SET " + getColNameFromJSONValue(value.key) + " = $1 WHERE id IN ($2);",
-					values:[value.param2, getIdFromPath(path)]
+					query:"UPDATE " + applicableTable + " SET " + getColNameFromJSONValue(value.key) + " = $1 WHERE id IN ($2) AND account_id IN ($3);",
+					values:[value.param2, getIdFromPath(path), accountId]
 				});
 			} else  {
 				throw "Unrecognized operation: " + op + " " + JSON.stringify(patchObj[key])
@@ -122,7 +127,7 @@ let getSqlFromPatchInternal = function(patch, path, result) {
 			
 		} else if (hasProperties(value)) {
 			path.push(key);
-			getSqlFromPatchInternal(patch[key], path, result);
+			getSqlFromPatchInternal(patch[key], path, result, accountId);
 			path.pop(key);
 		} else {
 			console.log("Warning: don't know what to do with this");
@@ -130,20 +135,22 @@ let getSqlFromPatchInternal = function(patch, path, result) {
 	}
 }
 
-let printInsertStatementsFromPatch = function(obj, parents, result) {
+let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
+	if(accountId === undefined) {
+		throw new HandledError(500,"Internal Server Error", "Tried to generate sql while accoutnId was undefined (no account loged in)");
+	}
 	if(obj.players) {
 		result.push({
-			query:"INSERT INTO players (name, gender) VALUES($1, $2) RETURNING id;",
-			values:[obj.players.name, obj.players.gender],
+			query:"INSERT INTO players (name, gender, account_id) VALUES($1, $2, $3) RETURNING id;",
+			values:[obj.players.name, obj.players.gender, accountId],
 			idReplacements:[],
 			mapReturnValueTo: {clientId: obj.players.id, table: "players"}
 		});
 	} 
-	
 	if(obj.teams) {
 		result.push({
-			query:"INSERT INTO teams (name) VALUES($1) RETURNING id;",
-			values:[obj.teams.name],
+			query:"INSERT INTO teams (name, account_id) VALUES($1, $2) RETURNING id;",
+			values:[obj.teams.name, accountId],
 			idReplacements:[],
 			mapReturnValueTo: {clientId: obj.teams.id, table: "teams"}
 		});
@@ -152,15 +159,16 @@ let printInsertStatementsFromPatch = function(obj, parents, result) {
 			insertObject.games = obj.teams.games;
 
 			parents.teamId = obj.teams.id;
-			printInsertStatementsFromRaw(insertObject, parents, result);
+			
+			printInsertStatementsFromRaw(insertObject, parents, result, accountId);
 			parents.teamId = undefined;
 		}
 	}
 	
 	if(obj.games) {
 		result.push({
-			query:"INSERT INTO games (date, opponent, park, score_us, score_them, team_id, lineup_type) VALUES(to_timestamp($1), $2, $3, $4, $5, $6, $7) RETURNING id;",
-			values:[obj.games.date, obj.games.opponent, obj.games.park, obj.games.score_us, obj.games.score_them, "REPLACE_ME_TEAMS", obj.games.lineup_type],
+			query:"INSERT INTO games (date, opponent, park, score_us, score_them, team_id, lineup_type, account_id) VALUES(to_timestamp($1), $2, $3, $4, $5, $6, $7, $8) RETURNING id;",
+			values:[obj.games.date, obj.games.opponent, obj.games.park, obj.games.score_us, obj.games.score_them, "REPLACE_ME_TEAMS", obj.games.lineup_type, accountId],
 			idReplacements:[
 				{valuesIndex:5, table:"teams", clientId: parents.teamId},
 			],
@@ -171,7 +179,7 @@ let printInsertStatementsFromPatch = function(obj, parents, result) {
 			insertObject.plateAppearances = obj.games.plateAppearances;
 
 			parents.gameId = obj.games.id;
-			printInsertStatementsFromRaw(insertObject, parents, result);
+			printInsertStatementsFromRaw(insertObject, parents, result, accountId);
 			parents.gameId = undefined;
 		}
 		if(obj.games.lineup) {
@@ -179,19 +187,19 @@ let printInsertStatementsFromPatch = function(obj, parents, result) {
 			insertObject.lineup = obj.games.lineup;
 
 			parents.gameId = obj.games.id;
-			printInsertStatementsFromRaw(insertObject, parents, result);
+			printInsertStatementsFromRaw(insertObject, parents, result, accountId);
 			parents.gameId = undefined;
 		}
 	}
 	
 	if(obj.lineup) {
 		result.push({
-			query:"UPDATE players_games SET lineup_index = lineup_index + 1 WHERE lineup_index >= $1 AND game_id = $2",
-			values:[obj.position+1, parents.gameId] // lineup oredering starts at 1 not 0
+			query:"UPDATE players_games SET lineup_index = lineup_index + 1 WHERE lineup_index >= $1 AND game_id = $2 AND account_id = $3",
+			values:[obj.position+1, parents.gameId, accountId] // lineup oredering starts at 1 not 0
 		});
 		result.push({
-			query:"INSERT INTO players_games (player_id, game_id, lineup_index) VALUES($1, $2, $3) RETURNING id",
-			values:["REPLACE_ME_PLAYERS", "REPLACE_ME_GAMES", obj.position+1], // lineup oredering starts at 1 not 0
+			query:"INSERT INTO players_games (player_id, game_id, lineup_index, account_id) VALUES($1, $2, $3, $4) RETURNING id",
+			values:["REPLACE_ME_PLAYERS", "REPLACE_ME_GAMES", obj.position+1, accountId], // lineup oredering starts at 1 not 0
 			idReplacements:[
 				{valuesIndex:0, table:"players", clientId: obj.lineup},
 				{valuesIndex:1, table:"games", clientId: parents.gameId}
@@ -208,8 +216,8 @@ let printInsertStatementsFromPatch = function(obj, parents, result) {
 			y = obj.plateAppearances.location.y;
 		}
 		result.push({
-			query:"INSERT INTO plate_appearances (result, player_id, game_id, team_id, hit_location_x, hit_location_y, index_in_game) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id;",
-			values:[obj.plateAppearances.result, "REPLACE_ME_PLAYERS", "REPLACE_ME_GAMES", "REPLACE_ME_TEAMS", x, y, obj.plateAppearances.plateAppearanceIndex],
+			query:"INSERT INTO plate_appearances (result, player_id, game_id, team_id, hit_location_x, hit_location_y, index_in_game, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;",
+			values:[obj.plateAppearances.result, "REPLACE_ME_PLAYERS", "REPLACE_ME_GAMES", "REPLACE_ME_TEAMS", x, y, obj.plateAppearances.plateAppearanceIndex, accountId],
 			idReplacements:[
 				{valuesIndex:1, table:"players", clientId: obj.plateAppearances.player_id},
 				{valuesIndex:2, table:"games", clientId: parents.gameId},
@@ -220,23 +228,25 @@ let printInsertStatementsFromPatch = function(obj, parents, result) {
 	}
 }
 
-let printInsertStatementsFromRaw = function(obj, parents, result) {
-
+let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
+	if(!accountId) {
+		throw new HandledError(500,"Internal Server Error", "Tried to generate sql while accoutnId was undefined (no account loged in)");
+	}
 	if(obj.players) {
 		for(let i = 0; i < obj.players.length; i++) {
 			result.push({
-				query:"INSERT INTO players (name, gender) VALUES($1, $2) RETURNING id;",
-				values:[obj.players[i].name, obj.players[i].gender],
+				query:"INSERT INTO players (name, gender, account_id) VALUES($1, $2, $3) RETURNING id;",
+				values:[obj.players[i].name, obj.players[i].gender, accountId],
 				idReplacements:[],
 				mapReturnValueTo: {clientId: obj.players[i].id, table: "players"}
 			});
 		}
-	} 
+	}
 	
 	if(obj.teams) {
 		for(let i = 0; i < obj.teams.length; i++) {
 			result.push({
-				query:"INSERT INTO teams (name) VALUES($1) RETURNING id;",
+				query:"INSERT INTO teams (name, account_id) VALUES($1, $2) RETURNING id;",
 				values:[obj.teams[i].name],
 				idReplacements:[],
 				mapReturnValueTo: {clientId: obj.teams[i].id, table: "teams"}
@@ -246,7 +256,7 @@ let printInsertStatementsFromRaw = function(obj, parents, result) {
 				insertObject.games = obj.teams[i].games;
 
 				parents.teamId = obj.teams[i].id;
-				printInsertStatementsFromRaw(insertObject, parents, result);
+				printInsertStatementsFromRaw(insertObject, parents, result, accountId);
 				parents.teamId = undefined;
 			}
 		}
@@ -255,8 +265,8 @@ let printInsertStatementsFromRaw = function(obj, parents, result) {
 	if(obj.games && obj.games.length > 0) {
 		for(let i = 0; i < obj.games.length; i++) {
 			result.push({
-				query:"INSERT INTO games (date, opponent, park, score_us, score_them, team_id, lineup_type) VALUES(to_timestamp($1), $2, $3, $4, $5, $6, $7) RETURNING id;",
-				values:[obj.games[i].date, obj.games[i].opponent, obj.games[i].park, obj.games[i].score_us, obj.games[i].score_them, "REPLACE_ME_TEAMS", obj.games[i].lineup_type],
+				query:"INSERT INTO games (date, opponent, park, score_us, score_them, team_id, lineup_type, account_id) VALUES(to_timestamp($1), $2, $3, $4, $5, $6, $7, $8) RETURNING id;",
+				values:[obj.games[i].date, obj.games[i].opponent, obj.games[i].park, obj.games[i].score_us, obj.games[i].score_them, "REPLACE_ME_TEAMS", obj.games[i].lineup_type, accountId],
 				idReplacements:[
 					{valuesIndex:5, table:"teams", clientId: parents.teamId}
 				],
@@ -267,7 +277,7 @@ let printInsertStatementsFromRaw = function(obj, parents, result) {
 				insertObject.plateAppearances = obj.games[i].plateAppearances;
 
 				parents.gameId = obj.games[i].id;
-				printInsertStatementsFromRaw(insertObject, parents, result);
+				printInsertStatementsFromRaw(insertObject, parents, result, accountId);
 				parents.gameId = undefined;
 			}
 			if(obj.games[i].lineup) {
@@ -275,7 +285,7 @@ let printInsertStatementsFromRaw = function(obj, parents, result) {
 				insertObject.lineup = obj.games[i].lineup;
 
 				parents.gameId = obj.games[i].id;
-				printInsertStatementsFromRaw(insertObject, parents, result);
+				printInsertStatementsFromRaw(insertObject, parents, result, accountId);
 				parents.gameId = undefined;
 			}
 		}
@@ -284,8 +294,8 @@ let printInsertStatementsFromRaw = function(obj, parents, result) {
 	if(obj.lineup && obj.lineup.length > 0) {
 		for(let i = 0; i < obj.lineup.length; i++) {
 			result.push({
-				query:"INSERT INTO players_games (player_id, game_id, lineup_index) VALUES($1, $2, $3) RETURNING id;",
-				values:["REPLACE_ME_PLAYERS", "REPLACE_ME_GAMES", i+1],
+				query:"INSERT INTO players_games (player_id, game_id, lineup_index, account_id) VALUES($1, $2, $3, $4) RETURNING id;",
+				values:["REPLACE_ME_PLAYERS", "REPLACE_ME_GAMES", i+1, accountId],
 				idReplacements:[
 					{valuesIndex:0, table:"players", clientId: obj.lineup[i]},
 					{valuesIndex:1, table:"games", clientId: parents.gameId}
@@ -304,8 +314,8 @@ let printInsertStatementsFromRaw = function(obj, parents, result) {
 				y = obj.plateAppearances[i].location.y;
 			}
 			result.push({
-				query:"INSERT INTO plate_appearances (result, player_id, game_id, team_id, hit_location_x, hit_location_y, index_in_game) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id;",
-				values:[obj.plateAppearances[i].result, "REPLACE_ME_PLAYERS", "REPLACE_ME_GAMES", "REPLACE_ME_TEAMS", x, y, obj.plateAppearances[i].plateAppearanceIndex],
+				query:"INSERT INTO plate_appearances (result, player_id, game_id, team_id, hit_location_x, hit_location_y, index_in_game, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;",
+				values:[obj.plateAppearances[i].result, "REPLACE_ME_PLAYERS", "REPLACE_ME_GAMES", "REPLACE_ME_TEAMS", x, y, obj.plateAppearances[i].plateAppearanceIndex, accountId],
 				idReplacements:[
 					{valuesIndex:1, table:"players", clientId: obj.plateAppearances[i].player_id},
 					{valuesIndex:2, table:"games", clientId: parents.gameId},
