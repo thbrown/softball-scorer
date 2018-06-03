@@ -81,28 +81,33 @@ module.exports = class DatabaseCalls {
 	}
 
 	async getAccountIdAndPassword( email ) {
-		let result = await this.parameterizedQueryPromise( "SELECT id, password FROM accounts WHERE accounts.email = $1" , [email]);
+		let result = await this.parameterizedQueryPromise( "SELECT account_id, password FROM account WHERE account.email = $1" , [email]);
 		if(result.rowCount === 1) {
 			return result.rows[0];
 		} else if(result.rowCount !== 0) {
-			throw new Error(`A strange number of accounts were returned: ${email} ${result}`);
+			throw new HandledError(500,`A strange number of accounts were returned: ${email} ${result}`);
 		}
 		return undefined;
 	}
 
-	getState( account_id ) {
+	getState( accountId ) {
+		console.log("Accessing data of account", accountId, accountId === undefined);
+		if(accountId === undefined) {
+			return {"players":[], "teams":[]};
+		}
 		let self = this;
 		return new Promise( function( resolve, reject ) {
-			var players = self.queryPromise( `
+			var players = self.parameterizedQueryPromise( `
 				SELECT 
 				  id as id,
 				  name as name,
 				  gender as gender,
 				  picture as picture
-				FROM public.players
-			` );
+				FROM players
+				WHERE account_id = $1
+			`, [accountId]);
 
-			var teams = self.queryPromise( `
+			var teams = self.parameterizedQueryPromise( `
 				SELECT
 				  teams.id as team_id, 
 				  teams.name as team_name,
@@ -121,17 +126,21 @@ module.exports = class DatabaseCalls {
 				  plate_appearances.player_id as player_id,
 				  sub_lineup.lineup as lineup
 				FROM 
-				  public.plate_appearances
-				FULL JOIN public.games ON public.games.id=public.plate_appearances.game_id
-				FULL JOIN (SELECT public.players_games.game_id as game_id, string_agg(public.players_games.player_id::text, ', ' order by public.players_games.lineup_index) as lineup
-				  FROM public.players_games
-				  GROUP BY players_games.game_id) as sub_lineup ON sub_lineup.game_id=public.games.id
-				FULL JOIN public.teams ON public.games.team_id=public.teams.id
+				  plate_appearances
+				FULL JOIN games ON games.id=plate_appearances.game_id
+				FULL JOIN (SELECT players_games.game_id as game_id, string_agg(players_games.player_id::text, ', ' order by players_games.lineup_index) as lineup
+				  FROM players_games
+				  WHERE players_games.account_id = $1
+				  GROUP BY players_games.game_id) as sub_lineup ON sub_lineup.game_id=games.id
+				FULL JOIN teams ON games.team_id=teams.id
+				WHERE 
+				   teams.account_id = $1
 				ORDER BY
 				  teams.id ASC,
 				  games.id ASC,
 				  index ASC;
-			` );
+			`, [accountId]);
+			//
 
 			// It looks like thes two objects could get out of sync if a save to the db happened between select requests.
 			Promise.all( [ players, teams ] ).then( function( values ) {
@@ -202,10 +211,11 @@ module.exports = class DatabaseCalls {
 		} );
 	}
 
-	async setState( data ) {
-		let responseObject = {};
-		responseObject.status = "STATUS UNKNOWN";
-		let result = await this.getState();
+	async setState( data, accountId ) {
+		if(accountId === undefined)  {
+			throw new HandledError(403, "Please sign in first"); // TODO: Should be unauthentiucated, not forbidden
+		}
+		let result = await this.getState( accountId );
 
 		let self = this;
 		var ancestorDiffs = objectMerge.diff(result, JSON.parse(data.ancestor));
@@ -215,11 +225,10 @@ module.exports = class DatabaseCalls {
 			console.log(JSON.stringify(patch, null,2));
 
 			// Generate sql based off the patch
-			let sqlToRun = sqlGen.getSqlFromPatch(patch);
+			let sqlToRun = sqlGen.getSqlFromPatch(patch, accountId);
 			console.log(sqlToRun);
 
 			// Run the sql in a single transaction
-			let responseObject = {};
 			const client = await self.pool.connect();
 			try {
 				await client.query('BEGIN');
@@ -261,15 +270,12 @@ module.exports = class DatabaseCalls {
 						throw new HandledError(500, "Internal Server Error", "ERROR: UNEXPECTED NUMBER OF RESULTS RETURNED");
 					}
 				}
-
 				await client.query('COMMIT');
-				responseObject.status = "SUCCESS";
 			} catch (e) {
 				await client.query('ROLLBACK');
 				throw e;
 			} finally {
 				client.release();
-				return JSON.stringify(responseObject);
 			}
 		} else {
 			throw new HandledError(400, "There are pending changes. Pull first.");

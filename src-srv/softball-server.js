@@ -10,6 +10,7 @@ const LocalStrategy = require('passport-local').Strategy;
 const bodyParser = require('body-parser');
 const favicon = require('serve-favicon');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 const HandledError = require( './handled-error.js' )
 
@@ -24,6 +25,7 @@ module.exports = class SoftballServer {
 
 	start() {
 		// Authentication
+		let self = this;
 		passport.use(new LocalStrategy({
 		    usernameField: 'email',
 		    passwordField: 'password'
@@ -32,19 +34,18 @@ module.exports = class SoftballServer {
 		  	console.log("Checking credentials...", email);
 
 		  	try {
-				let accountInfo = await databaseCalls.getAccountIdAndPassword(email);
-				console.log("Details",accountInfo, userInfo.password,email);
+				let accountInfo = await self.databaseCalls.getAccountIdAndPassword(email);
 
 				let isValid = false;
 			  	if(accountInfo && accountInfo.password && email) {
 				  	isValid = await bcrypt.compare(password, accountInfo.password);
-				  	console.log("isValid", isValid);
 				}
 
 				if(isValid) {
 					console.log("Login accepted");
 					let sessionInfo = {
-						id: accountInfo.id
+						accountId: accountInfo.account_id,
+						email: email
 					}
 					cb(null,sessionInfo);
 				} else {
@@ -58,7 +59,6 @@ module.exports = class SoftballServer {
 		}));
 
 		passport.serializeUser(function(sessionInfo, cb) {
-			console.log("Serializing", sessionInfo);
 			cb(null, sessionInfo);
 		});
 
@@ -73,12 +73,27 @@ module.exports = class SoftballServer {
 
 		// Middleware
 		app.use(favicon(__dirname + '/fav-icon.png'));
-		app.use(bodyParser.json({limit: '2mb'})); // TODO: size this appropriately
-		app.use(passportSession({ secret: 'o6TjCBAL5USjcuvlodSq', resave: false, saveUninitialized: false})); // TODO: move to config
+		app.use(bodyParser.json({ limit: '5mb' })); // TODO: size this appropriately
+		app.use(passportSession({ 
+			secret: crypto.randomBytes(20).toString('hex'), // TODO: move secret to config
+			resave: false, 
+			saveUninitialized: false, 
+			name:'softball.sid', 
+			cookie: {expires: new Date(253402300000000)}
+		})); 
 		app.use(passport.initialize());
 		app.use(passport.session());
 		app.use('/build', express.static(path.join(__dirname+'/../build').normalize()));
 		app.use('/assets', express.static(path.join(__dirname+'/../assets').normalize()));
+
+		// Helper
+		let extractAccountId = function(req) {
+			if(req && req.session && req.session.passport && req.session.passport.user && req.session.passport.user.accountId) {
+				return req.session.passport.user.accountId;
+			} else {
+				return undefined;
+			}
+		}
 
 		// Routes
 		app.get( '/', wrapForErrorProcessing( ( req,res ) => {
@@ -86,30 +101,34 @@ module.exports = class SoftballServer {
 		}));
 
 		app.post( '/state', wrapForErrorProcessing( async ( req,res ) => { // Should this be a patch??
-			await this.databaseCalls.setState(req.body);
+			let accountId = extractAccountId(req);
+			await this.databaseCalls.setState(req.body, accountId);
 			res.status(204).send();
 		}));
 
 		app.get( '/state', wrapForErrorProcessing( async ( req,res ) => {
-			let state = await this.databaseCalls.getState();
+			let accountId = extractAccountId(req);
+			let state = await this.databaseCalls.getState(accountId);
 			res.status(200).send( state );
 		}));
 
-		app.get( '/state_pretty', wrapForErrorProcessing( async ( obj, resp ) => {
-			let state = await this.databaseCalls.getState();
+		app.get( '/state-pretty', wrapForErrorProcessing( async ( obj, resp ) => {
+			let accountId = extractAccountId(req);
+			let state = await this.databaseCalls.getState(accountId);
 			res.status(200).send( JSON.stringify( state, null, 2 ) );
 		}));
 
 		app.post( '/login', wrapForErrorProcessing( ( req, res, next ) => {
-			console.log(req.body);
 			var email = req.params.email;
-			passport.authenticate('local', function(err, user, info) {
-				console.log('FAIL!', user, err, info);
-				if (err || !user) { 
+			passport.authenticate('local', function(err, accountInfo, info) {
+				if (err || !accountInfo) { 
+					console.log('FAILED TO AUTHENTICATE!', accountInfo, err, info);
+					res.status(400).send();
 					return;
 				}
-				req.logIn(user, function(err) {
-						console.log('Success!');
+				req.logIn(accountInfo, function(err) {
+						console.log('Login Successful!');
+						res.status(200).send();
 					}
 				);
 			})(req, res, next);
@@ -120,7 +139,7 @@ module.exports = class SoftballServer {
 			throw new HandledException(404, "Resource not found");
 		});
 
-		// Error handling
+		// Error handling, so we can catch erros that occure during async too
 		function wrapForErrorProcessing(fn) {
 			return async function(req, res, next) {
 				try {
@@ -147,6 +166,7 @@ module.exports = class SoftballServer {
 		this.server = server.listen(this.PORT, function listening() {
 			console.log('Compute server: Listening on %d', server.address().port);
 		});
+
 
 	}
 }

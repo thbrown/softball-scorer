@@ -69,10 +69,11 @@ module.exports = class CardTeam extends expose.Component {
 						buttonDiv.innerHTML = "Push";
 						console.log("PUSH WAS SUCCESSFUL! Performing hard sync to reconcile ids");
 						state.updateState((status) => {
-							console.log("Done with hard sync: " + status);
+							console.log("Done with hard sync" );
 							expose.set_state( 'main', { render: true } );
 						} , true);
-					} else if (response.status === "SUCCESS") {
+					} else {
+						let response = JSON.parse(xhr.response);
 						buttonDiv.innerHTML = "Push - Error: " + response.errors[0];
 						console.log("FAIL: " + response.errors[0]);
 					}

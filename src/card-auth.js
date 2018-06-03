@@ -5,10 +5,13 @@ const expose = require( './expose' );
 const DOM = require( 'react-dom-factories' );
 const css = require( 'css' );
 
+const dialog = require( 'dialog' );
+
 module.exports = class CardAuth extends expose.Component {
 	constructor( props ) {
 		super( props );
 		this.expose();
+		this.state = {};
 
 		this.handleBackClick = function() {
 			expose.set_state( 'main', {
@@ -21,14 +24,40 @@ module.exports = class CardAuth extends expose.Component {
 			let password = document.getElementById('password');
 
 			if(email.value && password.value) {
-				console.log(email.value, password.value, window.location);
-
 				var xhr = new XMLHttpRequest();
 				xhr.open("POST", window.location + 'login', true);
 				xhr.setRequestHeader('Content-type', 'application/json');
 				xhr.onreadystatechange = function() {
-				    if(xhr.readyState == 4 && xhr.status == 200) {
-				        alert(xhr.responseText);
+				    if(xhr.readyState == 4) {
+				    	if(xhr.status == 200) {
+				    		// TODO: Don't use a confirmation dialog for this and find a way to report merge issues
+				    		// TODO: Skip this if there are no local changes
+				    		dialog.show_confirm( 
+				    			'Would you like to merge local changes? Press cancel to discard them.', 
+					    		() => {
+					    			// Soft sync, merge local changes
+					    			state.updateState((status) => {
+										console.log("Done with sync");
+										expose.set_state( 'main', {
+											page: 'TeamList',
+											render: true
+										} );
+									} , false);
+								},
+								() => {
+									// Hard sync, discard local changes
+									state.updateState((status) => {
+										console.log("Done with sync");
+										expose.set_state( 'main', {
+											page: 'TeamList',
+											render: true
+										} );
+									} , true);
+								}
+							);
+				    	} else {
+				    		alert("Invalid Login");
+				    	}
 				    }
 				}
 
