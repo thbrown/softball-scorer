@@ -372,6 +372,18 @@ exports.removeGame = function( game_id, team_id ) {
 	exports.setState( new_state );
 };
 
+exports.removePlateAppearance = function ( plateAppearance_id, game_id ) {
+	let new_state = exports.getState();
+	let game = exports.getGame( game_id );
+
+	game.plateAppearances = game.plateAppearances.filter( pa => {
+		return pa.id !== plateAppearance_id;
+	} );
+
+	exports.setState( new_state );
+};
+
+
 exports.removePlayerFromLineup = function( lineup, player_id ) {
 	let index = lineup.indexOf( player_id );
 	lineup.splice(index, 1);
