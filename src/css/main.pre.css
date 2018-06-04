@@ -40,8 +40,8 @@ body {
 	margin: 10px;
 	border-radius: 4px;
   color: $css.colors.TEXT_LIGHT;
-	background-color: $css.colors.SECONDARY;
-	font-size: 24px;
+  background-color: $css.colors.SECONDARY;
+  font-size: 24px;
 }
 
 .list-item:hover, .list-item:active {
@@ -69,6 +69,18 @@ body {
   color: $css.colors.TEXT_LIGHT;
   background-color: $css.colors.PRIMARY;
   border-bottom: 1px solid $css.colors.SECONDARY;
+}
+
+.number-stat-cell,
+.number-stat-cell-header {
+  text-align: center;
+  width: 35px;
+}
+
+.percentage-stat-cell,
+.percentage-stat-cell-header {
+  text-align: center;
+  width: 50px;
 }
 
 .lineup-row {
