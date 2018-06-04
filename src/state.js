@@ -400,30 +400,30 @@ exports.buildStatsObject = function( team_id, player_id ) {
 	stats.triples = 0;
 	stats.insideTheParkHR = 0;
 	stats.outsideTheParkHR = 0;
-	stats.reachsOnError = 0;
+	stats.reachedOnError = 0;
 	stats.walks = 0;
 	stats.fieldersChoice = 0;
 
 	let plateAppearances = exports.getPlateAppearances(team_id, player_id);
 
 	plateAppearances.forEach( pa => {
-		if(pa.result) {
+		if (pa.result) {
 			stats.plateAppearances++;
-			if(pa.result === "BB") {
+			if (pa.result === "BB") {
 				stats.walks++; // Boo!
 			} else if (!pa.result || pa.result === "") {
-				// Intantionally blank
+				// Intentionally blank
 			} else {
 				stats.atBats++;
-				if(pa.result === "E") {
-					stats.reachsOnError++;
+				if (pa.result === "E") {
+					stats.reachedOnError++;
 				} else if (pa.result === "FC") {
 					stats.fieldersChoice++;
 				} else if (pa.result === "Out") {
-					// Intantionally blank
+					// Intentionally blank
 				} else {
 					stats.hits++;
-					if(pa.result === "1") {
+					if (pa.result === "1B") {
 						stats.totalBasesByHit++;
 					} else if(pa.result === "2B") {
 						stats.doubles++;

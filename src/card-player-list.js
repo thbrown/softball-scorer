@@ -32,41 +32,50 @@ module.exports = class CardPlayerList extends expose.Component {
 					}
 				}, player.name ),
 				DOM.div( {
+					className: 'percentage-stat-cell',
 					style: {
 					}
 				}, stats.battingAverage ),
 				DOM.div( {
-					style: {
-					}
-				}, stats.atBats ),
-				DOM.div( {
+					className: 'percentage-stat-cell',
 					style: {
 					}
 				}, stats.sluggingPercentage ),
 				DOM.div( {
+					className: 'number-stat-cell',
+					style: {
+					}
+				}, stats.atBats ),
+				DOM.div( {
+					className: 'number-stat-cell',
 					style: {
 					}
 				}, stats.doubles ),
 				DOM.div( {
+					className: 'number-stat-cell',
 					style: {
 					}
 				}, stats.triples ),
 				DOM.div( {
+					className: 'number-stat-cell',
 					style: {
 					}
 				}, stats.insideTheParkHR ),
 				DOM.div( {
+					className: 'number-stat-cell',
 					style: {
 					}
 				}, stats.outsideTheParkHR ),
 				DOM.div( {
+					className: 'number-stat-cell',
 					style: {
 					}
 				}, stats.walks ),
 				DOM.div( {
+					className: 'number-stat-cell',
 					style: {
 					}
-				}, stats.reachsOnError )
+				}, stats.reachedOnError )
 			);
 		} );
 
@@ -79,38 +88,47 @@ module.exports = class CardPlayerList extends expose.Component {
 					}
 				}, "Name" ),
 				DOM.span( {
+					className: 'percentage-stat-cell-header',
 					style: {
 					}
 				}, "BA" ),
 				DOM.span( {
-					style: {
-					}
-				}, "AB" ),
-				DOM.span( {
+					className: 'percentage-stat-cell-header',
 					style: {
 					}
 				}, "SLG" ),
+				DOM.span( {
+					className: 'number-stat-cell-header',
+					style: {
+					}
+				}, "AB" ),
 				DOM.div( {
+					className: 'number-stat-cell-header',
 					style: {
 					}
 				}, "2B" ),
 				DOM.div( {
+					className: 'number-stat-cell-header',
 					style: {
 					}
 				}, "3B" ),
 				DOM.div( {
+					className: 'number-stat-cell-header',
 					style: {
 					}
 				}, "HRI" ),
 				DOM.div( {
+					className: 'number-stat-cell-header',
 					style: {
 					}
 				}, "HRO" ),
 				DOM.div( {
+					className: 'number-stat-cell-header',
 					style: {
 					}
 				}, "BB" ),
 				DOM.div( {
+					className: 'number-stat-cell-header',
 					style: {
 					}
 				}, "ROE" ));
