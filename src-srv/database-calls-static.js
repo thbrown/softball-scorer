@@ -170,7 +170,7 @@ let databaseCalls = class DatabaseCalls {
 	}
 
 	async getAccountIdAndPassword( email ) {
-		return {id:1, password:''}
+		return {id:1, password:'$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2' /* pizza */}
 	}
 
 	getState( account_id ) {

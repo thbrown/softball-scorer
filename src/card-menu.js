@@ -112,7 +112,6 @@ module.exports = class CardTeam extends expose.Component {
 			onClick: this.handleTeamsClick.bind( this ),
 			style: {
 				backgroundColor: css.colors.BG,
-				color: 'gray',
 			}
 		}, 'Teams' ) );
 
@@ -123,7 +122,6 @@ module.exports = class CardTeam extends expose.Component {
 			onClick: this.handleLoginClick.bind( this ),
 			style: {
 				backgroundColor: css.colors.BG,
-				color: 'gray',
 			}
 		}, 'Login' ) );
 
@@ -134,7 +132,6 @@ module.exports = class CardTeam extends expose.Component {
 			onClick: this.handleSyncClick.bind( this ),
 			style: {
 				backgroundColor: css.colors.BG,
-				color: 'gray',
 			}
 		}, 'Pull' ) );
 
@@ -145,7 +142,6 @@ module.exports = class CardTeam extends expose.Component {
 			onClick: this.handleHardSyncClick.bind( this ),
 			style: {
 				backgroundColor: css.colors.BG,
-				color: 'gray',
 			}
 		}, 'Hard Pull' ) );
 
@@ -156,7 +152,6 @@ module.exports = class CardTeam extends expose.Component {
 			onClick: this.handlePushClick.bind( this ),
 			style: {
 				backgroundColor: css.colors.BG,
-				color: 'gray',
 			}
 		}, 'Push' ) );
 
@@ -166,7 +161,6 @@ module.exports = class CardTeam extends expose.Component {
 			onClick: this.handleSaveClick.bind( this ),
 			style: {
 				backgroundColor: css.colors.BG,
-				color: 'gray',
 			}
 		}, 'Save as File' ) );
 

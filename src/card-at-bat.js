@@ -6,6 +6,7 @@ const DOM = require( 'react-dom-factories' );
 const css = require( 'css' );
 const Draggable = require( 'react-draggable' );
 
+const dialog = require( 'dialog' );
 const state = require( 'state' );
 
 const normalize = function( x, A, B, C, D ) {
@@ -41,6 +42,15 @@ module.exports = class CardAtBat extends expose.Component {
 				state.updatePlateAppearanceLocation( this.props.plateAppearance, [ new_x, new_y ] );
 			}, 1 );
 		};
+
+		this.handleDelete = function() {
+			dialog.show_confirm( 'Are you sure you want to delete this plate appearance?', () => {
+				state.removePlateAppearance( props.plateAppearance.id, props.game.id );
+				expose.set_state( 'main', {
+					page: 'Game'
+				} );
+			} );
+		};
 	}
 
 	componentDidMount(){
@@ -63,9 +73,16 @@ module.exports = class CardAtBat extends expose.Component {
 				this.my = 0;
 			}
 
-			if( this.my > parseInt( ballfield.style.height ) )
-			{
+			// Draging the ball far below cancels the location
+			if( this.my > parseInt( ballfield.style.height ) + 20) {
+				this.my = undefined;
+				this.mx = undefined;
+			} else if( this.my > parseInt( ballfield.style.height ) ) {
 				this.my = parseInt( ballfield.style.height );
+			}
+
+			if( this.mx > parseInt( ballfield.style.width ) ) {
+				this.mx = parseInt( ballfield.style.width );
 			}
 		};
 
@@ -173,10 +190,28 @@ module.exports = class CardAtBat extends expose.Component {
 			draggable: false,
 			src: 'assets/baseball.png',
 			style: {
-				width: '75px'
+				width: '75px',
+				height: '75px'
 			}
 		} ) );
 	}
+
+	renderDeleteButton() {
+		return  DOM.div( {
+			id: 'ballfield',
+			style: {
+				position: 'relative',
+				overflow: 'hidden'
+			}
+		},
+			DOM.img( {
+				draggable: true,
+				src: 'assets/delete.png',
+				onClick: this.handleDelete
+			} )
+		);
+	}
+
 
 	render() {
 		return DOM.div( {
@@ -201,7 +236,15 @@ module.exports = class CardAtBat extends expose.Component {
 			),
 			this.renderButtonList(),
 			this.renderField(),
-			this.renderBaseball()
+ 			DOM.div( {
+ 				style: {
+ 					display: 'flex',
+ 					justifyContent: 'space-between',
+				}
+ 			},
+				this.renderBaseball(),
+				this.renderDeleteButton()
+			)
 		);
 	}
 };

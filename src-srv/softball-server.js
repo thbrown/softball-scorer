@@ -112,7 +112,7 @@ module.exports = class SoftballServer {
 			res.status(200).send( state );
 		}));
 
-		app.get( '/state-pretty', wrapForErrorProcessing( async ( obj, resp ) => {
+		app.get( '/state-pretty', wrapForErrorProcessing( async ( req, res ) => {
 			let accountId = extractAccountId(req);
 			let state = await this.databaseCalls.getState(accountId);
 			res.status(200).send( JSON.stringify( state, null, 2 ) );
@@ -136,7 +136,7 @@ module.exports = class SoftballServer {
 
 		// 404 on unrecognized routes
 		app.use(function(req, res){
-			throw new HandledException(404, "Resource not found");
+			throw new HandledError(404, "Resource not found");
 		});
 
 		// Error handling, so we can catch erros that occure during async too

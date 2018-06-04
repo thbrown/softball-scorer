@@ -88,10 +88,10 @@ module.exports = class CardTeamList extends expose.Component {
 				}),
 				DOM.div( {
 					style: {
-						// display: 'flex',
+						//display: 'flex',
 						justifyContent: 'space-between',
 						// Adjusting for back-arrow.
-						marginLeft: '60px',
+						//marginLeft: '60px',
 					}
 				}, 'Teams' ),
 			),

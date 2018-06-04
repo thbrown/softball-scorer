@@ -75,6 +75,15 @@ module.exports = class CardLineup extends expose.Component {
 			} );
 		}.bind( this );
 
+		this.handleNewPlateAppearanceClick = function( player, game_id, team_id ) {
+			let plateAppearance = state.addPlateAppearance( player.id, game_id, team_id );
+			expose.set_state( 'main', {
+				page: 'Atbat',
+				player: player.id,
+				plateAppearance: plateAppearance.id
+			} );
+		}.bind( this );
+
 		this.handleDragStart = function( player ) {
 			//this.disableTouchAction();
 			let elem = document.getElementById( 'lineup_' + player.id );
@@ -100,6 +109,7 @@ module.exports = class CardLineup extends expose.Component {
 			const { highlight_index } = getInds( elem, index );
 			showHighlight( highlight_index );
 		};
+
 	}
 
 	disableTouchAction() {
@@ -156,7 +166,13 @@ module.exports = class CardLineup extends expose.Component {
 						onClick: this.handleBoxClick.bind( this, player, pa.id ),
 						className: 'lineup-box',
 					}, DOM.div( {}, pa.result || '' ) );
-				} )
+				} ).concat( [
+					DOM.div( {
+						key: 'newPa' + player.id,
+						onClick: this.handleNewPlateAppearanceClick.bind( this, player, this.props.game.id, this.props.team.id ),
+						className: 'lineup-box',
+					}, DOM.div( {}, '+' ) )
+				] )
 			) );
 			elems.push( DOM.img( {
 				key: 'del',
