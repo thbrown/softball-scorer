@@ -176,6 +176,7 @@ module.exports = class CardScorer extends expose.Component {
 
 	render() {
 		return DOM.div( {
+				className: 'card',
 				style: {
 				}
 			},
