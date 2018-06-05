@@ -10,11 +10,11 @@ body {
 }
 
 .card {
-    -webkit-animation: fadein 0.4s; /* Safari, Chrome and Opera > 12.1 */
-       -moz-animation: fadein 0.4s; /* Firefox < 16 */
-        -ms-animation: fadein 0.4s; /* Internet Explorer */
-         -o-animation: fadein 0.4s; /* Opera < 12.1 */
-            animation: fadein 0.4s;
+    -webkit-animation: fadein 0.3s; /* Safari, Chrome and Opera > 12.1 */
+       -moz-animation: fadein 0.3s; /* Firefox < 16 */
+        -ms-animation: fadein 0.3s; /* Internet Explorer */
+         -o-animation: fadein 0.3s; /* Opera < 12.1 */
+            animation: fadein 0.3s;
 }
 
 @keyframes fadein {
@@ -128,9 +128,9 @@ body {
   display: flex;
   font-size: 18px;
   justify-content: space-between;
-  margin: 10px;
+  margin: 10px 5px;
   padding: 10px 10px;
-  min-width: calc( 100% - 40px )
+  min-width: calc( 100% - 30px );
 }
 
 .player-drag-handle {
@@ -139,15 +139,16 @@ body {
 }
 
 .lineup-row .player-name {
-  width: 30%;
+  width: 25%;
 }
 
 .player-name {
   color: $css.colors.TEXT_LIGHT;
-  font-size: 18px;
+  font-size: 16px;
   line-height: 40px;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
 }
 
 .scorer-row {
@@ -326,4 +327,15 @@ body {
   background-color: $css.colors.TEXT_LIGHT;
   margin: -5px;
   padding: 1px;
+}
+
+.plate-appearance-list {
+  overflow-x: scroll;
+  box-sizing: content-box;
+  display: flex;
+  justify-content: flex-start;
+}
+.plate-appearance-list-container {
+  overflow: hidden;
+  width: 70%;
 }
