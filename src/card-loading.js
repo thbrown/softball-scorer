@@ -27,6 +27,7 @@ module.exports = class CardLoading extends expose.Component {
 
 	render() {
 		return 	DOM.div( {
+				className: 'card'
 			},
 			'Loading...'
 		);

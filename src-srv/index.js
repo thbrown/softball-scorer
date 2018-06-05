@@ -1,9 +1,9 @@
 /*eslint no-process-exit:*/
 'use strict';
 
-const DatabaseCallsPostgres = require('./database-calls-postgres');
-const DatabaseCallsStatic = require('./database-calls-static');
-const SoftballServer = require('./softball-server.js' );
+const DatabaseCallsPostgres = require( './database-calls-postgres' );
+const DatabaseCallsStatic = require( './database-calls-static' );
+const SoftballServer = require( './softball-server' );
 
 process.on( 'SIGINT', function() {
 	console.log( 'SIGINT' );
@@ -32,11 +32,11 @@ const user = process.argv[ 3 ];
 const password = process.argv[ 4 ];
 
 let databaseCalls;
-if( USE_PG ) {
-	databaseCalls = new DatabaseCallsPostgres(pgurl, user, password);
+if ( USE_PG ) {
+	databaseCalls = new DatabaseCallsPostgres( pgurl, user, password );
 } else {
 	databaseCalls = new DatabaseCallsStatic();
 }
 
-const softballServer = new SoftballServer(databaseCalls);
+const softballServer = new SoftballServer( databaseCalls );
 softballServer.start();

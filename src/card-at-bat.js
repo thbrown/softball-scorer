@@ -53,11 +53,11 @@ module.exports = class CardAtBat extends expose.Component {
 		};
 	}
 
-	componentDidMount(){
+	componentDidMount() {
 		this.onmouseup = ( ev ) => {
 			let ballfield = document.getElementById( 'ballfield' );
 
-			if( ev.changedTouches ) {
+			if ( ev.changedTouches ) {
 				this.mx = ev.changedTouches[ 0 ].pageX - ballfield.offsetLeft;
 				this.my = ev.changedTouches[ 0 ].pageY - ballfield.offsetTop + document.body.scrollTop;
 			} else {
@@ -65,23 +65,23 @@ module.exports = class CardAtBat extends expose.Component {
 				this.my = ev.clientY - ballfield.offsetTop + document.body.scrollTop;
 			}
 
-			if( this.mx < 0 ) {
+			if ( this.mx < 0 ) {
 				this.mx = 0;
 			}
 
-			if( this.my < 0 ) {
+			if ( this.my < 0 ) {
 				this.my = 0;
 			}
 
 			// Draging the ball far below cancels the location
-			if( this.my > parseInt( ballfield.style.height ) + 20) {
+			if ( this.my > parseInt( ballfield.style.height ) + 20 ) {
 				this.my = undefined;
 				this.mx = undefined;
-			} else if( this.my > parseInt( ballfield.style.height ) ) {
+			} else if ( this.my > parseInt( ballfield.style.height ) ) {
 				this.my = parseInt( ballfield.style.height );
 			}
 
-			if( this.mx > parseInt( ballfield.style.width ) ) {
+			if ( this.mx > parseInt( ballfield.style.width ) ) {
 				this.mx = parseInt( ballfield.style.width );
 			}
 		};
@@ -95,8 +95,8 @@ module.exports = class CardAtBat extends expose.Component {
 		window.removeEventListener( 'touchend', this.onmouseup );
 	}
 
-	renderButtonList(){
-		if( !this.props.game || !this.props.team || !this.props.player || !this.props.plateAppearance ) {
+	renderButtonList() {
+		if ( !this.props.game || !this.props.team || !this.props.player || !this.props.plateAppearance ) {
 			return DOM.div( { className: 'page-error' }, 'PlateAppearance: No game or team or player or PlateAppearance exists.' );
 		}
 
@@ -118,21 +118,21 @@ module.exports = class CardAtBat extends expose.Component {
 					justifyContent: 'space-around',
 					margin: '4px',
 				}
-			}, elems.slice(0, 5) ),
+			}, elems.slice( 0, 5 ) ),
 			DOM.div( {
 				style: {
 					display: 'flex',
 					justifyContent: 'space-around',
 					margin: '4px',
 				}
-			}, elems.slice(5, elems.length) )
+			}, elems.slice( 5, elems.length ) )
 		);
 	}
 
-	renderField(){
+	renderField() {
 		let x = -1;
 		let y = -1;
-		if( this.props.plateAppearance.location ){
+		if ( this.props.plateAppearance.location ) {
 			x = this.props.plateAppearance.location.x;
 			y = this.props.plateAppearance.location.y;
 		}
@@ -141,7 +141,7 @@ module.exports = class CardAtBat extends expose.Component {
 		let new_y = Math.floor( normalize( y, 0, 1, 0, window.innerWidth ) );
 
 		let indicator = null;
-		if( x > -1 ) {
+		if ( x > -1 ) {
 			indicator = DOM.img( {
 				draggable: true,
 				src: 'assets/baseball-blue.png',
@@ -155,16 +155,16 @@ module.exports = class CardAtBat extends expose.Component {
 		}
 
 		return DOM.div( {
-			id: 'ballfield',
-			style: {
-				position: 'relative',
-				borderTop: '1px solid white',
-				borderBottom: '1px solid white',
-				width: ( window.innerWidth - 2 ) + 'px',
-				height: ( window.innerWidth - 2 ) + 'px',
-				overflow: 'hidden'
-			}
-		},
+				id: 'ballfield',
+				style: {
+					position: 'relative',
+					borderTop: '1px solid white',
+					borderBottom: '1px solid white',
+					width: ( window.innerWidth - 2 ) + 'px',
+					height: ( window.innerWidth - 2 ) + 'px',
+					overflow: 'hidden'
+				}
+			},
 			DOM.img( {
 				draggable: true,
 				src: 'assets/ballfield2.png',
@@ -176,7 +176,7 @@ module.exports = class CardAtBat extends expose.Component {
 		);
 	}
 
-	renderBaseball(){
+	renderBaseball() {
 		return React.createElement( Draggable, {
 			key: 'baseball',
 			axis: 'both',
@@ -184,7 +184,7 @@ module.exports = class CardAtBat extends expose.Component {
 			position: { x: 0, y: 0 },
 			grid: [ 1, 1 ],
 			onStart: this.handleDragStart.bind( this ),
-			onStop: this.handleDragStop.bind( this),
+			onStop: this.handleDragStop.bind( this ),
 		}, DOM.img( {
 			id: 'baseball',
 			draggable: false,
@@ -197,13 +197,13 @@ module.exports = class CardAtBat extends expose.Component {
 	}
 
 	renderDeleteButton() {
-		return  DOM.div( {
-			id: 'ballfield',
-			style: {
-				position: 'relative',
-				overflow: 'hidden'
-			}
-		},
+		return DOM.div( {
+				id: 'ballfield',
+				style: {
+					position: 'relative',
+					overflow: 'hidden'
+				}
+			},
 			DOM.img( {
 				draggable: true,
 				src: 'assets/delete.png',
@@ -215,33 +215,32 @@ module.exports = class CardAtBat extends expose.Component {
 
 	render() {
 		return DOM.div( {
+				className: 'card',
 				style: {
 					position: 'relative'
 				}
 			},
 			DOM.div( {
-				className: 'card-title',
-				style: {
-				}
-			},
+					className: 'card-title',
+					style: {}
+				},
 				DOM.img( {
 					src: 'assets/ic_arrow_back_white_36dp_1x.png',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
-				}),
+				} ),
 				DOM.div( {
-					style: {
-					}
+					style: {}
 				}, this.props.player.name + ' PA #' + this.props.plateAppearance.plateAppearanceIndex )
 			),
 			this.renderButtonList(),
 			this.renderField(),
- 			DOM.div( {
- 				style: {
- 					display: 'flex',
- 					justifyContent: 'space-between',
-				}
- 			},
+			DOM.div( {
+					style: {
+						display: 'flex',
+						justifyContent: 'space-between',
+					}
+				},
 				this.renderBaseball(),
 				this.renderDeleteButton()
 			)

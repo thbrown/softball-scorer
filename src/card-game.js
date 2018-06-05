@@ -48,6 +48,7 @@ module.exports = class CardGame extends expose.Component {
 
 		return DOM.div( {
 				style: {
+					className: 'card'
 				}
 			},
 			DOM.div( {
