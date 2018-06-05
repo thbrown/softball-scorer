@@ -71,7 +71,7 @@ module.exports = class CardScorer extends expose.Component {
 
 	renderLineupPlayerList(){
 		if( !this.props.game || !this.props.team ) {
-			console.log( 'game:', this.props.game, 'team:', this.props.team, 'lineup:', !this.props.game.lineup  );
+			console.error( 'game:', this.props.game, 'team:', this.props.team, 'lineup:', !this.props.game.lineup );
 			return DOM.div( { className: 'page-error' }, 'Lineup: No game, team, or lineup exist.' );
 		}
 
@@ -92,7 +92,7 @@ module.exports = class CardScorer extends expose.Component {
 					key: 'box' + i,
 					onClick: this.handleBoxClick.bind( this, player, plateAppearance.id ),
 					className: 'lineup-box',
-			}, DOM.div( {}, plateAppearance.result ) )
+			}, DOM.div( {}, plateAppearance.result ) );
 
 			let div = DOM.div( {
 				id: 'pa_' + plateAppearance.id,
@@ -116,7 +116,6 @@ module.exports = class CardScorer extends expose.Component {
 			className: 'player-name',
 			}, "At Bat - " + (currentBatter ? currentBatter.name : "nobody"));
 
-		
 		let newPa = DOM.div( {
 					key: 'newPa',
 					onClick: this.handleNewPlateAppearanceClick.bind( this, currentBatter, this.props.game.id, this.props.team.id ),
