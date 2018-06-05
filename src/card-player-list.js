@@ -144,6 +144,7 @@ module.exports = class CardPlayerList extends expose.Component {
 
 	render() {
 		return DOM.div( {
+				className: 'card',
 				style: {
 				}
 			},

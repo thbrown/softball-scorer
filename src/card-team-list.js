@@ -19,46 +19,46 @@ module.exports = class CardTeamList extends expose.Component {
 			} );
 		};
 
-		this.handleButtonClick = function( team ){
+		this.handleButtonClick = function( team ) {
 			expose.set_state( 'main', {
 				page: 'Team',
 				team: team.id
 			} );
 		};
 
-		this.handleDeleteClick = function( team, ev ){
+		this.handleDeleteClick = function( team, ev ) {
 			dialog.show_confirm( 'Are you sure you want to delete the team "' + team.name + '"?', () => {
 				state.removeTeam( team.id );
 			} );
 			ev.stopPropagation();
 		};
 
-		this.handleCreateClick = function(){
+		this.handleCreateClick = function() {
 			dialog.show_input( 'Team Name', ( name ) => {
 				state.addTeam( name );
 			} );
 		};
 	}
 
-	renderTeamList(){
+	renderTeamList() {
 		const s = state.getState();
 		let elems = s.teams.map( ( team ) => {
 			return DOM.div( {
-				team_id: team.id,
-				key: 'team' + team.id,
-				className: 'list-item',
-				onClick: this.handleButtonClick.bind( this, team ),
-				style: {
-					display: 'flex',
-					justifyContent: 'space-between'
-				}
-			},
+					team_id: team.id,
+					key: 'team' + team.id,
+					className: 'list-item',
+					onClick: this.handleButtonClick.bind( this, team ),
+					style: {
+						display: 'flex',
+						justifyContent: 'space-between'
+					}
+				},
 				DOM.div( {}, team.name ),
 				DOM.img( {
 					src: 'assets/ic_close_white_24dp_1x.png',
 					className: 'delete-button',
 					onClick: this.handleDeleteClick.bind( this, team )
-				})
+				} )
 			);
 		} );
 
@@ -75,17 +75,17 @@ module.exports = class CardTeamList extends expose.Component {
 
 	render() {
 		return DOM.div( {
-				style: {
-				}
+				className: 'card',
+				style: {}
 			},
 			DOM.div( {
-				className: 'card-title'
-			}, 				
+					className: 'card-title'
+				},
 				DOM.img( {
 					src: 'assets/ic_arrow_back_white_36dp_1x.png',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
-				}),
+				} ),
 				DOM.div( {
 					style: {
 						//display: 'flex',

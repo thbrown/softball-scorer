@@ -6,6 +6,7 @@ const DOM = require( 'react-dom-factories' );
 const dialog = require( 'dialog' );
 const Draggable = require( 'react-draggable' );
 
+const css = require( 'css' );
 const state = require( 'state' );
 
 module.exports = class CardLineup extends expose.Component {
@@ -25,7 +26,7 @@ module.exports = class CardLineup extends expose.Component {
 
 		const showHighlight = ( i ) => {
 			let elem = document.getElementById( 'highlight' + i );
-			if( elem ) {
+			if ( elem ) {
 				elem.style.visibility = 'visible';
 			}
 		};
@@ -34,17 +35,17 @@ module.exports = class CardLineup extends expose.Component {
 			const deltaY = parseInt( elem.style.transform.slice( 15 ) ) - 15;
 			const diff = Math.floor( deltaY / this.elemHeight ) + 1;
 			let highlight_index = index + diff;
-			if( diff >= 0 ) {
+			if ( diff >= 0 ) {
 				highlight_index++;
 			}
-			if( highlight_index <= -1 ) {
+			if ( highlight_index <= -1 ) {
 				highlight_index = 0;
 			}
-			if( highlight_index > this.props.game.lineup.length ){
+			if ( highlight_index > this.props.game.lineup.length ) {
 				highlight_index = this.props.game.lineup.length;
 			}
 			let new_position_index = highlight_index;
-			if( diff >= 0 ) {
+			if ( diff >= 0 ) {
 				new_position_index--;
 			}
 			return { highlight_index, new_position_index };
@@ -128,6 +129,31 @@ module.exports = class CardLineup extends expose.Component {
 		//this.enableTouchAction();
 	}
 
+	renderPlateAppearanceBoxes( player, plateAppearances ) {
+		return DOM.div( {
+			className: 'plate-appearance-list'
+		},
+			plateAppearances.map( ( pa, i ) => {
+				pa = pa || {};
+				return DOM.div( {
+					key: 'box' + i,
+					onClick: this.handleBoxClick.bind( this, player, pa.id ),
+					className: 'lineup-box'
+				}, DOM.div( {}, pa.result || '' ) );
+			} ).concat( [
+				DOM.div( {
+					key: 'newPa' + player.id,
+					onClick: this.handleNewPlateAppearanceClick.bind( this, player, this.props.game.id, this.props.team.id ),
+					className: 'lineup-box'
+				}, DOM.div( {
+					style: {
+						backgroundColor: '#DDD'
+					}
+				}, '+' ) )
+			] )
+		);
+	}
+
 	renderLineupPlayerList() {
 		if ( !this.props.game || !this.props.team ) {
 			console.log( 'game:', this.props.game, 'team:', this.props.team, 'lineup:', !this.props.game.lineup );
@@ -155,25 +181,8 @@ module.exports = class CardLineup extends expose.Component {
 			}, player.name ) );
 			elems.push( DOM.div( {
 				key: 'boxes',
-				style: {
-					display: 'flex',
-					justifyContent: 'flex-start'
-				}
-			}, plateAppearances.map( ( pa, i ) => {
-					pa = pa || {};
-					return DOM.div( {
-						key: 'box' + i,
-						onClick: this.handleBoxClick.bind( this, player, pa.id ),
-						className: 'lineup-box',
-					}, DOM.div( {}, pa.result || '' ) );
-				} ).concat( [
-					DOM.div( {
-						key: 'newPa' + player.id,
-						onClick: this.handleNewPlateAppearanceClick.bind( this, player, this.props.game.id, this.props.team.id ),
-						className: 'lineup-box',
-					}, DOM.div( {}, '+' ) )
-				] )
-			) );
+				className: 'plate-appearance-list-container'
+			}, this.renderPlateAppearanceBoxes( player, plateAppearances ) ) );
 			elems.push( DOM.img( {
 				key: 'del',
 				src: 'assets/ic_close_white_24dp_1x.png',
@@ -195,10 +204,9 @@ module.exports = class CardLineup extends expose.Component {
 				onStop: this.handleDragStop.bind( this, player, index ),
 				onDrag: this.handleDrag.bind( this, player, index )
 			}, DOM.div( {
-					id: 'lineup_' + player.id,
-					className: 'lineup-row',
-				}, elems )
-			);
+				id: 'lineup_' + player.id,
+				className: 'lineup-row',
+			}, elems ) );
 		} ).reduce( ( acc, next, i ) => {
 			acc.push( DOM.div( {
 				key: 'highlight' + ( i ),
@@ -241,7 +249,10 @@ module.exports = class CardLineup extends expose.Component {
 
 	render() {
 		return DOM.div( {
-				style: {}
+				className: 'card',
+				style: {
+					'marginTop': '10px'
+				}
 			},
 			this.renderLineupPlayerList()
 		);
