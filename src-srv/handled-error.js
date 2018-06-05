@@ -26,8 +26,7 @@ let HandledError = class HandledError extends Error {
 		console.log(`INTERNAL: ${this.getInternalMessage()}`);
 		console.log(`TRACE: ${this.stack}`);
 	}
-
-}
+};
 
 // Node only
 module.exports = HandledError;
