@@ -19,7 +19,7 @@ module.exports = class CardAuth extends expose.Component {
 			} );
 		};
 
-		this.login = function() {
+		this.handleSubmitClick = function() {
 			let email = document.getElementById( 'email' );
 			let password = document.getElementById( 'password' );
 
@@ -70,58 +70,36 @@ module.exports = class CardAuth extends expose.Component {
 	}
 
 	renderAuthInterface() {
-		let elems = [];
-
-		elems.push(
-			DOM.div( {
-					key: 'auth',
-					id: 'auth',
-					className: 'auth-input',
-					style: {
-						backgroundColor: css.colors.BG,
-						color: 'gray',
-					}
-				},
-				'Email',
-				DOM.input( {
-					key: 'email',
-					id: 'email',
-					className: 'auth-input',
-					style: {
-						backgroundColor: css.colors.BG,
-						color: 'gray',
-					}
-				} ),
-				DOM.br( {} ),
-				'Password',
-				DOM.input( {
-					key: 'password',
-					id: 'password',
-					className: 'auth-input',
-					type: 'password',
-					style: {
-						backgroundColor: css.colors.BG,
-						color: 'gray',
-					}
-				} ),
-				DOM.br( {} ),
-				DOM.button( {
-					key: 'submit',
-					id: 'submit',
-					className: 'auth-input',
-					type: 'button',
-					onClick: this.login,
-					style: {
-						backgroundColor: css.colors.BG,
-						color: 'gray',
-					}
-				}, 'Submit' )
-			)
-		);
-
 		return DOM.div( {
+			className: 'auth-input-container',
+		},
+		DOM.input( {
+			key: 'email',
+			id: 'email',
+			className: 'auth-input',
+			placeholder: 'Email',
+		} ),
+		DOM.input( {
+			key: 'password',
+			id: 'password',
+			className: 'auth-input',
+			placeholder: 'Password',
+			type: 'password',
+		} ),
+		this.renderSubmitButton(),
+		);
+	}
 
-		}, elems );
+	renderSubmitButton() {
+		return DOM.div( {
+			key: 'submit',
+			id: 'submit',
+			className: 'button confirm-button',
+			onClick: this.handleSubmitClick,
+			style: {
+				marginLeft: '0'
+			}
+		}, 'Submit');
 	}
 
 	render() {
@@ -138,12 +116,8 @@ module.exports = class CardAuth extends expose.Component {
 				} ),
 				DOM.div( {
 					style: {
-						// display: 'flex',
-						justifyContent: 'space-between',
-						// Adjusting for back-arrow.
-						marginLeft: '60px',
 					}
-				}, 'Menu' ),
+				}, 'Login' )
 			),
 			this.renderAuthInterface()
 		);
