@@ -93,13 +93,12 @@ let baseState = {
   ]
 };
 
-test('Diff Edit', () => {
-	let stateA = baseState;
-	let stateB = JSON.parse(JSON.stringify(baseState)); // deep copy
+test('Edit - diff and patch', () => {
+	let stateA = JSON.parse(JSON.stringify(baseState)); // deep copy
+	let stateB = JSON.parse(JSON.stringify(baseState)); 
 	stateB.players[0].name = "Jamal";
 	stateB.teams[0].games[0].plateAppearances[2].location.x = .12344;
 	let patch = objectMerge.diff(stateA,stateB);
-	console.log(JSON.stringify(patch, null, 2));
 
 	let expectedPatch = {
       "players": {
@@ -141,8 +140,8 @@ test('Diff Edit', () => {
 
 });
 
-test('Diff ArrayAdd', () => {
-	let stateA = baseState;
+test('ArrayAdd - diff and patch', () => {
+	let stateA = JSON.parse(JSON.stringify(baseState));
 	let stateB = JSON.parse(JSON.stringify(baseState)); // deep copy
 	stateB.players.push({
       "id": 6,
@@ -160,7 +159,6 @@ test('Diff ArrayAdd', () => {
 		"plateAppearanceIndex": 1
     });
 	let patch = objectMerge.diff(stateA,stateB);
-	console.log(JSON.stringify(patch, null, 2));
 
 	let expectedPatch = {
       "players": {
@@ -190,17 +188,19 @@ test('Diff ArrayAdd', () => {
     };
 
 	expect(patch).toEqual(expectedPatch);
+
+	let newObject = objectMerge.patch(stateA, patch);
+	expect(newObject).toEqual(stateB);
 });
 
-test.only('Diff Add', () => {
-	let stateA = baseState;
+test('Add - diff and patch', () => {
+	let stateA = JSON.parse(JSON.stringify(baseState));
 	let stateB = JSON.parse(JSON.stringify(baseState)); // deep copy
 
 	// Add
 	stateB.players[2].walkup_song = "https://www.youtube.com/watch?v=RMR5zf1J1Hs";
 
 	let patch = objectMerge.diff(stateA,stateB);
-	console.log(JSON.stringify(patch, null, 2));
 
 	let expectedPatch = {
       "players": {
@@ -215,17 +215,19 @@ test.only('Diff Add', () => {
     };
 
 	expect(patch).toEqual(expectedPatch);
+
+	let newObject = objectMerge.patch(stateA, patch);
+	expect(newObject).toEqual(stateB);
 });
 
-test('Diff Re-Order', () => {
-	let stateA = baseState;
+test('Re-Order - diff and patch', () => {
+	let stateA = JSON.parse(JSON.stringify(baseState));
 	let stateB = JSON.parse(JSON.stringify(baseState)); // deep copy
 
 	// Re-order
 	stateB.teams[0].games[0].lineup = [4,3,5,1,2,8];
 
 	let patch = objectMerge.diff(stateA,stateB);
-	console.log(JSON.stringify(patch, null, 2));
 
 	let expectedPatch = {
       "teams": {
@@ -247,16 +249,18 @@ test('Diff Re-Order', () => {
     };
 
 	expect(patch).toEqual(expectedPatch);
+
+	let newObject = objectMerge.patch(stateA, patch);
+	expect(newObject).toEqual(stateB);
 });
 
-test('Diff Delete', () => {
-	let stateA = baseState;
+test('Delete - diff and patch', () => {
+	let stateA = JSON.parse(JSON.stringify(baseState));
 	let stateB = JSON.parse(JSON.stringify(baseState)); // deep copy
 	stateB.players.splice(3, 1);
 	let patch = objectMerge.diff(stateA,stateB);
-	console.log(JSON.stringify(patch, null, 2));
 
-	let expectedPatch =     {
+	let expectedPatch = {
       "players": {
         "4": {
           "op": "Delete",
@@ -266,4 +270,94 @@ test('Diff Delete', () => {
     };
 
 	expect(patch).toEqual(expectedPatch);
+
+	let newObject = objectMerge.patch(stateA, patch);
+	expect(newObject).toEqual(stateB);
+});
+
+test('Reorder, ArrayAdd, Delete - diff and patch', () => {
+	let stateA = JSON.parse(JSON.stringify(baseState));
+	let stateB = JSON.parse(JSON.stringify(baseState)); // deep copy
+
+	// Re-order
+	stateB.teams[0].games[0].lineup = [11,4,16,17,3,5,1,18];
+
+	let patch = objectMerge.diff(stateA,stateB);
+
+	let expectedPatch = {
+      "teams": {
+        "123": {
+          "games": {
+            "10": {
+              "lineup": {
+                "2": {
+                  "op": "Delete",
+                  "key": 2
+                },
+                "8": {
+                  "op": "Delete",
+                  "key": 8
+                },
+                "11": {
+                  "op": "ArrayAdd",
+                  "key": "11",
+                  "param1": "11",
+                  "param2": 0
+                },
+                "16": {
+                  "op": "ArrayAdd",
+                  "key": "16",
+                  "param1": "16",
+                  "param2": 2
+                },
+                "17": {
+                  "op": "ArrayAdd",
+                  "key": "17",
+                  "param1": "17",
+                  "param2": 3
+                },
+                "18": {
+                  "op": "ArrayAdd",
+                  "key": "18",
+                  "param1": "18",
+                  "param2": 7
+                },
+                "ReOrder": {
+                  "op": "ReOrder",
+                  "key": "ReOrder",
+                  "param1": "[3,4,5,1]",
+                  "param2": "[4,3,5,1]"
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+
+	expect(patch).toEqual(expectedPatch);
+
+	let newObject = objectMerge.patch(stateA, patch);
+	expect(newObject).toEqual(stateB);
+});
+
+test('Partial Patches -- Edit something that has already been deleted with and without partial patches', () => {
+	let stateA = JSON.parse(JSON.stringify(baseState));
+	let stateB = JSON.parse(JSON.stringify(baseState)); // deep copy
+
+	// Edit a game
+	stateB.teams[0].games[0].plateAppearances[2].location.x = .12344;
+
+	let patch = objectMerge.diff(stateA,stateB);
+
+	// Delete the game we just edited
+	stateA.teams[0].games.splice(0, 1);
+
+	// Without partial patches we expect an error
+	expect(() => {objectMerge.patch(stateA, patch)}).toThrow("This patch can not be applied");
+
+	// With partial patches we expect no changes
+	let newObject = objectMerge.patch(stateA, patch, true);
+
+	expect(newObject).toEqual(stateA);
 });
