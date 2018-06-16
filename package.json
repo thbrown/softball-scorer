@@ -10,7 +10,8 @@
     "watch": "node build.js watch",
     "run": "node src-srv",
     "clean": "node build.js clean",
-    "start": "node ."
+    "start": "node",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -27,6 +28,7 @@
     "body-parser": "^1.18.3",
     "express": "^4.16.3",
     "express-session": "^1.15.6",
+    "helmet": "^3.12.1",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "pg": "^7.4.1",
@@ -40,6 +42,7 @@
   "devDependencies": {
     "babel-minify": "^0.3.0",
     "browserify": "^14.3.0",
+    "jest": "^23.1.0",
     "uglifycss": "0.0.26",
     "watchify": "^3.9.0"
   },

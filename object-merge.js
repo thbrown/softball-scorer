@@ -7,28 +7,35 @@ let diff = function(mine, theirs) {
 
 let diffInternal = function(mine, theirs, path, result) {
 	if(Array.isArray(mine) && Array.isArray(theirs)) {
+		// Delete everything in mine that isn't in theirs
 		let deletes = mine.filter(x => !theirs.find(v => getUniqueId(v) === getUniqueId(x)));
 		deletes.forEach( 
 			(del) => {addToResult(result, path, getUniqueId(del), "Delete")}
 		);
+
+		// Add everything to mine that is in theirs
 		let adds = theirs.filter(x => !mine.find(v => getUniqueId(v) === getUniqueId(x)));
 		adds.forEach( 
 			(add) => {addToResult(result, path, JSON.stringify(add), "ArrayAdd", JSON.stringify(add), theirs.indexOf(add))} 
 		);
-		// TODO: merge these four lines into two
-		let moveA = mine.filter(x => theirs.find(v => getUniqueId(v) === getUniqueId(x)));
-		let moveB = theirs.filter(x => mine.find(v => getUniqueId(v) === getUniqueId(x)));
-		let orderA = moveA.map(v => getUniqueId(v));
-		let orderB = moveB.map(v => getUniqueId(v));
-		if(!arraysEqual(orderA, orderB)) {
-			let someHopefullyUniqueKey = "ReOrder"; // + b_crc32(JSON.stringify(orderA)); // I don't think this needs to be unique anymore
-			addToResult(result, path, someHopefullyUniqueKey, "ReOrder", JSON.stringify(orderA), JSON.stringify(orderB));
+
+		// Determine which the intersection of the elements in each list so we can compare order
+		let commonElementsA = mine.filter(x => theirs.find(v => getUniqueId(v) === getUniqueId(x)));
+		let commonElementsB = theirs.filter(x => mine.find(v => getUniqueId(v) === getUniqueId(x)));
+
+		// If they are not in the same order, re-order them
+		let commonElementsAIds = commonElementsA.map(v => getUniqueId(v));
+		let commonElementsBIds = commonElementsB.map(v => getUniqueId(v));
+		if(!arraysEqual(commonElementsAIds, commonElementsBIds)) {
+		       let key = "ReOrder";
+		       addToResult(result, path, key, "ReOrder", JSON.stringify(commonElementsAIds), JSON.stringify(commonElementsBIds));
 		}
-		for(let i = 0; i < moveA.length; i++) {
-			let bIndex = moveB.findIndex( el => {if(el === moveA[i]) { return true; } else if ((el.id || el.id===0) && el.id === moveA[i].id) { return true;} } );
-			diffInternal(moveA[i], moveB[bIndex], path.concat(getUniqueId(moveA[i])),result);
+		// Now diff each corresponding element in the array
+		for(let i = 0; i < commonElementsA.length; i++) {
+		       let bIndex = commonElementsB.findIndex( el => getUniqueId(el) === getUniqueId(commonElementsA[i]) );
+		       diffInternal(commonElementsA[i], commonElementsB[bIndex], path.concat(getUniqueId(commonElementsA[i])),result);
 		};
-	} else if ((mine !== null && typeof mine === 'object') && (mine !== null && typeof mine === 'object')) {
+	} else if ((mine !== null && typeof mine === 'object') && (theirs !== null && typeof theirs === 'object')) {
 		let deletes = Object.keys(mine).filter(x => !Object.keys(theirs).find(v => getUniqueId(mine[v]) === getUniqueId(mine[x])));
 		deletes.forEach( 
 			(del) => {addToResult(result, path, getUniqueId(del), "Delete")}
@@ -46,7 +53,7 @@ let diffInternal = function(mine, theirs, path, result) {
 			addToResult(result, path, undefined ,"Edit", mine, theirs);
 		}
 	} else {
-		throw "I don't know how to diff objects of different types!";
+		throw "I don't know how to diff objects of different types!" + typeof mine + " " + typeof theirs;
 	}
 	return result;
 }
@@ -88,17 +95,20 @@ let addToResult = function(result, path, value, op, param1, param2) {
 
 // We can use the id property to identify what objects are the same during merge
 let getUniqueId = function(value) {
-	if (value !== null && typeof value === 'object') {
+	if (isObject(value)) {
 		if(value.id || value.id === 0) {
 			return value.id
-		} else {
-			//throw "Id not found" + value;
+		} else if (Object.keys(value).length >0) {
+			// This object doesn't have an id field, identify it by its first key
 			return Object.keys(value)[0];
+		} else {
+			throw "Tried to find the id of an empty object"
 		}
-	} else {
+	} else  {
 		return value;
 	}
 }
+
 
 let patch = function(toPatch, patchObj) {
 	Object.keys(patchObj).forEach(function(key) {
@@ -147,11 +157,11 @@ let patch = function(toPatch, patchObj) {
 					//console.log("Id: " + index);
 				}
 				toPatchSubtree = toPatch[index];
-			} else if(toPatch.hasOwnProperty(key)) {
+			} else if(toPatch && toPatch.hasOwnProperty(key)) {
 				//console.log("Prop: " + key);
 				toPatchSubtree = toPatch[key]
 			} else {
-				throw "Can't get element from path";
+				throw "This patch can not be applied: Can't find key " + key + " in " + toPatch;
 			}
 			patch(toPatchSubtree,patchObj[key]);
 		}

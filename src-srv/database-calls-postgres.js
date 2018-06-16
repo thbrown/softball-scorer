@@ -140,7 +140,6 @@ module.exports = class DatabaseCalls {
 				  games.id ASC,
 				  index ASC;
 			`, [accountId]);
-			//
 
 			// It looks like thes two objects could get out of sync if a save to the db happened between select requests.
 			Promise.all( [ players, teams ] ).then( function( values ) {
@@ -213,7 +212,7 @@ module.exports = class DatabaseCalls {
 
 	async setState( data, accountId ) {
 		if(accountId === undefined)  {
-			throw new HandledError(403, "Please sign in first"); // TODO: Should be unauthentiucated, not forbidden
+			throw new HandledError(403, "Please sign in first"); // TODO: Should be unauthenticated, not forbidden
 		}
 		let result = await this.getState( accountId );
 

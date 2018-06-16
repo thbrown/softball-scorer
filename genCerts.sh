@@ -8,3 +8,6 @@ winpty openssl x509 -req -days 1095 -in server.csr -signkey server.key -out serv
 
 # This will remove the password from server.key so nginx can consume it
 winpty openssl rsa -in server.key -out server.key
+
+# Generate DH parameters (improves security score of key excahnge).
+winpty openssl dhparam -dsaparam 4096 -out dhparam.pem
