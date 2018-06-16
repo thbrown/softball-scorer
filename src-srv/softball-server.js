@@ -4,6 +4,7 @@
 const http = require( 'http' );
 const path = require( 'path' );
 const express = require( 'express' );
+const helmet = require('helmet');
 const passport = require( 'passport' );
 const passportSession = require( 'express-session' );
 const LocalStrategy = require( 'passport-local' ).Strategy;
@@ -66,23 +67,27 @@ module.exports = class SoftballServer {
 
 		// Prep the web server
 		const app = express();
-		app.disable( 'x-powered-by' );
 		const server = http.createServer( app );
 
 		// Middleware
-		app.use( favicon( __dirname + '/fav-icon.png' ) );
-		app.use( bodyParser.json( { limit: '5mb' } ) ); // TODO: size this appropriately
+		app.use( helmet() );
+		app.use( favicon( __dirname + '/../assets/fav-icon.png' ) );
+		app.use( '/build', express.static( path.join( __dirname + '/../build' ).normalize() ) );
+		app.use( '/assets', express.static( path.join( __dirname + '/../assets' ).normalize() ) );
+		app.use( bodyParser.json( { limit: '3mb' } ) ); // TODO: size this appropriately
 		app.use( passportSession( {
 			secret: crypto.randomBytes( 20 ).toString( 'hex' ), // TODO: move secret to config
 			resave: false,
 			saveUninitialized: false,
 			name: 'softball.sid',
-			cookie: { expires: new Date( 253402300000000 ) }
+			cookie: { 
+				httpOnly: true,
+				expires: new Date( 253402300000000 )
+				// Secure header is set by nginx revers proxy
+			}
 		} ) );
 		app.use( passport.initialize() );
 		app.use( passport.session() );
-		app.use( '/build', express.static( path.join( __dirname + '/../build' ).normalize() ) );
-		app.use( '/assets', express.static( path.join( __dirname + '/../assets' ).normalize() ) );
 
 		// Helper
 		let extractAccountId = function( req ) {
