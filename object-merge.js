@@ -110,14 +110,17 @@ let getUniqueId = function(value) {
 }
 
 
-let patch = function(toPatch, patchObj) {
+let patch = function(toPatch, patchObj, allowPartialApplication) {
 	Object.keys(patchObj).forEach(function(key) {
-		if(isRoot(patchObj[key])) {
+		if(isLeaf(patchObj[key])) {
 			let op = patchObj[key].op;
 			let value = patchObj[key].key;
 			if(op == "Delete") {
 				if(Array.isArray(toPatch)) {
-					let delIndex = toPatch.findIndex(v => getUniqueId(v) == patchObj[key]);
+					let delIndex = toPatch.findIndex(v => getUniqueId(v) === patchObj[key].key);
+					if(delIndex === -1) {
+						throw "This shouldn't happen" + JSON.stringify(toPatch) + JSON.stringify(patchObj);
+					}
 					toPatch.splice(delIndex, 1);
 				} else { // What about primitiave?
 					delete toPatch[key];
@@ -126,23 +129,26 @@ let patch = function(toPatch, patchObj) {
 				let position = patchObj[key].param2;//= patchObj[key].param2 < toPatch.length ? patchObj[key].param2 : (toPatch.length-1);
 				toPatch.splice(position, 0, JSON.parse(patchObj[key].param1));
 			} else if(op == "ReOrder") {
-				let newOrder = JSON.parse(patchObj[key].param2);
 				let oldOrder = JSON.parse(patchObj[key].param1);
+				let newOrder = JSON.parse(patchObj[key].param2);
+				let indexesInToPatch = [];
+				for(let i = 0; i < oldOrder.length; i++) {
+					let indexToMove = toPatch.findIndex(v => getUniqueId(v) === oldOrder[i]); // May not be adjacent, so we need to search
+					indexesInToPatch.push(indexToMove);
+				}
 				let replacements = []; // {1:----}, {2:----}
 				for(let i = 0; i < oldOrder.length; i++) {
-					let indexOld = toPatch.findIndex(v => getUniqueId(v) == oldOrder[i]);
-					let indexNew = toPatch.findIndex(v => getUniqueId(v) == newOrder[i]);
-
-					replacements.push({destination:indexNew, whatToMove:toPatch[indexOld]});
+					let index = newOrder.indexOf(oldOrder[i]);
+					replacements.push({destination:indexesInToPatch[index], whatToMove:toPatch[indexesInToPatch[i]]});
 				}
 				for(let i = 0; i < replacements.length; i++) {
 					toPatch[replacements[i].destination] = replacements[i].whatToMove;
 				}
 			} else if(op == "Add") {
-				toPatch[value] = patchObj[key].param1; // prim only
+				toPatch[value] = patchObj[key].param1;
 			} else if(op == "Edit") {
 				// TODO: Check if value is param2 before change?
-				toPatch[value] = patchObj[key].param2; // prim only
+				toPatch[value] = patchObj[key].param2;
 			} else  {
 				throw "Unrecognized operation: " + op + " " + JSON.stringify(patchObj[key])
 			}
@@ -159,18 +165,23 @@ let patch = function(toPatch, patchObj) {
 				toPatchSubtree = toPatch[index];
 			} else if(toPatch && toPatch.hasOwnProperty(key)) {
 				//console.log("Prop: " + key);
-				toPatchSubtree = toPatch[key]
+				toPatchSubtree = toPatch[key];
 			} else {
-				throw "This patch can not be applied: Can't find key " + key + " in " + toPatch;
+				if(!allowPartialApplication) {
+					throw "This patch can not be applied: Can't find key " + key + " in " + toPatch;
+				} else {
+					// Partial patches are allowed, don't apply this part
+					return;
+				}
 			}
-			patch(toPatchSubtree,patchObj[key]);
+			patch(toPatchSubtree,patchObj[key],allowPartialApplication);
 		}
 	});
 	return toPatch; // This modifies the passed in object, is returning that object misleading?
 }
 
 // Returns true if none of the object's properties are objects themselves.
-let isRoot = function (obj) {
+let isLeaf = function (obj) {
 	let keys = Object.keys(obj);
 	for (var i = 0; i < keys.length; i++) {
 		let key = keys[i];
