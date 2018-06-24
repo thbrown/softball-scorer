@@ -2,9 +2,11 @@
 
 const expose = require( 'expose' );
 const objectMerge = require( '../object-merge.js' );
+const hasher = require( 'object-hash' );
 
-let DATABASE_STATE;
-let STATE;
+let ANCESTOR_STATE;
+let ANCESTOR_STATE_TIMESTAMP;
+let LOCAL_STATE;
 
 exports.getServerUrl = function(path) {
 	return window.location.href + path;
@@ -12,16 +14,16 @@ exports.getServerUrl = function(path) {
 
 exports.updateState = function(callback, force) { // TODO: swap param order
 
-	let should_load_from_local_state = !STATE && localStorage && localStorage.LOCAL_STATE && localStorage.DATABASE_STATE;
+	let should_load_from_local_state = !LOCAL_STATE && localStorage && localStorage.LOCAL_STATE && localStorage.ANCESTOR_STATE;
 
 	// TODO: block concurrent syncs or at least disable the buttons in the ui
 	if( should_load_from_local_state ) {
 		// TODO: do we need to do some basic validation here?
 		try {
-			STATE = JSON.parse(localStorage.LOCAL_STATE);
-			DATABASE_STATE = JSON.parse(localStorage.DATABASE_STATE);
+			LOCAL_STATE = JSON.parse(localStorage.LOCAL_STATE);
+			ANCESTOR_STATE = JSON.parse(localStorage.ANCESTOR_STATE);
 			console.log("State loaded from local storage");
-			callback( null, STATE );
+			callback( null, LOCAL_STATE );
 		} catch( e ) {
 			console.warn( 'Error loading from local state:', e );
 			should_load_from_local_state = false;
@@ -34,14 +36,14 @@ exports.updateState = function(callback, force) { // TODO: swap param order
 		xmlHttp.onreadystatechange = function() {
 			if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
 				try {
-					if(STATE && (force === false)) {
-						STATE = exports.merge(STATE, DATABASE_STATE, JSON.parse(xmlHttp.responseText));
+					if(LOCAL_STATE && (force === false)) {
+						LOCAL_STATE = exports.merge(LOCAL_STATE, ANCESTOR_STATE, JSON.parse(xmlHttp.responseText));
 					} else {
-						STATE = JSON.parse(xmlHttp.responseText);
+						LOCAL_STATE = JSON.parse(xmlHttp.responseText);
 					}
-					DATABASE_STATE = JSON.parse(xmlHttp.responseText);
+					ANCESTOR_STATE = JSON.parse(xmlHttp.responseText);
 					console.log("State loaded from API call");
-					callback( null, STATE );
+					callback( null, LOCAL_STATE );
 				} catch(error) {
 					callback( error );
 					console.log("There was an error while attempting to load state from API call");
@@ -54,10 +56,64 @@ exports.updateState = function(callback, force) { // TODO: swap param order
 	}
 };
 
-exports.saveStateToLocalStorage = function() {
-	localStorage.setItem("LOCAL_STATE", JSON.stringify(STATE));
-	localStorage.setItem("DATABASE_STATE", JSON.stringify(DATABASE_STATE));
+// TODO: remove
+exports.getState = function() {
+	return LOCAL_STATE;
 };
+
+exports.setState = function( s ) {
+	LOCAL_STATE = s;
+	expose.set_state( 'main', {
+		render: true
+	} );
+};
+
+exports.getAncestorState = function() {
+	return ANCESTOR_STATE;
+};
+
+exports.getLocalState = function() {
+	return LOCAL_STATE;
+};
+
+exports.setLocalState = function( s ) {
+	LOCAL_STATE = s;
+	expose.set_state( 'main', {
+		render: true
+	} );
+};
+
+exports.getAncestorStateChecksum = function() {
+	let checksum = hasher(ANCESTOR_STATE, { 
+					algorithm: 'md5',  
+					excludeValues: false, 
+					respectFunctionProperties: false, 
+					respectFunctionNames: false, 
+					respectType: false
+				});
+	return checksum;
+}
+
+exports.getAncestorStateTimestamp = function() {
+	return ANCESTOR_STATE_TIMESTAMP;
+}
+
+exports.setAncestorStateTimestamp = function( s ) {
+	ANCESTOR_STATE_TIMESTAMP = s;
+}
+
+exports.setAncestorState = function( s ) {
+	ANCESTOR_STATE = s;
+	expose.set_state( 'main', {
+		render: true
+	} );
+};
+
+exports.saveStateToLocalStorage = function() {
+	localStorage.setItem("LOCAL_STATE", JSON.stringify(LOCAL_STATE));
+	localStorage.setItem("ANCESTOR_STATE", JSON.stringify(ANCESTOR_STATE));
+};
+
 
 function isEmpty(obj) {
 	for(var prop in obj) {
@@ -65,7 +121,6 @@ function isEmpty(obj) {
 			return false;
 		}
 	}
-
 	return JSON.stringify(obj) === JSON.stringify({});
 }
 
@@ -117,37 +172,36 @@ exports.getQueryObj = function() {
 };
 
 exports.getNextTeamId = function() {
-	return STATE.teams.reduce( ( prev, curr ) => {
-		return curr.id > prev ? curr.id : prev;
-	}, 1 ) + 1;
+	return LOCAL_STATE.teams.reduce( ( prev, curr ) => {
+		return curr.id < prev ? curr.id : prev;
+	}, 0 ) - 1;
 };
 
 exports.getNextPlayerId = function() {
-	return STATE.players.reduce( ( prev, curr ) => {
-		return curr.id > prev ? curr.id : prev;
-	}, 1 ) + 1;
+	return LOCAL_STATE.players.reduce( ( prev, curr ) => {
+		return curr.id < prev ? curr.id : prev;
+	}, 0 ) - 1;
 };
 
 exports.getNextGameId = function() {
-	return STATE.teams.reduce( ( prev, curr ) => {
+	return LOCAL_STATE.teams.reduce( ( prev, curr ) => {
 		const id = curr.games.reduce( ( prev, curr ) => {
-			return curr.id > prev ? curr.id : prev;
-		}, 1 );
-
-		return id > prev ? id : prev;
-	}, 1 ) + 1;
+			return curr.id < prev ? curr.id : prev;
+		}, 0 );
+		return id < prev ? id : prev;
+	}, 0 ) - 1;
 };
 
 exports.getNextPlateAppearanceId = function() {
-	return STATE.teams.reduce( ( prev, curr ) => {
+	return LOCAL_STATE.teams.reduce( ( prev, curr ) => {
 		const id = curr.games.reduce( ( prev, curr ) => {
 			const id2 = curr.plateAppearances.reduce( ( prev, curr ) => {
-				return curr.id > prev ? curr.id : prev;
-			}, 1 );
-			return id2 > prev ? id2 : prev;
-		}, 1 );
-		return id > prev ? id : prev;
-	}, 1 ) + 1;
+				return curr.id < prev ? curr.id : prev;
+			}, 0 );
+			return id2 < prev ? id2 : prev;
+		}, 0 );
+		return id < prev ? id : prev;
+	}, 0 ) - 1;
 };
 
 exports.getNextPlateAppearanceNumber = function( game_id ) {
@@ -160,7 +214,7 @@ exports.getNextPlateAppearanceNumber = function( game_id ) {
 };
 
 exports.getGame = function( game_id, state ) {
-	for ( let team of ( state || STATE ).teams ) {
+	for ( let team of ( state || LOCAL_STATE ).teams ) {
 		for ( let game of team.games ) {
 			if ( game.id === game_id ) {
 				return game;
@@ -172,24 +226,24 @@ exports.getGame = function( game_id, state ) {
 };
 
 exports.getTeam = function( team_id, state ) {
-	return ( state || STATE ).teams.reduce( ( prev, curr ) => {
+	return ( state || LOCAL_STATE ).teams.reduce( ( prev, curr ) => {
 		return curr.id === parseInt( team_id ) ? curr : prev;
 	}, null );
 };
 
 exports.getPlayer = function( player_id, state ) {
-	return ( state || STATE ).players.reduce( ( prev, curr ) => {
+	return ( state || LOCAL_STATE ).players.reduce( ( prev, curr ) => {
 		return curr.id === parseInt( player_id ) ? curr : prev;
 	}, null );
 };
 
 exports.getAllPlayers = function () {
-	return STATE.players;
+	return LOCAL_STATE.players;
 };
 
 // TODO: allow for passing team and game ids to improve perf
 exports.getPlateAppearance = function( pa_id, state ) {
-	for ( let team of ( state || STATE ).teams ) {
+	for ( let team of ( state || LOCAL_STATE ).teams ) {
 		for ( let game of team.games ) {
 			for ( let pa of game.plateAppearances ) {
 				if ( pa.id === pa_id ) {
@@ -235,37 +289,22 @@ exports.getPlateAppearances = function( team_id, player_id ) {
 
 exports.updatePlateAppearanceResult = function( plateAppearance, result ) {
 	plateAppearance.result = result;
-	exports.setState( STATE );
+	exports.setState( LOCAL_STATE );
 };
 
 exports.updatePlateAppearanceLocation = function( plateAppearance, location ) {
 	plateAppearance.location = {};
 	plateAppearance.location.x = location[0];
 	plateAppearance.location.y = location[1];
-	exports.setState( STATE );
+	exports.setState( LOCAL_STATE );
 };
 
 exports.updateLineup = function( lineup, player_id, position_index ) {
 	let ind = lineup.indexOf( player_id );
 	lineup.splice( ind, 1 );
 	lineup.splice( position_index, 0, player_id );
-	exports.setState( STATE );
+	exports.setState( LOCAL_STATE );
 	return lineup;
-};
-
-exports.getAncestorState = function() {
-	return DATABASE_STATE;
-};
-
-exports.getState = function() {
-	return STATE;
-};
-
-exports.setState = function( s ) {
-	STATE = s;
-	expose.set_state( 'main', {
-		render: true
-	} );
 };
 
 exports.addTeam = function( team_name ) {
@@ -285,7 +324,7 @@ exports.addTeam = function( team_name ) {
 
 exports.addPlayerToLineup = function( lineup, player_id ) {
 	lineup.push(player_id);
-	exports.setState( STATE );
+	exports.setState( LOCAL_STATE );
 };
 
 exports.addPlayer = function( player_name, gender ) {
@@ -387,7 +426,7 @@ exports.removePlateAppearance = function ( plateAppearance_id, game_id ) {
 exports.removePlayerFromLineup = function( lineup, player_id ) {
 	let index = lineup.indexOf( player_id );
 	lineup.splice(index, 1);
-	exports.setState( STATE );
+	exports.setState( LOCAL_STATE );
 };
 
 exports.buildStatsObject = function( team_id, player_id ) {

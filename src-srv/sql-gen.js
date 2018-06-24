@@ -26,8 +26,9 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
 				// We have to delete references first
 				if(applicableTable == "teams") {
 					result.push({
-						query:"DELETE FROM players_games WHERE game_id IN ($1) AND account_id IN ($2)",
-						values:[getIdFromPath(path, "games"), accountId] // Not value.key?
+						// We need to do the subquery here because we don't have the game id available in the path
+						query:"DELETE FROM players_games WHERE game_id IN (SELECT id FROM games WHERE team_id IN ($1) AND account_id IN ($2)) AND account_id IN ($2)",
+						values:[value.key, accountId]
 					});
 					result.push({
 						query:"DELETE FROM plate_appearances WHERE team_id IN ($1) AND account_id IN ($2)",
@@ -41,11 +42,11 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
 
 				if(applicableTable == "games") {
 					result.push({
-						query:"DELETE FROM players_games WHERE game_id IN ($1) account_id IN ($2)",
+						query:"DELETE FROM players_games WHERE game_id IN ($1) AND account_id IN ($2)",
 						values:[value.key, accountId]
 					});
 					result.push({
-						query:"DELETE FROM plate_appearances WHERE game_id IN ($1) account_id IN ($2)",
+						query:"DELETE FROM plate_appearances WHERE game_id IN ($1) AND account_id IN ($2)",
 						values:[value.key, accountId]
 					});
 				}

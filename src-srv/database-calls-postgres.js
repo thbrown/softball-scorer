@@ -281,5 +281,64 @@ module.exports = class DatabaseCalls {
 		}
 	}
 
+	async patchState( patch, accountId ) {
+		if(accountId === undefined)  {
+			throw new HandledError(403, "Please sign in first");
+		}
+
+		// Generate sql based off the patch
+		let sqlToRun = sqlGen.getSqlFromPatch(patch, accountId);
+		console.log(sqlToRun);
+
+		// Run the sql in a single transaction
+		const client = await this.pool.connect();
+		try {
+			await client.query('BEGIN');
+			await client.query('SET CONSTRAINTS ALL DEFERRED');
+
+			let idMap = {'teams':{}, 'players':{}, 'plate_appearances':{}, 'games':{}, 'players_games':{}};
+			for(let i = 0; i < sqlToRun.length; i++) {
+				// Replace 'values' that are client ids with their corresponding server ids
+				if(sqlToRun[i].idReplacements) {
+					for(let j = 0; j < sqlToRun[i].idReplacements.length; j++) {
+						let oldValue = sqlToRun[i].idReplacements[j].clientId;
+						let table = sqlToRun[i].idReplacements[j].table;
+						let newValue = idMap[table][oldValue];
+						if(newValue === undefined) {
+							newValue = oldValue; // Client id matches the server id (or the order of the query's is wrong)
+						}
+						let indexToReplace = sqlToRun[i].idReplacements[j].valuesIndex;
+						sqlToRun[i].values[indexToReplace] = newValue;
+					}
+				}
+
+				// Run the query!
+				console.log("Executing:", sqlToRun[i]);
+				let insertedPrimaryKey = await client.query(sqlToRun[i].query, sqlToRun[i].values);
+
+				// Map client ids to server ids so we can replace them in subsequent queries
+				if(parseInt(insertedPrimaryKey.rows.length) === 1) {
+					let primaryKey = insertedPrimaryKey.rows[0].id;
+					if(sqlToRun[i].mapReturnValueTo && sqlToRun[i].mapReturnValueTo.table && sqlToRun[i].mapReturnValueTo.clientId) {
+						idMap[sqlToRun[i].mapReturnValueTo.table][sqlToRun[i].mapReturnValueTo.clientId] = primaryKey;
+					} else {
+						console.log(sqlToRun, insertedPrimaryKey);
+						console.log("insertedPrimaryKey has values no clientId was assigned to map");
+						throw new HandledError(500, "Internal Server Error", "ERROR: NO CLIENT ID MAPPING");
+					}
+				} else if (parseInt(insertedPrimaryKey.rows.length) !== 0) {
+					console.log(insertedPrimaryKey);
+					throw new HandledError(500, "Internal Server Error", "ERROR: UNEXPECTED NUMBER OF RESULTS RETURNED");
+				}
+			}
+			await client.query('COMMIT');
+		} catch (e) {
+			await client.query('ROLLBACK');
+			throw e;
+		} finally {
+			client.release();
+		}
+	}
+
 
 }
