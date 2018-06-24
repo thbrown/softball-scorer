@@ -119,7 +119,7 @@ let patch = function(toPatch, patchObj, allowPartialApplication) {
 				if(Array.isArray(toPatch)) {
 					let delIndex = toPatch.findIndex(v => getUniqueId(v) === patchObj[key].key);
 					if(delIndex === -1) {
-						throw "This shouldn't happen" + JSON.stringify(toPatch) + JSON.stringify(patchObj);
+						throw "Bad patch" + JSON.stringify(toPatch) + '\n' +  JSON.stringify(patchObj);
 					}
 					toPatch.splice(delIndex, 1);
 				} else { // What about primitiave?
