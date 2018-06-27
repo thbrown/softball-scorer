@@ -24,10 +24,10 @@ module.exports = class MainContainer extends expose.Component {
 		this.state = {
 			render: true,
 			page: 'Loading',
-			team: parseInt( qs.team ) || 1,
-			game: parseInt( qs.game ) || 1,
-			player: parseInt( qs.player ) || 1,
-			atbat: parseInt( qs.atbat ) || 1
+			team: qs.team || 1,
+			game: qs.game || 1,
+			player: qs.player || 1,
+			atbat: qs.atbat || 1
 		};
 	}
 

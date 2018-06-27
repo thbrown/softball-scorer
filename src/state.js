@@ -4,6 +4,8 @@ const expose = require( 'expose' );
 const objectMerge = require( '../object-merge.js' );
 const hasher = require( 'object-hash' );
 
+const uuidv4 = require('uuid/v4');
+
 let ANCESTOR_STATE;
 let ANCESTOR_STATE_TIMESTAMP;
 let LOCAL_STATE;
@@ -172,24 +174,15 @@ exports.getQueryObj = function() {
 };
 
 exports.getNextTeamId = function() {
-	return LOCAL_STATE.teams.reduce( ( prev, curr ) => {
-		return curr.id < prev ? curr.id : prev;
-	}, 0 ) - 1;
+	return uuidv4();
 };
 
 exports.getNextPlayerId = function() {
-	return LOCAL_STATE.players.reduce( ( prev, curr ) => {
-		return curr.id < prev ? curr.id : prev;
-	}, 0 ) - 1;
+	return uuidv4();
 };
 
 exports.getNextGameId = function() {
-	return LOCAL_STATE.teams.reduce( ( prev, curr ) => {
-		const id = curr.games.reduce( ( prev, curr ) => {
-			return curr.id < prev ? curr.id : prev;
-		}, 0 );
-		return id < prev ? id : prev;
-	}, 0 ) - 1;
+	return uuidv4();
 };
 
 exports.getNextPlateAppearanceId = function() {
@@ -227,13 +220,13 @@ exports.getGame = function( game_id, state ) {
 
 exports.getTeam = function( team_id, state ) {
 	return ( state || LOCAL_STATE ).teams.reduce( ( prev, curr ) => {
-		return curr.id === parseInt( team_id ) ? curr : prev;
+		return curr.id === team_id  ? curr : prev;
 	}, null );
 };
 
 exports.getPlayer = function( player_id, state ) {
 	return ( state || LOCAL_STATE ).players.reduce( ( prev, curr ) => {
-		return curr.id === parseInt( player_id ) ? curr : prev;
+		return curr.id === player_id  ? curr : prev;
 	}, null );
 };
 

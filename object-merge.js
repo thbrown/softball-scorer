@@ -109,25 +109,40 @@ let getUniqueId = function(value) {
 	}
 }
 
-
-let patch = function(toPatch, patchObj, allowPartialApplication) {
+// TODO: this doesn't look like it's transactional. Shouldn't it be?
+let patch = function(toPatch, patchObj, allowPartialApplication, skipDeletes) {
 	Object.keys(patchObj).forEach(function(key) {
 		if(isLeaf(patchObj[key])) {
 			let op = patchObj[key].op;
 			let value = patchObj[key].key;
 			if(op == "Delete") {
-				if(Array.isArray(toPatch)) {
-					let delIndex = toPatch.findIndex(v => getUniqueId(v) === patchObj[key].key);
-					if(delIndex === -1) {
-						throw "Bad patch" + JSON.stringify(toPatch) + '\n' +  JSON.stringify(patchObj);
+				if(skipDeletes) {
+					console.log("Delete was skipped");
+				} else {
+					if(Array.isArray(toPatch)) {
+						let delIndex = toPatch.findIndex(v => getUniqueId(v) === patchObj[key].key);
+						if(delIndex === -1) {
+							throw "Bad patch" + JSON.stringify(toPatch) + '\n' +  JSON.stringify(patchObj);
+						}
+						toPatch.splice(delIndex, 1);
+					} else { // What about primitiave?
+						delete toPatch[key];
 					}
-					toPatch.splice(delIndex, 1);
-				} else { // What about primitiave?
-					delete toPatch[key];
 				}
 			} else if(op == "ArrayAdd") {
-				let position = patchObj[key].param2;//= patchObj[key].param2 < toPatch.length ? patchObj[key].param2 : (toPatch.length-1);
-				toPatch.splice(position, 0, JSON.parse(patchObj[key].param1));
+				let newEntry = JSON.parse(patchObj[key].param1);
+				let existingIndex = toPatch.findIndex(v => getUniqueId(v) === getUniqueId(newEntry));
+				if(existingIndex == -1) {
+					let position = patchObj[key].param2;
+					toPatch.splice(position, 0, newEntry);
+				} else {
+					if(allowPartialApplication) {
+						let subpatch = diff(toPatch[existingIndex], newEntry); // NOTE: we are ignoring the insertion index here if the entity already exists
+						patch(toPatch[existingIndex], subpatch, true, true); // We really want to merge these two objects, so we'll specify skip delete
+					} else {
+						throw "This patch can not be applied: Attempting to arrayAdd " + newEntry + " but a property with that id already exists " + toPatch[existingIndex];
+					}
+				}
 			} else if(op == "ReOrder") {
 				let oldOrder = JSON.parse(patchObj[key].param1);
 				let newOrder = JSON.parse(patchObj[key].param2);
@@ -145,7 +160,17 @@ let patch = function(toPatch, patchObj, allowPartialApplication) {
 					toPatch[replacements[i].destination] = replacements[i].whatToMove;
 				}
 			} else if(op == "Add") {
-				toPatch[value] = patchObj[key].param1;
+				if(toPatch[value] !== undefined) {
+					// We are attempting to add something that already exists, either merge it or throw an error
+					if(allowPartialApplication) {
+						let subpatch = diff(toPatch[value], patchObj[key].param1);
+						patch(subpatch, toPatch[value], true, true); // We really want to merge these two objects, so we'll specify skip delete
+					} else {
+						throw "This patch can not be applied: Attempting to add " + patchObj[key].param1 + " but a property with that id already exists " + toPatch[value];
+					}
+				} else {
+					toPatch[value] = patchObj[key].param1;
+				}
 			} else if(op == "Edit") {
 				// TODO: Check if value is param2 before change?
 				toPatch[value] = patchObj[key].param2;
@@ -157,14 +182,10 @@ let patch = function(toPatch, patchObj, allowPartialApplication) {
 			if(Array.isArray(toPatch)) {
 				let index = toPatch.findIndex(v => {return v.id == key;}); // Can't do array of arrays I think?
 				if(index < 0) {
-					//console.log("Raw: " + patchObj);
 					index = toPatch.findIndex(v => v === patchObj);
-				} else {
-					//console.log("Id: " + index);
 				}
 				toPatchSubtree = toPatch[index];
 			} else if(toPatch && toPatch.hasOwnProperty(key)) {
-				//console.log("Prop: " + key);
 				toPatchSubtree = toPatch[key];
 			} else {
 				if(!allowPartialApplication) {
@@ -174,7 +195,7 @@ let patch = function(toPatch, patchObj, allowPartialApplication) {
 					return;
 				}
 			}
-			patch(toPatchSubtree,patchObj[key],allowPartialApplication);
+			patch(toPatchSubtree,patchObj[key],allowPartialApplication,skipDeletes);
 		}
 	});
 	return toPatch; // This modifies the passed in object, is returning that object misleading?
