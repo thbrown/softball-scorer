@@ -361,3 +361,109 @@ test('Partial Patches -- Edit something that has already been deleted with and w
 
 	expect(newObject).toEqual(stateA);
 });
+
+
+test('Partial Patches -- Add something that already exists with and without partial patches', () => {
+  let stateA = JSON.parse(JSON.stringify(baseState));
+  let stateB = JSON.parse(JSON.stringify(baseState)); // deep copy
+  let stateC = JSON.parse(JSON.stringify(baseState)); // deep copy
+
+  // Modify a game
+  stateA.teams[0].games[0] = 
+    {
+      "plateAppearances": [{
+          "id": 37,
+          "player_id": 4,
+          "result": "2B",
+          "location": {
+            "x": 0.297927,
+            "y": 0.349741
+          },
+          "plateAppearanceIndex": 3
+        }
+      ],
+      "id": 10,
+      "opponent": "Modified Opponent",
+      "date": 1521609321600,
+      "park": "Stazio",
+      "score_us": 0,
+      "score_them": 0,
+      "lineup_type": 2,
+      "newProperty": "pizza",
+      "lineup": [
+        3,
+        4,
+        5,
+        8,
+        2,
+        1,
+      ],
+    }
+
+  // Delete the game we just edited in a state A so we can get a patch that adds it back
+  stateB.teams[0].games.splice(0, 1);
+  let patch = objectMerge.diff(stateB,stateA);
+
+  // Attempting to apply that patch (with an arrayAdd) to a state that already has that object without partial patches we expect an error
+  expect(() => {objectMerge.patch(stateC, patch)}).toThrow("This patch can not be applied");
+
+
+  console.log(stateC.teams[0].games[0]);
+
+  // With partial patches we expect the objects to be merge. The first patch's edits should win in case of conflict but no unmodified entries should be deleted.
+  objectMerge.patch(stateC, patch, true);
+
+  let expected = 
+    {
+      "plateAppearances": [
+        {
+          "id": 35,
+          "player_id": 3,
+          "result": "E",
+          "location": {
+            "x": 0.57772,
+            "y": 0.520725
+          },
+          "plateAppearanceIndex": 1
+        },
+        {
+          "id": 36,
+          "player_id": 1,
+          "result": "1B",
+          "location": {
+            "x": 0.632124,
+            "y": 0.336788
+          },
+          "plateAppearanceIndex": 2
+        },
+        {
+          "id": 37,
+          "player_id": 4,
+          "result": "2B",
+          "location": {
+            "x": 0.297927,
+            "y": 0.349741
+          },
+          "plateAppearanceIndex": 3
+        }
+      ],
+      "id": 10,
+      "opponent": "Modified Opponent",
+      "date": 1521609321600,
+      "park": "Stazio",
+      "score_us": 0,
+      "score_them": 0,
+      "lineup_type": 2,
+      "newProperty": "pizza",
+      "lineup": [
+        3,
+        4,
+        5,
+        8,
+        2,
+        1,
+      ],
+    }
+
+    expect(stateC.teams[0].games[0]).toEqual(expected);
+});

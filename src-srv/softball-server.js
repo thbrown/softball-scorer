@@ -211,7 +211,7 @@ module.exports = class SoftballServer {
 				// Apply the patch that was supplied by the client, passing true allows us to ignore any changes that were applied to deleted entries
 				objectMerge.patch(state, data.patch, true);
 
-				// Now we'll diff the patched version against our original copied version, this gives us a patch without any edits to deleted entries
+				// Now we'll diff the patched version against our original copied version, this gives us a patch without any edits to deleted entries or additions of things that already exist
 				let cleanPatch = objectMerge.diff(stateCopy, state);
 				console.log("cleanPatch", cleanPatch);
 
