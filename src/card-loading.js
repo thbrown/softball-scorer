@@ -13,16 +13,11 @@ module.exports = class CardLoading extends expose.Component {
 		this.state = {};
 	}
 
-	componentDidMount(){
-		state.updateState(function( err ) {
-			if( err ) {
-				console.log( 'Error initializing state', err );
-			} else {
-				expose.set_state( 'main', {
-					page: qs.page || 'TeamList'
-				} );
-			}
-		}, false);
+	async componentDidMount(){
+		await state.sync();
+		expose.set_state( 'main', {
+			page: qs.page || 'TeamList'
+		} );
 	}
 
 	render() {

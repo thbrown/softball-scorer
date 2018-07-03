@@ -197,6 +197,10 @@ body {
   font-size: 18px;
 }
 
+.disabled {
+  pointer-events: none;
+}
+
 .radio-button {
   display: flex;
   flex-direction: column;

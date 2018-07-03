@@ -25,7 +25,7 @@ module.exports = class DatabaseCalls {
 			}
 		} );
 
-		// We don't ever anticipate having primary keys (or anything else) larger than the javascript maximum safe integer size
+		// We don't ever anticipate storing numeric values larger than the javascript maximum safe integer size
 		// (9,007,199,254,740,991) so we'll instruct pg to return all bigints from the database as javascript numbers. 
 		// See https://github.com/brianc/node-pg-types
 		var types = require('pg').types
@@ -105,6 +105,7 @@ module.exports = class DatabaseCalls {
 				  picture as picture
 				FROM players
 				WHERE account_id = $1
+				ORDER BY created_at ASC
 			`, [accountId]);
 
 			var teams = self.parameterizedQueryPromise( `
@@ -136,12 +137,11 @@ module.exports = class DatabaseCalls {
 				WHERE 
 				   teams.account_id = $1
 				ORDER BY
-				  teams.id ASC,
-				  games.id ASC,
+				  teams.created_at ASC,
+				  games.created_at ASC,
 				  index ASC;
 			`, [accountId]);
 
-			// It looks like thes two objects could get out of sync if a save to the db happened between select requests.
 			Promise.all( [ players, teams ] ).then( function( values ) {
 				var state = {};
 
@@ -164,11 +164,6 @@ module.exports = class DatabaseCalls {
 						newTeam.games = [];
 						newTeam.id = plateAppearance.team_id;
 						newTeam.name = plateAppearance.team_name;
-						if ( plateAppearance.roster ) {
-							newTeam.roster = plateAppearance.roster.split( ',' ).map( Number );
-						} else {
-							newTeam.roster = [];
-						}
 						teams.push( newTeam );
 					}
 
@@ -184,7 +179,7 @@ module.exports = class DatabaseCalls {
 						newGame.score_them = plateAppearance.score_them;
 						newGame.lineup_type = plateAppearance.lineup_type;
 						if ( plateAppearance.lineup ) {
-							newGame.lineup = plateAppearance.lineup.split( ',' ).map( Number );
+							newGame.lineup = plateAppearance.lineup.split( ',' ).map( v => v.trim() );
 						} else {
 							newGame.lineup = [];
 						}
@@ -222,60 +217,7 @@ module.exports = class DatabaseCalls {
 			// Diff the client's data with the db data to get the patch we need to apply to make the database match the client
 			var patch = objectMerge.diff(result, JSON.parse(data.local));
 			console.log(JSON.stringify(patch, null,2));
-
-			// Generate sql based off the patch
-			let sqlToRun = sqlGen.getSqlFromPatch(patch, accountId);
-			console.log(sqlToRun);
-
-			// Run the sql in a single transaction
-			const client = await self.pool.connect();
-			try {
-				await client.query('BEGIN');
-				await client.query('SET CONSTRAINTS ALL DEFERRED');
-
-				let idMap = {'teams':{}, 'players':{}, 'plate_appearances':{}, 'games':{}, 'players_games':{}};
-				for(let i = 0; i < sqlToRun.length; i++) {
-					// Replace 'values' that are client ids with their corresponding server ids
-					if(sqlToRun[i].idReplacements) {
-						for(let j = 0; j < sqlToRun[i].idReplacements.length; j++) {
-							let oldValue = sqlToRun[i].idReplacements[j].clientId;
-							let table = sqlToRun[i].idReplacements[j].table;
-							let newValue = idMap[table][oldValue];
-							if(newValue === undefined) {
-								newValue = oldValue; // Client id matches the server id (or the order of the query's is wrong)
-							}
-							let indexToReplace = sqlToRun[i].idReplacements[j].valuesIndex;
-							sqlToRun[i].values[indexToReplace] = newValue;
-						}
-					}
-
-					// Run the query!
-					console.log("Executing:", sqlToRun[i]);
-					let insertedPrimaryKey = await client.query(sqlToRun[i].query, sqlToRun[i].values);
-
-					// Map client ids to server ids so we can replace them in subsequent queries
-					if(parseInt(insertedPrimaryKey.rows.length) === 1) {
-						let primaryKey = insertedPrimaryKey.rows[0].id;
-						if(sqlToRun[i].mapReturnValueTo && sqlToRun[i].mapReturnValueTo.table && sqlToRun[i].mapReturnValueTo.clientId) {
-							idMap[sqlToRun[i].mapReturnValueTo.table][sqlToRun[i].mapReturnValueTo.clientId] = primaryKey;
-						} else {
-							console.log(sqlToRun, insertedPrimaryKey);
-							console.log("insertedPrimaryKey has values no clientId was assigned to map");
-							throw new HandledError(500, "Internal Server Error", "ERROR: NO CLIENT ID MAPPING");
-						}
-					} else if (parseInt(insertedPrimaryKey.rows.length) !== 0) {
-						console.log(insertedPrimaryKey);
-						console.log(insertedPrimaryKey);
-						throw new HandledError(500, "Internal Server Error", "ERROR: UNEXPECTED NUMBER OF RESULTS RETURNED");
-					}
-				}
-				await client.query('COMMIT');
-			} catch (e) {
-				await client.query('ROLLBACK');
-				throw e;
-			} finally {
-				client.release();
-			}
+			patchState( patch, accountId );
 		} else {
 			throw new HandledError(400, "There are pending changes. Pull first.");
 		}
@@ -288,7 +230,6 @@ module.exports = class DatabaseCalls {
 
 		// Generate sql based off the patch
 		let sqlToRun = sqlGen.getSqlFromPatch(patch, accountId);
-		console.log(sqlToRun);
 
 		// Run the sql in a single transaction
 		const client = await this.pool.connect();
@@ -296,40 +237,10 @@ module.exports = class DatabaseCalls {
 			await client.query('BEGIN');
 			await client.query('SET CONSTRAINTS ALL DEFERRED');
 
-			let idMap = {'teams':{}, 'players':{}, 'plate_appearances':{}, 'games':{}, 'players_games':{}};
 			for(let i = 0; i < sqlToRun.length; i++) {
-				// Replace 'values' that are client ids with their corresponding server ids
-				if(sqlToRun[i].idReplacements) {
-					for(let j = 0; j < sqlToRun[i].idReplacements.length; j++) {
-						let oldValue = sqlToRun[i].idReplacements[j].clientId;
-						let table = sqlToRun[i].idReplacements[j].table;
-						let newValue = idMap[table][oldValue];
-						if(newValue === undefined) {
-							newValue = oldValue; // Client id matches the server id (or the order of the query's is wrong)
-						}
-						let indexToReplace = sqlToRun[i].idReplacements[j].valuesIndex;
-						sqlToRun[i].values[indexToReplace] = newValue;
-					}
-				}
-
 				// Run the query!
 				console.log("Executing:", sqlToRun[i]);
-				let insertedPrimaryKey = await client.query(sqlToRun[i].query, sqlToRun[i].values);
-
-				// Map client ids to server ids so we can replace them in subsequent queries
-				if(parseInt(insertedPrimaryKey.rows.length) === 1) {
-					let primaryKey = insertedPrimaryKey.rows[0].id;
-					if(sqlToRun[i].mapReturnValueTo && sqlToRun[i].mapReturnValueTo.table && sqlToRun[i].mapReturnValueTo.clientId) {
-						idMap[sqlToRun[i].mapReturnValueTo.table][sqlToRun[i].mapReturnValueTo.clientId] = primaryKey;
-					} else {
-						console.log(sqlToRun, insertedPrimaryKey);
-						console.log("insertedPrimaryKey has values no clientId was assigned to map");
-						throw new HandledError(500, "Internal Server Error", "ERROR: NO CLIENT ID MAPPING");
-					}
-				} else if (parseInt(insertedPrimaryKey.rows.length) !== 0) {
-					console.log(insertedPrimaryKey);
-					throw new HandledError(500, "Internal Server Error", "ERROR: UNEXPECTED NUMBER OF RESULTS RETURNED");
-				}
+				await client.query(sqlToRun[i].query, sqlToRun[i].values);
 			}
 			await client.query('COMMIT');
 		} catch (e) {
@@ -339,6 +250,4 @@ module.exports = class DatabaseCalls {
 			client.release();
 		}
 	}
-
-
 }

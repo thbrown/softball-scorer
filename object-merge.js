@@ -122,7 +122,7 @@ let patch = function(toPatch, patchObj, allowPartialApplication, skipDeletes) {
 					if(Array.isArray(toPatch)) {
 						let delIndex = toPatch.findIndex(v => getUniqueId(v) === patchObj[key].key);
 						if(delIndex === -1) {
-							throw "Bad patch" + JSON.stringify(toPatch) + '\n' +  JSON.stringify(patchObj);
+							throw new Error("Bad patch:\n" + JSON.stringify(toPatch, null, 2) + '\n' +  JSON.stringify(patchObj, null,2));
 						}
 						toPatch.splice(delIndex, 1);
 					} else { // What about primitiave?
@@ -138,9 +138,9 @@ let patch = function(toPatch, patchObj, allowPartialApplication, skipDeletes) {
 				} else {
 					if(allowPartialApplication) {
 						let subpatch = diff(toPatch[existingIndex], newEntry); // NOTE: we are ignoring the insertion index here if the entity already exists
-						patch(toPatch[existingIndex], subpatch, true, true); // We really want to merge these two objects, so we'll specify skip delete
+						patch(toPatch[existingIndex], subpatch, true, true); // We want to merge these two objects, not overwrite the existing one. So we'll specify skip delete.
 					} else {
-						throw "This patch can not be applied: Attempting to arrayAdd " + newEntry + " but a property with that id already exists " + toPatch[existingIndex];
+						throw new Error("This patch can not be applied: Attempting to arrayAdd " + newEntry + " but a property with that id already exists " + toPatch[existingIndex]);
 					}
 				}
 			} else if(op == "ReOrder") {
@@ -166,7 +166,7 @@ let patch = function(toPatch, patchObj, allowPartialApplication, skipDeletes) {
 						let subpatch = diff(toPatch[value], patchObj[key].param1);
 						patch(subpatch, toPatch[value], true, true); // We really want to merge these two objects, so we'll specify skip delete
 					} else {
-						throw "This patch can not be applied: Attempting to add " + patchObj[key].param1 + " but a property with that id already exists " + toPatch[value];
+						throw new Error("This patch can not be applied: Attempting to add " + patchObj[key].param1 + " but a property with that id already exists " + toPatch[value]);
 					}
 				} else {
 					toPatch[value] = patchObj[key].param1;
@@ -189,7 +189,7 @@ let patch = function(toPatch, patchObj, allowPartialApplication, skipDeletes) {
 				toPatchSubtree = toPatch[key];
 			} else {
 				if(!allowPartialApplication) {
-					throw "This patch can not be applied: Can't find key " + key + " in " + toPatch;
+					throw new Error("This patch can not be applied: Can't find key " + key + " in " + toPatch);
 				} else {
 					// Partial patches are allowed, don't apply this part
 					return;
@@ -250,6 +250,5 @@ let diff3 = function(mine, ancestor, theirs) {
 
 module.exports = {  
     diff: diff,
-    diff3: diff3,
     patch: patch
 }

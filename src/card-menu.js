@@ -49,102 +49,16 @@ module.exports = class CardTeam extends expose.Component {
 		};
 
 		this.handleSyncClick = async function() {
-			console.log("Sync pressed!");
 			let buttonDiv = document.getElementById( 'sync' );
 			buttonDiv.innerHTML = "Sync (In Progress)";
-
-			// Save a deep copy of the local state
-			let localStateCopy = JSON.parse(JSON.stringify(state.getState()));
-			let localState = state.getState();
-
-			// Get the patch ready to send to the server
-			let ancestorChecksum = state.getAncestorStateChecksum();
-			let body = {
-				md5: ancestorChecksum, // TODO: use base 64 to save space?
-				patch: objectMerge.diff(state.getAncestorState(), localState)
-			}
-
-			// Ship it
-			let response = await fetch(state.getServerUrl('sync'), {
-				method: 'POST',
-				credentials: 'same-origin',
-			    headers: {
-			      'content-type': 'application/json'
-			    },
-			    body: JSON.stringify(body),
-			});
-
-			if(response.status === 200) {
-				let serverState = await response.json();
-				console.log(serverState);
-
-				// TODO: need to add this, but right now it throws an error for some reason
-				// First gather any changes that were made locally while the request was still working
-				//let localChangesDuringRequest = objectMerge.diff(localStateCopy, localState);
-				//console.log("localChangesDuringRequest", localChangesDuringRequest);
-
-				// Update the ancestor if updates were received from server
-				if(serverState.base) {
-					// The entire state was sent, we can just save it directly
-					state.setAncestorState(serverState.base);
-				} else if(serverState.patches) {
-					// Patches were sent, apply all patches to ancestor state
-					let ancestorState = state.getAncestorState();
-					if(serverState.patches) {
-						console.log(`Applying ${serverState.patches.length} patches ` , serverState.patches);
-						serverState.patches.forEach(patch => {
-							objectMerge.patch(ancestorState, patch)
-						});
-					}
-				} else {
-					console.log("No updates recieved from server");
-				}
-
-				// If the server state changed, verify the ancesor state (after updates) has the same hash as the server state
-				if(serverState.base || serverState.patches) {
-					// Verify checksum
-					let ancestorHash = hasher(state.getAncestorState(), { 
-							algorithm: 'md5',  
-							excludeValues: false, 
-							respectFunctionProperties: false, 
-							respectFunctionNames: false, 
-							respectType: false
-						} );
-					console.log(ancestorHash, serverState.md5);
-					if (ancestorHash !== serverState.md5) {
-						if(serverState.base) {
-							// Something went wrong and we can't do anything about it!
-							console.log("Yikes");
-						} else {
-							// Something bad happened, repeat the request with a invalid checksum so we'll get the whole state back
-							console.log("Something went wrong -- Attempting hard sync");
-							let response = await fetch(state.getServerUrl('sync'), {
-								method: 'POST',
-								credentials: 'same-origin',
-							    headers: {
-							      'content-type': 'application/json'
-							    },
-							    body: JSON.stringify({md5: "-"}),
-							});
-						}
-					} else {
-						console.log("Patch was successful! (client and server checksums match)");
-					}
-				}
-				
-				// Set local state to a copy of ancestor state
-				state.setLocalState(JSON.parse(JSON.stringify(state.getAncestorState())));
-
-				// TODO:
-				// Apply that diff of changes during the request to local (I'm guessing this will be a no-op most times)
-				// Do id substitution on localChangesDuringRequerst??
-				//objectMerge.patch(localChangesDuringRequest, state.getLocalState(), true);
-
+			buttonDiv.classList.add("disabled");
+			let status = await state.sync();
+			if(status == 200) {
 				buttonDiv.innerHTML = "Sync (Success)";
 			} else {
-				buttonDiv.innerHTML = `Sync (Fail - ${response.status})`;
-				return
+				buttonDiv.innerHTML = `Sync (Fail - ${status})`;
 			}
+			buttonDiv.classList.remove("disabled");
 		};
 
 		this.handleHardPullClick = function( ev ) {
