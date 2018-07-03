@@ -141,7 +141,7 @@ module.exports = class CardAtBat extends expose.Component {
 		let new_y = Math.floor( normalize( y, 0, 1, 0, window.innerWidth ) );
 
 		let indicator = null;
-		if ( x > -1 ) {
+		if ( this.props.plateAppearance.location && x && y ) {
 			indicator = DOM.img( {
 				draggable: true,
 				src: 'assets/baseball-blue.png',

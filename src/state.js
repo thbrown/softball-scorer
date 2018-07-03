@@ -6,9 +6,9 @@ const hasher = require( 'object-hash' );
 
 const uuidv4 = require('uuid/v4');
 
-let ANCESTOR_STATE;
-let ANCESTOR_STATE_TIMESTAMP;
-let LOCAL_STATE;
+let ANCESTOR_STATE = {"teams":[], "players": []};
+let ANCESTOR_STATE_TIMESTAMP = -1;
+let LOCAL_STATE = {"teams":[], "players": []};
 
 exports.getServerUrl = function(path) {
 	return window.location.href + path;
@@ -57,6 +57,96 @@ exports.updateState = function(callback, force) { // TODO: swap param order
 		xmlHttp.send(null);
 	}
 };
+
+exports.sync = async function(fullSync) {
+	console.log("Sync requested!", fullSync ? "full" : "patchOnly");
+
+	// TODO: do we want to cancel any in_progress syncs?
+
+	// Save a deep copy of the local state
+	let localStateCopy = JSON.parse(JSON.stringify(state.getState()));
+	let localState = state.getState();
+
+	// Get the patch ready to send to the server
+	let ancestorChecksum = state.getAncestorStateChecksum() || "";
+	let body = {
+		md5: (fullSync ? "-" : ancestorChecksum), // TODO: use base 64 to save space?
+		patch: objectMerge.diff(state.getAncestorState(), localState)
+	}
+
+	// Ship it
+	let response = await fetch(state.getServerUrl('sync'), {
+		method: 'POST',
+		credentials: 'same-origin',
+	    headers: {
+	      'content-type': 'application/json'
+	    },
+	    body: JSON.stringify(body),
+	});
+
+	if(response.status === 200) {
+		let serverState = await response.json();
+		console.log("Received",serverState);
+
+		// First gather any changes that were made locally while the request was still working
+		console.log("Pre",localStateCopy, localState);
+		let localChangesDuringRequest = objectMerge.diff(localStateCopy, localState);
+		console.log("localChangesDuringRequest", localChangesDuringRequest);
+
+		// Update the ancestor if updates were received from server
+		if(serverState.base) {
+			// The entire state was sent, we can just save it directly
+			state.setAncestorState(serverState.base);
+		} else if(serverState.patches) {
+			// Patches were sent, apply all patches to ancestor state
+			let ancestorState = state.getAncestorState();
+			if(serverState.patches) {
+				console.log(`Applying ${serverState.patches.length} patches ` , serverState.patches);
+				serverState.patches.forEach(patch => {
+					objectMerge.patch(ancestorState, patch)
+				});
+			}
+		} else {
+			console.log("No updates recieved from server");
+		}
+
+		// If the server state changed, verify the ancesor state (after updates) has the same hash as the server state
+		if(serverState.base || serverState.patches) {
+			// Verify checksum
+			let ancestorHash = hasher(state.getAncestorState(), { 
+					algorithm: 'md5',  
+					excludeValues: false, 
+					respectFunctionProperties: false, 
+					respectFunctionNames: false, 
+					respectType: false
+				} );
+			console.log(ancestorHash, serverState.md5);
+			if (ancestorHash !== serverState.md5) {
+				if(fullSync) {
+					// Something went wrong and we can't do anything about it!
+					// serverState.base should have contained a verbatium copy of what the server has, so this is weird.
+					console.log("Yikes");
+				} else {
+					// Something bad happened, repeat the request with a invalid checksum so we'll get the whole state back
+					console.log("Something went wrong -- Attempting hard sync");
+					await exports.sync(true);
+					return;
+				}
+			} else {
+				console.log("Patch was successful! (client and server checksums match)");
+			}
+		}
+		// Copy
+		let newLocalState = JSON.parse(JSON.stringify(state.getAncestorState()));
+
+		// Apply any changes that were made during the request to the new local state (I'm guessing this will be a no-op most times)
+		objectMerge.patch(newLocalState, localChangesDuringRequest, true);
+		
+		// Set local state to a copy of ancestor state
+		state.setLocalState(newLocalState);
+	}
+	return response.status;
+}
 
 // TODO: remove
 exports.getState = function() {
@@ -186,15 +276,7 @@ exports.getNextGameId = function() {
 };
 
 exports.getNextPlateAppearanceId = function() {
-	return LOCAL_STATE.teams.reduce( ( prev, curr ) => {
-		const id = curr.games.reduce( ( prev, curr ) => {
-			const id2 = curr.plateAppearances.reduce( ( prev, curr ) => {
-				return curr.id < prev ? curr.id : prev;
-			}, 0 );
-			return id2 < prev ? id2 : prev;
-		}, 0 );
-		return id < prev ? id : prev;
-	}, 0 ) - 1;
+	return uuidv4();
 };
 
 exports.getNextPlateAppearanceNumber = function( game_id ) {
@@ -306,8 +388,6 @@ exports.addTeam = function( team_name ) {
 	let team = {
 		id: id,
 		name: team_name,
-		picture: '',
-		roster: [],
 		games: []
 	};
 	new_state.teams.push( team );
@@ -326,9 +406,7 @@ exports.addPlayer = function( player_name, gender ) {
 	let player = {
 		id: id,
 		name: player_name,
-		gender: gender,
-		picture: '',
-		stats: {}
+		gender: gender
 	};
 	new_state.players.push( player );
 	exports.setState( new_state );
@@ -369,8 +447,6 @@ exports.addPlateAppearance = function ( player_id, game_id, team_id ) {
 	let plateAppearance = {
 		id: id,
 		player_id: player_id,
-		game_id: game_id,
-		team_id: team_id,
 		plateAppearanceIndex: plateAppearanceIndex
 	};
 	plateAppearances.push( plateAppearance );
