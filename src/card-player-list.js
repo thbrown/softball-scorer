@@ -5,8 +5,11 @@ const DOM = require( 'react-dom-factories' );
 
 const state = require( 'state' );
 
-let sortField = "Name";
-let sortDirection = "ASC";
+const DSC_CHAR = "V";
+const ASC_CHAR = "^";
+
+let sortField = "name";
+let sortDirection = "DSC";
 
 module.exports = class CardPlayerList extends expose.Component {
 	constructor( props ) {
@@ -19,12 +22,22 @@ module.exports = class CardPlayerList extends expose.Component {
 
 		this.handleStatsClick = function(a) {
 			sortField = a;
-			if(this.state.sortDirection === "DSC") {
+			if(this.state.sortDirection === "DSC" && this.state.sortField === sortField) {
 				sortDirection = "ASC";
+				let newField = document.getElementById(sortField);
+				newField.innerHTML = newField.innerHTML.substr(0, newField.innerHTML.length - ASC_CHAR.length) + ASC_CHAR;
 			} else {
 				sortDirection = "DSC";
+				if(this.state.sortField === sortField) {
+					let newField = document.getElementById(sortField);
+					newField.innerHTML = newField.innerHTML.substr(0, newField.innerHTML.length - DSC_CHAR.length) + DSC_CHAR;
+				} else {
+					let newField = document.getElementById(sortField);
+					let oldField = document.getElementById(this.state.sortField);
+					newField.innerHTML = newField.innerHTML + DSC_CHAR;
+					oldField.innerHTML = oldField.innerHTML.substr(0, oldField.innerHTML.length - ASC_CHAR.length);
+				}
 			}
-			// TODO check if state is asc or dsc
 
 			this.setState({
 				sortField: sortField,
@@ -43,9 +56,17 @@ module.exports = class CardPlayerList extends expose.Component {
 			return state.buildStatsObject(this.props.team.id, player.id);
 		} ).sort( ( a, b ) => {
 			if(this.state.sortDirection === "DSC") {
-				return a[this.state.sortField] < b[this.state.sortField];
+				if(isNaN(a[this.state.sortField] ) || isNaN(b[this.state.sortField])) {
+					return a[this.state.sortField] > b[this.state.sortField];
+				} else {
+					return parseFloat(a[this.state.sortField]) < parseFloat(b[this.state.sortField]);
+				}
 			} else {
-				return a[this.state.sortField] > b[this.state.sortField];
+				if(isNaN(a[this.state.sortField]) || isNaN(b[this.state.sortField])) {
+					return a[this.state.sortField] < b[this.state.sortField];
+				} else {
+					return parseFloat(a[this.state.sortField]) > parseFloat(b[this.state.sortField]);
+				}
 			}
 		} ).map( ( playerStats ) => {
 			
@@ -111,60 +132,70 @@ module.exports = class CardPlayerList extends expose.Component {
 					key: 'header',
 					className: 'table-row',
 				}, DOM.span( {
+					id: "name",
 					onClick: this.handleStatsClick.bind( this, "name" ),
 					style: {
 						width: '100px'
 					}
-				}, "Name" ),
+				}, "Name" + DSC_CHAR ),
 				DOM.span( {
+					id: "battingAverage",
 					onClick: this.handleStatsClick.bind( this, "battingAverage" ),
 					className: 'percentage-stat-cell-header',
 					style: {
 					}
 				}, "BA" ),
 				DOM.span( {
+					id: "sluggingPercentage",
 					onClick: this.handleStatsClick.bind( this, "sluggingPercentage" ),
 					className: 'percentage-stat-cell-header',
 					style: {
 					}
 				}, "SLG" ),
 				DOM.span( {
+					id: "atBats",
 					onClick: this.handleStatsClick.bind( this, "atBats" ),
 					className: 'number-stat-cell-header',
 					style: {
 					}
 				}, "AB" ),
 				DOM.div( {
+					id: "doubles",
 					onClick: this.handleStatsClick.bind( this, "doubles" ),
 					className: 'number-stat-cell-header',
 					style: {
 					}
 				}, "2B" ),
 				DOM.div( {
+					id: "triples",
 					onClick: this.handleStatsClick.bind( this, "triples" ),
 					className: 'number-stat-cell-header',
 					style: {
 					}
 				}, "3B" ),
 				DOM.div( {
+					id: "insideTheParkHR",
 					onClick: this.handleStatsClick.bind( this, "insideTheParkHR" ),
 					className: 'number-stat-cell-header',
 					style: {
 					}
 				}, "HRI" ),
 				DOM.div( {
+					id: "outsideTheParkHR",
 					onClick: this.handleStatsClick.bind( this, "outsideTheParkHR" ),
 					className: 'number-stat-cell-header',
 					style: {
 					}
 				}, "HRO" ),
 				DOM.div( {
+					id: "walks",
 					onClick: this.handleStatsClick.bind( this, "walks" ),
 					className: 'number-stat-cell-header',
 					style: {
 					}
 				}, "BB" ),
 				DOM.div( {
+					id: "reachedOnError",
 					onClick: this.handleStatsClick.bind( this, "reachedOnError" ),
 					className: 'number-stat-cell-header',
 					style: {
