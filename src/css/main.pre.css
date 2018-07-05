@@ -336,6 +336,7 @@ body {
 }
 
 .plate-appearance-list {
+  overflow-x: scroll;
   box-sizing: content-box;
   display: flex;
   justify-content: flex-start;
