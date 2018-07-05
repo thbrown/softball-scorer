@@ -250,8 +250,6 @@ module.exports = class SoftballServer {
 			let responseData = {};
 
 			try {
-				await pause(10000); // Simulate long request for testing
-
 				// Check if the client sent updates to the server
 				if(data.patch && Object.keys(data.patch).length !== 0) {
 					console.log("client has updates", data.patch);

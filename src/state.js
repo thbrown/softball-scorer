@@ -499,7 +499,11 @@ exports.removePlayerFromLineup = function( lineup, player_id ) {
 };
 
 exports.buildStatsObject = function( team_id, player_id ) {
+	let player = exports.getPlayer(player_id);
+
 	let stats = {};
+	stats.id = player.id;
+	stats.name = player.name;
 	stats.plateAppearances = 0;
 	stats.totalBasesByHit = 0;
 	stats.atBats = 0;
