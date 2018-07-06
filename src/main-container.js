@@ -14,6 +14,7 @@ const CardTeam = require( 'card-team' );
 const CardTeamList = require( 'card-team-list' );
 const CardMenu = require( 'card-menu' );
 const CardAuth = require( 'card-auth' );
+const CardSpray = require( 'card-spray' );
 
 const qs = state.getQueryObj();
 
@@ -71,11 +72,13 @@ module.exports = class MainContainer extends expose.Component {
 				console.error( 'no player', this.state.player );
 			}
 			let plateAppearance = state.getPlateAppearance( this.state.plateAppearance );
+			let plateAppearances = state.getPlateAppearancesForPlayerInGame( this.state.player, this.state.game );
 			return React.createElement( CardAtBat, {
 				team: team,
 				game: game,
 				player: player,
-				plateAppearance: plateAppearance
+				plateAppearance: plateAppearance,
+				plateAppearances: plateAppearances
 			} );
 		} else if ( card_name === 'PlayerSelection' ) {
 			let team = state.getTeam( this.state.team );
@@ -89,6 +92,11 @@ module.exports = class MainContainer extends expose.Component {
 			return React.createElement( CardPlayerSelection, {
 				team: team,
 				game: game,
+			} );
+		} else if ( card_name === 'Spray' ) {
+			return React.createElement( CardSpray, {
+				playerId: this.state.player,
+				teamId: this.state.team
 			} );
 		} else {
 			return DOM.div( {

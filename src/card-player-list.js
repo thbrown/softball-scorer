@@ -5,8 +5,8 @@ const DOM = require( 'react-dom-factories' );
 
 const state = require( 'state' );
 
-const DSC_CHAR = "V";
-const ASC_CHAR = "^";
+const DSC_CHAR = "v";//"\25bc";
+const ASC_CHAR = "^";//"\25be";
 
 let sortField = "name";
 let sortDirection = "DSC";
@@ -20,8 +20,7 @@ module.exports = class CardPlayerList extends expose.Component {
 			sortDirection: sortDirection
 		};
 
-		this.handleStatsClick = function(a) {
-			sortField = a;
+		this.handleStatsClick = function(sortField) {
 			if(this.state.sortDirection === "DSC" && this.state.sortField === sortField) {
 				sortDirection = "ASC";
 				let newField = document.getElementById(sortField);
@@ -44,6 +43,13 @@ module.exports = class CardPlayerList extends expose.Component {
 				sortDirection: sortDirection
 			} );
 		}.bind( this );
+
+		this.handlePlayerClick = function(playerId) {
+			expose.set_state( 'main', {
+				page: 'Spray',
+				player: playerId
+			} );
+		}
 	}
 
 	renderPlayerList(){
@@ -71,11 +77,12 @@ module.exports = class CardPlayerList extends expose.Component {
 		} ).map( ( playerStats ) => {
 			
 			return DOM.div( {
-				player_id: playerStats.id,
+				//player_id: playerStats.id,
 				key: 'player' + playerStats.id,
 				className: 'table-row',
 			},
 				DOM.div( {
+					onClick: this.handlePlayerClick.bind( this, playerStats.id ),
 					style: {
 						width: '100px'
 					}
