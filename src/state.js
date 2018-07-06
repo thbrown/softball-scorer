@@ -347,7 +347,7 @@ exports.getPlateAppearancesForPlayerInGame = function( player_id, game_id ) {
 	return game.plateAppearances.filter( pa => pa.player_id === player_id );
 };
 
-exports.getPlateAppearances = function( team_id, player_id ) {
+exports.getPlateAppearancesForPlayerOnTeam = function( player_id, team_id ) {
 	let team = exports.getTeam( team_id );
 	let plateAppearances = [];
 
@@ -516,7 +516,7 @@ exports.buildStatsObject = function( team_id, player_id ) {
 	stats.walks = 0;
 	stats.fieldersChoice = 0;
 
-	let plateAppearances = exports.getPlateAppearances(team_id, player_id);
+	let plateAppearances = exports.getPlateAppearancesForPlayerOnTeam(player_id, team_id);
 
 	plateAppearances.forEach( pa => {
 		if (pa.result) {

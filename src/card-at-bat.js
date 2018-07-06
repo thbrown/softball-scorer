@@ -130,6 +130,38 @@ module.exports = class CardAtBat extends expose.Component {
 	}
 
 	renderField() {
+		let indicators = [];
+
+		// Add the indicators for all previous at bats
+		this.props.plateAppearances.forEach( (value) => {
+			let x = -1;
+			let y = -1;
+			if ( value.location ) {
+				x = value.location.x;
+				y = value.location.y;
+			}
+
+			let new_x = Math.floor( normalize( x, 0, 1, 0, window.innerWidth ) );
+			let new_y = Math.floor( normalize( y, 0, 1, 0, window.innerWidth ) );
+
+			let indicator = null;
+			if ( value.location && x && y ) {
+				indicators.push( 
+					DOM.img( {
+						key: value.id,
+						src: 'assets/baseball.svg',
+						style: {
+							position: 'absolute',
+							width: '20px',
+							left: new_x + 'px',
+							top: new_y + 'px'
+						}
+					} )
+				);
+			}
+		});
+
+		// Add the indicators for this at bat if it exists
 		let x = -1;
 		let y = -1;
 		if ( this.props.plateAppearance.location ) {
@@ -140,18 +172,17 @@ module.exports = class CardAtBat extends expose.Component {
 		let new_x = Math.floor( normalize( x, 0, 1, 0, window.innerWidth ) );
 		let new_y = Math.floor( normalize( y, 0, 1, 0, window.innerWidth ) );
 
-		let indicator = null;
 		if ( this.props.plateAppearance.location && x && y ) {
-			indicator = DOM.img( {
+			indicators.push(DOM.img( {
 				draggable: true,
-				src: 'assets/baseball-blue.png',
+				src: 'assets/baseball-hit.svg',
 				style: {
 					position: 'absolute',
 					width: '20px',
 					left: new_x + 'px',
 					top: new_y + 'px'
 				}
-			} );
+			} ) );
 		}
 
 		return DOM.div( {
@@ -172,7 +203,7 @@ module.exports = class CardAtBat extends expose.Component {
 					width: '100%'
 				}
 			} ),
-			indicator
+			indicators
 		);
 	}
 
