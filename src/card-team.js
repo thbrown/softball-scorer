@@ -5,7 +5,7 @@ const expose = require( './expose' );
 const DOM = require( 'react-dom-factories' );
 const css = require( 'css' );
 
-const CardPlayerList = require( 'card-player-list' );
+const CardStats = require( 'card-stats' );
 const CardGameList = require( 'card-game-list' );
 
 let tab = 'games';
@@ -34,8 +34,8 @@ module.exports = class CardTeam extends expose.Component {
 
 	render() {
 		let subcard = '';
-		if( this.state.tab === 'players' ) {
-			subcard = React.createElement( CardPlayerList, { team: this.props.team } );
+		if( this.state.tab === 'stats' ) {
+			subcard = React.createElement( CardStats, { team: this.props.team } );
 		} else if( this.state.tab === 'games' ) {
 			subcard = React.createElement( CardGameList, { team: this.props.team } );
 		}
@@ -61,12 +61,12 @@ module.exports = class CardTeam extends expose.Component {
 					}
 				},
 					DOM.div( {
-						onClick: this.handleTabClick.bind( this, 'players' ),
+						onClick: this.handleTabClick.bind( this, 'stats' ),
 						style: {
 							width: '50%',
-							borderBottom: this.state.tab === 'players' ? '5px solid ' + css.colors.TEXT_LIGHT : 'none',
+							borderBottom: this.state.tab === 'stats' ? '5px solid ' + css.colors.TEXT_LIGHT : 'none',
 						}
-					}, 'Players' ),
+					}, 'Stats' ),
 					DOM.div( {
 						onClick: this.handleTabClick.bind( this, 'games' ),
 						style: {

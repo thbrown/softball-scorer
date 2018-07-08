@@ -8,8 +8,7 @@ const Draggable = require( 'react-draggable' );
 
 const dialog = require( 'dialog' );
 const state = require( 'state' );
-
-const OUT_RESULTS = ["E", "Out", "FC"];
+const results = require('plate-appearance-results');
 
 const normalize = function( x, A, B, C, D ) {
 	return C + ( x - A ) * ( D - C ) / ( B - A );
@@ -46,7 +45,7 @@ module.exports = class CardAtBat extends expose.Component {
 
 			let indicator = null;
 			if ( value.location && x && y ) {
-				let image = OUT_RESULTS.includes(value.result) ?  'assets/baseball-out.svg' : 'assets/baseball-hit.svg';
+				let image = results.getOutResults().includes(value.result) ?  'assets/baseball-out.svg' : 'assets/baseball-hit.svg';
 				indicators.push( 
 					DOM.img( {
 						key: value.id,

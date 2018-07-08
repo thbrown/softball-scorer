@@ -70,7 +70,7 @@ module.exports = class CardLineup extends expose.Component {
 
 		this.handleBoxClick = function( player, plateAppearance_ct ) {
 			expose.set_state( 'main', {
-				page: 'Atbat',
+				page: 'PlateAppearance',
 				player: player.id,
 				plateAppearance: plateAppearance_ct
 			} );
@@ -79,7 +79,7 @@ module.exports = class CardLineup extends expose.Component {
 		this.handleNewPlateAppearanceClick = function( player, game_id, team_id ) {
 			let plateAppearance = state.addPlateAppearance( player.id, game_id, team_id );
 			expose.set_state( 'main', {
-				page: 'Atbat',
+				page: 'PlateAppearance',
 				player: player.id,
 				plateAppearance: plateAppearance.id
 			} );
