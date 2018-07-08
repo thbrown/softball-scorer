@@ -3,6 +3,7 @@
 const expose = require( 'expose' );
 const objectMerge = require( '../object-merge.js' );
 const hasher = require( 'object-hash' );
+const results = require( 'plate-appearance-results.js' );
 
 const uuidv4 = require('uuid/v4');
 
@@ -521,36 +522,36 @@ exports.buildStatsObject = function( team_id, player_id ) {
 	plateAppearances.forEach( pa => {
 		if (pa.result) {
 			stats.plateAppearances++;
+
+			if(pa.result && results.getNoAtBatResults().includes(pa.result)) {
+				stats.atBats++;
+			}
+			if(!results.getOutResults().includes(pa.result)) {
+				stats.hits++;
+			}
+
 			if (pa.result === "BB") {
 				stats.walks++; // Boo!
-			} else if (!pa.result || pa.result === "") {
+			} else if (pa.result === "E") {
+				stats.reachedOnError++;
+			} else if (pa.result === "FC") {
+				stats.fieldersChoice++;
+			} else if (pa.result === "Out") {
 				// Intentionally blank
-			} else {
-				stats.atBats++;
-				if (pa.result === "E") {
-					stats.reachedOnError++;
-				} else if (pa.result === "FC") {
-					stats.fieldersChoice++;
-				} else if (pa.result === "Out") {
-					// Intentionally blank
-				} else {
-					stats.hits++;
-					if (pa.result === "1B") {
-						stats.totalBasesByHit++;
-					} else if(pa.result === "2B") {
-						stats.doubles++;
-						stats.totalBasesByHit += 2;
-					} else if(pa.result === "3B") {
-						stats.triples++;
-						stats.totalBasesByHit += 3;
-					} else if(pa.result === "HRi") {
-						stats.insideTheParkHR++;
-						stats.totalBasesByHit += 4;
-					} else if(pa.result === "HRo") {
-						stats.outsideTheParkHR++;
-						stats.totalBasesByHit += 4;
-					}
-				}
+			} else if (pa.result === "1B") {
+				stats.totalBasesByHit++;
+			} else if(pa.result === "2B") {
+				stats.doubles++;
+				stats.totalBasesByHit += 2;
+			} else if(pa.result === "3B") {
+				stats.triples++;
+				stats.totalBasesByHit += 3;
+			} else if(pa.result === "HRi") {
+				stats.insideTheParkHR++;
+				stats.totalBasesByHit += 4;
+			} else if(pa.result === "HRo") {
+				stats.outsideTheParkHR++;
+				stats.totalBasesByHit += 4;
 			}
 		}
 	});

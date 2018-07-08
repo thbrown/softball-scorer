@@ -6,14 +6,9 @@ const css = require( 'css' );
 
 const dialog = require( 'dialog' );
 
-const CardPlayerList = require( 'card-player-list' );
-const CardGameList = require( 'card-game-list' );
-
 const state = require( 'state' );
 const objectMerge = require( '../object-merge.js' );
 const hasher = require( 'object-hash' );
-
-let tab = 'games';
 
 module.exports = class CardTeam extends expose.Component {
 	constructor( props ) {

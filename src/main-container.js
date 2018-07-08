@@ -7,7 +7,7 @@ const css = require( 'css' );
 
 const state = require( 'state' );
 const CardGame = require( 'card-game' );
-const CardAtBat = require( 'card-at-bat' );
+const CardPlateAppearance = require( 'card-plate-appearance' );
 const CardLoading = require( 'card-loading' );
 const CardPlayerSelection = require( 'card-player-selection' );
 const CardTeam = require( 'card-team' );
@@ -28,7 +28,7 @@ module.exports = class MainContainer extends expose.Component {
 			team: qs.team || 1,
 			game: qs.game || 1,
 			player: qs.player || 1,
-			atbat: qs.atbat || 1
+			plateAppearance: qs.plateAppearance || 1
 		};
 	}
 
@@ -57,7 +57,7 @@ module.exports = class MainContainer extends expose.Component {
 				team: team,
 				game: game
 			} );
-		} else if( card_name === 'Atbat' ) {
+		} else if( card_name === 'PlateAppearance' ) {
 			// Why aren't all these Ids??
 			let team = state.getTeam( this.state.team );
 			if( !team ) {
@@ -73,7 +73,7 @@ module.exports = class MainContainer extends expose.Component {
 			}
 			let plateAppearance = state.getPlateAppearance( this.state.plateAppearance );
 			let plateAppearances = state.getPlateAppearancesForPlayerInGame( this.state.player, this.state.game );
-			return React.createElement( CardAtBat, {
+			return React.createElement( CardPlateAppearance, {
 				team: team,
 				game: game,
 				player: player,
