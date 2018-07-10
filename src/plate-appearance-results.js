@@ -15,10 +15,3 @@ exports.getOutResults = function() {
 exports.getNoAtBatResults = function() {
 	return NO_AT_BAT_RESULTS;
 }
-/*
-module.exports = {  
-    getAllResults: getAllResults,
-    getOutResults: getOutResults,
-    getNoAtBatResults: getNoAtBatResults
-}
-*/

@@ -429,9 +429,9 @@ exports.addGame = function( team_id, opposing_team_name ) {
 		lineup: last_lineup,
 		date: (new Date().getTime()),
 		park: "Stazio",
-		score_us: 0,
-		score_them: 0,
-		lineup_type: 2,
+		scoreUs: 0,
+		scoreThem: 0,
+		lineupType: 2,
 		plateAppearances: []
 	};
 	team.games.push( game );
@@ -523,7 +523,7 @@ exports.buildStatsObject = function( team_id, player_id ) {
 		if (pa.result) {
 			stats.plateAppearances++;
 
-			if(pa.result && results.getNoAtBatResults().includes(pa.result)) {
+			if(pa.result && !results.getNoAtBatResults().includes(pa.result)) {
 				stats.atBats++;
 			}
 			if(!results.getOutResults().includes(pa.result)) {
@@ -556,12 +556,16 @@ exports.buildStatsObject = function( team_id, player_id ) {
 		}
 	});
 
-	if(stats.atBats != 0) {
-		stats.battingAverage = (stats.hits/stats.atBats).toFixed(3);
-		stats.sluggingPercentage = (stats.totalBasesByHit/stats.atBats).toFixed(3);
-	} else {
+	if(stats.atBats === 0) {
 		stats.battingAverage = "-";
 		stats.sluggingPercentage = "-";
+	} else {
+		if(stats.hits === stats.atBats) {
+			stats.battingAverage = "1.000"
+		} else {
+			stats.battingAverage = (stats.hits/stats.atBats).toFixed(3).substr(1);
+		}
+		stats.sluggingPercentage = (stats.totalBasesByHit/stats.atBats).toFixed(3);
 	}
 
 	return stats;

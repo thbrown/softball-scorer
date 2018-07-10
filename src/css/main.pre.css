@@ -267,7 +267,7 @@ body {
 /* Dialog styles */
 
 .dialog {
-  position: absolute;
+  position: fixed;
   width: calc( 100% - 40px );
   top: 200px;
   background-color: $css.colors.PRIMARY_LIGHT;

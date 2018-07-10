@@ -171,7 +171,7 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
 	if(obj.games) {
 		result.push({
 			query:"INSERT INTO games (id, date, opponent, park, score_us, score_them, team_id, lineup_type, account_id) VALUES($1, to_timestamp($2), $3, $4, $5, $6, $7, $8, $9)",
-			values:[obj.games.id, obj.games.date, obj.games.opponent, obj.games.park, obj.games.score_us, obj.games.score_them, parents.teamId, obj.games.lineup_type, accountId]
+			values:[obj.games.id, obj.games.date, obj.games.opponent, obj.games.park, obj.games.scoreUs, obj.games.scoreThem, parents.teamId, obj.games.lineupType, accountId]
 		});
 		if(obj.games.plateAppearances) {
 			let insertObject = {};
@@ -250,7 +250,7 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
 		for(let i = 0; i < obj.games.length; i++) {
 			result.push({
 				query:"INSERT INTO games (id, date, opponent, park, score_us, score_them, team_id, lineup_type, account_id) VALUES($1, to_timestamp($2), $3, $4, $5, $6, $7, $8, $9) RETURNING id;",
-				values:[obj.games[i].id, obj.games[i].date, obj.games[i].opponent, obj.games[i].park, obj.games[i].score_us, obj.games[i].score_them, parents.teamId, obj.games[i].lineup_type, accountId]
+				values:[obj.games[i].id, obj.games[i].date, obj.games[i].opponent, obj.games[i].park, obj.games[i].scoreUs, obj.games[i].scoreThem, parents.teamId, obj.games[i].lineupType, accountId]
 			});
 			if(obj.games[i].plateAppearances) {
 				let insertObject = {};
@@ -299,7 +299,10 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
 let getColNameFromJSONValue = function(value) {
 	let map = {
 		x:"hit_location_x",
-		y:"hit_location_y"
+		y:"hit_location_y",
+		lineupType:"lineupType",
+		scoreUs:"score_us",
+		scoreThem:"score_them"
 	}
 	if(map[value]) {
 		return map[value];

@@ -8,7 +8,7 @@ let getNthBatter = function(game_id, n) {
 	let game = state.getGame( game_id );
 	let plateAppearances = state.getPlateAppearancesForGame( game_id );
 
-	let type = game.lineup_type;
+	let type = game.lineupType;
 	let lineup = game.lineup;
 
 	if(lineup.length == 0) {

@@ -84,6 +84,7 @@ module.exports = class CardStats extends expose.Component {
 				DOM.div( {
 					onClick: this.handlePlayerClick.bind( this, playerStats.id ),
 					style: {
+						overflow: 'scroll',
 						width: '100px'
 					}
 				}, playerStats.name ),
