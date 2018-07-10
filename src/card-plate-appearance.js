@@ -119,14 +119,14 @@ module.exports = class CardPlateAppearance extends expose.Component {
 					justifyContent: 'space-around',
 					margin: '4px',
 				}
-			}, elems.slice( 0, 5 ) ),
+			}, elems.slice( 0, elems.length/2 ) ),
 			DOM.div( {
 				style: {
 					display: 'flex',
 					justifyContent: 'space-around',
 					margin: '4px',
 				}
-			}, elems.slice( 5, elems.length ) )
+			}, elems.slice( elems.length/2, elems.length ) )
 		);
 	}
 

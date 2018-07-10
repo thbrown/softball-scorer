@@ -7,10 +7,12 @@ const css = require( 'css' );
 
 const state = require( 'state' );
 const CardGame = require( 'card-game' );
+const CardGameEdit = require( 'card-game-edit' );
 const CardPlateAppearance = require( 'card-plate-appearance' );
 const CardLoading = require( 'card-loading' );
 const CardPlayerSelection = require( 'card-player-selection' );
 const CardTeam = require( 'card-team' );
+const CardTeamEdit = require( 'card-team-edit' );
 const CardTeamList = require( 'card-team-list' );
 const CardMenu = require( 'card-menu' );
 const CardAuth = require( 'card-auth' );
@@ -22,6 +24,7 @@ module.exports = class MainContainer extends expose.Component {
 	constructor( props ) {
 		super( props );
 		this.expose( 'main' );
+		// Shoudnt these all be renamed as ids e.g. teamId, gameId, etc.
 		this.state = {
 			render: true,
 			page: 'Loading',
@@ -50,6 +53,11 @@ module.exports = class MainContainer extends expose.Component {
 			return React.createElement( CardTeam, {
 				team: team
 			} );
+		} else if( card_name === 'TeamEdit' ) {
+			let team = state.getTeam( this.state.team );
+			return React.createElement( CardTeamEdit, {
+				team: team
+			} );
 		} else if( card_name === 'Game' ) {
 			let team = state.getTeam( this.state.team );
 			let game = state.getGame( this.state.game );
@@ -57,8 +65,12 @@ module.exports = class MainContainer extends expose.Component {
 				team: team,
 				game: game
 			} );
+		} else if( card_name === 'GameEdit' ) {
+			let game = state.getGame( this.state.game );
+			return React.createElement( CardGameEdit, {
+				game: game
+			} );
 		} else if( card_name === 'PlateAppearance' ) {
-			// Why aren't all these Ids??
 			let team = state.getTeam( this.state.team );
 			if( !team ) {
 				console.error( 'no team', this.state.team );

@@ -13,13 +13,6 @@ module.exports = class CardGameList extends expose.Component {
 		this.expose();
 		this.state = {};
 
-		this.handleDeleteClick = function( game, ev ){
-			dialog.show_confirm( 'Are you sure you want to delete the game vs "' + game.opponent + '"?', () => {
-				state.removeGame( game.id, this.props.team.id );
-			} );
-			ev.stopPropagation();
-		};
-
 		this.handleGameClick = function( game ) {
 			expose.set_state( 'main', {
 				page: 'Game',
@@ -27,14 +20,36 @@ module.exports = class CardGameList extends expose.Component {
 			} );
 		};
 
+		this.handleDeleteClick = function( game, ev ){
+			dialog.show_confirm( 'Are you sure you want to delete the game vs "' + game.opponent + '"?', () => {
+				state.removeGame( game.id, this.props.team.id );
+			} );
+			ev.stopPropagation();
+		};
+
+		this.handleEditClick = function( game, ev ) {
+			expose.set_state( 'main', {
+				page: 'GameEdit',
+				game: game.id
+			} );
+			ev.stopPropagation();
+		};
+
 		this.handleCreateClick = function(){
+			let game = state.addGame( this.props.team.id, '' );
+			expose.set_state( 'main', {
+				page: 'GameEdit',
+				game: game.id
+			} );
+			/*
 			dialog.show_input( 'Opponent Name', ( opposing_team_name ) => {
 				let game = state.addGame( this.props.team.id, opposing_team_name );
 				expose.set_state( 'main', {
-					page: 'Game',
+					page: 'GameEdit',
 					game: game.id
 				} );
 			} );
+			*/
 		}.bind( this );
 	}
 
@@ -52,14 +67,23 @@ module.exports = class CardGameList extends expose.Component {
 			},
 				DOM.div( {
 					style: {
-						maxWidth: '300px'
+						overflow: 'hidden'
 					}
 				}, 'Vs. ' + game.opponent ),
-				DOM.img( {
-					src: 'assets/ic_close_white_24dp_1x.png',
-					className: 'delete-button',
-					onClick: this.handleDeleteClick.bind( this, game )
-				})
+				DOM.div( {}, 
+					DOM.img( {
+						src: 'assets/ic_edit_white_24dp_1x.png',
+						alt: 'edit',
+						className: 'delete-button',
+						onClick: this.handleEditClick.bind( this, game )
+					} ),
+					DOM.img( {
+						src: 'assets/delete.png',
+						alt: 'delete',
+						className: 'delete-button',
+						onClick: this.handleDeleteClick.bind( this, game )
+					} )
+				)
 			);
 		} );
 

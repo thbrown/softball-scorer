@@ -54,9 +54,9 @@ let databaseCalls = class DatabaseCalls {
 		          ],
 		          "date": 1530587989922,
 		          "park": "Stazio",
-		          "score_us": 0,
-		          "score_them": 0,
-		          "lineup_type": 2,
+		          "scoreUs": 0,
+		          "scoreThem": 0,
+		          "lineupType": 2,
 		          "plateAppearances": [
 		            {
 		              "id": "d1bb1e58-a3ae-4ea7-a810-42654d7a3ba3",
@@ -176,9 +176,9 @@ let databaseCalls = class DatabaseCalls {
 		          ],
 		          "date": 1530588057192,
 		          "park": "ParkB",
-		          "score_us": 0,
-		          "score_them": 0,
-		          "lineup_type": 2,
+		          "scoreUs": 0,
+		          "scoreThem": 0,
+		          "lineupType": 2,
 		          "plateAppearances": []
 		        }
 		      ]
@@ -200,9 +200,9 @@ let databaseCalls = class DatabaseCalls {
 		          ],
 		          "date": 1530588138801,
 		          "park": "ParkA",
-		          "score_us": 0,
-		          "score_them": 0,
-		          "lineup_type": 2,
+		          "scoreUs": 0,
+		          "scoreThem": 0,
+		          "lineupType": 2,
 		          "plateAppearances": [
 		            {
 		              "id": "a1c36883-3a39-4699-9c77-40213ff9a0aa",
