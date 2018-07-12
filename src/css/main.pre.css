@@ -341,7 +341,14 @@ body {
   display: flex;
   justify-content: flex-start;
 }
+
 .plate-appearance-list-container {
   overflow: hidden;
   width: 70%;
+}
+
+.preventOverflow {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

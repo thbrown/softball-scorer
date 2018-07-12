@@ -69,11 +69,8 @@ module.exports = class CardTeamList extends expose.Component {
 					}
 				},
 				DOM.div( {					
-					style: {
-						overflow: 'hidden',
-						'text-overflow': 'ellipsis',
-						'white-space': 'nowrap'
-					}}, team.name ),
+					className: 'preventOverflow'
+				}, team.name ),
 				DOM.div( {
 					style: {
 						display: 'flex'

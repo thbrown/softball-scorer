@@ -20,11 +20,29 @@ const CardSpray = require( 'card-spray' );
 
 const qs = state.getQueryObj();
 
+// TODO
+// Players List
+// Edit Player
+// AtBats for players not in lineups
+// Length limitations
+// Disable submit button on signin
+// Sign up page
+// Text directions?
+// Sample data?
+
+// Smoother click and drag
+// Use svgs
+// Weirdness adding player mid-game
+// Scroll bars on desktop
+
+// Long names overlap back button on AP page
+// Move baseball icon to the right?
+
 module.exports = class MainContainer extends expose.Component {
 	constructor( props ) {
 		super( props );
 		this.expose( 'main' );
-		// Shoudnt these all be renamed as ids e.g. teamId, gameId, etc.
+		// Shouldn't these all be renamed as ids e.g. teamId, gameId, etc.
 		this.state = {
 			render: true,
 			page: 'Loading',
