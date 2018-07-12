@@ -162,51 +162,8 @@ module.exports = class CardLineup extends expose.Component {
 
 		let pageElems = [];
 
-		pageElems = pageElems.concat( this.props.game.lineup.map( ( player_id, index ) => {
-			const player = state.getPlayer( player_id );
-			const plateAppearances = state.getPlateAppearancesForPlayerInGame( player.id, this.props.game.id );
-			let elems = [];
-			elems.push( DOM.div( {
-				key: 'handle',
-				className: 'player-drag-handle',
-			}, DOM.img( {
-				src: 'assets/drag-handle.png',
-				style: {
-					height: '40px'
-				}
-			} ) ) );
-			elems.push( DOM.div( {
-				key: 'name',
-				className: 'player-name',
-			}, player.name ) );
-			elems.push( DOM.div( {
-				key: 'boxes',
-				className: 'plate-appearance-list-container'
-			}, this.renderPlateAppearanceBoxes( player, plateAppearances ) ) );
-			elems.push( DOM.img( {
-				key: 'del',
-				src: 'assets/ic_close_white_24dp_1x.png',
-				className: 'delete-button',
-				style: {
-					paddingTop: '6px',
-				},
-				onClick: this.handleDeleteClick.bind( this, player )
-			} ) );
-
-			return React.createElement( Draggable, {
-				key: 'lineup-draggable' + player.id,
-				axis: 'y',
-				handle: '.player-drag-handle',
-				//defaultPosition: { x: 0, y: 0 },
-				position: { x: 0, y: 0 },
-				grid: [ 1, 1 ],
-				onStart: this.handleDragStart.bind( this, player ),
-				onStop: this.handleDragStop.bind( this, player, index ),
-				onDrag: this.handleDrag.bind( this, player, index )
-			}, DOM.div( {
-				id: 'lineup_' + player.id,
-				className: 'lineup-row',
-			}, elems ) );
+		pageElems = pageElems.concat( this.props.game.lineup.map( ( playerId, index ) => {
+			return this.renderPlayerTile(playerId, this.props.game.id, index, true);
 		} ).reduce( ( acc, next, i ) => {
 			acc.push( DOM.div( {
 				key: 'highlight' + ( i ),
@@ -244,7 +201,109 @@ module.exports = class CardLineup extends expose.Component {
 			}
 		} ) );
 
+
 		return DOM.div( {}, pageElems );
+	}
+
+	renderNonLineupAtBats() {
+		let pageElems = [];
+
+		// Find all plate appearances that don't belong to a player in the lineup
+		let allPlateAppearances = state.getPlateAppearancesForGame( this.props.game.id );
+		let nonLineupPlateAppearances = allPlateAppearances.filter( plateAppearance => {
+			let value = true;
+			this.props.game.lineup.forEach( playerInLineupId => {
+				if(playerInLineupId === plateAppearance.player_id) {
+					value = false; // TODO: can we break out of this loop?
+				}
+			});
+			return value;
+		});
+
+		console.log(nonLineupPlateAppearances);
+		if(nonLineupPlateAppearances.length !== 0) {
+			pageElems.push( DOM.hr() );
+			pageElems.push( DOM.div({
+				style: {
+					'textAlign': 'center',
+					'fontSize': '21px',
+				}
+			}, 'Players with plate appearances who are not in the lineup'))
+
+			// Remove duplicate player ids
+			let playersIdsNotInLineupWithPlateAppearances = {};
+			nonLineupPlateAppearances.forEach(value => {
+				playersIdsNotInLineupWithPlateAppearances[value.player_id] = true;
+			});
+
+			let playersIdsNotInLineup = Object.keys(playersIdsNotInLineupWithPlateAppearances);
+			playersIdsNotInLineup.forEach(playerId => {
+				const plateAppearances = state.getPlateAppearancesForPlayerInGame( playerId, this.props.game.id );
+				pageElems.push(this.renderPlayerTile(playerId, this.props.game.id));
+				console.log(plateAppearances);
+			});
+		}
+
+		return DOM.div( {}, pageElems );
+	}
+
+	renderPlayerTile(playerId, gameId, index, editable) {
+		const player = state.getPlayer( playerId );
+		const plateAppearances = state.getPlateAppearancesForPlayerInGame( playerId, gameId );
+		let elems = [];
+		if(editable) {
+			elems.push( DOM.div( {
+				key: 'handle',
+				className: 'player-drag-handle',
+			}, DOM.img( {
+				src: 'assets/drag-handle.png',
+				style: {
+					height: '40px'
+				}
+			} ) ) );
+		}
+		elems.push( DOM.div( {
+			key: 'name',
+			className: 'player-name preventOverflow',
+		}, player.name ) );
+		elems.push( DOM.div( {
+			key: 'boxes',
+			className: 'plate-appearance-list-container'
+		}, this.renderPlateAppearanceBoxes( player, plateAppearances ) ) );
+
+		if(editable) {
+			elems.push( DOM.img( {
+				key: 'del',
+				src: 'assets/ic_close_white_24dp_1x.png',
+				className: 'delete-button',
+				style: {
+					paddingTop: '6px',
+				},
+				onClick: this.handleDeleteClick.bind( this, player )
+			} ) );
+		}
+
+		if(editable) {
+			return React.createElement( Draggable, {
+				key: 'lineup-draggable' + player.id,
+				axis: 'y',
+				handle: '.player-drag-handle',
+				//defaultPosition: { x: 0, y: 0 },
+				position: { x: 0, y: 0 },
+				grid: [ 1, 1 ],
+				onStart: this.handleDragStart.bind( this, player ),
+				onStop: this.handleDragStop.bind( this, player, index ),
+				onDrag: this.handleDrag.bind( this, player, index )
+			}, DOM.div( {
+				id: 'lineup_' + player.id,
+				className: 'lineup-row',
+			}, elems ) );
+		} else {
+			return DOM.div( {
+				id: 'lineup_' + player.id,
+				className: 'lineup-row',
+			}, elems );
+		}
 	}
 
 	render() {
@@ -254,7 +313,8 @@ module.exports = class CardLineup extends expose.Component {
 					'marginTop': '10px'
 				}
 			},
-			this.renderLineupPlayerList()
+			this.renderLineupPlayerList(),
+			this.renderNonLineupAtBats()
 		);
 	}
 };

@@ -65,12 +65,13 @@ module.exports = class CardGameList extends expose.Component {
 					justifyContent: 'space-between'
 				}
 			},
+				DOM.div( {					
+					className: 'preventOverflow'
+				}, 'Vs. ' + game.opponent ),
 				DOM.div( {
 					style: {
-						overflow: 'hidden'
-					}
-				}, 'Vs. ' + game.opponent ),
-				DOM.div( {}, 
+						display: 'flex'
+					}},
 					DOM.img( {
 						src: 'assets/ic_edit_white_24dp_1x.png',
 						alt: 'edit',

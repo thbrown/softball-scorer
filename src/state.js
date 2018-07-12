@@ -331,8 +331,8 @@ exports.getPlateAppearance = function( pa_id, state ) {
 	return null;
 };
 
-exports.getPlateAppearancesForGame = function( game_id ) {
-	let game = exports.getGame( game_id );
+exports.getPlateAppearancesForGame = function( gameId ) {
+	let game = exports.getGame( gameId );
 	if (!game) {
 		return null;
 	}

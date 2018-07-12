@@ -85,7 +85,7 @@ module.exports = class CardScorer extends expose.Component {
 
 			let player_name = DOM.div( {
 				key: 'name' + i,
-				className: 'player-name',
+				className: 'player-name preventOverflow',
 			}, plateAppearance.plateAppearanceIndex + ") " + player.name );
 
 			let box = DOM.div( {

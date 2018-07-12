@@ -239,7 +239,10 @@ module.exports = class CardPlateAppearance extends expose.Component {
 					onClick: this.handleBackClick,
 				} ),
 				DOM.div( {
-					style: {}
+					className: 'preventOverflow',
+					style: {
+						// Might need something here to keep long names from covering the back button
+					}
 				}, this.props.player.name + ' PA #' + this.props.plateAppearance.plateAppearanceIndex )
 			),
 			this.renderButtonList(),

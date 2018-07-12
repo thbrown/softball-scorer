@@ -65,7 +65,7 @@ module.exports = class CardGameEdit extends expose.Component {
 					className: 'auth-input',
 					onChange: this.handleLineupTypeChange,
 					style: {
-						'margin-top':'8px'
+						'marginTop':'8px'
 					}
 				},
 					[
