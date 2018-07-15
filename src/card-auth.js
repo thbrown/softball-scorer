@@ -19,6 +19,25 @@ module.exports = class CardAuth extends expose.Component {
 			} );
 		};
 
+		this.handleSignupClick = function() {
+			console.log("Signup");
+			expose.set_state( 'main', {
+				page: 'Signup'
+			} );
+		};
+
+		this.handlePasswordResetClick = function() {
+			console.log("Password reset");
+			// TODO: pre-populate dialog with the email address that was already entered
+			// let email = document.getElementById( 'email' );
+			// email.value
+			dialog.show_input( 'To reset your password, please enter your email address', ( email ) => {
+				dialog.show_notification(
+					'Password reset email has been sent to the email provided if associated account was found'
+				);
+			} );
+		};
+
 		this.handleSubmitClick = function() {
 			let email = document.getElementById( 'email' );
 			let password = document.getElementById( 'password' );
@@ -65,6 +84,17 @@ module.exports = class CardAuth extends expose.Component {
 					email: email.value,
 					password: password.value
 				} ) );
+			} else {
+				let map = {
+					"Email": email.value,
+					"Password": password.value
+				}
+				let missingFields = Object.keys(map).filter(field => {
+					return !map[field];
+				})
+				console.log(missingFields, Object.keys(map));
+
+				dialog.show_notification('Please fill out the following required fields: ' + missingFields.join(','));
 			}
 		};
 	}
@@ -78,6 +108,7 @@ module.exports = class CardAuth extends expose.Component {
 			id: 'email',
 			className: 'auth-input',
 			placeholder: 'Email',
+			type: 'email',
 		} ),
 		DOM.input( {
 			key: 'password',
@@ -86,20 +117,56 @@ module.exports = class CardAuth extends expose.Component {
 			placeholder: 'Password',
 			type: 'password',
 		} ),
-		this.renderSubmitButton(),
+		this.renderButtons(),
 		);
 	}
 
-	renderSubmitButton() {
-		return DOM.div( {
-			key: 'submit',
-			id: 'submit',
-			className: 'button confirm-button',
-			onClick: this.handleSubmitClick,
-			style: {
-				marginLeft: '0'
-			}
-		}, 'Submit');
+	renderButtons() {
+		return [
+			DOM.div( {
+				key: 'submit',
+				id: 'submit',
+				className: 'button confirm-button',
+				style: {
+					width: 'auto',
+					margin: '10px'
+				},
+				onClick: this.handleSubmitClick,
+			}, 'Submit')
+			,
+			DOM.hr({
+				key: 'divider',
+				style: {
+					margin: '16px'
+				}
+			})
+			,
+			DOM.div({
+				key: 'alternateButtons'
+			},
+				DOM.div( {
+					key: 'signup',
+					id: 'signup',
+					className: 'button confirm-button',
+					style: {
+						width: 'auto',
+						margin: '10px'
+					},
+					onClick: this.handleSignupClick,
+				}, 'Create Account')
+				,
+				DOM.div( {
+					key: 'passwordReset',
+					id: 'passwordReset',
+					className: 'button confirm-button',
+					style: {
+						width: 'auto',
+						margin: '10px'
+					},
+					onClick: this.handlePasswordResetClick,
+				}, 'Reset Password')
+			)
+		];
 	}
 
 	render() {

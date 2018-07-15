@@ -17,6 +17,7 @@ const CardTeamList = require( 'card-team-list' );
 const CardMenu = require( 'card-menu' );
 const CardAuth = require( 'card-auth' );
 const CardSpray = require( 'card-spray' );
+const CardSignup = require( 'card-signup' );
 
 const qs = state.getQueryObj();
 
@@ -64,6 +65,8 @@ module.exports = class MainContainer extends expose.Component {
 			return React.createElement( CardMenu );
 		} else if( card_name === 'Auth' ) {
 			return React.createElement( CardAuth );
+		} else if( card_name === 'Signup' ) {
+			return React.createElement( CardSignup );
 		} else if( card_name === 'TeamList' ) {
 			return React.createElement( CardTeamList );
 		} else if( card_name === 'Team' ) {
