@@ -5,8 +5,8 @@ const DOM = require( 'react-dom-factories' );
 
 const state = require( 'state' );
 
-const DSC_CHAR = "v";//"\25bc";
-const ASC_CHAR = "^";//"\25be";
+const DSC_CHAR = "▼";//"\25bc";
+const ASC_CHAR = "▲";//"\25be";
 
 let sortField = "name";
 let sortDirection = "DSC";

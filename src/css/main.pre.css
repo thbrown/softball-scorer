@@ -148,7 +148,7 @@ body {
   line-height: 40px;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: center;
+  white-space: nowrap;
 }
 
 .scorer-row {
