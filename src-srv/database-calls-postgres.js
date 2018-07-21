@@ -173,7 +173,7 @@ module.exports = class DatabaseCalls {
 						newGame.plateAppearances = [];
 						newGame.id = plateAppearance.game_id;
 						newGame.opponent = plateAppearance.game_opponent;
-						newGame.date = plateAppearance.game_date;
+						newGame.date = parseInt(plateAppearance.game_date);
 						newGame.park = plateAppearance.game_park;
 						newGame.score_us = plateAppearance.score_us;
 						newGame.score_them = plateAppearance.score_them;
@@ -200,6 +200,11 @@ module.exports = class DatabaseCalls {
 					}
 				}
 				state.teams = teams;
+
+				// For some reason the object hash changes before and after stringification. I couldn't quite figure
+				// out why this was happening so I'll add here for now so we are always hashing the post-stringified object.
+				state = JSON.parse(JSON.stringify(state));
+
 				resolve( state );
 			} );
 		} );

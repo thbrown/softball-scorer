@@ -33,7 +33,7 @@ module.exports = class CardAuth extends expose.Component {
 			// email.value
 			dialog.show_input( 'To reset your password, please enter your email address', ( email ) => {
 				dialog.show_notification(
-					'Password reset email has been sent to the email provided if associated account was found'
+					'Password reset email has been sent to the email provided if an associated account was found (jk, the back end is not implemented yet).'
 				);
 			} );
 		};
@@ -46,34 +46,20 @@ module.exports = class CardAuth extends expose.Component {
 				var xhr = new XMLHttpRequest();
 				xhr.open( "POST", window.location + 'login', true );
 				xhr.setRequestHeader( 'Content-type', 'application/json' );
-				xhr.onreadystatechange = function() {
+				xhr.onreadystatechange = async function() {
 					if ( xhr.readyState === 4 ) {
 						if ( xhr.status === 200 ) {
-							// TODO: Don't use a confirmation dialog for this and find a way to report merge issues
-							// TODO: Skip this if there are no local changes
-							dialog.show_confirm(
-								'Would you like to merge local changes? Press cancel to discard them.',
-								() => {
-									// Soft sync, merge local changes
-									state.updateState( () => {
-										console.log( "Done with sync" );
-										expose.set_state( 'main', {
-											page: 'TeamList',
-											render: true
-										} );
-									}, false );
-								},
-								() => {
-									// Hard sync, discard local changes
-									state.updateState( () => {
-										console.log( "Done with sync" );
-										expose.set_state( 'main', {
-											page: 'TeamList',
-											render: true
-										} );
-									}, true );
-								}
-							);
+							state.clearState();
+							let status = await state.sync();
+							if( status === 200 ) {
+								console.log( "Done with sync" );
+								expose.set_state( 'main', {
+									page: 'TeamList',
+									render: true
+								} );
+							} else {
+								dialog.show_notification('An error occured while attempting sync: ' + status);
+							}
 						} else {
 							dialog.show_notification( 'Invalid login' );
 						}
@@ -92,9 +78,7 @@ module.exports = class CardAuth extends expose.Component {
 				let missingFields = Object.keys(map).filter(field => {
 					return !map[field];
 				})
-				console.log(missingFields, Object.keys(map));
-
-				dialog.show_notification('Please fill out the following required fields: ' + missingFields.join(','));
+				dialog.show_notification('Please fill out the following required fields: ' + missingFields.join(', '));
 			}
 		};
 	}

@@ -297,8 +297,8 @@ module.exports = class SoftballServer {
 
 				// Calculate the checksum current state if it's not stored in session storage
 				if(!stateMd5) {
-					console.log("No state hash stored in the session, getting state info", stateMd5);
-					state = await this.databaseCalls.getState( accountId );
+					console.log("No state hash stored in the session, getting state info");
+					state = state || await this.databaseCalls.getState( accountId );
 					let checksum = hasher(state, { 
 						algorithm: 'md5',  
 						excludeValues: false, 
@@ -312,7 +312,7 @@ module.exports = class SoftballServer {
 
 				// Check if the server has updates for the client.
 				if(data.md5 !== stateMd5) {
-					console.log("server has updates", data.md5, stateMd5);
+					console.log("Server has updates. CLIENT: ", data.md5, " SERVER: ", stateMd5);
 					// If we have a record of the patches we need to update the client, send those instead of the entire state
 					let foundMatch = false;
 					let patches = stateRecentPatches.filter( v => { 
@@ -342,7 +342,16 @@ module.exports = class SoftballServer {
 			}
 
 			// Woot, done
-			console.log("Done ", JSON.stringify(responseData.patches, null, 2));
+			//console.log("Done ", JSON.stringify(responseData, null, 2));
+			if(responseData.base) {
+				let testCs = hasher(responseData.base, { 
+				algorithm: 'md5',  
+				excludeValues: false, 
+				respectFunctionProperties: false, 
+				respectFunctionNames: false, 
+				respectType: false} );
+				console.log("Done ", testCs, JSON.stringify(responseData.base, null, 2));
+			}
 			res.status( 200 ).send(responseData);
 
 			// Delete values if we are storing too many patches (Not the most refined technique, but it's something)
@@ -408,4 +417,10 @@ module.exports = class SoftballServer {
 			console.log( 'Compute server: Listening on %d', server.address().port );
 		} );
 	}
+
+	stop() {
+		console.log("Closing App");
+		this.server.close();
+	}
+
 };

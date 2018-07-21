@@ -24,13 +24,7 @@ module.exports = class CardSignup extends expose.Component {
 			let password = document.getElementById( 'password' );
 			let passwordConfirm = document.getElementById( 'passwordConfirm' );
 
-			if ( email.value && password.value && passwordConfirm.value) {
-				if(password.value !== passwordConfirm.value) {
-					dialog.show_notification('Passwords do not match');
-					return;
-				}
-				dialog.show_notification('This functionality has not yet been implemented');
-			} else {
+			if ( !email.value || !password.value || !passwordConfirm.value) {
 				let map = {
 					"Email": email.value,
 					"Password": password.value,
@@ -39,10 +33,27 @@ module.exports = class CardSignup extends expose.Component {
 				let missingFields = Object.keys(map).filter(field => {
 					return !map[field];
 				})
-				console.log(missingFields);
-				dialog.show_notification('Please fill out the following required fields: ' + missingFields.join(','));
+				dialog.show_notification('Please fill out the following required fields: ' + missingFields.join(', '));
+				return;
 			}
+
+			if(!this.validateEmail(email.value)) {
+				dialog.show_notification('You entered an invalid email address');
+				return;
+			}
+
+			if(password.value !== passwordConfirm.value) {
+				dialog.show_notification('Passwords do not match');
+				return;
+			}
+
+			dialog.show_notification('This functionality has not yet been implemented');
 		};
+	}
+
+	validateEmail(email) {
+	    var re = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+	    return re.test(String(email).toLowerCase());
 	}
 
 	renderAuthInterface() {
@@ -80,7 +91,7 @@ module.exports = class CardSignup extends expose.Component {
 			key: 'submit',
 			id: 'submit',
 			className: 'button confirm-button',
-			onClick: this.handleSubmitClick,
+			onClick: this.handleSubmitClick.bind(this),
 			style: {
 				marginLeft: '0'
 			}
@@ -108,3 +119,4 @@ module.exports = class CardSignup extends expose.Component {
 		);
 	}
 };
+
