@@ -45,6 +45,7 @@
   "devDependencies": {
     "babel-minify": "^0.3.0",
     "browserify": "^14.3.0",
+    "got": "^8.3.2",
     "jest": "^23.1.0",
     "uglifycss": "0.0.26",
     "watchify": "^3.9.0"

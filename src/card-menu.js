@@ -28,21 +28,6 @@ module.exports = class CardTeam extends expose.Component {
 			} );
 		};
 
-		this.handlePullClick = function() {
-			let buttonDiv = document.getElementById( 'pull' );
-			buttonDiv.innerHTML = "Pull (In Progress)";
-			state.updateState( ( error ) => {
-				if ( error ) {
-					buttonDiv.innerHTML = "Pull - Error: " + error;
-					console.log( "Pull failed: " + error );
-				} else {
-					buttonDiv.innerHTML = "Pull";
-					console.log( "Pull Succeeded" );
-				}
-				expose.set_state( 'main', { render: true } );
-			}, false );
-		};
-
 		this.handleSyncClick = async function() {
 			let buttonDiv = document.getElementById( 'sync' );
 			buttonDiv.innerHTML = "Sync (In Progress)";
@@ -50,50 +35,13 @@ module.exports = class CardTeam extends expose.Component {
 			let status = await state.sync();
 			if(status == 200) {
 				buttonDiv.innerHTML = "Sync (Success)";
+			} else if(status == 403) {
+				dialog.show_notification("Please log in");
+				buttonDiv.innerHTML = "Sync";
 			} else {
 				buttonDiv.innerHTML = `Sync (Fail - ${status})`;
 			}
 			buttonDiv.classList.remove("disabled");
-		};
-
-		this.handleHardPullClick = function( ev ) {
-			dialog.show_confirm( 'Are you sure you want do a hard pull? This will erase all local changes.', () => {
-				state.updateState( ( status ) => {
-					console.log( "Done with hard pull: " + status );
-					expose.set_state( 'main', { render: true } );
-				}, true );
-			} );
-			ev.stopPropagation();
-		};
-
-		this.handlePushClick = function() {
-			let buttonDiv = document.getElementById( 'push' );
-			buttonDiv.innerHTML = "Push (In Progress)";
-
-			var xhr = new XMLHttpRequest();
-			xhr.open( "POST", state.getServerUrl( 'state' ), true );
-			xhr.setRequestHeader( 'Content-Type', 'application/json' );
-			xhr.onreadystatechange = function() {
-				if ( xhr.readyState === XMLHttpRequest.DONE ) {
-					console.log( "Status", xhr.status );
-					if ( xhr.status === 204 ) {
-						buttonDiv.innerHTML = "Push";
-						console.log( "PUSH WAS SUCCESSFUL! Performing hard pull to reconcile ids" );
-						state.updateState( () => {
-							console.log( "Done with hard pull" );
-							expose.set_state( 'main', { render: true } );
-						}, true );
-					} else {
-						let response = JSON.parse( xhr.response );
-						buttonDiv.innerHTML = "Push - Error: " + response.errors[ 0 ];
-						console.log( "FAIL: " + response.errors[ 0 ] );
-					}
-				}
-			};
-			xhr.send( JSON.stringify( {
-				local: JSON.stringify( state.getState() ),
-				ancestor: JSON.stringify( state.getAncestorState() )
-			} ) );
 		};
 
 		this.handleSaveClick = function() {
@@ -136,34 +84,14 @@ module.exports = class CardTeam extends expose.Component {
 		}, 'Login' ) );
 
 		elems.push( DOM.div( {
-			key: 'pull',
-			id: 'pull',
+			key: 'sync',
+			id: 'sync',
 			className: 'list-item',
-			onClick: this.handlePullClick.bind( this ),
+			onClick: this.handleSyncClick.bind( this ),
 			style: {
 				backgroundColor: css.colors.BG,
 			}
-		}, 'Pull' ) );
-
-		elems.push( DOM.div( {
-			key: 'hardPull',
-			id: 'hardPull',
-			className: 'list-item',
-			onClick: this.handleHardPullClick.bind( this ),
-			style: {
-				backgroundColor: css.colors.BG,
-			}
-		}, 'Hard Pull' ) );
-
-		elems.push( DOM.div( {
-			key: 'push',
-			id: 'push',
-			className: 'list-item',
-			onClick: this.handlePushClick.bind( this ),
-			style: {
-				backgroundColor: css.colors.BG,
-			}
-		}, 'Push' ) );
+		}, 'Sync' ) );
 
 		elems.push( DOM.div( {
 			key: 'save',
@@ -173,16 +101,6 @@ module.exports = class CardTeam extends expose.Component {
 				backgroundColor: css.colors.BG,
 			}
 		}, 'Save as File' ) );
-
-		elems.push( DOM.div( {
-			key: 'sync',
-			id: 'sync',
-			className: 'list-item',
-			onClick: this.handleSyncClick.bind( this ),
-			style: {
-				backgroundColor: css.colors.BG,
-			}
-		}, 'Sync' ) );
 
 		return DOM.div( {
 

@@ -7,56 +7,13 @@ const results = require( 'plate-appearance-results.js' );
 
 const uuidv4 = require('uuid/v4');
 
-let ANCESTOR_STATE = {"teams":[], "players": []};
-let ANCESTOR_STATE_TIMESTAMP = -1;
-let LOCAL_STATE = {"teams":[], "players": []};
+const INITIAL_STATE = {"teams":[], "players": []};
+
+let ANCESTOR_STATE = INITIAL_STATE;
+let LOCAL_STATE = INITIAL_STATE;
 
 exports.getServerUrl = function(path) {
 	return window.location.href + path;
-};
-
-exports.updateState = function(callback, force) { // TODO: swap param order
-
-	let should_load_from_local_state = !LOCAL_STATE && localStorage && localStorage.LOCAL_STATE && localStorage.ANCESTOR_STATE;
-
-	// TODO: block concurrent syncs or at least disable the buttons in the ui
-	if( should_load_from_local_state ) {
-		// TODO: do we need to do some basic validation here?
-		try {
-			LOCAL_STATE = JSON.parse(localStorage.LOCAL_STATE);
-			ANCESTOR_STATE = JSON.parse(localStorage.ANCESTOR_STATE);
-			console.log("State loaded from local storage");
-			callback( null, LOCAL_STATE );
-		} catch( e ) {
-			console.warn( 'Error loading from local state:', e );
-			should_load_from_local_state = false;
-		}
-	}
-
-	if( !should_load_from_local_state ) {
-		var xmlHttp = new XMLHttpRequest();
-		// TODO: use fetch api for this instead of xmlhttp, its much easier (uses promises)
-		xmlHttp.onreadystatechange = function() {
-			if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
-				try {
-					if(LOCAL_STATE && (force === false)) {
-						LOCAL_STATE = exports.merge(LOCAL_STATE, ANCESTOR_STATE, JSON.parse(xmlHttp.responseText));
-					} else {
-						LOCAL_STATE = JSON.parse(xmlHttp.responseText);
-					}
-					ANCESTOR_STATE = JSON.parse(xmlHttp.responseText);
-					console.log("State loaded from API call");
-					callback( null, LOCAL_STATE );
-				} catch(error) {
-					callback( error );
-					console.log("There was an error while attempting to load state from API call");
-					console.log(error);
-				}
-			}
-		};
-		xmlHttp.open("GET", exports.getServerUrl('state') , true);
-		xmlHttp.send(null);
-	}
 };
 
 exports.sync = async function(fullSync) {
@@ -65,13 +22,16 @@ exports.sync = async function(fullSync) {
 	// TODO: do we want to cancel any in_progress syncs?
 
 	// Save a deep copy of the local state
-	let localStateCopy = JSON.parse(JSON.stringify(state.getState()));
-	let localState = state.getState();
+	let localStateCopy = JSON.parse(JSON.stringify(state.getLocalState()));
+	let localState = state.getLocalState();
+
+	// Save the ancestor state so we can restore it if somethign goes wrong
+	let ancestorStateCopy = JSON.parse(JSON.stringify(state.getAncestorState()));
 
 	// Get the patch ready to send to the server
 	let ancestorChecksum = state.getAncestorStateChecksum() || "";
 	let body = {
-		md5: (fullSync ? "-" : ancestorChecksum), // TODO: use base 64 to save space?
+		md5: (fullSync ? "-" : ancestorChecksum), // TODO: use base 64 to save space? // TODO: won't "-" then be rememebred on the server??
 		patch: objectMerge.diff(state.getAncestorState(), localState)
 	}
 
@@ -87,10 +47,19 @@ exports.sync = async function(fullSync) {
 
 	if(response.status === 200) {
 		let serverState = await response.json();
-		console.log("Received",serverState);
+		console.log("Received", serverState);
+		if(serverState.base) {
+			let testCs = hasher(serverState.base, { 
+			algorithm: 'md5',  
+			excludeValues: false, 
+			respectFunctionProperties: false, 
+			respectFunctionNames: false, 
+			respectType: false} );
+			console.log("Recieved hash ", testCs, JSON.stringify(serverState.base, null, 2));
+		}
 
 		// First gather any changes that were made locally while the request was still working
-		console.log("Pre",localStateCopy, localState);
+		console.log("Pre", localStateCopy, localState);
 		let localChangesDuringRequest = objectMerge.diff(localStateCopy, localState);
 		console.log("localChangesDuringRequest", localChangesDuringRequest);
 
@@ -121,20 +90,50 @@ exports.sync = async function(fullSync) {
 					respectFunctionNames: false, 
 					respectType: false
 				} );
-			console.log(ancestorHash, serverState.md5);
+			console.log("CLIENT: ", ancestorHash, " SERVER: ", serverState.md5);
 			if (ancestorHash !== serverState.md5) {
 				if(fullSync) {
 					// Something went wrong and we can't do anything about it!
 					// serverState.base should have contained a verbatium copy of what the server has, so this is weird.
 					console.log("Yikes");
+					console.log(state.getAncestorState(),serverState.base);
+					// Set the state back to what it was when we first did a sync
+					state.setLocalState(localStateCopy);
+					state.setAncestorState(ancestorStateCopy);
+					return;
 				} else {
 					// Something bad happened, repeat the request with a invalid checksum so we'll get the whole state back
 					console.log("Something went wrong -- Attempting hard sync");
+					console.log(state.getAncestorState(),serverState.base);
+					console.log(objectMerge.diff(state.getAncestorState(),serverState.base));
+
+					let A =	hasher(state.getAncestorState(), { 
+						algorithm: 'md5',  
+						excludeValues: false, 
+						respectFunctionProperties: false, 
+						respectFunctionNames: false, 
+						respectType: false
+					} );
+
+					let B =	hasher(serverState.base, { 
+						algorithm: 'md5',  
+						excludeValues: false, 
+						respectFunctionProperties: false, 
+						respectFunctionNames: false, 
+						respectType: false
+					} );
+
+					console.log(A,B);
+
+
+					// Set the state back to what it was when we first did a sync (we might lose some intermediate changes here, but it't better then syncing bad state)
+					state.setLocalState(localStateCopy);
+					state.setAncestorState(ancestorStateCopy);
 					await exports.sync(true);
 					return;
 				}
 			} else {
-				console.log("Patch was successful! (client and server checksums match)");
+				console.log("Sync was successful! (client and server checksums match)");
 			}
 		}
 		// Copy
@@ -147,6 +146,14 @@ exports.sync = async function(fullSync) {
 		state.setLocalState(newLocalState);
 	}
 	return response.status;
+}
+
+exports.clearState = function() {
+	LOCAL_STATE = INITIAL_STATE;
+	ANCESTOR_STATE = INITIAL_STATE;
+	expose.set_state( 'main', {
+		render: true
+	} );
 }
 
 // TODO: remove
