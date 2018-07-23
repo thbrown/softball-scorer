@@ -137,6 +137,8 @@ module.exports = class DatabaseCalls {
 				WHERE 
 				   teams.account_id = $1
 				ORDER BY
+				  team_id ASC,
+				  game_id ASC,
 				  teams.created_at ASC,
 				  games.created_at ASC,
 				  index ASC;
@@ -173,7 +175,7 @@ module.exports = class DatabaseCalls {
 						newGame.plateAppearances = [];
 						newGame.id = plateAppearance.game_id;
 						newGame.opponent = plateAppearance.game_opponent;
-						newGame.date = parseInt(plateAppearance.game_date);
+						newGame.date = plateAppearance.game_date;
 						newGame.park = plateAppearance.game_park;
 						newGame.score_us = plateAppearance.score_us;
 						newGame.score_them = plateAppearance.score_them;
