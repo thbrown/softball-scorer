@@ -25,7 +25,7 @@ exports.sync = async function(fullSync) {
 	let localStateCopy = JSON.parse(JSON.stringify(state.getLocalState()));
 	let localState = state.getLocalState();
 
-	// Save the ancestor state so we can restore it if somethign goes wrong
+	// Save the ancestor state so we can restore it if something goes wrong
 	let ancestorStateCopy = JSON.parse(JSON.stringify(state.getAncestorState()));
 
 	// Get the patch ready to send to the server
@@ -48,15 +48,6 @@ exports.sync = async function(fullSync) {
 	if(response.status === 200) {
 		let serverState = await response.json();
 		console.log("Received", serverState);
-		if(serverState.base) {
-			let testCs = hasher(serverState.base, { 
-			algorithm: 'md5',  
-			excludeValues: false, 
-			respectFunctionProperties: false, 
-			respectFunctionNames: false, 
-			respectType: false} );
-			console.log("Recieved hash ", testCs, JSON.stringify(serverState.base, null, 2));
-		}
 
 		// First gather any changes that were made locally while the request was still working
 		console.log("Pre", localStateCopy, localState);
