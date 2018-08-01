@@ -18,16 +18,15 @@ const CardMenu = require( 'card-menu' );
 const CardAuth = require( 'card-auth' );
 const CardSpray = require( 'card-spray' );
 const CardSignup = require( 'card-signup' );
+const CardLoad = require( 'card-load' );
 
 const qs = state.getQueryObj();
 
 // TODO
 // Players List
 // Edit Player
-// AtBats for players not in lineups
 // Length limitations
 // Disable submit button on signin
-// Sign up page
 // Text directions?
 // Sample data?
 
@@ -37,7 +36,6 @@ const qs = state.getQueryObj();
 // Scroll bars on desktop
 
 // Long names overlap back button on AP page
-// Move baseball icon to the right?
 
 module.exports = class MainContainer extends expose.Component {
 	constructor( props ) {
@@ -131,6 +129,8 @@ module.exports = class MainContainer extends expose.Component {
 				playerId: this.state.player,
 				teamId: this.state.team
 			} );
+		} else if ( card_name === 'Load') {
+			return React.createElement( CardLoad );
 		} else {
 			return DOM.div( {
 				style: {

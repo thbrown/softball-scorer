@@ -48,6 +48,12 @@ module.exports = class CardTeam extends expose.Component {
 			var today = new Date().getTime();
 			this.download( JSON.stringify( state.getState(), null, 2 ), 'save' + today + '.json', 'text/plain' );
 		};
+
+		this.handleLoadClick = function() {
+			expose.set_state( 'main', {
+				page: 'Load'
+			} );
+		};
 	}
 
 	// https://stackoverflow.com/questions/34156282/how-do-i-save-json-to-local-text-file
@@ -101,6 +107,15 @@ module.exports = class CardTeam extends expose.Component {
 				backgroundColor: css.colors.BG,
 			}
 		}, 'Save as File' ) );
+
+		elems.push( DOM.div( {
+			key: 'load',
+			className: 'list-item',
+			onClick: this.handleLoadClick.bind( this ),
+			style: {
+				backgroundColor: css.colors.BG,
+			}
+		}, 'Load from File' ) );
 
 		return DOM.div( {
 
