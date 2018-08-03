@@ -63,15 +63,27 @@ module.exports = class CardStats extends expose.Component {
 		} ).sort( ( a, b ) => {
 			if(this.state.sortDirection === "DSC") {
 				if(isNaN(a[this.state.sortField] ) || isNaN(b[this.state.sortField])) {
-					return a[this.state.sortField] > b[this.state.sortField];
+					if(a[this.state.sortField] < b[this.state.sortField]) {
+						return -1;
+					} else if(a[this.state.sortField] > b[this.state.sortField]) {
+						return 1;
+					} else {
+						return 0;
+					}
 				} else {
-					return parseFloat(a[this.state.sortField]) < parseFloat(b[this.state.sortField]);
+					return parseFloat(b[this.state.sortField]) - parseFloat(a[this.state.sortField]);
 				}
 			} else {
 				if(isNaN(a[this.state.sortField]) || isNaN(b[this.state.sortField])) {
-					return a[this.state.sortField] < b[this.state.sortField];
+					if(a[this.state.sortField] < b[this.state.sortField]) {
+						return 1;
+					} else if(a[this.state.sortField] > b[this.state.sortField]) {
+						return -1;
+					} else {
+						return 0;
+					}
 				} else {
-					return parseFloat(a[this.state.sortField]) > parseFloat(b[this.state.sortField]);
+					return parseFloat(a[this.state.sortField]) - parseFloat(b[this.state.sortField]);
 				}
 			}
 		} ).map( ( playerStats ) => {
