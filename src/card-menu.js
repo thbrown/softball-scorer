@@ -46,7 +46,7 @@ module.exports = class CardTeam extends expose.Component {
 
 		this.handleSaveClick = function() {
 			var today = new Date().getTime();
-			this.download( JSON.stringify( state.getState(), null, 2 ), 'save' + today + '.json', 'text/plain' );
+			this.download( JSON.stringify( state.getLocalState(), null, 2 ), 'save' + today + '.json', 'text/plain' );
 		};
 
 		this.handleLoadClick = function() {

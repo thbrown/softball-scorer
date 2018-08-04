@@ -29,14 +29,8 @@ module.exports = class CardTeamList extends expose.Component {
 		this.handleEditClick = function( team, ev ) {
 			expose.set_state( 'main', {
 				page: 'TeamEdit',
-				team: team.id
-			} );
-			ev.stopPropagation();
-		};
-
-		this.handleDeleteClick = function( team, ev ){
-			dialog.show_confirm( 'Are you sure you want to delete the team "' + team.name + '"?', () => {
-				state.removeTeam( team.id );
+				team: team.id,
+				isNew: false
 			} );
 			ev.stopPropagation();
 		};
@@ -45,18 +39,14 @@ module.exports = class CardTeamList extends expose.Component {
 			let team = state.addTeam( '' );
 			expose.set_state( 'main', {
 				page: 'TeamEdit',
-				team: team.id
+				team: team.id,
+				isNew: true
 			} );
-			/*
-			dialog.show_input( 'Team Name', ( name ) => {
-				state.addTeam( name );
-			} );
-			*/
 		};
 	}
 
 	renderTeamList() {
-		const s = state.getState();
+		const s = state.getLocalState();
 		let elems = s.teams.map( ( team ) => {
 			return DOM.div( {
 					team_id: team.id,
@@ -80,12 +70,6 @@ module.exports = class CardTeamList extends expose.Component {
 						alt: 'edit',
 						className: 'delete-button', // TODO: more generic css
 						onClick: this.handleEditClick.bind( this, team )
-					} ),
-					DOM.img( {
-						src: 'assets/delete.png',
-						alt: 'delete',
-						className: 'delete-button',
-						onClick: this.handleDeleteClick.bind( this, team )
 					} )
 				)
 			);
