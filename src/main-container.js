@@ -74,8 +74,11 @@ module.exports = class MainContainer extends expose.Component {
 			} );
 		} else if( card_name === 'TeamEdit' ) {
 			let team = state.getTeam( this.state.team );
+			let isNew = this.state.isNew;
+			console.log(this.state.isNew);
 			return React.createElement( CardTeamEdit, {
-				team: team
+				team: team,
+				isNew: isNew
 			} );
 		} else if( card_name === 'Game' ) {
 			let team = state.getTeam( this.state.team );

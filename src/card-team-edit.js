@@ -12,19 +12,39 @@ module.exports = class CardTeamEdit extends expose.Component {
 		this.expose();
 
 		this.team = props.team;
+		this.isNew = props.isNew;
 
-		this.handleBackClick = function() {
+		let teamCopy = JSON.parse(JSON.stringify(this.team));
+
+		let returnToTeamsListPage = function() {
 			expose.set_state( 'main', {
 				page: 'TeamList'
 			} );
+		}
+
+		this.handleBackClick = function() {
+			returnToTeamsListPage();
+		};
+
+		this.handleConfirmClick = function() {
+			returnToTeamsListPage();
+		};
+
+		this.handleCancelClick = function() {
+			if(props.isNew) {
+				state.removeTeam( props.team.id );
+				returnToTeamsListPage();
+			} else {
+				console.log("Replacing ", props.team.id, teamCopy);
+				state.replaceTeam( props.team.id, teamCopy );	
+			}
+			returnToTeamsListPage();
 		};
 
 		this.handleDeleteClick = function() {
 			dialog.show_confirm( 'Are you sure you want to delete the team "' + props.team.name + '"?', () => {
 				state.removeTeam( props.team.id );
-				expose.set_state( 'main', {
-					page: 'TeamList'
-				} );
+				returnToTeamsListPage();
 			} );
 		};
 
@@ -33,6 +53,67 @@ module.exports = class CardTeamEdit extends expose.Component {
 			props.team.name = newValue;
 		}
 	}
+
+	renderSaveOptions() {
+		let buttons = [];
+
+		buttons.push(
+			DOM.div( {
+				key: 'confirm',
+				className: 'button confirm-button',
+				style: {
+					width: 'auto',
+					margin: '10px'
+				},
+				onClick: this.handleConfirmClick,
+			},
+			DOM.img( {
+				src: 'assets/check.svg',
+			} ),
+			'Save')
+		);
+
+		buttons.push(
+			DOM.div( {
+				key: 'cancel',
+				className: 'button cancel-button',
+				style: {
+					width: 'auto',
+					margin: '10px'
+				},
+				onClick: this.handleCancelClick,
+			}, 
+			DOM.img( {
+				src: 'assets/cancel.svg',
+			} ),
+			'Cancel')
+		);
+
+		if(!this.isNew) {
+			buttons.push(
+				DOM.div( {
+					key: 'delete',
+					className: 'button cancel-button',
+					style: {
+						width: 'auto',
+						margin: '10px'
+					},
+					onClick: this.handleDeleteClick,
+				}, 
+				DOM.img( {
+					src: 'assets/delete.svg',
+				} ),
+				'Delete')
+			);
+		}
+
+		return DOM.div( {
+			key: 'saveOptions'
+		},
+			buttons
+		)
+	}
+
 
 	renderTeamEdit() {
 		return DOM.div( {
@@ -46,9 +127,10 @@ module.exports = class CardTeamEdit extends expose.Component {
 			onChange: this.handleNameChange,
 			defaultValue: this.team.name
 		} ),
-		//this.renderDeleteButton(),
+		this.renderSaveOptions()
 		);
 	}
+
 
 	renderDeleteButton() {
 		return DOM.div( {

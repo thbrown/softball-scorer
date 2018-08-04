@@ -116,7 +116,6 @@ exports.sync = async function(fullSync) {
 
 					console.log(A,B);
 
-
 					// Set the state back to what it was when we first did a sync (we might lose some intermediate changes here, but it't better then syncing bad state)
 					state.setLocalState(localStateCopy);
 					state.setAncestorState(ancestorStateCopy);
@@ -142,18 +141,14 @@ exports.sync = async function(fullSync) {
 exports.clearState = function() {
 	LOCAL_STATE = INITIAL_STATE;
 	ANCESTOR_STATE = INITIAL_STATE;
-	expose.set_state( 'main', {
-		render: true
-	} );
 }
 
-// TODO: remove
-exports.getState = function() {
+exports.getLocalState = function() {
 	return LOCAL_STATE;
 };
 
-exports.setState = function( s ) {
-	LOCAL_STATE = s;
+exports.setLocalState = function( newState ) {
+	LOCAL_STATE = newState;
 	expose.set_state( 'main', {
 		render: true
 	} );
@@ -163,12 +158,8 @@ exports.getAncestorState = function() {
 	return ANCESTOR_STATE;
 };
 
-exports.getLocalState = function() {
-	return LOCAL_STATE;
-};
-
-exports.setLocalState = function( s ) {
-	LOCAL_STATE = s;
+exports.setAncestorState = function( s ) {
+	ANCESTOR_STATE = s;
 	expose.set_state( 'main', {
 		render: true
 	} );
@@ -185,26 +176,248 @@ exports.getAncestorStateChecksum = function() {
 	return checksum;
 }
 
-exports.getAncestorStateTimestamp = function() {
-	return ANCESTOR_STATE_TIMESTAMP;
-}
+// TEAM
 
-exports.setAncestorStateTimestamp = function( s ) {
-	ANCESTOR_STATE_TIMESTAMP = s;
-}
+exports.getTeam = function( team_id, state ) {
+	return ( state || LOCAL_STATE ).teams.reduce( ( prev, curr ) => {
+		return curr.id === team_id  ? curr : prev;
+	}, null );
+};
 
-exports.setAncestorState = function( s ) {
-	ANCESTOR_STATE = s;
+exports.addTeam = function( team_name ) {
+	const id = getNextId();
+	let new_state = exports.getLocalState();
+	let team = {
+		id: id,
+		name: team_name,
+		games: []
+	};
+	new_state.teams.push( team );
+	reRender();
+	return team;
+};
+
+exports.replaceTeam = function( oldTeamId, newTeam ) {
+	let localState = exports.getLocalState();
+	let oldTeam = exports.getTeam(oldTeamId);
+	let oldTeamIndex = localState.teams.indexOf(oldTeam);
+	localState.teams[oldTeamIndex] = newTeam;
+	reRender();
+};
+
+exports.removeTeam = function( team_id ) {
+	let new_state = exports.getLocalState();
+	new_state.teams = new_state.teams.filter( ( team ) => {
+		return team.id !== team_id;
+	} );
+	reRender();
+};
+
+// PLAYER
+
+
+
+exports.getPlayer = function( player_id, state ) {
+	return ( state || LOCAL_STATE ).players.reduce( ( prev, curr ) => {
+		return curr.id === player_id  ? curr : prev;
+	}, null );
+};
+
+exports.getAllPlayers = function () {
+	return LOCAL_STATE.players;
+};
+
+exports.addPlayer = function( player_name, gender ) {
+	const id = getNextId();
+	let new_state = exports.getLocalState();
+	let player = {
+		id: id,
+		name: player_name,
+		gender: gender
+	};
+	new_state.players.push( player );
+	reRender();
+	return player;
+};
+
+// GAME
+
+exports.addGame = function( team_id, opposing_team_name ) {
+	let new_state = exports.getLocalState();
+	const id = getNextId();
+	const team = exports.getTeam( team_id, new_state );
+	let last_lineup = [];
+	if ( team.games.length ) {
+		let last_game = team.games[ team.games.length - 1 ];
+		last_lineup = last_game.lineup.slice();
+	}
+	let game = {
+		id: id,
+		opponent: opposing_team_name,
+		lineup: last_lineup,
+		date: (new Date().getTime()),
+		park: "Stazio",
+		scoreUs: 0,
+		scoreThem: 0,
+		lineupType: 2,
+		plateAppearances: []
+	};
+	team.games.push( game );
+	reRender();
+	return game;
+};
+
+exports.getGame = function( game_id, state ) {
+	for ( let team of ( state || LOCAL_STATE ).teams ) {
+		for ( let game of team.games ) {
+			if ( game.id === game_id ) {
+				return game;
+			}
+		}
+	}
+
+	return null;
+};
+
+exports.addPlayerToLineup = function( lineup, player_id ) {
+	lineup.push(player_id);
+	reRender();
+};
+
+exports.updateLineup = function( lineup, player_id, position_index ) {
+	let ind = lineup.indexOf( player_id );
+	lineup.splice( ind, 1 );
+	lineup.splice( position_index, 0, player_id );
+	reRender();
+	return lineup;
+};
+
+exports.removePlayerFromLineup = function( lineup, player_id ) {
+	let index = lineup.indexOf( player_id );
+	lineup.splice(index, 1);
+	reRender();
+};
+
+exports.removeGame = function( game_id, team_id ) {
+	let new_state = exports.getLocalState();
+	let team = exports.getTeam( team_id );
+	var index = new_state.teams.indexOf(team);
+
+	team.games = team.games.filter( game => {
+		return game.id !== game_id;
+	} );
+
+	if (index > -1) {
+		new_state.teams[index] = team;
+	} else {
+		console.log("Game not found " + game_id);
+	}
+	reRender();
+}; 
+
+
+// PLATE APPEARANCE
+
+exports.addPlateAppearance = function ( player_id, game_id, team_id ) {
+	let new_state = exports.getLocalState();
+	let game = exports.getGame( game_id );
+	let plateAppearances = game.plateAppearances;
+	let plateAppearanceIndex = exports.getNextPlateAppearanceNumber( game_id );
+	let id = getNextId();
+	let plateAppearance = {
+		id: id,
+		player_id: player_id,
+		plateAppearanceIndex: plateAppearanceIndex
+	};
+	plateAppearances.push( plateAppearance );
+	reRender();
+	return plateAppearance;
+};
+
+// TODO: allow for passing team and game ids to improve perf
+exports.getPlateAppearance = function( pa_id, state ) {
+	for ( let team of ( state || LOCAL_STATE ).teams ) {
+		for ( let game of team.games ) {
+			for ( let pa of game.plateAppearances ) {
+				if ( pa.id === pa_id ) {
+					return pa;
+				}
+			}
+		}
+	}
+	return null;
+};
+
+exports.getPlateAppearancesForGame = function( gameId ) {
+	let game = exports.getGame( gameId );
+	if (!game) {
+		return null;
+	}
+	return game.plateAppearances;
+};
+
+exports.getNextPlateAppearanceNumber = function( game_id ) {
+	let plateAppearances = exports.getGame( game_id ).plateAppearances;
+	let nextPlateAppearanceIndex = 1; // Start at 0 or 1?
+	if(plateAppearances && plateAppearances.length > 0) {
+		nextPlateAppearanceIndex = Math.max.apply(Math,plateAppearances.map(function(o){return o.plateAppearanceIndex;})) + 1;
+	}
+	return nextPlateAppearanceIndex;
+};
+
+exports.getPlateAppearancesForPlayerInGame = function( player_id, game_id ) {
+	let game = exports.getGame( game_id );
+	let player = exports.getPlayer( player_id );
+	if (!game || !player ) {
+		return null;
+	}
+	return game.plateAppearances.filter( pa => pa.player_id === player_id );
+};
+
+exports.getPlateAppearancesForPlayerOnTeam = function( player_id, team_id ) {
+	let team = exports.getTeam( team_id );
+	let plateAppearances = [];
+
+	if ( team.games ) {
+		team.games.forEach( game => {
+			if ( game.plateAppearances ) {
+				const plateAppearancesThisGame = game.plateAppearances.filter(pa => player_id === pa.player_id);
+				plateAppearances = plateAppearances.concat(plateAppearancesThisGame);
+			}
+		});
+	}
+	return plateAppearances;
+};
+
+exports.updatePlateAppearanceResult = function( plateAppearance, result ) {
+	plateAppearance.result = result;
+	reRender();
+};
+
+exports.updatePlateAppearanceLocation = function( plateAppearance, location ) {
+	plateAppearance.location = {};
+	plateAppearance.location.x = location[0];
+	plateAppearance.location.y = location[1];
+	reRender();
+};
+
+exports.removePlateAppearance = function ( plateAppearance_id, game_id ) {
+	let new_state = exports.getLocalState();
+	let game = exports.getGame( game_id );
+
+	game.plateAppearances = game.plateAppearances.filter( pa => {
+		return pa.id !== plateAppearance_id;
+	} );
+	reRender();
+};
+
+// HELPERS
+
+function reRender() {
 	expose.set_state( 'main', {
 		render: true
 	} );
-};
-
-exports.saveStateToLocalStorage = function() {
-	localStorage.setItem("LOCAL_STATE", JSON.stringify(LOCAL_STATE));
-	localStorage.setItem("ANCESTOR_STATE", JSON.stringify(ANCESTOR_STATE));
-};
-
+}
 
 function isEmpty(obj) {
 	for(var prop in obj) {
@@ -214,6 +427,17 @@ function isEmpty(obj) {
 	}
 	return JSON.stringify(obj) === JSON.stringify({});
 }
+
+function getNextId() {
+	return uuidv4();
+};
+
+// CANDIDATES FOR REMOVAL
+
+exports.saveStateToLocalStorage = function() {
+	localStorage.setItem("LOCAL_STATE", JSON.stringify(LOCAL_STATE));
+	localStorage.setItem("ANCESTOR_STATE", JSON.stringify(ANCESTOR_STATE));
+};
 
 exports.merge = function(mine, ancestor, yours) {
 
@@ -260,313 +484,6 @@ exports.getQueryObj = function() {
 		params[ temp[ 0 ] ] = temp[ 1 ];
 	}
 	return params;
-};
-
-exports.getNextTeamId = function() {
-	return uuidv4();
-};
-
-exports.getNextPlayerId = function() {
-	return uuidv4();
-};
-
-exports.getNextGameId = function() {
-	return uuidv4();
-};
-
-exports.getNextPlateAppearanceId = function() {
-	return uuidv4();
-};
-
-exports.getNextPlateAppearanceNumber = function( game_id ) {
-	let plateAppearances = exports.getGame( game_id ).plateAppearances;
-	let nextPlateAppearanceIndex = 1; // Start at 0 or 1?
-	if(plateAppearances && plateAppearances.length > 0) {
-		nextPlateAppearanceIndex = Math.max.apply(Math,plateAppearances.map(function(o){return o.plateAppearanceIndex;})) + 1;
-	}
-	return nextPlateAppearanceIndex;
-};
-
-exports.getGame = function( game_id, state ) {
-	for ( let team of ( state || LOCAL_STATE ).teams ) {
-		for ( let game of team.games ) {
-			if ( game.id === game_id ) {
-				return game;
-			}
-		}
-	}
-
-	return null;
-};
-
-exports.getTeam = function( team_id, state ) {
-	return ( state || LOCAL_STATE ).teams.reduce( ( prev, curr ) => {
-		return curr.id === team_id  ? curr : prev;
-	}, null );
-};
-
-exports.getPlayer = function( player_id, state ) {
-	return ( state || LOCAL_STATE ).players.reduce( ( prev, curr ) => {
-		return curr.id === player_id  ? curr : prev;
-	}, null );
-};
-
-exports.getAllPlayers = function () {
-	return LOCAL_STATE.players;
-};
-
-// TODO: allow for passing team and game ids to improve perf
-exports.getPlateAppearance = function( pa_id, state ) {
-	for ( let team of ( state || LOCAL_STATE ).teams ) {
-		for ( let game of team.games ) {
-			for ( let pa of game.plateAppearances ) {
-				if ( pa.id === pa_id ) {
-					return pa;
-				}
-			}
-		}
-	}
-	return null;
-};
-
-exports.getPlateAppearancesForGame = function( gameId ) {
-	let game = exports.getGame( gameId );
-	if (!game) {
-		return null;
-	}
-	return game.plateAppearances;
-};
-
-exports.getPlateAppearancesForPlayerInGame = function( player_id, game_id ) {
-	let game = exports.getGame( game_id );
-	let player = exports.getPlayer( player_id );
-	if (!game || !player ) {
-		return null;
-	}
-	return game.plateAppearances.filter( pa => pa.player_id === player_id );
-};
-
-exports.getPlateAppearancesForPlayerOnTeam = function( player_id, team_id ) {
-	let team = exports.getTeam( team_id );
-	let plateAppearances = [];
-
-	if ( team.games ) {
-		team.games.forEach( game => {
-			if ( game.plateAppearances ) {
-				const plateAppearancesThisGame = game.plateAppearances.filter(pa => player_id === pa.player_id);
-				plateAppearances = plateAppearances.concat(plateAppearancesThisGame);
-			}
-		});
-	}
-	return plateAppearances;
-};
-
-exports.updatePlateAppearanceResult = function( plateAppearance, result ) {
-	plateAppearance.result = result;
-	exports.setState( LOCAL_STATE );
-};
-
-exports.updatePlateAppearanceLocation = function( plateAppearance, location ) {
-	plateAppearance.location = {};
-	plateAppearance.location.x = location[0];
-	plateAppearance.location.y = location[1];
-	exports.setState( LOCAL_STATE );
-};
-
-exports.updateLineup = function( lineup, player_id, position_index ) {
-	let ind = lineup.indexOf( player_id );
-	lineup.splice( ind, 1 );
-	lineup.splice( position_index, 0, player_id );
-	exports.setState( LOCAL_STATE );
-	return lineup;
-};
-
-exports.addTeam = function( team_name ) {
-	const id = exports.getNextTeamId();
-	let new_state = exports.getState();
-	let team = {
-		id: id,
-		name: team_name,
-		games: []
-	};
-	new_state.teams.push( team );
-	exports.setState( new_state );
-	return team;
-};
-
-exports.addPlayerToLineup = function( lineup, player_id ) {
-	lineup.push(player_id);
-	exports.setState( LOCAL_STATE );
-};
-
-exports.addPlayer = function( player_name, gender ) {
-	const id = exports.getNextPlayerId();
-	let new_state = exports.getState();
-	let player = {
-		id: id,
-		name: player_name,
-		gender: gender
-	};
-	new_state.players.push( player );
-	exports.setState( new_state );
-	return player;
-};
-
-exports.addGame = function( team_id, opposing_team_name ) {
-	let new_state = exports.getState();
-	const id = exports.getNextGameId();
-	const team = exports.getTeam( team_id, new_state );
-	let last_lineup = [];
-	if ( team.games.length ) {
-		let last_game = team.games[ team.games.length - 1 ];
-		last_lineup = last_game.lineup.slice();
-	}
-	let game = {
-		id: id,
-		opponent: opposing_team_name,
-		lineup: last_lineup,
-		date: (new Date().getTime()),
-		park: "Stazio",
-		scoreUs: 0,
-		scoreThem: 0,
-		lineupType: 2,
-		plateAppearances: []
-	};
-	team.games.push( game );
-	exports.setState( new_state );
-	return game;
-};
-
-exports.addPlateAppearance = function ( player_id, game_id, team_id ) {
-	let new_state = exports.getState();
-	let game = exports.getGame( game_id );
-	let plateAppearances = game.plateAppearances;
-	let plateAppearanceIndex = exports.getNextPlateAppearanceNumber( game_id );
-	let id = exports.getNextPlateAppearanceId();
-	let plateAppearance = {
-		id: id,
-		player_id: player_id,
-		plateAppearanceIndex: plateAppearanceIndex
-	};
-	plateAppearances.push( plateAppearance );
-	exports.setState( new_state );
-	return plateAppearance;
-};
-
-exports.removeTeam = function( team_id ) {
-	let new_state = exports.getState();
-	new_state.teams = new_state.teams.filter( ( team ) => {
-		return team.id !== team_id;
-	} );
-	exports.setState( new_state );
-};
-
-exports.removeGame = function( game_id, team_id ) {
-	let new_state = exports.getState();
-	let team = exports.getTeam( team_id );
-	var index = new_state.teams.indexOf(team);
-
-	team.games = team.games.filter( game => {
-		return game.id !== game_id;
-	} );
-
-	if (index > -1) {
-		new_state.teams[index] = team;
-	} else {
-		console.log("Game not found " + game_id);
-	}
-
-	exports.setState( new_state );
-};
-
-exports.removePlateAppearance = function ( plateAppearance_id, game_id ) {
-	let new_state = exports.getState();
-	let game = exports.getGame( game_id );
-
-	game.plateAppearances = game.plateAppearances.filter( pa => {
-		return pa.id !== plateAppearance_id;
-	} );
-
-	exports.setState( new_state );
-};
-
-
-exports.removePlayerFromLineup = function( lineup, player_id ) {
-	let index = lineup.indexOf( player_id );
-	lineup.splice(index, 1);
-	exports.setState( LOCAL_STATE );
-};
-
-exports.buildStatsObject = function( team_id, player_id ) {
-	let player = exports.getPlayer(player_id);
-
-	let stats = {};
-	stats.id = player.id;
-	stats.name = player.name;
-	stats.plateAppearances = 0;
-	stats.totalBasesByHit = 0;
-	stats.atBats = 0;
-	stats.hits = 0;
-	stats.doubles = 0;
-	stats.triples = 0;
-	stats.insideTheParkHR = 0;
-	stats.outsideTheParkHR = 0;
-	stats.reachedOnError = 0;
-	stats.walks = 0;
-	stats.fieldersChoice = 0;
-
-	let plateAppearances = exports.getPlateAppearancesForPlayerOnTeam(player_id, team_id);
-
-	plateAppearances.forEach( pa => {
-		if (pa.result) {
-			stats.plateAppearances++;
-
-			if(pa.result && !results.getNoAtBatResults().includes(pa.result)) {
-				stats.atBats++;
-			}
-			if(!results.getOutResults().includes(pa.result)) {
-				stats.hits++;
-			}
-
-			if (pa.result === "BB") {
-				stats.walks++; // Boo!
-			} else if (pa.result === "E") {
-				stats.reachedOnError++;
-			} else if (pa.result === "FC") {
-				stats.fieldersChoice++;
-			} else if (pa.result === "Out") {
-				// Intentionally blank
-			} else if (pa.result === "1B") {
-				stats.totalBasesByHit++;
-			} else if(pa.result === "2B") {
-				stats.doubles++;
-				stats.totalBasesByHit += 2;
-			} else if(pa.result === "3B") {
-				stats.triples++;
-				stats.totalBasesByHit += 3;
-			} else if(pa.result === "HRi") {
-				stats.insideTheParkHR++;
-				stats.totalBasesByHit += 4;
-			} else if(pa.result === "HRo") {
-				stats.outsideTheParkHR++;
-				stats.totalBasesByHit += 4;
-			}
-		}
-	});
-
-	if(stats.atBats === 0) {
-		stats.battingAverage = "-";
-		stats.sluggingPercentage = "-";
-	} else {
-		if(stats.hits === stats.atBats) {
-			stats.battingAverage = "1.000"
-		} else {
-			stats.battingAverage = (stats.hits/stats.atBats).toFixed(3).substr(1);
-		}
-		stats.sluggingPercentage = (stats.totalBasesByHit/stats.atBats).toFixed(3);
-	}
-
-	return stats;
 };
 
 window.state = exports;
