@@ -137,10 +137,10 @@ module.exports = class DatabaseCalls {
 				WHERE 
 				   teams.account_id = $1
 				ORDER BY
-				  team_id ASC,
-				  game_id ASC,
 				  teams.created_at ASC,
 				  games.created_at ASC,
+				  team_id ASC,
+				  game_id ASC,
 				  index ASC;
 			`, [accountId]);
 
