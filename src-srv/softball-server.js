@@ -147,7 +147,7 @@ module.exports = class SoftballServer {
 				console.log("Locked", locked, accountInformation);
 				if(locked) {
 					console.log("Account locked, retrying in 200ms", accountId);
-					await pause(200); // Do we need a random backoff?
+					await pause(200); // TODO: Do we need a random backoff?
 				}
 			} while (locked);
 			putAccountInfo(accountId, "locked", true);
@@ -219,6 +219,7 @@ module.exports = class SoftballServer {
 			req: {
 				md5: db8a5d3c57a8e5f7aa7b
 				patch: {...}
+				type: {full|any}
 			}
 
 			res: {
@@ -264,7 +265,7 @@ module.exports = class SoftballServer {
 
 					// Now we'll diff the patched version against our original copied version, this gives us a patch without any edits to deleted entries or additions of things that already exist
 					let cleanPatch = objectMerge.diff(stateCopy, state);
-					console.log("cleanPatch", JSON.stringify(cleanPatch, null, 2));
+					//console.log("cleanPatch", JSON.stringify(cleanPatch, null, 2));
 
 					// We can pass the clean patch to the database to persist
 					await this.databaseCalls.patchState( cleanPatch, accountId );
@@ -272,12 +273,7 @@ module.exports = class SoftballServer {
 
 					// Now we can derive the patch for this update (with the correct server ids) as well as the checksum of the most recent state and timestamp
 					let syncPatch = objectMerge.diff(stateCopy, state);
-					let checksum = hasher(state, { 
-						algorithm: 'md5',  
-						excludeValues: false, 
-						respectFunctionProperties: false, 
-						respectFunctionNames: false, 
-						respectType: false});
+					let checksum = getMd5(state);
 
 					// Update the checksum on the response object and the session
 				    responseData.md5 = checksum;
@@ -289,7 +285,7 @@ module.exports = class SoftballServer {
 					savedPatch.md5 = checksum;
 					stateRecentPatches.push(savedPatch);
 					putAccountInfo(accountId, "stateRecentPatches", stateRecentPatches);
-					console.log("savedPatch", savedPatch);
+					//console.log("savedPatch", savedPatch);
 				} else {
 					console.log("No updates from client", data.patch);
 				}
@@ -301,12 +297,7 @@ module.exports = class SoftballServer {
 				if(!stateMd5) {
 					console.log("No state hash stored in the session, getting state info");
 					state = state || await this.databaseCalls.getState( accountId );
-					let checksum = hasher(state, { 
-						algorithm: 'md5',  
-						excludeValues: false, 
-						respectFunctionProperties: false, 
-						respectFunctionNames: false, 
-						respectType: false} );
+					let checksum = getMd5(state);
 
 					putAccountInfo(accountId, "stateMd5", checksum);
 					stateMd5 = checksum;
@@ -324,13 +315,13 @@ module.exports = class SoftballServer {
 						return (foundMatch && v.md5 !== data.md5); // We want all patches after the matching md5
 					});
 
-					if( patches.length > 0) {
+					if( patches.length > 0 && data.type !== "full") {
 						// Yay, we have patches saved that will update the client to the current state, just send those.
-				  		console.log("patches found, sending those instead", stateRecentPatches);
+				  		console.log("patches found, sending those instead");//, stateRecentPatches);
 				  		let patchesOnly = patches.map( v => v.patch );
 				    	responseData.patches = patchesOnly;
 				  	} else {
-				    	// We don't have any patches saved in the session for this timestamp, just send the whole state.
+				    	// We don't have any patches saved in the session for this timestamp, or the client requested we send the whole state back.
 						console.log("no patches found, sending whole state");
 				    	responseData.base = state || await this.databaseCalls.getState( accountId );
 				  	}
@@ -344,21 +335,15 @@ module.exports = class SoftballServer {
 			}
 
 			// Woot, done
-			//console.log("Done ", JSON.stringify(responseData, null, 2));
 			if(responseData.base) {
-				let testCs = hasher(responseData.base, { 
-				algorithm: 'md5',  
-				excludeValues: false, 
-				respectFunctionProperties: false, 
-				respectFunctionNames: false, 
-				respectType: false} );
-				console.log("Done ", testCs, JSON.stringify(responseData.base, null, 2));
+				let testCs = getMd5(responseData.base);
+				//console.log("Done ", testCs, JSON.stringify(responseData.base, null, 2));
 			}
 			res.status( 200 ).send(responseData);
 
 			// Delete values if we are storing too many patches (Not the most refined technique, but it's something)
 			console.log("BEFORE", JSON.stringify(stateRecentPatches).length);
-			while(JSON.stringify(stateRecentPatches).length > 10000) {
+			while(JSON.stringify(stateRecentPatches).length > 20000) {
 				console.log("Erasing old patch data. New length: " + stateRecentPatches.length -1);
 				stateRecentPatches.splice(-1,1);
 			}
@@ -399,6 +384,18 @@ module.exports = class SoftballServer {
 		  return new Promise(function(resolve,reject){
 		    setTimeout(function(){resolve(ms);},ms);
 		  });
+		}
+
+		// Calculate the md5 checksum of the data and return the result as a base64 string
+		function getMd5(data) {
+			let checksum = hasher(data, { 
+				algorithm: 'md5',  
+				excludeValues: false, 
+				respectFunctionProperties: false, 
+				respectFunctionNames: false, 
+				respectType: false,
+				encoding: 'base64'} );
+			return checksum.slice(0, -2); // Remove trailing '=='
 		}
 
 		app.use( function( error, req, res, next ) {
