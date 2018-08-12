@@ -6,6 +6,7 @@ var argv = require( 'minimist' )( process.argv.slice( 2 ) );
 var fs = require( 'fs' );
 var css = require( './src/css' );
 var uglifycss = require( 'uglifycss' );
+const { hashElement } = require('folder-hash');
 
 var NODE_PATH = '';
 
@@ -60,7 +61,7 @@ var rules = {
 					console.error( 'ERROR', err );
 					process.exit( 0 );
 				}
-				_execute( cmd, cb );
+				_execute( cmd, updateServiceWorker(cb) );
 			} );
 		} );
 	},
@@ -205,4 +206,31 @@ function build_css( cb ) {
 			}
 		} );
 	} );
+}
+
+function updateServiceWorker(cb) {
+	console.log("Updating service-worker.js...");
+	
+	// https://www.npmjs.com/package/folder-hash
+	const options = {
+	    folders: { exclude: ['.*', 'node_modules', 'build'] },
+	    files: { exclude: ['service-worker.js'] }
+	};
+
+	hashElement('.', options).then(hashObj => {
+        console.log("Version hash:", hashObj.hash);
+		var contents = fs.readFileSync('service-worker-template.js', 'utf8');
+
+		const edit = 
+		"// This file has been automatically generated as part of the build process. Changes here will be overrwridden on the next build.\r\n" + 
+		"// Do not check this in to source control. If you'd like to make edits to the service worker edit service-worker-template.js instead.\r\n" +
+		"// Changes made in that file will be reflected here. \r\n" +
+		`let autoGenCacheName = 'softball-${hashObj.hash}'; \r\n`;
+
+		fs.writeFileSync('service-worker.js', edit + contents);
+		cb();
+    }).catch(error => {
+        return console.error('hashing failed:', error);
+    });
+
 }
