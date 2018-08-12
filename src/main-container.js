@@ -34,7 +34,7 @@ const qs = state.getQueryObj();
 // Smoother click and drag
 // Use svgs
 // Weirdness adding player mid-game
-// Scroll bars on desktop
+// Scroll bars on desktop 
 
 // Long names overlap back button on AP page
 
@@ -47,13 +47,17 @@ module.exports = class MainContainer extends expose.Component {
 		if ('serviceWorker' in navigator) {
 			// When a new service worker is available, re-load the page
 			navigator.serviceWorker.oncontrollerchange = function(controllerchangeevent) {
-				//dialog.show_notification(
-				//	'Softball.app has been updated, this page must be refreshed'
-				//,
-				//	function() {
-						window.location.reload();
-				//	}
-				//); hhhh
+				if(document.hidden) {
+					dialog.show_notification(
+						'Softball.app has been updated, this page will be automatically refreshed. You will not lose any data you\'ve entered.'
+					,
+						function() {
+							window.location.reload();
+						}
+					);
+				} else {
+					window.location.reload();
+				}
 			};
 
 			// The actual registration
