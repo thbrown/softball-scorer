@@ -17,7 +17,7 @@ exports.getServerUrl = function(path) {
 };
 
 exports.sync = async function(fullSync) {
-	console.log("Sync requested!", fullSync ? "full" : "patchOnly");
+	console.log("Sync requested", fullSync ? "full" : "patchOnly");
 
 	// TODO: do we want to cancel any in_progress syncs?
 
@@ -31,8 +31,9 @@ exports.sync = async function(fullSync) {
 	// Get the patch ready to send to the server
 	let ancestorChecksum = state.getAncestorStateChecksum() || "";
 	let body = {
-		md5: (fullSync ? "-" : ancestorChecksum), // TODO: use base 64 to save space? // TODO: won't "-" then be rememebred on the server??
-		patch: objectMerge.diff(state.getAncestorState(), localState)
+		md5: ancestorChecksum,
+		patch: objectMerge.diff(state.getAncestorState(), localState),
+		type: (fullSync ? "full" : "any")
 	}
 
 	// Ship it
@@ -74,13 +75,7 @@ exports.sync = async function(fullSync) {
 		// If the server state changed, verify the ancesor state (after updates) has the same hash as the server state
 		if(serverState.base || serverState.patches) {
 			// Verify checksum
-			let ancestorHash = hasher(state.getAncestorState(), { 
-					algorithm: 'md5',  
-					excludeValues: false, 
-					respectFunctionProperties: false, 
-					respectFunctionNames: false, 
-					respectType: false
-				} );
+			let ancestorHash = getMd5(state.getAncestorState());
 			console.log("CLIENT: ", ancestorHash, " SERVER: ", serverState.md5);
 			if (ancestorHash !== serverState.md5) {
 				if(fullSync) {
@@ -98,22 +93,8 @@ exports.sync = async function(fullSync) {
 					console.log(state.getAncestorState(),serverState.base);
 					console.log(objectMerge.diff(state.getAncestorState(),serverState.base));
 
-					let A =	hasher(state.getAncestorState(), { 
-						algorithm: 'md5',  
-						excludeValues: false, 
-						respectFunctionProperties: false, 
-						respectFunctionNames: false, 
-						respectType: false
-					} );
-
-					let B =	hasher(serverState.base, { 
-						algorithm: 'md5',  
-						excludeValues: false, 
-						respectFunctionProperties: false, 
-						respectFunctionNames: false, 
-						respectType: false
-					} );
-
+					let A =	getMd5(state.getAncestorState());
+					let B =	getMd5(serverState.base);
 					console.log(A,B);
 
 					// Set the state back to what it was when we first did a sync (we might lose some intermediate changes here, but it't better then syncing bad state)
@@ -129,7 +110,7 @@ exports.sync = async function(fullSync) {
 		// Copy
 		let newLocalState = JSON.parse(JSON.stringify(state.getAncestorState()));
 
-		// Apply any changes that were made during the request to the new local state (I'm guessing this will be a no-op most times)
+		// Apply any changes that were made during the request to the new local state (Presumably this will be a no-op most times)
 		objectMerge.patch(newLocalState, localChangesDuringRequest, true);
 		
 		// Set local state to a copy of ancestor state
@@ -149,9 +130,7 @@ exports.getLocalState = function() {
 
 exports.setLocalState = function( newState ) {
 	LOCAL_STATE = newState;
-	expose.set_state( 'main', {
-		render: true
-	} );
+	reRender();
 };
 
 exports.getAncestorState = function() {
@@ -160,20 +139,10 @@ exports.getAncestorState = function() {
 
 exports.setAncestorState = function( s ) {
 	ANCESTOR_STATE = s;
-	expose.set_state( 'main', {
-		render: true
-	} );
 };
 
 exports.getAncestorStateChecksum = function() {
-	let checksum = hasher(ANCESTOR_STATE, { 
-					algorithm: 'md5',  
-					excludeValues: false, 
-					respectFunctionProperties: false, 
-					respectFunctionNames: false, 
-					respectType: false
-				});
-	return checksum;
+	return getMd5(ANCESTOR_STATE);
 }
 
 // TEAM
@@ -432,43 +401,22 @@ function getNextId() {
 	return uuidv4();
 };
 
+function getMd5(data) {
+	let checksum = hasher(data, { 
+		algorithm: 'md5',  
+		excludeValues: false, 
+		respectFunctionProperties: false, 
+		respectFunctionNames: false, 
+		respectType: false,
+		encoding: 'base64'} );
+	return checksum.slice(0, -2); // Remove trailing '=='
+}
+
 // CANDIDATES FOR REMOVAL
 
 exports.saveStateToLocalStorage = function() {
 	localStorage.setItem("LOCAL_STATE", JSON.stringify(LOCAL_STATE));
 	localStorage.setItem("ANCESTOR_STATE", JSON.stringify(ANCESTOR_STATE));
-};
-
-exports.merge = function(mine, ancestor, yours) {
-
-	let myChangesOnly = objectMerge.diff(ancestor, mine);
-	let yourChangesOnly = objectMerge.diff(ancestor, yours);
-	if(!isEmpty(myChangesOnly) && !isEmpty(yourChangesOnly)) {
-		let myChangesWin = objectMerge.diff3(mine, ancestor, yours);
-		let yourChangesWin = objectMerge.diff3(yours, ancestor, mine);
-		if(JSON.stringify(myChangesWin) === JSON.stringify(yourChangesWin)) { // Does this need to be stable to prevent different orderings from returning false
-			console.log("Remote and local changes merged (No Conflicts)");
-			console.log(JSON.stringify(myChangesWin,null,2));
-			let myChangesWinResult = objectMerge.patch(ancestor,myChangesWin);
-			return myChangesWinResult;
-		} else {
-			console.log(JSON.stringify(myChangesWin,null,2));
-			console.log(JSON.stringify(yourChangesWin,null,2));
-			console.log("Conflicts! Local changes and remote changes were detected but not merged due to conflicts");
-			throw "Conflicts detected";
-		}
-	} else if(!isEmpty(myChangesOnly)) {
-		console.log("Local changes merged");
-		console.log(JSON.stringify(myChangesOnly,null,2));
-		return objectMerge.patch(ancestor,myChangesOnly);
-	} else if(!isEmpty(yourChangesOnly)) {
-		console.log("Remote changes merged");
-		console.log(JSON.stringify(yourChangesOnly,null,2));
-		return objectMerge.patch(ancestor,yourChangesOnly);
-	} else {
-		console.log("No changes detected");
-		return ancestor;
-	}
 };
 
 exports.getQueryObj = function() {
