@@ -84,14 +84,11 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
 				}
 				printInsertStatementsFromPatch(insertObject, parents, result, accountId);
 			} else if(op === "ReOrder") {
-				let param1 = value.param1.substring(1, value.param1.length-1);
-				let param2 = value.param2.substring(1, value.param2.length-1);
-
-				let oldOrder = param1.split(',');
-				let newOrder = param2.split(',');
+				let oldOrder = JSON.parse(value.param1);
+				let newOrder = JSON.parse(value.param2);
 
 				if(applicableTable != "players_games") {
-					throw "Something unexpected was reordered!" + applicableTable; // The only thing that should be re-orederable is the lineup, other things are all ordered by primary key
+					throw "Something unexpected was reordered!" + applicableTable; // The only thing that should be re-orederable is the lineup, other things are all ordered by primary key. TODO: Revisit. Not sure this it true w/ uuid keys
 				}
 
 				let reOrderQuery = 
