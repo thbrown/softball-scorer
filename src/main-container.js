@@ -6,6 +6,7 @@ const DOM = require( 'react-dom-factories' );
 const css = require( 'css' );
 
 const state = require( 'state' );
+const dialog = require( 'dialog' );
 const CardGame = require( 'card-game' );
 const CardGameEdit = require( 'card-game-edit' );
 const CardPlateAppearance = require( 'card-plate-appearance' );
@@ -41,6 +42,26 @@ module.exports = class MainContainer extends expose.Component {
 	constructor( props ) {
 		super( props );
 		this.expose( 'main' );
+
+		// Register a service worker to support offline experience and quick subsequent page loads
+		if ('serviceWorker' in navigator) {
+			// When a new service worker is available, re-load the page
+			navigator.serviceWorker.oncontrollerchange = function(controllerchangeevent) {
+				//dialog.show_notification(
+				//	'Softball.app has been updated, this page must be refreshed'
+				//,
+				//	function() {
+						window.location.reload();
+				//	}
+				//); hhhh
+			};
+
+			// The actual registration
+			window.addEventListener('load', function() {
+				navigator.serviceWorker.register('/service-worker');
+			});
+		}
+
 		// Shouldn't these all be renamed as ids e.g. teamId, gameId, etc.
 		this.state = {
 			render: true,

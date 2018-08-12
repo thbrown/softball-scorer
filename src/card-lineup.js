@@ -317,7 +317,7 @@ module.exports = class CardLineup extends expose.Component {
 		if(editable === FULL_EDIT) {
 			elems.push( DOM.img( {
 				key: 'del',
-				src: 'assets/ic_close_white_24dp_1x.png',
+				src: 'assets/remove.svg',
 				className: 'delete-button',
 				style: {
 					paddingTop: '6px',

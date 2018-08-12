@@ -3,3 +3,4 @@ build/main.js
 build/vendor.js
 assets/main.css
 certs/
+service-worker.js

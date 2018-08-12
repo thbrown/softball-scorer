@@ -20,14 +20,12 @@ module.exports = class CardAuth extends expose.Component {
 		};
 
 		this.handleSignupClick = function() {
-			console.log("Signup");
 			expose.set_state( 'main', {
 				page: 'Signup'
 			} );
 		};
 
 		this.handlePasswordResetClick = function() {
-			console.log("Password reset");
 			// TODO: pre-populate dialog with the email address that was already entered
 			// let email = document.getElementById( 'email' );
 			// email.value
@@ -161,7 +159,7 @@ module.exports = class CardAuth extends expose.Component {
 					className: 'card-title'
 				},
 				DOM.img( {
-					src: 'assets/ic_arrow_back_white_36dp_1x.png',
+					src: 'assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 				} ),

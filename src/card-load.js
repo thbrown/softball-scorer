@@ -157,7 +157,7 @@ module.exports = class CardLoad extends expose.Component {
 					className: 'card-title'
 				},
 				DOM.img( {
-					src: 'assets/ic_arrow_back_white_36dp_1x.png',
+					src: 'assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 				} ),
