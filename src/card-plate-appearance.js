@@ -216,7 +216,10 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			DOM.img( {
 				draggable: true,
 				src: 'assets/delete.svg',
-				onClick: this.handleDelete
+				onClick: this.handleDelete,
+				style: {
+					width: '75px'
+				}
 			} )
 		);
 	}

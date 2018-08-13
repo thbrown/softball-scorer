@@ -341,7 +341,7 @@ module.exports = class SoftballServer {
 			}
 			res.status( 200 ).send(responseData);
 
-			// Delete values if we are storing too many patches (Not the most refined technique, but it's something)
+			// Delete values if we are storing too many patches (Not the most refined technique, but it's something) 
 			console.log("BEFORE", JSON.stringify(stateRecentPatches).length);
 			while(JSON.stringify(stateRecentPatches).length > 20000) {
 				console.log("Erasing old patch data. New length: " + stateRecentPatches.length -1);

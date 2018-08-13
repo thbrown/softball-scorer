@@ -2,9 +2,10 @@
 
 const expose = require( 'expose' );
 const objectMerge = require( '../object-merge.js' );
-const hasher = require( 'object-hash' );
+const network = require( 'network.js' )
 const results = require( 'plate-appearance-results.js' );
 
+const hasher = require( 'object-hash' );
 const uuidv4 = require('uuid/v4');
 
 const INITIAL_STATE = {"teams":[], "players": []};
@@ -20,6 +21,9 @@ exports.sync = async function(fullSync) {
 	console.log("Sync requested", fullSync ? "full" : "patchOnly");
 
 	// TODO: do we want to cancel any in_progress syncs?
+
+	// Merge local storage state with in-memory state first
+	exports.loadAppDataFromLocalStorage();
 
 	// Save a deep copy of the local state
 	let localStateCopy = JSON.parse(JSON.stringify(state.getLocalState()));
@@ -37,14 +41,7 @@ exports.sync = async function(fullSync) {
 	}
 
 	// Ship it
-	let response = await fetch(state.getServerUrl('sync'), {
-		method: 'POST',
-		credentials: 'same-origin',
-	    headers: {
-	      'content-type': 'application/json'
-	    },
-	    body: JSON.stringify(body),
-	});
+	let response = await network.request('POST','sync',JSON.stringify(body));
 
 	if(response.status === 200) {
 		let serverState = await response.json();
@@ -88,8 +85,8 @@ exports.sync = async function(fullSync) {
 					state.setAncestorState(ancestorStateCopy);
 					return;
 				} else {
-					// Something bad happened, repeat the request with a invalid checksum so we'll get the whole state back
-					console.log("Something went wrong -- Attempting hard sync");
+					// Something bad happened, repeat the request with type "full" so we'll get the whole state back
+					console.log("Something went wrong -- Attempting full sync");
 					console.log(state.getAncestorState(),serverState.base);
 					console.log(objectMerge.diff(state.getAncestorState(),serverState.base));
 
@@ -113,8 +110,11 @@ exports.sync = async function(fullSync) {
 		// Apply any changes that were made during the request to the new local state (Presumably this will be a no-op most times)
 		objectMerge.patch(newLocalState, localChangesDuringRequest, true);
 		
-		// Set local state to a copy of ancestor state
-		state.setLocalState(newLocalState);
+		// Set local state to a copy of ancestor state (w/ localChangesDuringRequest applied)
+		exports.setLocalState(newLocalState);
+
+		// Write the most updated data to local storage
+		exports.saveAppDataToLocalStorage();
 	}
 	return response.status;
 }
@@ -183,8 +183,6 @@ exports.removeTeam = function( team_id ) {
 };
 
 // PLAYER
-
-
 
 exports.getPlayer = function( player_id, state ) {
 	return ( state || LOCAL_STATE ).players.reduce( ( prev, curr ) => {
@@ -380,12 +378,46 @@ exports.removePlateAppearance = function ( plateAppearance_id, game_id ) {
 	reRender();
 };
 
+// LOCAL STORAGE
+
+exports.saveAppDataToLocalStorage = function() {
+	if (typeof(Storage) !== "undefined") {
+		// Changes from other tabs should have been loaded when window/tab became visible
+		// So, we can just write directly to local storage
+		localStorage.setItem("SCHEMA_VERSION", 1);
+		localStorage.setItem("LOCAL_STATE", JSON.stringify(LOCAL_STATE));
+		localStorage.setItem("ANCESTOR_STATE", JSON.stringify(ANCESTOR_STATE));
+		console.log("Saved state to ls ");
+	}
+};
+
+exports.loadAppDataFromLocalStorage = function() {
+	if (typeof(Storage) !== "undefined") {
+		if(localStorage.getItem("SCHEMA_VERSION") !== "1") {
+			// TODO: some kind of schema migration
+			// For now we'll just blow away any old local storage
+			exports.clearLocalStorage();
+			exports.saveAppDataToLocalStorage();
+			console.log("Invalid localStorage data was removed");
+		}
+		LOCAL_STATE = JSON.parse(localStorage.getItem("LOCAL_STATE"));
+		ANCESTOR_STATE = JSON.parse(localStorage.getItem("ANCESTOR_STATE"));
+	}
+	reRender();
+}
+
+exports.clearLocalStorage = function() {
+	console.log("Clearing ls ");
+	localStorage.clear();
+}
+
 // HELPERS
 
 function reRender() {
 	expose.set_state( 'main', {
 		render: true
 	} );
+	exports.saveAppDataToLocalStorage();
 }
 
 function isEmpty(obj) {
@@ -413,11 +445,6 @@ function getMd5(data) {
 }
 
 // CANDIDATES FOR REMOVAL
-
-exports.saveStateToLocalStorage = function() {
-	localStorage.setItem("LOCAL_STATE", JSON.stringify(LOCAL_STATE));
-	localStorage.setItem("ANCESTOR_STATE", JSON.stringify(ANCESTOR_STATE));
-};
 
 exports.getQueryObj = function() {
 	let queryString = window.location.search || '';

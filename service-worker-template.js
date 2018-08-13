@@ -23,6 +23,7 @@ self.addEventListener('install', function(event) {
           '/assets/back.svg',
           '/assets/edit.svg',
           '/assets/cancel.svg',
+          '/assets/delete.svg',
           '/assets/drag-handle.png',
           '/assets/baseball-hit.svg',
           '/assets/baseball-out.svg',

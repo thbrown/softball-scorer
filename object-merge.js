@@ -53,7 +53,7 @@ let diffInternal = function(mine, theirs, path, result) {
 			addToResult(result, path, undefined ,"Edit", mine, theirs);
 		}
 	} else {
-		throw "I don't know how to diff objects of different types!" + typeof mine + " " + typeof theirs;
+		throw "I don't know how to diff objects of different types! " + typeof mine + " " + typeof theirs;
 	}
 	return result;
 }
