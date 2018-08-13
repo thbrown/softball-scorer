@@ -89,6 +89,7 @@ module.exports = class SoftballServer {
 		app.use( '/assets', express.static( path.join( __dirname + '/../assets' ).normalize() ) );
 		// Service worker must be kept at the project root, otherwise it will not be able to cache resources above it
 		app.use( '/service-worker', express.static( path.join( __dirname + '/../service-worker.js' ).normalize() ) );
+		app.use( '/manifest', express.static( path.join( __dirname + '/../manifest.json' ).normalize() ) );
 		app.use( bodyParser.json( {
 			limit: '3mb',
 			type: ['json', 'application/json', 'application/csp-report']
