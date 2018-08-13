@@ -23,20 +23,18 @@ module.exports = class CardTeamEdit extends expose.Component {
 		}
 
 		this.handleBackClick = function() {
+			state.replaceTeam( props.team.id, teamCopy );
 			returnToTeamsListPage();
 		};
 
 		this.handleConfirmClick = function() {
+			state.replaceTeam( props.team.id, teamCopy );
 			returnToTeamsListPage();
 		};
 
 		this.handleCancelClick = function() {
 			if(props.isNew) {
 				state.removeTeam( props.team.id );
-				returnToTeamsListPage();
-			} else {
-				console.log("Replacing ", props.team.id, teamCopy);
-				state.replaceTeam( props.team.id, teamCopy );	
 			}
 			returnToTeamsListPage();
 		};
@@ -50,7 +48,7 @@ module.exports = class CardTeamEdit extends expose.Component {
 
 		this.handleNameChange = function() {
 			let newValue = document.getElementById( 'name' ).value;
-			props.team.name = newValue;
+			teamCopy.name = newValue;
 		}
 	}
 

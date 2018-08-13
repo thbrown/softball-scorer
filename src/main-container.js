@@ -66,7 +66,8 @@ module.exports = class MainContainer extends expose.Component {
 			});
 		}
 
-		// Shouldn't these all be renamed as ids e.g. teamId, gameId, etc.
+	    // TODO: We are conflating react state with app data, we should split AppData into its own class
+		// TODO: Shouldn't these all be renamed as ids e.g. teamId, gameId, etc.
 		this.state = {
 			render: true,
 			page: 'Loading',
@@ -78,10 +79,6 @@ module.exports = class MainContainer extends expose.Component {
 	}
 
 	renderCard( card_name ){
-		if ( card_name !== 'Loading' ) {
-			state.saveStateToLocalStorage();
-		}
-
 		if( card_name === 'Loading' ) {
 			return React.createElement( CardLoading );
 		} else if( card_name === 'Menu' ) {
@@ -100,7 +97,6 @@ module.exports = class MainContainer extends expose.Component {
 		} else if( card_name === 'TeamEdit' ) {
 			let team = state.getTeam( this.state.team );
 			let isNew = this.state.isNew;
-			console.log(this.state.isNew);
 			return React.createElement( CardTeamEdit, {
 				team: team,
 				isNew: isNew

@@ -61,7 +61,13 @@ var rules = {
 					console.error( 'ERROR', err );
 					process.exit( 0 );
 				}
-				_execute( cmd, updateServiceWorker(cb) );
+				_execute( cmd,  ( err ) => {
+					if ( err ) {
+						console.error( 'ERROR', err );
+						process.exit( 0 );
+					}
+					updateServiceWorker(cb);
+				} );
 			} );
 		} );
 	},
@@ -221,6 +227,7 @@ function updateServiceWorker(cb) {
         console.log("Version hash:", hashObj.hash);
 		var contents = fs.readFileSync('service-worker-template.js', 'utf8');
 
+		// TODO: Minify this
 		const edit = 
 		"// This file has been automatically generated as part of the build process. Changes here will be overrwridden on the next build.\r\n" + 
 		"// Do not check this in to source control. If you'd like to make edits to the service worker edit service-worker-template.js instead.\r\n" +
@@ -230,7 +237,8 @@ function updateServiceWorker(cb) {
 		fs.writeFileSync('service-worker.js', edit + contents);
 		cb();
     }).catch(error => {
-        return console.error('hashing failed:', error);
+        console.error('hashing failed:', error);
+        process.exit( 0 );
     });
 
 }

@@ -47,6 +47,9 @@ module.exports = class CardAuth extends expose.Component {
 				xhr.onreadystatechange = async function() {
 					if ( xhr.readyState === 4 ) {
 						if ( xhr.status === 200 ) {
+							// TODO: don't clear local storage if the user re-logs into the same account (for example, if the user's session was invalidated while
+							// the user was in offline mode making changes and now wants to re-authenticate)
+							state.clearLocalStorage();
 							state.clearState();
 							let status = await state.sync();
 							if( status === 200 ) {
