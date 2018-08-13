@@ -1,0 +1,10 @@
+{
+  "short_name": "Softball.app",
+  "name": "Softball lineup simulator",
+  "icons": [],
+  "start_url": "/?source=applaunch",
+  "background_color": "#087f23",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#087f23"
+}

@@ -101,8 +101,7 @@ module.exports = class DatabaseCalls {
 				SELECT 
 				  id as id,
 				  name as name,
-				  gender as gender,
-				  picture as picture
+				  gender as gender
 				FROM players
 				WHERE account_id = $1
 				ORDER BY created_at ASC
