@@ -46,10 +46,12 @@ module.exports = class CardAtBat extends expose.Component {
 			let indicator = null;
 			if ( value.location && x && y ) {
 				let image = results.getOutResults().includes(value.result) ?  'assets/baseball-out.svg' : 'assets/baseball-hit.svg';
+				let alt = results.getOutResults().includes(value.result) ?  'out' : 'hitg';
 				indicators.push( 
 					DOM.img( {
 						key: value.id,
 						src: image,
+						alt: alt,
 						style: {
 							position: 'absolute',
 							width: '20px',

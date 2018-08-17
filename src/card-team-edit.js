@@ -67,6 +67,7 @@ module.exports = class CardTeamEdit extends expose.Component {
 			},
 			DOM.img( {
 				src: 'assets/check.svg',
+				alt: 'back'
 			} ),
 			'Save')
 		);
