@@ -16,9 +16,9 @@ self.addEventListener('install', function(event) {
       return cache.addAll(
         [
           '/',
-          '/assets/main.css',
           '/build/vendor.js',
           '/build/main.js',
+          '/assets/main.css',
           '/assets/check.svg',
           '/assets/back.svg',
           '/assets/edit.svg',
@@ -35,7 +35,7 @@ self.addEventListener('install', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
-  // Try to get resource out of the cache, if it's not there go to the network.
+  // Try to get resource out of the cache, if it's not there go to the network. 
   event.respondWith(
     caches.match(event.request).then(function(response) {
       return response || fetch(event.request);
@@ -51,7 +51,7 @@ self.addEventListener('activate', function(event) {
       return Promise.all(
         cacheNames.filter(function(installedCacheName) {
           if(installedCacheName !== cacheName) {
-            console.log("Deleting cache " + installedCacheName + " and replacing it with " + cacheName);
+            console.log(`[ServiceWorker] Deleting cache ${installedCacheName} and replacing it with ${cacheName}`);
             return true;
           }
         }).map(function(cacheName) {

@@ -203,11 +203,13 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			alt: 'ball',
 			style: {
 				width: '75px',
-				height: '75px'
+				height: '75px',
+				touchAction: 'none',
+				transform: "translate(0px, 0px)"
 			}
 		} ) );
 	}
-
+﻿﻿﻿
 	renderDeleteButton() {
 		return DOM.div( {
 				id: 'ballfield',

@@ -38,6 +38,10 @@ const qs = state.getQueryObj();
 
 // Long names overlap back button on AP page
 
+// Team, Player, and game ordering
+// Separate urls
+// Delete account/data
+
 module.exports = class MainContainer extends expose.Component {
 	constructor( props ) {
 		super( props );
@@ -67,7 +71,7 @@ module.exports = class MainContainer extends expose.Component {
 		}
 
 	    // TODO: We are conflating react state with app data, we should split AppData into its own class
-		// TODO: Shouldn't these all be renamed as ids e.g. teamId, gameId, etc.
+		// TODO: Shouldn't these all be renamed as ids e.g. teamId, gameId, etc. 
 		this.state = {
 			render: true,
 			page: 'Loading',
