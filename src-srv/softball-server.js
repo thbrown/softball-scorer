@@ -78,6 +78,7 @@ module.exports = class SoftballServer {
 		app.use(helmet.contentSecurityPolicy({
 			directives: {
 				defaultSrc: ["'self'"], // Only allow scripts/style/fonts/etc from this domain
+				styleSrc: ["'self'","'sha256-eeE4BsGQZBvwOOvyAnxzD6PBzhU/5IfP4NdPMywc3VE='"], // For react draggable components
 				// TODO: add frame-src for youtube walk up songs
 				reportUri: '/report-violation',
 			},
