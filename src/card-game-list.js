@@ -76,13 +76,15 @@ module.exports = class CardGameList extends expose.Component {
 						src: 'assets/edit.svg',
 						alt: 'edit',
 						className: 'delete-button',
-						onClick: this.handleEditClick.bind( this, game )
+						onClick: this.handleEditClick.bind( this, game ),
+						alt: 'edit'
 					} ),
 					DOM.img( {
 						src: 'assets/delete.svg',
 						alt: 'delete',
 						className: 'delete-button',
-						onClick: this.handleDeleteClick.bind( this, game )
+						onClick: this.handleDeleteClick.bind( this, game ),
+						alt: 'delete'
 					} )
 				)
 			);

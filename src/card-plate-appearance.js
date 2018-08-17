@@ -151,6 +151,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 					DOM.img( {
 						key: value.id,
 						src: imageSrc,
+						alt: 'previous result',
 						style: {
 							position: 'absolute',
 							width: '20px',
@@ -176,6 +177,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			DOM.img( {
 				draggable: true,
 				src: 'assets/ballfield2.png',
+				alt: 'ballfield',
 				style: {
 					width: '100%'
 				}
@@ -198,6 +200,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			id: 'baseball',
 			draggable: false,
 			src: imageSrcForCurrentPa,
+			alt: 'ball',
 			style: {
 				width: '75px',
 				height: '75px'
@@ -217,6 +220,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 				draggable: true,
 				src: 'assets/delete.svg',
 				onClick: this.handleDelete,
+				alt: 'delete',
 				style: {
 					width: '75px'
 				}
@@ -240,6 +244,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 					src: 'assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
+					alt: 'back'
 				} ),
 				DOM.div( {
 					className: 'preventOverflow',

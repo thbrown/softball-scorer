@@ -69,7 +69,8 @@ module.exports = class CardTeamList extends expose.Component {
 						src: 'assets/edit.svg',
 						alt: 'edit',
 						className: 'delete-button', // TODO: more generic css
-						onClick: this.handleEditClick.bind( this, team )
+						onClick: this.handleEditClick.bind( this, team ),
+						alt: 'edit'
 					} )
 				)
 			);
@@ -98,6 +99,7 @@ module.exports = class CardTeamList extends expose.Component {
 					src: 'assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
+					alt: 'back'
 				} ),
 				DOM.div( {
 					style: {
