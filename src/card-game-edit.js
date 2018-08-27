@@ -107,9 +107,7 @@ module.exports = class CardGameEdit extends expose.Component {
 					alt: 'back'
 				} ),
 				DOM.div( {
-					style: {
-						justifyContent: 'space-between',
-					}
+					className: 'card-title-text-with-arrow',
 				}, 'Edit Game' ),
 			),
 			this.renderGameEdit()

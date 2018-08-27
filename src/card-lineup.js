@@ -301,13 +301,13 @@ module.exports = class CardLineup extends expose.Component {
 			}, DOM.img( {
 				src: 'assets/drag-handle.png',
 				style: {
-					height: '40px'
+					height: '24px'
 				}
 			} ) ) );
 		}
 		elems.push( DOM.div( {
 			key: 'name',
-			className: 'player-name preventOverflow',
+			className: 'player-name prevent-overflow',
 		}, player.name ) );
 		elems.push( DOM.div( {
 			key: 'boxes',
@@ -320,7 +320,9 @@ module.exports = class CardLineup extends expose.Component {
 				src: 'assets/remove.svg',
 				className: 'delete-button',
 				style: {
-					paddingTop: '6px',
+					paddingTop: '20px',
+					paddingBottom: '20px',
+					marginLeft: '0',
 				},
 				onClick: this.handleDeleteClick.bind( this, player )
 			} ) );

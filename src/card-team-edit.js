@@ -157,9 +157,7 @@ module.exports = class CardTeamEdit extends expose.Component {
 					onClick: this.handleBackClick,
 				} ),
 				DOM.div( {
-					style: {
-						justifyContent: 'space-between',
-					}
+					className: 'prevent-overflow card-title-text-with-arrow',
 				}, 'Edit Team' ),
 			),
 			this.renderTeamEdit()
