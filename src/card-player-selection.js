@@ -68,8 +68,7 @@ module.exports = class CardPlayerSelection extends expose.Component {
 					alt: 'back'
 				}),
 				DOM.div( {
-					style: {
-					}
+					className: 'prevent-overflow card-title-text-with-arrow',
 				}, 'Player' )
 			),
 			this.renderPlayerSelection(),

@@ -163,8 +163,7 @@ module.exports = class CardLoad extends expose.Component {
 					alt: 'back'
 				} ),
 				DOM.div( {
-					style: {
-					}
+					className: 'card-title-text-with-arrow',
 				}, 'Load from File' )
 			),
 			this.renderLoadPage()
