@@ -21,7 +21,6 @@ const CardSpray = require( 'card-spray' );
 const CardSignup = require( 'card-signup' );
 const CardLoad = require( 'card-load' );
 const CardPasswordReset = require( 'card-password-reset' );
-const CardVerify = require( 'card-verify' );
 
 const qs = state.getQueryObj();
 
