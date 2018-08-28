@@ -273,8 +273,8 @@ let databaseCalls = class DatabaseCalls {
 	}
 
 	// Login with any user name and the password "pizza"
-	async getAccountIdAndPassword( email ) {
-		return {id:1, password:'$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2'}
+	async getAccountFromEmail( email ) {
+		return {id:1, password_hash:'$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2'}
 	}
 
 	getState( account_id ) {

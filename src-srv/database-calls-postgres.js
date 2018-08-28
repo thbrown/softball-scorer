@@ -6,14 +6,14 @@ const HandledError = require( './handled-error.js' )
 
 module.exports = class DatabaseCalls {
 
-	constructor(url, user, password) {
+	constructor(url, port, user, password) {
 		console.log( 'Connecting to pg', url );
 		this.pool = new Pool( {
 			user: user,
 			host: url,
 			database: 'Softball',
 			password: password,
-			port: 5432,
+			port: port,
 		} );
 
 		// Test connection

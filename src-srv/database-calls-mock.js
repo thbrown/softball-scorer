@@ -15,7 +15,7 @@ let databaseCalls = class DatabaseCalls {
 		this.accountInfo = info;
 	}
 
-	getAccountIdAndPassword( email ) {
+	getAccountFromEmail( email ) {
 		return this.accountInfo
 	}
 
