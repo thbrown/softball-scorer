@@ -66,16 +66,18 @@ module.exports = class CardGameList extends expose.Component {
 				}
 			},
 				DOM.div( {					
-					className: 'preventOverflow'
+					className: 'prevent-overflow'
 				}, 'Vs. ' + game.opponent ),
 				DOM.div( {
 					style: {
-						display: 'flex'
 					}},
 					DOM.img( {
 						src: '/assets/edit.svg',
 						alt: 'edit',
 						className: 'delete-button',
+						style: {
+							marginRight: '12px',
+						},
 						onClick: this.handleEditClick.bind( this, game ),
 						alt: 'edit'
 					} ),
