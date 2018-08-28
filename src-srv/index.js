@@ -19,12 +19,12 @@ process.on( 'exit', function() {
 } );
 
 const pghost = config.database.host;
-const pghport = config.database.port;
+const pgport = config.database.port;
 const username = config.database.username;
 const password = config.database.password;
 
 let databaseCalls;
-if ( pghost && pghport && user && password) {
+if ( pghost && pgport && username && password) {
 	databaseCalls = new DatabaseCallsPostgres( pghost, pgport, username, password );
 } else {
 	console.log( 'Warning: running without database connection' );
