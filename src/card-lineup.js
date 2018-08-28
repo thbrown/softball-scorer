@@ -299,7 +299,7 @@ module.exports = class CardLineup extends expose.Component {
 				key: 'handle',
 				className: 'player-drag-handle',
 			}, DOM.img( {
-				src: 'assets/drag-handle.png',
+				src: '/assets/drag-handle.png',
 				style: {
 					height: '40px'
 				}
@@ -317,7 +317,7 @@ module.exports = class CardLineup extends expose.Component {
 		if(editable === FULL_EDIT) {
 			elems.push( DOM.img( {
 				key: 'del',
-				src: 'assets/remove.svg',
+				src: '/assets/remove.svg',
 				className: 'delete-button',
 				style: {
 					paddingTop: '6px',

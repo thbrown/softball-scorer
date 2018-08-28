@@ -4,6 +4,7 @@ const expose = require( './expose' );
 const DOM = require( 'react-dom-factories' );
 const css = require( 'css' );
 
+const network = require( 'network.js' )
 const dialog = require( 'dialog' );
 const state = require( 'state' );
 
@@ -29,48 +30,64 @@ module.exports = class CardAuth extends expose.Component {
 			// TODO: pre-populate dialog with the email address that was already entered
 			// let email = document.getElementById( 'email' );
 			// email.value
-			dialog.show_input( 'To reset your password, please enter your email address', ( email ) => {
-				dialog.show_notification(
-					'Password reset email has been sent to the email provided if an associated account was found (jk, the back end is not implemented yet).'
-				);
+			dialog.show_input( 'To reset your password, please enter your email address', async ( email ) => {
+				console.log("Email", email);
+				if(email === undefined || email.trim().length === 0) {
+					dialog.show_notification(
+						'You must specify an email.'
+					);
+					return;
+				}
+
+				let body = JSON.stringify({
+					email: email
+				})
+
+				// TODO: loading icon
+				let response = await network.request("POST", 'account/reset-password-request', body);
+				if(response.status === 204) {
+					dialog.show_notification(
+						'Password reset email has been sent to the email provided.'
+					);
+				} else {
+					dialog.show_notification(
+						'Failed to send password reset email: ' + response.body.message
+					);
+				}
 			} );
 		};
 
-		this.handleSubmitClick = function() {
+		this.handleSubmitClick = async function() {
 			let email = document.getElementById( 'email' );
 			let password = document.getElementById( 'password' );
 
 			if ( email.value && password.value ) {
-				var xhr = new XMLHttpRequest();
-				xhr.open( "POST", window.location + 'login', true );
-				xhr.setRequestHeader( 'Content-type', 'application/json' );
-				xhr.onreadystatechange = async function() {
-					if ( xhr.readyState === 4 ) {
-						if ( xhr.status === 200 ) {
-							// TODO: don't clear local storage if the user re-logs into the same account (for example, if the user's session was invalidated while
-							// the user was in offline mode making changes and now wants to re-authenticate)
-							state.clearLocalStorage();
-							state.clearState();
-							let status = await state.sync();
-							if( status === 200 ) {
-								console.log( "Done with sync" );
-								expose.set_state( 'main', {
-									page: 'TeamList',
-									render: true
-								} );
-							} else {
-								dialog.show_notification('An error occured while attempting sync: ' + status);
-							}
-						} else {
-							dialog.show_notification( 'Invalid login' );
-						}
-					}
-				};
 
-				xhr.send( JSON.stringify( {
+				let body = JSON.stringify({
 					email: email.value,
 					password: password.value
-				} ) );
+				});
+
+				let response = await network.request("POST", 'account/login', body);
+				if ( response.status === 204 ) {
+					// TODO: don't clear local storage if the user re-logs into the same account (for example, if the user's session was invalidated while
+					// the user was in offline mode making changes and now wants to re-authenticate)
+					state.clearLocalStorage();
+					state.clearState();
+					let status = await state.sync();
+					if( status === 200 ) {
+						console.log( "Done with sync" );
+						expose.set_state( 'main', {
+							page: 'TeamList',
+							render: true
+						} );
+					} else {
+						dialog.show_notification('An error occured while attempting sync: ' + status);
+					}
+				} else {
+					dialog.show_notification( 'Invalid login' );
+				}
+
 			} else {
 				let map = {
 					"Email": email.value,
@@ -162,7 +179,7 @@ module.exports = class CardAuth extends expose.Component {
 					className: 'card-title'
 				},
 				DOM.img( {
-					src: 'assets/back.svg',
+					src: '/assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 					alt: 'back'

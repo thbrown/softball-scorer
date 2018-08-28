@@ -117,6 +117,7 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
 						values:[value.param2, getIdFromPath(path), accountId]
 					});
 				} else {
+					console.log(path);
 					result.push({
 						query:"UPDATE " + applicableTable + " SET " + getColNameFromJSONValue(value.key) + " = $1 WHERE id IN ($2) AND account_id IN ($3);",
 						values:[value.param2, getIdFromPath(path), accountId]
@@ -339,6 +340,8 @@ let getIdFromPath = function(path, type) {
 		for(let i = (path.length-1); i >= 0; i--) {
 			if(isUuid(path[i])) {
 				return path[i];
+			} else {
+				console.log("Rejected", path[i])
 			}
 		}
 	}
@@ -366,7 +369,7 @@ let isRoot = function (obj) {
 	return true;
 }
 
-const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 let isUuid = function (str) {
     return uuidRegex.test(str);
 }

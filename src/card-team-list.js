@@ -66,7 +66,7 @@ module.exports = class CardTeamList extends expose.Component {
 						display: 'flex'
 					}}, 
 					DOM.img( {
-						src: 'assets/edit.svg',
+						src: '/assets/edit.svg',
 						alt: 'edit',
 						className: 'delete-button', // TODO: more generic css
 						onClick: this.handleEditClick.bind( this, team ),
@@ -96,7 +96,7 @@ module.exports = class CardTeamList extends expose.Component {
 					className: 'card-title'
 				},
 				DOM.img( {
-					src: 'assets/back.svg',
+					src: '/assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 					alt: 'back'

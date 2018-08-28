@@ -74,7 +74,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 				this.my = 0;
 			}
 
-			// Draging the ball far below cancels the location
+			// Draging the ball 20px below cancels the location
 			if ( this.my > parseInt( ballfield.style.height ) + 20 ) {
 				this.my = undefined;
 				this.mx = undefined;
@@ -145,7 +145,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			let new_x = Math.floor( normalize( x, 0, 1, 0, window.innerWidth ) );
 			let new_y = Math.floor( normalize( y, 0, 1, 0, window.innerWidth ) );
 
-			let imageSrc = (value.id === this.props.plateAppearance.id) ? imageSrcForCurrentPa : 'assets/baseball.svg';
+			let imageSrc = (value.id === this.props.plateAppearance.id) ? imageSrcForCurrentPa : '/assets/baseball.svg';
 			if ( value.location && x && y ) {
 				indicators.push( 
 					DOM.img( {
@@ -176,7 +176,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			},
 			DOM.img( {
 				draggable: true,
-				src: 'assets/ballfield2.png',
+				src: '/assets/ballfield2.png',
 				alt: 'ballfield',
 				style: {
 					width: '100%'
@@ -220,7 +220,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			},
 			DOM.img( {
 				draggable: true,
-				src: 'assets/delete.svg',
+				src: '/assets/delete.svg',
 				onClick: this.handleDelete,
 				alt: 'delete',
 				style: {
@@ -231,7 +231,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 	}
 
 	render() {
-		let imageSrcForCurrentPa = (results.getOutResults().includes(this.props.plateAppearance.result)) ? 'assets/baseball-out.svg' : 'assets/baseball-hit.svg';
+		let imageSrcForCurrentPa = (results.getOutResults().includes(this.props.plateAppearance.result)) ? '/assets/baseball-out.svg' : '/assets/baseball-hit.svg';
 		return DOM.div( {
 				className: 'card',
 				style: {
@@ -243,7 +243,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 					style: {}
 				},
 				DOM.img( {
-					src: 'assets/back.svg',
+					src: '/assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 					alt: 'back'

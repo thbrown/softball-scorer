@@ -35,11 +35,11 @@ module.exports = class SoftballServer {
 				console.log( "Checking credentials...", email );
 
 				try {
-					let accountInfo = await self.databaseCalls.getAccountIdAndPassword( email );
+					let accountInfo = await self.databaseCalls.getAccountFromEmail( email );
 
 					let isValid = false;
-					if ( accountInfo && accountInfo.password && email ) {
-						isValid = await bcrypt.compare( password, accountInfo.password );
+					if ( accountInfo && accountInfo.password_hash && email ) {
+						isValid = await bcrypt.compare( password, accountInfo.password_hash );
 					}
 
 					if ( isValid ) {
@@ -73,7 +73,7 @@ module.exports = class SoftballServer {
 
 		// Middleware
 		app.use( helmet({
-			hsts: false // Don't require HTTP Strict Transport Security (https), nginx will set this header in production
+			hsts: false // Don't require HTTP Strict Transport Security (https) locally, nginx will set this header to true in production
 		}));
 		app.use(helmet.contentSecurityPolicy({
 			directives: {
@@ -82,13 +82,12 @@ module.exports = class SoftballServer {
 				// TODO: add frame-src for youtube walk up songs
 				reportUri: '/report-violation',
 			},
-			//reportOnly: true
 		}))
 		app.use(helmet.referrerPolicy({ policy: 'same-origin' }))
 		app.use( favicon( __dirname + '/../assets/fav-icon.png' ) );
 		app.use( '/build', express.static( path.join( __dirname + '/../build' ).normalize() ) );
 		app.use( '/assets', express.static( path.join( __dirname + '/../assets' ).normalize() ) );
-		// Service worker must be kept at the project root, otherwise it will not be able to cache resources above it
+		// Service worker must be kept at the project root, otherwise it will not be able to cache resources above it in the file structure
 		app.use( '/service-worker', express.static( path.join( __dirname + '/../service-worker.js' ).normalize() ) );
 		app.use( '/manifest', express.static( path.join( __dirname + '/../manifest.json' ).normalize() ) );
 		app.use( bodyParser.json( {
@@ -110,60 +109,7 @@ module.exports = class SoftballServer {
 		app.use( passport.initialize() );
 		app.use( passport.session() );
 
-		// Helpers
-		let extractSessionInfo = function( req, field ) {
-			if ( req && req.session && req.session.passport && req.session.passport.user) {
-				return req.session.passport.user[field];
-			} else {
-				return undefined;
-			}
-		};
-
-		// Information shared between all sessions associate with a single account
-		let accountInformation = {};
-
-		let extractAccountInfo = function( accountId, field ) {
-			if ( accountInformation && accountInformation[accountId]) {
-				return accountInformation[accountId][field];
-			} else {
-				return undefined;
-			}
-		};
-
-		let putAccountInfo = function( accountId, field, value ) {
-			if ( !accountInformation ) {
-				accountInformation = [];
-			} 
-			if ( !accountInformation[accountId] ) {
-				accountInformation[accountId] = {};
-			}
-			accountInformation[accountId][field] = value;
-		}
-
-		// Lock the account. Only one session for a single account can access the database at a time, otherwise there is the possibility for lots of race conditions.
-		// TODO: this will only scale to one process
-		let lockAccount = async function( accountId ) {
-			let locked;
-			do {
-				locked = extractAccountInfo(accountId, 'locked');
-				console.log("Locked", locked, accountInformation);
-				if(locked) {
-					console.log("Account locked, retrying in 200ms", accountId);
-					await pause(200); // TODO: Do we need a random backoff?
-				}
-			} while (locked);
-			putAccountInfo(accountId, "locked", true);
-		}
-
-		let unlockAccount = function( accountId ) {
-			putAccountInfo(accountId, "locked", false); // TODO: maybe just unset this to avoid the memory leak?
-			console.log("Account Unlocked", accountId);
-		}
-
 		// Routes
-		app.get( '/', wrapForErrorProcessing( ( req, res ) => {
-			res.sendFile( path.join( __dirname + '/../index.html' ).normalize() );
-		} ) );
 
 		app.post( '/state', wrapForErrorProcessing( async( req, res ) => { // Should this be a patch??
 			let accountId = extractSessionInfo( req, 'accountId' );
@@ -203,7 +149,7 @@ module.exports = class SoftballServer {
 			res.status( 200 ).send( JSON.stringify( state, null, 2 ) );
 		} ) );
 
-		app.post( '/login', wrapForErrorProcessing( ( req, res, next ) => {
+		app.post( '/account/login', wrapForErrorProcessing( ( req, res, next ) => {
 			passport.authenticate( 'local', function( err, accountInfo, info ) {
 				if ( err || !accountInfo ) {
 					console.log( 'FAILED TO AUTHENTICATE!', accountInfo, err, info );
@@ -212,10 +158,79 @@ module.exports = class SoftballServer {
 				}
 				req.logIn( accountInfo, function() {
 					console.log( 'Login Successful!' );
-					res.status( 200 ).send();
+					res.status( 204 ).send();
 				} );
 			} )( req, res, next );
 		} ) );
+
+		app.post( '/account/signup', wrapForErrorProcessing( async( req, res, next ) => {
+			checkRequiredField(req.body.email, "email");
+			checkFieldLength(req.body.email, 320);
+
+			checkRequiredField(req.body.password, "password");
+			checkFieldLength(req.body.password, 320);
+
+			let hashedPassword = await bcrypt.hash(req.body.password, 12);
+			let account = await this.databaseCalls.signup(req.body.email, hashedPassword);
+
+			console.log("Calling login A", account);
+			logIn(account, req, res); 
+
+			res.status( 204 ).send();
+		} ) );
+
+		app.post( '/account/reset-password-request', wrapForErrorProcessing( async( req, res, next ) => {
+			console.log("Reset password request")
+			checkRequiredField(req.body.email, "email");
+			let account = await this.databaseCalls.getAccountFromEmail( req.body.email );
+			if(account) {
+				let token = await generateToken();
+				let tokenHash = crypto.createHash('sha256').update(token).digest('base64');
+
+				// TODO: send passwowrd reset email
+				console.log("Would have sent email", token);
+
+				await this.databaseCalls.setPasswordTokenHash(account.account_id, tokenHash);
+				res.status( 204 ).send();
+			} else {
+				console.log("Password reset: No such email found", req.body.email);
+				res.status( 404 ).send();
+			}
+
+		} ) );
+
+		app.post( '/account/reset-password', wrapForErrorProcessing( async( req, res, next ) => {
+			console.log("Password update recieved");
+			checkRequiredField(req.body.password, "password");
+			checkFieldLength(req.body.password, 320);
+			checkFieldLength(req.body.token, 320);
+			let token = req.body.token;
+			let tokenHash = crypto.createHash('sha256').update(token).digest('base64');
+			let account = await this.databaseCalls.getAccountFromTokenHash(tokenHash);
+			if (account) {
+				await this.databaseCalls.confirmEmail(account.account_id);
+
+				let hashedPassword = await bcrypt.hash(req.body.password, 12);
+				await this.databaseCalls.setPasswordHashAndExpireToken(account.account_id, hashedPassword);
+
+				// If an attacker somehow guesses the reset token and resets the password, they still don't know the email.
+				// So, we wont log the password resetter in automatically. We can change this if we think it really affects
+				// usability but I think it's okay. If users are resetting their passwords they are probably aready engaged.
+				// logIn(account, req, res);
+				res.status( 204 ).send();
+			} else {
+				res.status( 404 ).send();
+			}
+		} ) );
+
+		app.delete( '/account', wrapForErrorProcessing( ( req, res, next ) => {
+			if(!req.isAuthenticated()) {
+				res.status( 403 ).send();
+				return;
+			}
+			res.status( 404 ).send();
+		} ) );
+
 
 		/*
 			req: {
@@ -339,7 +354,6 @@ module.exports = class SoftballServer {
 			// Woot, done
 			if(responseData.base) {
 				let testCs = getMd5(responseData.base);
-				//console.log("Done ", testCs, JSON.stringify(responseData.base, null, 2));
 			}
 			res.status( 200 ).send(responseData);
 
@@ -364,10 +378,39 @@ module.exports = class SoftballServer {
 			res.status(204).end()
 		})
 
+		// Everything else loads the react app and is processed on the clinet side
+		app.get( '*', wrapForErrorProcessing( ( req, res ) => {
+			res.sendFile( path.join( __dirname + '/../index.html' ).normalize() );
+		} ) );
+
 		// 404 on unrecognized routes
 		app.use( function() {
 			throw new HandledError( 404, "Resource not found" );
 		} );
+
+		app.use( function( error, req, res, next ) {
+			res.setHeader('content-type', 'application/json');
+			if ( error instanceof HandledError ) {
+				res.status( error.getStatusCode() ).send( { errors: [ error.getExternalMessage() ] } );
+				if ( error.getInternalMessage() ) {
+					error.print();
+				}
+			} else {
+				let errorId = Math.random().toString(36).substring(7);
+				res.status( 500 ).send( { message: `Internal Server Error. Error Id ${errorId}.` } );
+
+				let accountId = extractSessionInfo( req, 'accountId' );
+
+				console.log( `SERVER ERROR ${errorId} - ${accountId}`, { errors: [ error.message ] } );
+				console.log( `Error`, error );
+			}
+		} );
+
+		this.server = server.listen( this.PORT, function listening() {
+			console.log( 'Softball App: Listening on %d', server.address().port );
+		} );
+
+		// Helpers -- TODO use consistent declarations
 
 		// Error handling, so we can catch errors that occur during async too
 		function wrapForErrorProcessing( fn ) {
@@ -375,7 +418,7 @@ module.exports = class SoftballServer {
 				try {
 					await fn( req, res, next );
 				} catch ( error ) {
-					console.log("An error was thrown!")
+					//console.log("An error was thrown!", error);
 					next( error );
 				}
 			};
@@ -400,23 +443,118 @@ module.exports = class SoftballServer {
 			return checksum.slice(0, -2); // Remove trailing '=='
 		}
 
-		app.use( function( error, req, res, next ) {
-			res.setHeader('content-type', 'application/json');
-			if ( error instanceof HandledError ) {
-				res.status( error.getStatusCode() ).send( { errors: [ error.getExternalMessage() ] } );
-				if ( error.getInternalMessage() ) {
-					error.print();
-				}
-			} else {
-				res.status( 500 ).send( { errors: 'Internal Server Error' } );
-				console.log( "SERVER ERROR", { errors: [ error.message ] } );
-				console.log( "Error", error );
-			}
-		} );
+		async function generateToken(length = 30) {
+		  return new Promise((resolve, reject) => {
+		    crypto.randomBytes(length, (err, buf) => {
+		      if (err) {
+		        reject(err);
+		      } else {
+		      	// Make sure the token is url safe
+		        resolve(buf.toString('base64').replace(/\//g,'_').replace(/\+/g,'-'));
+		      }
+		    });
+		  });
+		}
 
-		this.server = server.listen( this.PORT, function listening() {
-			console.log( 'Compute server: Listening on %d', server.address().port );
-		} );
+		function checkFieldLength(field, maxLength) {
+			if(field && field.length > maxLength) {
+				throw new HandledError(400,  `Field ${field} exceeds the maximum length ${maxLength}`);
+			}
+		}
+
+		function checkRequiredField(field, fieldName) {
+			if(!field || field.trim().length === 0) {
+				throw new HandledError(400, `Field ${fieldName} is required but was not specified`);
+			}
+		}
+
+		async function logIn(account, req, res) {
+			console.log("Loggin in", account);
+			let sessionInfo = {
+				accountId : account.account_id,
+				email : account.email
+			}
+			try {
+				await new Promise(function(resolve,reject){
+					req.logIn( account, function() {
+						// We need to serialize some info to the session
+						let sessionInfo = {
+							accountId: account.account_id,
+							email: account.email,
+						};
+						var doneWrapper = function (req) {
+						    var done = function (err, user) {
+						        if(err) {
+						            reject(err)
+						            return;
+						        }
+						        req._passport.session.user = sessionInfo;
+						        return;
+						    };
+						    return done;
+						};
+						req._passport.instance.serializeUser(sessionInfo, doneWrapper(req));
+						resolve();
+					} );
+				});
+				console.log( 'Login Successful -- backdoor!' );
+				let accountId = extractSessionInfo( req, 'accountId' );
+				console.log( `Data ${accountId}` );
+			} catch (e) {
+				console.log("ERROR", e);
+				res.status( 500 ).send();
+			}
+		}
+
+		let extractSessionInfo = function( req, field ) {
+			if ( req && req.session && req.session.passport && req.session.passport.user) {
+				return req.session.passport.user[field];
+			} else {
+				return undefined;
+			}
+		};
+
+		// Information shared between all sessions associate with a single account -- TODO: we are leaking memory here if we don't clear this
+		let accountInformation = {};
+
+		let extractAccountInfo = function( accountId, field ) {
+			if ( accountInformation && accountInformation[accountId]) {
+				return accountInformation[accountId][field];
+			} else {
+				return undefined;
+			}
+		};
+
+		let putAccountInfo = function( accountId, field, value ) {
+			if ( !accountInformation ) {
+				accountInformation = [];
+			} 
+			if ( !accountInformation[accountId] ) {
+				accountInformation[accountId] = {};
+			}
+			accountInformation[accountId][field] = value;
+		}
+
+		// Lock the account. Only one session for a single account can access the database at a time, otherwise there will br lots of race conditions.
+		// TODO: this will only scale to one process
+		let lockAccount = async function( accountId ) {
+			let locked;
+			do {
+				locked = extractAccountInfo(accountId, 'locked');
+				console.log("Locked", locked, accountInformation);
+				if(locked) {
+					console.log("Account locked, retrying in 200ms", accountId);
+					await pause(200); // TODO: Do we need a random backoff?
+				}
+			} while (locked);
+			putAccountInfo(accountId, "locked", true);
+		}
+
+		let unlockAccount = function( accountId ) {
+			putAccountInfo(accountId, "locked", false); // TODO: would un-setting this instead avoid a memory leak?
+			console.log("Account Unlocked", accountId);
+		}
+
 	}
 
 	stop() {

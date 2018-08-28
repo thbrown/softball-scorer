@@ -17,7 +17,7 @@ module.exports = class CardLoading extends expose.Component {
 		state.loadAppDataFromLocalStorage();
 
 		// Do an asynchronous sync so the ui loads quickly and get's the data from the network later
-		// TODO: If the load is async, consider removing this while card and moving to code to main-container
+		// TODO: If the load is async, consider removing this whole card and moving to code to main-container
 		setTimeout(state.sync,1);
 
 		expose.set_state( 'main', {

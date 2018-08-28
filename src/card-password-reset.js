@@ -8,11 +8,13 @@ const network = require( 'network.js' )
 const dialog = require( 'dialog' );
 const state = require( 'state' );
 
-module.exports = class CardSignup extends expose.Component {
+module.exports = class CardPasswordReset extends expose.Component {
 	constructor( props ) {
 		super( props );
 		this.expose();
 		this.state = {};
+
+		this.token = props.token;
 
 		this.handleBackClick = function() {
 			expose.set_state( 'main', {
@@ -21,13 +23,11 @@ module.exports = class CardSignup extends expose.Component {
 		};
 
 		this.handleSubmitClick = async function() {
-			let email = document.getElementById( 'email' );
 			let password = document.getElementById( 'password' );
 			let passwordConfirm = document.getElementById( 'passwordConfirm' );
 
-			if ( !email.value || !password.value || !passwordConfirm.value) {
+			if ( !password.value || !passwordConfirm.value) {
 				let map = {
-					"Email": email.value,
 					"Password": password.value,
 					"Confirm Password": passwordConfirm.value
 				}
@@ -38,60 +38,58 @@ module.exports = class CardSignup extends expose.Component {
 				return;
 			}
 
-			if(!this.validateEmail(email.value)) {
-				dialog.show_notification('You entered an invalid email address');
-				return;
-			}
-
 			if(password.value !== passwordConfirm.value) {
 				dialog.show_notification('Passwords do not match');
 				return;
 			}
 
-			// TODO: Disable button
 			let body = {
-				email: email.value,
+				token: this.token,
 				password: password.value
 			}
-			let response = await network.request('POST', 'account/signup', JSON.stringify(body));
-			if(response.status === 204) {
-				// TODO: don't clear local storage if the user data isn't associated with an account
-				state.clearLocalStorage();
-				state.clearState();
-				console.log("Cleared state and localsStorage");
 
-				dialog.show_notification(`Thank you for creating an account on Softball.app! You have been logged in.`,
+			let response = await network.request('POST',`account/reset-password`, JSON.stringify(body));
+			if(response.status === 204) {
+				dialog.show_notification(
+					`Success! Your password has been changed. Please login.`
+				,
 					function() {
 						expose.set_state( 'main', {
-							page: 'TeamList'
+							page: 'Auth'
+						} );
+					}
+				);
+			} else if(response.status === 404){
+				dialog.show_notification(
+					`Error! We were not able to change your password. The activation link may have expired. Please request another password reset.`
+				,
+					function() {
+						expose.set_state( 'main', {
+							page: 'Auth'
 						} );
 					}
 				);
 			} else {
-				dialog.show_notification(`There was a problem creating your account ${response.status} - ${response.body.message}`);
-				console.log(response);
+				dialog.show_notification(
+					`Error! We were not able to change your password. Please request another password reset. ${response.body ? response.body.message : '' }`
+				,
+					function() {
+						expose.set_state( 'main', {
+							page: 'Auth'
+						} );
+					}
+				);
 			}
-			console.log("DONE");
-			console.log(response);
 		};
-	}
-
-	validateEmail(email) {
-	    var re = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-	    return re.test(String(email).toLowerCase());
 	}
 
 	renderAuthInterface() {
 		return DOM.div( {
 			className: 'auth-input-container',
 		},
-		DOM.input( {
-			key: 'email',
-			id: 'email',
-			className: 'auth-input',
-			placeholder: 'Email',
-			type: 'email'
-		} ),
+		DOM.div( {
+			className: 'text-div'
+		}, "Please complete the form to change your password" ),
 		DOM.input( {
 			key: 'password',
 			id: 'password',
@@ -139,7 +137,7 @@ module.exports = class CardSignup extends expose.Component {
 				DOM.div( {
 					style: {
 					}
-				}, 'Signup' )
+				}, 'Reset Password' )
 			),
 			this.renderAuthInterface()
 		);
