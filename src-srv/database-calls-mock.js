@@ -3,20 +3,20 @@ let databaseCalls = class DatabaseCalls {
 	constructor() {
 		this.state = {};
 		// Passwsord is pizza
-		this.userNameAndPasssword = {id:1, password:'$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2'};
+		this.accountInfo = {id:1, email: 'brutongaster@softball.app', password_hash:'$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2'};
 	}
 
 	reset() {
 		this.state = {};
-		this.userNameAndPasssword = {id:1, password:'$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2'};
+		this.accountInfo = {id:1, email: 'brutongaster@softball.app', password_hash:'$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2'};
 	}
 
 	setAccountIdAndPassword( info ) {
-		this.userNameAndPasssword = info;
+		this.accountInfo = info;
 	}
 
-	async getAccountIdAndPassword( email ) {
-		return this.userNameAndPasssword
+	getAccountIdAndPassword( email ) {
+		return this.accountInfo
 	}
 
 	setState( state ) {
@@ -25,6 +25,30 @@ let databaseCalls = class DatabaseCalls {
 
 	getState( account_id ) {
 		return this.state;
+	}
+
+	getAccountFromTokenHash(passwordTokenHash) {
+		return this.accountInfo;
+	}
+
+	async getAccountIdAndPassword( email ) {
+		return this.accountInfo;
+	}
+
+	async signup(email, passwordTokenHash) {
+		return this.accountInfo; // TODO: return different account if here without the password_hash
+	}
+
+	async setPasswordHash(accountId, newPasswordHash) {
+		return;
+	}
+
+	async setPasswordTokenHash(accountId, newPasswordHash) {
+		return;
+	}
+
+	async deleteAccount(accountId) {
+		return;
 	}
 
 }

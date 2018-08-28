@@ -20,6 +20,8 @@ const CardAuth = require( 'card-auth' );
 const CardSpray = require( 'card-spray' );
 const CardSignup = require( 'card-signup' );
 const CardLoad = require( 'card-load' );
+const CardPasswordReset = require( 'card-password-reset' );
+const CardVerify = require( 'card-verify' );
 
 const qs = state.getQueryObj();
 
@@ -41,6 +43,10 @@ const qs = state.getQueryObj();
 // Team, Player, and game ordering
 // Separate urls
 // Delete account/data
+// Config file for app-level credentials
+// Async localstorage interaction
+// Bug with editing name
+// Shorter Ids
 
 module.exports = class MainContainer extends expose.Component {
 	constructor( props ) {
@@ -70,15 +76,29 @@ module.exports = class MainContainer extends expose.Component {
 			});
 		}
 
+		// Determine landing card based on url
+		let pathArray = window.location.pathname.split('/');
+		console.log(pathArray);
+		let card = 'Loading';
+		let token = undefined;
+		if(pathArray[1] === "account" && pathArray[2] === "password-reset") {
+			card = 'PasswordReset';
+			token = pathArray[3];
+		} else if( pathArray[1] === "auth" ) {
+			card = 'Auth';
+		}
+		console.log('Starting on card', card);
+
 	    // TODO: We are conflating react state with app data, we should split AppData into its own class
 		// TODO: Shouldn't these all be renamed as ids e.g. teamId, gameId, etc. 
 		this.state = {
 			render: true,
-			page: 'Loading',
+			page: card,
 			team: qs.team || 1,
 			game: qs.game || 1,
 			player: qs.player || 1,
-			plateAppearance: qs.plateAppearance || 1
+			plateAppearance: qs.plateAppearance || 1,
+			token: token
 		};
 	}
 
@@ -159,6 +179,10 @@ module.exports = class MainContainer extends expose.Component {
 			} );
 		} else if ( card_name === 'Load') {
 			return React.createElement( CardLoad );
+		} else if ( card_name === 'PasswordReset') {
+			return React.createElement( CardPasswordReset, {
+				token: this.state.token
+			} );
 		} else {
 			return DOM.div( {
 				style: {
@@ -177,4 +201,5 @@ module.exports = class MainContainer extends expose.Component {
 			this.renderCard( this.state.page )
 		);
 	}
+
 };

@@ -45,7 +45,7 @@ module.exports = class CardAtBat extends expose.Component {
 
 			let indicator = null;
 			if ( value.location && x && y ) {
-				let image = results.getOutResults().includes(value.result) ?  'assets/baseball-out.svg' : 'assets/baseball-hit.svg';
+				let image = results.getOutResults().includes(value.result) ?  '/assets/baseball-out.svg' : '/assets/baseball-hit.svg';
 				let alt = results.getOutResults().includes(value.result) ?  'out' : 'hitg';
 				indicators.push( 
 					DOM.img( {
@@ -77,7 +77,7 @@ module.exports = class CardAtBat extends expose.Component {
 			},
 			DOM.img( {
 				draggable: true,
-				src: 'assets/ballfield2.png',
+				src: '/assets/ballfield2.png',
 				style: {
 					width: '100%'
 				}
@@ -98,7 +98,7 @@ module.exports = class CardAtBat extends expose.Component {
 					style: {}
 				},
 				DOM.img( {
-					src: 'assets/back.svg',
+					src: '/assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 				} ),

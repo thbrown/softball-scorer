@@ -80,16 +80,6 @@ module.exports = class DatabaseCalls {
 		} );
 	}
 
-	async getAccountIdAndPassword( email ) {
-		let result = await this.parameterizedQueryPromise( "SELECT account_id, password FROM account WHERE account.email = $1" , [email]);
-		if(result.rowCount === 1) {
-			return result.rows[0];
-		} else if(result.rowCount !== 0) {
-			throw new HandledError(500,`A strange number of accounts were returned: ${email} ${result}`);
-		}
-		return undefined;
-	}
-
 	getState( accountId ) {
 		console.log("Accessing data of account", accountId, accountId === undefined);
 		if(accountId === undefined) {
@@ -211,6 +201,7 @@ module.exports = class DatabaseCalls {
 		} );
 	}
 
+	// TODO: I think this is unused
 	async setState( data, accountId ) {
 		if(accountId === undefined)  {
 			throw new HandledError(403, "Please sign in first"); // TODO: Should be unauthenticated, not forbidden
@@ -256,4 +247,72 @@ module.exports = class DatabaseCalls {
 			client.release();
 		}
 	}
+
+	async signup(email, passwordHash, passwordTokenHash) {
+		let result = await this.parameterizedQueryPromise( `
+				INSERT INTO account (email, password_hash, password_token_hash, password_token_expiration, status)
+				VALUES ($1, $2, $3, now() + interval '1' hour, 'TRIAL')
+				RETURNING account_id, email
+			`, [email, passwordHash, passwordTokenHash]);
+		return result.rows[0];
+	}
+
+	async getAccountFromTokenHash(passwordTokenHash) {
+		console.log("Seraching for", passwordTokenHash.trim());
+		let results =  await this.parameterizedQueryPromise( `
+				SELECT account_id, email, password_hash, verified_email
+				FROM account 
+				WHERE password_token_hash = $1
+				AND password_token_expiration >= now()
+			`, [passwordTokenHash.trim()]);
+		if(results.rowCount > 1) {
+			throw new HandledError(500,`A strange number of accounts were returned: ${passwordTokenHash} ${result}`);
+		} else if (results.rowCount === 1) {
+			return results.rows[0];
+		} else {
+			return undefined;
+		}
+	}
+
+	async confirmEmail(accountId) {
+		await this.parameterizedQueryPromise( `
+				UPDATE account 
+				SET verified_email = TRUE 
+				WHERE account_id = $1
+			`, [accountId]);
+	}
+
+	async getAccountFromEmail( email ) {
+		let result = await this.parameterizedQueryPromise( "SELECT account_id, password_hash FROM account WHERE email = $1" , [email]);
+		if(result.rowCount === 1) {
+			return result.rows[0];
+		} else if(result.rowCount !== 0) {
+			throw new HandledError(500,`A strange number of accounts were returned: ${email} ${result}`);
+		}
+		return undefined;
+	}
+
+	async setPasswordHashAndExpireToken(accountId, newPasswordHash) {
+		await this.parameterizedQueryPromise( `
+				UPDATE account 
+				SET password_hash = $1, password_token_expiration = now()
+				WHERE account_id = $2
+			`, [newPasswordHash, accountId]);
+	}
+
+	async setPasswordTokenHash(accountId, newPasswordHash) {
+		await this.parameterizedQueryPromise( `
+				UPDATE account 
+				SET password_token_hash = $1, password_token_expiration = now() + interval '24' hour
+				WHERE account_id = $2
+			`, [newPasswordHash, accountId]);
+	}
+
+	async deleteAccount(accountId) {
+		await this.parameterizedQueryPromise( `
+				DELETE FROM account 
+				WHERE account_id = $1
+			`, [accountId]);
+	}
+
 }

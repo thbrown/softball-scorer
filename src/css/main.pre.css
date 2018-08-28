@@ -264,6 +264,12 @@ body {
   background-color: $css.colors.SECONDARY_LIGHT;
 }
 
+.text-div {
+  margin: 10px;
+  font-size: 20px;
+  text-align: center;
+}
+
 /* Dialog styles */
 
 .dialog {

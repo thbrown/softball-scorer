@@ -1,4 +1,4 @@
-// The build process apends a autoGenCacheName variable to the top of this file based on the hash of the src and assets directory
+// The build process appends a autoGenCacheName variable to the top of this file based on the hash of the src and assets directory
 let cacheName = 'softball-v1';
 if (typeof autoGenCacheName !== 'undefined') {
     cacheName =  autoGenCacheName;

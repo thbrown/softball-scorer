@@ -10,8 +10,8 @@ const uuidv4 = require('uuid/v4');
 
 const INITIAL_STATE = {"teams":[], "players": []};
 
-let ANCESTOR_STATE = INITIAL_STATE;
-let LOCAL_STATE = INITIAL_STATE;
+let ANCESTOR_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+let LOCAL_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
 
 exports.getServerUrl = function(path) {
 	return window.location.href + path;
@@ -23,7 +23,7 @@ exports.sync = async function(fullSync) {
 	// TODO: do we want to cancel any in_progress syncs?
 
 	// Merge local storage state with in-memory state first
-	exports.loadAppDataFromLocalStorage();
+	// exports.loadAppDataFromLocalStorage();  This doesn't actually merge, so if the state hasn't been written to ls, this will override it. I'm not sure we need to re-load from ls here anyways.
 
 	// Save a deep copy of the local state
 	let localStateCopy = JSON.parse(JSON.stringify(state.getLocalState()));
@@ -42,9 +42,10 @@ exports.sync = async function(fullSync) {
 
 	// Ship it
 	let response = await network.request('POST','sync',JSON.stringify(body));
+	console.log("SEDNING SYNC", body);
 
 	if(response.status === 200) {
-		let serverState = await response.json();
+		let serverState = response.body;
 		console.log("Received", serverState);
 
 		// First gather any changes that were made locally while the request was still working
@@ -120,8 +121,8 @@ exports.sync = async function(fullSync) {
 }
 
 exports.clearState = function() {
-	LOCAL_STATE = INITIAL_STATE;
-	ANCESTOR_STATE = INITIAL_STATE;
+	LOCAL_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+	ANCESTOR_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
 }
 
 exports.getLocalState = function() {
@@ -384,10 +385,11 @@ exports.saveAppDataToLocalStorage = function() {
 	if (typeof(Storage) !== "undefined") {
 		// Changes from other tabs should have been loaded when window/tab became visible
 		// So, we can just write directly to local storage
+		let startTime = performance.now();
 		localStorage.setItem("SCHEMA_VERSION", 1);
 		localStorage.setItem("LOCAL_STATE", JSON.stringify(LOCAL_STATE));
 		localStorage.setItem("ANCESTOR_STATE", JSON.stringify(ANCESTOR_STATE));
-		console.log("Saved state to ls ");
+		console.log("Saved state to ls " + (performance.now() - startTime));
 	}
 };
 
@@ -400,8 +402,10 @@ exports.loadAppDataFromLocalStorage = function() {
 			exports.saveAppDataToLocalStorage();
 			console.log("Invalid localStorage data was removed");
 		}
+		let startTime = performance.now();
 		LOCAL_STATE = JSON.parse(localStorage.getItem("LOCAL_STATE"));
 		ANCESTOR_STATE = JSON.parse(localStorage.getItem("ANCESTOR_STATE"));
+		console.log("Load from ls " + (performance.now() - startTime));
 	}
 	reRender();
 }
