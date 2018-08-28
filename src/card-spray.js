@@ -103,8 +103,8 @@ module.exports = class CardAtBat extends expose.Component {
 					onClick: this.handleBackClick,
 				} ),
 				DOM.div( {
-					style: {}
-				}, "Spray Chart" )
+					className: 'prevent-overflow card-title-text-with-arrow',
+				}, state.getPlayer(this.props.playerId).name )
 			),
 			this.renderField()
 		);

@@ -60,10 +60,10 @@ module.exports = class CardPlateAppearance extends expose.Component {
 
 			if ( ev.changedTouches ) {
 				this.mx = ev.changedTouches[ 0 ].pageX - ballfield.offsetLeft;
-				this.my = ev.changedTouches[ 0 ].pageY - ballfield.offsetTop + document.body.scrollTop;
+				this.my = ev.changedTouches[ 0 ].pageY - ballfield.offsetTop - 48 /* headerSize */;
 			} else {
 				this.mx = ev.clientX - ballfield.offsetLeft;
-				this.my = ev.clientY - ballfield.offsetTop + document.body.scrollTop;
+				this.my = ev.clientY - ballfield.offsetTop - 48 /* headerSize */;
 			}
 
 			if ( this.mx < 0 ) {
@@ -202,8 +202,8 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			src: imageSrcForCurrentPa,
 			alt: 'ball',
 			style: {
-				width: '75px',
-				height: '75px',
+				width: '48px',
+				height: '48px',
 				touchAction: 'none',
 				transform: "translate(0px, 0px)"
 			}
@@ -224,7 +224,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 				onClick: this.handleDelete,
 				alt: 'delete',
 				style: {
-					width: '75px'
+					width: '48px'
 				}
 			} )
 		);
@@ -249,11 +249,8 @@ module.exports = class CardPlateAppearance extends expose.Component {
 					alt: 'back'
 				} ),
 				DOM.div( {
-					className: 'preventOverflow',
-					style: {
-						// Might need something here to keep long names from covering the back button
-					}
-				}, this.props.player.name + ' PA #' + this.props.plateAppearance.plateAppearanceIndex )
+					className: 'prevent-overflow card-title-text-with-arrow',
+				}, this.props.player.name )
 			),
 			this.renderButtonList(),
 			this.renderField(imageSrcForCurrentPa),

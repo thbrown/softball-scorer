@@ -137,8 +137,7 @@ module.exports = class CardSignup extends expose.Component {
 					alt: 'back'
 				} ),
 				DOM.div( {
-					style: {
-					}
+					className: 'prevent-overflow card-title-text-with-arrow'
 				}, 'Signup' )
 			),
 			this.renderAuthInterface()

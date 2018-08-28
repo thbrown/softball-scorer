@@ -3,9 +3,6 @@
 // Color Theme
 // https://material.io/color/#!/?view.left=0&view.right=0&primary.color=4caf50&secondary.color=775447
 module.exports = {
-	font: {
-		main: 'Trebuchet MS',
-	},
 	colors: {
 		PRIMARY: '#4caf50',
 		PRIMARY_LIGHT: '#80e27e',
@@ -18,6 +15,6 @@ module.exports = {
 		WHITE: '#FFFFFF',
 	},
 	sizes: {
-		BACK_ARROW: '42px',
+		ICON: '24px',
 	}
 };

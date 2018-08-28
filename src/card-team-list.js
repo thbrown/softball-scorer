@@ -59,12 +59,11 @@ module.exports = class CardTeamList extends expose.Component {
 					}
 				},
 				DOM.div( {					
-					className: 'preventOverflow'
+					className: 'prevent-overflow'
 				}, team.name ),
 				DOM.div( {
 					style: {
-						display: 'flex'
-					}}, 
+					}},
 					DOM.img( {
 						src: '/assets/edit.svg',
 						alt: 'edit',
@@ -102,12 +101,7 @@ module.exports = class CardTeamList extends expose.Component {
 					alt: 'back'
 				} ),
 				DOM.div( {
-					style: {
-						//display: 'flex',
-						justifyContent: 'space-between',
-						// Adjusting for back-arrow.
-						//marginLeft: '60px',
-					}
+					className: 'prevent-overflow card-title-text-with-arrow',
 				}, 'Teams' ),
 			),
 			this.renderTeamList()

@@ -48,7 +48,7 @@ module.exports = class CardStats extends expose.Component {
 		this.handlePlayerClick = function(playerId) {
 			expose.set_state( 'main', {
 				page: 'Spray',
-				player: playerId
+				player: playerId,
 			} );
 		}
 	}
@@ -95,8 +95,8 @@ module.exports = class CardStats extends expose.Component {
 			},
 				DOM.div( {
 					onClick: this.handlePlayerClick.bind( this, playerStats.id ),
+					className: 'prevent-overflow',
 					style: {
-						overflow: 'scroll',
 						width: '100px'
 					}
 				}, playerStats.name ),

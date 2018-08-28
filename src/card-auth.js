@@ -185,8 +185,7 @@ module.exports = class CardAuth extends expose.Component {
 					alt: 'back'
 				} ),
 				DOM.div( {
-					style: {
-					}
+					className: 'card-title-text-with-arrow',
 				}, 'Login' )
 			),
 			this.renderAuthInterface()

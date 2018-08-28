@@ -5,8 +5,9 @@ body {
   width: 100%;
   margin: 0px;
   font-size: 14px;
-  font-family: '$css.font.main';
+  font-family: Roboto, San Francicso, Trebuchet MS, sans-serif;
   box-sizing: border-box;
+  padding-top: 48px; /* sticky header height */
 }
 
 .card {
@@ -53,32 +54,49 @@ body {
 }
 
 .back-arrow {
-  position: absolute;
-  left: 0;
-  padding: 9px 8px 0 8px;
-  height: $css.sizes.BACK_ARROW;
-  width: $css.sizes.BACK_ARROW;
+  float: left;
+  padding: 12px;
+}
+
+.back-arrow,
+.delete-button {
+  cursor: pointer;
+  height: $css.sizes.ICON;
+  width: $css.sizes.ICON;
+}
+
+.delete-button {
+  padding: 12px;
+  margin: -12px;
 }
 
 .card-title {
+  position: fixed;
+  top: 0;
 	width: 100%;
 	font-weight: bold;
 	color: $css.colors.TEXT_LIGHT;
 	background-color: $css.colors.PRIMARY_DARK;
 	margin-bottom: 2px;
-	font-size: 32px;
+	font-size: 24px;
 	text-align: center;
-  line-height: 58px;
-  height: 58px;
+  line-height: 48px;
+  height: 48px;
+  box-shadow: 0 0 4px rgba(0,0,0,.14), 0 4px 8px rgba(0,0,0,.28);
+  z-index: 1000;
+}
+
+.card-title-text-with-arrow {
+  margin-right: 56px; /* Size of arrow including padding */
 }
 
 .list-item {
-	padding: 10px 10px;
+	padding: 12px;
 	margin: 10px;
 	border-radius: 4px;
   color: $css.colors.TEXT_LIGHT;
   background-color: $css.colors.SECONDARY;
-  font-size: 24px;
+  font-size: 20px;
 }
 
 .list-item:hover, .list-item:active {
@@ -90,18 +108,12 @@ body {
   color: $css.colors.TEXT_LIGHT;
 }
 
-.delete-button {
-  cursor: pointer;
-  height: 28px;
-  width: 28px;
-}
-
 .table-row {
   padding: 10px;
   border-radius: 4px;
   display: flex;
   justify-content: space-around;
-  font-size: 16px;
+  font-size: 14px;
   width: calc( 100% - 20px );
   color: $css.colors.TEXT_LIGHT;
   background-color: $css.colors.PRIMARY;
@@ -126,16 +138,17 @@ body {
   border-radius: 4px;
   color: $css.colors.TEXT_LIGHT;
   display: flex;
-  font-size: 18px;
   justify-content: space-between;
   margin: 10px 5px;
-  padding: 10px 10px;
-  min-width: calc( 100% - 30px );
+  padding: 12px;
+  min-width: calc( 100% - 36px );
 }
 
 .player-drag-handle {
   cursor: pointer;
   touch-action: none !important;
+  padding: 20px 12px;
+  margin: -12px 0 -12px -12px;
 }
 
 .lineup-row .player-name {
@@ -156,10 +169,9 @@ body {
   border-radius: 4px;
   color: $css.colors.TEXT_LIGHT;
   display: flex;
-  font-size: 18px;
   justify-content: space-between;
   margin: 10px;
-  padding: 10px 36px;
+  padding: 10px 16px;
 }
 
 .future-batter-row {
@@ -167,18 +179,18 @@ body {
   border-radius: 4px;
   color: $css.colors.TEXT_LIGHT;
   display: flex;
-  font-size: 18px;
-  justify-content: space-around;
+  justify-content: space-between;
   margin: 10px;
-  padding: 10px 10px;
+  padding: 10px 16px;
 }
 
 .lineup-box {
   background-color: white;
   color: $css.colors.TEXT_DARK;
-  height: 40px;
+  height: 32px;
   width: 32px;
-  line-height: 40px;
+  font-size: 14px;
+  line-height: 32px;
   border: 1px solid $css.colors.TEXT_DARK;
   text-align: center;
 }
@@ -351,9 +363,11 @@ body {
 .plate-appearance-list-container {
   overflow: hidden;
   width: 70%;
+  height: 34px;
+  margin-top: 3px;
 }
 
-.preventOverflow {
+.prevent-overflow {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

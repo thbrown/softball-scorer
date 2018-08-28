@@ -64,8 +64,8 @@ module.exports = class CardGame extends expose.Component {
 					style: {
 						display: 'flex',
 						justifyContent: 'space-between',
-						// Adjusting for back-arrow.
-						marginLeft: '60px',
+						// Adjusting for back arrow.
+						marginLeft: '56px',
 					}
 				},
 					DOM.div( {
