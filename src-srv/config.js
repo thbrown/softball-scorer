@@ -7,5 +7,9 @@ module.exports = {
 		password: undefined	
 	},
 
+	recapcha: {
+		sitekey: ''
+	}
+
 }
 
