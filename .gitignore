@@ -6,3 +6,4 @@ certs/
 service-worker.js
 package-lock.json
 src-srv/config.js
+src/config.js

@@ -51,22 +51,28 @@ var rules = {
 		var bundle = process.env.npm_package_config_bundles_main_out;
 		var cmd =
 			`${NODE_PATH} browserify ${_dev_flags()} ${_vendor_imports().join(' ')} ${entry} | babel-minify --mangle true > ${bundle}`;
-		build_css( ( err ) => {
+		initConfigFiles( ( err ) => {
 			if ( err ) {
 				console.error( 'ERROR', err );
 				process.exit( 0 );
 			}
-			rules[ 'build-vendor' ]( ( err ) => {
-				if( err ) {
+			build_css( ( err ) => {
+				if ( err ) {
 					console.error( 'ERROR', err );
 					process.exit( 0 );
 				}
-				_execute( cmd,  ( err ) => {
-					if ( err ) {
+				rules[ 'build-vendor' ]( ( err ) => {
+					if( err ) {
 						console.error( 'ERROR', err );
 						process.exit( 0 );
 					}
-					updateServiceWorker(cb);
+					_execute( cmd,  ( err ) => {
+						if ( err ) {
+							console.error( 'ERROR', err );
+							process.exit( 0 );
+						}
+						updateServiceWorker(cb);
+					} );
 				} );
 			} );
 		} );
@@ -241,4 +247,17 @@ function updateServiceWorker(cb) {
         process.exit( 0 );
     });
 
+}
+
+function initConfigFiles(cb) {
+	if (!fs.existsSync('./src/config.js')) {
+		console.log('No ./src/config.js file was found, creating from template')
+	    fs.createReadStream('./src/config.template.js').pipe(fs.createWriteStream('./src/config.js'));
+	}
+
+	if (!fs.existsSync('./src-srv/config.js')) {
+		console.log('No ./src-srv/config.js file was found, creating from template')
+	    fs.createReadStream('./src-srv/config.template.js').pipe(fs.createWriteStream('./src-srv/config.js'));
+	}
+	cb();
 }
