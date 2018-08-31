@@ -13,9 +13,11 @@ const favicon = require( 'serve-favicon' );
 const bcrypt = require( 'bcrypt' );
 const crypto = require( 'crypto' );
 const hasher = require( 'object-hash' );
+const got = require('got');
 
 const objectMerge = require( '../object-merge.js' );
 const HandledError = require( './handled-error.js' );
+const config = require( './config' );
 
 module.exports = class SoftballServer {
 
@@ -77,10 +79,15 @@ module.exports = class SoftballServer {
 		}));
 		app.use(helmet.contentSecurityPolicy({
 			directives: {
-				defaultSrc: ["'self'"], // Only allow scripts/style/fonts/etc from this domain
-				styleSrc: ["'self'", "fonts.googleapis.com", "'sha256-eeE4BsGQZBvwOOvyAnxzD6PBzhU/5IfP4NdPMywc3VE='"], // For react draggable components
-				fontSrc: ["'self'", "fonts.gstatic.com"],
-				// TODO: add frame-src for youtube walk up songs
+				defaultSrc: ["'self'"], // Only allow scripts/style/fonts/etc from this domain unless otherwise specified below
+				styleSrc: [ // TODO: use nonce to avoid recapcha styling errors: https://developers.google.com/recaptcha/docs/faq
+					"'self'", 
+					"https://fonts.googleapis.com", 
+					"'sha256-eeE4BsGQZBvwOOvyAnxzD6PBzhU/5IfP4NdPMywc3VE='"], // Hash is for react draggable components
+				fontSrc: ["'self'", "https://fonts.gstatic.com"],
+				scriptSrc: ["'self'", "https://www.google.com", "https://www.gstatic.com"],
+				connectSrc: ["'self'", "https://fonts.googleapis.com/css", "https://fonts.gstatic.com", "https://www.gstatic.com", "https://www.google.com"],
+				frameSrc: ["'self'", "https://www.google.com/"],
 				reportUri: '/report-violation',
 			},
 		}))
@@ -170,6 +177,31 @@ module.exports = class SoftballServer {
 
 			checkRequiredField(req.body.password, "password");
 			checkFieldLength(req.body.password, 320);
+
+			checkRequiredField(req.body.reCAPCHA, "reCAPCHA");
+
+			if(config.recapcha && config.recapcha.secretkey) {
+				let body = {
+					    secret: config.recapcha.secretkey,
+					    response: req.body.reCAPCHA,
+					    remoteip: req.connection.remoteAddress,
+					}
+				console.log("Recapcha body", body);
+				try {
+					const recapchaResponse = await got.post(`https://www.google.com/recaptcha/api/siteverify?secret=${config.recapcha.secretkey}&response=${req.body.reCAPCHA}`);
+					console.log("Recapcha result", recapchaResponse.body);
+					let recapchaResponseBody = JSON.parse(recapchaResponse.body);
+					if(!recapchaResponseBody.success) {
+						throw new HandledError( 400, "We don't serve their kind here", recapchaResponse.body);
+					}
+				} catch (error) {
+					if(error instanceof HandledError) {
+						throw error;
+					} else {
+				    	throw new HandledError( 500, "Failed to get recapcha approval from Google", error);
+				    }
+				}
+			}
 
 			let hashedPassword = await bcrypt.hash(req.body.password, 12);
 			let account = await this.databaseCalls.signup(req.body.email, hashedPassword);
@@ -392,17 +424,17 @@ module.exports = class SoftballServer {
 		app.use( function( error, req, res, next ) {
 			res.setHeader('content-type', 'application/json');
 			if ( error instanceof HandledError ) {
-				res.status( error.getStatusCode() ).send( { errors: [ error.getExternalMessage() ] } );
+				res.status( error.getStatusCode() ).send( { message: [ error.getExternalMessage() ] } );
 				if ( error.getInternalMessage() ) {
 					error.print();
 				}
 			} else {
 				let errorId = Math.random().toString(36).substring(7);
-				res.status( 500 ).send( { message: `Internal Server Error. Error Id ${errorId}.` } );
+				res.status( 500 ).send( { message: `Internal Server Error. Error id: ${errorId}.` } );
 
 				let accountId = extractSessionInfo( req, 'accountId' );
 
-				console.log( `SERVER ERROR ${errorId} - ${accountId}`, { errors: [ error.message ] } );
+				console.log( `SERVER ERROR ${errorId} - ${accountId}`, { message: [ error.message ] } );
 				console.log( `Error`, error );
 			}
 		} );
