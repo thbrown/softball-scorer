@@ -8,7 +8,7 @@ module.exports = {
 	},
 
 	recapcha: {
-		secretkey: ''
+		secretkey: undefined
 	}
 
 }
