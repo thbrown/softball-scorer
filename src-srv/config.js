@@ -8,7 +8,7 @@ module.exports = {
 	},
 
 	recapcha: {
-		sitekey: ''
+		secretkey: ''
 	}
 
 }
