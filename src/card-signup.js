@@ -7,12 +7,14 @@ const css = require( 'css' );
 const network = require( 'network.js' )
 const dialog = require( 'dialog' );
 const state = require( 'state' );
+const config = require( 'config' );
 
 module.exports = class CardSignup extends expose.Component {
 	constructor( props ) {
 		super( props );
 		this.expose();
 		this.state = {};
+		this.recapchaId = {};
 
 		this.handleBackClick = function() {
 			expose.set_state( 'main', {
@@ -24,12 +26,14 @@ module.exports = class CardSignup extends expose.Component {
 			let email = document.getElementById( 'email' );
 			let password = document.getElementById( 'password' );
 			let passwordConfirm = document.getElementById( 'passwordConfirm' );
+			let recapchaResult = grecaptcha.getResponse(this.recapchaId);
 
-			if ( !email.value || !password.value || !passwordConfirm.value) {
+			if ( !email.value || !password.value || !passwordConfirm.value || !recapchaResult) {
 				let map = {
 					"Email": email.value,
 					"Password": password.value,
-					"Confirm Password": passwordConfirm.value
+					"Confirm Password": passwordConfirm.value,
+					"reCAPTCHA": recapchaResult
 				}
 				let missingFields = Object.keys(map).filter(field => {
 					return !map[field];
@@ -51,7 +55,8 @@ module.exports = class CardSignup extends expose.Component {
 			// TODO: Disable button
 			let body = {
 				email: email.value,
-				password: password.value
+				password: password.value,
+				reCAPCHA: recapchaResult,
 			}
 			let response = await network.request('POST', 'account/signup', JSON.stringify(body));
 			if(response.status === 204) {
@@ -74,6 +79,12 @@ module.exports = class CardSignup extends expose.Component {
 			console.log("DONE");
 			console.log(response);
 		};
+	}
+
+	componentDidMount() {
+		this.recapchaId = grecaptcha.render('recapcha', {
+          'sitekey' : config.recapcha.sitekey
+        });
 	}
 
 	validateEmail(email) {
@@ -106,7 +117,12 @@ module.exports = class CardSignup extends expose.Component {
 			placeholder: 'Confirm Password',
 			type: 'password',
 		} ),
-		// TODO: capcha
+		DOM.div( {
+			id: 'recapcha',
+			style: {
+				marginTop: '10px'
+			}
+		}),
 		this.renderSubmitButton(),
 		);
 	}

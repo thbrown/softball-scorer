@@ -11,7 +11,7 @@ let getSqlFromPatch = function(patch, accountId) {
 
 let getSqlFromPatchInternal = function(patch, path, result, accountId) {
 	if(accountId === undefined) {
-		throw new HandledError(500,"Internal Server Error", "Tried to generate sql while accoutnId was undefined (no account loged in)");
+		throw new HandledError(500,"Internal Server Error", "Tried to generate sql while accountId was undefined (no account loged in)");
 	}
 	let keys = Object.keys(patch);
 	for (var i = 0; i < keys.length; i++) {
@@ -128,7 +128,7 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
 				console.log("WARNING: skipped add");
 			} else  {
 				console.log(op, key, value, "za");
-				throw new HandledError(400, "The request specified an invlid operation. Try again.", "Unrecognized operation: " + op + " " + (patch ? JSON.stringify(patch[key]) : patch));
+				throw new HandledError(400, "The request specified an invalid operation. Try again.", "Unrecognized operation: " + op + " " + (patch ? JSON.stringify(patch[key]) : patch));
 			}
 		} else if (hasProperties(value)) {
 			path.push(key);
