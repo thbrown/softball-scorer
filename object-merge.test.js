@@ -162,9 +162,9 @@ test('ArrayAdd - diff and patch', () => {
 
 	let expectedPatch = {
       "players": {
-        "{\"id\":6,\"name\":\"Jamal\",\"gender\":\"M\"}": {
+        "EjSI6v9U17WvKQ+/hVnbyQ": {
           "op": "ArrayAdd",
-          "key": "{\"id\":6,\"name\":\"Jamal\",\"gender\":\"M\"}",
+          "key": "EjSI6v9U17WvKQ+/hVnbyQ",
           "param1": "{\"id\":6,\"name\":\"Jamal\",\"gender\":\"M\"}",
           "param2": 5
         }
@@ -174,9 +174,9 @@ test('ArrayAdd - diff and patch', () => {
           "games": {
             "10": {
               "plateAppearances": {
-                "{\"id\":38,\"player_id\":3,\"result\":\"E\",\"location\":{\"x\":0.57772,\"y\":0.520725},\"plateAppearanceIndex\":1}": {
+                "FoL+Io4gi0LB7+w+xtmzhA": {
                   "op": "ArrayAdd",
-                  "key": "{\"id\":38,\"player_id\":3,\"result\":\"E\",\"location\":{\"x\":0.57772,\"y\":0.520725},\"plateAppearanceIndex\":1}",
+                  "key": "FoL+Io4gi0LB7+w+xtmzhA",
                   "param1": "{\"id\":38,\"player_id\":3,\"result\":\"E\",\"location\":{\"x\":0.57772,\"y\":0.520725},\"plateAppearanceIndex\":1}",
                   "param2": 3
                 }

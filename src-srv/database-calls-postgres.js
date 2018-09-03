@@ -2,7 +2,7 @@ const { Pool } = require( 'pg' );
 
 const objectMerge = require( '../object-merge.js' );
 const sqlGen = require( './sql-gen.js' );
-const HandledError = require( './handled-error.js' )
+const idUtils = require( '../id-utils.js' );
 
 module.exports = class DatabaseCalls {
 
@@ -134,11 +134,16 @@ module.exports = class DatabaseCalls {
 			`, [accountId]);
 
 			Promise.all( [ players, teams ] ).then( function( values ) {
+				var milliseconds = (new Date).getTime();
+
 				var state = {};
 
 				// Players
 				state.players = [];
 				state.players = values[ 0 ].rows;
+				for( let i = 0; i < state.players.length; i++) {
+					state.players[i].id = idUtils.hexUuidToBase62(state.players[i].id);
+				}
 
 				// Teams
 				let plateAppearances = values[ 1 ].rows;
@@ -153,7 +158,7 @@ module.exports = class DatabaseCalls {
 						teamIdSet.add( plateAppearance.team_id );
 						var newTeam = {};
 						newTeam.games = [];
-						newTeam.id = plateAppearance.team_id;
+						newTeam.id = idUtils.hexUuidToBase62(plateAppearance.team_id);
 						newTeam.name = plateAppearance.team_name;
 						teams.push( newTeam );
 					}
@@ -162,7 +167,7 @@ module.exports = class DatabaseCalls {
 						gameIdSet.add( plateAppearance.game_id );
 						var newGame = {};
 						newGame.plateAppearances = [];
-						newGame.id = plateAppearance.game_id;
+						newGame.id = idUtils.hexUuidToBase62(plateAppearance.game_id);
 						newGame.opponent = plateAppearance.game_opponent;
 						newGame.date = plateAppearance.game_date;
 						newGame.park = plateAppearance.game_park;
@@ -170,7 +175,7 @@ module.exports = class DatabaseCalls {
 						newGame.score_them = plateAppearance.score_them;
 						newGame.lineup_type = plateAppearance.lineup_type;
 						if ( plateAppearance.lineup ) {
-							newGame.lineup = plateAppearance.lineup.split( ',' ).map( v => v.trim() );
+							newGame.lineup = plateAppearance.lineup.split( ',' ).map( v => idUtils.hexUuidToBase62(v.trim()) );
 						} else {
 							newGame.lineup = [];
 						}
@@ -179,8 +184,8 @@ module.exports = class DatabaseCalls {
 
 					if ( plateAppearance.plate_appearance_id ) {
 						var newPlateAppearance = {};
-						newPlateAppearance.id = plateAppearance.plate_appearance_id;
-						newPlateAppearance.player_id = plateAppearance.player_id;
+						newPlateAppearance.id = idUtils.hexUuidToBase62(plateAppearance.plate_appearance_id);
+						newPlateAppearance.player_id = idUtils.hexUuidToBase62(plateAppearance.player_id);
 						newPlateAppearance.result = plateAppearance.result;
 						newPlateAppearance.location = {
 							"x": plateAppearance.x,
@@ -193,8 +198,10 @@ module.exports = class DatabaseCalls {
 				state.teams = teams;
 
 				// For some reason the object hash changes before and after stringification. I couldn't quite figure
-				// out why this was happening so I'll add here for now so we are always hashing the post-stringified object.
+				// out why this was happening so I'll add here for now so we are always hashing the post-stringified object. 
 				state = JSON.parse(JSON.stringify(state));
+
+				console.log("SYNC_PULL", (new Date).getTime() - milliseconds);
 
 				resolve( state );
 			} );

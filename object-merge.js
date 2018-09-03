@@ -1,3 +1,5 @@
+const hasher = require( 'object-hash' );
+
 /**
  *	This is a library to diff and merge objects with similar structures.
  */
@@ -16,7 +18,13 @@ let diffInternal = function(mine, theirs, path, result) {
 		// Add everything to mine that is in theirs
 		let adds = theirs.filter(x => !mine.find(v => getUniqueId(v) === getUniqueId(x)));
 		adds.forEach( 
-			(add) => {addToResult(result, path, JSON.stringify(add), "ArrayAdd", JSON.stringify(add), theirs.indexOf(add))} 
+			(add) => {
+				// We just need the key to be unique, so we'll use whatever is shorter.
+				let md5 = getMd5(add);
+				let value = JSON.stringify(add);
+				let key = value.length <= md5.length ? value : md5;
+				addToResult(result, path, key, "ArrayAdd", JSON.stringify(add), theirs.indexOf(add))
+			} 
 		);
 
 		// Determine which the intersection of the elements in each list so we can compare order
@@ -257,6 +265,19 @@ let diff3 = function(mine, ancestor, theirs) {
 	let patch2 = diff(ancestor,mine);
 	// My changes will overwrite their changes
 	return mergeDeep(patch1, patch2);
+}
+
+
+// Calculate the md5 checksum of the data and return the result as a base64 string
+function getMd5(data) {
+	let checksum = hasher(data, { 
+		algorithm: 'md5',  
+		excludeValues: false, 
+		respectFunctionProperties: false, 
+		respectFunctionNames: false, 
+		respectType: false,
+		encoding: 'base64'} );
+	return checksum.slice(0, -2); // Remove trailing '=='
 }
 
 module.exports = {  
