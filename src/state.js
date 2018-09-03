@@ -4,6 +4,7 @@ const expose = require( 'expose' );
 const objectMerge = require( '../object-merge.js' );
 const network = require( 'network.js' )
 const results = require( 'plate-appearance-results.js' );
+const idUtils = require( '../id-utils.js' );
 
 const hasher = require( 'object-hash' );
 const uuidv4 = require('uuid/v4');
@@ -434,7 +435,7 @@ function isEmpty(obj) {
 }
 
 function getNextId() {
-	return uuidv4();
+	return idUtils.hexUuidToBase62(uuidv4());
 };
 
 function getMd5(data) {
