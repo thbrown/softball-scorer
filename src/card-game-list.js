@@ -15,22 +15,20 @@ module.exports = class CardGameList extends expose.Component {
 
 		this.handleGameClick = function( game ) {
 			expose.set_state( 'main', {
-				page: 'Game',
-				game: game.id
+				page: `/teams/${props.team.id}/games/${game.id}` // TODO: always back to lineup?
 			} );
 		};
 
 		this.handleDeleteClick = function( game, ev ){
 			dialog.show_confirm( 'Are you sure you want to delete the game vs "' + game.opponent + '"?', () => {
-				state.removeGame( game.id, this.props.team.id );
+				state.removeGame( game.id, props.team.id );
 			} );
 			ev.stopPropagation();
 		};
 
 		this.handleEditClick = function( game, ev ) {
 			expose.set_state( 'main', {
-				page: 'GameEdit',
-				game: game.id
+				page: `/teams/${props.team.id}/games/${game.id}/edit`
 			} );
 			ev.stopPropagation();
 		};
@@ -38,18 +36,8 @@ module.exports = class CardGameList extends expose.Component {
 		this.handleCreateClick = function(){
 			let game = state.addGame( this.props.team.id, '' );
 			expose.set_state( 'main', {
-				page: 'GameEdit',
-				game: game.id
+				page: `/teams/${props.team.id}/games/${game.id}/edit`
 			} );
-			/*
-			dialog.show_input( 'Opponent Name', ( opposing_team_name ) => {
-				let game = state.addGame( this.props.team.id, opposing_team_name );
-				expose.set_state( 'main', {
-					page: 'GameEdit',
-					game: game.id
-				} );
-			} );
-			*/
 		}.bind( this );
 	}
 

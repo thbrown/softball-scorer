@@ -10,7 +10,7 @@ const state = require( 'state' );
 const objectMerge = require( '../object-merge.js' );
 const hasher = require( 'object-hash' );
 
-module.exports = class CardTeam extends expose.Component {
+module.exports = class CardMenu extends expose.Component {
 	constructor( props ) {
 		super( props );
 		this.expose();
@@ -18,13 +18,13 @@ module.exports = class CardTeam extends expose.Component {
 
 		this.handleTeamsClick = function() {
 			expose.set_state( 'main', {
-				page: 'TeamList'
+				page: '/teams'
 			} );
 		};
 
 		this.handleLoginClick = function() {
 			expose.set_state( 'main', {
-				page: 'Auth'
+				page: '/menu/login'
 			} );
 		};
 
@@ -51,7 +51,7 @@ module.exports = class CardTeam extends expose.Component {
 
 		this.handleLoadClick = function() {
 			expose.set_state( 'main', {
-				page: 'Load'
+				page: '/menu/import'
 			} );
 		};
 	}

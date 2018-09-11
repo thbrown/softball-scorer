@@ -235,7 +235,7 @@ function updateServiceWorker(cb) {
 
 		// TODO: Minify this
 		const edit = 
-		"// This file has been automatically generated as part of the build process. Changes here will be overrwridden on the next build.\r\n" + 
+		"// This file has been automatically generated as part of the build process. Changes here will be overidden on the next build.\r\n" + 
 		"// Do not check this in to source control. If you'd like to make edits to the service worker edit service-worker-template.js instead.\r\n" +
 		"// Changes made in that file will be reflected here. \r\n" +
 		`let autoGenCacheName = 'softball-${hashObj.hash}'; \r\n`;

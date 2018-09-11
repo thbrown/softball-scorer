@@ -71,24 +71,20 @@ module.exports = class CardLineup extends expose.Component {
 
 		this.handleCreateClick = function() {
 			expose.set_state( 'main', {
-				page: 'PlayerSelection',
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/player-selection`
 			} );
 		}.bind( this );
 
-		this.handleBoxClick = function( player, plateAppearance_ct ) {
+		this.handleBoxClick = function( plateAppearanceId ) {
 			expose.set_state( 'main', {
-				page: 'PlateAppearance',
-				player: player.id,
-				plateAppearance: plateAppearance_ct
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/plateAppearances/${plateAppearanceId}`
 			} );
 		}.bind( this );
 
 		this.handleNewPlateAppearanceClick = function( player, game_id, team_id ) {
 			let plateAppearance = state.addPlateAppearance( player.id, game_id, team_id );
 			expose.set_state( 'main', {
-				page: 'PlateAppearance',
-				player: player.id,
-				plateAppearance: plateAppearance.id
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/plateAppearances/${plateAppearance.id}`
 			} );
 		}.bind( this );
 
@@ -159,7 +155,7 @@ module.exports = class CardLineup extends expose.Component {
 			pa = pa || {};
 			return DOM.div( {
 				key: 'box' + i,
-				onClick: this.handleBoxClick.bind( this, player, pa.id ),
+				onClick: this.handleBoxClick.bind( this, pa.id ),
 				className: 'lineup-box'
 			}, DOM.div( {}, pa.result || '' ) );
 		} );

@@ -14,29 +14,27 @@ module.exports = class CardTeam extends expose.Component {
 	constructor( props ) {
 		super( props );
 		this.expose();
-		this.state = {
-			tab: tab
-		};
+		tab = props.tab || tab;
 
 		this.handleBackClick = function() {
 			expose.set_state( 'main', {
-				page: 'TeamList'
+				page: '/teams'
 			} );
 		};
 
 		this.handleTabClick = function( t ) {
 			tab = t;
-			this.setState( {
-				tab: t
+			expose.set_state( 'main', {
+				page: `/teams/${this.props.team.id}/${tab}`
 			} );
 		}.bind( this );
 	}
 
 	render() {
 		let subcard = '';
-		if( this.state.tab === 'stats' ) {
+		if( tab === 'stats' ) {
 			subcard = React.createElement( CardStats, { team: this.props.team } );
-		} else if( this.state.tab === 'games' ) {
+		} else if( tab === 'games' ) {
 			subcard = React.createElement( CardGameList, { team: this.props.team } );
 		}
 
@@ -65,14 +63,14 @@ module.exports = class CardTeam extends expose.Component {
 						onClick: this.handleTabClick.bind( this, 'stats' ),
 						style: {
 							width: '50%',
-							borderBottom: this.state.tab === 'stats' ? '5px solid ' + css.colors.TEXT_LIGHT : 'none',
+							borderBottom: tab === 'stats' ? '5px solid ' + css.colors.TEXT_LIGHT : 'none',
 						}
 					}, 'Stats' ),
 					DOM.div( {
 						onClick: this.handleTabClick.bind( this, 'games' ),
 						style: {
 							width: '50%',
-							borderBottom: this.state.tab === 'games' ? '5px solid ' + css.colors.TEXT_LIGHT : 'none',
+							borderBottom: tab === 'games' ? '5px solid ' + css.colors.TEXT_LIGHT : 'none',
 						}
 					}, 'Games' )
 				)

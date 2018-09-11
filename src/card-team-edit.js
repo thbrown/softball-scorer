@@ -18,7 +18,7 @@ module.exports = class CardTeamEdit extends expose.Component {
 
 		let returnToTeamsListPage = function() {
 			expose.set_state( 'main', {
-				page: 'TeamList'
+				page: '/teams'
 			} );
 		}
 

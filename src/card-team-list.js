@@ -15,21 +15,20 @@ module.exports = class CardTeamList extends expose.Component {
 
 		this.handleBackClick = function() {
 			expose.set_state( 'main', {
-				page: 'Menu'
+				page: `/menu`,
+				isNew: false
 			} );
 		};
 
 		this.handleTeamClick = function( team ) {
 			expose.set_state( 'main', {
-				page: 'Team',
-				team: team.id
+				page: `/teams/${team.id}`
 			} );
 		};
 
 		this.handleEditClick = function( team, ev ) {
 			expose.set_state( 'main', {
-				page: 'TeamEdit',
-				team: team.id,
+				page: `/teams/${team.id}/edit`,
 				isNew: false
 			} );
 			ev.stopPropagation();
@@ -38,8 +37,7 @@ module.exports = class CardTeamList extends expose.Component {
 		this.handleCreateClick = function() {
 			let team = state.addTeam( '' );
 			expose.set_state( 'main', {
-				page: 'TeamEdit',
-				team: team.id,
+				page: `/teams/${team.id}/edit`,
 				isNew: true
 			} );
 		};

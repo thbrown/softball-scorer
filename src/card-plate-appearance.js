@@ -22,12 +22,12 @@ module.exports = class CardPlateAppearance extends expose.Component {
 
 		this.handleBackClick = function() {
 			expose.set_state( 'main', {
-				page: 'Game'
+				page: `/teams/${props.team.id}/games/${props.game.id}`
 			} );
 		};
 
 		this.handleButtonClick = function( result ) {
-			state.updatePlateAppearanceResult( this.props.plateAppearance, result );
+			state.updatePlateAppearanceResult( props.plateAppearance, result );
 		};
 
 		this.handleDragStart = function() {
@@ -40,7 +40,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 				let new_x = ( this.mx - 10 ) / window.innerWidth;
 				let new_y = ( this.my - 10 ) / window.innerWidth;
 
-				state.updatePlateAppearanceLocation( this.props.plateAppearance, [ new_x, new_y ] );
+				state.updatePlateAppearanceLocation( props.plateAppearance, [ new_x, new_y ] );
 			}, 1 );
 		};
 
@@ -48,7 +48,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			dialog.show_confirm( 'Are you sure you want to delete this plate appearance?', () => {
 				state.removePlateAppearance( props.plateAppearance.id, props.game.id );
 				expose.set_state( 'main', {
-					page: 'Game'
+					page: `/teams/${props.team.id}/games/${props.game.id}`
 				} );
 			} );
 		};

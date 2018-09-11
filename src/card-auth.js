@@ -16,13 +16,13 @@ module.exports = class CardAuth extends expose.Component {
 
 		this.handleBackClick = function() {
 			expose.set_state( 'main', {
-				page: 'Menu'
+				page: '/menu'
 			} );
 		};
 
 		this.handleSignupClick = function() {
 			expose.set_state( 'main', {
-				page: 'Signup'
+				page: '/menu/signup'
 			} );
 		};
 

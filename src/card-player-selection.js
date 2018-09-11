@@ -23,7 +23,7 @@ module.exports = class CardPlayerSelection extends expose.Component {
 
 		this.handleBackClick = () => {
 			expose.set_state( 'main', {
-				page: 'Game'
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}`
 			} );
 		};
 
@@ -42,7 +42,7 @@ module.exports = class CardPlayerSelection extends expose.Component {
 			}
 			state.addPlayerToLineup( this.props.game.lineup, this.state.player.id );
 			expose.set_state( 'main', {
-				page: 'Game'
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}`
 			} );
 		};
 
