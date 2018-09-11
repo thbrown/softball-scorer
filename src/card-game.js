@@ -14,32 +14,31 @@ module.exports = class CardGame extends expose.Component {
 	constructor( props ) {
 		super( props );
 		this.expose();
-		this.state = {
-			tab: tab
-		};
+
+		tab = props.tab || tab;
 
 		this.handleBackClick = function() {
 			expose.set_state( 'main', {
-				page: 'Team'
+				page: `/teams/${this.props.team.id}/games`
 			} );
-		};
+		}.bind( this );
 
 		this.handleTabClick = function( t ) {
 			tab = t;
-			this.setState( {
-				tab: t
+			expose.set_state( 'main', {
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/${tab}`
 			} );
 		}.bind( this );
 	}
 
 	render() {
 		let subcard = '';
-		if( this.state.tab === 'lineup' ) {
+		if( tab === 'lineup' ) {
 			subcard = React.createElement( CardLineup, {
 				team: this.props.team,
 				game: this.props.game
 			} );
-		} else if( this.state.tab === 'scorer' ) {
+		} else if( tab === 'scorer' ) {
 			subcard = React.createElement( CardScorer, {
 				team: this.props.team,
 				game: this.props.game
@@ -72,14 +71,14 @@ module.exports = class CardGame extends expose.Component {
 						onClick: this.handleTabClick.bind( this, 'lineup' ),
 						style: {
 							width: '50%',
-							borderBottom: this.state.tab === 'lineup' ? '5px solid ' + css.colors.TEXT_LIGHT : 'none',
+							borderBottom: tab === 'lineup' ? '5px solid ' + css.colors.TEXT_LIGHT : 'none',
 						}
 					}, 'Lineup' ),
 					DOM.div( {
 						onClick: this.handleTabClick.bind( this, 'scorer' ),
 						style: {
 							width: '50%',
-							borderBottom: this.state.tab === 'scorer' ? '5px solid ' + css.colors.TEXT_LIGHT : 'none',
+							borderBottom: tab === 'scorer' ? '5px solid ' + css.colors.TEXT_LIGHT : 'none',
 						}
 					}, 'Scorer' )
 				),

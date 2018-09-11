@@ -18,17 +18,18 @@ module.exports = class CardLoading extends expose.Component {
 
 		// Do an asynchronous sync so the ui loads quickly and get's the data from the network later
 		// TODO: If the load is async, consider removing this whole card and moving to code to main-container
-		setTimeout(state.sync,1);
+		// setTimeout(state.sync,1); .. moved to main container
 
 		expose.set_state( 'main', {
-			page: qs.page || 'TeamList'
+			page: '/team'
 		} );
 
+		// Moved most of this to the main container
 		// Visibility changes should load/save data from/to storage to prevent inconsistencies between tabs
-		window.addEventListener("focus", function (event) { 
-			console.log("FOCUS EVENT");           
-			state.loadAppDataFromLocalStorage();            
-		}, false);
+		//window.addEventListener("focus", function (event) { 
+		//	console.log("FOCUS EVENT");           
+		//	state.loadAppDataFromLocalStorage();            
+		//}, false);
 		//window.addEventListener("blur", function (event) {
 		//	state.saveAppDataToLocalStorage();
 		//}, false);

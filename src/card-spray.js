@@ -22,7 +22,7 @@ module.exports = class CardAtBat extends expose.Component {
 
 		this.handleBackClick = function() {
 			expose.set_state( 'main', {
-				page: 'Team'
+				page: `/teams/${props.teamId}/stats`
 			} );
 		};
 	}

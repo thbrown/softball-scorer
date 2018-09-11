@@ -29,20 +29,16 @@ module.exports = class CardScorer extends expose.Component {
 			} );
 		}.bind( this );
 
-		this.handleBoxClick = function( player, plateAppearance_id ) {
+		this.handleBoxClick = function( player, plateAppearanceId ) {
 			expose.set_state( 'main', {
-				page: 'PlateAppearance',
-				player: player.id,
-				plateAppearance: plateAppearance_id
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/plateAppearances/${plateAppearanceId}`
 			} );
 		}.bind( this );
 
 		this.handleNewPlateAppearanceClick = function( player, game_id, team_id ) {
 			let plateAppearance = state.addPlateAppearance( player.id, game_id, team_id );
 			expose.set_state( 'main', {
-				page: 'PlateAppearance',
-				player: player.id,
-				plateAppearance: plateAppearance.id
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/plateAppearances/${plateAppearance.id}`
 			} );
 		}.bind( this );
 

@@ -15,7 +15,7 @@ module.exports = class CardGameEdit extends expose.Component {
 
 		this.handleBackClick = function() {
 			expose.set_state( 'main', {
-				page: 'Team'
+				page: `/teams/${props.team.id}`
 			} );
 		};
 
@@ -23,7 +23,7 @@ module.exports = class CardGameEdit extends expose.Component {
 			dialog.show_confirm( 'Are you sure you want to delete the game vs "' + props.game.opponent + '"?', () => {
 				state.removeGame( props.game.id );
 				expose.set_state( 'main', {
-					page: 'Team'
+					page: `/teams/${props.team.id}`
 				} );
 			} );
 		};

@@ -47,8 +47,7 @@ module.exports = class CardStats extends expose.Component {
 
 		this.handlePlayerClick = function(playerId) {
 			expose.set_state( 'main', {
-				page: 'Spray',
-				player: playerId,
+				page: `/teams/${this.props.team.id}/stats/player/${playerId}`
 			} );
 		}
 	}

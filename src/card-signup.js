@@ -18,7 +18,7 @@ module.exports = class CardSignup extends expose.Component {
 
 		this.handleBackClick = function() {
 			expose.set_state( 'main', {
-				page: 'Auth'
+				page: '/menu'
 			} );
 		};
 

@@ -20,7 +20,7 @@ module.exports = class CardLoad extends expose.Component {
 
 		this.handleBackClick = function() {
 			expose.set_state( 'main', {
-				page: 'Menu'
+				page: '/menu'
 			} );
 		};
 
