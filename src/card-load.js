@@ -49,7 +49,7 @@ module.exports = class CardLoad extends expose.Component {
 							'This file\'s data has been merged into local data'
 						);
 						expose.set_state( 'main', {
-							page: 'TeamList'
+							page: '/teams'
 						} );
 					} else if (self.state.loadType === "Overwrite") {
 						state.setLocalState(parsedData);
@@ -57,7 +57,7 @@ module.exports = class CardLoad extends expose.Component {
 							'This file\'s data has been copied to local data'
 						);
 						expose.set_state( 'main', {
-							page: 'TeamList'
+							page: '/teams'
 						} );
 					} else {
 						dialog.show_notification(

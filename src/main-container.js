@@ -26,7 +26,7 @@ const qs = state.getQueryObj();
 // TODO
 // Players List
 // Edit Player
-// Length limitations
+// Length limitations (client)
 // Disable submit button on signin
 // Text directions?
 // Sample data?
@@ -38,7 +38,6 @@ const qs = state.getQueryObj();
 
 // Long names overlap back button on AP page
 
-// Team, Player, and game ordering
 // Delete account/data
 // Async localstorage interaction
 
@@ -72,7 +71,6 @@ module.exports = class MainContainer extends expose.Component {
 
 		// When the user pops the state (e.g. on back button press) make sure the react state matches the url.
 		window.onpopstate = function() {
-			console.log("Pop state");
 			let newPage = window.location.pathname;
 			expose.set_state( 'main', {
 				page: newPage
@@ -126,10 +124,12 @@ module.exports = class MainContainer extends expose.Component {
 		return true;
 	}
 
+
 	// TODO: rename
 	renderCard( url ){
+		// Update the base url if necessary
 		if(url !== window.location.pathname) {
-			history.pushState({}, url, url);
+			history.pushState({}, '', url);
 		}
 
 		if(MainContainer.matches(url, "/", this.state)) {
