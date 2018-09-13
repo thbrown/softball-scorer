@@ -127,8 +127,6 @@ module.exports = class DatabaseCalls {
 				WHERE 
 				   teams.account_id = $1
 				ORDER BY
-				  team_id ASC,
-				  game_id ASC,
 				  teams.counter ASC,
 				  games.counter ASC,
 				  index ASC;
@@ -180,7 +178,8 @@ module.exports = class DatabaseCalls {
 						} else {
 							newGame.lineup = [];
 						}
-						newTeam.games.push( newGame );
+						let team = teams.find( (element) => element.id === idUtils.hexUuidToBase62(plateAppearance.team_id));
+						team.games.push( newGame );
 					}
 
 					if ( plateAppearance.plate_appearance_id ) {
@@ -193,13 +192,15 @@ module.exports = class DatabaseCalls {
 							"y": plateAppearance.y
 						}
 						newPlateAppearance.plateAppearanceIndex = plateAppearance.index;
-						newGame.plateAppearances.push( newPlateAppearance );
+						let team = teams.find( (element) => element.id === idUtils.hexUuidToBase62(plateAppearance.team_id));
+						let game = team.games.find( (element) => element.id ===  idUtils.hexUuidToBase62(plateAppearance.game_id));
+						game.plateAppearances.push( newPlateAppearance );
 					}
 				}
 				state.teams = teams;
 
-				// For some reason the object hash changes before and after stringification. I couldn't quite figure
-				// out why this was happening so I'll add here for now so we are always hashing the post-stringified object. 
+				// For some reason the object hash changes before and after stringification. I couldn't quite figure out why this was happening 
+				// (the objects with different hashes appear to be identical. So, I'll add this copy here for now so we are always hashing the post-stringified object. 
 				state = JSON.parse(JSON.stringify(state));
 
 				console.log("SYNC_PULL", (new Date).getTime() - milliseconds);
