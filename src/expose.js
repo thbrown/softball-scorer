@@ -44,6 +44,7 @@ module.exports.Component = class ExposeComponent extends React.Component {
 		if( module.exports.states[ this._expose_id ] ){
 			console.error( 'Error, expose component exposed an id that already exists', this.expose_id, this.props );
 		}
+
 	}
 
 	componentWillMount(){

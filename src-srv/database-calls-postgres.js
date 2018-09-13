@@ -3,6 +3,7 @@ const { Pool } = require( 'pg' );
 const objectMerge = require( '../object-merge.js' );
 const sqlGen = require( './sql-gen.js' );
 const idUtils = require( '../id-utils.js' );
+const HandledError = require( './handled-error.js' );
 
 module.exports = class DatabaseCalls {
 
@@ -94,7 +95,7 @@ module.exports = class DatabaseCalls {
 				  gender as gender
 				FROM players
 				WHERE account_id = $1
-				ORDER BY created_at ASC
+				ORDER BY counter ASC
 			`, [accountId]);
 
 			var teams = self.parameterizedQueryPromise( `
@@ -128,8 +129,8 @@ module.exports = class DatabaseCalls {
 				ORDER BY
 				  team_id ASC,
 				  game_id ASC,
-				  teams.created_at ASC,
-				  games.created_at ASC,
+				  teams.counter ASC,
+				  games.counter ASC,
 				  index ASC;
 			`, [accountId]);
 
@@ -208,25 +209,6 @@ module.exports = class DatabaseCalls {
 		} );
 	}
 
-	// TODO: I think this is unused
-	async setState( data, accountId ) {
-		if(accountId === undefined)  {
-			throw new HandledError(403, "Please sign in first"); // TODO: Should be unauthenticated, not forbidden
-		}
-		let result = await this.getState( accountId );
-
-		let self = this;
-		var ancestorDiffs = objectMerge.diff(result, JSON.parse(data.ancestor));
-		if(Object.keys(ancestorDiffs).length === 0 && ancestorDiffs.constructor === Object) {
-			// Diff the client's data with the db data to get the patch we need to apply to make the database match the client
-			var patch = objectMerge.diff(result, JSON.parse(data.local));
-			console.log(JSON.stringify(patch, null,2));
-			patchState( patch, accountId );
-		} else {
-			throw new HandledError(400, "There are pending changes. Pull first.");
-		}
-	}
-
 	async patchState( patch, accountId ) {
 		if(accountId === undefined)  {
 			throw new HandledError(403, "Please sign in first");
@@ -242,8 +224,16 @@ module.exports = class DatabaseCalls {
 			await client.query('SET CONSTRAINTS ALL DEFERRED');
 
 			for(let i = 0; i < sqlToRun.length; i++) {
+				
+				// Don't save fields longer than 50 characters
+				for(var j = 0; j < sqlToRun[i].values.length; j++) {
+					if(sqlToRun[i].values[j].length > 50) {
+						throw new HandledError(400, "Field was larger than 50 characters " + sqlToRun[i].values[j]);
+					}
+				}
+
 				// Run the query!
-				console.log("Executing:", sqlToRun[i]);
+				console.log(`Executing:`, sqlToRun[i]);
 				await client.query(sqlToRun[i].query, sqlToRun[i].values);
 			}
 			await client.query('COMMIT');

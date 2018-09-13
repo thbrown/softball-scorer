@@ -16,6 +16,7 @@ module.exports = class CardStats extends expose.Component {
 	constructor( props ) {
 		super( props );
 		this.expose();
+
 		this.state = {
 			sortField: sortField,
 			sortDirection: sortDirection
