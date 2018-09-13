@@ -227,7 +227,7 @@ module.exports = class DatabaseCalls {
 				
 				// Don't save fields longer than 50 characters
 				for(var j = 0; j < sqlToRun[i].values.length; j++) {
-					if(sqlToRun[i].values[j].length > 50) {
+					if(sqlToRun[i].values[j] && sqlToRun[i].values[j].length > 50) {
 						throw new HandledError(400, "Field was larger than 50 characters " + sqlToRun[i].values[j]);
 					}
 				}
