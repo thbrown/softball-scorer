@@ -77,14 +77,14 @@ module.exports = class CardLineup extends expose.Component {
 
 		this.handleBoxClick = function( plateAppearanceId ) {
 			expose.set_state( 'main', {
-				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/plateAppearances/${plateAppearanceId}`
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearanceId}`
 			} );
 		}.bind( this );
 
 		this.handleNewPlateAppearanceClick = function( player, game_id, team_id ) {
 			let plateAppearance = state.addPlateAppearance( player.id, game_id, team_id );
 			expose.set_state( 'main', {
-				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/plateAppearances/${plateAppearance.id}`
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearance.id}`
 			} );
 		}.bind( this );
 

@@ -7,7 +7,7 @@ const HandledError = require( './handled-error.js' );
 
 module.exports = class DatabaseCalls {
 
-	constructor(url, port, user, password) {
+	constructor( url, port, user, password ) {
 		console.log( 'Connecting to pg', url );
 		this.pool = new Pool( {
 			user: user,
@@ -193,7 +193,6 @@ module.exports = class DatabaseCalls {
 							"x": plateAppearance.x,
 							"y": plateAppearance.y
 						}
-						newPlateAppearance.plateAppearanceIndex = plateAppearance.index;
 						let team = teams.find( (element) => element.id === idUtils.hexUuidToBase62(plateAppearance.team_id));
 						let game = team.games.find( (element) => element.id ===  idUtils.hexUuidToBase62(plateAppearance.game_id));
 						game.plateAppearances.push( newPlateAppearance );
@@ -248,7 +247,7 @@ module.exports = class DatabaseCalls {
 		}
 	}
 
-	async signup(email, passwordHash, passwordTokenHash) {
+	async signup( email, passwordHash, passwordTokenHash ) {
 		let result = await this.parameterizedQueryPromise( `
 				INSERT INTO account (email, password_hash, password_token_hash, password_token_expiration, status)
 				VALUES ($1, $2, $3, now() + interval '1' hour, 'TRIAL')
@@ -257,7 +256,7 @@ module.exports = class DatabaseCalls {
 		return result.rows[0];
 	}
 
-	async getAccountFromTokenHash(passwordTokenHash) {
+	async getAccountFromTokenHash( passwordTokenHash ) {
 		console.log("Seraching for", passwordTokenHash.trim());
 		let results =  await this.parameterizedQueryPromise( `
 				SELECT account_id, email, password_hash, verified_email
@@ -274,7 +273,7 @@ module.exports = class DatabaseCalls {
 		}
 	}
 
-	async confirmEmail(accountId) {
+	async confirmEmail( accountId ) {
 		await this.parameterizedQueryPromise( `
 				UPDATE account 
 				SET verified_email = TRUE 
@@ -292,7 +291,7 @@ module.exports = class DatabaseCalls {
 		return undefined;
 	}
 
-	async setPasswordHashAndExpireToken(accountId, newPasswordHash) {
+	async setPasswordHashAndExpireToken( accountId, newPasswordHash ) {
 		await this.parameterizedQueryPromise( `
 				UPDATE account 
 				SET password_hash = $1, password_token_expiration = now()
@@ -300,7 +299,7 @@ module.exports = class DatabaseCalls {
 			`, [newPasswordHash, accountId]);
 	}
 
-	async setPasswordTokenHash(accountId, newPasswordHash) {
+	async setPasswordTokenHash( accountId, newPasswordHash ) {
 		await this.parameterizedQueryPromise( `
 				UPDATE account 
 				SET password_token_hash = $1, password_token_expiration = now() + interval '24' hour
@@ -308,7 +307,7 @@ module.exports = class DatabaseCalls {
 			`, [newPasswordHash, accountId]);
 	}
 
-	async deleteAccount(accountId) {
+	async deleteAccount( accountId ) {
 		await this.parameterizedQueryPromise( `
 				DELETE FROM account 
 				WHERE account_id = $1

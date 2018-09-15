@@ -219,8 +219,8 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
 			y = obj.plateAppearances.location.y;
 		}
 		result.push({
-			query:"INSERT INTO plate_appearances (id, result, player_id, game_id, team_id, hit_location_x, hit_location_y, index_in_game, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id;",
-			values:[idUtils.base62ToHexUuid(obj.plateAppearances.id), obj.plateAppearances.result, idUtils.base62ToHexUuid(obj.plateAppearances.player_id), idUtils.base62ToHexUuid(parents.gameId), idUtils.base62ToHexUuid(parents.teamId), x, y, obj.plateAppearances.plateAppearanceIndex, accountId]
+			query:"INSERT INTO plate_appearances (id, result, player_id, game_id, team_id, hit_location_x, hit_location_y, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id;",
+			values:[idUtils.base62ToHexUuid(obj.plateAppearances.id), obj.plateAppearances.result, idUtils.base62ToHexUuid(obj.plateAppearances.player_id), idUtils.base62ToHexUuid(parents.gameId), idUtils.base62ToHexUuid(parents.teamId), x, y, accountId]
 		});
 	}
 }
@@ -298,8 +298,8 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
 				y = obj.plateAppearances[i].location.y;
 			}
 			result.push({
-				query:"INSERT INTO plate_appearances (id, result, player_id, game_id, team_id, hit_location_x, hit_location_y, index_in_game, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id;",
-				values:[idUtils.base62ToHexUuid(obj.plateAppearances[i].id), obj.plateAppearances[i].result, idUtils.base62ToHexUuid(obj.plateAppearances[i].player_id), idUtils.base62ToHexUuid(parents.gameId), idUtils.base62ToHexUuid(parents.teamId), x, y, obj.plateAppearances[i].plateAppearanceIndex, accountId]
+				query:"INSERT INTO plate_appearances (id, result, player_id, game_id, team_id, hit_location_x, hit_location_y, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id;",
+				values:[idUtils.base62ToHexUuid(obj.plateAppearances[i].id), obj.plateAppearances[i].result, idUtils.base62ToHexUuid(obj.plateAppearances[i].player_id), idUtils.base62ToHexUuid(parents.gameId), idUtils.base62ToHexUuid(parents.teamId), x, y, accountId]
 			});
 		}
 	}
