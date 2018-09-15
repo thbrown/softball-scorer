@@ -338,6 +338,11 @@ body {
   background-color: $css.colors.SECONDARY_DARK;
 }
 
+.edit-button {
+  width: auto;
+  margin: 10px;
+}
+
 .no-select {
   -webkit-touch-callout: none;
   -webkit-user-select: none;

@@ -236,6 +236,21 @@ exports.addGame = function( team_id, opposing_team_name ) {
 	return game;
 };
 
+exports.replaceGame = function( oldGameId, teamId, newGame ) {
+	console.log("Replacing ",  oldGameId, teamId, newGame);
+
+	let localState = exports.getLocalState();
+	let oldGame = exports.getGame(oldGameId);
+
+	let team = exports.getTeam(teamId);
+	let teamIndex = localState.teams.indexOf(team);
+
+	let oldGameIndex = localState.teams[teamIndex].games.indexOf(oldGame);
+	localState.teams[teamIndex].games[oldGameIndex] = newGame;
+	reRender();
+};
+
+
 exports.getGame = function( game_id, state ) {
 	for ( let team of ( state || LOCAL_STATE ).teams ) {
 		for ( let game of team.games ) {

@@ -58,11 +58,7 @@ module.exports = class CardTeamEdit extends expose.Component {
 		buttons.push(
 			DOM.div( {
 				key: 'confirm',
-				className: 'button confirm-button',
-				style: {
-					width: 'auto',
-					margin: '10px'
-				},
+				className: 'edit-button button confirm-button',
 				onClick: this.handleConfirmClick,
 			},
 			DOM.img( {
@@ -75,11 +71,7 @@ module.exports = class CardTeamEdit extends expose.Component {
 		buttons.push(
 			DOM.div( {
 				key: 'cancel',
-				className: 'button cancel-button',
-				style: {
-					width: 'auto',
-					margin: '10px'
-				},
+				className: 'edit-button button cancel-button',
 				onClick: this.handleCancelClick,
 			}, 
 			DOM.img( {
@@ -92,11 +84,7 @@ module.exports = class CardTeamEdit extends expose.Component {
 			buttons.push(
 				DOM.div( {
 					key: 'delete',
-					className: 'button cancel-button',
-					style: {
-						width: 'auto',
-						margin: '10px'
-					},
+					className: 'edit-button button cancel-button',
 					onClick: this.handleDeleteClick,
 				}, 
 				DOM.img( {
@@ -128,19 +116,6 @@ module.exports = class CardTeamEdit extends expose.Component {
 		} ),
 		this.renderSaveOptions()
 		);
-	}
-
-
-	renderDeleteButton() {
-		return DOM.div( {
-			key: 'submit',
-			id: 'submit',
-			className: 'button confirm-button',
-			onClick: this.handleDeleteClick,
-			style: {
-				marginLeft: '0'
-			}
-		}, 'Delete');
 	}
 
 	render() {

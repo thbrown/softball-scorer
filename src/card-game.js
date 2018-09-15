@@ -19,7 +19,8 @@ module.exports = class CardGame extends expose.Component {
 
 		this.handleBackClick = function() {
 			expose.set_state( 'main', {
-				page: `/teams/${this.props.team.id}/games`
+				page: `/teams/${this.props.team.id}/games`,
+				isNew: false
 			} );
 		}.bind( this );
 
