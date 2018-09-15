@@ -135,6 +135,7 @@ module.exports = class CardPlayerSelection extends expose.Component {
 		const { playerNameValue } = this.state;
 		const inputProps = {
 			placeholder: "Player Name",
+			maxlength: "50",
 			value: playerNameValue,
 			onChange: this.onChange.bind(this)
 		};
