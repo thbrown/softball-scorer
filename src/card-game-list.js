@@ -19,16 +19,10 @@ module.exports = class CardGameList extends expose.Component {
 			} );
 		};
 
-		this.handleDeleteClick = function( game, ev ){
-			dialog.show_confirm( 'Are you sure you want to delete the game vs "' + game.opponent + '"?', () => {
-				state.removeGame( game.id, props.team.id );
-			} );
-			ev.stopPropagation();
-		};
-
 		this.handleEditClick = function( game, ev ) {
 			expose.set_state( 'main', {
-				page: `/teams/${props.team.id}/games/${game.id}/edit`
+				page: `/teams/${props.team.id}/games/${game.id}/edit`,
+				isNew: false
 			} );
 			ev.stopPropagation();
 		};
@@ -36,7 +30,8 @@ module.exports = class CardGameList extends expose.Component {
 		this.handleCreateClick = function(){
 			let game = state.addGame( this.props.team.id, '' );
 			expose.set_state( 'main', {
-				page: `/teams/${props.team.id}/games/${game.id}/edit`
+				page: `/teams/${props.team.id}/games/${game.id}/edit`,
+				isNew: true
 			} );
 		}.bind( this );
 	}
@@ -63,18 +58,8 @@ module.exports = class CardGameList extends expose.Component {
 						src: '/assets/edit.svg',
 						alt: 'edit',
 						className: 'delete-button',
-						style: {
-							marginRight: '12px',
-						},
 						onClick: this.handleEditClick.bind( this, game ),
 						alt: 'edit'
-					} ),
-					DOM.img( {
-						src: '/assets/delete.svg',
-						alt: 'delete',
-						className: 'delete-button',
-						onClick: this.handleDeleteClick.bind( this, game ),
-						alt: 'delete'
 					} )
 				)
 			);

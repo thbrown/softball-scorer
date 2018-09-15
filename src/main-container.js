@@ -203,9 +203,11 @@ module.exports = class MainContainer extends expose.Component {
 		} else if(MainContainer.matches(url, "/teams/:teamId/games/:gameId/edit", this.state)) {
 			let team = state.getTeam( this.state.teamId );
 			let game = state.getGame( this.state.gameId );
+			let isNew = this.state.isNew;
 			return React.createElement( CardGameEdit, {
 				team: team,
-				game: game
+				game: game,
+				isNew: isNew
 			} );
 		} else if(MainContainer.matches(url, "/teams/:teamId/games/:gameId/plateAppearances/:plateAppearanceId", this.state)) {
 			let team = state.getTeam( this.state.teamId );

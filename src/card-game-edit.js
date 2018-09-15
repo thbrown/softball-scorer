@@ -12,30 +12,48 @@ module.exports = class CardGameEdit extends expose.Component {
 		this.expose();
 
 		this.game = props.game;
+		this.isNew = props.isNew;
 
-		this.handleBackClick = function() {
+		let gameCopy = JSON.parse(JSON.stringify(this.game));
+
+		let returnToGamesListPage = function() {
 			expose.set_state( 'main', {
 				page: `/teams/${props.team.id}`
 			} );
+		}
+
+		this.handleBackClick = function() {
+			state.replaceGame( props.game.id, props.team.id, gameCopy );
+			returnToGamesListPage();
+		};
+
+		this.handleConfirmClick = function() {
+			state.replaceGame( props.game.id, props.team.id, gameCopy );
+			returnToGamesListPage();
+		};
+
+		this.handleCancelClick = function() {
+			if(props.isNew) {
+				state.removeGame( props.game.id, props.team.id );
+			}
+			returnToGamesListPage();
 		};
 
 		this.handleDeleteClick = function() {
 			dialog.show_confirm( 'Are you sure you want to delete the game vs "' + props.game.opponent + '"?', () => {
-				state.removeGame( props.game.id );
-				expose.set_state( 'main', {
-					page: `/teams/${props.team.id}`
-				} );
+				state.removeGame( props.game.id, props.team.id );
+				returnToGamesListPage();
 			} );
 		};
 
 		this.handleOpponentNameChange = function() {
 			let newValue = document.getElementById( 'opponentName' ).value;
-			props.game.opponent = newValue;
+			gameCopy.opponent = newValue;
 		}
 
 		this.handleLineupTypeChange = function() {
 			let newValue = document.getElementById( 'lineupType' ).value;
-			props.game.lineupType = parseInt(newValue);
+			gameCopy.lineupType = parseInt(newValue);
 		}
 
 	}
@@ -75,22 +93,60 @@ module.exports = class CardGameEdit extends expose.Component {
 					]
 				)
 				
-			]
-		//this.renderDeleteButton(),
+			],
+		this.renderSaveOptions(),
 		);
 	}
 
-	renderDeleteButton() {
+	renderSaveOptions() {
+		let buttons = [];
+
+		buttons.push(
+			DOM.div( {
+				key: 'confirm',
+				className: 'edit-button button confirm-button',
+				onClick: this.handleConfirmClick,
+			},
+			DOM.img( {
+				src: '/assets/check.svg',
+				alt: 'back'
+			} ),
+			'Save')
+		);
+
+		buttons.push(
+			DOM.div( {
+				key: 'cancel',
+				className: 'edit-button button cancel-button',
+				onClick: this.handleCancelClick,
+			}, 
+			DOM.img( {
+				src: '/assets/cancel.svg',
+			} ),
+			'Cancel')
+		);
+
+		if(!this.isNew) {
+			buttons.push(
+				DOM.div( {
+					key: 'delete',
+					className: 'edit-button button cancel-button',
+					onClick: this.handleDeleteClick,
+				}, 
+				DOM.img( {
+					src: '/assets/delete.svg',
+				} ),
+				'Delete')
+			);
+		}
+
 		return DOM.div( {
-			key: 'submit',
-			id: 'submit',
-			className: 'button confirm-button',
-			onClick: this.handleDeleteClick,
-			style: {
-				marginLeft: '0'
-			}
-		}, 'Delete');
+			key: 'saveOptions'
+		},
+			buttons
+		)
 	}
+
 
 	render() {
 		return DOM.div( {
