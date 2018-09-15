@@ -172,9 +172,9 @@ module.exports = class DatabaseCalls {
 						newGame.opponent = plateAppearance.game_opponent;
 						newGame.date = plateAppearance.game_date;
 						newGame.park = plateAppearance.game_park;
-						newGame.score_us = plateAppearance.score_us;
-						newGame.score_them = plateAppearance.score_them;
-						newGame.lineup_type = plateAppearance.lineup_type;
+						//newGame.scoreUs = plateAppearance.scoreUs;
+						//newGame.scoreThem = plateAppearance.scoreThem;
+						newGame.lineupType = plateAppearance.lineupType;
 						if ( plateAppearance.lineup ) {
 							newGame.lineup = plateAppearance.lineup.split( ',' ).map( v => idUtils.hexUuidToBase62(v.trim()) );
 						} else {
