@@ -26,7 +26,6 @@ const qs = state.getQueryObj();
 // TODO
 // Players List
 // Edit Player
-// Length limitations (client)
 // Disable submit button on signin
 // Text directions?
 // Sample data?
