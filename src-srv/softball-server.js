@@ -81,9 +81,9 @@ module.exports = class SoftballServer {
 			directives: {
 				defaultSrc: ["'self'"], // Only allow scripts/style/fonts/etc from this domain unless otherwise specified below
 				styleSrc: [ // TODO: use nonce to avoid recapcha styling errors: https://developers.google.com/recaptcha/docs/faq
-					"'self'", 
+					"'self'",
+					"'unsafe-hashed-attributes'",
 					"https://fonts.googleapis.com", 
-					"'sha256-MammJ3J+TGIHdHxYsGLjD6DzRU0ZmxXKZ2DvTePAF0o='", // Hash to hide reCAPCHA result input box on signup page
 					"'sha256-eeE4BsGQZBvwOOvyAnxzD6PBzhU/5IfP4NdPMywc3VE='"], // Hash is for react draggable components
 				fontSrc: ["'self'", "https://fonts.gstatic.com"],
 				scriptSrc: ["'self'", "https://www.google.com", "https://www.gstatic.com"],
