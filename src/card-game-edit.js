@@ -73,7 +73,7 @@ module.exports = class CardGameEdit extends expose.Component {
 					id: 'opponentName',
 					className: 'auth-input', // TODO: make css name generic?
 					placeholder: 'Opponent',
-					maxlength: "50",
+					maxLength: "50",
 					onChange: this.handleOpponentNameChange,
 					defaultValue: this.game.opponent
 				} )

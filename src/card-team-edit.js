@@ -111,7 +111,7 @@ module.exports = class CardTeamEdit extends expose.Component {
 			id: 'name',
 			className: 'auth-input', // TODO: make css name generic?
 			placeholder: 'Team Name',
-			maxlength: "50",
+			maxLength: "50",
 			onChange: this.handleNameChange,
 			defaultValue: this.team.name
 		} ),
