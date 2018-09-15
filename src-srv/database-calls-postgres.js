@@ -106,9 +106,9 @@ module.exports = class DatabaseCalls {
 				  extract (epoch from games.date) as game_date, 
 				  games.opponent as game_opponent, 
 				  games.park as game_park, 
-				  games.score_us as scoreUs, 
-				  games.score_them as scoreThem,
-				  games.lineup_type as lineupType,
+				  games.score_us as score_us, 
+				  games.score_them as score_them,
+				  games.lineup_type as lineup_type,
 				  plate_appearances.id as plate_appearance_id, 
 				  plate_appearances.result as result,
 				  plate_appearances.hit_location_x as x,
@@ -172,9 +172,9 @@ module.exports = class DatabaseCalls {
 						newGame.opponent = plateAppearance.game_opponent;
 						newGame.date = plateAppearance.game_date;
 						newGame.park = plateAppearance.game_park;
-						//newGame.scoreUs = plateAppearance.scoreUs;
-						//newGame.scoreThem = plateAppearance.scoreThem;
-						newGame.lineupType = plateAppearance.lineupType;
+						//newGame.scoreUs = plateAppearance.score_us;
+						//newGame.scoreThem = plateAppearance.score_them;
+						newGame.lineupType = plateAppearance.lineup_type;
 						if ( plateAppearance.lineup ) {
 							newGame.lineup = plateAppearance.lineup.split( ',' ).map( v => idUtils.hexUuidToBase62(v.trim()) );
 						} else {
