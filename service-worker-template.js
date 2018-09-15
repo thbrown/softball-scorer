@@ -27,6 +27,7 @@ self.addEventListener('install', function(event) {
           '/assets/drag-handle.png',
           '/assets/baseball-hit.svg',
           '/assets/baseball-out.svg',
+          '/assets/baseball.svg',
           '/assets/ballfield2.png'
         ]
       );

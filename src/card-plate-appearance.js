@@ -20,10 +20,20 @@ module.exports = class CardPlateAppearance extends expose.Component {
 		this.expose();
 		this.state = {};
 
+		let goBack = function() {
+			if(props.origin == 'scorer') {
+				expose.set_state( 'main', {
+					page: `/teams/${props.team.id}/games/${props.game.id}/scorer`
+				} );
+			} else {
+				expose.set_state( 'main', {
+					page: `/teams/${props.team.id}/games/${props.game.id}/lineup`
+				} );	
+			}
+		}
+
 		this.handleBackClick = function() {
-			expose.set_state( 'main', {
-				page: `/teams/${props.team.id}/games/${props.game.id}`
-			} );
+			goBack();
 		};
 
 		this.handleButtonClick = function( result ) {
@@ -47,9 +57,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 		this.handleDelete = function() {
 			dialog.show_confirm( 'Are you sure you want to delete this plate appearance?', () => {
 				state.removePlateAppearance( props.plateAppearance.id, props.game.id );
-				expose.set_state( 'main', {
-					page: `/teams/${props.team.id}/games/${props.game.id}`
-				} );
+				goBack();
 			} );
 		};
 	}

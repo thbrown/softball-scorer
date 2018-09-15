@@ -120,6 +120,7 @@ module.exports = class MainContainer extends expose.Component {
 		for(let i = 0; i < pathVarKeys.length; i++) {
 			state[pathVarKeys[i]] = pathVariables[pathVarKeys[i]];
 		}
+		state.urlArray = urlArray;
 		return true;
 	}
 
@@ -208,7 +209,7 @@ module.exports = class MainContainer extends expose.Component {
 				game: game,
 				isNew: isNew
 			} );
-		} else if(MainContainer.matches(url, "/teams/:teamId/games/:gameId/plateAppearances/:plateAppearanceId", this.state)) {
+		} else if(MainContainer.matches(url, "/teams/:teamId/games/:gameId/lineup/plateAppearances/:plateAppearanceId", this.state) || MainContainer.matches(url, "/teams/:teamId/games/:gameId/scorer/plateAppearances/:plateAppearanceId", this.state)) {
 			let team = state.getTeam( this.state.teamId );
 			let game = state.getGame( this.state.gameId );
 			let plateAppearance = state.getPlateAppearance( this.state.plateAppearanceId );
@@ -219,7 +220,8 @@ module.exports = class MainContainer extends expose.Component {
 				game: game,
 				player: player,
 				plateAppearance: plateAppearance,
-				plateAppearances: plateAppearances
+				plateAppearances: plateAppearances,
+				origin: this.state.urlArray[5]
 			} );
 		} else {
 			return DOM.div( {

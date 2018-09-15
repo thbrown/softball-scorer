@@ -237,8 +237,6 @@ exports.addGame = function( team_id, opposing_team_name ) {
 };
 
 exports.replaceGame = function( oldGameId, teamId, newGame ) {
-	console.log("Replacing ",  oldGameId, teamId, newGame);
-
 	let localState = exports.getLocalState();
 	let oldGame = exports.getGame(oldGameId);
 
