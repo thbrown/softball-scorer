@@ -291,12 +291,10 @@ exports.addPlateAppearance = function ( player_id, game_id, team_id ) {
 	let new_state = exports.getLocalState();
 	let game = exports.getGame( game_id );
 	let plateAppearances = game.plateAppearances;
-	let plateAppearanceIndex = exports.getNextPlateAppearanceNumber( game_id );
 	let id = getNextId();
 	let plateAppearance = {
 		id: id,
 		player_id: player_id,
-		plateAppearanceIndex: plateAppearanceIndex
 	};
 	plateAppearances.push( plateAppearance );
 	reRender();
@@ -323,15 +321,6 @@ exports.getPlateAppearancesForGame = function( gameId ) {
 		return null;
 	}
 	return game.plateAppearances;
-};
-
-exports.getNextPlateAppearanceNumber = function( game_id ) {
-	let plateAppearances = exports.getGame( game_id ).plateAppearances;
-	let nextPlateAppearanceIndex = 1; // Start at 0 or 1?
-	if(plateAppearances && plateAppearances.length > 0) {
-		nextPlateAppearanceIndex = Math.max.apply(Math,plateAppearances.map(function(o){return o.plateAppearanceIndex;})) + 1;
-	}
-	return nextPlateAppearanceIndex;
 };
 
 exports.getPlateAppearancesForPlayerInGame = function( player_id, game_id ) {
@@ -387,7 +376,7 @@ exports.saveAppDataToLocalStorage = function() {
 		// Changes from other tabs should have been loaded when window/tab became visible
 		// So, we can just write directly to local storage
 		let startTime = performance.now();
-		localStorage.setItem("SCHEMA_VERSION", 1);
+		localStorage.setItem("SCHEMA_VERSION", 2);
 		localStorage.setItem("LOCAL_STATE", JSON.stringify(LOCAL_STATE));
 		localStorage.setItem("ANCESTOR_STATE", JSON.stringify(ANCESTOR_STATE));
 		console.log("Saved state to ls " + (performance.now() - startTime));
@@ -396,7 +385,7 @@ exports.saveAppDataToLocalStorage = function() {
 
 exports.loadAppDataFromLocalStorage = function() {
 	if (typeof(Storage) !== "undefined") {
-		if(localStorage.getItem("SCHEMA_VERSION") !== "1") {
+		if(localStorage.getItem("SCHEMA_VERSION") !== "2") {
 			// TODO: some kind of schema migration
 			// For now we'll just blow away any old local storage
 			exports.clearLocalStorage();

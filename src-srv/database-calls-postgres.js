@@ -113,7 +113,6 @@ module.exports = class DatabaseCalls {
 				  plate_appearances.result as result,
 				  plate_appearances.hit_location_x as x,
 				  plate_appearances.hit_location_y as y,
-				  plate_appearances.index_in_game as index,
 				  plate_appearances.player_id as player_id,
 				  sub_lineup.lineup as lineup
 				FROM 
@@ -127,9 +126,12 @@ module.exports = class DatabaseCalls {
 				WHERE 
 				   teams.account_id = $1
 				ORDER BY
+				  teams.created_at,
 				  teams.counter ASC,
+				  games.created_at,
 				  games.counter ASC,
-				  index ASC;
+				  plate_appearances.created_at ASC,
+				  plate_appearances.counter ASC;
 			`, [accountId]);
 
 			Promise.all( [ players, teams ] ).then( function( values ) {
