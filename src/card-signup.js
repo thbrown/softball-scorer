@@ -8,7 +8,7 @@ const network = require( 'network.js' )
 const dialog = require( 'dialog' );
 const state = require( 'state' );
 const config = require( 'config' );
-
+ 
 module.exports = class CardSignup extends expose.Component {
 	constructor( props ) {
 		super( props );
@@ -79,12 +79,31 @@ module.exports = class CardSignup extends expose.Component {
 			console.log("DONE");
 			console.log(response);
 		};
+
+		this.showRecapcha = function() {
+			showRecapchaInternal();
+		}.bind( this );
+
+		let showRecapchaInternal = function() {
+			if(grecaptcha && grecaptcha.render) {
+				this.recapchaId = grecaptcha.render('recapcha', {
+		          'sitekey' : config.recapcha.sitekey
+		        });
+
+		        // Apparently CSP and reCAPCHA are a disaster in Chrome. Because we can't get the styling from Google, we'll just hide the annoying box that shows up. That's the styling we care about most.
+				// https://bugs.chromium.org/p/chromium/issues/detail?id=546106
+		        document.getElementById('g-recaptcha-response').hidden = true;	
+			} else {
+				setTimeout(function(){
+			    	showRecapchaInternal();
+				}, 500);
+			}
+		}.bind( this );
+
 	}
 
 	componentDidMount() {
-		this.recapchaId = grecaptcha.render('recapcha', {
-          'sitekey' : config.recapcha.sitekey
-        });
+		this.showRecapcha();
 	}
 
 	validateEmail(email) {
