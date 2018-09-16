@@ -32,7 +32,6 @@ const qs = state.getQueryObj();
 
 // Smoother click and drag
 // Use svgs
-// Weirdness adding player mid-game
 // Scroll bars on desktop 
 
 // Long names overlap back button on AP page

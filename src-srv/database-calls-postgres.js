@@ -92,7 +92,9 @@ module.exports = class DatabaseCalls {
 				SELECT 
 				  id as id,
 				  name as name,
-				  gender as gender
+				  gender as gender,
+				  song_link as song_link,
+				  song_start as song_start
 				FROM players
 				WHERE account_id = $1
 				ORDER BY counter ASC
@@ -124,7 +126,7 @@ module.exports = class DatabaseCalls {
 				  GROUP BY players_games.game_id) as sub_lineup ON sub_lineup.game_id=games.id
 				FULL JOIN teams ON games.team_id=teams.id
 				WHERE 
-				   teams.account_id = $1
+				  teams.account_id = $1
 				ORDER BY
 				  teams.created_at,
 				  teams.counter ASC,
