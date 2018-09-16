@@ -145,7 +145,7 @@ module.exports = class CardScorer extends expose.Component {
 					id: 'currentBatterSong',
 					width: '32',
 					height: '32',
-					src: `https://www.youtube-nocookie.com/embed/${currentBatter.song_link}?rel=0&amp;controls=0&amp;start=${currentBatter.song_start}`,
+					src: `https://thbrown.github.io/iframe-proxy/index.html?id=${currentBatter.song_link}&start=${currentBatter.song_start}`,
 					allow: 'autoplay; encrypted-media',
 					sandbox: 'allow-scripts allow-same-origin',
 				}) );

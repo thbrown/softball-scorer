@@ -21,7 +21,7 @@ exports.getServerUrl = function(path) {
 exports.sync = async function(fullSync) {
 	console.log("Sync requested", fullSync ? "full" : "patchOnly");
 
-	// TODO: do we want to cancel any in_progress syncs?
+	// TODO: do we want to cancel any in_progress syncs? 
 
 	// Merge local storage state with in-memory state first
 	// exports.loadAppDataFromLocalStorage();  This doesn't actually merge, so if the state hasn't been written to ls, this will override it. I'm not sure we need to re-load from ls here anyways.

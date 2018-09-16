@@ -87,7 +87,7 @@ module.exports = class SoftballServer {
 				fontSrc: ["'self'", "https://fonts.gstatic.com"],
 				scriptSrc: ["'self'", "https://www.google.com", "https://www.gstatic.com"],
 				connectSrc: ["'self'", "https://fonts.googleapis.com/css", "https://fonts.gstatic.com", "https://www.gstatic.com", "https://www.google.com"],
-				frameSrc: ["'self'", "https://www.google.com/", "https://www.youtube-nocookie.com/"],
+				frameSrc: ["'self'", "https://www.google.com/", "https://thbrown.github.io/"],
 				reportUri: '/report-violation',
 			},
 		}))
