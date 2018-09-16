@@ -63,6 +63,23 @@ module.exports = class CardScorer extends expose.Component {
 		this.handleDrag = function() {
 
 		};
+
+		// Handle walkup song clicks
+		let clicked = {};
+		var monitor = setInterval(function(){
+		    var elem = document.activeElement;
+		    if(elem && elem.tagName == 'IFRAME'){
+		    	if(clicked[elem.id]) {
+					// reload youtube iframe on second click
+					let playerSong = document.getElementById('song');
+					playerSong.innerHTML = playerSong.innerHTML;
+					clicked[elem.id] = false;
+		        } else {
+		        	clicked[elem.id] = true;
+		        }
+		        document.activeElement.blur();
+		    }
+		}, 100);
 	}
 
 	renderLineupPlayerList(){
@@ -117,14 +134,29 @@ module.exports = class CardScorer extends expose.Component {
 					onClick: this.handleNewPlateAppearanceClick.bind( this, currentBatter, this.props.game.id, this.props.team.id ),
 					className: 'lineup-box',
 		}, DOM.div( {}, '+' ) );
-
+		
 		if(currentBatter) {
+			let walkup;
+			if(currentBatter.song_link && currentBatter.song_start) {
+				walkup = DOM.div( {
+					id: 'song',
+					key: 'song'
+				}, DOM.iframe( {
+					id: 'currentBatterSong',
+					width: '32',
+					height: '32',
+					src: `https://www.youtube-nocookie.com/embed/${currentBatter.song_link}?rel=0&amp;controls=0&amp;start=${currentBatter.song_start}`,
+					allow: 'autoplay; encrypted-media',
+					sandbox: 'allow-scripts allow-same-origin',
+				}) );
+			}
 			elems.push( DOM.div( {
 				id: 'currentBatter',
 				key: 'currentBatterKey',
 				className: 'future-batter-row',
 			},
 				currentBatterEl,
+				walkup,
 				newPa
 			));
 		} else {
