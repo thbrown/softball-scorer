@@ -219,7 +219,7 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
 			y = obj.plateAppearances.location.y;
 		}
 		result.push({
-			query:"INSERT INTO plate_appearances (id, result, player_id, game_id, team_id, hit_location_x, hit_location_y, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id;",
+			query:"INSERT INTO plate_appearances (id, result, player_id, game_id, team_id, hit_location_x, hit_location_y, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;",
 			values:[idUtils.base62ToHexUuid(obj.plateAppearances.id), obj.plateAppearances.result, idUtils.base62ToHexUuid(obj.plateAppearances.player_id), idUtils.base62ToHexUuid(parents.gameId), idUtils.base62ToHexUuid(parents.teamId), x, y, accountId]
 		});
 	}
@@ -258,7 +258,7 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
 	if(obj.games && obj.games.length > 0) {
 		for(let i = 0; i < obj.games.length; i++) {
 			result.push({
-				query:"INSERT INTO games (id, date, opponent, park, score_us, score_them, team_id, lineup_type, account_id) VALUES($1, to_timestamp($2), $3, $4, $5, $6, $7, $8, $9) RETURNING id;",
+				query:"INSERT INTO games (id, date, opponent, park, score_us, score_them, team_id, lineup_type, account_id) VALUES($1, to_timestamp($2), $3, $4, $5, $6, $7, $8) RETURNING id;",
 				values:[idUtils.base62ToHexUuid(obj.games[i].id), obj.games[i].date, obj.games[i].opponent, obj.games[i].park, obj.games[i].scoreUs, obj.games[i].scoreThem, idUtils.base62ToHexUuid(parents.teamId), obj.games[i].lineupType, accountId]
 			});
 			if(obj.games[i].plateAppearances) {
