@@ -7,19 +7,21 @@ const css = require( 'css' );
 
 const state = require( 'state' );
 const dialog = require( 'dialog' );
+
+const CardAuth = require( 'card-auth' );
 const CardGame = require( 'card-game' );
 const CardGameEdit = require( 'card-game-edit' );
+const CardLoad = require( 'card-load' );
+const CardMenu = require( 'card-menu' );
+const CardPasswordReset = require( 'card-password-reset' );
 const CardPlateAppearance = require( 'card-plate-appearance' );
+const CardPlayerEdit = require( 'card-player-edit' );
 const CardPlayerSelection = require( 'card-player-selection' );
+const CardSignup = require( 'card-signup' );
+const CardSpray = require( 'card-spray' );
 const CardTeam = require( 'card-team' );
 const CardTeamEdit = require( 'card-team-edit' );
 const CardTeamList = require( 'card-team-list' );
-const CardMenu = require( 'card-menu' );
-const CardAuth = require( 'card-auth' );
-const CardSpray = require( 'card-spray' );
-const CardSignup = require( 'card-signup' );
-const CardLoad = require( 'card-load' );
-const CardPasswordReset = require( 'card-password-reset' );
 
 const qs = state.getQueryObj();
 
@@ -221,6 +223,11 @@ module.exports = class MainContainer extends expose.Component {
 				plateAppearance: plateAppearance,
 				plateAppearances: plateAppearances,
 				origin: this.state.urlArray[5]
+			} );
+		} else if(MainContainer.matches(url, "/players/:playerId/edit", this.state)) {
+			let player = state.getPlayer( this.state.playerId );
+			return React.createElement( CardPlayerEdit, {
+				player: player
 			} );
 		} else {
 			return DOM.div( {

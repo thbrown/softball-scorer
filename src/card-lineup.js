@@ -19,6 +19,11 @@ module.exports = class CardLineup extends expose.Component {
 		super( props );
 		this.expose();
 		this.state = {};
+		
+		this.simWorker = new Worker('./workers/hitter.js');
+		this.simWorker.onmessage = function(e) {
+			console.log(`Got message from web worker`,e);
+		}
 
 		this.locked = this.locked || this.props.game.plateAppearances.length > 0 ? true : false;
 
@@ -105,6 +110,14 @@ module.exports = class CardLineup extends expose.Component {
 			document.getElementById( 'lineup-padding' ).style.display = 'none';
 			const { new_position_index } = getInds( elem, index );
 			state.updateLineup( this.props.game.lineup, player.id, new_position_index );
+
+
+			// Tell web worker to start computing lineup estimated score
+			this.simWorker.postMessage('some-lousy-data');
+			let data = ???;
+			if(data)
+			state.getPlateAppearancesForPlayerOnTeam( player.id, this.props.team.id);
+			
 		};
 
 		this.handleDrag = function( player, index ) {
