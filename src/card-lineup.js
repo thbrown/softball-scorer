@@ -20,9 +20,11 @@ module.exports = class CardLineup extends expose.Component {
 		this.expose();
 		this.state = {};
 		
-		this.simWorker = new Worker('./workers/hitter.js');
+		this.simWorker = new Worker('/simulation-worker');
 		this.simWorker.onmessage = function(e) {
-			console.log(`Got message from web worker`,e);
+			let data = JSON.parse(e.data);
+			let elem = document.getElementById( 'score' );
+			elem.innerHTML = `Estimated Score: ${data.score.toFixed(3)} runs    Calculation Time: ${data.time}ms`;
 		}
 
 		this.locked = this.locked || this.props.game.plateAppearances.length > 0 ? true : false;
@@ -111,13 +113,24 @@ module.exports = class CardLineup extends expose.Component {
 			const { new_position_index } = getInds( elem, index );
 			state.updateLineup( this.props.game.lineup, player.id, new_position_index );
 
-
 			// Tell web worker to start computing lineup estimated score
-			this.simWorker.postMessage('some-lousy-data');
-			let data = ???;
-			if(data)
-			state.getPlateAppearancesForPlayerOnTeam( player.id, this.props.team.id);
-			
+			let lineup = [];
+			for(let i = 0; i < this.props.game.lineup.length; i++) {
+				let plateAppearances = state.getPlateAppearancesForPlayerOnTeam( this.props.game.lineup[i] , this.props.team.id );
+				let hits = [];
+				for(let j = 0; j < plateAppearances.length; j++) {
+			      hits.push(plateAppearances[j].result);
+			    }
+			    let hitterData = {};
+			    hitterData.historicHits = hits;
+				lineup.push(hits); 
+			}
+
+			let message = {};
+			message.iterations = 1000000;
+			message.innings = 7;
+			message.lineup = lineup;
+			this.simWorker.postMessage(JSON.stringify(message));
 		};
 
 		this.handleDrag = function( player, index ) {
@@ -162,6 +175,10 @@ module.exports = class CardLineup extends expose.Component {
 		//this.enableTouchAction();
 	}
 
+	componentWillUnmount() {
+		this.simWorker.terminate();
+	}
+
 	renderPlateAppearanceBoxes( player, plateAppearances, editable ) {
 
 		let pas = plateAppearances.map( ( pa, i ) => {
@@ -192,6 +209,18 @@ module.exports = class CardLineup extends expose.Component {
 		},
 			pas
 		);
+	}
+
+	renderLineupScore() {
+		return DOM.div( {
+			id: 'score',
+			key: 'score',
+			className: 'america',
+			style: {
+				height: '20px',
+				paddingLeft: '10px'
+			}
+		}, '...' );
 	}
 
 	renderLineupPlayerList() {
@@ -369,6 +398,7 @@ module.exports = class CardLineup extends expose.Component {
 					'marginTop': '10px'
 				}
 			},
+			this.renderLineupScore(),
 			this.renderLineupPlayerList(),
 			this.renderNonLineupAtBats()
 		);
