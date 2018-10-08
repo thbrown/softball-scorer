@@ -13,7 +13,7 @@ const favicon = require( 'serve-favicon' );
 const bcrypt = require( 'bcrypt' );
 const crypto = require( 'crypto' );
 const hasher = require( 'object-hash' );
-const got = require('got');
+const got = require( 'got' );
 
 const objectMerge = require( '../object-merge.js' );
 const HandledError = require( './handled-error.js' );
@@ -98,6 +98,7 @@ module.exports = class SoftballServer {
 		// Service worker must be kept at the project root, otherwise it will not be able to cache resources above it in the file structure
 		app.use( '/service-worker', express.static( path.join( __dirname + '/../service-worker.js' ).normalize() ) );
 		app.use( '/manifest', express.static( path.join( __dirname + '/../manifest.json' ).normalize() ) );
+		app.use( '/simulation-worker', express.static( path.join( __dirname + '/../src/workers/simulation-worker.js' ).normalize() ) );
 		app.use( bodyParser.json( {
 			limit: '3mb',
 			type: ['json', 'application/json', 'application/csp-report']
