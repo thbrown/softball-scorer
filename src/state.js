@@ -192,9 +192,32 @@ exports.getPlayer = function( player_id, state ) {
 	}, null );
 };
 
-exports.getAllPlayers = function () {
-	return LOCAL_STATE.players;
+exports.replacePlayer = function( playerId, newPlayer ) {
+	let localState = exports.getLocalState();
+	let oldPlayer = exports.getPlayer(playerId, localState);
+
+	let oldPlayerIndex = localState.players.indexOf(oldPlayer);
+	localState.players[oldPlayerIndex] = newPlayer;
+	reRender();
 };
+
+exports.getAllPlayers = function () {
+	return exports.getLocalState().players;
+};
+
+exports.removePlayer = function( playerId ) {
+	if(exports.getGamesWithPlayerInLineup(playerId).length === 0 && exports.getGamesWherePlayerHasPlateAppearances(playerId).length === 0) {
+		let localState = exports.getLocalState();
+		console.log(localState.players.length);
+		localState.players = localState.players.filter( player => {
+			return player.id !== playerId;
+		} );
+		console.log(localState.players.length);
+		return true;
+	} else {
+		return false;
+	}
+}
 
 exports.addPlayer = function( player_name, gender ) {
 	const id = getNextId();
@@ -260,6 +283,38 @@ exports.getGame = function( game_id, state ) {
 
 	return null;
 };
+
+exports.getGamesWithPlayerInLineup = function ( playerId ) {
+	let games = [];
+	let localState = exports.getLocalState();
+	for ( let team of localState.teams ) {
+		for ( let game of team.games ) {
+			for( let i = 0; i < game.lineup.length; i++ ) {
+				if ( game.lineup[i] === playerId ) {
+					games.push(game);
+					break;
+				}
+			}
+		}
+	}
+	return games;
+}
+
+exports.getGamesWherePlayerHasPlateAppearances = function ( playerId ) {
+	let games = [];
+	let localState = exports.getLocalState();
+	for ( let team of localState.teams ) {
+		for ( let game of team.games ) {
+			for ( let pa of game.plateAppearances ) {
+				if ( pa.id === playerId ) {
+					games.push(game);
+					break;
+				}
+			}
+		}
+	}
+	return games;
+}
 
 exports.addPlayerToLineup = function( lineup, player_id ) {
 	lineup.push(player_id);
