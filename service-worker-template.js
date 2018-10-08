@@ -28,7 +28,8 @@ self.addEventListener('install', function(event) {
           '/assets/baseball-hit.svg',
           '/assets/baseball-out.svg',
           '/assets/baseball.svg',
-          '/assets/ballfield2.png'
+          '/assets/ballfield2.png',
+          '/simulation-worker'
         ]
       );
     })

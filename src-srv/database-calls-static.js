@@ -2,7 +2,7 @@ let databaseCalls = class DatabaseCalls {
 
 	constructor() {
 		this.SAMPLE_STATE = {
-			  "players": [
+		  "players": [
 		    {
 		      "id": "4Pw6B9km4f4CQExEegoHbV",
 		      "name": "Harry",
