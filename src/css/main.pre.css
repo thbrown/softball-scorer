@@ -64,9 +64,7 @@ body {
   cursor: pointer;
   height: $css.sizes.ICON;
   width: $css.sizes.ICON;
-}  cursor: pointer;
-  height: $css.sizes.ICON;
-  width: $css.sizes.ICON;
+}
 
 .list-button {
   padding: 8px;
