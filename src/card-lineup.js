@@ -14,6 +14,9 @@ const FULL_EDIT = "fullEdit";
 const PARTIAL_EDIT = "partialEdit";
 const NO_EDIT = "noEdit";
 
+const SIMULATION_TEXT = 'Estimating Lineup Score...';
+const PLAYER_TILE_HEIGHT = 43;
+
 module.exports = class CardLineup extends expose.Component {
 	constructor( props ) {
 		super( props );
@@ -23,13 +26,14 @@ module.exports = class CardLineup extends expose.Component {
 		this.simWorker = new Worker('/simulation-worker');
 		this.simWorker.onmessage = function(e) {
 			let data = JSON.parse(e.data);
-			let elem = document.getElementById( 'score' );
-			elem.innerHTML = `Estimated Score: ${data.score.toFixed(3)} runs    Calculation Time: ${data.time}ms`;
+			let elem = document.getElementById( 'score-text' );
+			elem.innerHTML = `Estimated Score: ${data.score.toFixed(3)} runs (took ${data.time}ms)`;
+
+			let scoreSpinner = document.getElementById('score-spinner');
+			scoreSpinner.style.visibility = 'hidden';
 		}
 
 		this.locked = this.locked || this.props.game.plateAppearances.length > 0 ? true : false;
-
-		this.elemHeight = 76;
 
 		const hideHighlights = () => {
 			let highlights = document.getElementsByClassName( 'highlight' );
@@ -47,7 +51,7 @@ module.exports = class CardLineup extends expose.Component {
 
 		const getInds = ( elem, index ) => {
 			const deltaY = parseInt( elem.style.transform.slice( 15 ) ) - 15;
-			const diff = Math.floor( deltaY / this.elemHeight ) + 1;
+			const diff = Math.floor( deltaY / PLAYER_TILE_HEIGHT ) + 1;
 			let highlight_index = index + diff;
 			if ( diff >= 0 ) {
 				highlight_index++;
@@ -69,10 +73,11 @@ module.exports = class CardLineup extends expose.Component {
 			return num <= min ? min : num >= max ? max : num;
 		};
 
-		this.handleDeleteClick = function( player, ev ) {
+		this.handleRemoveClick = function( player, ev ) {
 			dialog.show_confirm( 'Do you want to remove "' + player.name + '" from the lineup?', () => {
 				state.removePlayerFromLineup( this.props.game.lineup, player.id );
 			} );
+			this.simulateLineup();
 			ev.stopPropagation();
 		};
 
@@ -113,24 +118,7 @@ module.exports = class CardLineup extends expose.Component {
 			const { new_position_index } = getInds( elem, index );
 			state.updateLineup( this.props.game.lineup, player.id, new_position_index );
 
-			// Tell web worker to start computing lineup estimated score
-			let lineup = [];
-			for(let i = 0; i < this.props.game.lineup.length; i++) {
-				let plateAppearances = state.getPlateAppearancesForPlayerOnTeam( this.props.game.lineup[i] , this.props.team.id );
-				let hits = [];
-				for(let j = 0; j < plateAppearances.length; j++) {
-			      hits.push(plateAppearances[j].result);
-			    }
-			    let hitterData = {};
-			    hitterData.historicHits = hits;
-				lineup.push(hits); 
-			}
-
-			let message = {};
-			message.iterations = 1000000;
-			message.innings = 7;
-			message.lineup = lineup;
-			this.simWorker.postMessage(JSON.stringify(message));
+			this.simulateLineup();
 		};
 
 		this.handleDrag = function( player, index ) {
@@ -149,6 +137,33 @@ module.exports = class CardLineup extends expose.Component {
 			} );
 		}.bind(this);
 
+	}
+
+	simulateLineup() {
+		// Tell web worker to start computing lineup estimated score
+		let scoreSpinner = document.getElementById('score-spinner');
+		scoreSpinner.style.visibility = 'unset';
+
+		let simulatedScoreDiv = document.getElementById('score-text');
+		simulatedScoreDiv.innerHTML = SIMULATION_TEXT;
+
+		let lineup = [];
+		for(let i = 0; i < this.props.game.lineup.length; i++) {
+			let plateAppearances = state.getPlateAppearancesForPlayerOnTeam( this.props.game.lineup[i] , this.props.team.id );
+			let hits = [];
+			for(let j = 0; j < plateAppearances.length; j++) {
+		      hits.push(plateAppearances[j].result);
+		    }
+		    let hitterData = {};
+		    hitterData.historicHits = hits;
+			lineup.push(hits); 
+		}
+
+		let message = {};
+		message.iterations = 1000000;
+		message.innings = 7;
+		message.lineup = lineup;
+		this.simWorker.postMessage(JSON.stringify(message));
 	}
 
 	getUiTextForLockButton() {
@@ -173,6 +188,7 @@ module.exports = class CardLineup extends expose.Component {
 
 	componentDidMount() {
 		//this.enableTouchAction();
+		this.simulateLineup();
 	}
 
 	componentWillUnmount() {
@@ -215,12 +231,19 @@ module.exports = class CardLineup extends expose.Component {
 		return DOM.div( {
 			id: 'score',
 			key: 'score',
-			className: 'america',
-			style: {
-				height: '20px',
-				paddingLeft: '10px'
-			}
-		}, '...' );
+			className: 'lineup-score',
+		}, DOM.img( {
+				id: 'score-spinner',
+				src: '/assets/spinner.gif',
+				style: {
+					visibility: 'unset'
+				}
+			} ),
+		DOM.div( {
+			id: 'score-text',
+			className: 'lineup-score-text',
+		}, SIMULATION_TEXT )
+		);
 	}
 
 	renderLineupPlayerList() {
@@ -362,7 +385,7 @@ module.exports = class CardLineup extends expose.Component {
 					paddingBottom: '20px',
 					marginLeft: '0',
 				},
-				onClick: this.handleDeleteClick.bind( this, player )
+				onClick: this.handleRemoveClick.bind( this, player )
 			} ) );
 		}
 
