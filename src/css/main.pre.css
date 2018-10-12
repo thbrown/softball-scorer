@@ -59,14 +59,14 @@ body {
 }
 
 .back-arrow,
-.delete-button {
+.list-button {
   cursor: pointer;
   height: $css.sizes.ICON;
   width: $css.sizes.ICON;
 }
 
-.delete-button {
-  padding: 12px;
+.list-button {
+  padding: 8px;
   margin: -12px;
 }
 

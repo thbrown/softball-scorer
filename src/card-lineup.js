@@ -379,7 +379,7 @@ module.exports = class CardLineup extends expose.Component {
 			elems.push( DOM.img( {
 				key: 'del',
 				src: '/assets/remove.svg',
-				className: 'delete-button',
+				className: 'list-button',
 				style: {
 					paddingTop: '20px',
 					paddingBottom: '20px',
