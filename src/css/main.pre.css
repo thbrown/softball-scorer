@@ -59,11 +59,14 @@ body {
 }
 
 .back-arrow,
-.list-button {
+.list-button,
+.lineup-row-button {
   cursor: pointer;
   height: $css.sizes.ICON;
   width: $css.sizes.ICON;
-}
+}  cursor: pointer;
+  height: $css.sizes.ICON;
+  width: $css.sizes.ICON;
 
 .list-button {
   padding: 8px;
@@ -154,6 +157,11 @@ body {
 
 .lineup-row .player-name {
   width: 25%;
+}
+
+.lineup-row-button {
+  padding: 12px;
+  margin: -12px;
 }
 
 .player-name {
