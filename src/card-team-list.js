@@ -65,7 +65,7 @@ module.exports = class CardTeamList extends expose.Component {
 					DOM.img( {
 						src: '/assets/edit.svg',
 						alt: 'edit',
-						className: 'delete-button', // TODO: more generic css
+						className: 'list-button',
 						onClick: this.handleEditClick.bind( this, team ),
 						alt: 'edit'
 					} )

@@ -57,7 +57,7 @@ module.exports = class CardGameList extends expose.Component {
 					DOM.img( {
 						src: '/assets/edit.svg',
 						alt: 'edit',
-						className: 'delete-button',
+						className: 'list-button',
 						onClick: this.handleEditClick.bind( this, game ),
 						alt: 'edit'
 					} )
