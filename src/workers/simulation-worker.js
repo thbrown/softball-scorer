@@ -5,6 +5,15 @@ self.addEventListener('message',  e => {
 
   let time = new Date().getTime();
 
+  // Empty lineup returns a score of 0
+  if(message.lineup.length === 0) {
+    let response = {};
+    response.score = 0;
+    response.time = 0;
+    self.postMessage(JSON.stringify(response));
+    return;
+  }
+
   // Convert results to hit number for each player in the lineup
   for(let p = 0; p < message.lineup.length; p++) {
     let historicHits = [];
