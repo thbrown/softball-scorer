@@ -44,7 +44,7 @@ module.exports = class CardAuth extends expose.Component {
 				})
 
 				// TODO: loading icon
-				let response = await network.request("POST", 'account/reset-password-request', body);
+				let response = await network.request("POST", 'server/account/reset-password-request', body);
 				if(response.status === 204) {
 					dialog.show_notification(
 						'Password reset email has been sent to the email provided.'
@@ -68,10 +68,10 @@ module.exports = class CardAuth extends expose.Component {
 					password: password.value
 				});
 
-				let response = await network.request("POST", 'account/login', body);
+				let response = await network.request("POST", 'server/account/login', body);
 				if ( response.status === 204 ) {
 					// TODO: don't clear local storage if the user re-logs into the same account (for example, if the user's session was invalidated while
-					// the user was in offline mode making changes and now wants to re-authenticate)
+					// the user was in offline mode making changes and now wants to re-authenticate) 
 					state.clearLocalStorage();
 					state.clearState();
 					let status = await state.sync();
@@ -179,7 +179,7 @@ module.exports = class CardAuth extends expose.Component {
 					className: 'card-title'
 				},
 				DOM.img( {
-					src: '/assets/back.svg',
+					src: '/server/assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 					alt: 'back'

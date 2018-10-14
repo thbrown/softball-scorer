@@ -23,7 +23,7 @@ module.exports = class CardLineup extends expose.Component {
 		this.expose();
 		this.state = {};
 		
-		this.simWorker = new Worker('/simulation-worker');
+		this.simWorker = new Worker('/server/simulation-worker');
 		this.simWorker.onmessage = function(e) {
 			let data = JSON.parse(e.data);
 			let elem = document.getElementById( 'score-text' );
@@ -234,7 +234,7 @@ module.exports = class CardLineup extends expose.Component {
 			className: 'lineup-score',
 		}, DOM.img( {
 				id: 'score-spinner',
-				src: '/assets/spinner.gif',
+				src: '/server/assets/spinner.gif',
 				style: {
 					visibility: 'unset'
 				}
@@ -360,7 +360,7 @@ module.exports = class CardLineup extends expose.Component {
 				key: 'handle',
 				className: 'player-drag-handle',
 			}, DOM.img( {
-				src: '/assets/drag-handle.png',
+				src: '/server/assets/drag-handle.png',
 				style: {
 					height: '24px'
 				}
@@ -378,7 +378,7 @@ module.exports = class CardLineup extends expose.Component {
 		if(editable === FULL_EDIT) {
 			elems.push( DOM.img( {
 				key: 'del',
-				src: '/assets/remove.svg',
+				src: '/server/assets/remove.svg',
 				className: 'lineup-row-button',
 				style: {
 					paddingTop: '20px',
