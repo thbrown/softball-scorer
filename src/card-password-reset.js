@@ -48,7 +48,7 @@ module.exports = class CardPasswordReset extends expose.Component {
 				password: password.value
 			}
 
-			let response = await network.request('POST',`account/reset-password`, JSON.stringify(body));
+			let response = await network.request('POST',`server/account/reset-password`, JSON.stringify(body));
 			if(response.status === 204) {
 				dialog.show_notification(
 					`Success! Your password has been changed. Please login.`
@@ -129,7 +129,7 @@ module.exports = class CardPasswordReset extends expose.Component {
 					className: 'card-title'
 				},
 				DOM.img( {
-					src: '/assets/back.svg',
+					src: '/server/assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 					alt: 'back'

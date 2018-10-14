@@ -58,7 +58,7 @@ module.exports = class CardSignup extends expose.Component {
 				password: password.value,
 				reCAPCHA: recapchaResult,
 			}
-			let response = await network.request('POST', 'account/signup', JSON.stringify(body));
+			let response = await network.request('POST', 'server/account/signup', JSON.stringify(body));
 			if(response.status === 204) {
 				// TODO: don't clear local storage if the user data isn't associated with an account
 				state.clearLocalStorage();
@@ -166,7 +166,7 @@ module.exports = class CardSignup extends expose.Component {
 					className: 'card-title'
 				},
 				DOM.img( {
-					src: '/assets/back.svg',
+					src: '/server/assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 					alt: 'back'

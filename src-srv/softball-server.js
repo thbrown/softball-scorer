@@ -93,12 +93,12 @@ module.exports = class SoftballServer {
 		}))
 		app.use(helmet.referrerPolicy({ policy: 'same-origin' }))
 		app.use( favicon( __dirname + '/../assets/fav-icon.png' ) );
-		app.use( '/build', express.static( path.join( __dirname + '/../build' ).normalize() ) );
-		app.use( '/assets', express.static( path.join( __dirname + '/../assets' ).normalize() ) );
-		// Service worker must be kept at the project root, otherwise it will not be able to cache resources above it in the file structure
-		app.use( '/service-worker', express.static( path.join( __dirname + '/../service-worker.js' ).normalize() ) );
-		app.use( '/manifest', express.static( path.join( __dirname + '/../manifest.json' ).normalize() ) );
-		app.use( '/simulation-worker', express.static( path.join( __dirname + '/../src/workers/simulation-worker.js' ).normalize() ) );
+		app.use( '/server/build', express.static( path.join( __dirname + '/../build' ).normalize() ) );
+		app.use( '/server/assets', express.static( path.join( __dirname + '/../assets' ).normalize() ) );
+		// Service worker must be served at project root to intercept all fetches
+		app.use( '/service-worker', express.static( path.join( __dirname + '/../src/workers/service-worker.js' ).normalize() ) );
+		app.use( '/server/manifest', express.static( path.join( __dirname + '/../manifest.json' ).normalize() ) );
+		app.use( '/server/simulation-worker', express.static( path.join( __dirname + '/../src/workers/simulation-worker.js' ).normalize() ) );
 		app.use( bodyParser.json( {
 			limit: '3mb',
 			type: ['json', 'application/json', 'application/csp-report']
@@ -119,14 +119,15 @@ module.exports = class SoftballServer {
 		app.use( passport.session() );
 
 		// Routes
-
-		app.post( '/state', wrapForErrorProcessing( async( req, res ) => { // Should this be a patch??
+		/*
+		app.post( '/server/state', wrapForErrorProcessing( async( req, res ) => { // Should this be a patch??
 			let accountId = extractSessionInfo( req, 'accountId' );
 			await this.databaseCalls.setState( req.body, accountId );
 			res.status( 204 ).send();
 		} ) );
+		*/
 
-		app.get( '/state', wrapForErrorProcessing( async( req, res ) => {
+		app.get( '/server/state', wrapForErrorProcessing( async( req, res ) => {
 			if(!req.isAuthenticated()) {
 				res.status( 403 ).send();
 				return;
@@ -142,7 +143,7 @@ module.exports = class SoftballServer {
 			res.status( 200 ).send( state );
 		} ) );
 
-		app.get( '/state-pretty', wrapForErrorProcessing( async( req, res ) => {
+		app.get( '/server/state-pretty', wrapForErrorProcessing( async( req, res ) => {
 			if(!req.isAuthenticated()) {
 				res.status( 403 ).send();
 				return;
@@ -158,7 +159,7 @@ module.exports = class SoftballServer {
 			res.status( 200 ).send( JSON.stringify( state, null, 2 ) );
 		} ) );
 
-		app.post( '/account/login', wrapForErrorProcessing( ( req, res, next ) => {
+		app.post( '/server/account/login', wrapForErrorProcessing( ( req, res, next ) => {
 			passport.authenticate( 'local', function( err, accountInfo, info ) {
 				if ( err || !accountInfo ) {
 					console.log( 'FAILED TO AUTHENTICATE!', accountInfo, err, info );
@@ -172,7 +173,7 @@ module.exports = class SoftballServer {
 			} )( req, res, next );
 		} ) );
 
-		app.post( '/account/signup', wrapForErrorProcessing( async( req, res, next ) => {
+		app.post( '/server/account/signup', wrapForErrorProcessing( async( req, res, next ) => {
 			checkRequiredField(req.body.email, "email");
 			checkFieldLength(req.body.email, 320);
 
@@ -213,7 +214,7 @@ module.exports = class SoftballServer {
 			res.status( 204 ).send();
 		} ) );
 
-		app.post( '/account/reset-password-request', wrapForErrorProcessing( async( req, res, next ) => {
+		app.post( '/server/account/reset-password-request', wrapForErrorProcessing( async( req, res, next ) => {
 			console.log("Reset password request")
 			checkRequiredField(req.body.email, "email");
 			let account = await this.databaseCalls.getAccountFromEmail( req.body.email );
@@ -233,7 +234,7 @@ module.exports = class SoftballServer {
 
 		} ) );
 
-		app.post( '/account/reset-password', wrapForErrorProcessing( async( req, res, next ) => {
+		app.post( '/server/account/reset-password', wrapForErrorProcessing( async( req, res, next ) => {
 			console.log("Password update recieved");
 			checkRequiredField(req.body.password, "password");
 			checkFieldLength(req.body.password, 320);
@@ -257,7 +258,7 @@ module.exports = class SoftballServer {
 			}
 		} ) );
 
-		app.delete( '/account', wrapForErrorProcessing( ( req, res, next ) => {
+		app.delete( '/server/account', wrapForErrorProcessing( ( req, res, next ) => {
 			if(!req.isAuthenticated()) {
 				res.status( 403 ).send();
 				return;
@@ -280,7 +281,7 @@ module.exports = class SoftballServer {
 				base: {...}
 			}
 		*/
-		app.post( '/sync', wrapForErrorProcessing( async( req, res ) => {
+		app.post( '/server/sync', wrapForErrorProcessing( async( req, res ) => {
 			console.log("ACCOUNT", extractSessionInfo( req, 'accountId' ));
 			if(!req.isAuthenticated()) {
 				res.status( 403 ).send();

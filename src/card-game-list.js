@@ -55,7 +55,7 @@ module.exports = class CardGameList extends expose.Component {
 					style: {
 					}},
 					DOM.img( {
-						src: '/assets/edit.svg',
+						src: '/server/assets/edit.svg',
 						alt: 'edit',
 						className: 'list-button',
 						onClick: this.handleEditClick.bind( this, game ),

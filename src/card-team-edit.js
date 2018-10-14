@@ -62,7 +62,7 @@ module.exports = class CardTeamEdit extends expose.Component {
 				onClick: this.handleConfirmClick,
 			},
 			DOM.img( {
-				src: '/assets/check.svg',
+				src: '/server/assets/check.svg',
 				alt: 'back'
 			} ),
 			'Save')
@@ -75,7 +75,7 @@ module.exports = class CardTeamEdit extends expose.Component {
 				onClick: this.handleCancelClick,
 			}, 
 			DOM.img( {
-				src: '/assets/cancel.svg',
+				src: '/server/assets/cancel.svg',
 			} ),
 			'Cancel')
 		);
@@ -88,7 +88,7 @@ module.exports = class CardTeamEdit extends expose.Component {
 					onClick: this.handleDeleteClick,
 				}, 
 				DOM.img( {
-					src: '/assets/delete.svg',
+					src: '/server/assets/delete.svg',
 				} ),
 				'Delete')
 			);
@@ -128,7 +128,7 @@ module.exports = class CardTeamEdit extends expose.Component {
 					className: 'card-title'
 				},
 				DOM.img( {
-					src: '/assets/back.svg',
+					src: '/server/assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 				} ),

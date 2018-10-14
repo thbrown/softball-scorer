@@ -42,7 +42,7 @@ exports.sync = async function(fullSync) {
 	}
 
 	// Ship it
-	let response = await network.request('POST','sync',JSON.stringify(body));
+	let response = await network.request('POST','server/sync',JSON.stringify(body));
 	console.log("SEDNING SYNC", body);
 
 	if(response.status === 200) {

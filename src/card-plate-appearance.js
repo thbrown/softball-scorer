@@ -153,7 +153,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			let new_x = Math.floor( normalize( x, 0, 1, 0, window.innerWidth ) );
 			let new_y = Math.floor( normalize( y, 0, 1, 0, window.innerWidth ) );
 
-			let imageSrc = (value.id === this.props.plateAppearance.id) ? imageSrcForCurrentPa : '/assets/baseball.svg';
+			let imageSrc = (value.id === this.props.plateAppearance.id) ? imageSrcForCurrentPa : '/server/assets/baseball.svg';
 			if ( value.location && x && y ) {
 				indicators.push( 
 					DOM.img( {
@@ -184,7 +184,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			},
 			DOM.img( {
 				draggable: true,
-				src: '/assets/ballfield2.png',
+				src: '/server/assets/ballfield2.png',
 				alt: 'ballfield',
 				style: {
 					width: '100%'
@@ -228,7 +228,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			},
 			DOM.img( {
 				draggable: true,
-				src: '/assets/delete.svg',
+				src: '/server/assets/delete.svg',
 				onClick: this.handleDelete,
 				alt: 'delete',
 				style: {
@@ -239,7 +239,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 	}
 
 	render() {
-		let imageSrcForCurrentPa = (results.getOutResults().includes(this.props.plateAppearance.result)) ? '/assets/baseball-out.svg' : '/assets/baseball-hit.svg';
+		let imageSrcForCurrentPa = (results.getOutResults().includes(this.props.plateAppearance.result)) ? '/server/assets/baseball-out.svg' : '/assets/baseball-hit.svg';
 		return DOM.div( {
 				className: 'card',
 				style: {
@@ -251,7 +251,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 					style: {}
 				},
 				DOM.img( {
-					src: '/assets/back.svg',
+					src: '/server/assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 					alt: 'back'

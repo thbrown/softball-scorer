@@ -63,7 +63,7 @@ module.exports = class CardTeamList extends expose.Component {
 					style: {
 					}},
 					DOM.img( {
-						src: '/assets/edit.svg',
+						src: '/server/assets/edit.svg',
 						alt: 'edit',
 						className: 'list-button',
 						onClick: this.handleEditClick.bind( this, team ),
@@ -93,7 +93,7 @@ module.exports = class CardTeamList extends expose.Component {
 					className: 'card-title'
 				},
 				DOM.img( {
-					src: '/assets/back.svg',
+					src: '/server/assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 					alt: 'back'

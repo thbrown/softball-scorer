@@ -3,7 +3,7 @@ build/main.js
 build/vendor.js
 assets/main.css
 certs/
-service-worker.js
+src/workers/service-worker.js
 package-lock.json
 src-srv/config.js
 src/config.js
