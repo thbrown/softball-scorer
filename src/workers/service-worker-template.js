@@ -16,22 +16,22 @@ self.addEventListener('install', function(event) {
       return cache.addAll(
         [
           '/',
-          '/server/build/vendor.js',
-          '/server/build/main.js',
-          '/server/assets/main.css',
-          '/server/assets/check.svg',
           '/server/assets/back.svg',
-          '/server/assets/edit.svg',
-          '/server/assets/cancel.svg',
-          '/server/assets/delete.svg',
-          '/server/assets/remove.svg',
-          '/server/assets/drag-handle.png',
+          '/server/assets/ballfield2.png',
           '/server/assets/baseball-hit.svg',
           '/server/assets/baseball-out.svg',
           '/server/assets/baseball.svg',
-          '/server/assets/ballfield2.png',
+          '/server/assets/cancel.svg',
+          '/server/assets/check.svg',
+          '/server/assets/delete.svg',
+          '/server/assets/drag-handle.png',
+          '/server/assets/edit.svg',
+          '/server/assets/main.css',
+          '/server/assets/remove.svg',
           '/server/assets/spinner.gif',
-          '/server/simulation-worker'
+          '/server/build/main.js',
+          '/server/build/vendor.js',
+          '/server/simulation-worker',
         ]
       );
     })

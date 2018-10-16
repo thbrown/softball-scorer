@@ -21,14 +21,25 @@ module.exports = class CardAtBat extends expose.Component {
 		this.state = {};
 
 		this.handleBackClick = function() {
-			expose.set_state( 'main', {
-				page: `/teams/${props.teamId}/stats`
-			} );
+			if(props.origin === 'stats') {
+				expose.set_state( 'main', {
+					page: `/teams/${props.teamId}/stats`
+				} );
+			} else {
+				expose.set_state( 'main', {
+					page: `/players`
+				} );
+			}
 		};
 	}
 
 	renderField() {
-		let playerPlateAppearances = state.getPlateAppearancesForPlayerOnTeam( this.props.playerId, this.props.teamId );
+		let playerPlateAppearances = [];
+		if(this.props.teamId) {
+			playerPlateAppearances = state.getPlateAppearancesForPlayerOnTeam( this.props.playerId, this.props.teamId );
+		} else {
+			playerPlateAppearances = state.getPlateAppearancesForPlayer( this.props.playerId );
+		}
 		let indicators = [];
 
 		playerPlateAppearances.forEach( (value) => {

@@ -15,6 +15,7 @@ const CardLoad = require( 'card-load' );
 const CardMenu = require( 'card-menu' );
 const CardPasswordReset = require( 'card-password-reset' );
 const CardPlateAppearance = require( 'card-plate-appearance' );
+const CardPlayerList = require( 'card-player-list' );
 const CardPlayerEdit = require( 'card-player-edit' );
 const CardPlayerSelection = require( 'card-player-selection' );
 const CardSignup = require( 'card-signup' );
@@ -176,7 +177,8 @@ module.exports = class MainContainer extends expose.Component {
 		} else if(MainContainer.matches(url, "/teams/:teamId/stats/player/:playerId", this.state)) {
 			return React.createElement( CardSpray, {
 				playerId: this.state.playerId,
-				teamId: this.state.teamId
+				teamId: this.state.teamId,
+				origin: 'stats'
 			} );
 		} else if(MainContainer.matches(url, "/teams/:teamId/games/:gameId", this.state) || MainContainer.matches(url, "/teams/:teamId/games/:gameId/lineup", this.state)) {
 			let team = state.getTeam( this.state.teamId );
@@ -226,10 +228,19 @@ module.exports = class MainContainer extends expose.Component {
 				origin: this.state.urlArray[5],
 				isNew: isNew
 			} );
+		} else if(MainContainer.matches(url, "/players", this.state)) {
+			return React.createElement( CardPlayerList );
+		} else if(MainContainer.matches(url, "/players/:playerId", this.state)) {
+			return React.createElement( CardSpray, {
+				playerId: this.state.playerId,
+				origin: 'players'
+			} );
 		} else if(MainContainer.matches(url, "/players/:playerId/edit", this.state)) {
 			let player = state.getPlayer( this.state.playerId );
+			let isNew = this.state.isNew;
 			return React.createElement( CardPlayerEdit, {
-				player: player
+				player: player,
+				isNew: isNew
 			} );
 		} else {
 			return DOM.div( {

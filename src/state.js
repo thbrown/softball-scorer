@@ -429,6 +429,26 @@ exports.getPlateAppearancesForPlayerOnTeam = function( player_id, team_id ) {
 	return plateAppearances;
 };
 
+exports.getPlateAppearancesForPlayer = function( player_id ) {
+	let localState = exports.getLocalState();
+	let teams = localState.teams;
+	let plateAppearances = [];
+
+	if ( teams ) {
+		teams.forEach( team => {
+			if ( team.games ) {
+				team.games.forEach( game => {
+					if ( game.plateAppearances ) {
+						const plateAppearancesThisGame = game.plateAppearances.filter(pa => player_id === pa.player_id);
+						plateAppearances = plateAppearances.concat(plateAppearancesThisGame);
+					}
+				});
+			}
+		});
+	}
+	return plateAppearances;
+};
+
 exports.updatePlateAppearanceResult = function( plateAppearance, result ) {
 	plateAppearance.result = result;
 	reRender();
