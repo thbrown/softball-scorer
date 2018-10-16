@@ -20,6 +20,13 @@ module.exports = class CardPlateAppearance extends expose.Component {
 		this.expose();
 		this.state = {};
 
+		this.plateAppearance = props.plateAppearance;
+		this.isNew = props.isNew;
+
+		// This is the opposite of how we handle the other pages, here we edit the original
+		// and replace it on cancel. Other places we edit the copy and commit it on confirm.
+		let plateAppearanceCopy = JSON.parse(JSON.stringify(this.plateAppearance));	
+
 		let goBack = function() {
 			if(props.origin == 'scorer') {
 				expose.set_state( 'main', {
@@ -34,6 +41,26 @@ module.exports = class CardPlateAppearance extends expose.Component {
 
 		this.handleBackClick = function() {
 			goBack();
+		};
+
+		this.handleConfirmClick = function() {
+			goBack();
+		};
+
+		this.handleCancelClick = function() {
+			if(props.isNew) {
+				state.removePlateAppearance( props.plateAppearance.id, props.game.id );
+			} else {
+				state.replacePlateAppearance( props.plateAppearance.id, props.game.id, props.team.id, plateAppearanceCopy );
+			}
+			goBack();
+		};
+
+		this.handleDeleteClick = function() {
+			dialog.show_confirm( 'Are you sure you want to delete this plate appearance?', () => {
+				state.removePlateAppearance( props.plateAppearance.id, props.game.id );
+				goBack();
+			} );
 		};
 
 		this.handleButtonClick = function( result ) {
@@ -54,12 +81,22 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			}, 1 );
 		};
 
-		this.handleDelete = function() {
-			dialog.show_confirm( 'Are you sure you want to delete this plate appearance?', () => {
-				state.removePlateAppearance( props.plateAppearance.id, props.game.id );
-				goBack();
-			} );
-		};
+		// Handle walkup song clicks
+		let clicked = {};
+		var monitor = setInterval(function(){
+		    var elem = document.activeElement;
+		    if(elem && elem.tagName == 'IFRAME'){
+		    	if(clicked[elem.id]) {
+					// reload youtube iframe on second click
+					let playerSong = document.getElementById('song');
+					playerSong.innerHTML = playerSong.innerHTML;
+					clicked[elem.id] = false;
+		        } else {
+		        	clicked[elem.id] = true;
+		        }
+		        document.activeElement.blur();
+		    }
+		}, 100);
 	}
 
 	componentDidMount() {
@@ -209,38 +246,88 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			draggable: false,
 			src: imageSrcForCurrentPa,
 			alt: 'ball',
+			className: 'plate-appearance-baseball',
 			style: {
-				width: '48px',
-				height: '48px',
 				touchAction: 'none',
 				transform: "translate(0px, 0px)"
 			}
 		} ) );
 	}
-﻿﻿﻿
-	renderDeleteButton() {
-		return DOM.div( {
-				id: 'ballfield',
-				style: {
-					position: 'relative',
-					overflow: 'hidden'
-				}
-			},
-			DOM.img( {
-				draggable: true,
+
+	renderActionsButtons() {
+
+		let buttons = [];
+		let confirm = DOM.img( {
+			key: 'confirm',
+			src: '/server/assets/check.svg',
+			onClick: this.handleConfirmClick,
+			alt: 'confirm',
+			className: 'plate-appearance-card-actions',
+		} );
+		buttons.push(confirm);
+
+		let cancel = DOM.img( {
+			key: 'cancel',
+			src: '/server/assets/cancel.svg',
+			onClick: this.handleCancelClick,
+			alt: 'cancel',
+			className: 'plate-appearance-card-actions',
+		} );
+		buttons.push(cancel);
+
+		if(!this.props.isNew) {
+			let trash = DOM.img( {
+				key: 'delete',
 				src: '/server/assets/delete.svg',
-				onClick: this.handleDelete,
+				onClick: this.handleDeleteClick,
 				alt: 'delete',
-				style: {
-					width: '48px'
-				}
-			} )
-		);
+				className: 'plate-appearance-card-actions',
+			} );
+			buttons.push(trash);
+		}
+
+		return DOM.div( {
+			id: 'options-buttons',
+			style: {
+				position: 'relative',
+				display: 'flex',
+				overflow: 'hidden'
+			}
+		}, buttons );
 	}
 
+	renderWalkupSong() {
+		let currentBatter = this.props.player;
+		if(currentBatter.song_link && currentBatter.song_start) {
+			return DOM.div( {
+				id: 'song',
+				key: 'song'
+			}, DOM.iframe( {
+				id: 'currentBatterSong',
+				width: '48',
+				height: '48',
+				src: `https://thbrown.github.io/iframe-proxy/index.html?id=${currentBatter.song_link}&start=${currentBatter.song_start}`,
+				allow: 'autoplay; encrypted-media',
+				sandbox: 'allow-scripts allow-same-origin',
+			}) );
+		} else {
+			return DOM.div( {
+				id: 'song',
+				key: 'song',
+				style: {
+					width: '48px',
+					height: '48px',
+					textAlign: 'center',
+					color: 'white',
+					paddingTop: '8px'
+				}
+			}, 'No Song' );
+		}
+	}
+	
 	render() {
-		let imageSrcForCurrentPa = (results.getOutResults().includes(this.props.plateAppearance.result)) ? '/server/assets/baseball-out.svg' : '/assets/baseball-hit.svg';
-		return DOM.div( {
+		let imageSrcForCurrentPa = (results.getOutResults().includes(this.props.plateAppearance.result)) ? '/server/assets/baseball-out.svg' : '/server/assets/baseball-hit.svg';
+		return DOM.div({
 				className: 'card',
 				style: {
 					position: 'relative'
@@ -269,7 +356,8 @@ module.exports = class CardPlateAppearance extends expose.Component {
 					}
 				},
 				this.renderBaseball(imageSrcForCurrentPa),
-				this.renderDeleteButton()
+				this.renderActionsButtons(),
+				this.renderWalkupSong()
 			)
 		);
 	}

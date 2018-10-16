@@ -271,7 +271,6 @@ exports.replaceGame = function( oldGameId, teamId, newGame ) {
 	reRender();
 };
 
-
 exports.getGame = function( game_id, state ) {
 	for ( let team of ( state || LOCAL_STATE ).teams ) {
 		for ( let game of team.games ) {
@@ -367,6 +366,21 @@ exports.addPlateAppearance = function ( player_id, game_id, team_id ) {
 	plateAppearances.push( plateAppearance );
 	reRender();
 	return plateAppearance;
+};
+
+exports.replacePlateAppearance = function( paId, gameId, teamId, newPa ) {
+	let localState = exports.getLocalState();
+	let oldPa = exports.getPlateAppearance( paId );
+
+	let team = exports.getTeam( teamId );
+	let teamIndex = localState.teams.indexOf( team );
+
+	let game = exports.getGame( gameId );
+	let gameIndex = localState.teams[teamIndex].games.indexOf( game );
+
+	let oldPaIndex = 	localState.teams[teamIndex].games[gameIndex].plateAppearances.indexOf( oldPa );
+	localState.teams[teamIndex].games[gameIndex].plateAppearances[oldPaIndex] = newPa;
+	reRender();
 };
 
 // TODO: allow for passing team and game ids to improve perf
