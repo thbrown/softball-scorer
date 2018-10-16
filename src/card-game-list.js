@@ -66,7 +66,7 @@ module.exports = class CardGameList extends expose.Component {
 		} );
 
 		elems.push( DOM.div( {
-			key: 'newteam',
+			key: 'newgame',
 			className: 'list-item add-list-item',
 			onClick: this.handleCreateClick,
 		}, '+ Add New Game' ) );

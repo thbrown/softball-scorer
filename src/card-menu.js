@@ -22,6 +22,12 @@ module.exports = class CardMenu extends expose.Component {
 			} );
 		};
 
+		this.handlePlayersClick = function() {
+			expose.set_state( 'main', {
+				page: '/players'
+			} );
+		}
+
 		this.handleLoginClick = function() {
 			expose.set_state( 'main', {
 				page: '/menu/login'
@@ -78,6 +84,16 @@ module.exports = class CardMenu extends expose.Component {
 				backgroundColor: css.colors.BG,
 			}
 		}, 'Teams' ) );
+
+		elems.push( DOM.div( {
+			key: 'players',
+			id: 'players',
+			className: 'list-item',
+			onClick: this.handlePlayersClick.bind( this ),
+			style: {
+				backgroundColor: css.colors.BG,
+			}
+		}, 'Players' ) );
 
 		elems.push( DOM.div( {
 			key: 'login',

@@ -18,7 +18,7 @@ module.exports = class CardGameEdit extends expose.Component {
 
 		let returnToPlayersListPage = function() {
 			expose.set_state( 'main', {
-				page: `/menu`
+				page: `/players`
 			} );
 		}
 
