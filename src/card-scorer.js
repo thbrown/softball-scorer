@@ -31,14 +31,16 @@ module.exports = class CardScorer extends expose.Component {
 
 		this.handleBoxClick = function( player, plateAppearanceId ) {
 			expose.set_state( 'main', {
-				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearanceId}`
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearanceId}`,
+				isNew: false
 			} );
 		}.bind( this );
 
 		this.handleNewPlateAppearanceClick = function( player, game_id, team_id ) {
 			let plateAppearance = state.addPlateAppearance( player.id, game_id, team_id );
 			expose.set_state( 'main', {
-				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearance.id}`
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearance.id}`,
+				isNew: true
 			} );
 		}.bind( this );
 

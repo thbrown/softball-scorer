@@ -90,6 +90,9 @@ self.addEventListener('message',  e => {
   console.log('Lineup avg runs', totalScore/numberOfGamesToSimulate);
   let response = {};
   response.score = totalScore/numberOfGamesToSimulate;
+  if(response.score > MAX_RUNS) {
+    response.score = MAX_RUNS;
+  }
   response.time = (new Date().getTime() - time);
   self.postMessage(JSON.stringify(response));
 })

@@ -24,6 +24,7 @@ self.addEventListener('install', function(event) {
           '/server/assets/edit.svg',
           '/server/assets/cancel.svg',
           '/server/assets/delete.svg',
+          '/server/assets/remove.svg',
           '/server/assets/drag-handle.png',
           '/server/assets/baseball-hit.svg',
           '/server/assets/baseball-out.svg',

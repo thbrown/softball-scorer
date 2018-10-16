@@ -149,7 +149,7 @@ body {
   cursor: pointer;
   touch-action: none !important;
   padding: 20px 12px;
-  margin: -12px 0 -12px -12px;
+  margin: -12px -7px -12px -12px;
   display: flex;
 }
 
@@ -363,6 +363,15 @@ body {
   margin: 10px;
 }
 
+.edit-button-icon {
+  vertical-align: middle;
+  padding-right: 12px;
+}
+
+.edit-button-label {
+  vertical-align: middle;
+}
+
 .no-select {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -390,6 +399,13 @@ body {
   width: 70%;
   height: 34px;
   margin-top: 3px;
+}
+
+.plate-appearance-baseball, 
+.plate-appearance-card-actions {
+  padding: 12px;
+  height: 24px;
+  width: 24px;
 }
 
 .prevent-overflow {

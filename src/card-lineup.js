@@ -75,9 +75,9 @@ module.exports = class CardLineup extends expose.Component {
 
 		this.handleRemoveClick = function( player, ev ) {
 			dialog.show_confirm( 'Do you want to remove "' + player.name + '" from the lineup?', () => {
+				this.simulateLineup();
 				state.removePlayerFromLineup( this.props.game.lineup, player.id );
 			} );
-			this.simulateLineup();
 			ev.stopPropagation();
 		};
 
@@ -89,14 +89,16 @@ module.exports = class CardLineup extends expose.Component {
 
 		this.handleBoxClick = function( plateAppearanceId ) {
 			expose.set_state( 'main', {
-				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearanceId}`
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearanceId}`,
+				isNew: false
 			} );
 		}.bind( this );
 
 		this.handleNewPlateAppearanceClick = function( player, game_id, team_id ) {
 			let plateAppearance = state.addPlateAppearance( player.id, game_id, team_id );
 			expose.set_state( 'main', {
-				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearance.id}`
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearance.id}`,
+				isNew: true
 			} );
 		}.bind( this );
 
@@ -384,6 +386,7 @@ module.exports = class CardLineup extends expose.Component {
 					paddingTop: '20px',
 					paddingBottom: '20px',
 					marginLeft: '0',
+					marginRight: '-8px',
 				},
 				onClick: this.handleRemoveClick.bind( this, player )
 			} ) );

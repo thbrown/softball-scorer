@@ -216,13 +216,15 @@ module.exports = class MainContainer extends expose.Component {
 			let plateAppearance = state.getPlateAppearance( this.state.plateAppearanceId );
 			let player = state.getPlayer( plateAppearance.player_id );
 			let plateAppearances = state.getPlateAppearancesForPlayerInGame( plateAppearance.player_id, this.state.gameId );
+			let isNew = this.state.isNew;
 			return React.createElement( CardPlateAppearance, {
 				team: team,
 				game: game,
 				player: player,
 				plateAppearance: plateAppearance,
 				plateAppearances: plateAppearances,
-				origin: this.state.urlArray[5]
+				origin: this.state.urlArray[5],
+				isNew: isNew
 			} );
 		} else if(MainContainer.matches(url, "/players/:playerId/edit", this.state)) {
 			let player = state.getPlayer( this.state.playerId );
@@ -241,7 +243,8 @@ module.exports = class MainContainer extends expose.Component {
 	render() {
 		return DOM.div( {
 				style: {
-					height: window.innerHeight + 'px'
+					// TODO: Make sure we don't need this
+					//height: window.innerHeight + 'px'
 				}
 			},
 			this.renderCard( this.state.page )
