@@ -121,13 +121,26 @@ module.exports = class CardScorer extends expose.Component {
 					className: 'lineup-box',
 		}, DOM.div( {}, '+' ) );
 		
-		elems.push( DOM.div( {},
-			React.createElement( WalkupSong, {
-				player: player,
-				width: 48,
-				height: 48
-			} )
-		));
+		if(currentBatter) {
+			let walkup;
+			elems.push( DOM.div( {
+				id: 'currentBatter',
+				key: 'currentBatterKey',
+				className: 'future-batter-row',
+			},
+				currentBatterEl,
+				walkup,
+				newPa
+			));
+		} else {
+			elems.push( DOM.div( {
+				id: 'currentBatter',
+				key: 'currentBatterKey',
+				className: 'future-batter-row',
+			},
+				currentBatterEl
+			));
+		}
 
 		let onDeckBatterBatter = order.getNthBatter(this.props.game.id, 2);
 		let onDeckBatterEl = DOM.div( {
