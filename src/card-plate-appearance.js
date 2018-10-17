@@ -5,6 +5,7 @@ const expose = require( './expose' );
 const DOM = require( 'react-dom-factories' );
 const css = require( 'css' );
 const Draggable = require( 'react-draggable' );
+const WalkupSong = require( 'component-walkup-song' );
 
 const dialog = require( 'dialog' );
 const state = require( 'state' );
@@ -81,22 +82,6 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			}, 1 );
 		};
 
-		// Handle walkup song clicks
-		let clicked = {};
-		var monitor = setInterval(function(){
-		    var elem = document.activeElement;
-		    if(elem && elem.tagName == 'IFRAME'){
-		    	if(clicked[elem.id]) {
-					// reload youtube iframe on second click
-					let playerSong = document.getElementById('song');
-					playerSong.innerHTML = playerSong.innerHTML;
-					clicked[elem.id] = false;
-		        } else {
-		        	clicked[elem.id] = true;
-		        }
-		        document.activeElement.blur();
-		    }
-		}, 100);
 	}
 
 	componentDidMount() {
@@ -297,32 +282,11 @@ module.exports = class CardPlateAppearance extends expose.Component {
 	}
 
 	renderWalkupSong() {
-		let currentBatter = this.props.player;
-		if(currentBatter.song_link && currentBatter.song_start) {
-			return DOM.div( {
-				id: 'song',
-				key: 'song'
-			}, DOM.iframe( {
-				id: 'currentBatterSong',
-				width: '48',
-				height: '48',
-				src: `https://thbrown.github.io/iframe-proxy/index.html?id=${currentBatter.song_link}&start=${currentBatter.song_start}`,
-				allow: 'autoplay; encrypted-media',
-				sandbox: 'allow-scripts allow-same-origin',
-			}) );
-		} else {
-			return DOM.div( {
-				id: 'song',
-				key: 'song',
-				style: {
-					width: '48px',
-					height: '48px',
-					textAlign: 'center',
-					color: 'white',
-					paddingTop: '8px'
-				}
-			}, 'No Song' );
-		}
+		return React.createElement( WalkupSong, {
+			player: this.props.player,
+			width: 48,
+			height: 48
+		} )
 	}
 	
 	render() {
