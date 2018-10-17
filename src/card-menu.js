@@ -9,6 +9,7 @@ const dialog = require( 'dialog' );
 const state = require( 'state' );
 const objectMerge = require( '../object-merge.js' );
 const hasher = require( 'object-hash' );
+const FileSaver = require( 'file-saver' );
 
 module.exports = class CardMenu extends expose.Component {
 	constructor( props ) {
@@ -52,7 +53,8 @@ module.exports = class CardMenu extends expose.Component {
 
 		this.handleSaveClick = function() {
 			var today = new Date().getTime();
-			this.download( JSON.stringify( state.getLocalState(), null, 2 ), 'save' + today + '.json', 'text/plain' );
+			var blob = new Blob([JSON.stringify( state.getLocalState(), null, 2 )], {type: "text/plain;charset=utf-8"});
+			FileSaver.saveAs(blob, 'save' + today + '.json');
 		};
 
 		this.handleLoadClick = function() {
@@ -60,16 +62,6 @@ module.exports = class CardMenu extends expose.Component {
 				page: '/menu/import'
 			} );
 		};
-	}
-
-	// https://stackoverflow.com/questions/34156282/how-do-i-save-json-to-local-text-file
-	// TODO: cross-browser test
-	download( text, name, type ) {
-		var a = document.createElement( "a" );
-		var file = new Blob( [ text ], { type: type } );
-		a.href = URL.createObjectURL( file );
-		a.download = name;
-		a.click();
 	}
 
 	renderMenuOptions() {

@@ -34,11 +34,11 @@ module.exports = class CardPlayerList extends expose.Component {
 		};
 
 		this.handleCreateClick = function(){
+			let player = state.addPlayer( '' , 'M' );
 			expose.set_state( 'main', {
 				page: `/players/${player.id}/edit`,
 				isNew: true
 			} );
-			ev.stopPropagation();
 		};
 
 		this.playerNameComparator = function(a, b) {

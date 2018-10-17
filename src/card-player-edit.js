@@ -6,6 +6,8 @@ const DOM = require( 'react-dom-factories' );
 const css = require( 'css' );
 const dialog = require( 'dialog' );
 
+const WalkupSong = require( 'component-walkup-song' );
+
 module.exports = class CardGameEdit extends expose.Component {
 	constructor( props ) {
 		super( props );
@@ -15,6 +17,7 @@ module.exports = class CardGameEdit extends expose.Component {
 		this.isNew = props.isNew;
 
 		let playerCopy = JSON.parse(JSON.stringify(this.player));
+		this.playerCopy = playerCopy;
 
 		let returnToPlayersListPage = function() {
 			expose.set_state( 'main', {
@@ -74,6 +77,7 @@ module.exports = class CardGameEdit extends expose.Component {
 		this.handleSongStartChange = function() {
 			let newValue = document.getElementById( 'songStart' ).value;
 			playerCopy.song_start = newValue;
+			console.log(playerCopy);
 		}
 
 	}
@@ -87,6 +91,7 @@ module.exports = class CardGameEdit extends expose.Component {
 	}
 
 	renderPlayerEdit() {
+		let player = state.getPlayer( this.props.player.id );
 		return DOM.div( {
 			className: 'auth-input-container',
 		},
@@ -142,7 +147,7 @@ module.exports = class CardGameEdit extends expose.Component {
 					key: 'songLink',
 					id: 'songLink',
 					className: 'auth-input',
-					placeholder: 'Walk up song youtube link (Optional)',
+					placeholder: 'Walk up song YouTube link',
 					maxLength: '50',
 					onChange: this.handleSongLinkChange,
 					defaultValue: this.player.song_link ? `https://youtu.be/${this.player.song_link}` : ""
@@ -152,7 +157,7 @@ module.exports = class CardGameEdit extends expose.Component {
 					key: 'songStart',
 					id: 'songStart',
 					className: 'auth-input',
-					placeholder: 'Song start time in seconds (Optional)',
+					placeholder: 'Song start time in seconds',
 					maxLength: '50',
 					type:'number',
 					min:"0",
@@ -160,6 +165,21 @@ module.exports = class CardGameEdit extends expose.Component {
 					onChange: this.handleSongStartChange,
 					defaultValue: this.player.song_start
 				} )
+			,
+				DOM.div( {
+					id: 'songWraper',
+					style: {
+						paddingLeft: '8px',
+						paddingTop: '8px'
+					}
+				},
+					'Song Preview:',
+					React.createElement( WalkupSong, {
+						player: player,
+						width: 48,
+						height: 48
+					} )
+				)
 			],
 		this.renderSaveOptions(),
 		);
@@ -175,8 +195,8 @@ module.exports = class CardGameEdit extends expose.Component {
 				onClick: this.handleConfirmClick,
 			},
 			DOM.img( {
+				className: 'edit-button-icon',
 				src: '/server/assets/check.svg',
-				alt: 'back'
 			} ),
 			'Save')
 		);
@@ -188,6 +208,7 @@ module.exports = class CardGameEdit extends expose.Component {
 				onClick: this.handleCancelClick,
 			}, 
 			DOM.img( {
+				className: 'edit-button-icon',
 				src: '/server/assets/cancel.svg',
 			} ),
 			'Cancel')
@@ -201,6 +222,7 @@ module.exports = class CardGameEdit extends expose.Component {
 					onClick: this.handleDeleteClick,
 				}, 
 				DOM.img( {
+					className: 'edit-button-icon',
 					src: '/server/assets/delete.svg',
 				} ),
 				'Delete')
@@ -213,7 +235,6 @@ module.exports = class CardGameEdit extends expose.Component {
 			buttons
 		)
 	}
-
 
 	render() {
 		return DOM.div( {
