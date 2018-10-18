@@ -208,11 +208,9 @@ exports.getAllPlayers = function () {
 exports.removePlayer = function( playerId ) {
 	if(exports.getGamesWithPlayerInLineup(playerId).length === 0 && exports.getGamesWherePlayerHasPlateAppearances(playerId).length === 0) {
 		let localState = exports.getLocalState();
-		console.log(localState.players.length);
 		localState.players = localState.players.filter( player => {
 			return player.id !== playerId;
 		} );
-		console.log(localState.players.length);
 		return true;
 	} else {
 		return false;
@@ -477,11 +475,9 @@ exports.saveAppDataToLocalStorage = function() {
 	if (typeof(Storage) !== "undefined") {
 		// Changes from other tabs should have been loaded when window/tab became visible
 		// So, we can just write directly to local storage
-		let startTime = performance.now();
 		localStorage.setItem("SCHEMA_VERSION", 2);
 		localStorage.setItem("LOCAL_STATE", JSON.stringify(LOCAL_STATE));
 		localStorage.setItem("ANCESTOR_STATE", JSON.stringify(ANCESTOR_STATE));
-		console.log("Saved state to ls " + (performance.now() - startTime));
 	}
 };
 
@@ -497,7 +493,6 @@ exports.loadAppDataFromLocalStorage = function() {
 		let startTime = performance.now();
 		LOCAL_STATE = JSON.parse(localStorage.getItem("LOCAL_STATE"));
 		ANCESTOR_STATE = JSON.parse(localStorage.getItem("ANCESTOR_STATE"));
-		console.log("Load from ls " + (performance.now() - startTime));
 	}
 	reRender();
 }

@@ -16,6 +16,7 @@ self.addEventListener('install', function(event) {
       return cache.addAll(
         [
           '/',
+          '/robots.txt',
           '/server/assets/back.svg',
           '/server/assets/ballfield2.png',
           '/server/assets/baseball-hit.svg',
@@ -31,7 +32,7 @@ self.addEventListener('install', function(event) {
           '/server/assets/spinner.gif',
           '/server/build/main.js',
           '/server/build/vendor.js',
-          '/server/simulation-worker',
+          '/server/simulation-worker'
         ]
       );
     })
@@ -44,9 +45,10 @@ self.addEventListener('fetch', function(event) {
   // If the url's path doesn't begin with 'server', it's a app url. Redirect it to / and the client code will handle it.
   // The service worker itself is an exception, it we served it under /server/service-worker it would not be able to 
   // cache the request to the root '/' due to scoping. So we've put it under /service-worker.
+  // Robots.txt is also an exception
   var url = new URL(event.request.url);
   let pathArray = url.pathname ? url.pathname.split('/') : undefined;
-  if(url.hostname === self.location.hostname && (!pathArray || pathArray.length < 2 || (pathArray[1] !== 'server' && pathArray[1] !== 'service-worker'))) {
+  if(url.hostname === self.location.hostname && (!pathArray || pathArray.length < 2 || (pathArray[1] !== 'server' && pathArray[1] !== 'service-worker' && pathArray[1] !== 'robots.txt' ))) {
     console.log(`[ServiceWorker] redirecting ${event.request.url} to base url`);
     requestToProcess = new Request('/');
   }

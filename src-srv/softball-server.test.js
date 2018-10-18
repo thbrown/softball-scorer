@@ -15,7 +15,7 @@ describe('sync', () => {
 		this.server.start();
 
 		try {
-			const response = await got.post('http://localhost:8888/login', {
+			const response = await got.post('http://localhost:8888/server/account/login', {
 				body: {
 					"email": "brutongaster@softball.app",
 					"password": "pizza"
@@ -74,7 +74,7 @@ describe('sync', () => {
 
 		let serverMd5;
 		try {
-			const response = await got.post('http://localhost:8888/sync', {
+			const response = await got.post('http://localhost:8888/server/sync', {
 				headers: {
 					"cookie": this.sessionId
 				},
@@ -84,6 +84,7 @@ describe('sync', () => {
 				},
 				json: true
 			});
+			console.log(response.body);
 			serverMd5 = response.body.md5;
 		} catch (error) {
 			console.log(error);
@@ -97,7 +98,7 @@ describe('sync', () => {
 	test('Test signup', async () => {
 		let serverMd5;
 		try {
-			const response = await got.post('http://localhost:8888/account/signup', {
+			const response = await got.post('http://localhost:8888/server/account/signup', {
 				headers: {},
 				body: {
 					email: 'gusttshowbiz@softball.app'
@@ -113,7 +114,7 @@ describe('sync', () => {
 	test('Test set password', async () => {
 		let serverMd5;
 		try {
-			const response = await got.post('http://localhost:8888/account/signup', {
+			const response = await got.post('http://localhost:8888/server/account/signup', {
 				headers: {},
 				body: {
 					email: 'gusttshowbiz@softball.app'

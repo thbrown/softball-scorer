@@ -97,6 +97,7 @@ module.exports = class SoftballServer {
 		app.use( '/server/assets', express.static( path.join( __dirname + '/../assets' ).normalize() ) );
 		// Service worker must be served at project root to intercept all fetches
 		app.use( '/service-worker', express.static( path.join( __dirname + '/../src/workers/service-worker.js' ).normalize() ) );
+		app.use( '/robots.txt', express.static( path.join( __dirname + '/../robots.txt' ).normalize() ) );
 		app.use( '/server/manifest', express.static( path.join( __dirname + '/../manifest.json' ).normalize() ) );
 		app.use( '/server/simulation-worker', express.static( path.join( __dirname + '/../src/workers/simulation-worker.js' ).normalize() ) );
 		app.use( bodyParser.json( {
@@ -404,7 +405,7 @@ module.exports = class SoftballServer {
 
 		// This route just accepts reports of Content Security Policy (CSP) violations
 		// https://helmetjs.github.io/docs/csp/
-		app.post('/report-violation', function (req, res) {
+		app.post('/server/report-violation', function (req, res) {
 			if (req.body) {
 				console.log('CSP Violation: ', req.body)
 			} else {
