@@ -22,16 +22,6 @@ module.exports = class CardLineup extends expose.Component {
 		super( props );
 		this.expose();
 		this.state = {};
-		
-		this.simWorker = new Worker('/server/simulation-worker');
-		this.simWorker.onmessage = function(e) {
-			let data = JSON.parse(e.data);
-			let elem = document.getElementById( 'score-text' );
-			elem.innerHTML = `Estimated Score: ${data.score.toFixed(3)} runs (took ${data.time}ms)`;
-
-			let scoreSpinner = document.getElementById('score-spinner');
-			scoreSpinner.style.visibility = 'hidden';
-		}
 
 		this.locked = this.locked || this.props.game.plateAppearances.length > 0 ? true : false;
 
@@ -142,6 +132,20 @@ module.exports = class CardLineup extends expose.Component {
 	}
 
 	simulateLineup() {
+		// Stop existing web workers
+		if(this.simWorker) {
+			this.simWorker.terminate();
+		}
+		this.simWorker = new Worker('/server/simulation-worker');
+		this.simWorker.onmessage = function(e) {
+			let data = JSON.parse(e.data);
+			let elem = document.getElementById( 'score-text' );
+			elem.innerHTML = `Estimated Score: ${data.score.toFixed(3)} runs (took ${data.time}ms)`;
+
+			let scoreSpinner = document.getElementById('score-spinner');
+			scoreSpinner.style.visibility = 'hidden';
+		}
+
 		// Tell web worker to start computing lineup estimated score
 		let scoreSpinner = document.getElementById('score-spinner');
 		scoreSpinner.style.visibility = 'unset';

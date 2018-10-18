@@ -85,8 +85,7 @@ module.exports = class MainContainer extends expose.Component {
 
 		// Reload from local storage each time after the window regains focus
 		window.addEventListener("focus", function (event) { 
-			console.log("FOCUS EVENT");           
-			state.loadAppDataFromLocalStorage();            
+			state.loadAppDataFromLocalStorage();
 		}, false);
 
 		let startPage = window.location.pathname;
