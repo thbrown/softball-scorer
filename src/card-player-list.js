@@ -54,7 +54,7 @@ module.exports = class CardPlayerList extends expose.Component {
 
 	renderPlayerList(){
 		const s = state.getLocalState();
-		let elems = s.players.sort(this.playerNameComparator).map( ( player ) => {
+		let elems = s.players.slice().sort(this.playerNameComparator).map( ( player ) => {
 			return DOM.div( {
 				player_id: player.id,
 				key: 'player' + player.id,
