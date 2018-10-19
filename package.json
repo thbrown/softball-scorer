@@ -11,7 +11,7 @@
     "run": "node src-srv",
     "clean": "node build.js clean",
     "start": "node",
-    "test": "jest"
+    "test": "jest --detectOpenHandles"
   },
   "repository": {
     "type": "git",
