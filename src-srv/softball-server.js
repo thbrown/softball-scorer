@@ -201,8 +201,8 @@ module.exports = class SoftballServer {
 					if(error instanceof HandledError) {
 						throw error;
 					} else {
-				    	throw new HandledError( 500, "Failed to get recapcha approval from Google", error);
-				    }
+						throw new HandledError( 500, "Failed to get recapcha approval from Google", error);
+					}
 				}
 			}
 
@@ -259,14 +259,33 @@ module.exports = class SoftballServer {
 			}
 		} ) );
 
-		app.delete( '/server/account', wrapForErrorProcessing( ( req, res, next ) => {
+		app.delete( '/server/account', wrapForErrorProcessing( async( req, res, next ) => {
 			if(!req.isAuthenticated()) {
 				res.status( 403 ).send();
 				return;
 			}
-			res.status( 404 ).send();
-		} ) );
+			
+			let accountId = extractSessionInfo( req, 'accountId' );
+			console.log(`Deleting account ${accountId}`);
 
+			await lockAccount(accountId);
+			try {
+				// First delete all the data
+				let state = await this.databaseCalls.getState( accountId );
+				let deletePatch = objectMerge.diff(state, {"teams":[], "players": []});
+				await this.databaseCalls.patchState( deletePatch, accountId );
+
+				// Then delete the account
+				await this.databaseCalls.deleteAccount( accountId );
+
+				// TODO: Invalidate session somehow?
+				console.log("deleted account");
+
+				res.status( 204 ).send();
+			} finally {
+				unlockAccount( accountId );
+			}
+		} ) );
 
 		/*
 			req: {
@@ -394,12 +413,10 @@ module.exports = class SoftballServer {
 			res.status( 200 ).send(responseData);
 
 			// Delete values if we are storing too many patches (Not the most refined technique, but it's something) 
-			console.log("BEFORE", JSON.stringify(stateRecentPatches).length);
 			while(JSON.stringify(stateRecentPatches).length > 20000) {
 				console.log("Erasing old patch data. New length: " + stateRecentPatches.length -1);
 				stateRecentPatches.splice(-1,1);
 			}
-			console.log("AFTER", JSON.stringify(stateRecentPatches).length);
 			
 		} ) );
 
@@ -427,6 +444,7 @@ module.exports = class SoftballServer {
 		app.use( function( error, req, res, next ) {
 			res.setHeader('content-type', 'application/json');
 			if ( error instanceof HandledError ) {
+				console.log('Sending Error', error.getExternalMessage());
 				res.status( error.getStatusCode() ).send( { message: [ error.getExternalMessage() ] } );
 				if ( error.getInternalMessage() ) {
 					error.print();
@@ -575,12 +593,17 @@ module.exports = class SoftballServer {
 		// TODO: this will only scale to one process
 		let lockAccount = async function( accountId ) {
 			let locked;
+			let counter = 0;
 			do {
+				if(counter > 50) {
+					throw new HandledError(500, 'Another request is consuming system resources allocated for this account. Please try agin in a few minutes.');
+				}
 				locked = extractAccountInfo(accountId, 'locked');
 				console.log("Locked", locked, accountInformation);
 				if(locked) {
 					console.log("Account locked, retrying in 200ms", accountId);
 					await pause(200); // TODO: Do we need a random backoff?
+					counter++;
 				}
 			} while (locked);
 			putAccountInfo(accountId, "locked", true);

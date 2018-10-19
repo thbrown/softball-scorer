@@ -8,6 +8,7 @@ const HandledError = require( './handled-error.js' );
 module.exports = class DatabaseCalls {
 
 	constructor( url, port, user, password ) {
+
 		console.log( 'Connecting to pg', url );
 		this.pool = new Pool( {
 			user: user,
@@ -17,21 +18,19 @@ module.exports = class DatabaseCalls {
 			port: port,
 		} );
 
-		// Test connection
-		this.pool.connect( function( err ) {
-			if ( err ) {
-				console.log( "There was a problem getting db connection:" );
-				console.log( err );
-				reject( err );
-			}
-		} );
-
 		// We don't ever anticipate storing numeric values larger than the javascript maximum safe integer size
 		// (9,007,199,254,740,991) so we'll instruct pg to return all bigints from the database as javascript numbers. 
 		// See https://github.com/brianc/node-pg-types
-		var types = require('pg').types
+		var types = require('pg').types;
 		types.setTypeParser(20, function(val) {
 		  return parseInt(val);
+		})
+
+	}
+
+	disconnect() {
+		this.pool.end(() => {
+			console.log('Pg pool has been closed');
 		})
 	}
 
@@ -203,7 +202,7 @@ module.exports = class DatabaseCalls {
 				state.teams = teams;
 
 				// For some reason the object hash changes before and after stringification. I couldn't quite figure out why this was happening 
-				// (the objects with different hashes appear to be identical. So, I'll add this copy here for now so we are always hashing the post-stringified object. 
+				// the objects with different hashes appear to be identical. So, I'll add this copy here for now so we are always hashing the post-stringified object. 
 				state = JSON.parse(JSON.stringify(state));
 
 				console.log("SYNC_PULL", (new Date).getTime() - milliseconds);
@@ -310,6 +309,7 @@ module.exports = class DatabaseCalls {
 	}
 
 	async deleteAccount( accountId ) {
+		console.log('deleting', accountId);
 		await this.parameterizedQueryPromise( `
 				DELETE FROM account 
 				WHERE account_id = $1
