@@ -34,7 +34,7 @@ module.exports = class WalkupSong extends expose.Component {
 
 	render() {
 		let currentBatter = this.props.player;
-		if(currentBatter.song_link && currentBatter.song_start) {
+		if(currentBatter.song_link) {
 			return DOM.div( {
 				id: 'song',
 				key: 'song'
@@ -42,7 +42,7 @@ module.exports = class WalkupSong extends expose.Component {
 				id: 'currentBatterSong',
 				width: this.props.width,
 				height: this.props.height,
-				src: `https://thbrown.github.io/iframe-proxy/index.html?id=${currentBatter.song_link}&start=${currentBatter.song_start}`,
+				src: `https://thbrown.github.io/iframe-proxy/index.html?id=${currentBatter.song_link}&start=${currentBatter.song_start ? currentBatter.song_start : 0}`,
 				allow: 'autoplay; encrypted-media',
 				sandbox: 'allow-scripts allow-same-origin',
 			}) );
