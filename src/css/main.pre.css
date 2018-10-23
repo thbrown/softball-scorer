@@ -59,14 +59,15 @@ body {
 }
 
 .back-arrow,
-.delete-button {
+.list-button,
+.lineup-row-button {
   cursor: pointer;
   height: $css.sizes.ICON;
   width: $css.sizes.ICON;
 }
 
-.delete-button {
-  padding: 12px;
+.list-button {
+  padding: 8px;
   margin: -12px;
 }
 
@@ -156,8 +157,8 @@ body {
   color: $css.colors.TEXT_LIGHT;
   display: flex;
   justify-content: space-between;
-  margin: 10px 5px;
-  padding: 12px;
+  margin: 5px 5px;
+  padding-left: 5px;
   min-width: calc( 100% - 36px );
 }
 
@@ -165,11 +166,17 @@ body {
   cursor: pointer;
   touch-action: none !important;
   padding: 20px 12px;
-  margin: -12px 0 -12px -12px;
+  margin: -12px -7px -12px -12px;
+  display: flex;
 }
 
 .lineup-row .player-name {
   width: 25%;
+}
+
+.lineup-row-button {
+  padding: 12px;
+  margin: -12px;
 }
 
 .player-name {
@@ -214,6 +221,19 @@ body {
 
 .lineup-box:hover, .lineup-box:active {
   filter: brightness(75%);
+}
+
+.lineup-score {
+  height: 20px;
+  padding-left: 10px;
+  padding-bottom: 8px;
+  display: flex;
+}
+
+.lineup-score-text {
+  padding-left: 8px;
+  padding-top: 2px;
+  color: $css.colors.TEXT_GREY;
 }
 
 .result-button {
@@ -360,6 +380,15 @@ body {
   margin: 10px;
 }
 
+.edit-button-icon {
+  vertical-align: middle;
+  padding-right: 12px;
+}
+
+.edit-button-label {
+  vertical-align: middle;
+}
+
 .no-select {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -387,6 +416,13 @@ body {
   width: 70%;
   height: 34px;
   margin-top: 3px;
+}
+
+.plate-appearance-baseball, 
+.plate-appearance-card-actions {
+  padding: 12px;
+  height: 24px;
+  width: 24px;
 }
 
 .prevent-overflow {
@@ -508,4 +544,8 @@ Scrolling is ~10-20x smoother.
 }
 .sticky-table .y-scrollbar div {
   width: 100%;
+}
+
+.hidden {
+  visibility: 'hidden';
 }

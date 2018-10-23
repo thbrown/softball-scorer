@@ -44,7 +44,7 @@ module.exports = class CardAuth extends expose.Component {
 				})
 
 				// TODO: loading icon
-				let response = await network.request("POST", 'account/reset-password-request', body);
+				let response = await network.request("POST", 'server/account/reset-password-request', body);
 				if(response.status === 204) {
 					dialog.show_notification(
 						'Password reset email has been sent to the email provided.'
@@ -58,47 +58,63 @@ module.exports = class CardAuth extends expose.Component {
 		};
 
 		this.handleSubmitClick = async function() {
-			let email = document.getElementById( 'email' );
-			let password = document.getElementById( 'password' );
-
-			if ( email.value && password.value ) {
-
-				let body = JSON.stringify({
-					email: email.value,
-					password: password.value
-				});
-
-				let response = await network.request("POST", 'account/login', body);
-				if ( response.status === 204 ) {
-					// TODO: don't clear local storage if the user re-logs into the same account (for example, if the user's session was invalidated while
-					// the user was in offline mode making changes and now wants to re-authenticate)
-					state.clearLocalStorage();
-					state.clearState();
-					let status = await state.sync();
-					if( status === 200 ) {
-						console.log( "Done with sync" );
-						expose.set_state( 'main', {
-							page: '/teams',
-							render: true
-						} );
-					} else {
-						dialog.show_notification('An error occured while attempting sync: ' + status);
-					}
-				} else {
-					dialog.show_notification( 'Invalid login' );
-				}
-
-			} else {
-				let map = {
-					"Email": email.value,
-					"Password": password.value
-				}
-				let missingFields = Object.keys(map).filter(field => {
-					return !map[field];
-				})
-				dialog.show_notification('Please fill out the following required fields: ' + missingFields.join(', '));
+			// Disable the button
+			if(this.blocked) {
+				console.log('BLOCKED!!!!');
+				return;
 			}
-		};
+			this.blocked = true;
+
+			// Turn on the spinner
+			let spinner = document.getElementById( 'submit-spinner' );
+			spinner.style.display = 'initial';
+
+			try {
+				let email = document.getElementById( 'email' );
+				let password = document.getElementById( 'password' );
+
+				if ( email.value && password.value ) {
+
+					let body = JSON.stringify({
+						email: email.value,
+						password: password.value
+					});
+
+					let response = await network.request("POST", 'server/account/login', body);
+					if ( response.status === 204 ) {
+						// TODO: don't clear local storage if the user re-logs into the same account (for example, if the user's session was invalidated while
+						// the user was in offline mode making changes and now wants to re-authenticate) 
+						state.clearLocalStorage();
+						state.clearState();
+						let status = await state.sync();
+						if( status === 200 ) {
+							console.log( "Done with sync" );
+							expose.set_state( 'main', {
+								page: '/teams',
+								render: true
+							} );
+						} else {
+							dialog.show_notification('An error occured while attempting sync: ' + status);
+						}
+					} else {
+						dialog.show_notification( 'Invalid login' );
+					}
+
+				} else {
+					let map = {
+						"Email": email.value,
+						"Password": password.value
+					}
+					let missingFields = Object.keys(map).filter(field => {
+						return !map[field];
+					})
+					dialog.show_notification('Please fill out the following required fields: ' + missingFields.join(', '));
+				}
+			} finally {
+				this.blocked = false;
+				spinner.style.display = 'none';
+			}
+		}.bind( this );
 	}
 
 	renderAuthInterface() {
@@ -134,7 +150,17 @@ module.exports = class CardAuth extends expose.Component {
 					margin: '10px'
 				},
 				onClick: this.handleSubmitClick,
-			}, 'Submit')
+			}, 
+				DOM.img( {
+					id: 'submit-spinner',
+					src: '/server/assets/spinner.gif',
+					style: {
+						display: 'none',
+						marginLeft: '6px'
+					}
+				} ),
+				'Submit'
+			)
 			,
 			DOM.hr({
 				key: 'divider',
@@ -179,7 +205,7 @@ module.exports = class CardAuth extends expose.Component {
 					className: 'card-title'
 				},
 				DOM.img( {
-					src: '/assets/back.svg',
+					src: '/server/assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 					alt: 'back'

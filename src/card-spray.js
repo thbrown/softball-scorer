@@ -17,14 +17,25 @@ module.exports = class CardAtBat extends expose.Component {
 		this.state = {};
 
 		this.handleBackClick = function() {
-			expose.set_state( 'main', {
-				page: `/teams/${props.teamId}/stats`
-			} );
+			if(props.origin === 'stats') {
+				expose.set_state( 'main', {
+					page: `/teams/${props.teamId}/stats`
+				} );
+			} else {
+				expose.set_state( 'main', {
+					page: `/players`
+				} );
+			}
 		};
 	}
 
 	renderField() {
-		let playerPlateAppearances = state.getPlateAppearancesForPlayerOnTeam( this.props.playerId, this.props.teamId );
+		let playerPlateAppearances = [];
+		if(this.props.teamId) {
+			playerPlateAppearances = state.getPlateAppearancesForPlayerOnTeam( this.props.playerId, this.props.teamId );
+		} else {
+			playerPlateAppearances = state.getPlateAppearancesForPlayer( this.props.playerId );
+		}
 		let indicators = [];
 
 		playerPlateAppearances.forEach( ( value ) => {
@@ -40,9 +51,9 @@ module.exports = class CardAtBat extends expose.Component {
 			let new_y = Math.floor( normalize( y, 0, 1, 0, window.innerWidth ) );
 
 			if ( value.location && x && y ) {
-				let image = results.getOutResults().includes( value.result ) ? '/assets/baseball-out.svg' : '/assets/baseball-hit.svg';
-				let alt = results.getOutResults().includes( value.result ) ? 'out' : 'hitg';
-				indicators.push(
+				let image = results.getOutResults().includes(value.result) ?  '/server/assets/baseball-out.svg' : '/server/assets/baseball-hit.svg';
+				let alt = results.getOutResults().includes(value.result) ?  'out' : 'hitg';
+				indicators.push( 
 					DOM.img( {
 						key: value.id,
 						src: image,
@@ -71,7 +82,7 @@ module.exports = class CardAtBat extends expose.Component {
 			},
 			DOM.img( {
 				draggable: true,
-				src: '/assets/ballfield2.png',
+				src: '/server/assets/ballfield2.png',
 				style: {
 					width: '100%'
 				}
@@ -92,7 +103,7 @@ module.exports = class CardAtBat extends expose.Component {
 					style: {}
 				},
 				DOM.img( {
-					src: '/assets/back.svg',
+					src: '/server/assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 				} ),
