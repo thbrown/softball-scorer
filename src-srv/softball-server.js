@@ -13,7 +13,7 @@ const favicon = require( 'serve-favicon' );
 const bcrypt = require( 'bcrypt' );
 const crypto = require( 'crypto' );
 const hasher = require( 'object-hash' );
-const got = require('got');
+const got = require( 'got' );
 
 const objectMerge = require( '../object-merge.js' );
 const HandledError = require( './handled-error.js' );
@@ -93,11 +93,13 @@ module.exports = class SoftballServer {
 		}))
 		app.use(helmet.referrerPolicy({ policy: 'same-origin' }))
 		app.use( favicon( __dirname + '/../assets/fav-icon.png' ) );
-		app.use( '/build', express.static( path.join( __dirname + '/../build' ).normalize() ) );
-		app.use( '/assets', express.static( path.join( __dirname + '/../assets' ).normalize() ) );
-		// Service worker must be kept at the project root, otherwise it will not be able to cache resources above it in the file structure
-		app.use( '/service-worker', express.static( path.join( __dirname + '/../service-worker.js' ).normalize() ) );
-		app.use( '/manifest', express.static( path.join( __dirname + '/../manifest.json' ).normalize() ) );
+		app.use( '/server/build', express.static( path.join( __dirname + '/../build' ).normalize() ) );
+		app.use( '/server/assets', express.static( path.join( __dirname + '/../assets' ).normalize() ) );
+		// Service worker must be served at project root to intercept all fetches
+		app.use( '/service-worker', express.static( path.join( __dirname + '/../src/workers/service-worker.js' ).normalize() ) );
+		app.use( '/robots.txt', express.static( path.join( __dirname + '/../robots.txt' ).normalize() ) );
+		app.use( '/server/manifest', express.static( path.join( __dirname + '/../manifest.json' ).normalize() ) );
+		app.use( '/server/simulation-worker', express.static( path.join( __dirname + '/../src/workers/simulation-worker.js' ).normalize() ) );
 		app.use( bodyParser.json( {
 			limit: '3mb',
 			type: ['json', 'application/json', 'application/csp-report']
@@ -118,14 +120,15 @@ module.exports = class SoftballServer {
 		app.use( passport.session() );
 
 		// Routes
-
-		app.post( '/state', wrapForErrorProcessing( async( req, res ) => { // Should this be a patch??
+		/*
+		app.post( '/server/state', wrapForErrorProcessing( async( req, res ) => { // Should this be a patch??
 			let accountId = extractSessionInfo( req, 'accountId' );
 			await this.databaseCalls.setState( req.body, accountId );
 			res.status( 204 ).send();
 		} ) );
+		*/
 
-		app.get( '/state', wrapForErrorProcessing( async( req, res ) => {
+		app.get( '/server/state', wrapForErrorProcessing( async( req, res ) => {
 			if(!req.isAuthenticated()) {
 				res.status( 403 ).send();
 				return;
@@ -141,7 +144,7 @@ module.exports = class SoftballServer {
 			res.status( 200 ).send( state );
 		} ) );
 
-		app.get( '/state-pretty', wrapForErrorProcessing( async( req, res ) => {
+		app.get( '/server/state-pretty', wrapForErrorProcessing( async( req, res ) => {
 			if(!req.isAuthenticated()) {
 				res.status( 403 ).send();
 				return;
@@ -157,7 +160,7 @@ module.exports = class SoftballServer {
 			res.status( 200 ).send( JSON.stringify( state, null, 2 ) );
 		} ) );
 
-		app.post( '/account/login', wrapForErrorProcessing( ( req, res, next ) => {
+		app.post( '/server/account/login', wrapForErrorProcessing( ( req, res, next ) => {
 			passport.authenticate( 'local', function( err, accountInfo, info ) {
 				if ( err || !accountInfo ) {
 					console.log( 'FAILED TO AUTHENTICATE!', accountInfo, err, info );
@@ -171,7 +174,7 @@ module.exports = class SoftballServer {
 			} )( req, res, next );
 		} ) );
 
-		app.post( '/account/signup', wrapForErrorProcessing( async( req, res, next ) => {
+		app.post( '/server/account/signup', wrapForErrorProcessing( async( req, res, next ) => {
 			checkRequiredField(req.body.email, "email");
 			checkFieldLength(req.body.email, 320);
 
@@ -198,8 +201,8 @@ module.exports = class SoftballServer {
 					if(error instanceof HandledError) {
 						throw error;
 					} else {
-				    	throw new HandledError( 500, "Failed to get recapcha approval from Google", error);
-				    }
+						throw new HandledError( 500, "Failed to get recapcha approval from Google", error);
+					}
 				}
 			}
 
@@ -212,7 +215,7 @@ module.exports = class SoftballServer {
 			res.status( 204 ).send();
 		} ) );
 
-		app.post( '/account/reset-password-request', wrapForErrorProcessing( async( req, res, next ) => {
+		app.post( '/server/account/reset-password-request', wrapForErrorProcessing( async( req, res, next ) => {
 			console.log("Reset password request")
 			checkRequiredField(req.body.email, "email");
 			let account = await this.databaseCalls.getAccountFromEmail( req.body.email );
@@ -232,7 +235,7 @@ module.exports = class SoftballServer {
 
 		} ) );
 
-		app.post( '/account/reset-password', wrapForErrorProcessing( async( req, res, next ) => {
+		app.post( '/server/account/reset-password', wrapForErrorProcessing( async( req, res, next ) => {
 			console.log("Password update recieved");
 			checkRequiredField(req.body.password, "password");
 			checkFieldLength(req.body.password, 320);
@@ -256,14 +259,33 @@ module.exports = class SoftballServer {
 			}
 		} ) );
 
-		app.delete( '/account', wrapForErrorProcessing( ( req, res, next ) => {
+		app.delete( '/server/account', wrapForErrorProcessing( async( req, res, next ) => {
 			if(!req.isAuthenticated()) {
 				res.status( 403 ).send();
 				return;
 			}
-			res.status( 404 ).send();
-		} ) );
+			
+			let accountId = extractSessionInfo( req, 'accountId' );
+			console.log(`Deleting account ${accountId}`);
 
+			await lockAccount(accountId);
+			try {
+				// First delete all the data
+				let state = await this.databaseCalls.getState( accountId );
+				let deletePatch = objectMerge.diff(state, {"teams":[], "players": []});
+				await this.databaseCalls.patchState( deletePatch, accountId );
+
+				// Then delete the account
+				await this.databaseCalls.deleteAccount( accountId );
+
+				// TODO: Invalidate session somehow?
+				console.log("deleted account");
+
+				res.status( 204 ).send();
+			} finally {
+				unlockAccount( accountId );
+			}
+		} ) );
 
 		/*
 			req: {
@@ -279,7 +301,7 @@ module.exports = class SoftballServer {
 				base: {...}
 			}
 		*/
-		app.post( '/sync', wrapForErrorProcessing( async( req, res ) => {
+		app.post( '/server/sync', wrapForErrorProcessing( async( req, res ) => {
 			console.log("ACCOUNT", extractSessionInfo( req, 'accountId' ));
 			if(!req.isAuthenticated()) {
 				res.status( 403 ).send();
@@ -391,18 +413,16 @@ module.exports = class SoftballServer {
 			res.status( 200 ).send(responseData);
 
 			// Delete values if we are storing too many patches (Not the most refined technique, but it's something) 
-			console.log("BEFORE", JSON.stringify(stateRecentPatches).length);
 			while(JSON.stringify(stateRecentPatches).length > 20000) {
 				console.log("Erasing old patch data. New length: " + stateRecentPatches.length -1);
 				stateRecentPatches.splice(-1,1);
 			}
-			console.log("AFTER", JSON.stringify(stateRecentPatches).length);
 			
 		} ) );
 
 		// This route just accepts reports of Content Security Policy (CSP) violations
 		// https://helmetjs.github.io/docs/csp/
-		app.post('/report-violation', function (req, res) {
+		app.post('/server/report-violation', function (req, res) {
 			if (req.body) {
 				console.log('CSP Violation: ', req.body)
 			} else {
@@ -424,6 +444,7 @@ module.exports = class SoftballServer {
 		app.use( function( error, req, res, next ) {
 			res.setHeader('content-type', 'application/json');
 			if ( error instanceof HandledError ) {
+				console.log('Sending Error', error.getExternalMessage());
 				res.status( error.getStatusCode() ).send( { message: [ error.getExternalMessage() ] } );
 				if ( error.getInternalMessage() ) {
 					error.print();
@@ -572,12 +593,17 @@ module.exports = class SoftballServer {
 		// TODO: this will only scale to one process
 		let lockAccount = async function( accountId ) {
 			let locked;
+			let counter = 0;
 			do {
+				if(counter > 50) {
+					throw new HandledError(500, 'Another request is consuming system resources allocated for this account. Please try agin in a few minutes.');
+				}
 				locked = extractAccountInfo(accountId, 'locked');
 				console.log("Locked", locked, accountInformation);
 				if(locked) {
 					console.log("Account locked, retrying in 200ms", accountId);
 					await pause(200); // TODO: Do we need a random backoff?
+					counter++;
 				}
 			} while (locked);
 			putAccountInfo(accountId, "locked", true);

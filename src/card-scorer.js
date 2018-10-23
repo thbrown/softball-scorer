@@ -31,14 +31,16 @@ module.exports = class CardScorer extends expose.Component {
 
 		this.handleBoxClick = function( player, plateAppearanceId ) {
 			expose.set_state( 'main', {
-				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearanceId}`
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearanceId}`,
+				isNew: false
 			} );
 		}.bind( this );
 
 		this.handleNewPlateAppearanceClick = function( player, game_id, team_id ) {
 			let plateAppearance = state.addPlateAppearance( player.id, game_id, team_id );
 			expose.set_state( 'main', {
-				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearance.id}`
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearance.id}`,
+				isNew: true
 			} );
 		}.bind( this );
 
@@ -64,22 +66,6 @@ module.exports = class CardScorer extends expose.Component {
 
 		};
 
-		// Handle walkup song clicks
-		let clicked = {};
-		var monitor = setInterval(function(){
-		    var elem = document.activeElement;
-		    if(elem && elem.tagName == 'IFRAME'){
-		    	if(clicked[elem.id]) {
-					// reload youtube iframe on second click
-					let playerSong = document.getElementById('song');
-					playerSong.innerHTML = playerSong.innerHTML;
-					clicked[elem.id] = false;
-		        } else {
-		        	clicked[elem.id] = true;
-		        }
-		        document.activeElement.blur();
-		    }
-		}, 100);
 	}
 
 	renderLineupPlayerList(){
@@ -137,19 +123,6 @@ module.exports = class CardScorer extends expose.Component {
 		
 		if(currentBatter) {
 			let walkup;
-			if(currentBatter.song_link && currentBatter.song_start) {
-				walkup = DOM.div( {
-					id: 'song',
-					key: 'song'
-				}, DOM.iframe( {
-					id: 'currentBatterSong',
-					width: '32',
-					height: '32',
-					src: `https://thbrown.github.io/iframe-proxy/index.html?id=${currentBatter.song_link}&start=${currentBatter.song_start}`,
-					allow: 'autoplay; encrypted-media',
-					sandbox: 'allow-scripts allow-same-origin',
-				}) );
-			}
 			elems.push( DOM.div( {
 				id: 'currentBatter',
 				key: 'currentBatterKey',

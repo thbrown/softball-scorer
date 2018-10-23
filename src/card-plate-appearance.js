@@ -5,6 +5,7 @@ const expose = require( './expose' );
 const DOM = require( 'react-dom-factories' );
 const css = require( 'css' );
 const Draggable = require( 'react-draggable' );
+const WalkupSong = require( 'component-walkup-song' );
 
 const dialog = require( 'dialog' );
 const state = require( 'state' );
@@ -20,6 +21,13 @@ module.exports = class CardPlateAppearance extends expose.Component {
 		this.expose();
 		this.state = {};
 
+		this.plateAppearance = props.plateAppearance;
+		this.isNew = props.isNew;
+
+		// This is the opposite of how we handle the other pages, here we edit the original
+		// and replace it on cancel. Other places we edit the copy and commit it on confirm.
+		let plateAppearanceCopy = JSON.parse(JSON.stringify(this.plateAppearance));	
+
 		let goBack = function() {
 			if(props.origin == 'scorer') {
 				expose.set_state( 'main', {
@@ -34,6 +42,26 @@ module.exports = class CardPlateAppearance extends expose.Component {
 
 		this.handleBackClick = function() {
 			goBack();
+		};
+
+		this.handleConfirmClick = function() {
+			goBack();
+		};
+
+		this.handleCancelClick = function() {
+			if(props.isNew) {
+				state.removePlateAppearance( props.plateAppearance.id, props.game.id );
+			} else {
+				state.replacePlateAppearance( props.plateAppearance.id, props.game.id, props.team.id, plateAppearanceCopy );
+			}
+			goBack();
+		};
+
+		this.handleDeleteClick = function() {
+			dialog.show_confirm( 'Are you sure you want to delete this plate appearance?', () => {
+				state.removePlateAppearance( props.plateAppearance.id, props.game.id );
+				goBack();
+			} );
 		};
 
 		this.handleButtonClick = function( result ) {
@@ -54,12 +82,6 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			}, 1 );
 		};
 
-		this.handleDelete = function() {
-			dialog.show_confirm( 'Are you sure you want to delete this plate appearance?', () => {
-				state.removePlateAppearance( props.plateAppearance.id, props.game.id );
-				goBack();
-			} );
-		};
 	}
 
 	componentDidMount() {
@@ -153,7 +175,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			let new_x = Math.floor( normalize( x, 0, 1, 0, window.innerWidth ) );
 			let new_y = Math.floor( normalize( y, 0, 1, 0, window.innerWidth ) );
 
-			let imageSrc = (value.id === this.props.plateAppearance.id) ? imageSrcForCurrentPa : '/assets/baseball.svg';
+			let imageSrc = (value.id === this.props.plateAppearance.id) ? imageSrcForCurrentPa : '/server/assets/baseball.svg';
 			if ( value.location && x && y ) {
 				indicators.push( 
 					DOM.img( {
@@ -184,7 +206,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			},
 			DOM.img( {
 				draggable: true,
-				src: '/assets/ballfield2.png',
+				src: '/server/assets/ballfield2.png',
 				alt: 'ballfield',
 				style: {
 					width: '100%'
@@ -209,38 +231,67 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			draggable: false,
 			src: imageSrcForCurrentPa,
 			alt: 'ball',
+			className: 'plate-appearance-baseball',
 			style: {
-				width: '48px',
-				height: '48px',
 				touchAction: 'none',
 				transform: "translate(0px, 0px)"
 			}
 		} ) );
 	}
-﻿﻿﻿
-	renderDeleteButton() {
-		return DOM.div( {
-				id: 'ballfield',
-				style: {
-					position: 'relative',
-					overflow: 'hidden'
-				}
-			},
-			DOM.img( {
-				draggable: true,
-				src: '/assets/delete.svg',
-				onClick: this.handleDelete,
+
+	renderActionsButtons() {
+
+		let buttons = [];
+		let confirm = DOM.img( {
+			key: 'confirm',
+			src: '/server/assets/check.svg',
+			onClick: this.handleConfirmClick,
+			alt: 'confirm',
+			className: 'plate-appearance-card-actions',
+		} );
+		buttons.push(confirm);
+
+		let cancel = DOM.img( {
+			key: 'cancel',
+			src: '/server/assets/cancel.svg',
+			onClick: this.handleCancelClick,
+			alt: 'cancel',
+			className: 'plate-appearance-card-actions',
+		} );
+		buttons.push(cancel);
+
+		if(!this.props.isNew) {
+			let trash = DOM.img( {
+				key: 'delete',
+				src: '/server/assets/delete.svg',
+				onClick: this.handleDeleteClick,
 				alt: 'delete',
-				style: {
-					width: '48px'
-				}
-			} )
-		);
+				className: 'plate-appearance-card-actions',
+			} );
+			buttons.push(trash);
+		}
+
+		return DOM.div( {
+			id: 'options-buttons',
+			style: {
+				position: 'relative',
+				display: 'flex',
+				overflow: 'hidden'
+			}
+		}, buttons );
 	}
 
+	renderWalkupSong() {
+		return React.createElement( WalkupSong, {
+			player: this.props.player,
+			width: 48,
+			height: 48
+		} )
+	}
+	
 	render() {
-		let imageSrcForCurrentPa = (results.getOutResults().includes(this.props.plateAppearance.result)) ? '/assets/baseball-out.svg' : '/assets/baseball-hit.svg';
-		return DOM.div( {
+		let imageSrcForCurrentPa = (results.getOutResults().includes(this.props.plateAppearance.result)) ? '/server/assets/baseball-out.svg' : '/server/assets/baseball-hit.svg';
+		return DOM.div({
 				className: 'card',
 				style: {
 					position: 'relative'
@@ -251,7 +302,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 					style: {}
 				},
 				DOM.img( {
-					src: '/assets/back.svg',
+					src: '/server/assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 					alt: 'back'
@@ -269,7 +320,8 @@ module.exports = class CardPlateAppearance extends expose.Component {
 					}
 				},
 				this.renderBaseball(imageSrcForCurrentPa),
-				this.renderDeleteButton()
+				this.renderActionsButtons(),
+				this.renderWalkupSong()
 			)
 		);
 	}

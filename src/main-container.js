@@ -7,19 +7,22 @@ const css = require( 'css' );
 
 const state = require( 'state' );
 const dialog = require( 'dialog' );
+
+const CardAuth = require( 'card-auth' );
 const CardGame = require( 'card-game' );
 const CardGameEdit = require( 'card-game-edit' );
+const CardLoad = require( 'card-load' );
+const CardMenu = require( 'card-menu' );
+const CardPasswordReset = require( 'card-password-reset' );
 const CardPlateAppearance = require( 'card-plate-appearance' );
+const CardPlayerList = require( 'card-player-list' );
+const CardPlayerEdit = require( 'card-player-edit' );
 const CardPlayerSelection = require( 'card-player-selection' );
+const CardSignup = require( 'card-signup' );
+const CardSpray = require( 'card-spray' );
 const CardTeam = require( 'card-team' );
 const CardTeamEdit = require( 'card-team-edit' );
 const CardTeamList = require( 'card-team-list' );
-const CardMenu = require( 'card-menu' );
-const CardAuth = require( 'card-auth' );
-const CardSpray = require( 'card-spray' );
-const CardSignup = require( 'card-signup' );
-const CardLoad = require( 'card-load' );
-const CardPasswordReset = require( 'card-password-reset' );
 
 const qs = state.getQueryObj();
 
@@ -82,8 +85,7 @@ module.exports = class MainContainer extends expose.Component {
 
 		// Reload from local storage each time after the window regains focus
 		window.addEventListener("focus", function (event) { 
-			console.log("FOCUS EVENT");           
-			state.loadAppDataFromLocalStorage();            
+			state.loadAppDataFromLocalStorage();
 		}, false);
 
 		let startPage = window.location.pathname;
@@ -174,7 +176,8 @@ module.exports = class MainContainer extends expose.Component {
 		} else if(MainContainer.matches(url, "/teams/:teamId/stats/player/:playerId", this.state)) {
 			return React.createElement( CardSpray, {
 				playerId: this.state.playerId,
-				teamId: this.state.teamId
+				teamId: this.state.teamId,
+				origin: 'stats'
 			} );
 		} else if(MainContainer.matches(url, "/teams/:teamId/games/:gameId", this.state) || MainContainer.matches(url, "/teams/:teamId/games/:gameId/lineup", this.state)) {
 			let team = state.getTeam( this.state.teamId );
@@ -214,13 +217,29 @@ module.exports = class MainContainer extends expose.Component {
 			let plateAppearance = state.getPlateAppearance( this.state.plateAppearanceId );
 			let player = state.getPlayer( plateAppearance.player_id );
 			let plateAppearances = state.getPlateAppearancesForPlayerInGame( plateAppearance.player_id, this.state.gameId );
+			let isNew = this.state.isNew;
 			return React.createElement( CardPlateAppearance, {
 				team: team,
 				game: game,
 				player: player,
 				plateAppearance: plateAppearance,
 				plateAppearances: plateAppearances,
-				origin: this.state.urlArray[5]
+				origin: this.state.urlArray[5],
+				isNew: isNew
+			} );
+		} else if(MainContainer.matches(url, "/players", this.state)) {
+			return React.createElement( CardPlayerList );
+		} else if(MainContainer.matches(url, "/players/:playerId", this.state)) {
+			return React.createElement( CardSpray, {
+				playerId: this.state.playerId,
+				origin: 'players'
+			} );
+		} else if(MainContainer.matches(url, "/players/:playerId/edit", this.state)) {
+			let player = state.getPlayer( this.state.playerId );
+			let isNew = this.state.isNew;
+			return React.createElement( CardPlayerEdit, {
+				player: player,
+				isNew: isNew
 			} );
 		} else {
 			return DOM.div( {
@@ -234,7 +253,8 @@ module.exports = class MainContainer extends expose.Component {
 	render() {
 		return DOM.div( {
 				style: {
-					height: window.innerHeight + 'px'
+					// TODO: Make sure we don't need this
+					//height: window.innerHeight + 'px'
 				}
 			},
 			this.renderCard( this.state.page )

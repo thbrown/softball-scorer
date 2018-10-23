@@ -55,9 +55,9 @@ module.exports = class CardGameList extends expose.Component {
 					style: {
 					}},
 					DOM.img( {
-						src: '/assets/edit.svg',
+						src: '/server/assets/edit.svg',
 						alt: 'edit',
-						className: 'delete-button',
+						className: 'list-button',
 						onClick: this.handleEditClick.bind( this, game ),
 						alt: 'edit'
 					} )
@@ -66,7 +66,7 @@ module.exports = class CardGameList extends expose.Component {
 		} );
 
 		elems.push( DOM.div( {
-			key: 'newteam',
+			key: 'newgame',
 			className: 'list-item add-list-item',
 			onClick: this.handleCreateClick,
 		}, '+ Add New Game' ) );
