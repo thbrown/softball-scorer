@@ -55,7 +55,7 @@ module.exports = class CardGame extends expose.Component {
 				className: 'card-title',
 			},
 				DOM.img( {
-					src: '/assets/back.svg',
+					src: '/server/assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 					alt: 'back'

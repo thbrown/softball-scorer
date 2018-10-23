@@ -14,6 +14,9 @@ const FULL_EDIT = "fullEdit";
 const PARTIAL_EDIT = "partialEdit";
 const NO_EDIT = "noEdit";
 
+const SIMULATION_TEXT = 'Estimating Lineup Score...';
+const PLAYER_TILE_HEIGHT = 43;
+
 module.exports = class CardLineup extends expose.Component {
 	constructor( props ) {
 		super( props );
@@ -21,8 +24,6 @@ module.exports = class CardLineup extends expose.Component {
 		this.state = {};
 
 		this.locked = this.locked || this.props.game.plateAppearances.length > 0 ? true : false;
-
-		this.elemHeight = 76;
 
 		const hideHighlights = () => {
 			let highlights = document.getElementsByClassName( 'highlight' );
@@ -40,7 +41,7 @@ module.exports = class CardLineup extends expose.Component {
 
 		const getInds = ( elem, index ) => {
 			const deltaY = parseInt( elem.style.transform.slice( 15 ) ) - 15;
-			const diff = Math.floor( deltaY / this.elemHeight ) + 1;
+			const diff = Math.floor( deltaY / PLAYER_TILE_HEIGHT ) + 1;
 			let highlight_index = index + diff;
 			if ( diff >= 0 ) {
 				highlight_index++;
@@ -62,8 +63,9 @@ module.exports = class CardLineup extends expose.Component {
 			return num <= min ? min : num >= max ? max : num;
 		};
 
-		this.handleDeleteClick = function( player, ev ) {
+		this.handleRemoveClick = function( player, ev ) {
 			dialog.show_confirm( 'Do you want to remove "' + player.name + '" from the lineup?', () => {
+				this.simulateLineup();
 				state.removePlayerFromLineup( this.props.game.lineup, player.id );
 			} );
 			ev.stopPropagation();
@@ -77,14 +79,16 @@ module.exports = class CardLineup extends expose.Component {
 
 		this.handleBoxClick = function( plateAppearanceId ) {
 			expose.set_state( 'main', {
-				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearanceId}`
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearanceId}`,
+				isNew: false
 			} );
 		}.bind( this );
 
 		this.handleNewPlateAppearanceClick = function( player, game_id, team_id ) {
 			let plateAppearance = state.addPlateAppearance( player.id, game_id, team_id );
 			expose.set_state( 'main', {
-				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearance.id}`
+				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearance.id}`,
+				isNew: true
 			} );
 		}.bind( this );
 
@@ -105,6 +109,8 @@ module.exports = class CardLineup extends expose.Component {
 			document.getElementById( 'lineup-padding' ).style.display = 'none';
 			const { new_position_index } = getInds( elem, index );
 			state.updateLineup( this.props.game.lineup, player.id, new_position_index );
+
+			this.simulateLineup();
 		};
 
 		this.handleDrag = function( player, index ) {
@@ -123,6 +129,47 @@ module.exports = class CardLineup extends expose.Component {
 			} );
 		}.bind( this );
 
+	}
+
+	simulateLineup() {
+		// Stop existing web workers
+		if(this.simWorker) {
+			this.simWorker.terminate();
+		}
+		this.simWorker = new Worker('/server/simulation-worker');
+		this.simWorker.onmessage = function(e) {
+			let data = JSON.parse(e.data);
+			let elem = document.getElementById( 'score-text' );
+			elem.innerHTML = `Estimated Score: ${data.score.toFixed(3)} runs (took ${data.time}ms)`;
+
+			let scoreSpinner = document.getElementById('score-spinner');
+			scoreSpinner.style.visibility = 'hidden';
+		}
+
+		// Tell web worker to start computing lineup estimated score
+		let scoreSpinner = document.getElementById('score-spinner');
+		scoreSpinner.style.visibility = 'unset';
+
+		let simulatedScoreDiv = document.getElementById('score-text');
+		simulatedScoreDiv.innerHTML = SIMULATION_TEXT;
+
+		let lineup = [];
+		for(let i = 0; i < this.props.game.lineup.length; i++) {
+			let plateAppearances = state.getPlateAppearancesForPlayerOnTeam( this.props.game.lineup[i] , this.props.team.id );
+			let hits = [];
+			for(let j = 0; j < plateAppearances.length; j++) {
+		      hits.push(plateAppearances[j].result);
+		    }
+		    let hitterData = {};
+		    hitterData.historicHits = hits;
+			lineup.push(hits); 
+		}
+
+		let message = {};
+		message.iterations = 1000000;
+		message.innings = 7;
+		message.lineup = lineup;
+		this.simWorker.postMessage(JSON.stringify(message));
 	}
 
 	getUiTextForLockButton() {
@@ -147,6 +194,11 @@ module.exports = class CardLineup extends expose.Component {
 
 	componentDidMount() {
 		//this.enableTouchAction();
+		this.simulateLineup();
+	}
+
+	componentWillUnmount() {
+		this.simWorker.terminate();
 	}
 
 	renderPlateAppearanceBoxes( player, plateAppearances, editable ) {
@@ -178,6 +230,25 @@ module.exports = class CardLineup extends expose.Component {
 				className: 'plate-appearance-list'
 			},
 			pas
+		);
+	}
+
+	renderLineupScore() {
+		return DOM.div( {
+			id: 'score',
+			key: 'score',
+			className: 'lineup-score',
+		}, DOM.img( {
+				id: 'score-spinner',
+				src: '/server/assets/spinner.gif',
+				style: {
+					visibility: 'unset'
+				}
+			} ),
+		DOM.div( {
+			id: 'score-text',
+			className: 'lineup-score-text',
+		}, SIMULATION_TEXT )
 		);
 	}
 
@@ -295,7 +366,7 @@ module.exports = class CardLineup extends expose.Component {
 				key: 'handle',
 				className: 'player-drag-handle',
 			}, DOM.img( {
-				src: '/assets/drag-handle.png',
+				src: '/server/assets/drag-handle.png',
 				style: {
 					height: '24px'
 				}
@@ -313,14 +384,15 @@ module.exports = class CardLineup extends expose.Component {
 		if ( editable === FULL_EDIT ) {
 			elems.push( DOM.img( {
 				key: 'del',
-				src: '/assets/remove.svg',
-				className: 'delete-button',
+				src: '/server/assets/remove.svg',
+				className: 'lineup-row-button',
 				style: {
 					paddingTop: '20px',
 					paddingBottom: '20px',
 					marginLeft: '0',
+					marginRight: '-8px',
 				},
-				onClick: this.handleDeleteClick.bind( this, player )
+				onClick: this.handleRemoveClick.bind( this, player )
 			} ) );
 		}
 
@@ -356,6 +428,7 @@ module.exports = class CardLineup extends expose.Component {
 					'marginTop': '10px'
 				}
 			},
+			this.renderLineupScore(),
 			this.renderLineupPlayerList(),
 			this.renderNonLineupAtBats()
 		);

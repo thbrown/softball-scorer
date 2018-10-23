@@ -234,21 +234,23 @@ function updateServiceWorker(cb) {
 		files: { exclude: ['service-worker.js'] },
 	};
 
-	hashElement('.', options)
-		.then((hashObj) => {
-			console.log('Version hash:', hashObj.hash);
-			const contents = fs.readFileSync('service-worker-template.js', 'utf8');
+	hashElement('.', options).then(hashObj => {
+        console.log("Version hash:", hashObj.hash);
+		var contents = fs.readFileSync('./src/workers/service-worker-template.js', 'utf8');
 
-			// TODO: Minify this
-			const edit = '// This file has been automatically generated as part of the build process. Changes here will be overidden on the next build.\r\n' + "// Do not check this in to source control. If you'd like to make edits to the service worker edit service-worker-template.js instead.\r\n" + '// Changes made in that file will be reflected here. \r\n' + `let autoGenCacheName = 'softball-${hashObj.hash}'; \r\n`;
+		// TODO: Minify this
+		const edit = 
+		"// This file has been automatically generated as part of the build process. Changes here will be overidden on the next build.\r\n" + 
+		"// Do not check this in to source control. If you'd like to make edits to the service worker edit service-worker-template.js instead.\r\n" +
+		"// Changes made in that file will be reflected here. \r\n" +
+		`let autoGenCacheName = 'softball-${hashObj.hash}'; \r\n`;
 
-			fs.writeFileSync('service-worker.js', edit + contents);
-			cb();
-		})
-		.catch((error) => {
-			console.error('hashing failed:', error);
-			process.exit(0);
-		});
+		fs.writeFileSync('./src/workers/service-worker.js', edit + contents);
+		cb();
+    }).catch(error => {
+        console.error('hashing failed:', error);
+        process.exit( 0 );
+    });
 }
 
 function initConfigFiles(cb) {

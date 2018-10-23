@@ -108,11 +108,17 @@ module.exports = class CardGameEdit extends expose.Component {
 				className: 'edit-button button confirm-button',
 				onClick: this.handleConfirmClick,
 			},
-			DOM.img( {
-				src: '/assets/check.svg',
-				alt: 'back'
-			} ),
-			'Save')
+				DOM.img( {
+					className: 'edit-button-icon',
+					src: '/server/assets/check.svg',
+					alt: 'back'
+				} ),
+				DOM.span( {
+					className: 'edit-button-icon'
+				}, 
+				'Save'
+				)
+			)
 		);
 
 		buttons.push(
@@ -122,9 +128,14 @@ module.exports = class CardGameEdit extends expose.Component {
 				onClick: this.handleCancelClick,
 			}, 
 			DOM.img( {
-				src: '/assets/cancel.svg',
+				className: 'edit-button-icon',
+				src: '/server/assets/cancel.svg',
 			} ),
-			'Cancel')
+			DOM.span( {
+				className: 'edit-button-icon'
+			}, 
+			'Cancel'
+			))
 		);
 
 		if(!this.isNew) {
@@ -135,9 +146,14 @@ module.exports = class CardGameEdit extends expose.Component {
 					onClick: this.handleDeleteClick,
 				}, 
 				DOM.img( {
-					src: '/assets/delete.svg',
+					className: 'edit-button-icon',
+					src: '/server/assets/delete.svg',
 				} ),
-				'Delete')
+				DOM.span( {
+					className: 'edit-button-icon'
+				}, 
+				'Delete'
+				))
 			);
 		}
 
@@ -158,7 +174,7 @@ module.exports = class CardGameEdit extends expose.Component {
 					className: 'card-title'
 				},
 				DOM.img( {
-					src: '/assets/back.svg',
+					src: '/server/assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 					alt: 'back'
