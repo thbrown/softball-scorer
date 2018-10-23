@@ -231,7 +231,7 @@ function updateServiceWorker(cb) {
 
 	hashElement('.', options).then(hashObj => {
         console.log("Version hash:", hashObj.hash);
-		var contents = fs.readFileSync('service-worker-template.js', 'utf8');
+		var contents = fs.readFileSync('./src/workers/service-worker-template.js', 'utf8');
 
 		// TODO: Minify this
 		const edit = 
@@ -240,7 +240,7 @@ function updateServiceWorker(cb) {
 		"// Changes made in that file will be reflected here. \r\n" +
 		`let autoGenCacheName = 'softball-${hashObj.hash}'; \r\n`;
 
-		fs.writeFileSync('service-worker.js', edit + contents);
+		fs.writeFileSync('./src/workers/service-worker.js', edit + contents);
 		cb();
     }).catch(error => {
         console.error('hashing failed:', error);

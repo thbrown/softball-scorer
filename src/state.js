@@ -42,7 +42,7 @@ exports.sync = async function(fullSync) {
 	}
 
 	// Ship it
-	let response = await network.request('POST','sync',JSON.stringify(body));
+	let response = await network.request('POST','server/sync',JSON.stringify(body));
 	console.log("SEDNING SYNC", body);
 
 	if(response.status === 200) {
@@ -192,9 +192,30 @@ exports.getPlayer = function( player_id, state ) {
 	}, null );
 };
 
-exports.getAllPlayers = function () {
-	return LOCAL_STATE.players;
+exports.replacePlayer = function( playerId, newPlayer ) {
+	let localState = exports.getLocalState();
+	let oldPlayer = exports.getPlayer(playerId, localState);
+
+	let oldPlayerIndex = localState.players.indexOf(oldPlayer);
+	localState.players[oldPlayerIndex] = newPlayer;
+	reRender();
 };
+
+exports.getAllPlayers = function () {
+	return exports.getLocalState().players;
+};
+
+exports.removePlayer = function( playerId ) {
+	if(exports.getGamesWithPlayerInLineup(playerId).length === 0 && exports.getGamesWherePlayerHasPlateAppearances(playerId).length === 0) {
+		let localState = exports.getLocalState();
+		localState.players = localState.players.filter( player => {
+			return player.id !== playerId;
+		} );
+		return true;
+	} else {
+		return false;
+	}
+}
 
 exports.addPlayer = function( player_name, gender ) {
 	const id = getNextId();
@@ -248,7 +269,6 @@ exports.replaceGame = function( oldGameId, teamId, newGame ) {
 	reRender();
 };
 
-
 exports.getGame = function( game_id, state ) {
 	for ( let team of ( state || LOCAL_STATE ).teams ) {
 		for ( let game of team.games ) {
@@ -260,6 +280,38 @@ exports.getGame = function( game_id, state ) {
 
 	return null;
 };
+
+exports.getGamesWithPlayerInLineup = function ( playerId ) {
+	let games = [];
+	let localState = exports.getLocalState();
+	for ( let team of localState.teams ) {
+		for ( let game of team.games ) {
+			for( let i = 0; i < game.lineup.length; i++ ) {
+				if ( game.lineup[i] === playerId ) {
+					games.push(game);
+					break;
+				}
+			}
+		}
+	}
+	return games;
+}
+
+exports.getGamesWherePlayerHasPlateAppearances = function ( playerId ) {
+	let games = [];
+	let localState = exports.getLocalState();
+	for ( let team of localState.teams ) {
+		for ( let game of team.games ) {
+			for ( let pa of game.plateAppearances ) {
+				if ( pa.id === playerId ) {
+					games.push(game);
+					break;
+				}
+			}
+		}
+	}
+	return games;
+}
 
 exports.addPlayerToLineup = function( lineup, player_id ) {
 	lineup.push(player_id);
@@ -314,6 +366,21 @@ exports.addPlateAppearance = function ( player_id, game_id, team_id ) {
 	return plateAppearance;
 };
 
+exports.replacePlateAppearance = function( paId, gameId, teamId, newPa ) {
+	let localState = exports.getLocalState();
+	let oldPa = exports.getPlateAppearance( paId );
+
+	let team = exports.getTeam( teamId );
+	let teamIndex = localState.teams.indexOf( team );
+
+	let game = exports.getGame( gameId );
+	let gameIndex = localState.teams[teamIndex].games.indexOf( game );
+
+	let oldPaIndex = 	localState.teams[teamIndex].games[gameIndex].plateAppearances.indexOf( oldPa );
+	localState.teams[teamIndex].games[gameIndex].plateAppearances[oldPaIndex] = newPa;
+	reRender();
+};
+
 // TODO: allow for passing team and game ids to improve perf
 exports.getPlateAppearance = function( pa_id, state ) {
 	for ( let team of ( state || LOCAL_STATE ).teams ) {
@@ -360,6 +427,26 @@ exports.getPlateAppearancesForPlayerOnTeam = function( player_id, team_id ) {
 	return plateAppearances;
 };
 
+exports.getPlateAppearancesForPlayer = function( player_id ) {
+	let localState = exports.getLocalState();
+	let teams = localState.teams;
+	let plateAppearances = [];
+
+	if ( teams ) {
+		teams.forEach( team => {
+			if ( team.games ) {
+				team.games.forEach( game => {
+					if ( game.plateAppearances ) {
+						const plateAppearancesThisGame = game.plateAppearances.filter(pa => player_id === pa.player_id);
+						plateAppearances = plateAppearances.concat(plateAppearancesThisGame);
+					}
+				});
+			}
+		});
+	}
+	return plateAppearances;
+};
+
 exports.updatePlateAppearanceResult = function( plateAppearance, result ) {
 	plateAppearance.result = result;
 	reRender();
@@ -388,11 +475,9 @@ exports.saveAppDataToLocalStorage = function() {
 	if (typeof(Storage) !== "undefined") {
 		// Changes from other tabs should have been loaded when window/tab became visible
 		// So, we can just write directly to local storage
-		let startTime = performance.now();
 		localStorage.setItem("SCHEMA_VERSION", 2);
 		localStorage.setItem("LOCAL_STATE", JSON.stringify(LOCAL_STATE));
 		localStorage.setItem("ANCESTOR_STATE", JSON.stringify(ANCESTOR_STATE));
-		console.log("Saved state to ls " + (performance.now() - startTime));
 	}
 };
 
@@ -408,7 +493,6 @@ exports.loadAppDataFromLocalStorage = function() {
 		let startTime = performance.now();
 		LOCAL_STATE = JSON.parse(localStorage.getItem("LOCAL_STATE"));
 		ANCESTOR_STATE = JSON.parse(localStorage.getItem("ANCESTOR_STATE"));
-		console.log("Load from ls " + (performance.now() - startTime));
 	}
 	reRender();
 }
