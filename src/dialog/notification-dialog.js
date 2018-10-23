@@ -1,7 +1,6 @@
 'use strict';
 
 const React = require( 'react' );
-const css = require( 'css' );
 const DOM = require( 'react-dom-factories' );
 
 module.exports = class NotificationDialog extends React.Component {

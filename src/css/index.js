@@ -17,5 +17,7 @@ module.exports = {
 	},
 	sizes: {
 		ICON: '24px',
+		'fixed-table-header-height': '28px',
+		'fixed-table-col-width': '80px'
 	}
 };
