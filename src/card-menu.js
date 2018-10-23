@@ -7,8 +7,6 @@ const css = require( 'css' );
 const dialog = require( 'dialog' );
 
 const state = require( 'state' );
-const objectMerge = require( '../object-merge.js' );
-const hasher = require( 'object-hash' );
 
 module.exports = class CardMenu extends expose.Component {
 	constructor( props ) {
@@ -33,9 +31,9 @@ module.exports = class CardMenu extends expose.Component {
 			buttonDiv.innerHTML = "Sync (In Progress)";
 			buttonDiv.classList.add("disabled");
 			let status = await state.sync();
-			if(status == 200) {
+			if(status === 200) {
 				buttonDiv.innerHTML = "Sync (Success)";
-			} else if(status == 403) {
+			} else if(status === 403) {
 				dialog.show_notification("Please log in");
 				buttonDiv.innerHTML = "Sync";
 			} else {

@@ -3,12 +3,12 @@ let databaseCalls = class DatabaseCalls {
 	constructor() {
 		this.state = {};
 		// Passwsord is pizza
-		this.accountInfo = {id:1, email: 'brutongaster@softball.app', password_hash:'$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2'};
+		this.accountInfo = { id: 1, email: 'brutongaster@softball.app', password_hash: '$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2' };
 	}
 
 	reset() {
 		this.state = {};
-		this.accountInfo = {id:1, email: 'brutongaster@softball.app', password_hash:'$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2'};
+		this.accountInfo = { id: 1, email: 'brutongaster@softball.app', password_hash: '$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2' };
 	}
 
 	setAccountIdAndPassword( info ) {
@@ -27,7 +27,7 @@ let databaseCalls = class DatabaseCalls {
 		return this.state;
 	}
 
-	getAccountFromTokenHash(passwordTokenHash) {
+	getAccountFromTokenHash( passwordTokenHash ) {
 		return this.accountInfo;
 	}
 
@@ -35,23 +35,23 @@ let databaseCalls = class DatabaseCalls {
 		return this.accountInfo;
 	}
 
-	async signup(email, passwordTokenHash) {
+	async signup( email, passwordTokenHash ) {
 		return this.accountInfo; // TODO: return different account if here without the password_hash
 	}
 
-	async setPasswordHash(accountId, newPasswordHash) {
+	async setPasswordHash( accountId, newPasswordHash ) {
 		return;
 	}
 
-	async setPasswordTokenHash(accountId, newPasswordHash) {
+	async setPasswordTokenHash( accountId, newPasswordHash ) {
 		return;
 	}
 
-	async deleteAccount(accountId) {
+	async deleteAccount( accountId ) {
 		return;
 	}
 
-}
+};
 
 // Node only
 module.exports = databaseCalls;

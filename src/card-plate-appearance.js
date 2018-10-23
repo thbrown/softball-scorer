@@ -8,7 +8,7 @@ const Draggable = require( 'react-draggable' );
 
 const dialog = require( 'dialog' );
 const state = require( 'state' );
-const results = require('plate-appearance-results');
+const results = require( 'plate-appearance-results' );
 
 const normalize = function( x, A, B, C, D ) {
 	return C + ( x - A ) * ( D - C ) / ( B - A );
@@ -21,16 +21,16 @@ module.exports = class CardPlateAppearance extends expose.Component {
 		this.state = {};
 
 		let goBack = function() {
-			if(props.origin == 'scorer') {
+			if ( props.origin === 'scorer' ) {
 				expose.set_state( 'main', {
 					page: `/teams/${props.team.id}/games/${props.game.id}/scorer`
 				} );
 			} else {
 				expose.set_state( 'main', {
 					page: `/teams/${props.team.id}/games/${props.game.id}/lineup`
-				} );	
+				} );
 			}
-		}
+		};
 
 		this.handleBackClick = function() {
 			goBack();
@@ -68,10 +68,10 @@ module.exports = class CardPlateAppearance extends expose.Component {
 
 			if ( ev.changedTouches ) {
 				this.mx = ev.changedTouches[ 0 ].pageX - ballfield.offsetLeft;
-				this.my = ev.changedTouches[ 0 ].pageY - ballfield.offsetTop - 48 /* headerSize */;
+				this.my = ev.changedTouches[ 0 ].pageY - ballfield.offsetTop - 48; /* headerSize */
 			} else {
 				this.mx = ev.clientX - ballfield.offsetLeft;
-				this.my = ev.clientY - ballfield.offsetTop - 48 /* headerSize */;
+				this.my = ev.clientY - ballfield.offsetTop - 48; /* headerSize */
 			}
 
 			if ( this.mx < 0 ) {
@@ -127,22 +127,22 @@ module.exports = class CardPlateAppearance extends expose.Component {
 					justifyContent: 'space-around',
 					margin: '4px',
 				}
-			}, elems.slice( 0, elems.length/2 ) ),
+			}, elems.slice( 0, elems.length / 2 ) ),
 			DOM.div( {
 				style: {
 					display: 'flex',
 					justifyContent: 'space-around',
 					margin: '4px',
 				}
-			}, elems.slice( elems.length/2, elems.length ) )
+			}, elems.slice( elems.length / 2, elems.length ) )
 		);
 	}
 
-	renderField(imageSrcForCurrentPa) {
+	renderField( imageSrcForCurrentPa ) {
 		let indicators = [];
 
 		// Add the indicators for all plate appearances for this player, the current plate appearance will be dispalyed in a different color
-		this.props.plateAppearances.forEach( (value) => {
+		this.props.plateAppearances.forEach( ( value ) => {
 			let x = -1;
 			let y = -1;
 			if ( value.location ) {
@@ -153,9 +153,9 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			let new_x = Math.floor( normalize( x, 0, 1, 0, window.innerWidth ) );
 			let new_y = Math.floor( normalize( y, 0, 1, 0, window.innerWidth ) );
 
-			let imageSrc = (value.id === this.props.plateAppearance.id) ? imageSrcForCurrentPa : '/assets/baseball.svg';
+			let imageSrc = ( value.id === this.props.plateAppearance.id ) ? imageSrcForCurrentPa : '/assets/baseball.svg';
 			if ( value.location && x && y ) {
-				indicators.push( 
+				indicators.push(
 					DOM.img( {
 						key: value.id,
 						src: imageSrc,
@@ -169,7 +169,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 					} )
 				);
 			}
-		});
+		} );
 
 		return DOM.div( {
 				id: 'ballfield',
@@ -192,10 +192,10 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			} ),
 			indicators
 		);
-		
+
 	}
 
-	renderBaseball(imageSrcForCurrentPa) {
+	renderBaseball( imageSrcForCurrentPa ) {
 		return React.createElement( Draggable, {
 			key: 'baseball',
 			axis: 'both',
@@ -217,7 +217,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			}
 		} ) );
 	}
-﻿﻿﻿
+
 	renderDeleteButton() {
 		return DOM.div( {
 				id: 'ballfield',
@@ -239,7 +239,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 	}
 
 	render() {
-		let imageSrcForCurrentPa = (results.getOutResults().includes(this.props.plateAppearance.result)) ? '/assets/baseball-out.svg' : '/assets/baseball-hit.svg';
+		let imageSrcForCurrentPa = ( results.getOutResults().includes( this.props.plateAppearance.result ) ) ? '/assets/baseball-out.svg' : '/assets/baseball-hit.svg';
 		return DOM.div( {
 				className: 'card',
 				style: {
@@ -261,14 +261,14 @@ module.exports = class CardPlateAppearance extends expose.Component {
 				}, this.props.player.name )
 			),
 			this.renderButtonList(),
-			this.renderField(imageSrcForCurrentPa),
+			this.renderField( imageSrcForCurrentPa ),
 			DOM.div( {
 					style: {
 						display: 'flex',
 						justifyContent: 'space-between',
 					}
 				},
-				this.renderBaseball(imageSrcForCurrentPa),
+				this.renderBaseball( imageSrcForCurrentPa ),
 				this.renderDeleteButton()
 			)
 		);

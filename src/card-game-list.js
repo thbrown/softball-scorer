@@ -2,8 +2,6 @@
 
 const expose = require( './expose' );
 const DOM = require( 'react-dom-factories' );
-const css = require( 'css' );
-const dialog = require( 'dialog' );
 
 const state = require( 'state' );
 
@@ -48,7 +46,7 @@ module.exports = class CardGameList extends expose.Component {
 					justifyContent: 'space-between'
 				}
 			},
-				DOM.div( {					
+				DOM.div( {
 					className: 'prevent-overflow'
 				}, 'Vs. ' + game.opponent ),
 				DOM.div( {
@@ -58,8 +56,7 @@ module.exports = class CardGameList extends expose.Component {
 						src: '/assets/edit.svg',
 						alt: 'edit',
 						className: 'delete-button',
-						onClick: this.handleEditClick.bind( this, game ),
-						alt: 'edit'
+						onClick: this.handleEditClick.bind( this, game )
 					} )
 				)
 			);
