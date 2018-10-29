@@ -10,6 +10,8 @@ const dialog = require( 'dialog' );
 const state = require( 'state' );
 const results = require('plate-appearance-results');
 
+const LOCATION_DENOMINATOR = 32767;
+
 const normalize = function( x, A, B, C, D ) {
 	return C + ( x - A ) * ( D - C ) / ( B - A );
 };
@@ -51,8 +53,8 @@ module.exports = class CardAtBat extends expose.Component {
 				y = value.location.y;
 			}
 
-			let new_x = Math.floor( normalize( x, 0, 1, 0, window.innerWidth ) );
-			let new_y = Math.floor( normalize( y, 0, 1, 0, window.innerWidth ) );
+			let new_x = Math.floor( normalize( x, 0, LOCATION_DENOMINATOR, 0, window.innerWidth ) );
+			let new_y = Math.floor( normalize( y, 0, LOCATION_DENOMINATOR, 0, window.innerWidth ) );
 
 			let indicator = null;
 			if ( value.location && x && y ) {

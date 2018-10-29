@@ -13,7 +13,6 @@ exports.signup = async function(email, password, reCapcha) {
     });
     return response;
   } catch (error) {
-    console.log('Signup Failed', error.response.body.message);
     throw error;
   }
 }
@@ -28,10 +27,8 @@ exports.login = async function(email, password) {
       json: true
     });
   } catch (error) {
-    console.log('Login Failed', error.response.body.message);
     throw error;
   }
-  console.log('loginSuccessful');
   // Return the session id
   return response.headers["set-cookie"][0].split(';')[0];
 }
@@ -46,7 +43,6 @@ exports.deleteAccount = async function(sessionId) {
     });
     return response;
   } catch (error) {
-    console.log('Account Delete Failed', error.response.body.message);
     throw error;
   }
 }
@@ -65,7 +61,6 @@ exports.sync = async function(sessionId, checksum, patch) {
     });
     return response;
   } catch (error) {
-    console.log('Sync Failed', error.response.body.message);
     throw error;
   }
 }
@@ -88,4 +83,8 @@ exports.getMd5 = function(data) {
     respectType: false,
     encoding: 'base64'} );
   return checksum.slice(0, -2); // Remove trailing '=='
+}
+
+exports.getInitialState = function() {
+  return {"teams":[], "players": []};
 }

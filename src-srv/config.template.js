@@ -12,6 +12,9 @@ module.exports = {
 
 	recapcha: {
 		secretkey: undefined
-	}
+	},
 
+	logging: {
+		logToFile: false
+	}
 }

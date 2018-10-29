@@ -41,7 +41,7 @@ describe('sync', () => {
 		await utils.deleteAccount( sessionId );
 	});
 
-	test.only('Sync', async () => {
+	test('Sync', async () => {
 		let email = `syncTest${utils.randomId(10)}@softball.app`;
 		let password = 'pizza';
 

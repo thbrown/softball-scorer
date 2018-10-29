@@ -1,14 +1,31 @@
+const TimSort = require('timsort');
+
 const HandledError = require( './handled-error.js' );
 const idUtils = require( '../id-utils.js' );
-
-const tableReferences = ['teams', 'players', 'plateAppearances', 'games', 'lineup'];
-const tableNames = ['teams', 'players', 'plate_appearances', 'games', 'players_games'];
+const logger = require( './logger.js' );
 
 /*
  *  This class contains the logic for translating the json structure applicationData on client side to sql satatments on the server. It's a hot mess.
  */
 
-// These works show up in the patch object. We need to identify which parts of the patch object are not id's, do do so we reference this list.
+const tableReferences = ['teams', 'players', 'plateAppearances', 'games', 'lineup'];
+const tableNames = ['teams', 'players', 'plate_appearances', 'games', 'players_games'];
+
+// Specify what order we should return sql statements to insert/update the tables (deletes are done in reverse order)
+const tableSortOrder = ['players', 'teams', 'games', 'players_games', 'plate_appearances'];
+let tableOrdering = {}; // map for efficient lookup
+for (let i = 0; i<tableSortOrder.length; i++) {
+	tableOrdering[tableSortOrder[i]] = i;
+}
+
+// Specify what order we should return sql statements that do delete, insert and update
+const opSortOrder = ['DELETE', 'INSERT', 'UPDATE']; // I'm not sure this order matters
+let opOrdering = {}; // map for efficient lookup
+for (let i = 0; i<opSortOrder.length; i++) {
+	opOrdering[opSortOrder[i]] = i;
+}
+
+// These words show up in the patch object. We need to identify which parts of the patch object are not id's, to do so we reference this list.
 const keywords = tableReferences
 	.concat(['date', 'opponent', 'park', 'scoreUs', 'scoreThem', 'lineupType']) // game columns TODO: with the underscore??
 	.concat(['result', 'location', 'x', 'y']) // plate_appearance columns
@@ -17,9 +34,56 @@ const keywords = tableReferences
 	.concat([/*name already present*/]) // teams columns
 
 let getSqlFromPatch = function(patch, accountId) {
-	console.log("PATCH", patch);
+	logger.log(accountId, "PATCH", JSON.stringify(patch, null, 2));
 	let result = [];
 	getSqlFromPatchInternal(patch, [], result, accountId);
+	
+	// Order sql statements to prevent foreign key violations
+	const STATEMENT_TYPE_REGEX = /DELETE|UPDATE|INSERT/;
+	const STATEMENT_TABLE_REGEX = /teams|games|players_games|plate_appearances|players/;
+
+	// This requires a stable sorting algorithm
+	TimSort.sort(result, function(a, b) {
+		// First order by operation
+		// TODO: it would be more efficient to save these results instead of running the regexes each time
+		let aOp = a.query.match(STATEMENT_TYPE_REGEX)[0];
+		let bOp = b.query.match(STATEMENT_TYPE_REGEX)[0];
+		
+		if(aOp && bOp) {
+			let opSort = opOrdering[aOp] - opOrdering[bOp];
+			if(opSort === 0) {
+				// Next order by table
+				let aTable = a.query.match(STATEMENT_TABLE_REGEX)[0];
+				let bTable = b.query.match(STATEMENT_TABLE_REGEX)[0];
+				if(aOp && bOp) {
+					let tableSort = 0;
+					if(aOp === 'DELETE') {
+						// DELETEs need to be in reverse order
+						tableSort = tableOrdering[bTable] - tableOrdering[aTable];
+					} else {
+						// INSERTs and UPDATEs need to be in forward order
+						tableSort = tableOrdering[aTable] - tableOrdering[bTable];
+					}
+					if(tableSort || tableSort === 0) {
+						return tableSort;
+					} else {
+						throw new HandledError(500,"Internal Server Error",`Unable to compare these tables: ${aTable} ${bTable}. Please add them to the tableSortOrder constant.`);
+					}
+				} else {
+					throw new HandledError(500,"Internal Server Error",`Could not detemine op of these statements ${a.query} ${b.query}`);
+				}
+			} else if(opSort) {
+				return opSort;
+			} else {
+				throw new HandledError(500,"Internal Server Error",`Unable to compare these operations: ${aOp} ${bOp}. Please add them to the opSortOrder constant.`);
+			}
+		} else {
+			throw new HandledError(500,"Internal Server Error",`Could not detemine type of these statements ${a.query} ${b.query}`);
+		}
+	});
+
+	console.log(result);
+
 	return result;
 }
 
@@ -28,7 +92,7 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
 		throw new HandledError(500,"Internal Server Error", "Tried to generate sql while accountId was undefined (no account logged in, or at least no data was stored in the session)");
 	}
 	let keys = Object.keys(patch);
-	for (var i = 0; i < keys.length; i++) {
+	for (let i = 0; i < keys.length; i++) {
 		let key = keys[i];
 		let value = patch[key];
 		if(isRoot(value)) {
@@ -129,7 +193,6 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
 						values:[value.param2, idUtils.base62ToHexUuid(getIdFromPath(path)), accountId]
 					});
 				} else {
-					console.log(path);
 					result.push({
 						query:"UPDATE " + applicableTable + " SET " + getColNameFromJSONValue(value.key) + " = $1 WHERE id IN ($2) AND account_id IN ($3);",
 						values:[value.param2, idUtils.base62ToHexUuid(getIdFromPath(path)), accountId]
@@ -137,7 +200,7 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
 				}
 			} else if(op === "Add") {
 				// we can't add things to a table that aren't defined in the schema. That's okay because we shouldn't get these anyways.
-				console.log("WARNING: skipped add");
+				logger.log(accountId, "WARNING: skipped add");
 			} else  {
 				throw new HandledError(400, "The request specified an invalid operation. Try again.", "Unrecognized operation: " + op + " " + (patch ? JSON.stringify(patch[key]) : patch));
 			}
@@ -146,7 +209,7 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
 			getSqlFromPatchInternal(patch[key], path, result, accountId);
 			path.pop(key);
 		} else {
-			console.log("Warning: don't know what to do with this");
+			logger.log(accountId, "Warning: don't know what to do with this");
 		}
 	}
 }
@@ -309,7 +372,7 @@ let getColNameFromJSONValue = function(value) {
 	let map = {
 		x:"hit_location_x",
 		y:"hit_location_y",
-		lineupType:"lineupType",
+		lineupType:"lineup_type",
 		scoreUs:"score_us",
 		scoreThem:"score_them"
 	}
@@ -335,7 +398,6 @@ let getTableReferenceFromPath = function(path, key) {
 			return tableReferences[tableReferences.indexOf(path[i])];
 		}
 	}
-	//console.log("Warning: not sure what to do with this");
 	return null;
 }
 
@@ -351,9 +413,10 @@ let getIdFromPath = function(path, type) {
 		for(let i = (path.length-1); i >= 0; i--) {
 			// TODO: sorting the keywords and binary searching through them would be better here
 			if(!keywords.includes(path[i])) {
+				logger.log(null, 'Approved', `'${path[i]}'`);
 				return path[i];
 			} else {
-				console.log("Rejected", path[i])
+				logger.log(null, 'Rejected', `'${path[i]}'`);
 			}
 		}
 	}
@@ -361,7 +424,6 @@ let getIdFromPath = function(path, type) {
 
 // returns true if the obj has any properties assigned
 let hasProperties = function(obj) {
-	//console.log(Object.keys(obj));
 	if(Object.keys(obj).length > 0)  {
 		return true;
 	} else {

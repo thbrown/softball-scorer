@@ -44,6 +44,7 @@
     "react-dom-factories": "^1.0.2",
     "react-draggable": "^3.0.5",
     "serve-favicon": "^2.5.0",
+    "timsort": "^0.3.0",
     "uuid": "^3.2.1"
   },
   "devDependencies": {

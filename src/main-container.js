@@ -78,8 +78,6 @@ module.exports = class MainContainer extends expose.Component {
 			} );
 		}
 
-		state.loadAppDataFromLocalStorage(); // TODO: do we want to to this inside sync or here?
-
 		// Sync on first load
 		setTimeout(state.sync,1);
 

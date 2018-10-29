@@ -21,10 +21,10 @@ exports.getServerUrl = function(path) {
 exports.sync = async function(fullSync) {
 	console.log("Sync requested", fullSync ? "full" : "patchOnly");
 
-	// TODO: do we want to cancel any in_progress syncs? 
+	// TODO: do we want to cancel any in_progress syncs?
 
-	// Merge local storage state with in-memory state first
-	// exports.loadAppDataFromLocalStorage();  This doesn't actually merge, so if the state hasn't been written to ls, this will override it. I'm not sure we need to re-load from ls here anyways.
+	// Load from local storage first to make sure we've run any ls schema changes
+	exports.loadAppDataFromLocalStorage();  
 
 	// Save a deep copy of the local state
 	let localStateCopy = JSON.parse(JSON.stringify(state.getLocalState()));
@@ -223,7 +223,9 @@ exports.addPlayer = function( player_name, gender ) {
 	let player = {
 		id: id,
 		name: player_name,
-		gender: gender
+		gender: gender,
+		song_link: null,
+		song_start: null
 	};
 	new_state.players.push( player );
 	reRender();
@@ -236,6 +238,7 @@ exports.addGame = function( team_id, opposing_team_name ) {
 	let new_state = exports.getLocalState();
 	const id = getNextId();
 	const team = exports.getTeam( team_id, new_state );
+	const timestamp = Math.floor((new Date().getTime()/1000)); // Postgres expects time in seconds not ms
 	let last_lineup = [];
 	if ( team.games.length ) {
 		let last_game = team.games[ team.games.length - 1 ];
@@ -245,7 +248,7 @@ exports.addGame = function( team_id, opposing_team_name ) {
 		id: id,
 		opponent: opposing_team_name,
 		lineup: last_lineup,
-		date: (new Date().getTime()),
+		date: timestamp, 
 		park: "Stazio",
 		scoreUs: 0,
 		scoreThem: 0,
@@ -360,6 +363,10 @@ exports.addPlateAppearance = function ( player_id, game_id, team_id ) {
 	let plateAppearance = {
 		id: id,
 		player_id: player_id,
+		location: {
+			x: null,
+			y: null
+		}
 	};
 	plateAppearances.push( plateAppearance );
 	reRender();
@@ -475,7 +482,7 @@ exports.saveAppDataToLocalStorage = function() {
 	if (typeof(Storage) !== "undefined") {
 		// Changes from other tabs should have been loaded when window/tab became visible
 		// So, we can just write directly to local storage
-		localStorage.setItem("SCHEMA_VERSION", 2);
+		localStorage.setItem("SCHEMA_VERSION", "3");
 		localStorage.setItem("LOCAL_STATE", JSON.stringify(LOCAL_STATE));
 		localStorage.setItem("ANCESTOR_STATE", JSON.stringify(ANCESTOR_STATE));
 	}
@@ -483,9 +490,27 @@ exports.saveAppDataToLocalStorage = function() {
 
 exports.loadAppDataFromLocalStorage = function() {
 	if (typeof(Storage) !== "undefined") {
-		if(localStorage.getItem("SCHEMA_VERSION") !== "2") {
-			// TODO: some kind of schema migration
-			// For now we'll just blow away any old local storage
+		// These statements define local storage schema migrations
+		/*
+		if(localStorage.getItem("SCHEMA_VERSION") === "1") {
+			// Example
+			let version2 = JSON.parse(localStorage.getItem("LOCAL_STATE"));
+			version2.doSomeConversion();
+			let version2anc = JSON.parse(localStorage.getItem("ANCESTOR_STATE"));
+			version2anc.doSomeConversion();
+			localStorage.setItem("SCHEMA_VERSION", 2);
+		}
+		if(localStorage.getItem("SCHEMA_VERSION") === "2") {
+			// Example
+			let version3 = JSON.parse(localStorage.getItem("LOCAL_STATE"));
+			version3.doSomeConversion();
+			let version3anc = JSON.parse(localStorage.getItem("ANCESTOR_STATE"));
+			version3anc.doSomeConversion();
+			localStorage.setItem("SCHEMA_VERSION", 3);
+		}
+		*/
+		
+		if(localStorage.getItem("SCHEMA_VERSION") !== "3"){
 			exports.clearLocalStorage();
 			exports.saveAppDataToLocalStorage();
 			console.log("Invalid localStorage data was removed");
