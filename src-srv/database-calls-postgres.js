@@ -1,15 +1,16 @@
 const { Pool } = require( 'pg' );
 
+const HandledError = require( './handled-error.js' );
+const idUtils = require( '../id-utils.js' );
+const logger = require( './logger.js' );
 const objectMerge = require( '../object-merge.js' );
 const sqlGen = require( './sql-gen.js' );
-const idUtils = require( '../id-utils.js' );
-const HandledError = require( './handled-error.js' );
 
 module.exports = class DatabaseCalls {
 
 	constructor( url, port, user, password ) {
 
-		console.log( 'Connecting to pg', url );
+		logger.log(null, 'Connecting to pg', url );
 		this.pool = new Pool( {
 			user: user,
 			host: url,
@@ -30,7 +31,7 @@ module.exports = class DatabaseCalls {
 
 	disconnect() {
 		this.pool.end(() => {
-			console.log('Pg pool has been closed');
+			logger.log(null, 'Pg pool has been closed');
 		})
 	}
 
@@ -39,15 +40,15 @@ module.exports = class DatabaseCalls {
 		return new Promise( function( resolve, reject ) {
 			self.pool.connect( function( err, client, done ) {
 				if ( err ) {
-					console.log( "There was a problem getting db connection:" );
-					console.log( err );
+					logger.log(null, 'There was a problem getting db connection:' );
+					logger.log( err );
 					reject( err );
 				}
 
 				client.query( queryString, function( err, result ) {
 					done();
 					if ( err ) {
-						console.log( err );
+						logger.log( null, err );
 						reject( err );
 					} else {
 						resolve( result );
@@ -62,15 +63,15 @@ module.exports = class DatabaseCalls {
 		return new Promise( function( resolve, reject ) {
 			self.pool.connect( function( err, client, done ) {
 				if ( err ) {
-					console.log( "There was a problem getting db connection:" );
-					console.log( err );
+					logger.log(null, "There was a problem getting db connection:" );
+					logger.log(null, err );
 					process.exit( 1 );
 				}
 
 				client.query(queryString, values, ( err , result ) => {
 					done();
 					if (err) {
-						console.log(err.stack);
+						logger.log(null, err.stack);
 						reject( err );
 					} else {
 						resolve( result );
@@ -81,7 +82,7 @@ module.exports = class DatabaseCalls {
 	}
 
 	getState( accountId ) {
-		console.log("Accessing data of account", accountId, accountId === undefined);
+		logger.log(accountId, 'Pulling Data');
 		if(accountId === undefined) {
 			return {"players":[], "teams":[]};
 		}
@@ -145,6 +146,8 @@ module.exports = class DatabaseCalls {
 				state.players = values[ 0 ].rows;
 				for( let i = 0; i < state.players.length; i++) {
 					state.players[i].id = idUtils.hexUuidToBase62(state.players[i].id);
+					state.players[i].song_link = state.players[i].song_link ? state.players[i].song_link : null;
+					state.players[i].song_start = state.players[i].song_link ? state.players[i].song_link : null;
 				}
 
 				// Teams
@@ -205,7 +208,7 @@ module.exports = class DatabaseCalls {
 				// the objects with different hashes appear to be identical. So, I'll add this copy here for now so we are always hashing the post-stringified object. 
 				state = JSON.parse(JSON.stringify(state));
 
-				console.log("SYNC_PULL", (new Date).getTime() - milliseconds);
+				logger.log(accountId, `SYNC_PULL took ${(new Date).getTime() - milliseconds}ms`);
 
 				resolve( state );
 			} );
@@ -236,7 +239,7 @@ module.exports = class DatabaseCalls {
 				}
 
 				// Run the query!
-				console.log(`Executing:`, sqlToRun[i]);
+				logger.log(accountId, `Executing:`, sqlToRun[i]);
 				await client.query(sqlToRun[i].query, sqlToRun[i].values);
 			}
 			await client.query('COMMIT');
@@ -258,7 +261,7 @@ module.exports = class DatabaseCalls {
 	}
 
 	async getAccountFromTokenHash( passwordTokenHash ) {
-		console.log("Seraching for", passwordTokenHash.trim());
+		logger.log(null, "Seraching for", passwordTokenHash.trim());
 		let results =  await this.parameterizedQueryPromise( `
 				SELECT account_id, email, password_hash, verified_email
 				FROM account 
@@ -309,7 +312,7 @@ module.exports = class DatabaseCalls {
 	}
 
 	async deleteAccount( accountId ) {
-		console.log('deleting', accountId);
+		logger.log(accountId, 'deleting');
 		await this.parameterizedQueryPromise( `
 				DELETE FROM account 
 				WHERE account_id = $1

@@ -18,6 +18,7 @@ const got = require( 'got' );
 const objectMerge = require( '../object-merge.js' );
 const HandledError = require( './handled-error.js' );
 const config = require( './config' );
+const logger = require( './logger.js' );
 
 module.exports = class SoftballServer {
 
@@ -34,7 +35,7 @@ module.exports = class SoftballServer {
 				passwordField: 'password'
 			},
 			async function( email, password, cb ) {
-				console.log( "Checking credentials...", email );
+				logger.log(null, "Checking credentials...", email );
 
 				try {
 					let accountInfo = await self.databaseCalls.getAccountFromEmail( email );
@@ -45,18 +46,18 @@ module.exports = class SoftballServer {
 					}
 
 					if ( isValid ) {
-						console.log( "Login accepted" );
 						let sessionInfo = {
 							accountId: accountInfo.account_id,
 							email: email,
 						};
+						logger.log(accountInfo.account_id, "Login accepted" );
 						cb( null, sessionInfo );
 					} else {
 						cb( null, false );
-						console.log( "Login rejected" );
+						logger.log(null, "Login rejected", email);
 					}
 				} catch ( error ) {
-					console.log( error );
+					logger.log( null, error, email);
 					cb( null, false );
 				}
 			} ) );
@@ -97,6 +98,7 @@ module.exports = class SoftballServer {
 		app.use( '/server/assets', express.static( path.join( __dirname + '/../assets' ).normalize() ) );
 		// Service worker must be served at project root to intercept all fetches
 		app.use( '/service-worker', express.static( path.join( __dirname + '/../src/workers/service-worker.js' ).normalize() ) );
+		// Robots.txt is served from the root by convention
 		app.use( '/robots.txt', express.static( path.join( __dirname + '/../robots.txt' ).normalize() ) );
 		app.use( '/server/manifest', express.static( path.join( __dirname + '/../manifest.json' ).normalize() ) );
 		app.use( '/server/simulation-worker', express.static( path.join( __dirname + '/../src/workers/simulation-worker.js' ).normalize() ) );
@@ -120,13 +122,6 @@ module.exports = class SoftballServer {
 		app.use( passport.session() );
 
 		// Routes
-		/*
-		app.post( '/server/state', wrapForErrorProcessing( async( req, res ) => { // Should this be a patch??
-			let accountId = extractSessionInfo( req, 'accountId' );
-			await this.databaseCalls.setState( req.body, accountId );
-			res.status( 204 ).send();
-		} ) );
-		*/
 
 		app.get( '/server/state', wrapForErrorProcessing( async( req, res ) => {
 			if(!req.isAuthenticated()) {
@@ -163,12 +158,12 @@ module.exports = class SoftballServer {
 		app.post( '/server/account/login', wrapForErrorProcessing( ( req, res, next ) => {
 			passport.authenticate( 'local', function( err, accountInfo, info ) {
 				if ( err || !accountInfo ) {
-					console.log( 'FAILED TO AUTHENTICATE!', accountInfo, err, info );
+					logger.log(null, 'Authentication Failed', accountInfo, err, info );
 					res.status( 400 ).send();
 					return;
 				}
 				req.logIn( accountInfo, function() {
-					console.log( 'Login Successful!' );
+					logger.log(accountInfo.account_id, 'Login Successful!' );
 					res.status( 204 ).send();
 				} );
 			} )( req, res, next );
@@ -189,10 +184,8 @@ module.exports = class SoftballServer {
 					    response: req.body.reCAPCHA,
 					    remoteip: req.connection.remoteAddress,
 					}
-				console.log("Recapcha body", body);
 				try {
 					const recapchaResponse = await got.post(`https://www.google.com/recaptcha/api/siteverify?secret=${config.recapcha.secretkey}&response=${req.body.reCAPCHA}`);
-					console.log("Recapcha result", recapchaResponse.body);
 					let recapchaResponseBody = JSON.parse(recapchaResponse.body);
 					if(!recapchaResponseBody.success) {
 						throw new HandledError( 400, "We don't serve their kind here", recapchaResponse.body);
@@ -209,34 +202,33 @@ module.exports = class SoftballServer {
 			let hashedPassword = await bcrypt.hash(req.body.password, 12);
 			let account = await this.databaseCalls.signup(req.body.email, hashedPassword);
 
-			console.log("Calling login A", account);
-			logIn(account, req, res); 
+			logger.log(account.account_id, "Authenticating after successful signup");
+			logIn(account, req, res);
 
 			res.status( 204 ).send();
 		} ) );
 
 		app.post( '/server/account/reset-password-request', wrapForErrorProcessing( async( req, res, next ) => {
-			console.log("Reset password request")
 			checkRequiredField(req.body.email, "email");
 			let account = await this.databaseCalls.getAccountFromEmail( req.body.email );
+			logger.log(null, "Reset password request for", req.body.email);
 			if(account) {
 				let token = await generateToken();
 				let tokenHash = crypto.createHash('sha256').update(token).digest('base64');
 
 				// TODO: send passwowrd reset email
-				console.log("Would have sent email", token);
+				logger.log(null, "Would have sent email", token, req.body.email);
 
 				await this.databaseCalls.setPasswordTokenHash(account.account_id, tokenHash);
 				res.status( 204 ).send();
 			} else {
-				console.log("Password reset: No such email found", req.body.email);
+				logger.log("Password reset: No such email found", req.body.email);
 				res.status( 404 ).send();
 			}
-
 		} ) );
 
 		app.post( '/server/account/reset-password', wrapForErrorProcessing( async( req, res, next ) => {
-			console.log("Password update recieved");
+			logger.log(null, "Password update recieved. Token", req.body.token);
 			checkRequiredField(req.body.password, "password");
 			checkFieldLength(req.body.password, 320);
 			checkFieldLength(req.body.token, 320);
@@ -249,12 +241,15 @@ module.exports = class SoftballServer {
 				let hashedPassword = await bcrypt.hash(req.body.password, 12);
 				await this.databaseCalls.setPasswordHashAndExpireToken(account.account_id, hashedPassword);
 
+				logger.log(null, "Password successfully reset", req.body.token);
+
 				// If an attacker somehow guesses the reset token and resets the password, they still don't know the email.
 				// So, we wont log the password resetter in automatically. We can change this if we think it really affects
 				// usability but I think it's okay. If users are resetting their passwords they are probably aready engaged.
 				// logIn(account, req, res);
 				res.status( 204 ).send();
 			} else {
+				logger.log(null, "Could not find account from reset token", req.body.token);
 				res.status( 404 ).send();
 			}
 		} ) );
@@ -266,7 +261,7 @@ module.exports = class SoftballServer {
 			}
 			
 			let accountId = extractSessionInfo( req, 'accountId' );
-			console.log(`Deleting account ${accountId}`);
+			logger.log(accountId, `Deleting account`);
 
 			await lockAccount(accountId);
 			try {
@@ -279,9 +274,12 @@ module.exports = class SoftballServer {
 				await this.databaseCalls.deleteAccount( accountId );
 
 				// TODO: Invalidate session somehow?
-				console.log("deleted account");
+				logger.log(accountId, "Account successfully deleted");
 
 				res.status( 204 ).send();
+			} catch(error) {
+				logger.log(accountId, 'An error occured while deleting the account');
+				throw error;
 			} finally {
 				unlockAccount( accountId );
 			}
@@ -302,22 +300,21 @@ module.exports = class SoftballServer {
 			}
 		*/
 		app.post( '/server/sync', wrapForErrorProcessing( async( req, res ) => {
-			console.log("ACCOUNT", extractSessionInfo( req, 'accountId' ));
 			if(!req.isAuthenticated()) {
 				res.status( 403 ).send();
 				return;
 			}
 
-			// We need this information to know what state the client is in
-			let data = req.body;
-			console.log("Sync request received by server ", JSON.stringify(data, null, 2));
-			if( !data['md5'] ) {
-				throw new HandledError( 400, "Missing required field", data);
-			}
-
 			let accountId = extractSessionInfo( req, 'accountId' );
 			let stateRecentPatches = extractAccountInfo( accountId, 'stateRecentPatches') || [];
 			let state = undefined;
+
+			// We need this information to know what state the client is in
+			let data = req.body;
+			logger.log(accountId, "Sync request received by server ", JSON.stringify(data, null, 2));
+			if( !data['md5'] ) {
+				throw new HandledError( 400, "Missing required field", data);
+			}
 
 			// Prevent race conditions across requests
 			await lockAccount(accountId);
@@ -327,7 +324,7 @@ module.exports = class SoftballServer {
 			try {
 				// Check if the client sent updates to the server
 				if(data.patch && Object.keys(data.patch).length !== 0) {
-					console.log("client has updates", data.patch);
+					logger.log(accountId, "client has updates", JSON.stringify(data.patch, null, 2));
 
 					state = state || await this.databaseCalls.getState( accountId );
 					let stateCopy = JSON.parse(JSON.stringify(state)); // Deep copy
@@ -337,18 +334,19 @@ module.exports = class SoftballServer {
 
 					// Now we'll diff the patched version against our original copied version, this gives us a patch without any edits to deleted entries or additions of things that already exist
 					let cleanPatch = objectMerge.diff(stateCopy, state);
-					//console.log("cleanPatch", JSON.stringify(cleanPatch, null, 2));
+					//logger.log(accountId, "cleanPatch", JSON.stringify(cleanPatch, null, 2));
 
 					// We can pass the clean patch to the database to persist
 					await this.databaseCalls.patchState( cleanPatch, accountId );
 					state = await this.databaseCalls.getState( accountId );
+					logger.log(accountId, "updatedState", JSON.stringify(state, null, 2), getMd5(state));
 
 					// Now we can derive the patch for this update (with the correct server ids) as well as the checksum of the most recent state and timestamp
 					let syncPatch = objectMerge.diff(stateCopy, state);
 					let checksum = getMd5(state);
 
 					// Update the checksum on the response object and the session
-				    responseData.md5 = checksum;
+					responseData.md5 = checksum;
 					putAccountInfo(accountId, "stateMd5", checksum);
 
 					// Save the patch for this sync to the session (to speed up future syncs).
@@ -357,9 +355,8 @@ module.exports = class SoftballServer {
 					savedPatch.md5 = checksum;
 					stateRecentPatches.push(savedPatch);
 					putAccountInfo(accountId, "stateRecentPatches", stateRecentPatches);
-					//console.log("savedPatch", savedPatch);
 				} else {
-					console.log("No updates from client", data.patch);
+					logger.log(accountId, "No updates from client");
 				}
 
 				// Get info about the checksum of the current state from account info
@@ -367,7 +364,7 @@ module.exports = class SoftballServer {
 
 				// Calculate the checksum current state if it's not stored in session storage
 				if(!stateMd5) {
-					console.log("No state hash stored in the session, getting state info");
+					logger.log(accountId, "No state hash stored in the session, getting state info");
 					state = state || await this.databaseCalls.getState( accountId );
 					let checksum = getMd5(state);
 
@@ -377,7 +374,7 @@ module.exports = class SoftballServer {
 
 				// Check if the server has updates for the client.
 				if(data.md5 !== stateMd5) {
-					console.log("Server has updates. CLIENT: ", data.md5, " SERVER: ", stateMd5);
+					logger.log(accountId, "Server has updates. CLIENT: ", data.md5, " SERVER: ", stateMd5);
 					// If we have a record of the patches we need to update the client, send those instead of the entire state
 					let foundMatch = false;
 					let patches = stateRecentPatches.filter( v => { 
@@ -388,18 +385,18 @@ module.exports = class SoftballServer {
 					});
 
 					if( patches.length > 0 && data.type !== "full") {
-						// Yay, we have patches saved that will update the client to the current state, just send those.
-				  		console.log("patches found, sending those instead");//, stateRecentPatches);
+							// Yay, we have patches saved that will update the client to the current state, just send those.
+				  		logger.log(accountId, "patches found, sending those instead");//, stateRecentPatches);
 				  		let patchesOnly = patches.map( v => v.patch );
 				    	responseData.patches = patchesOnly;
 				  	} else {
 				    	// We don't have any patches saved in the session for this timestamp, or the client requested we send the whole state back.
-						console.log("no patches found, sending whole state");
+						logger.log(accountId, "no patches found, sending whole state");
 				    	responseData.base = state || await this.databaseCalls.getState( accountId );
 				  	}
 					responseData.md5 = stateMd5;
 				} else {
-					console.log("No updates from server", data.md5, stateMd5);
+					logger.log(accountId, "No updates from server", data.md5, stateMd5);
 				}
 			} finally {
 				// Unlock the account
@@ -414,7 +411,7 @@ module.exports = class SoftballServer {
 
 			// Delete values if we are storing too many patches (Not the most refined technique, but it's something) 
 			while(JSON.stringify(stateRecentPatches).length > 20000) {
-				console.log("Erasing old patch data. New length: " + stateRecentPatches.length -1);
+				logger.log(accountId, "Erasing old patch data. New length: " + stateRecentPatches.length -1);
 				stateRecentPatches.splice(-1,1);
 			}
 			
@@ -423,16 +420,23 @@ module.exports = class SoftballServer {
 		// This route just accepts reports of Content Security Policy (CSP) violations
 		// https://helmetjs.github.io/docs/csp/
 		app.post('/server/report-violation', function (req, res) {
+			let accountId = extractSessionInfo( req, 'accountId' );
 			if (req.body) {
-				console.log('CSP Violation: ', req.body)
+				logger.log(accountId, 'CSP Violation: ', req.body);
 			} else {
-				console.log('CSP Violation: No data received!')
+				logger.log(accountId, 'CSP Violation: No data received!');
 			}
-			res.status(204).end()
+			res.status(204).end();
 		})
 
-		// Everything else loads the react app and is processed on the clinet side
+		// The root should retrun the whole app
+		app.get( '/', wrapForErrorProcessing( ( req, res ) => {
+			res.sendFile( path.join( __dirname + '/../index.html' ).normalize() );
+		} ) );
+
+		// Everything else loads the react app and is processed on the client side
 		app.get( '*', wrapForErrorProcessing( ( req, res ) => {
+			logger.log(null, 'unanticipated url', req.originalUrl);
 			res.sendFile( path.join( __dirname + '/../index.html' ).normalize() );
 		} ) );
 
@@ -442,9 +446,11 @@ module.exports = class SoftballServer {
 		} );
 
 		app.use( function( error, req, res, next ) {
+			let accountId = extractSessionInfo( req, 'accountId' );
+
 			res.setHeader('content-type', 'application/json');
 			if ( error instanceof HandledError ) {
-				console.log('Sending Error', error.getExternalMessage());
+				logger.log(accountId, 'Sending Error', error.getExternalMessage());
 				res.status( error.getStatusCode() ).send( { message: [ error.getExternalMessage() ] } );
 				if ( error.getInternalMessage() ) {
 					error.print();
@@ -453,15 +459,14 @@ module.exports = class SoftballServer {
 				let errorId = Math.random().toString(36).substring(7);
 				res.status( 500 ).send( { message: `Internal Server Error. Error id: ${errorId}.` } );
 
-				let accountId = extractSessionInfo( req, 'accountId' );
 
-				console.log( `SERVER ERROR ${errorId} - ${accountId}`, { message: [ error.message ] } );
-				console.log( `Error`, error );
+				logger.log(accountId, `SERVER ERROR ${errorId} - ${accountId}`, { message: [ error.message ] } );
+				logger.log(accountId, `Error`, error );
 			}
 		} );
 
 		this.server = server.listen( this.PORT, function listening() {
-			console.log( 'Softball App: Listening on %d', server.address().port );
+			logger.log(null, 'Softball App: Listening on', server.address().port );
 		} );
 
 		// Helpers -- TODO use consistent declarations
@@ -472,7 +477,6 @@ module.exports = class SoftballServer {
 				try {
 					await fn( req, res, next );
 				} catch ( error ) {
-					//console.log("An error was thrown!", error);
 					next( error );
 				}
 			};
@@ -523,7 +527,7 @@ module.exports = class SoftballServer {
 		}
 
 		async function logIn(account, req, res) {
-			console.log("Loggin in", account);
+			logger.log(account.account_id, "Loggin in", account);
 			let sessionInfo = {
 				accountId : account.account_id,
 				email : account.email
@@ -551,11 +555,11 @@ module.exports = class SoftballServer {
 						resolve();
 					} );
 				});
-				console.log( 'Login Successful -- backdoor!' );
+				logger.log(account.account_id, 'Login Successful -- backdoor!' );
 				let accountId = extractSessionInfo( req, 'accountId' );
-				console.log( `Data ${accountId}` );
+				logger.log(account.account_id, `Data ${accountId}` );
 			} catch (e) {
-				console.log("ERROR", e);
+				logger.log(account.account_id, "ERROR", e);
 				res.status( 500 ).send();
 			}
 		}
@@ -582,14 +586,14 @@ module.exports = class SoftballServer {
 		let putAccountInfo = function( accountId, field, value ) {
 			if ( !accountInformation ) {
 				accountInformation = [];
-			} 
+			}
 			if ( !accountInformation[accountId] ) {
 				accountInformation[accountId] = {};
 			}
 			accountInformation[accountId][field] = value;
 		}
 
-		// Lock the account. Only one session for a single account can access the database at a time, otherwise there will br lots of race conditions.
+		// Lock the account. Only one session for a single account can access the database at a time, otherwise there will be lots of race conditions.
 		// TODO: this will only scale to one process
 		let lockAccount = async function( accountId ) {
 			let locked;
@@ -599,25 +603,25 @@ module.exports = class SoftballServer {
 					throw new HandledError(500, 'Another request is consuming system resources allocated for this account. Please try agin in a few minutes.');
 				}
 				locked = extractAccountInfo(accountId, 'locked');
-				console.log("Locked", locked, accountInformation);
 				if(locked) {
-					console.log("Account locked, retrying in 200ms", accountId);
+					logger.log(accountId, 'Account locked, retrying in 200ms');
 					await pause(200); // TODO: Do we need a random backoff?
 					counter++;
 				}
 			} while (locked);
+			logger.log(accountId, 'Account Locked');
 			putAccountInfo(accountId, "locked", true);
 		}
 
 		let unlockAccount = function( accountId ) {
 			putAccountInfo(accountId, "locked", false); // TODO: would un-setting this instead avoid a memory leak?
-			console.log("Account Unlocked", accountId);
+			logger.log(accountId, "Account Unlocked");
 		}
 
 	}
 
 	stop() {
-		console.log("Closing App");
+		logger.log(null, "Closing App");
 		this.server.close();
 	}
 

@@ -6,32 +6,44 @@ let databaseCalls = class DatabaseCalls {
 		    {
 		      "id": "4Pw6B9km4f4CQExEegoHbV",
 		      "name": "Harry",
-		      "gender": "M"
+					"gender": "M",
+					"song_link": null,
+					"song_start": null
 		    },
 		    {
 		      "id": "5lT2dJlhWyIOlHpfiREBfJ",
 		      "name": "Ron",
-		      "gender": "M"
+		      "gender": "M",
+					"song_link": null,
+					"song_start": null
 		    },
 		    {
 		      "id": "4ZjPjdvRQSFlePddQQh8OY",
 		      "name": "Hermione",
-		      "gender": "F"
+		      "gender": "F",
+					"song_link": null,
+					"song_start": null
 		    },
 		    {
 		      "id": "2UHSaa0yi7guOwUQN5QLPc",
 		      "name": "Gina",
-		      "gender": "F"
+		      "gender": "F",
+					"song_link": null,
+					"song_start": null
 		    },
 		    {
 		      "id": "79AlfdDaHZqtZbpYtlxOVW",
 		      "name": "Carlos",
-		      "gender": "M"
+		      "gender": "M",
+					"song_link": null,
+					"song_start": null
 		    },
 		    {
 		      "id": "24OsdgKV7ePGkCgKNTSnH4",
 		      "name": "Jewels",
-		      "gender": "F"
+		      "gender": "F",
+					"song_link": null,
+					"song_start": null
 		    }
 		  ],
 		  "teams": [
@@ -47,7 +59,7 @@ let databaseCalls = class DatabaseCalls {
 		            "5lT2dJlhWyIOlHpfiREBfJ",
 		            "4ZjPjdvRQSFlePddQQh8OY"
 		          ],
-		          "date": 1537043229736,
+		          "date": "2018-10-10",
 		          "park": "Stazio",
 		          "scoreUs": 0,
 		          "scoreThem": 0,
@@ -61,8 +73,8 @@ let databaseCalls = class DatabaseCalls {
 		              "id": "1sF3SZe4hkl5b2Aa59lkJw",
 		              "player_id": "5lT2dJlhWyIOlHpfiREBfJ",
 		              "location": {
-		                "x": 0.061764705882352944,
-		                "y": 0.09705882352941177
+		                "x": 12141,
+		                "y": 12141
 		              }
 		            },
 		            {
@@ -70,16 +82,16 @@ let databaseCalls = class DatabaseCalls {
 		              "player_id": "4ZjPjdvRQSFlePddQQh8OY",
 		              "result": "2B",
 		              "location": {
-		                "x": 0.5941176470588235,
-		                "y": 0.19411764705882353
+		                "x": 12141,
+		                "y": 12141
 		              }
 		            },
 		            {
 		              "id": "AaDeTuL6Uh2ZbOePr2inJ",
 		              "player_id": "4Pw6B9km4f4CQExEegoHbV",
 		              "location": {
-		                "x": 0.3735294117647059,
-		                "y": 0.3558823529411765
+		                "x": 12141,
+		                "y": 12141
 		              },
 		              "result": "Out"
 		            },
@@ -87,8 +99,8 @@ let databaseCalls = class DatabaseCalls {
 		              "id": "79s6CZsXIMkyWloxw2cMqL",
 		              "player_id": "5lT2dJlhWyIOlHpfiREBfJ",
 		              "location": {
-		                "x": 0.7794117647058824,
-		                "y": 0.37058823529411766
+		                "x": 12141,
+		                "y": 12141
 		              },
 		              "result": "SAC"
 		            },
@@ -96,8 +108,8 @@ let databaseCalls = class DatabaseCalls {
 		              "id": "2HEpXfz1e0fF3EKZVAqktS",
 		              "player_id": "4ZjPjdvRQSFlePddQQh8OY",
 		              "location": {
-		                "x": 0.6264705882352941,
-		                "y": 0.5941176470588235
+		                "x": 12141,
+		                "y": 12141
 		              },
 		              "result": "E"
 		            }
@@ -111,7 +123,7 @@ let databaseCalls = class DatabaseCalls {
 		            "5lT2dJlhWyIOlHpfiREBfJ",
 		            "4ZjPjdvRQSFlePddQQh8OY"
 		          ],
-		          "date": 1537043304062,
+		          "date": "2018-10-10",
 		          "park": "Stazio",
 		          "scoreUs": 0,
 		          "scoreThem": 0,
@@ -121,8 +133,8 @@ let databaseCalls = class DatabaseCalls {
 		              "id": "6rHVeLbRgEhlxCjaM3VSUh",
 		              "player_id": "4Pw6B9km4f4CQExEegoHbV",
 		              "location": {
-		                "x": 0.5,
-		                "y": 0.3588235294117647
+		                "x": 12141,
+		                "y": 12141
 		              },
 		              "result": "Out"
 		            },
@@ -130,8 +142,8 @@ let databaseCalls = class DatabaseCalls {
 		              "id": "3T9c2S02cGgpbT2BIAykck",
 		              "player_id": "5lT2dJlhWyIOlHpfiREBfJ",
 		              "location": {
-		                "x": 0.6235294117647059,
-		                "y": 0.5764705882352941
+		                "x": 12141,
+		                "y": 12141
 		              },
 		              "result": "2B"
 		            },
@@ -139,8 +151,8 @@ let databaseCalls = class DatabaseCalls {
 		              "id": "3hUQoRy6tHN7dirqjZvrXQ",
 		              "player_id": "4ZjPjdvRQSFlePddQQh8OY",
 		              "location": {
-		                "x": 0.2323529411764706,
-		                "y": 0.6264705882352941
+		                "x": 12141,
+		                "y": 12141
 		              },
 		              "result": "1B"
 		            }
@@ -165,7 +177,7 @@ let databaseCalls = class DatabaseCalls {
 		            "79AlfdDaHZqtZbpYtlxOVW",
 		            "24OsdgKV7ePGkCgKNTSnH4"
 		          ],
-		          "date": 1537043341908,
+		          "date": "2018-10-10",
 		          "park": "Stazio",
 		          "scoreUs": 0,
 		          "scoreThem": 0,
@@ -175,8 +187,8 @@ let databaseCalls = class DatabaseCalls {
 		              "id": "3JaE2TG0EFAKJaKkpvUGwv",
 		              "player_id": "2UHSaa0yi7guOwUQN5QLPc",
 		              "location": {
-		                "x": 0.5617647058823529,
-		                "y": 0.5235294117647059
+		                "x": 12141,
+		                "y": 12141
 		              },
 		              "result": "1B"
 		            },
@@ -184,8 +196,8 @@ let databaseCalls = class DatabaseCalls {
 		              "id": "2BrYyihBcyIffY8qsCpNr9",
 		              "player_id": "79AlfdDaHZqtZbpYtlxOVW",
 		              "location": {
-		                "x": 0.6558823529411765,
-		                "y": 0.22647058823529412
+		                "x": 13141,
+		                "y": 22141
 		              },
 		              "result": "2B"
 		            },
@@ -193,8 +205,8 @@ let databaseCalls = class DatabaseCalls {
 		              "id": "2qHIiZ5k5UvsHLN0x3MQIG",
 		              "player_id": "24OsdgKV7ePGkCgKNTSnH4",
 		              "location": {
-		                "x": 0.11470588235294117,
-		                "y": 0.4147058823529412
+		                "x": 12141,
+		                "y": 12141
 		              },
 		              "result": "3B"
 		            },
@@ -202,8 +214,8 @@ let databaseCalls = class DatabaseCalls {
 		              "id": "78bJCHG71VNCsBleBuQJCy",
 		              "player_id": "2UHSaa0yi7guOwUQN5QLPc",
 		              "location": {
-		                "x": 0.27647058823529413,
-		                "y": 0.5441176470588235
+		                "x": 123,
+		                "y": 23515
 		              },
 		              "result": "Out"
 		            },
@@ -211,8 +223,8 @@ let databaseCalls = class DatabaseCalls {
 		              "id": "5N2XhQFFhLBFbOLR3Ri7xC",
 		              "player_id": "79AlfdDaHZqtZbpYtlxOVW",
 		              "location": {
-		                "x": 0.09411764705882353,
-		                "y": 0.07941176470588235
+		                "x": 12141,
+		                "y": 19141
 		              },
 		              "result": "HRo"
 		            },
@@ -220,8 +232,8 @@ let databaseCalls = class DatabaseCalls {
 		              "id": "1haY9oDOLncOGowVfcNET3",
 		              "player_id": "24OsdgKV7ePGkCgKNTSnH4",
 		              "location": {
-		                "x": 0.3029411764705882,
-		                "y": 0.31176470588235294
+		                "x": 22141,
+		                "y": 12141
 		              },
 		              "result": "1B"
 		            }
@@ -231,7 +243,7 @@ let databaseCalls = class DatabaseCalls {
 		          "id": "2XRVs58sTM6UuAFJsfQukP",
 		          "opponent": "Another Game",
 		          "lineup": [],
-		          "date": 1537043350381,
+		          "date": "2018-10-10",
 		          "park": "Stazio",
 		          "scoreUs": 0,
 		          "scoreThem": 0,

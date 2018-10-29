@@ -34,20 +34,19 @@ describe('sync', () => {
 		      "games": [
 		        {
 		          "plateAppearances": [],
-		          "id": "0888b393-72ff-46f8-9847-e10807618af6",
+		          "id": "3KpWNATXYZk4YqDwq22BNI",
 		          "opponent": "TestGame",
-		          "date": 1532144332800,
+		          "date": 1540166400,
 		          "park": "Stazio",
 		          "lineup": []
 		        }
 		      ],
-		      "id": "ad0bdbe2-8722-4271-b392-e891abc4d8e1",
+		      "id": "4KpWNATXYZk4YqDwq22BNI",
 		      "name": "TestTeam"
 		    }
 		  ]
 		}
 		
-		// TODO: call into util to calculate this
 		let expectedHash = utils.getMd5(state);
 
 		this.mockDb.setState(state);
@@ -57,7 +56,7 @@ describe('sync', () => {
 		serverMd5 = response.body.md5;
 
 		expect(serverMd5).toEqual(expectedHash);
-		expect(serverMd5).toEqual("RPM05R0XPdct+oZ3nORqDA");
+		expect(serverMd5).toEqual("jVBQly9W0N1pfUASFpRmPg");
 	});
 
 });

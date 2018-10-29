@@ -11,6 +11,9 @@ const dialog = require( 'dialog' );
 const state = require( 'state' );
 const results = require('plate-appearance-results');
 
+// The location field is stored in posgres as a short in #/LOCATION_DENOMINATOR is the percentage location
+const LOCATION_DENOMINATOR = 32767;
+
 const normalize = function( x, A, B, C, D ) {
 	return C + ( x - A ) * ( D - C ) / ( B - A );
 };
@@ -75,8 +78,8 @@ module.exports = class CardPlateAppearance extends expose.Component {
 		this.handleDragStop = function() {
 			//lame way to make this run after the mouseup event
 			setTimeout( () => {
-				let new_x = ( this.mx - 10 ) / window.innerWidth;
-				let new_y = ( this.my - 10 ) / window.innerWidth;
+				let new_x = ( this.mx - 10 ) / window.innerWidth * LOCATION_DENOMINATOR;
+				let new_y = ( this.my - 10 ) / window.innerWidth * LOCATION_DENOMINATOR;
 
 				state.updatePlateAppearanceLocation( props.plateAppearance, [ new_x, new_y ] );
 			}, 1 );
@@ -168,12 +171,12 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			let x = -1;
 			let y = -1;
 			if ( value.location ) {
-				x = value.location.x;
-				y = value.location.y;
+				x = (value.location.x);
+				y = (value.location.y);
 			}
 
-			let new_x = Math.floor( normalize( x, 0, 1, 0, window.innerWidth ) );
-			let new_y = Math.floor( normalize( y, 0, 1, 0, window.innerWidth ) );
+			let new_x = Math.floor( normalize( x, 0, LOCATION_DENOMINATOR, 0, window.innerWidth ) );
+			let new_y = Math.floor( normalize( y, 0, LOCATION_DENOMINATOR, 0, window.innerWidth ) );
 
 			let imageSrc = (value.id === this.props.plateAppearance.id) ? imageSrcForCurrentPa : '/server/assets/baseball.svg';
 			if ( value.location && x && y ) {
