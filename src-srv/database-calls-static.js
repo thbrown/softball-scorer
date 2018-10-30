@@ -1,5 +1,4 @@
 let databaseCalls = class DatabaseCalls {
-
 	constructor() {
 		this.SAMPLE_STATE = {
 		  "players": [
@@ -257,29 +256,28 @@ let databaseCalls = class DatabaseCalls {
 	}
 
 	// Login with any user name and the password "pizza"
-	async getAccountFromEmail( email ) {
-		return {id:1, password_hash:'$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2'}
+	async getAccountFromEmail(email) {
+		return { id: 1, password_hash: '$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2' };
 	}
 
-	getState( account_id ) {
+	getState(account_id) {
 		return this.SAMPLE_STATE;
 	}
 
-	async setState( data ) {
+	async setState(data) {
 		let result = await getStatePromise();
 		var ancestorDiffs = objectMerge.diff(this.SAMPLE_STATE, JSON.parse(data.ancestor));
-		if(Object.keys(ancestorDiffs).length === 0 && ancestorDiffs.constructor === Object) {
+		if (Object.keys(ancestorDiffs).length === 0 && ancestorDiffs.constructor === Object) {
 			// Diff the client's data with the db data to get the patch we need to apply to make the database match the client
 			var patch = objectMerge.diff(result, JSON.parse(data.local));
 			objectMerge.patch(this.SAMPLE_STATE, patch);
 		} else {
-			responseObject.status = "FAIL";
-			responseObject.reason = "PENDING CHANGES - PULL FIRST";
-			res.send( JSON.stringify(responseObject) );
+			responseObject.status = 'FAIL';
+			responseObject.reason = 'PENDING CHANGES - PULL FIRST';
+			res.send(JSON.stringify(responseObject));
 		}
 	}
-
-}
+};
 
 // Node only
 module.exports = databaseCalls;

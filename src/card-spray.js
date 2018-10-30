@@ -1,14 +1,10 @@
 'use strict';
 
-const React = require( 'react' );
 const expose = require( './expose' );
 const DOM = require( 'react-dom-factories' );
-const css = require( 'css' );
-const Draggable = require( 'react-draggable' );
 
-const dialog = require( 'dialog' );
 const state = require( 'state' );
-const results = require('plate-appearance-results');
+const results = require( 'plate-appearance-results' );
 
 const LOCATION_DENOMINATOR = 32767;
 
@@ -44,7 +40,7 @@ module.exports = class CardAtBat extends expose.Component {
 		}
 		let indicators = [];
 
-		playerPlateAppearances.forEach( (value) => {
+		playerPlateAppearances.forEach( ( value ) => {
 
 			let x = -1;
 			let y = -1;
@@ -56,7 +52,6 @@ module.exports = class CardAtBat extends expose.Component {
 			let new_x = Math.floor( normalize( x, 0, LOCATION_DENOMINATOR, 0, window.innerWidth ) );
 			let new_y = Math.floor( normalize( y, 0, LOCATION_DENOMINATOR, 0, window.innerWidth ) );
 
-			let indicator = null;
 			if ( value.location && x && y ) {
 				let image = results.getOutResults().includes(value.result) ?  '/server/assets/baseball-out.svg' : '/server/assets/baseball-hit.svg';
 				let alt = results.getOutResults().includes(value.result) ?  'out' : 'hitg';
@@ -74,10 +69,9 @@ module.exports = class CardAtBat extends expose.Component {
 					} )
 				);
 			}
-		});
+		} );
 
-		return DOM.div( 
-			{
+		return DOM.div( {
 				id: 'ballfield',
 				style: {
 					position: 'relative',
@@ -96,7 +90,7 @@ module.exports = class CardAtBat extends expose.Component {
 				}
 			} ),
 			indicators
-		)
+		);
 	}
 
 	render() {
@@ -117,7 +111,7 @@ module.exports = class CardAtBat extends expose.Component {
 				} ),
 				DOM.div( {
 					className: 'prevent-overflow card-title-text-with-arrow',
-				}, state.getPlayer(this.props.playerId).name )
+				}, state.getPlayer( this.props.playerId ).name )
 			),
 			this.renderField()
 		);

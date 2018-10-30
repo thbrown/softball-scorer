@@ -1,28 +1,27 @@
 /*eslint no-process-exit:*/
 'use strict';
 
-const http = require( 'http' );
-const path = require( 'path' );
-const express = require( 'express' );
-const helmet = require( 'helmet' );
-const passport = require( 'passport' );
-const passportSession = require( 'express-session' );
-const LocalStrategy = require( 'passport-local' ).Strategy;
-const bodyParser = require( 'body-parser' );
-const favicon = require( 'serve-favicon' );
-const bcrypt = require( 'bcrypt' );
-const crypto = require( 'crypto' );
-const hasher = require( 'object-hash' );
-const got = require( 'got' );
+const http = require('http');
+const path = require('path');
+const express = require('express');
+const helmet = require('helmet');
+const passport = require('passport');
+const passportSession = require('express-session');
+const LocalStrategy = require('passport-local').Strategy;
+const bodyParser = require('body-parser');
+const favicon = require('serve-favicon');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const hasher = require('object-hash');
+const got = require('got');
 
-const objectMerge = require( '../object-merge.js' );
-const HandledError = require( './handled-error.js' );
-const config = require( './config' );
-const logger = require( './logger.js' );
+const objectMerge = require('../object-merge.js');
+const HandledError = require('./handled-error.js');
+const config = require('./config');
+const logger = require('./logger.js');
 
 module.exports = class SoftballServer {
-
-	constructor( databaseCalls ) {
+	constructor(databaseCalls) {
 		this.databaseCalls = databaseCalls;
 		this.PORT = 8888;
 	}
@@ -62,40 +61,53 @@ module.exports = class SoftballServer {
 				}
 			} ) );
 
-		passport.serializeUser( function( sessionInfo, cb ) {
-			cb( null, sessionInfo );
-		} );
+		passport.serializeUser(function(sessionInfo, cb) {
+			cb(null, sessionInfo);
+		});
 
-		passport.deserializeUser( async function( sessionInfo, cb ) {
-			cb( null, sessionInfo );
-		} );
+		passport.deserializeUser(async function(sessionInfo, cb) {
+			cb(null, sessionInfo);
+		});
 
 		// Prep the web server
 		const app = express();
-		const server = http.createServer( app );
+		const server = http.createServer(app);
 
 		// Middleware
-		app.use( helmet({
-			hsts: false // Don't require HTTP Strict Transport Security (https) locally, nginx will set this header to true in production
-		}));
-		app.use(helmet.contentSecurityPolicy({
-			directives: {
-				defaultSrc: ["'self'"], // Only allow scripts/style/fonts/etc from this domain unless otherwise specified below
-				styleSrc: [ // TODO: use nonce to avoid recapcha styling errors: https://developers.google.com/recaptcha/docs/faq
-					"'self'",
-					"https://fonts.googleapis.com", 
-					"'sha256-eeE4BsGQZBvwOOvyAnxzD6PBzhU/5IfP4NdPMywc3VE='"], // Hash is for react draggable components
-				fontSrc: ["'self'", "https://fonts.gstatic.com"],
-				scriptSrc: ["'self'", "https://www.google.com", "https://www.gstatic.com"],
-				connectSrc: ["'self'", "https://fonts.googleapis.com/css", "https://fonts.gstatic.com", "https://www.gstatic.com", "https://www.google.com"],
-				frameSrc: ["'self'", "https://www.google.com/", "https://thbrown.github.io/"],
-				reportUri: '/report-violation',
-			},
-		}))
-		app.use(helmet.referrerPolicy({ policy: 'same-origin' }))
-		app.use( favicon( __dirname + '/../assets/fav-icon.png' ) );
-		app.use( '/server/build', express.static( path.join( __dirname + '/../build' ).normalize() ) );
-		app.use( '/server/assets', express.static( path.join( __dirname + '/../assets' ).normalize() ) );
+		app.use(
+			helmet({
+				hsts: false, // Don't require HTTP Strict Transport Security (https) locally, nginx will set this header to true in production
+			}),
+		);
+		app.use(
+			helmet.contentSecurityPolicy({
+				directives: {
+					defaultSrc: ["'self'"], // Only allow scripts/style/fonts/etc from this domain unless otherwise specified below
+					styleSrc: [
+						// TODO: use nonce to avoid recapcha styling errors: https://developers.google.com/recaptcha/docs/faq
+						"'self'",
+						'https://fonts.googleapis.com',
+						"'sha256-eeE4BsGQZBvwOOvyAnxzD6PBzhU/5IfP4NdPMywc3VE='",
+						"'sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs='", // inline style (used by many react/babel components)
+					], // Hash is for react draggable components
+					fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+					scriptSrc: ["'self'", 'https://www.google.com', 'https://www.gstatic.com', "'unsafe-eval'"],
+					connectSrc: [
+						"'self'",
+						'https://fonts.googleapis.com/css',
+						'https://fonts.gstatic.com',
+						'https://www.gstatic.com',
+						'https://www.google.com',
+					],
+					frameSrc: ["'self'", 'https://www.google.com/', 'https://thbrown.github.io/'],
+					reportUri: '/report-violation',
+				},
+			}),
+		);
+		app.use(helmet.referrerPolicy({ policy: 'same-origin' }));
+		app.use(favicon(__dirname + '/../assets/fav-icon.png'));
+		app.use('/server/build', express.static(path.join(__dirname + '/../build').normalize()));
+		app.use('/server/assets', express.static(path.join(__dirname + '/../assets').normalize()));
 		// Service worker must be served at project root to intercept all fetches
 		app.use( '/service-worker', express.static( path.join( __dirname + '/../src/workers/service-worker.js' ).normalize() ) );
 		// Robots.txt is served from the root by convention
@@ -188,13 +200,13 @@ module.exports = class SoftballServer {
 					const recapchaResponse = await got.post(`https://www.google.com/recaptcha/api/siteverify?secret=${config.recapcha.secretkey}&response=${req.body.reCAPCHA}`);
 					let recapchaResponseBody = JSON.parse(recapchaResponse.body);
 					if(!recapchaResponseBody.success) {
-						throw new HandledError( 400, "We don't serve their kind here", recapchaResponse.body);
-					}
+							throw new HandledError(400, "We don't serve their kind here", recapchaResponse.body);
+						}
 				} catch (error) {
-					if(error instanceof HandledError) {
+					if (error instanceof HandledError) {
 						throw error;
 					} else {
-						throw new HandledError( 500, "Failed to get recapcha approval from Google", error);
+						throw new HandledError(500, 'Failed to get recapcha approval from Google', error);
 					}
 				}
 			}
@@ -266,12 +278,12 @@ module.exports = class SoftballServer {
 			await lockAccount(accountId);
 			try {
 				// First delete all the data
-				let state = await this.databaseCalls.getState( accountId );
-				let deletePatch = objectMerge.diff(state, {"teams":[], "players": []});
-				await this.databaseCalls.patchState( deletePatch, accountId );
+				let state = await this.databaseCalls.getState(accountId);
+				let deletePatch = objectMerge.diff(state, { teams: [], players: [] });
+				await this.databaseCalls.patchState(deletePatch, accountId);
 
 				// Then delete the account
-				await this.databaseCalls.deleteAccount( accountId );
+				await this.databaseCalls.deleteAccount(accountId);
 
 				// TODO: Invalidate session somehow?
 				logger.log(accountId, "Account successfully deleted");
@@ -360,7 +372,7 @@ module.exports = class SoftballServer {
 				}
 
 				// Get info about the checksum of the current state from account info
-				let stateMd5 = extractAccountInfo( accountId, 'stateMd5' );
+				let stateMd5 = extractAccountInfo(accountId, 'stateMd5');
 
 				// Calculate the checksum current state if it's not stored in session storage
 				if(!stateMd5) {
@@ -368,7 +380,7 @@ module.exports = class SoftballServer {
 					state = state || await this.databaseCalls.getState( accountId );
 					let checksum = getMd5(state);
 
-					putAccountInfo(accountId, "stateMd5", checksum);
+					putAccountInfo(accountId, 'stateMd5', checksum);
 					stateMd5 = checksum;
 				}
 
@@ -386,14 +398,14 @@ module.exports = class SoftballServer {
 
 					if( patches.length > 0 && data.type !== "full") {
 							// Yay, we have patches saved that will update the client to the current state, just send those.
-				  		logger.log(accountId, "patches found, sending those instead");//, stateRecentPatches);
-				  		let patchesOnly = patches.map( v => v.patch );
-				    	responseData.patches = patchesOnly;
-				  	} else {
-				    	// We don't have any patches saved in the session for this timestamp, or the client requested we send the whole state back.
+							logger.log(accountId, "patches found, sending those instead");//, stateRecentPatches);
+							let patchesOnly = patches.map( v => v.patch );
+							responseData.patches = patchesOnly;
+						} else {
+							// We don't have any patches saved in the session for this timestamp, or the client requested we send the whole state back.
 						logger.log(accountId, "no patches found, sending whole state");
-				    	responseData.base = state || await this.databaseCalls.getState( accountId );
-				  	}
+							responseData.base = state || await this.databaseCalls.getState( accountId );
+						}
 					responseData.md5 = stateMd5;
 				} else {
 					logger.log(accountId, "No updates from server", data.md5, stateMd5);
@@ -404,18 +416,17 @@ module.exports = class SoftballServer {
 			}
 
 			// Woot, done
-			if(responseData.base) {
+			if (responseData.base) {
 				let testCs = getMd5(responseData.base);
 			}
-			res.status( 200 ).send(responseData);
+			res.status(200).send(responseData);
 
 			// Delete values if we are storing too many patches (Not the most refined technique, but it's something) 
 			while(JSON.stringify(stateRecentPatches).length > 20000) {
 				logger.log(accountId, "Erasing old patch data. New length: " + stateRecentPatches.length -1);
 				stateRecentPatches.splice(-1,1);
 			}
-			
-		} ) );
+		}));
 
 		// This route just accepts reports of Content Security Policy (CSP) violations
 		// https://helmetjs.github.io/docs/csp/
@@ -441,29 +452,29 @@ module.exports = class SoftballServer {
 		} ) );
 
 		// 404 on unrecognized routes
-		app.use( function() {
-			throw new HandledError( 404, "Resource not found" );
-		} );
+		app.use(function() {
+			throw new HandledError(404, 'Resource not found');
+		});
 
 		app.use( function( error, req, res, next ) {
 			let accountId = extractSessionInfo( req, 'accountId' );
 
-			res.setHeader('content-type', 'application/json');
+		res.setHeader('content-type', 'application/json');
 			if ( error instanceof HandledError ) {
 				logger.log(accountId, 'Sending Error', error.getExternalMessage());
-				res.status( error.getStatusCode() ).send( { message: [ error.getExternalMessage() ] } );
-				if ( error.getInternalMessage() ) {
+				res.status(error.getStatusCode()).send( { message: [error.getExternalMessage()] } );
+				if (error.getInternalMessage()) {
 					error.print();
 				}
 			} else {
-				let errorId = Math.random().toString(36).substring(7);
-				res.status( 500 ).send( { message: `Internal Server Error. Error id: ${errorId}.` } );
-
-
+				let errorId = Math.random()
+					.toString(36)
+					.substring(7);
+				res.status(500).send({ message: `Internal Server Error. Error id: ${errorId}.` });
 				logger.log(accountId, `SERVER ERROR ${errorId} - ${accountId}`, { message: [ error.message ] } );
 				logger.log(accountId, `Error`, error );
 			}
-		} );
+		});
 
 		this.server = server.listen( this.PORT, function listening() {
 			logger.log(null, 'Softball App: Listening on', server.address().port );
@@ -472,56 +483,65 @@ module.exports = class SoftballServer {
 		// Helpers -- TODO use consistent declarations
 
 		// Error handling, so we can catch errors that occur during async too
-		function wrapForErrorProcessing( fn ) {
-			return async function( req, res, next ) {
+		function wrapForErrorProcessing(fn) {
+			return async function(req, res, next) {
 				try {
-					await fn( req, res, next );
-				} catch ( error ) {
-					next( error );
+					await fn(req, res, next);
+				} catch (error) {
+					//console.log("An error was thrown!", error);
+					next(error);
 				}
 			};
 		}
 
 		// An async sleep function
 		async function pause(ms) {
-		  return new Promise(function(resolve,reject){
-		    setTimeout(function(){resolve(ms);},ms);
-		  });
+			return new Promise(function(resolve, reject) {
+				setTimeout(function() {
+					resolve(ms);
+				}, ms);
+			});
 		}
 
 		// Calculate the md5 checksum of the data and return the result as a base64 string
 		function getMd5(data) {
-			let checksum = hasher(data, { 
-				algorithm: 'md5',  
-				excludeValues: false, 
-				respectFunctionProperties: false, 
-				respectFunctionNames: false, 
+			let checksum = hasher(data, {
+				algorithm: 'md5',
+				excludeValues: false,
+				respectFunctionProperties: false,
+				respectFunctionNames: false,
 				respectType: false,
-				encoding: 'base64'} );
+				encoding: 'base64',
+			});
 			return checksum.slice(0, -2); // Remove trailing '=='
 		}
 
 		async function generateToken(length = 30) {
-		  return new Promise((resolve, reject) => {
-		    crypto.randomBytes(length, (err, buf) => {
-		      if (err) {
-		        reject(err);
-		      } else {
-		      	// Make sure the token is url safe
-		        resolve(buf.toString('base64').replace(/\//g,'_').replace(/\+/g,'-'));
-		      }
-		    });
-		  });
+			return new Promise((resolve, reject) => {
+				crypto.randomBytes(length, (err, buf) => {
+					if (err) {
+						reject(err);
+					} else {
+						// Make sure the token is url safe
+						resolve(
+							buf
+								.toString('base64')
+								.replace(/\//g, '_')
+								.replace(/\+/g, '-'),
+						);
+					}
+				});
+			});
 		}
 
 		function checkFieldLength(field, maxLength) {
-			if(field && field.length > maxLength) {
-				throw new HandledError(400,  `Field ${field} exceeds the maximum length ${maxLength}`);
+			if (field && field.length > maxLength) {
+				throw new HandledError(400, `Field ${field} exceeds the maximum length ${maxLength}`);
 			}
 		}
 
 		function checkRequiredField(field, fieldName) {
-			if(!field || field.trim().length === 0) {
+			if (!field || field.trim().length === 0) {
 				throw new HandledError(400, `Field ${fieldName} is required but was not specified`);
 			}
 		}
@@ -529,31 +549,31 @@ module.exports = class SoftballServer {
 		async function logIn(account, req, res) {
 			logger.log(account.account_id, "Loggin in", account);
 			let sessionInfo = {
-				accountId : account.account_id,
-				email : account.email
-			}
+				accountId: account.account_id,
+				email: account.email,
+			};
 			try {
-				await new Promise(function(resolve,reject){
-					req.logIn( account, function() {
+				await new Promise(function(resolve, reject) {
+					req.logIn(account, function() {
 						// We need to serialize some info to the session
 						let sessionInfo = {
 							accountId: account.account_id,
 							email: account.email,
 						};
-						var doneWrapper = function (req) {
-						    var done = function (err, user) {
-						        if(err) {
-						            reject(err)
-						            return;
-						        }
-						        req._passport.session.user = sessionInfo;
-						        return;
-						    };
-						    return done;
+						var doneWrapper = function(req) {
+							var done = function(err, user) {
+								if (err) {
+									reject(err);
+									return;
+								}
+								req._passport.session.user = sessionInfo;
+								return;
+							};
+							return done;
 						};
 						req._passport.instance.serializeUser(sessionInfo, doneWrapper(req));
 						resolve();
-					} );
+					});
 				});
 				logger.log(account.account_id, 'Login Successful -- backdoor!' );
 				let accountId = extractSessionInfo( req, 'accountId' );
@@ -564,8 +584,8 @@ module.exports = class SoftballServer {
 			}
 		}
 
-		let extractSessionInfo = function( req, field ) {
-			if ( req && req.session && req.session.passport && req.session.passport.user) {
+		const extractSessionInfo = function(req, field) {
+			if (req && req.session && req.session.passport && req.session.passport.user) {
 				return req.session.passport.user[field];
 			} else {
 				return undefined;
@@ -575,32 +595,35 @@ module.exports = class SoftballServer {
 		// Information shared between all sessions associate with a single account -- TODO: we are leaking memory here if we don't clear this
 		let accountInformation = {};
 
-		let extractAccountInfo = function( accountId, field ) {
-			if ( accountInformation && accountInformation[accountId]) {
+		const extractAccountInfo = function(accountId, field) {
+			if (accountInformation && accountInformation[accountId]) {
 				return accountInformation[accountId][field];
 			} else {
 				return undefined;
 			}
 		};
 
-		let putAccountInfo = function( accountId, field, value ) {
-			if ( !accountInformation ) {
+		const putAccountInfo = function(accountId, field, value) {
+			if (!accountInformation) {
 				accountInformation = [];
 			}
-			if ( !accountInformation[accountId] ) {
+			if (!accountInformation[accountId]) {
 				accountInformation[accountId] = {};
 			}
 			accountInformation[accountId][field] = value;
-		}
+		};
 
 		// Lock the account. Only one session for a single account can access the database at a time, otherwise there will be lots of race conditions.
 		// TODO: this will only scale to one process
-		let lockAccount = async function( accountId ) {
+		const lockAccount = async function(accountId) {
 			let locked;
 			let counter = 0;
 			do {
-				if(counter > 50) {
-					throw new HandledError(500, 'Another request is consuming system resources allocated for this account. Please try agin in a few minutes.');
+				if (counter > 50) {
+					throw new HandledError(
+						500,
+						'Another request is consuming system resources allocated for this account. Please try agin in a few minutes.',
+					);
 				}
 				locked = extractAccountInfo(accountId, 'locked');
 				if(locked) {
@@ -613,16 +636,14 @@ module.exports = class SoftballServer {
 			putAccountInfo(accountId, "locked", true);
 		}
 
-		let unlockAccount = function( accountId ) {
+		const unlockAccount = function( accountId ) {
 			putAccountInfo(accountId, "locked", false); // TODO: would un-setting this instead avoid a memory leak?
 			logger.log(accountId, "Account Unlocked");
 		}
-
 	}
 
 	stop() {
 		logger.log(null, "Closing App");
 		this.server.close();
 	}
-
 };
