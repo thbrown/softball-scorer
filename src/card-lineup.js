@@ -127,7 +127,7 @@ module.exports = class CardLineup extends expose.Component {
 			expose.set_state( 'main', {
 				render: true
 			} );
-		}.bind(this);
+		}.bind( this );
 
 	}
 
@@ -173,7 +173,7 @@ module.exports = class CardLineup extends expose.Component {
 	}
 
 	getUiTextForLockButton() {
-		if(this.locked) {
+		if ( this.locked ) {
 			return 'Unlock';
 		} else {
 			return 'Lock';
@@ -212,7 +212,7 @@ module.exports = class CardLineup extends expose.Component {
 			}, DOM.div( {}, pa.result || '' ) );
 		} );
 
-		if(editable === FULL_EDIT || editable === PARTIAL_EDIT) {
+		if ( editable === FULL_EDIT || editable === PARTIAL_EDIT ) {
 			pas = pas.concat( [
 				DOM.div( {
 					key: 'newPa' + player.id,
@@ -223,12 +223,12 @@ module.exports = class CardLineup extends expose.Component {
 						backgroundColor: '#DDD'
 					}
 				}, '+' ) )
-			] )
+			] );
 		}
 
 		return DOM.div( {
-			className: 'plate-appearance-list'
-		},
+				className: 'plate-appearance-list'
+			},
 			pas
 		);
 	}
@@ -262,10 +262,10 @@ module.exports = class CardLineup extends expose.Component {
 
 		pageElems = pageElems.concat( this.props.game.lineup.map( ( playerId, index ) => {
 			let renderType = FULL_EDIT;
-			if(this.locked) {
+			if ( this.locked ) {
 				renderType = PARTIAL_EDIT;
 			}
-			return this.renderPlayerTile(playerId, this.props.game.id, index, renderType);
+			return this.renderPlayerTile( playerId, this.props.game.id, index, renderType );
 		} ).reduce( ( acc, next, i ) => {
 			acc.push( DOM.div( {
 				key: 'highlight' + ( i ),
@@ -288,12 +288,12 @@ module.exports = class CardLineup extends expose.Component {
 			}
 		} ) );
 
-		pageElems.push( 
+		pageElems.push(
 			DOM.div( {
 				key: 'newplayer',
 				className: 'list-item add-list-item',
 				onClick: this.handleCreateClick,
-			}, '+ Add Player' ) 
+			}, '+ Add Player' )
 		);
 
 		pageElems.push(
@@ -302,7 +302,7 @@ module.exports = class CardLineup extends expose.Component {
 				key: 'lock',
 				className: 'list-item add-list-item',
 				onClick: this.handleLockToggle,
-			}, this.getUiTextForLockButton() ) 
+			}, this.getUiTextForLockButton() )
 		);
 
 		pageElems.unshift( DOM.div( {
@@ -325,43 +325,43 @@ module.exports = class CardLineup extends expose.Component {
 		let nonLineupPlateAppearances = allPlateAppearances.filter( plateAppearance => {
 			let value = true;
 			this.props.game.lineup.forEach( playerInLineupId => {
-				if(playerInLineupId === plateAppearance.player_id) {
+				if ( playerInLineupId === plateAppearance.player_id ) {
 					value = false; // TODO: how can we break out of this loop early?
 				}
-			});
+			} );
 			return value;
-		});
+		} );
 
-		if(nonLineupPlateAppearances.length !== 0) {
+		if ( nonLineupPlateAppearances.length !== 0 ) {
 			pageElems.push( DOM.hr() );
-			pageElems.push( DOM.div({
+			pageElems.push( DOM.div( {
 				style: {
 					'textAlign': 'center',
 					'fontSize': '21px',
 				}
-			}, 'Players with plate appearances who are not in the lineup'))
+			}, 'Players with plate appearances who are not in the lineup' ) );
 
 			// Get unique player ids
 			let playersIdsNotInLineupWithPlateAppearances = {};
-			nonLineupPlateAppearances.forEach(value => {
-				playersIdsNotInLineupWithPlateAppearances[value.player_id] = true;
-			});
+			nonLineupPlateAppearances.forEach( value => {
+				playersIdsNotInLineupWithPlateAppearances[ value.player_id ] = true;
+			} );
 
-			let playersIdsNotInLineup = Object.keys(playersIdsNotInLineupWithPlateAppearances);
-			playersIdsNotInLineup.forEach(playerId => {
-				const plateAppearances = state.getPlateAppearancesForPlayerInGame( playerId, this.props.game.id );
-				pageElems.push(this.renderPlayerTile(playerId, this.props.game.id, null, NO_EDIT));
-			});
+			let playersIdsNotInLineup = Object.keys( playersIdsNotInLineupWithPlateAppearances );
+			playersIdsNotInLineup.forEach( playerId => {
+				state.getPlateAppearancesForPlayerInGame( playerId, this.props.game.id );
+				pageElems.push( this.renderPlayerTile( playerId, this.props.game.id, null, NO_EDIT ) );
+			} );
 		}
 
 		return DOM.div( {}, pageElems );
 	}
 
-	renderPlayerTile(playerId, gameId, index, editable) {
+	renderPlayerTile( playerId, gameId, index, editable ) {
 		const player = state.getPlayer( playerId );
 		const plateAppearances = state.getPlateAppearancesForPlayerInGame( playerId, gameId );
 		let elems = [];
-		if(editable === FULL_EDIT) {
+		if ( editable === FULL_EDIT ) {
 			elems.push( DOM.div( {
 				key: 'handle',
 				className: 'player-drag-handle',
@@ -381,7 +381,7 @@ module.exports = class CardLineup extends expose.Component {
 			className: 'plate-appearance-list-container'
 		}, this.renderPlateAppearanceBoxes( player, plateAppearances, editable ) ) );
 
-		if(editable === FULL_EDIT) {
+		if ( editable === FULL_EDIT ) {
 			elems.push( DOM.img( {
 				key: 'del',
 				src: '/server/assets/remove.svg',
@@ -396,7 +396,7 @@ module.exports = class CardLineup extends expose.Component {
 			} ) );
 		}
 
-		if(editable === FULL_EDIT) {
+		if ( editable === FULL_EDIT ) {
 			return React.createElement( Draggable, {
 				key: 'lineup-draggable' + player.id,
 				axis: 'y',

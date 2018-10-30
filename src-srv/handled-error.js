@@ -1,4 +1,4 @@
-let HandledError = class HandledError extends Error {
+const HandledError = class HandledError extends Error {
 
 	constructor(statusCode, external, internal) {
 		super(external);

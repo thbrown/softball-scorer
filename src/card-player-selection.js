@@ -4,7 +4,6 @@ const Autosuggest = require('react-autosuggest');
 const React = require( 'react' );
 const expose = require( './expose' );
 const DOM = require( 'react-dom-factories' );
-const css = require( 'css' );
 
 const state = require( 'state' );
 
