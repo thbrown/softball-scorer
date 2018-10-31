@@ -1,28 +1,28 @@
 'use strict';
 
-const React = require( 'react' );
-const expose = require( './expose' );
-const DOM = require( 'react-dom-factories' );
-const css = require( 'css' );
+const React = require('react');
+const expose = require('./expose');
+const DOM = require('react-dom-factories');
+const css = require('css');
 
-const state = require( 'state' );
-const dialog = require( 'dialog' );
+const state = require('state');
+const dialog = require('dialog');
 
-const CardAuth = require( 'card-auth' );
-const CardGame = require( 'card-game' );
-const CardGameEdit = require( 'card-game-edit' );
-const CardLoad = require( 'card-load' );
-const CardMenu = require( 'card-menu' );
-const CardPasswordReset = require( 'card-password-reset' );
-const CardPlateAppearance = require( 'card-plate-appearance' );
-const CardPlayerList = require( 'card-player-list' );
-const CardPlayerEdit = require( 'card-player-edit' );
-const CardPlayerSelection = require( 'card-player-selection' );
-const CardSignup = require( 'card-signup' );
-const CardSpray = require( 'card-spray' );
-const CardTeam = require( 'card-team' );
-const CardTeamEdit = require( 'card-team-edit' );
-const CardTeamList = require( 'card-team-list' );
+const CardAuth = require('card-auth');
+const CardGame = require('card-game');
+const CardGameEdit = require('card-game-edit');
+const CardLoad = require('card-load');
+const CardMenu = require('card-menu');
+const CardPasswordReset = require('card-password-reset');
+const CardPlateAppearance = require('card-plate-appearance');
+const CardPlayerList = require('card-player-list');
+const CardPlayerEdit = require('card-player-edit');
+const CardPlayerSelection = require('card-player-selection');
+const CardSignup = require('card-signup');
+const CardSpray = require('card-spray');
+const CardTeam = require('card-team');
+const CardTeamEdit = require('card-team-edit');
+const CardTeamList = require('card-team-list');
 
 // TODO
 // Players List
@@ -41,15 +41,15 @@ const CardTeamList = require( 'card-team-list' );
 // Async localstorage interaction
 
 module.exports = class MainContainer extends expose.Component {
-	constructor( props ) {
-		super( props );
-		this.expose( 'main' );
+	constructor(props) {
+		super(props);
+		this.expose('main');
 
 		// Register a service worker to support offline experience and quick subsequent page loads
-		if ( 'serviceWorker' in navigator ) {
+		if ('serviceWorker' in navigator) {
 			// When a new service worker is available, re-load the page
 			navigator.serviceWorker.oncontrollerchange = () => {
-				if ( document.hidden ) {
+				if (document.hidden) {
 					dialog.show_notification(
 						'Softball.app has been updated, this page will be automatically refreshed. You will not lose any data you\'ve entered.',
 						() => {
@@ -62,26 +62,26 @@ module.exports = class MainContainer extends expose.Component {
 			};
 
 			// The actual registration
-			window.addEventListener( 'load', function() {
-				navigator.serviceWorker.register( '/service-worker' );
-			} );
+			window.addEventListener('load', function () {
+				navigator.serviceWorker.register('/service-worker');
+			});
 		}
 
 		// When the user pops the state (e.g. on back button press) make sure the react state matches the url.
-		window.onpopstate = function() {
+		window.onpopstate = function () {
 			let newPage = window.location.pathname;
-			expose.set_state( 'main', {
+			expose.set_state('main', {
 				page: newPage
-			} );
+			});
 		};
 
 		// Sync on first load
-		setTimeout( state.sync, 1 );
+		setTimeout(state.sync, 1);
 
 		// Reload from local storage each time after the window regains focus
-		window.addEventListener( 'focus', () => {
+		window.addEventListener('focus', () => {
 			state.loadAppDataFromLocalStorage();
-		}, false );
+		}, false);
 
 		let startPage = window.location.pathname;
 
@@ -95,26 +95,26 @@ module.exports = class MainContainer extends expose.Component {
 	 * Checks if the given url matches the path. If it does match this method returns true otherwise it returns false.
 	 * This method also stores any path variables (marked with the ':' prefix) as properties in the passed in state object.
 	 */
-	static matches( url, path, state ) {
-		let urlArray = url.split( '/' );
-		let pathArray = path.split( '/' );
+	static matches(url, path, state) {
+		let urlArray = url.split('/');
+		let pathArray = path.split('/');
 		let pathVariables = {};
-		if ( pathArray.length !== urlArray.length ) {
+		if (pathArray.length !== urlArray.length) {
 			return false;
 		}
-		for ( let i = 1; i < pathArray.length; i++ ) {
-			if ( pathArray[ i ].length > 0 && pathArray[ i ][ 0 ] === ':' ) {
-				pathVariables[ pathArray[ i ].substring( 1 ) ] = urlArray[ i ];
-			} else if ( urlArray[ i ] !== pathArray[ i ] ) {
+		for (let i = 1; i < pathArray.length; i++) {
+			if (pathArray[i].length > 0 && pathArray[i][0] === ':') {
+				pathVariables[pathArray[i].substring(1)] = urlArray[i];
+			} else if (urlArray[i] !== pathArray[i]) {
 				pathVariables = {};
 				return false;
 			}
 		}
 
 		// Copy path vars to state if this path matches the url
-		let pathVarKeys = Object.keys( pathVariables );
-		for ( let i = 0; i < pathVarKeys.length; i++ ) {
-			state[ pathVarKeys[ i ] ] = pathVariables[ pathVarKeys[ i ] ];
+		let pathVarKeys = Object.keys(pathVariables);
+		for (let i = 0; i < pathVarKeys.length; i++) {
+			state[pathVarKeys[i]] = pathVariables[pathVarKeys[i]];
 		}
 		state.urlArray = urlArray;
 		return true;
@@ -122,98 +122,98 @@ module.exports = class MainContainer extends expose.Component {
 
 
 	// TODO: rename
-	renderCard( url ) {
+	renderCard(url) {
 		// Update the base url if necessary
-		if ( url !== window.location.pathname ) {
-			history.pushState( {}, '', url );
+		if (url !== window.location.pathname) {
+			history.pushState({}, '', url);
 		}
 
-		if ( MainContainer.matches( url, '/', this.state ) ) {
+		if (MainContainer.matches(url, '/', this.state)) {
 			// TODO: maybe this should just redirect to /team
-			return React.createElement( CardTeamList );
-		} else if ( MainContainer.matches( url, '/menu', this.state ) ) {
-			return React.createElement( CardMenu );
-		} else if ( MainContainer.matches( url, '/menu/login', this.state ) ) {
-			return React.createElement( CardAuth );
-		} else if ( MainContainer.matches( url, '/menu/signup', this.state ) ) {
-			return React.createElement( CardSignup );
-		} else if ( MainContainer.matches( url, '/menu/import', this.state ) ) {
-			return React.createElement( CardLoad );
-		} else if ( MainContainer.matches( url, '/account/password-reset/:token', this.state ) ) {
+			return React.createElement(CardTeamList);
+		} else if (MainContainer.matches(url, '/menu', this.state)) {
+			return React.createElement(CardMenu);
+		} else if (MainContainer.matches(url, '/menu/login', this.state)) {
+			return React.createElement(CardAuth);
+		} else if (MainContainer.matches(url, '/menu/signup', this.state)) {
+			return React.createElement(CardSignup);
+		} else if (MainContainer.matches(url, '/menu/import', this.state)) {
+			return React.createElement(CardLoad);
+		} else if (MainContainer.matches(url, '/account/password-reset/:token', this.state)) {
 			let token = this.state.token;
-			return React.createElement( CardPasswordReset, {
+			return React.createElement(CardPasswordReset, {
 				token: token
-			} );
-		} else if ( MainContainer.matches( url, '/teams', this.state ) ) {
-			return React.createElement( CardTeamList );
-		} else if ( MainContainer.matches( url, '/teams/:teamId', this.state ) || MainContainer.matches( url, '/teams/:teamId/games', this.state ) ) {
+			});
+		} else if (MainContainer.matches(url, '/teams', this.state)) {
+			return React.createElement(CardTeamList);
+		} else if (MainContainer.matches(url, '/teams/:teamId', this.state) || MainContainer.matches(url, '/teams/:teamId/games', this.state)) {
 			let teamId = this.state.teamId;
-			let team = state.getTeam( teamId );
-			return React.createElement( CardTeam, {
+			let team = state.getTeam(teamId);
+			return React.createElement(CardTeam, {
 				team: team,
 				tab: 'games'
-			} );
-		} else if ( MainContainer.matches( url, '/teams/:teamId/edit', this.state ) ) {
+			});
+		} else if (MainContainer.matches(url, '/teams/:teamId/edit', this.state)) {
 			let teamId = this.state.teamId;
-			let team = state.getTeam( teamId );
+			let team = state.getTeam(teamId);
 			let isNew = this.state.isNew; // TODO: revisit this, what happens if this pages is loaded via external link
-			return React.createElement( CardTeamEdit, {
+			return React.createElement(CardTeamEdit, {
 				team: team,
 				isNew: isNew
-			} );
-		} else if ( MainContainer.matches( url, '/teams/:teamId/stats', this.state ) ) {
+			});
+		} else if (MainContainer.matches(url, '/teams/:teamId/stats', this.state)) {
 			let teamId = this.state.teamId;
-			let team = state.getTeam( teamId );
-			return React.createElement( CardTeam, {
+			let team = state.getTeam(teamId);
+			return React.createElement(CardTeam, {
 				team: team,
 				tab: 'stats'
-			} );
-		} else if ( MainContainer.matches( url, '/teams/:teamId/stats/player/:playerId', this.state ) ) {
-			return React.createElement( CardSpray, {
+			});
+		} else if (MainContainer.matches(url, '/teams/:teamId/stats/player/:playerId', this.state)) {
+			return React.createElement(CardSpray, {
 				playerId: this.state.playerId,
 				teamId: this.state.teamId,
 				origin: 'stats'
-			} );
-		} else if ( MainContainer.matches( url, '/teams/:teamId/games/:gameId', this.state ) || MainContainer.matches( url, '/teams/:teamId/games/:gameId/lineup', this.state ) ) {
-			let team = state.getTeam( this.state.teamId );
-			let game = state.getGame( this.state.gameId );
-			return React.createElement( CardGame, {
+			});
+		} else if (MainContainer.matches(url, '/teams/:teamId/games/:gameId', this.state) || MainContainer.matches(url, '/teams/:teamId/games/:gameId/lineup', this.state)) {
+			let team = state.getTeam(this.state.teamId);
+			let game = state.getGame(this.state.gameId);
+			return React.createElement(CardGame, {
 				team: team,
 				game: game,
 				tab: 'lineup'
-			} );
-		} else if ( MainContainer.matches( url, '/teams/:teamId/games/:gameId/scorer', this.state ) ) {
-			let team = state.getTeam( this.state.teamId );
-			let game = state.getGame( this.state.gameId );
-			return React.createElement( CardGame, {
+			});
+		} else if (MainContainer.matches(url, '/teams/:teamId/games/:gameId/scorer', this.state)) {
+			let team = state.getTeam(this.state.teamId);
+			let game = state.getGame(this.state.gameId);
+			return React.createElement(CardGame, {
 				team: team,
 				game: game,
 				tab: 'scorer'
-			} );
-		} else if ( MainContainer.matches( url, '/teams/:teamId/games/:gameId/player-selection', this.state ) ) {
-			let team = state.getTeam( this.state.teamId );
-			let game = state.getGame( this.state.gameId );
-			return React.createElement( CardPlayerSelection, {
+			});
+		} else if (MainContainer.matches(url, '/teams/:teamId/games/:gameId/player-selection', this.state)) {
+			let team = state.getTeam(this.state.teamId);
+			let game = state.getGame(this.state.gameId);
+			return React.createElement(CardPlayerSelection, {
 				team: team,
 				game: game,
-			} );
-		} else if ( MainContainer.matches( url, '/teams/:teamId/games/:gameId/edit', this.state ) ) {
-			let team = state.getTeam( this.state.teamId );
-			let game = state.getGame( this.state.gameId );
+			});
+		} else if (MainContainer.matches(url, '/teams/:teamId/games/:gameId/edit', this.state)) {
+			let team = state.getTeam(this.state.teamId);
+			let game = state.getGame(this.state.gameId);
 			let isNew = this.state.isNew;
-			return React.createElement( CardGameEdit, {
+			return React.createElement(CardGameEdit, {
 				team: team,
 				game: game,
 				isNew: isNew
-			} );
-		} else if ( MainContainer.matches( url, '/teams/:teamId/games/:gameId/lineup/plateAppearances/:plateAppearanceId', this.state ) || MainContainer.matches( url, '/teams/:teamId/games/:gameId/scorer/plateAppearances/:plateAppearanceId', this.state ) ) {
-			let team = state.getTeam( this.state.teamId );
-			let game = state.getGame( this.state.gameId );
-			let plateAppearance = state.getPlateAppearance( this.state.plateAppearanceId );
-			let player = state.getPlayer( plateAppearance.player_id );
-			let plateAppearances = state.getPlateAppearancesForPlayerInGame( plateAppearance.player_id, this.state.gameId );
+			});
+		} else if (MainContainer.matches(url, '/teams/:teamId/games/:gameId/lineup/plateAppearances/:plateAppearanceId', this.state) || MainContainer.matches(url, '/teams/:teamId/games/:gameId/scorer/plateAppearances/:plateAppearanceId', this.state)) {
+			let team = state.getTeam(this.state.teamId);
+			let game = state.getGame(this.state.gameId);
+			let plateAppearance = state.getPlateAppearance(this.state.plateAppearanceId);
+			let player = state.getPlayer(plateAppearance.player_id);
+			let plateAppearances = state.getPlateAppearancesForPlayerInGame(plateAppearance.player_id, this.state.gameId);
 			let isNew = this.state.isNew;
-			return React.createElement( CardPlateAppearance, {
+			return React.createElement(CardPlateAppearance, {
 				team: team,
 				game: game,
 				player: player,
@@ -221,38 +221,38 @@ module.exports = class MainContainer extends expose.Component {
 				plateAppearances: plateAppearances,
 				origin: this.state.urlArray[5],
 				isNew: isNew
-			} );
-		} else if(MainContainer.matches(url, "/players", this.state)) {
-			return React.createElement( CardPlayerList );
-		} else if(MainContainer.matches(url, "/players/:playerId", this.state)) {
-			return React.createElement( CardSpray, {
+			});
+		} else if (MainContainer.matches(url, "/players", this.state)) {
+			return React.createElement(CardPlayerList);
+		} else if (MainContainer.matches(url, "/players/:playerId", this.state)) {
+			return React.createElement(CardSpray, {
 				playerId: this.state.playerId,
 				origin: 'players'
-			} );
-		} else if(MainContainer.matches(url, "/players/:playerId/edit", this.state)) {
-			let player = state.getPlayer( this.state.playerId );
+			});
+		} else if (MainContainer.matches(url, "/players/:playerId/edit", this.state)) {
+			let player = state.getPlayer(this.state.playerId);
 			let isNew = this.state.isNew;
-			return React.createElement( CardPlayerEdit, {
+			return React.createElement(CardPlayerEdit, {
 				player: player,
 				isNew: isNew
-			} );
+			});
 		} else {
-			return DOM.div( {
+			return DOM.div({
 				style: {
 					color: css.colors.TEXT_LIGHT
 				}
-			}, '404 this resource could not be found' );
+			}, '404 this resource could not be found');
 		}
 	}
 
 	render() {
-		return DOM.div( {
-				style: {
-					// TODO: Make sure we don't need this
-					//height: window.innerHeight + 'px'
-				}
-			},
-			this.renderCard( this.state.page )
+		return DOM.div({
+			style: {
+				// TODO: Make sure we don't need this
+				//height: window.innerHeight + 'px'
+			}
+		},
+			this.renderCard(this.state.page)
 		);
 	}
 

@@ -14,13 +14,13 @@ module.exports = class CardPasswordReset extends expose.Component {
 
 		this.token = props.token;
 
-		this.handleBackClick = function() {
+		this.handleBackClick = function () {
 			expose.set_state('main', {
 				page: 'Auth',
 			});
 		};
 
-		this.handleSubmitClick = async function() {
+		this.handleSubmitClick = async function () {
 			const password = document.getElementById('password');
 			const passwordConfirm = document.getElementById('passwordConfirm');
 
@@ -48,7 +48,7 @@ module.exports = class CardPasswordReset extends expose.Component {
 
 			let response = await network.request('POST', `server/account/reset-password`, JSON.stringify(body));
 			if (response.status === 204) {
-				dialog.show_notification(`Success! Your password has been changed. Please login.`, function() {
+				dialog.show_notification(`Success! Your password has been changed. Please login.`, function () {
 					expose.set_state('main', {
 						page: 'Auth',
 					});
@@ -56,7 +56,7 @@ module.exports = class CardPasswordReset extends expose.Component {
 			} else if (response.status === 404) {
 				dialog.show_notification(
 					`Error! We were not able to change your password. The activation link may have expired. Please request another password reset.`,
-					function() {
+					function () {
 						expose.set_state('main', {
 							page: 'Auth',
 						});
@@ -65,9 +65,9 @@ module.exports = class CardPasswordReset extends expose.Component {
 			} else {
 				dialog.show_notification(
 					`Error! We were not able to change your password. Please request another password reset. ${
-						response.body ? response.body.message : ''
+					response.body ? response.body.message : ''
 					}`,
-					function() {
+					function () {
 						expose.set_state('main', {
 							page: 'Auth',
 						});

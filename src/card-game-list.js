@@ -11,13 +11,13 @@ module.exports = class CardGameList extends expose.Component {
 		this.expose();
 		this.state = {};
 
-		this.handleGameClick = function(game) {
+		this.handleGameClick = function (game) {
 			expose.set_state('main', {
 				page: `/teams/${props.team.id}/games/${game.id}`, // TODO: always back to lineup?
 			});
 		};
 
-		this.handleEditClick = function(game, ev) {
+		this.handleEditClick = function (game, ev) {
 			expose.set_state('main', {
 				page: `/teams/${props.team.id}/games/${game.id}/edit`,
 				isNew: false,
@@ -25,7 +25,7 @@ module.exports = class CardGameList extends expose.Component {
 			ev.stopPropagation();
 		};
 
-		this.handleCreateClick = function() {
+		this.handleCreateClick = function () {
 			let game = state.addGame(this.props.team.id, '');
 			expose.set_state('main', {
 				page: `/teams/${props.team.id}/games/${game.id}/edit`,

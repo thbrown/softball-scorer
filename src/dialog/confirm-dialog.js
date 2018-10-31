@@ -1,11 +1,11 @@
 'use strict';
 
-const React = require( 'react' );
-const DOM = require( 'react-dom-factories' );
+const React = require('react');
+const DOM = require('react-dom-factories');
 
 module.exports = class ConfirmDialog extends React.Component {
-	constructor( props ){
-		super( props );
+	constructor(props) {
+		super(props);
 
 		this.handleConfirmClick = window.current_confirm = () => {
 			this.props.hide();
@@ -19,30 +19,30 @@ module.exports = class ConfirmDialog extends React.Component {
 	}
 
 	render() {
-		return DOM.div( {
+		return DOM.div({
 			className: 'dialog',
 		},
-			DOM.div( {
+			DOM.div({
 				className: 'dialog-text',
-			}, this.props.text ),
-			DOM.div( {
+			}, this.props.text),
+			DOM.div({
 				style: {
 					display: 'flex',
 					justifyContent: 'flex-end'
 				}
 			},
-				DOM.div( {
+				DOM.div({
 					className: 'button confirm-button',
 					onClick: this.handleConfirmClick
-				}, DOM.span( {
+				}, DOM.span({
 					className: 'no-select'
-				}, 'Yes' ) ),
-				DOM.div( {
+				}, 'Yes')),
+				DOM.div({
 					className: 'button cancel-button',
 					onClick: this.handleCancelClick
-				}, DOM.span( {
+				}, DOM.span({
 					className: 'no-select'
-				}, 'Cancel' ) )
+				}, 'Cancel'))
 			)
 		);
 	}

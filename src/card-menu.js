@@ -17,25 +17,25 @@ module.exports = class CardMenu extends expose.Component {
 		this.expose();
 		this.state = {};
 
-		this.handleTeamsClick = function() {
+		this.handleTeamsClick = function () {
 			expose.set_state('main', {
 				page: '/teams',
 			});
 		};
 
-		this.handlePlayersClick = function() {
+		this.handlePlayersClick = function () {
 			expose.set_state('main', {
 				page: '/players',
 			});
 		};
 
-		this.handleLoginClick = function() {
+		this.handleLoginClick = function () {
 			expose.set_state('main', {
 				page: '/menu/login',
 			});
 		};
 
-		this.handleSyncClick = async function() {
+		this.handleSyncClick = async function () {
 			let buttonDiv = document.getElementById('sync');
 			buttonDiv.innerHTML = 'Sync (In Progress)';
 			buttonDiv.classList.add('disabled');
@@ -51,13 +51,13 @@ module.exports = class CardMenu extends expose.Component {
 			buttonDiv.classList.remove('disabled');
 		};
 
-		this.handleSaveClick = function() {
+		this.handleSaveClick = function () {
 			var today = new Date().getTime();
 			var blob = new Blob([JSON.stringify(state.getLocalState(), null, 2)], { type: 'text/plain;charset=utf-8' });
 			FileSaver.saveAs(blob, 'save' + today + '.json');
 		};
 
-		this.handleLoadClick = function() {
+		this.handleLoadClick = function () {
 			expose.set_state('main', {
 				page: '/menu/import',
 			});

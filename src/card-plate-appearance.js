@@ -14,7 +14,7 @@ const results = require('plate-appearance-results');
 
 const LOCATION_DENOMINATOR = 32767;
 
-const normalize = function(x, A, B, C, D) {
+const normalize = function (x, A, B, C, D) {
 	return C + ((x - A) * (D - C)) / (B - A);
 };
 
@@ -30,7 +30,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 		// and replace it on cancel. Other places we edit the copy and commit it on confirm.
 		let plateAppearanceCopy = JSON.parse(JSON.stringify(this.plateAppearance));
 
-		let goBack = function() {
+		let goBack = function () {
 			if (props.origin === 'scorer') {
 				expose.set_state('main', {
 					page: `/teams/${props.team.id}/games/${props.game.id}/scorer`,
@@ -42,15 +42,15 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			}
 		};
 
-		this.handleBackClick = function() {
+		this.handleBackClick = function () {
 			goBack();
 		};
 
-		this.handleConfirmClick = function() {
+		this.handleConfirmClick = function () {
 			goBack();
 		};
 
-		this.handleCancelClick = function() {
+		this.handleCancelClick = function () {
 			if (props.isNew) {
 				state.removePlateAppearance(props.plateAppearance.id, props.game.id);
 			} else {
@@ -59,22 +59,22 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			goBack();
 		};
 
-		this.handleDeleteClick = function() {
+		this.handleDeleteClick = function () {
 			dialog.show_confirm('Are you sure you want to delete this plate appearance?', () => {
 				state.removePlateAppearance(props.plateAppearance.id, props.game.id);
 				goBack();
 			});
 		};
 
-		this.handleButtonClick = function(result) {
+		this.handleButtonClick = function (result) {
 			state.updatePlateAppearanceResult(props.plateAppearance, result);
 		};
 
-		this.handleDragStart = function() {};
+		this.handleDragStart = function () { };
 
-		this.handleDragStop = function() {
+		this.handleDragStop = function () {
 			//lame way to make this run after the mouseup event
-			setTimeout( () => {
+			setTimeout(() => {
 				let new_x = (this.mx - 10) / window.innerWidth * LOCATION_DENOMINATOR;
 				let new_y = (this.my - 10) / window.innerWidth * LOCATION_DENOMINATOR;
 				state.updatePlateAppearanceLocation(props.plateAppearance, [new_x, new_y]);

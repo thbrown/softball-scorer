@@ -1,16 +1,16 @@
 const { Pool } = require('pg');
 
-const HandledError = require( './handled-error.js' );
-const idUtils = require( '../id-utils.js' );
-const logger = require( './logger.js' );
-const objectMerge = require( '../object-merge.js' );
-const sqlGen = require( './sql-gen.js' );
+const HandledError = require('./handled-error.js');
+const idUtils = require('../id-utils.js');
+const logger = require('./logger.js');
+const objectMerge = require('../object-merge.js');
+const sqlGen = require('./sql-gen.js');
 
 module.exports = class DatabaseCalls {
-	constructor( url, port, user, password, cb ) {
+	constructor(url, port, user, password, cb) {
 
-		logger.log(null, 'Connecting to pg', url );
-		this.pool = new Pool( {
+		logger.log(null, 'Connecting to pg', url);
+		this.pool = new Pool({
 			user: user,
 			host: url,
 			database: 'Softball',
@@ -18,21 +18,11 @@ module.exports = class DatabaseCalls {
 			port: port,
 		});
 
-		// Test connection
-		this.pool.connect(function(err) {
-			if (err) {
-				console.log('There was a problem getting db connection:', err);
-				cb(err);
-			} else {
-				cb(null);
-			}
-		});
-
 		// We don't ever anticipate storing numeric values larger than the javascript maximum safe integer size
 		// (9,007,199,254,740,991) so we'll instruct pg to return all bigints from the database as javascript numbers.
 		// See https://github.com/brianc/node-pg-types
 		var types = require('pg').types;
-		types.setTypeParser(20, function(val) {
+		types.setTypeParser(20, function (val) {
 			return parseInt(val);
 		});
 	}
@@ -45,19 +35,19 @@ module.exports = class DatabaseCalls {
 
 	queryPromise(queryString) {
 		let self = this;
-		return new Promise( function( resolve, reject ) {
-			self.pool.connect( function( err, client, done ) {
-				if ( err ) {
-					logger.log(null, 'There was a problem getting db connection:' );
-					logger.log( err );
-					reject( err );
+		return new Promise(function (resolve, reject) {
+			self.pool.connect(function (err, client, done) {
+				if (err) {
+					logger.log(null, 'There was a problem getting db connection:');
+					logger.log(err);
+					reject(err);
 				}
 
-				client.query(queryString, function(err, result) {
+				client.query(queryString, function (err, result) {
 					done();
-					if ( err ) {
-						logger.log( null, err );
-						reject( err );
+					if (err) {
+						logger.log(null, err);
+						reject(err);
 					} else {
 						resolve(result);
 					}
@@ -68,19 +58,19 @@ module.exports = class DatabaseCalls {
 
 	parameterizedQueryPromise(queryString, values) {
 		let self = this;
-		return new Promise( function( resolve, reject ) {
-			self.pool.connect( function( err, client, done ) {
-				if ( err ) {
-					logger.log(null, "There was a problem getting db connection:" );
-					logger.log(null, err );
-					process.exit( 1 );
+		return new Promise(function (resolve, reject) {
+			self.pool.connect(function (err, client, done) {
+				if (err) {
+					logger.log(null, "There was a problem getting db connection:");
+					logger.log(null, err);
+					process.exit(1);
 				}
 
 				client.query(queryString, values, (err, result) => {
 					done();
 					if (err) {
 						logger.log(null, err.stack);
-						reject( err );
+						reject(err);
 					} else {
 						resolve(result);
 					}
@@ -89,13 +79,13 @@ module.exports = class DatabaseCalls {
 		});
 	}
 
-	getState( accountId ) {
+	getState(accountId) {
 		logger.log(accountId, 'Pulling Data');
-		if(accountId === undefined) {
-			return {"players":[], "teams":[]};
+		if (accountId === undefined) {
+			return { "players": [], "teams": [] };
 		}
 		let self = this;
-		return new Promise(function(resolve, reject) {
+		return new Promise(function (resolve, reject) {
 			var players = self.parameterizedQueryPromise(
 				`
 				SELECT 
@@ -150,7 +140,7 @@ module.exports = class DatabaseCalls {
 				[accountId],
 			);
 
-			Promise.all([players, teams]).then(function(values) {
+			Promise.all([players, teams]).then(function (values) {
 				var milliseconds = new Date().getTime();
 
 				var state = {};
@@ -276,9 +266,9 @@ module.exports = class DatabaseCalls {
 		return result.rows[0];
 	}
 
-	async getAccountFromTokenHash( passwordTokenHash ) {
+	async getAccountFromTokenHash(passwordTokenHash) {
 		logger.log(null, "Seraching for", passwordTokenHash.trim());
-		let results =  await this.parameterizedQueryPromise( `
+		let results = await this.parameterizedQueryPromise(`
 				SELECT account_id, email, password_hash, verified_email
 				FROM account 
 				WHERE password_token_hash = $1
@@ -340,9 +330,9 @@ module.exports = class DatabaseCalls {
 		);
 	}
 
-	async deleteAccount( accountId ) {
+	async deleteAccount(accountId) {
 		logger.log(accountId, 'deleting');
-		await this.parameterizedQueryPromise( `
+		await this.parameterizedQueryPromise(`
 				DELETE FROM account 
 				WHERE account_id = $1
 			`,
