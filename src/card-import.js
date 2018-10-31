@@ -9,7 +9,7 @@ const state = require('state');
 
 const objectMerge = require('../object-merge.js');
 
-module.exports = class CardLoad extends expose.Component {
+module.exports = class CardImport extends expose.Component {
 	constructor(props) {
 		super(props);
 		this.expose();

@@ -25,6 +25,21 @@ module.exports = class DatabaseCalls {
 		types.setTypeParser(20, function (val) {
 			return parseInt(val);
 		});
+
+		// Verify connection
+		this.pool.connect(function (err) {
+			if (err) {
+				console.log('There was a problem getting db connection:', err);
+				if (cb) {
+					cb(err);
+				}
+			} else {
+				if (cb) {
+					cb(null);
+				}
+			}
+		});
+
 	}
 
 	disconnect() {

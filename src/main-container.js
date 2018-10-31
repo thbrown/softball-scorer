@@ -11,7 +11,7 @@ const dialog = require('dialog');
 const CardAuth = require('card-auth');
 const CardGame = require('card-game');
 const CardGameEdit = require('card-game-edit');
-const CardLoad = require('card-load');
+const CardImport = require('card-import');
 const CardMenu = require('card-menu');
 const CardPasswordReset = require('card-password-reset');
 const CardPlateAppearance = require('card-plate-appearance');
@@ -25,9 +25,6 @@ const CardTeamEdit = require('card-team-edit');
 const CardTeamList = require('card-team-list');
 
 // TODO
-// Players List
-// Edit Player
-// Disable submit button on signin
 // Text directions?
 // Sample data?
 
@@ -66,6 +63,9 @@ module.exports = class MainContainer extends expose.Component {
 				navigator.serviceWorker.register('/service-worker');
 			});
 		}
+
+		// Load data from localstorage synchronously
+		state.loadAppDataFromLocalStorage();
 
 		// When the user pops the state (e.g. on back button press) make sure the react state matches the url.
 		window.onpopstate = function () {
@@ -120,8 +120,6 @@ module.exports = class MainContainer extends expose.Component {
 		return true;
 	}
 
-
-	// TODO: rename
 	renderCard(url) {
 		// Update the base url if necessary
 		if (url !== window.location.pathname) {
@@ -138,7 +136,7 @@ module.exports = class MainContainer extends expose.Component {
 		} else if (MainContainer.matches(url, '/menu/signup', this.state)) {
 			return React.createElement(CardSignup);
 		} else if (MainContainer.matches(url, '/menu/import', this.state)) {
-			return React.createElement(CardLoad);
+			return React.createElement(CardImport);
 		} else if (MainContainer.matches(url, '/account/password-reset/:token', this.state)) {
 			let token = this.state.token;
 			return React.createElement(CardPasswordReset, {

@@ -27,6 +27,8 @@ module.exports = class SoftballServer {
 	}
 
 	start() {
+		logger.log(null, 'Starting');
+
 		// Authentication
 		let self = this;
 		passport.use(new LocalStrategy({
