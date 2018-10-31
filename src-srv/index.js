@@ -35,6 +35,7 @@ const { host: pghost, port: pgport, username, password } = config.database;
 if (pghost && pgport && username && password) {
 	const databaseCalls = new DatabaseCallsPostgres(pghost, pgport, username, password, (err) => {
 		if (err) {
+			console.log('Encountered an error connecting to db', err);
 			process.exit(1);
 		}
 		console.log('Connected to db.');

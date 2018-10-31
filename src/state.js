@@ -483,7 +483,7 @@ exports.saveAppDataToLocalStorage = function () {
 	if (typeof Storage !== "undefined") {
 		// Changes from other tabs should have been loaded when window/tab became visible
 		// So, we can just write directly to local storage
-		localStorage.setItem("SCHEMA_VERSION", 3);
+		localStorage.setItem("SCHEMA_VERSION", "3");
 		localStorage.setItem("LOCAL_STATE", JSON.stringify(LOCAL_STATE));
 		localStorage.setItem("ANCESTOR_STATE", JSON.stringify(ANCESTOR_STATE));
 	}
@@ -511,7 +511,7 @@ exports.loadAppDataFromLocalStorage = function () {
 		}
 		*/
 
-		if (localStorage.getItem("SCHEMA_VERSION") !== 3) {
+		if (localStorage.getItem("SCHEMA_VERSION") !== "3") {
 			exports.clearLocalStorage();
 			exports.saveAppDataToLocalStorage();
 			console.log("Invalid localStorage data was removed");

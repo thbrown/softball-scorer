@@ -70,7 +70,9 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			state.updatePlateAppearanceResult(props.plateAppearance, result);
 		};
 
-		this.handleDragStart = function () { };
+		this.handleDragStart = function (ev) {
+			ev.preventDefault(); // Not working for ios, not needed for anything else
+		};
 
 		this.handleDragStop = function () {
 			//lame way to make this run after the mouseup event
