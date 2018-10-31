@@ -1,15 +1,15 @@
 'use strict';
 
 const Autosuggest = require('react-autosuggest');
-const React = require( 'react' );
-const expose = require( './expose' );
-const DOM = require( 'react-dom-factories' );
+const React = require('react');
+const expose = require('./expose');
+const DOM = require('react-dom-factories');
 
-const state = require( 'state' );
+const state = require('state');
 
 module.exports = class CardPlayerSelection extends expose.Component {
-	constructor( props ) {
-		super( props );
+	constructor(props) {
+		super(props);
 		this.expose();
 
 		this.state = {
@@ -21,13 +21,13 @@ module.exports = class CardPlayerSelection extends expose.Component {
 		};
 
 		this.handleBackClick = () => {
-			expose.set_state( 'main', {
+			expose.set_state('main', {
 				page: `/teams/${this.props.team.id}/games/${this.props.game.id}`
-			} );
+			});
 		};
 
-		this.handleRadioButtonChange = ( event ) => {
-			this.setState( {
+		this.handleRadioButtonChange = (event) => {
+			this.setState({
 				gender: event.target.value
 			});
 		};
@@ -39,10 +39,10 @@ module.exports = class CardPlayerSelection extends expose.Component {
 						this.state.playerNameValue,
 						this.state.gender);
 			}
-			state.addPlayerToLineup( this.props.game.lineup, this.state.player.id );
-			expose.set_state( 'main', {
+			state.addPlayerToLineup(this.props.game.lineup, this.state.player.id);
+			expose.set_state('main', {
 				page: `/teams/${this.props.team.id}/games/${this.props.game.id}`
-			} );
+			});
 		};
 
 		this.onChange = (event, { newValue }) => {
@@ -53,22 +53,22 @@ module.exports = class CardPlayerSelection extends expose.Component {
 	}
 
 	render() {
-		return DOM.div( {
-				style: {
-				}
-			},
-			DOM.div( {
+		return DOM.div({
+			style: {
+			}
+		},
+			DOM.div({
 				className: 'card-title',
 			},
-			DOM.img( {
+				DOM.img({
 					src: '/server/assets/back.svg',
 					className: 'back-arrow',
 					onClick: this.handleBackClick,
 					alt: 'back'
 				}),
-				DOM.div( {
+				DOM.div({
 					className: 'prevent-overflow card-title-text-with-arrow',
-				}, 'Player' )
+				}, 'Player')
 			),
 			this.renderPlayerSelection(),
 			this.maybeRenderGenderRadioButton(),
@@ -77,15 +77,15 @@ module.exports = class CardPlayerSelection extends expose.Component {
 	}
 
 	renderSubmitButton() {
-		return DOM.div( {
+		return DOM.div({
 			className: 'button confirm-button',
 			style: {
 				marginLeft: '16px',
 			},
 			onClick: this.handleSubmitClick
-		}, DOM.span( {
+		}, DOM.span({
 			className: 'no-select'
-		}, 'Submit' )
+		}, 'Submit')
 		);
 	}
 
@@ -96,32 +96,32 @@ module.exports = class CardPlayerSelection extends expose.Component {
 					className: 'radio-button',
 				},
 				DOM.div(
-				{
-					className: 'radio-button-option',
-				},
-					DOM.input( {
+					{
+						className: 'radio-button-option',
+					},
+					DOM.input({
 						type: 'radio',
 						name: 'gender',
 						value: 'M',
 						id: 'maleGenderChoice',
 						onChange: this.handleRadioButtonChange,
 					}),
-					DOM.label( {
+					DOM.label({
 						htmlFor: 'maleGenderChoice',
 					}, 'Male')
 				),
 				DOM.div(
-				{
-					className: 'radio-button-option',
-				},
-					DOM.input( {
+					{
+						className: 'radio-button-option',
+					},
+					DOM.input({
 						type: 'radio',
 						name: 'gender',
 						value: 'F',
 						id: 'femaleGenderChoice',
 						onChange: this.handleRadioButtonChange,
 					}),
-					DOM.label( {
+					DOM.label({
 						htmlFor: 'femaleGenderChoice',
 					}, 'Female')
 				)
@@ -138,7 +138,7 @@ module.exports = class CardPlayerSelection extends expose.Component {
 			value: playerNameValue,
 			onChange: this.onChange.bind(this)
 		};
-		return React.createElement( Autosuggest,
+		return React.createElement(Autosuggest,
 			{
 				suggestions: this.state.suggestions,
 				onSuggestionsFetchRequested: this.onSuggestionsFetchRequested.bind(this),
@@ -184,7 +184,7 @@ module.exports = class CardPlayerSelection extends expose.Component {
 			return DOM.span(
 				{},
 				'[+] Add new: ' + this.state.playerNameValue
-				);
+			);
 		}
 
 		return DOM.div({}, suggestion.name);

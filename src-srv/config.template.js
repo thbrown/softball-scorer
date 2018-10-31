@@ -7,7 +7,7 @@ module.exports = {
 		host: undefined,
 		port: undefined,
 		username: undefined,
-		password: undefined	
+		password: undefined
 	},
 
 	recapcha: {

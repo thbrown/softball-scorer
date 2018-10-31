@@ -1,12 +1,12 @@
 // TODO: minify
-self.addEventListener('message',  e => {
+self.addEventListener('message', e => {
   let message = JSON.parse(e.data);
   let lineup = [];
 
   let time = new Date().getTime();
 
   // Empty lineup returns a score of 0
-  if(message.lineup.length === 0) {
+  if (message.lineup.length === 0) {
     let response = {};
     response.score = 0;
     response.time = 0;
@@ -15,10 +15,10 @@ self.addEventListener('message',  e => {
   }
 
   // Convert results to hit number for each player in the lineup
-  for(let p = 0; p < message.lineup.length; p++) {
+  for (let p = 0; p < message.lineup.length; p++) {
     let historicHits = [];
-    for(let hit = 0; hit < message.lineup[p].length; hit++) {
-      if(message.lineup[p][hit]) {
+    for (let hit = 0; hit < message.lineup[p].length; hit++) {
+      if (message.lineup[p][hit]) {
         historicHits.push(mapResultToHitType(message.lineup[p][hit]));
       }
     }
@@ -66,9 +66,9 @@ self.addEventListener('message',  e => {
 
         if (VERBOSE) {
           let message =
-                  "\t hit:" + mapBasesToHitType(bases) +
-                  "\t outs:" + outs +
-                  "\t score:" + gameScore;
+            "\t hit:" + mapBasesToHitType(bases) +
+            "\t outs:" + outs +
+            "\t score:" + gameScore;
           console.log(message);
         }
       }
@@ -87,10 +87,10 @@ self.addEventListener('message',  e => {
     }
     totalScore += gameScore;
   }
-  console.log('Lineup avg runs', totalScore/numberOfGamesToSimulate);
+  console.log('Lineup avg runs', totalScore / numberOfGamesToSimulate);
   let response = {};
-  response.score = totalScore/numberOfGamesToSimulate;
-  if(response.score > MAX_RUNS) {
+  response.score = totalScore / numberOfGamesToSimulate;
+  if (response.score > MAX_RUNS) {
     response.score = MAX_RUNS;
   }
   response.time = (new Date().getTime() - time);
@@ -99,41 +99,41 @@ self.addEventListener('message',  e => {
 
 function mapBasesToHitType(bases) {
   switch (bases) {
-  case 0:
-    return "out";
-  case 1:
-    return "single";
-  case 2:
-    return "double";
-  case 3:
-    return "triple";
-  case 4:
-    return "homerun";
-  default:
-    throw Error(`Unrecognized bases count: ${bases}`);
+    case 0:
+      return "out";
+    case 1:
+      return "single";
+    case 2:
+      return "double";
+    case 3:
+      return "triple";
+    case 4:
+      return "homerun";
+    default:
+      throw Error(`Unrecognized bases count: ${bases}`);
   }
 }
 
 function mapResultToHitType(result) {
   switch (result) {
-  case "Out":
-  case "SAC":
-  case "FC":
-  case "K":
-  case "E":
-    return 0;
-  case "1B":
-  case "BB":
-    return 1;
-  case "2B":
-    return 2;
-  case "3B":
-    return 3;
-  case "HRi":
-  case "HRo":
-    return 4;
-  default:
-    throw Error(`Unrecognized hit type: ${result}`);
+    case "Out":
+    case "SAC":
+    case "FC":
+    case "K":
+    case "E":
+      return 0;
+    case "1B":
+    case "BB":
+      return 1;
+    case "2B":
+      return 2;
+    case "3B":
+      return 3;
+    case "HRi":
+    case "HRo":
+      return 4;
+    default:
+      throw Error(`Unrecognized hit type: ${result}`);
   }
 }
 
@@ -144,5 +144,5 @@ function hit(historicalHits) {
 
 function generateRandomInteger(min, max) {
   // TODO: use secure random? A bad rng will likely affect the quality of the simulation
-  return Math.floor(min + Math.random()*(max + 1 - min));
+  return Math.floor(min + Math.random() * (max + 1 - min));
 }

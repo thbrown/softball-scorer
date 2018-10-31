@@ -72,7 +72,7 @@ module.exports = class CardStats extends expose.Component {
 				}
 			}
 		};
-		this.handleStatsClick = function(sortField) {
+		this.handleStatsClick = function (sortField) {
 			const newState = Object.assign({}, this.state);
 			if (newState.sortField === sortField) {
 				newState.sortDirection = newState.sortDirection === 'DSC' ? 'ASC' : 'DSC';
@@ -83,7 +83,7 @@ module.exports = class CardStats extends expose.Component {
 			this.setState(newState);
 		}.bind(this);
 
-		this.handlePlayerClick = function(playerId) {
+		this.handlePlayerClick = function (playerId) {
 			expose.set_state('main', {
 				page: `/teams/${this.props.team.id}/stats/player/${playerId}`,
 			});
@@ -164,8 +164,8 @@ module.exports = class CardStats extends expose.Component {
 				return this.sortByState(a, b);
 			});
 
-		if( playerStatsList.length === 0 ) {
-			return ( <div></div> );
+		if (playerStatsList.length === 0) {
+			return (<div></div>);
 		}
 
 		const tableElems = [this.renderStatsHeader()].concat(
@@ -174,7 +174,7 @@ module.exports = class CardStats extends expose.Component {
 			}),
 		);
 
-		const height = ( window.innerHeight - 80 ) + 'px';
+		const height = (window.innerHeight - 80) + 'px';
 		return (
 			<div className="card" style={{ width: '100%', height: height, marginTop: '20px' }}>
 				<StickyTable>

@@ -1,7 +1,7 @@
 const got = require('got');
-const hasher = require( 'object-hash' );
+const hasher = require('object-hash');
 
-exports.signup = async function(email, password, reCapcha) {
+exports.signup = async function (email, password, reCapcha) {
   try {
     const response = await got.post('http://localhost:8888/server/account/signup', {
       body: {
@@ -17,7 +17,7 @@ exports.signup = async function(email, password, reCapcha) {
   }
 }
 
-exports.login = async function(email, password) {
+exports.login = async function (email, password) {
   try {
     var response = await got.post('http://localhost:8888/server/account/login', {
       body: {
@@ -33,7 +33,7 @@ exports.login = async function(email, password) {
   return response.headers["set-cookie"][0].split(';')[0];
 }
 
-exports.deleteAccount = async function(sessionId) {
+exports.deleteAccount = async function (sessionId) {
   try {
     const response = await got.delete('http://localhost:8888/server/account', {
       headers: {
@@ -47,7 +47,7 @@ exports.deleteAccount = async function(sessionId) {
   }
 }
 
-exports.sync = async function(sessionId, checksum, patch) {
+exports.sync = async function (sessionId, checksum, patch) {
   try {
     const response = await got.post('http://localhost:8888/server/sync', {
       headers: {
@@ -65,7 +65,7 @@ exports.sync = async function(sessionId, checksum, patch) {
   }
 }
 
-exports.randomId = function(length) {
+exports.randomId = function (length) {
   var text = "";
   var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   for (var i = 0; i < length; i++) {
@@ -74,17 +74,18 @@ exports.randomId = function(length) {
   return text;
 }
 
-exports.getMd5 = function(data) {
-  let checksum = hasher(data, { 
-    algorithm: 'md5',  
-    excludeValues: false, 
-    respectFunctionProperties: false, 
-    respectFunctionNames: false, 
+exports.getMd5 = function (data) {
+  let checksum = hasher(data, {
+    algorithm: 'md5',
+    excludeValues: false,
+    respectFunctionProperties: false,
+    respectFunctionNames: false,
     respectType: false,
-    encoding: 'base64'} );
+    encoding: 'base64'
+  });
   return checksum.slice(0, -2); // Remove trailing '=='
 }
 
-exports.getInitialState = function() {
-  return {"teams":[], "players": []};
+exports.getInitialState = function () {
+  return { "teams": [], "players": [] };
 }

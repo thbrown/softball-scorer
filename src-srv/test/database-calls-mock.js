@@ -11,43 +11,43 @@ let databaseCalls = class DatabaseCalls {
 		this.accountInfo = { id: 1, email: 'brutongaster@softball.app', password_hash: '$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2' };
 	}
 
-	setAccountIdAndPassword( info ) {
+	setAccountIdAndPassword(info) {
 		this.accountInfo = info;
 	}
 
-	getAccountFromEmail( email ) {
+	getAccountFromEmail(email) {
 		return this.accountInfo
 	}
 
-	setState( state ) {
+	setState(state) {
 		this.state = state;
 	}
 
-	getState( account_id ) {
+	getState(account_id) {
 		return this.state;
 	}
 
-	getAccountFromTokenHash( passwordTokenHash ) {
+	getAccountFromTokenHash(passwordTokenHash) {
 		return this.accountInfo;
 	}
 
-	async getAccountIdAndPassword( email ) {
+	async getAccountIdAndPassword(email) {
 		return this.accountInfo;
 	}
 
-	async signup( email, passwordTokenHash ) {
+	async signup(email, passwordTokenHash) {
 		return this.accountInfo; // TODO: return different account if here without the password_hash
 	}
 
-	async setPasswordHash( accountId, newPasswordHash ) {
+	async setPasswordHash(accountId, newPasswordHash) {
 		return;
 	}
 
-	async setPasswordTokenHash( accountId, newPasswordHash ) {
+	async setPasswordTokenHash(accountId, newPasswordHash) {
 		return;
 	}
 
-	async deleteAccount( accountId ) {
+	async deleteAccount(accountId) {
 		return;
 	}
 

@@ -1,10 +1,10 @@
-const utils = require( './test-utils.js' );
-const objectMerge = require( '../../object-merge.js' );
+const utils = require('./test-utils.js');
+const objectMerge = require('../../object-merge.js');
 
 module.exports = class StateTester {
   constructor(sessionId) {
-    this.localState = {"teams":[], "players": []};
-    this.ancestorState = {"teams":[], "players": []};
+    this.localState = { "teams": [], "players": [] };
+    this.ancestorState = { "teams": [], "players": [] };
     this.sessionId = sessionId;
   }
 
@@ -15,7 +15,7 @@ module.exports = class StateTester {
     // Useful for debugging
     // console.log(JSON.stringify(newState, null, 3), clientHash);
 
-    let response = await utils.sync( this.sessionId, clientHash, clientPatch );
+    let response = await utils.sync(this.sessionId, clientHash, clientPatch);
     let serverMd5 = response.body.md5;
 
     expect(serverMd5).toEqual(clientHash);

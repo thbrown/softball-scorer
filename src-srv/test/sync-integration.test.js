@@ -1,15 +1,15 @@
 /*eslint no-process-exit:*/
 'use strict';
 
-const objectHash = require( 'object-hash' );
+const objectHash = require('object-hash');
 const got = require('got');
 
-const DatabaseCallsPostgres = require( '../database-calls-postgres' );
-const config = require( '../config' );
-const SoftballServer = require( '../softball-server' );
-const utils = require( './test-utils.js' );
-const objectMerge = require( '../../object-merge.js' );
-const StateTester = require( './test-state-tracker.js' );
+const DatabaseCallsPostgres = require('../database-calls-postgres');
+const config = require('../config');
+const SoftballServer = require('../softball-server');
+const utils = require('./test-utils.js');
+const objectMerge = require('../../object-merge.js');
+const StateTester = require('./test-state-tracker.js');
 
 /**
  * This test requires an attached postgres database.
@@ -22,7 +22,7 @@ describe('sync', () => {
 		const pgport = config.database.port;
 		const username = config.database.username;
 		const password = config.database.password;
-		this.databaseCalls = new DatabaseCallsPostgres( pghost, pgport, username, password );
+		this.databaseCalls = new DatabaseCallsPostgres(pghost, pgport, username, password);
 		this.server = new SoftballServer(this.databaseCalls);
 		this.server.start();
 
@@ -30,73 +30,73 @@ describe('sync', () => {
 		let accountpassword = 'pizza';
 
 		await utils.signup(email, password);
-		this.sessionId = await utils.login( email, accountpassword );
+		this.sessionId = await utils.login(email, accountpassword);
 		this.stateTracker = new StateTester(this.sessionId);
 	});
 
 	afterAll(async () => {
-		await utils.deleteAccount( this.sessionId );
+		await utils.deleteAccount(this.sessionId);
 		this.server.stop();
 		this.databaseCalls.disconnect();
 	});
 
 	test('Sync - Team', async () => {
-			// Create
-			let clientAncestorState = utils.getInitialState();
-			let clientLocalState = {
-				"teams": [
-					{
-						"id": "5Jv09B38BMWewta24olLam",
-						"name": "BigTeam",
-						"games": []
-					}
-				],
-				"players": []
-			};
-			let clientPatch = objectMerge.diff(clientAncestorState, clientLocalState);
-			let clientHash = utils.getMd5(clientLocalState);
+		// Create
+		let clientAncestorState = utils.getInitialState();
+		let clientLocalState = {
+			"teams": [
+				{
+					"id": "5Jv09B38BMWewta24olLam",
+					"name": "BigTeam",
+					"games": []
+				}
+			],
+			"players": []
+		};
+		let clientPatch = objectMerge.diff(clientAncestorState, clientLocalState);
+		let clientHash = utils.getMd5(clientLocalState);
 
-			let response = await utils.sync( this.sessionId, clientHash, clientPatch );
-			let serverMd5 = response.body.md5;
+		let response = await utils.sync(this.sessionId, clientHash, clientPatch);
+		let serverMd5 = response.body.md5;
 
-			expect(serverMd5).toEqual(clientHash);
+		expect(serverMd5).toEqual(clientHash);
 
-			// Edit
-			clientAncestorState = clientLocalState;
-			clientLocalState = {
-				"teams": [
-					{
-						"id": "5Jv09B38BMWewta24olLam",
-						"name": "ActuallyThisBigTeam",
-						"games": []
-					}
-				],
-				"players": []
-			};
+		// Edit
+		clientAncestorState = clientLocalState;
+		clientLocalState = {
+			"teams": [
+				{
+					"id": "5Jv09B38BMWewta24olLam",
+					"name": "ActuallyThisBigTeam",
+					"games": []
+				}
+			],
+			"players": []
+		};
 
-			clientPatch = objectMerge.diff(clientAncestorState, clientLocalState);
-			clientHash = utils.getMd5(clientLocalState);
+		clientPatch = objectMerge.diff(clientAncestorState, clientLocalState);
+		clientHash = utils.getMd5(clientLocalState);
 
-			response = await utils.sync( this.sessionId, clientHash, clientPatch );
-			serverMd5 = response.body.md5;
+		response = await utils.sync(this.sessionId, clientHash, clientPatch);
+		serverMd5 = response.body.md5;
 
-			expect(serverMd5).toEqual(clientHash);
+		expect(serverMd5).toEqual(clientHash);
 
-			// Delete
-			clientAncestorState = clientLocalState;
-			clientLocalState = {"teams":[], "players": []};
+		// Delete
+		clientAncestorState = clientLocalState;
+		clientLocalState = { "teams": [], "players": [] };
 
-			clientPatch = objectMerge.diff(clientAncestorState, clientLocalState);
-			clientHash = utils.getMd5(clientLocalState);
+		clientPatch = objectMerge.diff(clientAncestorState, clientLocalState);
+		clientHash = utils.getMd5(clientLocalState);
 
-			response = await utils.sync( this.sessionId, clientHash, clientPatch );
-			serverMd5 = response.body.md5;
+		response = await utils.sync(this.sessionId, clientHash, clientPatch);
+		serverMd5 = response.body.md5;
 
-			expect(serverMd5).toEqual(clientHash);
+		expect(serverMd5).toEqual(clientHash);
 	});
 
 	test('Sync - Game', async () => {
-		let startingState = 	{
+		let startingState = {
 			"teams": [
 				{
 					"id": "2sPowxz25r4jmPNazKYJaa",
@@ -108,7 +108,7 @@ describe('sync', () => {
 		};
 
 		await this.stateTracker.syncStateClientUpdatesOnly(startingState);
-		
+
 		let addGameState = {
 			"teams": [
 				{

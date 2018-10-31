@@ -29,43 +29,43 @@ module.exports = class SoftballServer {
 	start() {
 		// Authentication
 		let self = this;
-		passport.use( new LocalStrategy( {
-				usernameField: 'email',
-				passwordField: 'password'
-			},
-			async function( email, password, cb ) {
-				logger.log(null, "Checking credentials...", email );
+		passport.use(new LocalStrategy({
+			usernameField: 'email',
+			passwordField: 'password'
+		},
+			async function (email, password, cb) {
+				logger.log(null, "Checking credentials...", email);
 
 				try {
-					let accountInfo = await self.databaseCalls.getAccountFromEmail( email );
+					let accountInfo = await self.databaseCalls.getAccountFromEmail(email);
 
 					let isValid = false;
-					if ( accountInfo && accountInfo.password_hash && email ) {
-						isValid = await bcrypt.compare( password, accountInfo.password_hash );
+					if (accountInfo && accountInfo.password_hash && email) {
+						isValid = await bcrypt.compare(password, accountInfo.password_hash);
 					}
 
-					if ( isValid ) {
+					if (isValid) {
 						let sessionInfo = {
 							accountId: accountInfo.account_id,
 							email: email,
 						};
-						logger.log(accountInfo.account_id, "Login accepted" );
-						cb( null, sessionInfo );
+						logger.log(accountInfo.account_id, "Login accepted");
+						cb(null, sessionInfo);
 					} else {
-						cb( null, false );
+						cb(null, false);
 						logger.log(null, "Login rejected", email);
 					}
-				} catch ( error ) {
-					logger.log( null, error, email);
-					cb( null, false );
+				} catch (error) {
+					logger.log(null, error, email);
+					cb(null, false);
 				}
-			} ) );
+			}));
 
-		passport.serializeUser(function(sessionInfo, cb) {
+		passport.serializeUser(function (sessionInfo, cb) {
 			cb(null, sessionInfo);
 		});
 
-		passport.deserializeUser(async function(sessionInfo, cb) {
+		passport.deserializeUser(async function (sessionInfo, cb) {
 			cb(null, sessionInfo);
 		});
 
@@ -109,79 +109,79 @@ module.exports = class SoftballServer {
 		app.use('/server/build', express.static(path.join(__dirname + '/../build').normalize()));
 		app.use('/server/assets', express.static(path.join(__dirname + '/../assets').normalize()));
 		// Service worker must be served at project root to intercept all fetches
-		app.use( '/service-worker', express.static( path.join( __dirname + '/../src/workers/service-worker.js' ).normalize() ) );
+		app.use('/service-worker', express.static(path.join(__dirname + '/../src/workers/service-worker.js').normalize()));
 		// Robots.txt is served from the root by convention
-		app.use( '/robots.txt', express.static( path.join( __dirname + '/../robots.txt' ).normalize() ) );
-		app.use( '/server/manifest', express.static( path.join( __dirname + '/../manifest.json' ).normalize() ) );
-		app.use( '/server/simulation-worker', express.static( path.join( __dirname + '/../src/workers/simulation-worker.js' ).normalize() ) );
-		app.use( bodyParser.json( {
+		app.use('/robots.txt', express.static(path.join(__dirname + '/../robots.txt').normalize()));
+		app.use('/server/manifest', express.static(path.join(__dirname + '/../manifest.json').normalize()));
+		app.use('/server/simulation-worker', express.static(path.join(__dirname + '/../src/workers/simulation-worker.js').normalize()));
+		app.use(bodyParser.json({
 			limit: '3mb',
 			type: ['json', 'application/json', 'application/csp-report']
-		} ) );
-		app.use( passportSession( {
-			secret: crypto.randomBytes( 20 ).toString( 'hex' ), // TODO: move secret to config
+		}));
+		app.use(passportSession({
+			secret: crypto.randomBytes(20).toString('hex'), // TODO: move secret to config
 			resave: false,
 			saveUninitialized: false,
 			name: 'softball.sid',
-			cookie: { 
+			cookie: {
 				httpOnly: true,
-				expires: new Date( 253402300000000 ),
+				expires: new Date(253402300000000),
 				sameSite: 'lax'
 				// Secure header is set by nginx reverse proxy
 			}
-		} ) );
-		app.use( passport.initialize() );
-		app.use( passport.session() );
+		}));
+		app.use(passport.initialize());
+		app.use(passport.session());
 
 		// Routes
 
-		app.get( '/server/state', wrapForErrorProcessing( async( req, res ) => {
-			if(!req.isAuthenticated()) {
-				res.status( 403 ).send();
+		app.get('/server/state', wrapForErrorProcessing(async (req, res) => {
+			if (!req.isAuthenticated()) {
+				res.status(403).send();
 				return;
 			}
-			let accountId = extractSessionInfo( req, 'accountId' );
-			await lockAccount( accountId );
+			let accountId = extractSessionInfo(req, 'accountId');
+			await lockAccount(accountId);
 			let state;
-			try{
-				state = await this.databaseCalls.getState( accountId );
+			try {
+				state = await this.databaseCalls.getState(accountId);
 			} finally {
-				unlockAccount( accountId );
+				unlockAccount(accountId);
 			}
-			res.status( 200 ).send( state );
-		} ) );
+			res.status(200).send(state);
+		}));
 
-		app.get( '/server/state-pretty', wrapForErrorProcessing( async( req, res ) => {
-			if(!req.isAuthenticated()) {
-				res.status( 403 ).send();
+		app.get('/server/state-pretty', wrapForErrorProcessing(async (req, res) => {
+			if (!req.isAuthenticated()) {
+				res.status(403).send();
 				return;
 			}
-			let accountId = extractSessionInfo( req, 'accountId' );
-			await lockAccount( accountId );
+			let accountId = extractSessionInfo(req, 'accountId');
+			await lockAccount(accountId);
 			let state;
-			try{
-				state = await this.databaseCalls.getState( accountId );
+			try {
+				state = await this.databaseCalls.getState(accountId);
 			} finally {
-				unlockAccount( accountId );
+				unlockAccount(accountId);
 			}
-			res.status( 200 ).send( JSON.stringify( state, null, 2 ) );
-		} ) );
+			res.status(200).send(JSON.stringify(state, null, 2));
+		}));
 
-		app.post( '/server/account/login', wrapForErrorProcessing( ( req, res, next ) => {
-			passport.authenticate( 'local', function( err, accountInfo, info ) {
-				if ( err || !accountInfo ) {
-					logger.log(null, 'Authentication Failed', accountInfo, err, info );
-					res.status( 400 ).send();
+		app.post('/server/account/login', wrapForErrorProcessing((req, res, next) => {
+			passport.authenticate('local', function (err, accountInfo, info) {
+				if (err || !accountInfo) {
+					logger.log(null, 'Authentication Failed', accountInfo, err, info);
+					res.status(400).send();
 					return;
 				}
-				req.logIn( accountInfo, function() {
-					logger.log(accountInfo.account_id, 'Login Successful!' );
-					res.status( 204 ).send();
-				} );
-			} )( req, res, next );
-		} ) );
+				req.logIn(accountInfo, function () {
+					logger.log(accountInfo.account_id, 'Login Successful!');
+					res.status(204).send();
+				});
+			})(req, res, next);
+		}));
 
-		app.post( '/server/account/signup', wrapForErrorProcessing( async( req, res, next ) => {
+		app.post('/server/account/signup', wrapForErrorProcessing(async (req, res, next) => {
 			checkRequiredField(req.body.email, "email");
 			checkFieldLength(req.body.email, 320);
 
@@ -190,18 +190,18 @@ module.exports = class SoftballServer {
 
 			checkRequiredField(req.body.reCAPCHA, "reCAPCHA");
 
-			if(config && config.recapcha && config.recapcha.secretkey) {
+			if (config && config.recapcha && config.recapcha.secretkey) {
 				let body = {
-					    secret: config.recapcha.secretkey,
-					    response: req.body.reCAPCHA,
-					    remoteip: req.connection.remoteAddress,
-					}
+					secret: config.recapcha.secretkey,
+					response: req.body.reCAPCHA,
+					remoteip: req.connection.remoteAddress,
+				}
 				try {
 					const recapchaResponse = await got.post(`https://www.google.com/recaptcha/api/siteverify?secret=${config.recapcha.secretkey}&response=${req.body.reCAPCHA}`);
 					let recapchaResponseBody = JSON.parse(recapchaResponse.body);
-					if(!recapchaResponseBody.success) {
-							throw new HandledError(400, "We don't serve their kind here", recapchaResponse.body);
-						}
+					if (!recapchaResponseBody.success) {
+						throw new HandledError(400, "We don't serve their kind here", recapchaResponse.body);
+					}
 				} catch (error) {
 					if (error instanceof HandledError) {
 						throw error;
@@ -217,14 +217,14 @@ module.exports = class SoftballServer {
 			logger.log(account.account_id, "Authenticating after successful signup");
 			logIn(account, req, res);
 
-			res.status( 204 ).send();
-		} ) );
+			res.status(204).send();
+		}));
 
-		app.post( '/server/account/reset-password-request', wrapForErrorProcessing( async( req, res, next ) => {
+		app.post('/server/account/reset-password-request', wrapForErrorProcessing(async (req, res, next) => {
 			checkRequiredField(req.body.email, "email");
-			let account = await this.databaseCalls.getAccountFromEmail( req.body.email );
+			let account = await this.databaseCalls.getAccountFromEmail(req.body.email);
 			logger.log(null, "Reset password request for", req.body.email);
-			if(account) {
+			if (account) {
 				let token = await generateToken();
 				let tokenHash = crypto.createHash('sha256').update(token).digest('base64');
 
@@ -232,14 +232,14 @@ module.exports = class SoftballServer {
 				logger.log(null, "Would have sent email", token, req.body.email);
 
 				await this.databaseCalls.setPasswordTokenHash(account.account_id, tokenHash);
-				res.status( 204 ).send();
+				res.status(204).send();
 			} else {
 				logger.log("Password reset: No such email found", req.body.email);
-				res.status( 404 ).send();
+				res.status(404).send();
 			}
-		} ) );
+		}));
 
-		app.post( '/server/account/reset-password', wrapForErrorProcessing( async( req, res, next ) => {
+		app.post('/server/account/reset-password', wrapForErrorProcessing(async (req, res, next) => {
 			logger.log(null, "Password update recieved. Token", req.body.token);
 			checkRequiredField(req.body.password, "password");
 			checkFieldLength(req.body.password, 320);
@@ -259,20 +259,20 @@ module.exports = class SoftballServer {
 				// So, we wont log the password resetter in automatically. We can change this if we think it really affects
 				// usability but I think it's okay. If users are resetting their passwords they are probably aready engaged.
 				// logIn(account, req, res);
-				res.status( 204 ).send();
+				res.status(204).send();
 			} else {
 				logger.log(null, "Could not find account from reset token", req.body.token);
-				res.status( 404 ).send();
+				res.status(404).send();
 			}
-		} ) );
+		}));
 
-		app.delete( '/server/account', wrapForErrorProcessing( async( req, res, next ) => {
-			if(!req.isAuthenticated()) {
-				res.status( 403 ).send();
+		app.delete('/server/account', wrapForErrorProcessing(async (req, res, next) => {
+			if (!req.isAuthenticated()) {
+				res.status(403).send();
 				return;
 			}
-			
-			let accountId = extractSessionInfo( req, 'accountId' );
+
+			let accountId = extractSessionInfo(req, 'accountId');
 			logger.log(accountId, `Deleting account`);
 
 			await lockAccount(accountId);
@@ -288,14 +288,14 @@ module.exports = class SoftballServer {
 				// TODO: Invalidate session somehow?
 				logger.log(accountId, "Account successfully deleted");
 
-				res.status( 204 ).send();
-			} catch(error) {
+				res.status(204).send();
+			} catch (error) {
 				logger.log(accountId, 'An error occured while deleting the account');
 				throw error;
 			} finally {
-				unlockAccount( accountId );
+				unlockAccount(accountId);
 			}
-		} ) );
+		}));
 
 		/*
 			req: {
@@ -311,21 +311,21 @@ module.exports = class SoftballServer {
 				base: {...}
 			}
 		*/
-		app.post( '/server/sync', wrapForErrorProcessing( async( req, res ) => {
-			if(!req.isAuthenticated()) {
-				res.status( 403 ).send();
+		app.post('/server/sync', wrapForErrorProcessing(async (req, res) => {
+			if (!req.isAuthenticated()) {
+				res.status(403).send();
 				return;
 			}
 
-			let accountId = extractSessionInfo( req, 'accountId' );
-			let stateRecentPatches = extractAccountInfo( accountId, 'stateRecentPatches') || [];
+			let accountId = extractSessionInfo(req, 'accountId');
+			let stateRecentPatches = extractAccountInfo(accountId, 'stateRecentPatches') || [];
 			let state = undefined;
 
 			// We need this information to know what state the client is in
 			let data = req.body;
 			logger.log(accountId, "Sync request received by server ", JSON.stringify(data, null, 2));
-			if( !data['md5'] ) {
-				throw new HandledError( 400, "Missing required field", data);
+			if (!data['md5']) {
+				throw new HandledError(400, "Missing required field", data);
 			}
 
 			// Prevent race conditions across requests
@@ -335,10 +335,10 @@ module.exports = class SoftballServer {
 
 			try {
 				// Check if the client sent updates to the server
-				if(data.patch && Object.keys(data.patch).length !== 0) {
+				if (data.patch && Object.keys(data.patch).length !== 0) {
 					logger.log(accountId, "client has updates", JSON.stringify(data.patch, null, 2));
 
-					state = state || await this.databaseCalls.getState( accountId );
+					state = state || await this.databaseCalls.getState(accountId);
 					let stateCopy = JSON.parse(JSON.stringify(state)); // Deep copy
 
 					// Apply the patch that was supplied by the client, passing true allows us to ignore any changes that were applied to deleted entries or additions of things that already exist
@@ -349,8 +349,8 @@ module.exports = class SoftballServer {
 					//logger.log(accountId, "cleanPatch", JSON.stringify(cleanPatch, null, 2));
 
 					// We can pass the clean patch to the database to persist
-					await this.databaseCalls.patchState( cleanPatch, accountId );
-					state = await this.databaseCalls.getState( accountId );
+					await this.databaseCalls.patchState(cleanPatch, accountId);
+					state = await this.databaseCalls.getState(accountId);
 					logger.log(accountId, "updatedState", JSON.stringify(state, null, 2), getMd5(state));
 
 					// Now we can derive the patch for this update (with the correct server ids) as well as the checksum of the most recent state and timestamp
@@ -375,9 +375,9 @@ module.exports = class SoftballServer {
 				let stateMd5 = extractAccountInfo(accountId, 'stateMd5');
 
 				// Calculate the checksum current state if it's not stored in session storage
-				if(!stateMd5) {
+				if (!stateMd5) {
 					logger.log(accountId, "No state hash stored in the session, getting state info");
-					state = state || await this.databaseCalls.getState( accountId );
+					state = state || await this.databaseCalls.getState(accountId);
 					let checksum = getMd5(state);
 
 					putAccountInfo(accountId, 'stateMd5', checksum);
@@ -385,27 +385,27 @@ module.exports = class SoftballServer {
 				}
 
 				// Check if the server has updates for the client.
-				if(data.md5 !== stateMd5) {
+				if (data.md5 !== stateMd5) {
 					logger.log(accountId, "Server has updates. CLIENT: ", data.md5, " SERVER: ", stateMd5);
 					// If we have a record of the patches we need to update the client, send those instead of the entire state
 					let foundMatch = false;
-					let patches = stateRecentPatches.filter( v => { 
-						if(v.md5 === data.md5) {
+					let patches = stateRecentPatches.filter(v => {
+						if (v.md5 === data.md5) {
 							foundMatch = true;
-						} 
+						}
 						return (foundMatch && v.md5 !== data.md5); // We want all patches after the matching md5
 					});
 
-					if( patches.length > 0 && data.type !== "full") {
-							// Yay, we have patches saved that will update the client to the current state, just send those.
-							logger.log(accountId, "patches found, sending those instead");//, stateRecentPatches);
-							let patchesOnly = patches.map( v => v.patch );
-							responseData.patches = patchesOnly;
-						} else {
-							// We don't have any patches saved in the session for this timestamp, or the client requested we send the whole state back.
+					if (patches.length > 0 && data.type !== "full") {
+						// Yay, we have patches saved that will update the client to the current state, just send those.
+						logger.log(accountId, "patches found, sending those instead");//, stateRecentPatches);
+						let patchesOnly = patches.map(v => v.patch);
+						responseData.patches = patchesOnly;
+					} else {
+						// We don't have any patches saved in the session for this timestamp, or the client requested we send the whole state back.
 						logger.log(accountId, "no patches found, sending whole state");
-							responseData.base = state || await this.databaseCalls.getState( accountId );
-						}
+						responseData.base = state || await this.databaseCalls.getState(accountId);
+					}
 					responseData.md5 = stateMd5;
 				} else {
 					logger.log(accountId, "No updates from server", data.md5, stateMd5);
@@ -422,16 +422,16 @@ module.exports = class SoftballServer {
 			res.status(200).send(responseData);
 
 			// Delete values if we are storing too many patches (Not the most refined technique, but it's something) 
-			while(JSON.stringify(stateRecentPatches).length > 20000) {
-				logger.log(accountId, "Erasing old patch data. New length: " + stateRecentPatches.length -1);
-				stateRecentPatches.splice(-1,1);
+			while (JSON.stringify(stateRecentPatches).length > 20000) {
+				logger.log(accountId, "Erasing old patch data. New length: " + stateRecentPatches.length - 1);
+				stateRecentPatches.splice(-1, 1);
 			}
 		}));
 
 		// This route just accepts reports of Content Security Policy (CSP) violations
 		// https://helmetjs.github.io/docs/csp/
 		app.post('/server/report-violation', function (req, res) {
-			let accountId = extractSessionInfo( req, 'accountId' );
+			let accountId = extractSessionInfo(req, 'accountId');
 			if (req.body) {
 				logger.log(accountId, 'CSP Violation: ', req.body);
 			} else {
@@ -441,28 +441,28 @@ module.exports = class SoftballServer {
 		})
 
 		// The root should retrun the whole app
-		app.get( '/', wrapForErrorProcessing( ( req, res ) => {
-			res.sendFile( path.join( __dirname + '/../index.html' ).normalize() );
-		} ) );
+		app.get('/', wrapForErrorProcessing((req, res) => {
+			res.sendFile(path.join(__dirname + '/../index.html').normalize());
+		}));
 
 		// Everything else loads the react app and is processed on the client side
-		app.get( '*', wrapForErrorProcessing( ( req, res ) => {
+		app.get('*', wrapForErrorProcessing((req, res) => {
 			logger.log(null, 'unanticipated url', req.originalUrl);
-			res.sendFile( path.join( __dirname + '/../index.html' ).normalize() );
-		} ) );
+			res.sendFile(path.join(__dirname + '/../index.html').normalize());
+		}));
 
 		// 404 on unrecognized routes
-		app.use(function() {
+		app.use(function () {
 			throw new HandledError(404, 'Resource not found');
 		});
 
-		app.use( function( error, req, res, next ) {
-			let accountId = extractSessionInfo( req, 'accountId' );
+		app.use(function (error, req, res, next) {
+			let accountId = extractSessionInfo(req, 'accountId');
 
-		res.setHeader('content-type', 'application/json');
-			if ( error instanceof HandledError ) {
+			res.setHeader('content-type', 'application/json');
+			if (error instanceof HandledError) {
 				logger.log(accountId, 'Sending Error', error.getExternalMessage());
-				res.status(error.getStatusCode()).send( { message: [error.getExternalMessage()] } );
+				res.status(error.getStatusCode()).send({ message: [error.getExternalMessage()] });
 				if (error.getInternalMessage()) {
 					error.print();
 				}
@@ -471,20 +471,20 @@ module.exports = class SoftballServer {
 					.toString(36)
 					.substring(7);
 				res.status(500).send({ message: `Internal Server Error. Error id: ${errorId}.` });
-				logger.log(accountId, `SERVER ERROR ${errorId} - ${accountId}`, { message: [ error.message ] } );
-				logger.log(accountId, `Error`, error );
+				logger.log(accountId, `SERVER ERROR ${errorId} - ${accountId}`, { message: [error.message] });
+				logger.log(accountId, `Error`, error);
 			}
 		});
 
-		this.server = server.listen( this.PORT, function listening() {
-			logger.log(null, 'Softball App: Listening on', server.address().port );
-		} );
+		this.server = server.listen(this.PORT, function listening() {
+			logger.log(null, 'Softball App: Listening on', server.address().port);
+		});
 
 		// Helpers -- TODO use consistent declarations
 
 		// Error handling, so we can catch errors that occur during async too
 		function wrapForErrorProcessing(fn) {
-			return async function(req, res, next) {
+			return async function (req, res, next) {
 				try {
 					await fn(req, res, next);
 				} catch (error) {
@@ -496,8 +496,8 @@ module.exports = class SoftballServer {
 
 		// An async sleep function
 		async function pause(ms) {
-			return new Promise(function(resolve, reject) {
-				setTimeout(function() {
+			return new Promise(function (resolve, reject) {
+				setTimeout(function () {
 					resolve(ms);
 				}, ms);
 			});
@@ -553,15 +553,15 @@ module.exports = class SoftballServer {
 				email: account.email,
 			};
 			try {
-				await new Promise(function(resolve, reject) {
-					req.logIn(account, function() {
+				await new Promise(function (resolve, reject) {
+					req.logIn(account, function () {
 						// We need to serialize some info to the session
 						let sessionInfo = {
 							accountId: account.account_id,
 							email: account.email,
 						};
-						var doneWrapper = function(req) {
-							var done = function(err, user) {
+						var doneWrapper = function (req) {
+							var done = function (err, user) {
 								if (err) {
 									reject(err);
 									return;
@@ -575,16 +575,16 @@ module.exports = class SoftballServer {
 						resolve();
 					});
 				});
-				logger.log(account.account_id, 'Login Successful -- backdoor!' );
-				let accountId = extractSessionInfo( req, 'accountId' );
-				logger.log(account.account_id, `Data ${accountId}` );
+				logger.log(account.account_id, 'Login Successful -- backdoor!');
+				let accountId = extractSessionInfo(req, 'accountId');
+				logger.log(account.account_id, `Data ${accountId}`);
 			} catch (e) {
 				logger.log(account.account_id, "ERROR", e);
-				res.status( 500 ).send();
+				res.status(500).send();
 			}
 		}
 
-		const extractSessionInfo = function(req, field) {
+		const extractSessionInfo = function (req, field) {
 			if (req && req.session && req.session.passport && req.session.passport.user) {
 				return req.session.passport.user[field];
 			} else {
@@ -595,7 +595,7 @@ module.exports = class SoftballServer {
 		// Information shared between all sessions associate with a single account -- TODO: we are leaking memory here if we don't clear this
 		let accountInformation = {};
 
-		const extractAccountInfo = function(accountId, field) {
+		const extractAccountInfo = function (accountId, field) {
 			if (accountInformation && accountInformation[accountId]) {
 				return accountInformation[accountId][field];
 			} else {
@@ -603,7 +603,7 @@ module.exports = class SoftballServer {
 			}
 		};
 
-		const putAccountInfo = function(accountId, field, value) {
+		const putAccountInfo = function (accountId, field, value) {
 			if (!accountInformation) {
 				accountInformation = [];
 			}
@@ -615,7 +615,7 @@ module.exports = class SoftballServer {
 
 		// Lock the account. Only one session for a single account can access the database at a time, otherwise there will be lots of race conditions.
 		// TODO: this will only scale to one process
-		const lockAccount = async function(accountId) {
+		const lockAccount = async function (accountId) {
 			let locked;
 			let counter = 0;
 			do {
@@ -626,7 +626,7 @@ module.exports = class SoftballServer {
 					);
 				}
 				locked = extractAccountInfo(accountId, 'locked');
-				if(locked) {
+				if (locked) {
 					logger.log(accountId, 'Account locked, retrying in 200ms');
 					await pause(200); // TODO: Do we need a random backoff?
 					counter++;
@@ -636,7 +636,7 @@ module.exports = class SoftballServer {
 			putAccountInfo(accountId, "locked", true);
 		}
 
-		const unlockAccount = function( accountId ) {
+		const unlockAccount = function (accountId) {
 			putAccountInfo(accountId, "locked", false); // TODO: would un-setting this instead avoid a memory leak?
 			logger.log(accountId, "Account Unlocked");
 		}

@@ -16,27 +16,27 @@ module.exports = class CardScorer extends expose.Component {
 		this.expose();
 		this.state = {};
 
-		this.handleDeleteClick = function(player, ev) {
+		this.handleDeleteClick = function (player, ev) {
 			dialog.show_confirm('Do you want to remove "' + player.name + '" from the lineup?', () => {
 				state.removePlayerFromLineup(this.props.game.lineup, player.id);
 			});
 			ev.stopPropagation();
 		};
 
-		this.handleCreateClick = function() {
+		this.handleCreateClick = function () {
 			expose.set_state('main', {
 				page: 'PlayerSelection',
 			});
 		}.bind(this);
 
-		this.handleBoxClick = function(player, plateAppearanceId) {
+		this.handleBoxClick = function (player, plateAppearanceId) {
 			expose.set_state('main', {
 				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearanceId}`,
 				isNew: false,
 			});
 		}.bind(this);
 
-		this.handleNewPlateAppearanceClick = function(player, game_id, team_id) {
+		this.handleNewPlateAppearanceClick = function (player, game_id, team_id) {
 			let plateAppearance = state.addPlateAppearance(player.id, game_id, team_id);
 			expose.set_state('main', {
 				page: `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearance.id}`,
@@ -44,12 +44,12 @@ module.exports = class CardScorer extends expose.Component {
 			});
 		}.bind(this);
 
-		this.handleDragStart = function(player) {
+		this.handleDragStart = function (player) {
 			let elem = document.getElementById('lineup_' + player.id);
 			elem.style['z-index'] = 100;
 			elem.style.position = 'absolute';
 		};
-		this.handleDragStop = function(player) {
+		this.handleDragStop = function (player) {
 			let elem = document.getElementById('lineup_' + player.id);
 			elem.style['z-index'] = 1;
 			elem.style.position = null;
@@ -62,7 +62,7 @@ module.exports = class CardScorer extends expose.Component {
 			state.updateLineup(this.props.game.lineup, player.id, new_position_index);
 		};
 
-		this.handleDrag = function() {};
+		this.handleDrag = function () { };
 	}
 
 	renderLineupPlayerList() {

@@ -1,28 +1,28 @@
 'use strict';
 
-const expose = require( './expose' );
-const DOM = require( 'react-dom-factories' );
+const expose = require('./expose');
+const DOM = require('react-dom-factories');
 
-const state = require( 'state' );
+const state = require('state');
 const qs = state.getQueryObj();
 
 module.exports = class CardLoading extends expose.Component {
-	constructor( props ) {
-		super( props );
+	constructor(props) {
+		super(props);
 		this.expose();
 		this.state = {};
 	}
 
-	async componentDidMount(){
+	async componentDidMount() {
 		state.loadAppDataFromLocalStorage();
 
 		// Do an asynchronous sync so the ui loads quickly and get's the data from the network later
 		// TODO: If the load is async, consider removing this whole card and moving to code to main-container
 		// setTimeout(state.sync,1); .. moved to main container
 
-		expose.set_state( 'main', {
+		expose.set_state('main', {
 			page: '/team'
-		} );
+		});
 
 		// Moved most of this to the main container
 		// Visibility changes should load/save data from/to storage to prevent inconsistencies between tabs
@@ -36,9 +36,9 @@ module.exports = class CardLoading extends expose.Component {
 	}
 
 	render() {
-		return 	DOM.div( {
-				className: 'card'
-			},
+		return DOM.div({
+			className: 'card'
+		},
 			'Loading...'
 		);
 	}
