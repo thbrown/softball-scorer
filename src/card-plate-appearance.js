@@ -70,8 +70,12 @@ module.exports = class CardPlateAppearance extends expose.Component {
 			state.updatePlateAppearanceResult(props.plateAppearance, result);
 		};
 
-		this.handleDragStart = function (ev) {
+		this.handleDragStart = function (ev) { };
+
+		this.handleDrag = function (ev) {
+			ev.stopPropagation();
 			ev.preventDefault(); // Not working for ios, not needed for anything else
+			console.log(ev.defaultPrevented); // This is still false for some reason
 		};
 
 		this.handleDragStop = function () {
@@ -238,6 +242,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
 				position: { x: 0, y: 0 },
 				grid: [1, 1],
 				onStart: this.handleDragStart.bind(this),
+				onDrag: this.handleDrag.bind(this),
 				onStop: this.handleDragStop.bind(this),
 			},
 			DOM.img({
@@ -299,11 +304,13 @@ module.exports = class CardPlateAppearance extends expose.Component {
 	}
 
 	renderWalkupSong() {
+		/*
 		return React.createElement(WalkupSong, {
 			player: this.props.player,
 			width: 48,
 			height: 48,
 		});
+		*/
 	}
 
 	render() {

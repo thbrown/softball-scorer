@@ -456,14 +456,16 @@ exports.getPlateAppearancesForPlayer = function (player_id) {
 };
 
 exports.updatePlateAppearanceResult = function (plateAppearance, result) {
+
 	plateAppearance.result = result;
+	console.log('Called1', LOCAL_STATE);
 	reRender();
 };
 
 exports.updatePlateAppearanceLocation = function (plateAppearance, location) {
 	plateAppearance.location = {};
-	plateAppearance.location.x = location[0];
-	plateAppearance.location.y = location[1];
+	plateAppearance.location.x = Math.floor(location[0]);
+	plateAppearance.location.y = Math.floor(location[1]);
 	reRender();
 };
 
