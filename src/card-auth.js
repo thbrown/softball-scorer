@@ -1,220 +1,251 @@
-'use strict';
+"use strict";
 
-const expose = require('./expose');
-const DOM = require('react-dom-factories');
-const css = require('css');
+const expose = require("./expose");
+const DOM = require("react-dom-factories");
+const css = require("css");
 
-const network = require('network.js')
-const dialog = require('dialog');
-const state = require('state');
+const network = require("network.js");
+const dialog = require("dialog");
+const state = require("state");
 
 module.exports = class CardAuth extends expose.Component {
-	constructor(props) {
-		super(props);
-		this.expose();
-		this.state = {};
+  constructor(props) {
+    super(props);
+    this.expose();
+    this.state = {};
 
-		this.handleBackClick = function () {
-			expose.set_state('main', {
-				page: '/menu'
-			});
-		};
+    this.handleBackClick = function() {
+      expose.set_state("main", {
+        page: "/menu"
+      });
+    };
 
-		this.handleSignupClick = function () {
-			expose.set_state('main', {
-				page: '/menu/signup'
-			});
-		};
+    this.handleSignupClick = function() {
+      expose.set_state("main", {
+        page: "/menu/signup"
+      });
+    };
 
-		this.handlePasswordResetClick = function () {
-			// TODO: pre-populate dialog with the email address that was already entered
-			// let email = document.getElementById( 'email' );
-			// email.value
-			dialog.show_input('To reset your password, please enter your email address', async (email) => {
-				console.log("Email", email);
-				if (email === undefined || email.trim().length === 0) {
-					dialog.show_notification(
-						'You must specify an email.'
-					);
-					return;
-				}
+    this.handlePasswordResetClick = function() {
+      // TODO: pre-populate dialog with the email address that was already entered
+      // let email = document.getElementById( 'email' );
+      // email.value
+      dialog.show_input(
+        "To reset your password, please enter your email address",
+        async email => {
+          console.log("Email", email);
+          if (email === undefined || email.trim().length === 0) {
+            dialog.show_notification("You must specify an email.");
+            return;
+          }
 
-				let body = JSON.stringify({
-					email: email
-				})
+          let body = JSON.stringify({
+            email: email
+          });
 
-				// TODO: loading icon
-				let response = await network.request("POST", 'server/account/reset-password-request', body);
-				if (response.status === 204) {
-					dialog.show_notification(
-						'Password reset email has been sent to the email provided.'
-					);
-				} else {
-					dialog.show_notification(
-						'Failed to send password reset email: ' + response.body.message
-					);
-				}
-			});
-		};
+          // TODO: loading icon
+          let response = await network.request(
+            "POST",
+            "server/account/reset-password-request",
+            body
+          );
+          if (response.status === 204) {
+            dialog.show_notification(
+              "Password reset email has been sent to the email provided."
+            );
+          } else {
+            dialog.show_notification(
+              "Failed to send password reset email: " + response.body.message
+            );
+          }
+        }
+      );
+    };
 
-		this.handleSubmitClick = async function () {
-			// Disable the button
-			if (this.blocked) {
-				console.log('BLOCKED!!!!');
-				return;
-			}
-			this.blocked = true;
+    this.handleSubmitClick = async function() {
+      // Disable the button
+      if (this.blocked) {
+        return;
+      }
+      this.blocked = true;
 
-			// Turn on the spinner
-			let spinner = document.getElementById('submit-spinner');
-			spinner.style.display = 'initial';
+      // Turn on the spinner
+      let spinner = document.getElementById("submit-spinner");
+      spinner.style.display = "initial";
 
-			try {
-				let email = document.getElementById('email');
-				let password = document.getElementById('password');
+      try {
+        let email = document.getElementById("email");
+        let password = document.getElementById("password");
 
-				if (email.value && password.value) {
+        if (email.value && password.value) {
+          let body = JSON.stringify({
+            email: email.value,
+            password: password.value
+          });
 
-					let body = JSON.stringify({
-						email: email.value,
-						password: password.value
-					});
+          let response = await network.request(
+            "POST",
+            "server/account/login",
+            body
+          );
 
-					let response = await network.request("POST", 'server/account/login', body);
-					if (response.status === 204) {
-						// TODO: don't clear local storage if the user re-logs into the same account (for example, if the user's session was invalidated while
-						// the user was in offline mode making changes and now wants to re-authenticate) 
-						state.clearLocalStorage();
-						state.clearState();
-						let status = await state.sync();
-						if (status === 200) {
-							console.log("Done with sync");
-							expose.set_state('main', {
-								page: '/teams',
-								render: true
-							});
-						} else {
-							dialog.show_notification('An error occured while attempting sync: ' + status);
-						}
-					} else {
-						dialog.show_notification('Invalid login');
-					}
+          if (response.status === 204) {
+            // TODO: don't clear local storage if the user re-logs into the same account (for example, if the user's session was invalidated while
+            // the user was in offline mode making changes and now wants to re-authenticate)
+            state.clearLocalStorage();
+            state.clearState();
 
-				} else {
-					let map = {
-						"Email": email.value,
-						"Password": password.value
-					}
-					let missingFields = Object.keys(map).filter(field => {
-						return !map[field];
-					})
-					dialog.show_notification('Please fill out the following required fields: ' + missingFields.join(', '));
-				}
-			} finally {
-				this.blocked = false;
-				spinner.style.display = 'none';
-			}
-		}.bind(this);
-	}
+            state.setActiveUser(email.value);
 
-	renderAuthInterface() {
-		return DOM.div({
-			className: 'auth-input-container',
-		},
-			DOM.input({
-				key: 'email',
-				id: 'email',
-				className: 'auth-input',
-				placeholder: 'Email',
-				type: 'email',
-			}),
-			DOM.input({
-				key: 'password',
-				id: 'password',
-				className: 'auth-input',
-				placeholder: 'Password',
-				type: 'password',
-			}),
-			this.renderButtons(),
-		);
-	}
+            let status = await state.sync();
+            if (status === 200) {
+              console.log("Done with sync");
+              expose.set_state("main", {
+                page: "/teams",
+                render: true
+              });
+            } else {
+              dialog.show_notification(
+                "An error occured while attempting sync: " + status
+              );
+            }
+          } else if (response.status === 400) {
+            dialog.show_notification("Invalid login");
+          } else {
+            dialog.show_notification(
+              "Could not login. Error code: ",
+              response.status
+            );
+          }
+        } else {
+          let map = {
+            Email: email.value,
+            Password: password.value
+          };
+          let missingFields = Object.keys(map).filter(field => {
+            return !map[field];
+          });
+          dialog.show_notification(
+            "Please fill out the following required fields: " +
+              missingFields.join(", ")
+          );
+        }
+      } finally {
+        this.blocked = false;
+        spinner.style.display = "none";
+      }
+    }.bind(this);
+  }
 
-	renderButtons() {
-		return [
-			DOM.div({
-				key: 'submit',
-				id: 'submit',
-				className: 'button confirm-button',
-				style: {
-					width: 'auto',
-					margin: '10px'
-				},
-				onClick: this.handleSubmitClick,
-			},
-				DOM.img({
-					id: 'submit-spinner',
-					src: '/server/assets/spinner.gif',
-					style: {
-						display: 'none',
-						marginLeft: '6px'
-					}
-				}),
-				'Submit'
-			)
-			,
-			DOM.hr({
-				key: 'divider',
-				style: {
-					margin: '16px'
-				}
-			})
-			,
-			DOM.div({
-				key: 'alternateButtons'
-			},
-				DOM.div({
-					key: 'signup',
-					id: 'signup',
-					className: 'button confirm-button',
-					style: {
-						width: 'auto',
-						margin: '10px'
-					},
-					onClick: this.handleSignupClick,
-				}, 'Create Account')
-				,
-				DOM.div({
-					key: 'passwordReset',
-					id: 'passwordReset',
-					className: 'button confirm-button',
-					style: {
-						width: 'auto',
-						margin: '10px'
-					},
-					onClick: this.handlePasswordResetClick,
-				}, 'Reset Password')
-			)
-		];
-	}
+  renderAuthInterface() {
+    return DOM.div(
+      {
+        className: "auth-input-container"
+      },
+      DOM.input({
+        key: "email",
+        id: "email",
+        className: "auth-input",
+        placeholder: "Email",
+        type: "email"
+      }),
+      DOM.input({
+        key: "password",
+        id: "password",
+        className: "auth-input",
+        placeholder: "Password",
+        type: "password"
+      }),
+      this.renderButtons()
+    );
+  }
 
-	render() {
-		return DOM.div({
-			style: {}
-		},
-			DOM.div({
-				className: 'card-title'
-			},
-				DOM.img({
-					src: '/server/assets/back.svg',
-					className: 'back-arrow',
-					onClick: this.handleBackClick,
-					alt: 'back'
-				}),
-				DOM.div({
-					className: 'card-title-text-with-arrow',
-				}, 'Login')
-			),
-			this.renderAuthInterface()
-		);
-	}
+  renderButtons() {
+    return [
+      DOM.div(
+        {
+          key: "submit",
+          id: "submit",
+          className: "button confirm-button",
+          style: {
+            width: "auto",
+            margin: "10px"
+          },
+          onClick: this.handleSubmitClick
+        },
+        DOM.img({
+          id: "submit-spinner",
+          src: "/server/assets/spinner.gif",
+          style: {
+            display: "none",
+            marginRight: "6px"
+          }
+        }),
+        "Submit"
+      ),
+      DOM.hr({
+        key: "divider",
+        style: {
+          margin: "16px"
+        }
+      }),
+      DOM.div(
+        {
+          key: "alternateButtons"
+        },
+        DOM.div(
+          {
+            key: "signup",
+            id: "signup",
+            className: "button confirm-button",
+            style: {
+              width: "auto",
+              margin: "10px"
+            },
+            onClick: this.handleSignupClick
+          },
+          "Create Account"
+        ),
+        DOM.div(
+          {
+            key: "passwordReset",
+            id: "passwordReset",
+            className: "button confirm-button",
+            style: {
+              width: "auto",
+              margin: "10px"
+            },
+            onClick: this.handlePasswordResetClick
+          },
+          "Reset Password"
+        )
+      )
+    ];
+  }
+
+  render() {
+    return DOM.div(
+      {
+        style: {}
+      },
+      DOM.div(
+        {
+          className: "card-title"
+        },
+        DOM.img({
+          src: "/server/assets/back.svg",
+          className: "back-arrow",
+          onClick: this.handleBackClick,
+          alt: "back"
+        }),
+        DOM.div(
+          {
+            className: "card-title-text-with-arrow"
+          },
+          "Login"
+        )
+      ),
+      this.renderAuthInterface()
+    );
+  }
 };
