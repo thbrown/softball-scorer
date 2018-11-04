@@ -21,6 +21,7 @@ let sessionValid = false;
 let activeUser = null;
 
 // Window State - State saved in memory only
+let addToHomescreenEvent = null;
 // TODO: simulation caching would go here
 
 const state = exports;
@@ -708,4 +709,14 @@ exports.setStatusBasedOnHttpResponse = function(code) {
   }
   exports.saveApplicationStateToLocalStorage();
   //console.log(`NEW -- Online: ${online} SessionValid: ${sessionValid}`);
+};
+
+exports.setAddToHomescreenPrompt = function(e) {
+  console.log(`Setting add to homescreen!`);
+  addToHomescreenEvent = e;
+};
+
+exports.getAddToHomescreenPrompt = function() {
+  console.log(`Getting add to homescreen!`);
+  return addToHomescreenEvent;
 };

@@ -108,6 +108,14 @@ module.exports = class MainContainer extends expose.Component {
       false
     );
 
+    window.addEventListener("beforeinstallprompt", e => {
+      console.log("beforeinstallprompt fired!");
+      // Prevent Chrome 67 and earlier from automatically showing the prompt
+      e.preventDefault();
+      // Stash the event so it can be triggered later.
+      state.setAddToHomescreenPrompt(e);
+    });
+
     let startPage = window.location.pathname;
 
     this.state = {
