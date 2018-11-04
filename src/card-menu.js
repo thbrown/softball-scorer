@@ -143,7 +143,7 @@ module.exports = class CardMenu extends expose.Component {
       )
     );
 
-    if (true || state.getAddToHomescreenPrompt()) {
+    if (state.getAddToHomescreenPrompt()) {
       elems.push(
         DOM.div(
           {
