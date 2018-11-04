@@ -1,108 +1,106 @@
-const { Pool } = require('pg');
+const { Pool } = require("pg");
 
-const HandledError = require('./handled-error.js');
-const idUtils = require('../id-utils.js');
-const logger = require('./logger.js');
-const objectMerge = require('../object-merge.js');
-const sqlGen = require('./sql-gen.js');
+const HandledError = require("./handled-error.js");
+const idUtils = require("../id-utils.js");
+const logger = require("./logger.js");
+const objectMerge = require("../object-merge.js");
+const sqlGen = require("./sql-gen.js");
 
 module.exports = class DatabaseCalls {
-	constructor(url, port, user, password, cb) {
+  constructor(url, port, user, password, cb) {
+    logger.log(null, "Connecting to pg", url);
+    this.pool = new Pool({
+      user: user,
+      host: url,
+      database: "Softball",
+      password: password,
+      port: port
+    });
 
-		logger.log(null, 'Connecting to pg', url);
-		this.pool = new Pool({
-			user: user,
-			host: url,
-			database: 'Softball',
-			password: password,
-			port: port,
-		});
+    // We don't ever anticipate storing numeric values larger than the javascript maximum safe integer size
+    // (9,007,199,254,740,991) so we'll instruct pg to return all bigints from the database as javascript numbers.
+    // See https://github.com/brianc/node-pg-types
+    var types = require("pg").types;
+    types.setTypeParser(20, function(val) {
+      return parseInt(val);
+    });
 
-		// We don't ever anticipate storing numeric values larger than the javascript maximum safe integer size
-		// (9,007,199,254,740,991) so we'll instruct pg to return all bigints from the database as javascript numbers.
-		// See https://github.com/brianc/node-pg-types
-		var types = require('pg').types;
-		types.setTypeParser(20, function (val) {
-			return parseInt(val);
-		});
+    // Verify connection
+    this.pool.connect(function(err) {
+      if (err) {
+        console.log("There was a problem getting db connection:", err);
+        if (cb) {
+          cb(err);
+        }
+      } else {
+        if (cb) {
+          cb(null);
+        }
+      }
+    });
+  }
 
-		// Verify connection
-		this.pool.connect(function (err) {
-			if (err) {
-				console.log('There was a problem getting db connection:', err);
-				if (cb) {
-					cb(err);
-				}
-			} else {
-				if (cb) {
-					cb(null);
-				}
-			}
-		});
+  disconnect() {
+    this.pool.end(() => {
+      logger.log(null, "Pg pool has been closed");
+    });
+  }
 
-	}
+  queryPromise(queryString) {
+    let self = this;
+    return new Promise(function(resolve, reject) {
+      self.pool.connect(function(err, client, done) {
+        if (err) {
+          logger.log(null, "There was a problem getting db connection:");
+          logger.log(err);
+          reject(err);
+        }
 
-	disconnect() {
-		this.pool.end(() => {
-			logger.log(null, 'Pg pool has been closed');
-		})
-	}
+        client.query(queryString, function(err, result) {
+          done();
+          if (err) {
+            logger.log(null, err);
+            reject(err);
+          } else {
+            resolve(result);
+          }
+        });
+      });
+    });
+  }
 
-	queryPromise(queryString) {
-		let self = this;
-		return new Promise(function (resolve, reject) {
-			self.pool.connect(function (err, client, done) {
-				if (err) {
-					logger.log(null, 'There was a problem getting db connection:');
-					logger.log(err);
-					reject(err);
-				}
+  parameterizedQueryPromise(queryString, values) {
+    let self = this;
+    return new Promise(function(resolve, reject) {
+      self.pool.connect(function(err, client, done) {
+        if (err) {
+          logger.log(null, "There was a problem getting db connection:");
+          logger.log(null, err);
+          process.exit(1);
+        }
 
-				client.query(queryString, function (err, result) {
-					done();
-					if (err) {
-						logger.log(null, err);
-						reject(err);
-					} else {
-						resolve(result);
-					}
-				});
-			});
-		});
-	}
+        client.query(queryString, values, (err, result) => {
+          done();
+          if (err) {
+            logger.log(null, err.stack);
+            reject(err);
+          } else {
+            resolve(result);
+          }
+        });
+      });
+    });
+  }
 
-	parameterizedQueryPromise(queryString, values) {
-		let self = this;
-		return new Promise(function (resolve, reject) {
-			self.pool.connect(function (err, client, done) {
-				if (err) {
-					logger.log(null, "There was a problem getting db connection:");
-					logger.log(null, err);
-					process.exit(1);
-				}
-
-				client.query(queryString, values, (err, result) => {
-					done();
-					if (err) {
-						logger.log(null, err.stack);
-						reject(err);
-					} else {
-						resolve(result);
-					}
-				});
-			});
-		});
-	}
-
-	getState(accountId) {
-		logger.log(accountId, 'Pulling Data');
-		if (accountId === undefined) {
-			return { "players": [], "teams": [] };
-		}
-		let self = this;
-		return new Promise(function (resolve, reject) {
-			var players = self.parameterizedQueryPromise(
-				`
+  getState(accountId) {
+    logger.log(accountId, "Pulling Data");
+    if (accountId === undefined) {
+      return { players: [], teams: [] };
+    }
+    let self = this;
+    return new Promise(function(resolve, reject) {
+      var players = self.parameterizedQueryPromise(
+        `
 				SELECT 
 				  id as id,
 				  name as name,
@@ -113,11 +111,11 @@ module.exports = class DatabaseCalls {
 				WHERE account_id = $1
 				ORDER BY counter ASC
 			`,
-				[accountId],
-			);
+        [accountId]
+      );
 
-			var teams = self.parameterizedQueryPromise(
-				`
+      var teams = self.parameterizedQueryPromise(
+        `
 				SELECT
 				  teams.id as team_id, 
 				  teams.name as team_name,
@@ -152,206 +150,249 @@ module.exports = class DatabaseCalls {
 				  plate_appearances.created_at ASC,
 				  plate_appearances.counter ASC;
 			`,
-				[accountId],
-			);
+        [accountId]
+      );
 
-			Promise.all([players, teams]).then(function (values) {
-				var milliseconds = new Date().getTime();
+      Promise.all([players, teams]).then(function(values) {
+        var milliseconds = new Date().getTime();
 
-				var state = {};
+        var state = {};
 
-				// Players
-				state.players = [];
-				state.players = values[0].rows;
-				for (let i = 0; i < state.players.length; i++) {
-					state.players[i].id = idUtils.hexUuidToBase62(state.players[i].id);
-					state.players[i].song_link = state.players[i].song_link ? state.players[i].song_link : null;
-					state.players[i].song_start = state.players[i].song_link ? state.players[i].song_link : null;
-				}
+        // Players
+        state.players = [];
+        state.players = values[0].rows;
+        for (let i = 0; i < state.players.length; i++) {
+          state.players[i].id = idUtils.serverIdToClientId(state.players[i].id);
+          state.players[i].song_link = state.players[i].song_link
+            ? state.players[i].song_link
+            : null;
+          state.players[i].song_start = state.players[i].song_link
+            ? state.players[i].song_link
+            : null;
+        }
 
-				// Teams
-				let plateAppearances = values[1].rows;
-				let teamIdSet = new Set();
-				let gameIdSet = new Set();
-				let teams = [];
+        // Teams
+        let plateAppearances = values[1].rows;
+        let teamIdSet = new Set();
+        let gameIdSet = new Set();
+        let teams = [];
 
-				for (let i = 0; i < plateAppearances.length; i++) {
-					let plateAppearance = plateAppearances[i];
+        for (let i = 0; i < plateAppearances.length; i++) {
+          let plateAppearance = plateAppearances[i];
 
-					if (plateAppearance.team_id && !teamIdSet.has(plateAppearance.team_id)) {
-						teamIdSet.add(plateAppearance.team_id);
-						var newTeam = {};
-						newTeam.games = [];
-						newTeam.id = idUtils.hexUuidToBase62(plateAppearance.team_id);
-						newTeam.name = plateAppearance.team_name;
-						teams.push(newTeam);
-					}
+          if (
+            plateAppearance.team_id &&
+            !teamIdSet.has(plateAppearance.team_id)
+          ) {
+            teamIdSet.add(plateAppearance.team_id);
+            var newTeam = {};
+            newTeam.games = [];
+            newTeam.id = idUtils.serverIdToClientId(plateAppearance.team_id);
+            newTeam.name = plateAppearance.team_name;
+            teams.push(newTeam);
+          }
 
-					if (plateAppearance.game_id && !gameIdSet.has(plateAppearance.game_id)) {
-						gameIdSet.add(plateAppearance.game_id);
-						var newGame = {};
-						newGame.plateAppearances = [];
-						newGame.id = idUtils.hexUuidToBase62(plateAppearance.game_id);
-						newGame.opponent = plateAppearance.game_opponent;
-						newGame.date = plateAppearance.game_date;
-						newGame.park = plateAppearance.game_park;
-						//newGame.scoreUs = plateAppearance.score_us;
-						//newGame.scoreThem = plateAppearance.score_them;
-						newGame.lineupType = plateAppearance.lineup_type;
-						if (plateAppearance.lineup) {
-							newGame.lineup = plateAppearance.lineup.split(',').map((v) => idUtils.hexUuidToBase62(v.trim()));
-						} else {
-							newGame.lineup = [];
-						}
-						let team = teams.find((element) => element.id === idUtils.hexUuidToBase62(plateAppearance.team_id));
-						team.games.push(newGame);
-					}
+          if (
+            plateAppearance.game_id &&
+            !gameIdSet.has(plateAppearance.game_id)
+          ) {
+            gameIdSet.add(plateAppearance.game_id);
+            var newGame = {};
+            newGame.plateAppearances = [];
+            newGame.id = idUtils.serverIdToClientId(plateAppearance.game_id);
+            newGame.opponent = plateAppearance.game_opponent;
+            newGame.date = plateAppearance.game_date;
+            newGame.park = plateAppearance.game_park;
+            //newGame.scoreUs = plateAppearance.score_us;
+            //newGame.scoreThem = plateAppearance.score_them;
+            newGame.lineupType = plateAppearance.lineup_type;
+            if (plateAppearance.lineup) {
+              newGame.lineup = plateAppearance.lineup
+                .split(",")
+                .map(v => idUtils.serverIdToClientId(v.trim()));
+            } else {
+              newGame.lineup = [];
+            }
+            let team = teams.find(
+              element =>
+                element.id ===
+                idUtils.serverIdToClientId(plateAppearance.team_id)
+            );
+            team.games.push(newGame);
+          }
 
-					if (plateAppearance.plate_appearance_id) {
-						var newPlateAppearance = {};
-						newPlateAppearance.id = idUtils.hexUuidToBase62(plateAppearance.plate_appearance_id);
-						newPlateAppearance.player_id = idUtils.hexUuidToBase62(plateAppearance.player_id);
-						newPlateAppearance.result = plateAppearance.result;
-						newPlateAppearance.location = {
-							x: plateAppearance.x,
-							y: plateAppearance.y,
-						};
-						let team = teams.find((element) => element.id === idUtils.hexUuidToBase62(plateAppearance.team_id));
-						let game = team.games.find((element) => element.id === idUtils.hexUuidToBase62(plateAppearance.game_id));
-						game.plateAppearances.push(newPlateAppearance);
-					}
-				}
-				state.teams = teams;
+          if (plateAppearance.plate_appearance_id) {
+            var newPlateAppearance = {};
+            newPlateAppearance.id = idUtils.serverIdToClientId(
+              plateAppearance.plate_appearance_id
+            );
+            newPlateAppearance.player_id = idUtils.serverIdToClientId(
+              plateAppearance.player_id
+            );
+            newPlateAppearance.result = plateAppearance.result;
+            newPlateAppearance.location = {
+              x: plateAppearance.x,
+              y: plateAppearance.y
+            };
+            let team = teams.find(
+              element =>
+                element.id ===
+                idUtils.serverIdToClientId(plateAppearance.team_id)
+            );
+            let game = team.games.find(
+              element =>
+                element.id ===
+                idUtils.serverIdToClientId(plateAppearance.game_id)
+            );
+            game.plateAppearances.push(newPlateAppearance);
+          }
+        }
+        state.teams = teams;
 
-				// For some reason the object hash changes before and after stringification. I couldn't quite figure out why this was happening
-				// the objects with different hashes appear to be identical. So, I'll add this copy here for now so we are always hashing the post-stringified object.
-				state = JSON.parse(JSON.stringify(state));
+        // For some reason the object hash changes before and after stringification. I couldn't quite figure out why this was happening
+        // the objects with different hashes appear to be identical. So, I'll add this copy here for now so we are always hashing the post-stringified object.
+        state = JSON.parse(JSON.stringify(state));
 
-				logger.log(accountId, `SYNC_PULL took ${(new Date).getTime() - milliseconds}ms`);
+        logger.log(
+          accountId,
+          `SYNC_PULL took ${new Date().getTime() - milliseconds}ms`
+        );
 
-				resolve(state);
-			});
-		});
-	}
+        resolve(state);
+      });
+    });
+  }
 
-	async patchState(patch, accountId) {
-		if (accountId === undefined) {
-			throw new HandledError(403, 'Please sign in first');
-		}
+  async patchState(patch, accountId) {
+    if (accountId === undefined) {
+      throw new HandledError(403, "Please sign in first");
+    }
 
-		// Generate sql based off the patch
-		let sqlToRun = sqlGen.getSqlFromPatch(patch, accountId);
+    // Generate sql based off the patch
+    let sqlToRun = sqlGen.getSqlFromPatch(patch, accountId);
 
-		// Run the sql in a single transaction
-		const client = await this.pool.connect();
-		try {
-			await client.query('BEGIN');
-			await client.query('SET CONSTRAINTS ALL DEFERRED');
+    // Run the sql in a single transaction
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query("SET CONSTRAINTS ALL DEFERRED");
 
-			for (let i = 0; i < sqlToRun.length; i++) {
-				// Don't save fields longer than 50 characters
-				for (var j = 0; j < sqlToRun[i].values.length; j++) {
-					if (sqlToRun[i].values[j] && sqlToRun[i].values[j].length > 50) {
-						throw new HandledError(400, 'Field was larger than 50 characters ' + sqlToRun[i].values[j]);
-					}
-				}
+      for (let i = 0; i < sqlToRun.length; i++) {
+        // Don't save fields longer than 50 characters
+        for (var j = 0; j < sqlToRun[i].values.length; j++) {
+          if (sqlToRun[i].values[j] && sqlToRun[i].values[j].length > 50) {
+            throw new HandledError(
+              400,
+              "Field was larger than 50 characters " + sqlToRun[i].values[j]
+            );
+          }
+        }
 
-				// Run the query!
-				logger.log(accountId, `Executing:`, sqlToRun[i]);
-				await client.query(sqlToRun[i].query, sqlToRun[i].values);
-			}
-			await client.query('COMMIT');
-		} catch (e) {
-			await client.query('ROLLBACK');
-			throw e;
-		} finally {
-			client.release();
-		}
-	}
+        // Run the query!
+        logger.log(accountId, `Executing:`, sqlToRun[i]);
+        await client.query(sqlToRun[i].query, sqlToRun[i].values);
+      }
+      await client.query("COMMIT");
+    } catch (e) {
+      await client.query("ROLLBACK");
+      throw e;
+    } finally {
+      client.release();
+    }
+  }
 
-	async signup(email, passwordHash, passwordTokenHash) {
-		let result = await this.parameterizedQueryPromise(
-			`
+  async signup(email, passwordHash, passwordTokenHash) {
+    let result = await this.parameterizedQueryPromise(
+      `
 				INSERT INTO account (email, password_hash, password_token_hash, password_token_expiration, status)
 				VALUES ($1, $2, $3, now() + interval '1' hour, 'TRIAL')
 				RETURNING account_id, email
 			`,
-			[email, passwordHash, passwordTokenHash],
-		);
-		return result.rows[0];
-	}
+      [email, passwordHash, passwordTokenHash]
+    );
+    return result.rows[0];
+  }
 
-	async getAccountFromTokenHash(passwordTokenHash) {
-		logger.log(null, "Seraching for", passwordTokenHash.trim());
-		let results = await this.parameterizedQueryPromise(`
+  async getAccountFromTokenHash(passwordTokenHash) {
+    logger.log(null, "Seraching for", passwordTokenHash.trim());
+    let results = await this.parameterizedQueryPromise(
+      `
 				SELECT account_id, email, password_hash, verified_email
 				FROM account 
 				WHERE password_token_hash = $1
 				AND password_token_expiration >= now()
 			`,
-			[passwordTokenHash.trim()],
-		);
-		if (results.rowCount > 1) {
-			throw new HandledError(500, `A strange number of accounts were returned: ${passwordTokenHash} ${result}`);
-		} else if (results.rowCount === 1) {
-			return results.rows[0];
-		} else {
-			return undefined;
-		}
-	}
+      [passwordTokenHash.trim()]
+    );
+    if (results.rowCount > 1) {
+      throw new HandledError(
+        500,
+        `A strange number of accounts were returned: ${passwordTokenHash} ${result}`
+      );
+    } else if (results.rowCount === 1) {
+      return results.rows[0];
+    } else {
+      return undefined;
+    }
+  }
 
-	async confirmEmail(accountId) {
-		await this.parameterizedQueryPromise(
-			`
+  async confirmEmail(accountId) {
+    await this.parameterizedQueryPromise(
+      `
 				UPDATE account 
 				SET verified_email = TRUE 
 				WHERE account_id = $1
 			`,
-			[accountId],
-		);
-	}
+      [accountId]
+    );
+  }
 
-	async getAccountFromEmail(email) {
-		let result = await this.parameterizedQueryPromise('SELECT account_id, password_hash FROM account WHERE email = $1', [
-			email,
-		]);
-		if (result.rowCount === 1) {
-			return result.rows[0];
-		} else if (result.rowCount !== 0) {
-			throw new HandledError(500, `A strange number of accounts were returned: ${email} ${result}`);
-		}
-		return undefined;
-	}
+  async getAccountFromEmail(email) {
+    let result = await this.parameterizedQueryPromise(
+      "SELECT account_id, password_hash FROM account WHERE email = $1",
+      [email]
+    );
+    if (result.rowCount === 1) {
+      return result.rows[0];
+    } else if (result.rowCount !== 0) {
+      throw new HandledError(
+        500,
+        `A strange number of accounts were returned: ${email} ${result}`
+      );
+    }
+    return undefined;
+  }
 
-	async setPasswordHashAndExpireToken(accountId, newPasswordHash) {
-		await this.parameterizedQueryPromise(
-			`
+  async setPasswordHashAndExpireToken(accountId, newPasswordHash) {
+    await this.parameterizedQueryPromise(
+      `
 				UPDATE account 
 				SET password_hash = $1, password_token_expiration = now()
 				WHERE account_id = $2
 			`,
-			[newPasswordHash, accountId],
-		);
-	}
+      [newPasswordHash, accountId]
+    );
+  }
 
-	async setPasswordTokenHash(accountId, newPasswordHash) {
-		await this.parameterizedQueryPromise(
-			`
+  async setPasswordTokenHash(accountId, newPasswordHash) {
+    await this.parameterizedQueryPromise(
+      `
 				UPDATE account 
 				SET password_token_hash = $1, password_token_expiration = now() + interval '24' hour
 				WHERE account_id = $2
 			`,
-			[newPasswordHash, accountId],
-		);
-	}
+      [newPasswordHash, accountId]
+    );
+  }
 
-	async deleteAccount(accountId) {
-		logger.log(accountId, 'deleting');
-		await this.parameterizedQueryPromise(`
+  async deleteAccount(accountId) {
+    logger.log(accountId, "deleting");
+    await this.parameterizedQueryPromise(
+      `
 				DELETE FROM account 
 				WHERE account_id = $1
 			`,
-			[accountId],
-		);
-	}
+      [accountId]
+    );
+  }
 };

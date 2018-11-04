@@ -108,7 +108,10 @@ module.exports = class CardSignup extends expose.Component {
 
         // Apparently CSP and reCAPCHA are a disaster in Chrome. Because we can't get the styling from Google, we'll just hide the annoying box that shows up. That's the styling we care about most.
         // https://bugs.chromium.org/p/chromium/issues/detail?id=546106
-        document.getElementById("g-recaptcha-response").hidden = true;
+        let box = document.getElementById("g-recaptcha-response");
+        if (box) {
+          box.hidden = true;
+        }
       } else {
         setTimeout(function() {
           showRecapchaInternal();
@@ -163,18 +166,50 @@ module.exports = class CardSignup extends expose.Component {
   }
 
   renderSubmitButton() {
-    return DOM.div(
-      {
-        key: "submit",
-        id: "submit",
-        className: "button confirm-button",
-        onClick: this.handleSubmitClick.bind(this),
-        style: {
-          marginLeft: "0"
-        }
-      },
-      "Submit"
+    // There is no active user, say that the data in this app will be associated with this accoutn now
+    var toRender = [];
+    if (!state.getActiveUser()) {
+      toRender.push(
+        DOM.div(
+          {
+            key: "info",
+            style: {
+              marginTop: "10px"
+            }
+          },
+          "Any data you have entered will be associated with your new account"
+        )
+      );
+    } else {
+      toRender.push(
+        DOM.div(
+          {
+            key: "info",
+            style: {
+              marginTop: "10px"
+            }
+          },
+          "Another account is signed in. Any data you see here will not be available in your new account. If you'd like this data, export the data from the menu, signup a new account, then re-import tha data."
+        )
+      );
+    }
+
+    toRender.push(
+      DOM.div(
+        {
+          key: "submit",
+          id: "submit",
+          className: "button confirm-button",
+          onClick: this.handleSubmitClick.bind(this),
+          style: {
+            marginLeft: "0"
+          }
+        },
+        "Submit"
+      )
     );
+
+    return toRender;
   }
 
   render() {
