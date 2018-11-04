@@ -66,7 +66,7 @@ module.exports = class MainContainer extends expose.Component {
     }
 
     // Load data from localstorage synchronously
-    state.loadAppDataFromLocalStorage();
+    state.loadStateFromLocalStorage();
 
     // When the user pops the state (e.g. on back button press) make sure the react state matches the url.
     window.onpopstate = function() {
@@ -86,7 +86,7 @@ module.exports = class MainContainer extends expose.Component {
     window.addEventListener(
       "focus",
       () => {
-        state.loadAppDataFromLocalStorage();
+        state.loadStateFromLocalStorage();
       },
       false
     );

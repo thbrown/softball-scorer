@@ -239,6 +239,20 @@ module.exports = class SoftballServer {
     );
 
     app.post(
+      "/server/account/logout",
+      wrapForErrorProcessing((req, res, next) => {
+        if (!req.isAuthenticated()) {
+          res.status(403).send();
+          return;
+        }
+        let accountId = extractSessionInfo(req, "accountId");
+        logger.log(accountId, "Logging out");
+        req.logout();
+        res.status(204).send();
+      })
+    );
+
+    app.post(
       "/server/account/signup",
       wrapForErrorProcessing(async (req, res, next) => {
         checkRequiredField(req.body.email, "email");

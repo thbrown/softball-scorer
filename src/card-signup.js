@@ -72,11 +72,10 @@ module.exports = class CardSignup extends expose.Component {
         JSON.stringify(body)
       );
       if (response.status === 204) {
-        // TODO: don't clear local storage if the user data isn't associated with an account
-        state.clearLocalStorage();
-        state.clearState();
-        console.log("Cleared state and localsStorage");
-
+        // Clear db state if the data in the app is from another account, otherwise the newly signed up account will now own that data
+        if (state.getActiveUser()) {
+          state.clearDbState();
+        }
         state.setActiveUser(email.value);
 
         dialog.show_notification(
@@ -95,8 +94,6 @@ module.exports = class CardSignup extends expose.Component {
         );
         console.log(response);
       }
-      console.log("DONE");
-      console.log(response);
     };
 
     this.showRecapcha = function() {

@@ -26,10 +26,11 @@ exports.getServerUrl = function(path) {
   return window.location.origin + "/" + path;
 };
 
+// TODO: Should we move this to the state?
 exports.updateNetworkStatus = async function() {
   let resp = await exports.request("GET", "server/current-account");
   if (resp.status === 200) {
-    console.log(`Acrive User: ${resp.body}`);
+    console.log(`Active User: ${resp.body.email}`);
     state.setActiveUser(resp.body.email);
   }
 };
