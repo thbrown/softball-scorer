@@ -8,10 +8,21 @@ const idUtils = require("../id-utils.js");
 const hasher = require("object-hash");
 const uuidv4 = require("uuid/v4");
 
-// Database State
+// For versioning localstorage
+const CURRENT_LS_SCHEMA_VERSION = "4";
+
+// Database State - Stored in memory, local storage, and persisted in the db
 const INITIAL_STATE = { teams: [], players: [] };
-let ANCESTOR_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
-let LOCAL_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+let ANCESTOR_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+let LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+
+// Application State - State that applies across windows. Stored in local storage and in memory.
+let online = true;
+let sessionValid = false;
+let activeUser = null;
+
+// Window State - State saved in memory only
+// TODO: simulation caching would go here
 
 const state = exports;
 
@@ -23,9 +34,6 @@ exports.sync = async function(fullSync) {
   console.log("Sync requested", fullSync ? "full" : "patchOnly");
 
   // TODO: do we want to cancel any in_progress syncs?
-
-  // Load from local storage first to make sure we've run any ls schema changes
-  exports.loadAppDataFromLocalStorage();
 
   // Save a deep copy of the local state
   let localStateCopy = JSON.parse(JSON.stringify(state.getLocalState()));
@@ -129,41 +137,49 @@ exports.sync = async function(fullSync) {
     exports.setLocalState(newLocalState);
 
     // Write the most updated data to local storage
-    exports.saveAppDataToLocalStorage();
+    exports.saveDbStateToLocalStorage();
   }
   return response.status;
 };
 
-exports.clearState = function() {
-  LOCAL_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
-  ANCESTOR_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+exports.clearDbState = function() {
+  LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+  ANCESTOR_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+  exports.saveDbStateToLocalStorage();
+};
+
+exports.clearApplicationState = function() {
+  online = true;
+  sessionValid = false;
+  activeUser = null;
+  exports.saveApplicationStateToLocalStorage();
 };
 
 exports.getLocalState = function() {
-  return LOCAL_STATE;
+  return LOCAL_DB_STATE;
 };
 
 exports.setLocalState = function(newState) {
-  LOCAL_STATE = newState;
-  reRender();
+  LOCAL_DB_STATE = newState;
+  reRenderAndWriteDbStateToLs();
 };
 
 exports.getAncestorState = function() {
-  return ANCESTOR_STATE;
+  return ANCESTOR_DB_STATE;
 };
 
 exports.setAncestorState = function(s) {
-  ANCESTOR_STATE = s;
+  ANCESTOR_DB_STATE = s;
 };
 
 exports.getAncestorStateChecksum = function() {
-  return getMd5(ANCESTOR_STATE);
+  return getMd5(ANCESTOR_DB_STATE);
 };
 
 // TEAM
 
 exports.getTeam = function(team_id, state) {
-  return (state || LOCAL_STATE).teams.reduce((prev, curr) => {
+  return (state || LOCAL_DB_STATE).teams.reduce((prev, curr) => {
     return curr.id === team_id ? curr : prev;
   }, null);
 };
@@ -177,7 +193,7 @@ exports.addTeam = function(team_name) {
     games: []
   };
   new_state.teams.push(team);
-  reRender();
+  reRenderAndWriteDbStateToLs();
   return team;
 };
 
@@ -186,7 +202,7 @@ exports.replaceTeam = function(oldTeamId, newTeam) {
   let oldTeam = exports.getTeam(oldTeamId);
   let oldTeamIndex = localState.teams.indexOf(oldTeam);
   localState.teams[oldTeamIndex] = newTeam;
-  reRender();
+  reRenderAndWriteDbStateToLs();
 };
 
 exports.removeTeam = function(team_id) {
@@ -194,13 +210,13 @@ exports.removeTeam = function(team_id) {
   new_state.teams = new_state.teams.filter(team => {
     return team.id !== team_id;
   });
-  reRender();
+  reRenderAndWriteDbStateToLs();
 };
 
 // PLAYER
 
 exports.getPlayer = function(player_id, state) {
-  return (state || LOCAL_STATE).players.reduce((prev, curr) => {
+  return (state || LOCAL_DB_STATE).players.reduce((prev, curr) => {
     return curr.id === player_id ? curr : prev;
   }, null);
 };
@@ -211,7 +227,7 @@ exports.replacePlayer = function(playerId, newPlayer) {
 
   let oldPlayerIndex = localState.players.indexOf(oldPlayer);
   localState.players[oldPlayerIndex] = newPlayer;
-  reRender();
+  reRenderAndWriteDbStateToLs();
 };
 
 exports.getAllPlayers = function() {
@@ -244,7 +260,7 @@ exports.addPlayer = function(player_name, gender) {
     song_start: null
   };
   new_state.players.push(player);
-  reRender();
+  reRenderAndWriteDbStateToLs();
   return player;
 };
 
@@ -272,7 +288,7 @@ exports.addGame = function(team_id, opposing_team_name) {
     plateAppearances: []
   };
   team.games.push(game);
-  reRender();
+  reRenderAndWriteDbStateToLs();
   return game;
 };
 
@@ -285,11 +301,11 @@ exports.replaceGame = function(oldGameId, teamId, newGame) {
 
   let oldGameIndex = localState.teams[teamIndex].games.indexOf(oldGame);
   localState.teams[teamIndex].games[oldGameIndex] = newGame;
-  reRender();
+  reRenderAndWriteDbStateToLs();
 };
 
 exports.getGame = function(game_id, state) {
-  for (let team of (state || LOCAL_STATE).teams) {
+  for (let team of (state || LOCAL_DB_STATE).teams) {
     for (let game of team.games) {
       if (game.id === game_id) {
         return game;
@@ -334,21 +350,21 @@ exports.getGamesWherePlayerHasPlateAppearances = function(playerId) {
 
 exports.addPlayerToLineup = function(lineup, player_id) {
   lineup.push(player_id);
-  reRender();
+  reRenderAndWriteDbStateToLs();
 };
 
 exports.updateLineup = function(lineup, player_id, position_index) {
   let ind = lineup.indexOf(player_id);
   lineup.splice(ind, 1);
   lineup.splice(position_index, 0, player_id);
-  reRender();
+  reRenderAndWriteDbStateToLs();
   return lineup;
 };
 
 exports.removePlayerFromLineup = function(lineup, player_id) {
   let index = lineup.indexOf(player_id);
   lineup.splice(index, 1);
-  reRender();
+  reRenderAndWriteDbStateToLs();
 };
 
 exports.removeGame = function(game_id, team_id) {
@@ -365,7 +381,7 @@ exports.removeGame = function(game_id, team_id) {
   } else {
     console.log("Game not found " + game_id);
   }
-  reRender();
+  reRenderAndWriteDbStateToLs();
 };
 
 // PLATE APPEARANCE
@@ -384,7 +400,7 @@ exports.addPlateAppearance = function(player_id, game_id) {
     }
   };
   plateAppearances.push(plateAppearance);
-  reRender();
+  reRenderAndWriteDbStateToLs();
   return plateAppearance;
 };
 
@@ -404,12 +420,12 @@ exports.replacePlateAppearance = function(paId, gameId, teamId, newPa) {
   localState.teams[teamIndex].games[gameIndex].plateAppearances[
     oldPaIndex
   ] = newPa;
-  reRender();
+  reRenderAndWriteDbStateToLs();
 };
 
 // TODO: allow for passing team and game ids to improve perf
 exports.getPlateAppearance = function(pa_id, state) {
-  for (let team of (state || LOCAL_STATE).teams) {
+  for (let team of (state || LOCAL_DB_STATE).teams) {
     for (let game of team.games) {
       for (let pa of game.plateAppearances) {
         if (pa.id === pa_id) {
@@ -481,14 +497,14 @@ exports.getPlateAppearancesForPlayer = function(player_id) {
 
 exports.updatePlateAppearanceResult = function(plateAppearance, result) {
   plateAppearance.result = result;
-  reRender();
+  reRenderAndWriteDbStateToLs();
 };
 
 exports.updatePlateAppearanceLocation = function(plateAppearance, location) {
   plateAppearance.location = {};
   plateAppearance.location.x = Math.floor(location[0]);
   plateAppearance.location.y = Math.floor(location[1]);
-  reRender();
+  reRenderAndWriteDbStateToLs();
 };
 
 exports.removePlateAppearance = function(plateAppearance_id, game_id) {
@@ -498,53 +514,96 @@ exports.removePlateAppearance = function(plateAppearance_id, game_id) {
   game.plateAppearances = game.plateAppearances.filter(pa => {
     return pa.id !== plateAppearance_id;
   });
-  reRender();
+  reRenderAndWriteDbStateToLs();
 };
 
 // LOCAL STORAGE
 
-exports.saveAppDataToLocalStorage = function() {
+exports.saveDbStateToLocalStorage = function() {
   if (typeof Storage !== "undefined") {
-    // Changes from other tabs should have been loaded when window/tab became visible
-    // So, we can just write directly to local storage
-    localStorage.setItem("SCHEMA_VERSION", "3");
-    localStorage.setItem("LOCAL_STATE", JSON.stringify(LOCAL_STATE));
-    localStorage.setItem("ANCESTOR_STATE", JSON.stringify(ANCESTOR_STATE));
+    localStorage.setItem("SCHEMA_VERSION", CURRENT_LS_SCHEMA_VERSION);
+    localStorage.setItem("LOCAL_DB_STATE", JSON.stringify(LOCAL_DB_STATE));
+    localStorage.setItem(
+      "ANCESTOR_DB_STATE",
+      JSON.stringify(ANCESTOR_DB_STATE)
+    );
   }
 };
 
-exports.loadAppDataFromLocalStorage = function() {
+exports.saveApplicationStateToLocalStorage = function() {
+  if (typeof Storage !== "undefined") {
+    localStorage.setItem("SCHEMA_VERSION", CURRENT_LS_SCHEMA_VERSION);
+    let applicationState = {
+      online: online,
+      sessionValid: sessionValid,
+      activeUser: activeUser
+    };
+    localStorage.setItem("APPLICATION_STATE", JSON.stringify(applicationState));
+  }
+};
+
+exports.loadStateFromLocalStorage = function() {
   if (typeof Storage !== "undefined") {
     // These statements define local storage schema migrations
     /*
 		if(localStorage.getItem("SCHEMA_VERSION") === "1") {
 			// Example
-			let version2 = JSON.parse(localStorage.getItem("LOCAL_STATE"));
+			let version2 = JSON.parse(localStorage.getItem("LOCAL_DB_STATE"));
 			version2.doSomeConversion();
-			let version2anc = JSON.parse(localStorage.getItem("ANCESTOR_STATE"));
+			let version2anc = JSON.parse(localStorage.getItem("ANCESTOR_DB_STATE"));
 			version2anc.doSomeConversion();
-			localStorage.setItem("SCHEMA_VERSION", 2);
+			localStorage.setItem("SCHEMA_VERSION", "2");
 		}
 		if(localStorage.getItem("SCHEMA_VERSION") === "2") {
 			// Example
-			let version3 = JSON.parse(localStorage.getItem("LOCAL_STATE"));
+			let version3 = JSON.parse(localStorage.getItem("LOCAL_DB_STATE"));
 			version3.doSomeConversion();
-			let version3anc = JSON.parse(localStorage.getItem("ANCESTOR_STATE"));
+			let version3anc = JSON.parse(localStorage.getItem("ANCESTOR_DB_STATE"));
 			version3anc.doSomeConversion();
-			localStorage.setItem("SCHEMA_VERSION", 3);
+			localStorage.setItem("SCHEMA_VERSION", "3");
 		}
 		*/
 
-    if (localStorage.getItem("SCHEMA_VERSION") !== "3") {
+    if (localStorage.getItem("SCHEMA_VERSION") !== CURRENT_LS_SCHEMA_VERSION) {
+      console.log(
+        `Removing invalid localStorage data ${localStorage.getItem(
+          "SCHEMA_VERSION"
+        )}`
+      );
       exports.clearLocalStorage();
-      exports.saveAppDataToLocalStorage();
-      console.log("Invalid localStorage data was removed");
+      exports.saveDbStateToLocalStorage();
+      exports.saveApplicationStateToLocalStorage();
     }
-    let startTime = performance.now();
 
-    LOCAL_STATE = JSON.parse(localStorage.getItem("LOCAL_STATE"));
-    ANCESTOR_STATE = JSON.parse(localStorage.getItem("ANCESTOR_STATE"));
+    let localDbState = localStorage.getItem("LOCAL_DB_STATE");
+    if (localDbState) {
+      LOCAL_DB_STATE = JSON.parse(localDbState);
+    }
+
+    let ancestorDbState = localStorage.getItem("ANCESTOR_DB_STATE");
+    if (ancestorDbState) {
+      ANCESTOR_DB_STATE = JSON.parse(ancestorDbState);
+    }
+
+    let applicationState = JSON.parse(
+      localStorage.getItem("APPLICATION_STATE")
+    );
+    if (applicationState) {
+      online = applicationState.online ? applicationState.online : true;
+      sessionValid = applicationState.sessionValid
+        ? applicationState.sessionValid
+        : false;
+      activeUser = applicationState.activeUser
+        ? applicationState.activeUser
+        : null;
+    } else {
+      console.log("Tried to load null, falling back to defaults");
+      online = true;
+      sessionValid = false;
+      activeUser = null;
+    }
   }
+
   reRender();
 };
 
@@ -555,11 +614,15 @@ exports.clearLocalStorage = function() {
 
 // HELPERS
 
+function reRenderAndWriteDbStateToLs() {
+  reRender();
+  exports.saveDbStateToLocalStorage();
+}
+
 function reRender() {
   expose.set_state("main", {
     render: true
   });
-  exports.saveAppDataToLocalStorage();
 }
 
 function getNextId() {
@@ -600,10 +663,7 @@ exports.getQueryObj = function() {
 
 window.state = exports;
 
-// Window Global State
-let online = true;
-let sessionValid = false;
-let activeUser = null;
+// APPLICATION STATE FUNCTIONS
 
 exports.isOnline = function() {
   return online;
@@ -619,24 +679,25 @@ exports.getActiveUser = function() {
 
 exports.setOffline = function() {
   online = false;
+  exports.saveApplicationStateToLocalStorage();
 };
 
 exports.setActiveUser = function(user) {
   activeUser = user;
 };
 
-exports.clearActiveUser = function() {
-  activeUser = null;
-};
-
+// This assumes all routes are behind login
 exports.setStatusBasedOnHttpResponse = function(code) {
-  console.log(`OLD -- Online: ${online} SessionValid: ${sessionValid}`);
+  //console.log(`OLD -- Online: ${online} SessionValid: ${sessionValid}`);
   if (code >= 200 && code < 300) {
     sessionValid = true;
     online = true;
   } else if (code === 403 || code === 401) {
     sessionValid = false;
     online = true;
+  } else if (code === -1) {
+    online = false;
   }
-  console.log(`NEW -- Online: ${online} SessionValid: ${sessionValid}`);
+  exports.saveApplicationStateToLocalStorage();
+  //console.log(`NEW -- Online: ${online} SessionValid: ${sessionValid}`);
 };

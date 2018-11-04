@@ -90,12 +90,11 @@ module.exports = class CardAuth extends expose.Component {
           );
 
           if (response.status === 204) {
-            // TODO: don't clear local storage if the user re-logs into the same account (for example, if the user's session was invalidated while
-            // the user was in offline mode making changes and now wants to re-authenticate)
-            state.clearLocalStorage();
-            state.clearState();
-
-            state.setActiveUser(email.value);
+            // Don't clear the db state if the user re-logs into the same account
+            if (state.getActiveUser() !== email.value) {
+              state.clearDbState();
+              state.setActiveUser(email.value);
+            }
 
             let status = await state.sync();
             if (status === 200) {

@@ -2,14 +2,14 @@
 
 const expose = require("./expose");
 const DOM = require("react-dom-factories");
+const FileSaver = require("file-saver");
 const css = require("css");
 
 const dialog = require("dialog");
-
-const state = require("state");
-const objectMerge = require("../object-merge.js");
 const hasher = require("object-hash");
-const FileSaver = require("file-saver");
+const network = require("network.js");
+const objectMerge = require("../object-merge.js");
+const state = require("state");
 
 module.exports = class CardMenu extends expose.Component {
   constructor(props) {
@@ -26,6 +26,32 @@ module.exports = class CardMenu extends expose.Component {
     this.handlePlayersClick = function() {
       expose.set_state("main", {
         page: "/players"
+      });
+    };
+
+    this.handleLogoutClick = async function() {
+      dialog.show_confirm("Are you sure you want to log out?", async () => {
+        let response = await network.request("POST", "server/account/logout");
+        if (response.status === 204) {
+          state.clearDbState();
+          state.clearApplicationState(); // Even though the most recent request was successful, mark the session as invalid.
+          dialog.show_notification("Logout successful", function() {
+            expose.set_state("main", {
+              page: "/menu/login"
+            });
+          });
+        } else {
+          // We can't delete our cookies in javascript because they have the httpOnly header, it has to be done from the server
+          // TODO: We might be able to get around this by sending a phony login request, catch it with the service worker and pretend it succeded
+          dialog.show_notification(
+            "Logout failed. You must be online to logout",
+            function() {
+              expose.set_state("main", {
+                page: "/menu"
+              });
+            }
+          );
+        }
       });
     };
 
@@ -99,20 +125,37 @@ module.exports = class CardMenu extends expose.Component {
       )
     );
 
-    elems.push(
-      DOM.div(
-        {
-          key: "login",
-          id: "login",
-          className: "list-item",
-          onClick: this.handleLoginClick.bind(this),
-          style: {
-            backgroundColor: css.colors.BG
-          }
-        },
-        "Login"
-      )
-    );
+    if (state.isSessionValid()) {
+      elems.push(
+        DOM.div(
+          {
+            key: "logout",
+            id: "logout",
+            className: "list-item",
+            onClick: this.handleLogoutClick.bind(this),
+            style: {
+              backgroundColor: css.colors.BG
+            }
+          },
+          "Logout"
+        )
+      );
+    } else {
+      elems.push(
+        DOM.div(
+          {
+            key: "login",
+            id: "login",
+            className: "list-item",
+            onClick: this.handleLoginClick.bind(this),
+            style: {
+              backgroundColor: css.colors.BG
+            }
+          },
+          "Login"
+        )
+      );
+    }
 
     elems.push(
       DOM.div(
