@@ -710,13 +710,10 @@ exports.setStatusBasedOnHttpResponse = function(code) {
   exports.saveApplicationStateToLocalStorage();
   //console.log(`NEW -- Online: ${online} SessionValid: ${sessionValid}`);
 };
-
 exports.setAddToHomescreenPrompt = function(e) {
-  console.log(`Setting add to homescreen!`);
   addToHomescreenEvent = e;
 };
 
 exports.getAddToHomescreenPrompt = function() {
-  console.log(`Getting add to homescreen!`);
   return addToHomescreenEvent;
 };
