@@ -483,14 +483,14 @@ module.exports = class SoftballServer {
             // We can pass the clean patch to the database to persist
             await this.databaseCalls.patchState(cleanPatch, accountId);
             state = await this.databaseCalls.getState(accountId);
-            /* // Useful for debuging
-            logger.log(
+            // Useful for debuging
+            /*logger.log(
               accountId,
               "updatedState",
               JSON.stringify(state, null, 2),
               getMd5(state)
-						);
-						*/
+            );
+            */
 
             // Now we can derive the patch for this update (with the correct server ids) as well as the checksum of the most recent state and timestamp
             let syncPatch = objectMerge.diff(stateCopy, state);

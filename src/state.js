@@ -6,10 +6,9 @@ const network = require("network.js");
 const idUtils = require("../id-utils.js");
 
 const hasher = require("object-hash");
-const uuidv4 = require("uuid/v4");
 
 // For versioning localstorage
-const CURRENT_LS_SCHEMA_VERSION = "4";
+const CURRENT_LS_SCHEMA_VERSION = "5";
 
 // Database State - Stored in memory, local storage, and persisted in the db
 const INITIAL_STATE = { teams: [], players: [] };
@@ -625,8 +624,17 @@ function reRender() {
   });
 }
 
+// TODO: don't go through hex, jsut go dec to base62
+function dec2hex(dec) {
+  return ("0" + dec.toString(16)).substr(-2);
+}
+
 function getNextId() {
-  return idUtils.hexUuidToBase62(uuidv4());
+  let len = 20;
+  var arr = new Uint8Array((len || 40) / 2);
+  window.crypto.getRandomValues(arr);
+  let hex = Array.from(arr, dec2hex).join("");
+  return idUtils.hexToBase62(hex).padStart(14, "0");
 }
 
 function getMd5(data) {
