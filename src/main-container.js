@@ -6,7 +6,7 @@ const DOM = require("react-dom-factories");
 const css = require("css");
 
 const dialog = require("dialog");
-const network = require("network.js");
+const network = require("network");
 const state = require("state");
 
 const CardAuth = require("card-auth");
@@ -80,7 +80,7 @@ module.exports = class MainContainer extends expose.Component {
     setTimeout(state.sync, 1);
 
     // Check if we are logged in, online, and who we are logged in as (TODO: Is the really useful? The data will almost always be right unless somebody clears their ls)
-    setTimeout(network.updateNetworkStatus(), 1);
+    setTimeout(network.updateNetworkStatus, 1);
 
     // Reload from local storage each time after the window regains focus
     window.addEventListener(

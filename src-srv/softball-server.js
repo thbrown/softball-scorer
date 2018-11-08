@@ -98,29 +98,29 @@ module.exports = class SoftballServer {
             // TODO: use nonce to avoid recapcha styling errors: https://developers.google.com/recaptcha/docs/faq
             "'self'",
             "https://fonts.googleapis.com",
-            "'sha256-eeE4BsGQZBvwOOvyAnxzD6PBzhU/5IfP4NdPMywc3VE='",
-            "'sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs='" // inline style (used by many react/babel components)
-          ], // Hash is for react draggable components
+            "'sha256-eeE4BsGQZBvwOOvyAnxzD6PBzhU/5IfP4NdPMywc3VE='", // react draggable components
+            "'sha256-6IIvUyrpNJsrV0PElO/SFu1ORPnryCprHLVIlaW4hDM='" // inline style (used by many react/babel components)
+          ],
           fontSrc: ["'self'", "https://fonts.gstatic.com"],
           scriptSrc: [
             "'self'",
-            "https://www.google.com",
-            "https://www.gstatic.com",
-            "'unsafe-eval'"
+            "https://www.google.com/recaptcha/api.js",
+            "https://www.gstatic.com"
+            //"'unsafe-eval'"
           ],
           connectSrc: [
             "'self'",
             "https://fonts.googleapis.com/css",
             "https://fonts.gstatic.com",
             "https://www.gstatic.com",
-            "https://www.google.com"
+            "https://www.google.com/recaptcha/api.js"
           ],
           frameSrc: [
             "'self'",
-            "https://www.google.com/",
-            "https://thbrown.github.io/"
+            "https://thbrown.github.io/", // YouTube Proxy
+            "https://www.google.com/" // ReCapcha
           ],
-          reportUri: "/report-violation"
+          reportUri: "/server/report-violation"
         }
       })
     );
@@ -809,7 +809,7 @@ module.exports = class SoftballServer {
       do {
         if (counter > 50) {
           throw new HandledError(
-            500,
+            503,
             "Another request is consuming system resources allocated for this account. Please try agin in a few minutes."
           );
         }
