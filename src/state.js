@@ -21,8 +21,18 @@ let sessionValid = false;
 let activeUser = null;
 
 // Window State - State saved in memory only
+const SYNC_DELAY_MS = 5000;
+const SYNC_STATUS_ENUM = Object.freeze({
+  COMPLETED: 1,
+  ERROR: 2,
+  IN_PROGRESS: 3,
+  PENDING: 4,
+  IN_PROGRESS_AND_PENDING: 5,
+  UNKNOWN: 6
+});
 let addToHomescreenEvent = null;
-// TODO: simulation caching would go here
+let syncState = SYNC_STATUS_ENUM.UNKNOWN;
+let syncTimer = null;
 
 const state = exports;
 
@@ -30,129 +40,205 @@ exports.getServerUrl = function(path) {
   return window.location.href + path;
 };
 
+// HTTP Standard Status codes plus:
+// -1 network issue
+// -2 failed on fullSync = false
+// -3 failed on fullSync = true
 exports.sync = async function(fullSync) {
   console.log("Sync requested", fullSync ? "full" : "patchOnly");
-
-  // TODO: do we want to cancel any in_progress syncs?
-
-  // Save a deep copy of the local state
-  let localStateCopy = JSON.parse(JSON.stringify(state.getLocalState()));
-  let localState = state.getLocalState();
-
-  // Save the ancestor state so we can restore it if something goes wrong
-  let ancestorStateCopy = JSON.parse(JSON.stringify(state.getAncestorState()));
-
-  // Get the patch ready to send to the server
-  let ancestorChecksum = state.getAncestorStateChecksum() || "";
-  let body = {
-    md5: ancestorChecksum,
-    patch: objectMerge.diff(state.getAncestorState(), localState),
-    type: fullSync ? "full" : "any"
-  };
-
-  // Ship it
-  console.log("SENDING SYNC", body);
-  let response = await network.request(
-    "POST",
-    "server/sync",
-    JSON.stringify(body)
-  );
-
-  if (response.status === 200) {
-    let serverState = response.body;
-    console.log("Received", serverState);
-
-    // First gather any changes that were made locally while the request was still working
-    console.log("Pre", localStateCopy, localState);
-    let localChangesDuringRequest = objectMerge.diff(
-      localStateCopy,
-      localState
+  while (
+    exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS ||
+    exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
+  ) {
+    // Simultanious syncs might be okay, but we'll still limit it to one at a time for clarity
+    console.log(
+      "waiting for in progress sync to finish" + exports.getSyncState()
     );
-    console.log("localChangesDuringRequest", localChangesDuringRequest);
+    await sleep(500);
+  }
+  setSyncState(SYNC_STATUS_ENUM.IN_PROGRESS);
+  try {
+    // Save a deep copy of the local state
+    let localStateCopy = JSON.parse(JSON.stringify(state.getLocalState()));
+    let localState = state.getLocalState();
 
-    // Update the ancestor if updates were received from server
-    if (serverState.base) {
-      // The entire state was sent, we can just save it directly
-      state.setAncestorState(serverState.base);
-    } else if (serverState.patches) {
-      // Patches were sent, apply all patches to ancestor state
-      let ancestorState = state.getAncestorState();
-      if (serverState.patches) {
-        console.log(
-          `Applying ${serverState.patches.length} patches `,
-          serverState.patches
-        );
-        serverState.patches.forEach(patch => {
-          objectMerge.patch(ancestorState, patch);
-        });
-      }
-    } else {
-      console.log("No updates recieved from server");
-    }
+    // Save the ancestor state so we can restore it if something goes wrong
+    let ancestorStateCopy = JSON.parse(
+      JSON.stringify(state.getAncestorState())
+    );
 
-    // If the server state changed, verify the ancesor state (after updates) has the same hash as the server state
-    if (serverState.base || serverState.patches) {
-      // Verify checksum
-      let ancestorHash = getMd5(state.getAncestorState());
-      console.log("CLIENT: ", ancestorHash, " SERVER: ", serverState.md5);
-      if (ancestorHash !== serverState.md5) {
-        if (fullSync) {
-          // Something went wrong and we can't do anything about it!
-          // serverState.base should have contained a verbatium copy of what the server has, so this is weird.
-          console.log("Yikes");
-          console.log(state.getAncestorState(), serverState.base);
-          // Set the state back to what it was when we first did a sync
-          state.setLocalState(localStateCopy);
-          state.setAncestorState(ancestorStateCopy);
-          return;
-        } else {
-          // Something bad happened, repeat the request with type "full" so we'll get the whole state back
-          console.log("Something went wrong -- Attempting full sync");
-          console.log(state.getAncestorState(), serverState.base);
+    // Get the patch ready to send to the server
+    let ancestorChecksum = state.getAncestorStateChecksum();
+    let body = {
+      md5: ancestorChecksum,
+      patch: objectMerge.diff(state.getAncestorState(), localState),
+      type: fullSync ? "full" : "any"
+    };
+
+    // Ship it
+    console.log("SENDING SYNC", body);
+    let response = await network.request(
+      "POST",
+      "server/sync",
+      JSON.stringify(body)
+    );
+
+    if (response.status === 200) {
+      let serverState = response.body;
+      console.log("Received", serverState);
+
+      // First gather any changes that were made locally while the request was still working
+      let localChangesDuringRequest = objectMerge.diff(
+        localStateCopy,
+        localState
+      );
+
+      // Update the ancestor if updates were received from server
+      if (serverState.base) {
+        // The entire state was sent, we can just save it directly
+        state.setAncestorState(serverState.base);
+      } else if (serverState.patches) {
+        // Patches were sent, apply all patches to ancestor state
+        let ancestorState = state.getAncestorState();
+        if (serverState.patches) {
           console.log(
-            objectMerge.diff(state.getAncestorState(), serverState.base)
+            `Applying ${serverState.patches.length} patches `,
+            serverState.patches
           );
-
-          let A = getMd5(state.getAncestorState());
-          let B = getMd5(serverState.base);
-          console.log(A, B);
-
-          // Set the state back to what it was when we first did a sync (we might lose some intermediate changes here, but it't better then syncing bad state)
-          state.setLocalState(localStateCopy);
-          state.setAncestorState(ancestorStateCopy);
-          await exports.sync(true);
-          return;
+          serverState.patches.forEach(patch => {
+            objectMerge.patch(ancestorState, patch);
+          });
         }
       } else {
-        console.log("Sync was successful! (client and server checksums match)");
+        console.log("No updates recieved from server");
       }
+
+      // If the server state changed, verify the ancesor state (after updates) has the same hash as the server state
+      if (serverState.base || serverState.patches) {
+        // Verify checksum
+        let ancestorHash = getMd5(state.getAncestorState());
+        console.log("CLIENT: ", ancestorHash, " SERVER: ", serverState.md5);
+        if (ancestorHash !== serverState.md5) {
+          if (fullSync) {
+            // Something went wrong after trying a full sync, we probaly can't do anything about it!
+            // serverState.base should have contained a verbatium copy of what the server has, so this is weird.
+            console.log(
+              "Yikes! Something went wrong while attempting full sync"
+            );
+            console.log(state.getAncestorState(), serverState.base);
+            // Set the state back to what it was when we first did a sync
+            state.setAncestorState(ancestorStateCopy);
+            throw new Error(-3);
+          } else {
+            // Something bad happened with a patch based sync, we may be able to repeat the request with type "full" so we'll get the whole state back, not just the patches
+            console.log("Something went wrong while attempting patch sync");
+            console.log(state.getAncestorState(), serverState.base);
+            console.log(
+              objectMerge.diff(state.getAncestorState(), serverState.base)
+            );
+
+            let A = getMd5(state.getAncestorState());
+            let B = getMd5(serverState.base);
+            console.log(A, B);
+
+            // Set the state back to what it was when we first did a sync
+            state.setAncestorState(ancestorStateCopy);
+            throw new Error(-2);
+          }
+        } else {
+          console.log(
+            "Sync was successful! (client and server checksums match)"
+          );
+        }
+      }
+      // Copy
+      let newLocalState = JSON.parse(JSON.stringify(state.getAncestorState()));
+
+      // Apply any changes that were made during the request to the new local state (Presumably this will be a no-op most times)
+      objectMerge.patch(newLocalState, localChangesDuringRequest, true);
+
+      // Set local state to a copy of ancestor state (w/ localChangesDuringRequest applied)
+      setLocalStateNoSideEffects(newLocalState);
+      reRender();
+
+      // Write the most updated data to local storage
+      exports.saveDbStateToLocalStorage();
+    } else {
+      console.log(response.status);
+      throw new Error(response.status);
     }
-    // Copy
-    let newLocalState = JSON.parse(JSON.stringify(state.getAncestorState()));
 
-    // Apply any changes that were made during the request to the new local state (Presumably this will be a no-op most times)
-    objectMerge.patch(newLocalState, localChangesDuringRequest, true);
+    if (exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS) {
+      setSyncState(SYNC_STATUS_ENUM.COMPLETE);
+    } else if (
+      exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
+    ) {
+      setSyncState(SYNC_STATUS_ENUM.PENDING);
+    } else {
+      // Don't think this should be possible
+      console.log("Invalid state transition");
+      setSyncState(SYNC_STATUS_ENUM.UNKNOWN);
+    }
 
-    // Set local state to a copy of ancestor state (w/ localChangesDuringRequest applied)
-    exports.setLocalState(newLocalState);
-
-    // Write the most updated data to local storage
-    exports.saveDbStateToLocalStorage();
+    return response.status;
+  } catch (err) {
+    // We might be able to re-try some problems, like if the network is temporarally out
+    setSyncState(SYNC_STATUS_ENUM.PENDING); // Assume re-try
+    if (
+      (err.message == -1 && !exports.isOnline()) ||
+      err.message == 403 ||
+      err.message == 401 ||
+      err.message == 502
+    ) {
+      // Pause future syncs but don't sound the alert alarm for these cases (not bugs) for
+      // 1) User is not signed in
+      // 2) App is in offline mode
+      console.log(
+        "Auth problem or offline mode is active: retrying sync later"
+      );
+      setSyncState(SYNC_STATUS_ENUM.ERROR);
+    } else if (err.message == 503 || err.message == -1) {
+      // Re-try later might work for
+      // 1) Server rate limiting errors
+      // 2) Weird network conditions
+      console.log("Network issues or server is busy: retrying sync later");
+      scheduleSync();
+    } else if (err.message == -2) {
+      // Issue with patch based sync, re-try with a full sync
+      console.log("Issue with patch sync: attemtping full sync");
+      await exports.sync(true);
+    } else {
+      // Other 500s, 400s are probably bugs :(, tell the user something is wrong
+      console.log("Probable bug encountered");
+      alert(
+        "Auto sync failed with status " +
+          err.message +
+          ". App will continue to function, but your data won't be synced with the server. Consider backing up your data from the main menu to avoid data loss. Details:" +
+          err
+      );
+      console.log(err);
+      setSyncState(SYNC_STATUS_ENUM.ERROR);
+    }
+    return err.message;
   }
-  return response.status;
 };
 
-exports.clearDbState = function() {
-  LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
-  ANCESTOR_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
-  exports.saveDbStateToLocalStorage();
+exports.resetSyncState = function() {
+  setSyncState(SYNC_STATUS_ENUM.UNKNOWN);
 };
 
-exports.clearApplicationState = function() {
+exports.resetState = function() {
+  setSyncState(SYNC_STATUS_ENUM.UNKNOWN);
+
   online = true;
   sessionValid = false;
   activeUser = null;
+
+  LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+  ANCESTOR_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+
   exports.saveApplicationStateToLocalStorage();
+  exports.saveDbStateToLocalStorage();
 };
 
 exports.getLocalState = function() {
@@ -161,7 +247,11 @@ exports.getLocalState = function() {
 
 exports.setLocalState = function(newState) {
   LOCAL_DB_STATE = newState;
-  reRenderAndWriteDbStateToLs();
+  onEdit();
+};
+
+let setLocalStateNoSideEffects = function(newState) {
+  LOCAL_DB_STATE = newState;
 };
 
 exports.getAncestorState = function() {
@@ -193,7 +283,7 @@ exports.addTeam = function(team_name) {
     games: []
   };
   new_state.teams.push(team);
-  reRenderAndWriteDbStateToLs();
+  onEdit();
   return team;
 };
 
@@ -202,7 +292,7 @@ exports.replaceTeam = function(oldTeamId, newTeam) {
   let oldTeam = exports.getTeam(oldTeamId);
   let oldTeamIndex = localState.teams.indexOf(oldTeam);
   localState.teams[oldTeamIndex] = newTeam;
-  reRenderAndWriteDbStateToLs();
+  onEdit();
 };
 
 exports.removeTeam = function(team_id) {
@@ -210,7 +300,7 @@ exports.removeTeam = function(team_id) {
   new_state.teams = new_state.teams.filter(team => {
     return team.id !== team_id;
   });
-  reRenderAndWriteDbStateToLs();
+  onEdit();
 };
 
 // PLAYER
@@ -227,7 +317,7 @@ exports.replacePlayer = function(playerId, newPlayer) {
 
   let oldPlayerIndex = localState.players.indexOf(oldPlayer);
   localState.players[oldPlayerIndex] = newPlayer;
-  reRenderAndWriteDbStateToLs();
+  onEdit();
 };
 
 exports.getAllPlayers = function() {
@@ -260,7 +350,7 @@ exports.addPlayer = function(player_name, gender) {
     song_start: null
   };
   new_state.players.push(player);
-  reRenderAndWriteDbStateToLs();
+  onEdit();
   return player;
 };
 
@@ -288,7 +378,7 @@ exports.addGame = function(team_id, opposing_team_name) {
     plateAppearances: []
   };
   team.games.push(game);
-  reRenderAndWriteDbStateToLs();
+  onEdit();
   return game;
 };
 
@@ -301,7 +391,7 @@ exports.replaceGame = function(oldGameId, teamId, newGame) {
 
   let oldGameIndex = localState.teams[teamIndex].games.indexOf(oldGame);
   localState.teams[teamIndex].games[oldGameIndex] = newGame;
-  reRenderAndWriteDbStateToLs();
+  onEdit();
 };
 
 exports.getGame = function(game_id, state) {
@@ -350,21 +440,21 @@ exports.getGamesWherePlayerHasPlateAppearances = function(playerId) {
 
 exports.addPlayerToLineup = function(lineup, player_id) {
   lineup.push(player_id);
-  reRenderAndWriteDbStateToLs();
+  onEdit();
 };
 
 exports.updateLineup = function(lineup, player_id, position_index) {
   let ind = lineup.indexOf(player_id);
   lineup.splice(ind, 1);
   lineup.splice(position_index, 0, player_id);
-  reRenderAndWriteDbStateToLs();
+  onEdit();
   return lineup;
 };
 
 exports.removePlayerFromLineup = function(lineup, player_id) {
   let index = lineup.indexOf(player_id);
   lineup.splice(index, 1);
-  reRenderAndWriteDbStateToLs();
+  onEdit();
 };
 
 exports.removeGame = function(game_id, team_id) {
@@ -381,7 +471,7 @@ exports.removeGame = function(game_id, team_id) {
   } else {
     console.log("Game not found " + game_id);
   }
-  reRenderAndWriteDbStateToLs();
+  onEdit();
 };
 
 // PLATE APPEARANCE
@@ -400,7 +490,7 @@ exports.addPlateAppearance = function(player_id, game_id) {
     }
   };
   plateAppearances.push(plateAppearance);
-  reRenderAndWriteDbStateToLs();
+  onEdit();
   return plateAppearance;
 };
 
@@ -420,7 +510,7 @@ exports.replacePlateAppearance = function(paId, gameId, teamId, newPa) {
   localState.teams[teamIndex].games[gameIndex].plateAppearances[
     oldPaIndex
   ] = newPa;
-  reRenderAndWriteDbStateToLs();
+  onEdit();
 };
 
 // TODO: allow for passing team and game ids to improve perf
@@ -497,14 +587,14 @@ exports.getPlateAppearancesForPlayer = function(player_id) {
 
 exports.updatePlateAppearanceResult = function(plateAppearance, result) {
   plateAppearance.result = result;
-  reRenderAndWriteDbStateToLs();
+  onEdit();
 };
 
 exports.updatePlateAppearanceLocation = function(plateAppearance, location) {
   plateAppearance.location = {};
   plateAppearance.location.x = Math.floor(location[0]);
   plateAppearance.location.y = Math.floor(location[1]);
-  reRenderAndWriteDbStateToLs();
+  onEdit();
 };
 
 exports.removePlateAppearance = function(plateAppearance_id, game_id) {
@@ -514,7 +604,7 @@ exports.removePlateAppearance = function(plateAppearance_id, game_id) {
   game.plateAppearances = game.plateAppearances.filter(pa => {
     return pa.id !== plateAppearance_id;
   });
-  reRenderAndWriteDbStateToLs();
+  onEdit();
 };
 
 // LOCAL STORAGE
@@ -614,9 +704,10 @@ exports.clearLocalStorage = function() {
 
 // HELPERS
 
-function reRenderAndWriteDbStateToLs() {
+function onEdit() {
   reRender();
   exports.saveDbStateToLocalStorage();
+  exports.scheduleSync();
 }
 
 function reRender() {
@@ -625,7 +716,16 @@ function reRender() {
   });
 }
 
-// TODO: don't go through hex, jsut go dec to base62
+// An async sleep function
+async function sleep(ms) {
+  return new Promise(function(resolve, reject) {
+    setTimeout(function() {
+      resolve(ms);
+    }, ms);
+  });
+}
+
+// TODO: don't go through hex, just go dec to base62
 function dec2hex(dec) {
   return ("0" + dec.toString(16)).substr(-2);
 }
@@ -693,6 +793,7 @@ exports.setOffline = function() {
 
 exports.setActiveUser = function(user) {
   activeUser = user;
+  exports.saveApplicationStateToLocalStorage();
 };
 
 // This assumes all routes are behind login
@@ -701,6 +802,11 @@ exports.setStatusBasedOnHttpResponse = function(code) {
   if (code >= 200 && code < 300) {
     sessionValid = true;
     online = true;
+    // Sync might have been failing for network reasons, give it another shot
+    if (exports.getSyncState() === SYNC_STATUS_ENUM.ERROR) {
+      setSyncState(SYNC_STATUS_ENUM.UNKNOWN);
+      exports.scheduleSync();
+    }
   } else if (code === 403 || code === 401) {
     sessionValid = false;
     online = true;
@@ -716,4 +822,45 @@ exports.setAddToHomescreenPrompt = function(e) {
 
 exports.getAddToHomescreenPrompt = function() {
   return addToHomescreenEvent;
+};
+
+exports.scheduleSync = function(time = SYNC_DELAY_MS) {
+  let currentState = exports.getSyncState();
+  if (currentState === SYNC_STATUS_ENUM.ERROR) {
+    console.log("Sync skipped, in error state");
+    return;
+  } else if (
+    currentState === SYNC_STATUS_ENUM.IN_PROGRESS ||
+    currentState === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
+  ) {
+    setSyncState(SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING);
+  } else {
+    setSyncState(SYNC_STATUS_ENUM.PENDING);
+  }
+
+  console.log("sync scheduled");
+  if (syncTimer) {
+    clearTimeout(syncTimer);
+  }
+
+  syncTimer = setTimeout(function() {
+    if (exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS) {
+      console.log("There is already a sync in progress");
+      exports.scheduleSync(SYNC_DELAY_MS);
+      return;
+    }
+    exports.sync();
+  }, time);
+};
+
+let setSyncState = function(newState) {
+  syncState = newState;
+};
+
+exports.getSyncState = function() {
+  return syncState;
+};
+
+exports.getSyncStateEnum = function() {
+  return SYNC_STATUS_ENUM;
 };

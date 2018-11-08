@@ -31,10 +31,33 @@ module.exports = class CardMenu extends expose.Component {
 
     this.handleLogoutClick = async function() {
       dialog.show_confirm("Are you sure you want to log out?", async () => {
+        // Do a sync if necessary
+        if (state.getSyncState() !== state.getSyncStateEnum().COMPLETE) {
+          let abort = true;
+          let status = await state.sync();
+          if (status !== 200) {
+            let message =
+              "Could not sync account data prior to logout. If you continue to sign out you will lose unsynced data. Continue anyways?";
+            if (state.isOnline() === true) {
+              message =
+                "Could not sync account data prior to logout because of a network failure. If you continue to sign out you will lose unsynced data. Continue anyways?";
+            }
+            dialog.show_confirm(message, () => {
+              abort = false;
+            });
+            return;
+          } else {
+            console.log("Skiping sync, changes are already in sync");
+            abort = false;
+          }
+          if (abort) {
+            return;
+          }
+        }
+
         let response = await network.request("POST", "server/account/logout");
         if (response.status === 204) {
-          state.clearDbState();
-          state.clearApplicationState(); // Even though the most recent request was successful, mark the session as invalid.
+          state.resetState();
           dialog.show_notification("Logout successful", function() {
             expose.set_state("main", {
               page: "/menu/login"
@@ -70,7 +93,10 @@ module.exports = class CardMenu extends expose.Component {
         buttonDiv.innerHTML = "Sync (Success)";
       } else if (status === 403) {
         dialog.show_notification("Please log in");
-        buttonDiv.innerHTML = "Sync";
+        buttonDiv.innerHTML = "Force Sync";
+      } else if (status === -1) {
+        dialog.show_notification("Sync Failed. App is in offline mode");
+        buttonDiv.innerHTML = "Force Sync";
       } else {
         buttonDiv.innerHTML = `Sync (Fail - ${status})`;
       }
@@ -98,12 +124,12 @@ module.exports = class CardMenu extends expose.Component {
           let deferredPrompt = state.getAddToHomescreenPrompt().prompt();
           // Wait for the user to respond to the prompt
           deferredPrompt.userChoice.then(choice => {
+            state.setAddToHomescreenPrompt(null);
             if (choice.outcome === "accepted") {
               console.log("User accepted the prompt");
             } else {
               console.log("User dismissed the prompt");
             }
-            state.setAddToHomescreenPrompt(null);
           });
         }
       );
@@ -187,7 +213,7 @@ module.exports = class CardMenu extends expose.Component {
               backgroundColor: css.colors.BG
             }
           },
-          "Login"
+          "Login/Signup"
         )
       );
     }
@@ -203,7 +229,7 @@ module.exports = class CardMenu extends expose.Component {
             backgroundColor: css.colors.BG
           }
         },
-        "Sync"
+        "Force Sync"
       )
     );
 

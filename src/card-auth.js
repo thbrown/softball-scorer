@@ -92,8 +92,10 @@ module.exports = class CardAuth extends expose.Component {
           if (response.status === 204) {
             // Don't clear the db state if the user re-logs into the same account
             if (state.getActiveUser() !== email.value) {
-              state.clearDbState();
+              state.resetState();
               state.setActiveUser(email.value);
+            } else {
+              state.resetSyncState();
             }
 
             let status = await state.sync();
@@ -112,8 +114,7 @@ module.exports = class CardAuth extends expose.Component {
             dialog.show_notification("Invalid login");
           } else {
             dialog.show_notification(
-              "Could not login. Error code: ",
-              response.status
+              "Could not login. Error code: " + response.status
             );
           }
         } else {

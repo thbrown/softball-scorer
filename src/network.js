@@ -1,6 +1,6 @@
 "use strict";
 
-const FETCH_TIMEOUT = 5000;
+const FETCH_TIMEOUT = 10000;
 const state = require("state");
 
 exports.request = async function(method, url, body) {
@@ -11,9 +11,10 @@ exports.request = async function(method, url, body) {
     state.setStatusBasedOnHttpResponse(response.status);
     return response;
   } catch (err) {
-    console.log("Encountered an error during network request: " + err);
+    console.log("Encountered an error during network request");
+    console.log(err);
     state.setOffline();
-    // We'll just return -1 to say that something went wrong
+    // We'll just return -1 to say that something went wrong with the network
     const response = {};
     response.status = -1;
     response.body = {};

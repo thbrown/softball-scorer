@@ -61,6 +61,9 @@ module.exports = class CardSignup extends expose.Component {
       }
 
       // TODO: Disable button
+
+      // TODO: logout existing account before we can signup a new one (menu button is disabled, but user can still access this page via url)
+
       let body = {
         email: email.value,
         password: password.value,
@@ -74,7 +77,9 @@ module.exports = class CardSignup extends expose.Component {
       if (response.status === 204) {
         // Clear db state if the data in the app is from another account, otherwise the newly signed up account will now own that data
         if (state.getActiveUser()) {
-          state.clearDbState();
+          state.resetState();
+        } else {
+          state.resetSyncState();
         }
         state.setActiveUser(email.value);
 
@@ -101,7 +106,11 @@ module.exports = class CardSignup extends expose.Component {
     }.bind(this);
 
     let showRecapchaInternal = function() {
-      if (grecaptcha && grecaptcha.render) {
+      if (
+        typeof grecaptcha !== "undefined" &&
+        grecaptcha &&
+        grecaptcha.render
+      ) {
         this.recapchaId = grecaptcha.render("recapcha", {
           sitekey: config.recapcha.sitekey
         });
