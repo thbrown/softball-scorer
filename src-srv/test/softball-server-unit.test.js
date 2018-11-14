@@ -1,63 +1,61 @@
 /*eslint no-process-exit:*/
-'use strict';
+"use strict";
 
-const objectHash = require('object-hash');
-const got = require('got');
+const objectHash = require("object-hash");
+const got = require("got");
 
-const SoftballServer = require('../softball-server');
-const MockDb = require('./database-calls-mock');
-const utils = require('./test-utils.js');
+const CacheCallsLocal = require("../cache-calls-local");
+const SoftballServer = require("../softball-server");
+const MockDb = require("./database-calls-mock");
+const utils = require("./test-utils.js");
 
-describe('sync', () => {
+describe("sync", () => {
+  beforeAll(async () => {
+    this.mockDb = new MockDb();
+    this.cache = new CacheCallsLocal();
+    this.server = new SoftballServer(this.mockDb, this.cache);
+    this.server.start();
+    this.sessionId = await utils.login("brutongaster@softball.app", "pizza");
+  });
 
-	beforeAll(async () => {
-		this.mockDb = new MockDb();
-		this.server = new SoftballServer(this.mockDb);
-		this.server.start();
-		this.sessionId = await utils.login('brutongaster@softball.app', 'pizza');
-	});
+  beforeEach(() => {
+    this.mockDb.reset();
+  });
 
-	beforeEach(() => {
-		this.mockDb.reset();
-	})
+  afterAll(() => {
+    this.server.stop();
+  });
 
-	afterAll(() => {
-		this.server.stop();
-	});
+  test("Test sync of fresh data results in the same hash on the server and the client", async () => {
+    let state = {
+      players: [],
+      teams: [
+        {
+          games: [
+            {
+              plateAppearances: [],
+              id: "3KpWNATXYZk4YqDwq22BNI",
+              opponent: "TestGame",
+              date: 1540166400,
+              park: "Stazio",
+              lineup: []
+            }
+          ],
+          id: "4KpWNATXYZk4YqDwq22BNI",
+          name: "TestTeam"
+        }
+      ]
+    };
 
-	test('Test sync of fresh data results in the same hash on the server and the client', async () => {
+    let expectedHash = utils.getMd5(state);
 
-		let state = {
-			"players": [],
-			"teams": [
-				{
-					"games": [
-						{
-							"plateAppearances": [],
-							"id": "3KpWNATXYZk4YqDwq22BNI",
-							"opponent": "TestGame",
-							"date": 1540166400,
-							"park": "Stazio",
-							"lineup": []
-						}
-					],
-					"id": "4KpWNATXYZk4YqDwq22BNI",
-					"name": "TestTeam"
-				}
-			]
-		}
+    this.mockDb.setState(state);
 
-		let expectedHash = utils.getMd5(state);
+    let serverMd5;
+    const response = await utils.sync(this.sessionId, "-", {});
+    serverMd5 = response.body.md5;
 
-		this.mockDb.setState(state);
-
-		let serverMd5;
-		const response = await utils.sync(this.sessionId, '-', {});
-		serverMd5 = response.body.md5;
-
-		expect(serverMd5).toEqual(expectedHash);
-		expect(serverMd5).toEqual("jVBQly9W0N1pfUASFpRmPg");
-	});
-
+    expect(serverMd5).toEqual(expectedHash);
+    expect(serverMd5).toEqual("jVBQly9W0N1pfUASFpRmPg");
+  });
 });
-

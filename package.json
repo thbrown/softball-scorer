@@ -27,6 +27,7 @@
     "base-x": "^3.0.4",
     "bcrypt": "^2.0.1",
     "body-parser": "^1.18.3",
+    "connect-redis": "^3.4.0",
     "express": "^4.16.3",
     "express-session": "^1.15.6",
     "file-saver": "^2.0.0-rc.3",
@@ -45,6 +46,7 @@
     "react-draggable": "^3.0.5",
     "react-sticky-table": "2.0.0",
     "reactify": "^1.1.1",
+    "redis": "^2.8.0",
     "serve-favicon": "^2.5.0",
     "timsort": "^0.3.0",
     "uuid": "^3.2.1"

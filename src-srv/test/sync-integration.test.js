@@ -4,12 +4,14 @@
 const objectHash = require("object-hash");
 const got = require("got");
 
-const DatabaseCallsPostgres = require("../database-calls-postgres");
+const CacheCallsLocal = require("../cache-calls-local");
 const config = require("../config");
-const SoftballServer = require("../softball-server");
-const utils = require("./test-utils.js");
+const DatabaseCallsPostgres = require("../database-calls-postgres");
+const MockDb = require("./database-calls-mock");
 const objectMerge = require("../../object-merge.js");
+const SoftballServer = require("../softball-server");
 const StateTester = require("./test-state-tracker.js");
+const utils = require("./test-utils.js");
 
 /**
  * This test requires an attached postgres database.
@@ -27,7 +29,8 @@ describe("sync", () => {
       username,
       password
     );
-    this.server = new SoftballServer(this.databaseCalls);
+    this.cache = new CacheCallsLocal();
+    this.server = new SoftballServer(this.databaseCalls, this.cache);
     this.server.start();
 
     let email = `syncTest${utils.randomId(10)}@softball.app`;

@@ -13,7 +13,7 @@ module.exports = class StateTester {
     let clientHash = utils.getMd5(newState);
 
     // Useful for debugging
-    console.log(JSON.stringify(newState, null, 3), clientHash);
+    //console.log(JSON.stringify(newState, null, 3), clientHash);
 
     let response = await utils.sync(this.sessionId, clientHash, clientPatch);
     let serverMd5 = response.body.md5;
