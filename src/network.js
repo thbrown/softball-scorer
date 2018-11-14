@@ -1,7 +1,10 @@
 "use strict";
 
-const FETCH_TIMEOUT = 10000;
+const config = require("config");
 const state = require("state");
+
+const FETCH_TIMEOUT =
+  config.network && config.network.timeout ? config.network.timeout : 10000;
 
 exports.request = async function(method, url, body) {
   url = exports.getServerUrl(url);

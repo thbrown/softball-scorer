@@ -21,8 +21,9 @@ const config = require("./config");
 const logger = require("./logger.js");
 
 module.exports = class SoftballServer {
-  constructor(databaseCalls) {
+  constructor(databaseCalls, cacheCalls) {
     this.databaseCalls = databaseCalls;
+    this.cacheCalls = cacheCalls;
     this.PORT = 8888;
   }
 
@@ -117,8 +118,8 @@ module.exports = class SoftballServer {
           ],
           frameSrc: [
             "'self'",
-            "https://thbrown.github.io/", // YouTube Proxy
-            "https://www.google.com/" // ReCapcha
+            "https://www.google.com/", // ReCapcha
+            "https://thbrown.github.io/" // YouTube Proxy
           ],
           reportUri: "/server/report-violation"
         }
@@ -166,7 +167,11 @@ module.exports = class SoftballServer {
     );
     app.use(
       passportSession({
-        secret: crypto.randomBytes(20).toString("hex"), // TODO: move secret to config
+        store: this.cacheCalls.getSessionStore(),
+        secret:
+          config.session && config.session.secretkey
+            ? config.session.secretkey
+            : crypto.randomBytes(20).toString("hex"),
         resave: false,
         saveUninitialized: false,
         name: "softball.sid",
@@ -196,7 +201,7 @@ module.exports = class SoftballServer {
         try {
           state = await this.databaseCalls.getState(accountId);
         } finally {
-          unlockAccount(accountId);
+          await unlockAccount(accountId);
         }
         res.status(200).send(state);
       })
@@ -215,7 +220,7 @@ module.exports = class SoftballServer {
         try {
           state = await this.databaseCalls.getState(accountId);
         } finally {
-          unlockAccount(accountId);
+          await unlockAccount(accountId);
         }
         res.status(200).send(JSON.stringify(state, null, 2));
       })
@@ -413,7 +418,7 @@ module.exports = class SoftballServer {
           logger.log(accountId, "An error occured while deleting the account");
           throw error;
         } finally {
-          unlockAccount(accountId);
+          await unlockAccount(accountId);
         }
       })
     );
@@ -442,8 +447,9 @@ module.exports = class SoftballServer {
 
         let accountId = extractSessionInfo(req, "accountId");
         let stateRecentPatches =
-          extractAccountInfo(accountId, "stateRecentPatches") || [];
+          (await this.cacheCalls.getPatches(accountId)) || [];
         let state = undefined;
+        //console.log("State patches", stateRecentPatches);
 
         // We need this information to know what state the client is in
         let data = req.body;
@@ -458,6 +464,9 @@ module.exports = class SoftballServer {
 
         // Prevent race conditions across requests
         await lockAccount(accountId);
+
+        // For testing locks
+        // await sleep(10000);
 
         let responseData = {};
 
@@ -498,20 +507,21 @@ module.exports = class SoftballServer {
 
             // Update the checksum on the response object and the session
             responseData.md5 = checksum;
-            putAccountInfo(accountId, "stateMd5", checksum);
+            await this.cacheCalls.setStateMd5(accountId, checksum);
 
             // Save the patch for this sync to the session (to speed up future syncs).
             let savedPatch = {};
             savedPatch.patch = syncPatch;
             savedPatch.md5 = checksum;
             stateRecentPatches.push(savedPatch);
-            putAccountInfo(accountId, "stateRecentPatches", stateRecentPatches);
+            //console.log("Setting patches", stateRecentPatches);
+            await this.cacheCalls.setPatches(accountId, stateRecentPatches);
           } else {
             logger.log(accountId, "No updates from client");
           }
 
           // Get info about the checksum of the current state from account info
-          let stateMd5 = extractAccountInfo(accountId, "stateMd5");
+          let stateMd5 = await this.cacheCalls.getStateMd5(accountId);
 
           // Calculate the checksum current state if it's not stored in session storage
           if (!stateMd5) {
@@ -522,7 +532,7 @@ module.exports = class SoftballServer {
             state = state || (await this.databaseCalls.getState(accountId));
             let checksum = getMd5(state);
 
-            putAccountInfo(accountId, "stateMd5", checksum);
+            await this.cacheCalls.setStateMd5(accountId, checksum);
             stateMd5 = checksum;
           }
 
@@ -561,7 +571,7 @@ module.exports = class SoftballServer {
           }
         } finally {
           // Unlock the account
-          unlockAccount(accountId);
+          await unlockAccount(accountId);
         }
 
         // Woot, done
@@ -672,7 +682,7 @@ module.exports = class SoftballServer {
     }
 
     // An async sleep function
-    async function pause(ms) {
+    async function sleep(ms) {
       return new Promise(function(resolve, reject) {
         setTimeout(function() {
           resolve(ms);
@@ -780,52 +790,32 @@ module.exports = class SoftballServer {
       }
     };
 
-    // Information shared between all sessions associate with a single account -- TODO: we are leaking memory here if we don't clear this
-    let accountInformation = {};
-
-    const extractAccountInfo = function(accountId, field) {
-      if (accountInformation && accountInformation[accountId]) {
-        return accountInformation[accountId][field];
-      } else {
-        return undefined;
-      }
-    };
-
-    const putAccountInfo = function(accountId, field, value) {
-      if (!accountInformation) {
-        accountInformation = [];
-      }
-      if (!accountInformation[accountId]) {
-        accountInformation[accountId] = {};
-      }
-      accountInformation[accountId][field] = value;
-    };
-
     // Lock the account. Only one session for a single account can access the database at a time, otherwise there will be lots of race conditions.
-    // TODO: this will only scale to one process
+    // Depending on the server configuration, locking info is may be stored in a cache to allow multiple app servers to access and update the same locks.
     const lockAccount = async function(accountId) {
-      let locked;
+      let success = false;
       let counter = 0;
       do {
-        if (counter > 50) {
+        success = await self.cacheCalls.lockAccount(accountId);
+
+        if (!success) {
+          logger.log(accountId, "Account already locked, retrying in 200ms");
+          await sleep(200); // TODO: Do we need a random backoff?
+          counter++;
+        }
+
+        if (counter > 100) {
           throw new HandledError(
             503,
             "Another request is consuming system resources allocated for this account. Please try agin in a few minutes."
           );
         }
-        locked = extractAccountInfo(accountId, "locked");
-        if (locked) {
-          logger.log(accountId, "Account locked, retrying in 200ms");
-          await pause(200); // TODO: Do we need a random backoff?
-          counter++;
-        }
-      } while (locked);
+      } while (!success);
       logger.log(accountId, "Account Locked");
-      putAccountInfo(accountId, "locked", true);
     };
 
-    const unlockAccount = function(accountId) {
-      putAccountInfo(accountId, "locked", false); // TODO: would un-setting this instead avoid a memory leak?
+    const unlockAccount = async function(accountId) {
+      await self.cacheCalls.unlockAccount(accountId);
       logger.log(accountId, "Account Unlocked");
     };
   }
