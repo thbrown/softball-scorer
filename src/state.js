@@ -7,20 +7,9 @@ const idUtils = require("../id-utils.js");
 
 const hasher = require("object-hash");
 
-// For versioning localstorage
-const CURRENT_LS_SCHEMA_VERSION = "5";
-
-// Database State - Stored in memory, local storage, and persisted in the db
+// Constants
 const INITIAL_STATE = { teams: [], players: [] };
-let ANCESTOR_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
-let LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
-
-// Application State - State that applies across windows. Stored in local storage and in memory.
-let online = true;
-let sessionValid = false;
-let activeUser = null;
-
-// Window State - State saved in memory only
+const CURRENT_LS_SCHEMA_VERSION = "5";
 const SYNC_DELAY_MS = 5000;
 const SYNC_STATUS_ENUM = Object.freeze({
   COMPLETED: 1,
@@ -30,9 +19,21 @@ const SYNC_STATUS_ENUM = Object.freeze({
   IN_PROGRESS_AND_PENDING: 5,
   UNKNOWN: 6
 });
+
+// Database State - Stored in memory, local storage, and persisted in the db
+let ANCESTOR_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+let LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+
+// Application State - State that applies across windows. Stored in local storage and in memory.
+let online = true;
+let sessionValid = false;
+let activeUser = null;
+
+// Window State - State saved in memory only
 let addToHomescreenEvent = null;
 let syncState = SYNC_STATUS_ENUM.UNKNOWN;
 let syncTimer = null;
+let preventScreenLock = false;
 
 const state = exports;
 
@@ -818,6 +819,7 @@ exports.setStatusBasedOnHttpResponse = function(code) {
 };
 exports.setAddToHomescreenPrompt = function(e) {
   addToHomescreenEvent = e;
+  reRender();
 };
 
 exports.getAddToHomescreenPrompt = function() {
@@ -855,6 +857,7 @@ exports.scheduleSync = function(time = SYNC_DELAY_MS) {
 
 let setSyncState = function(newState) {
   syncState = newState;
+  reRender();
 };
 
 exports.getSyncState = function() {
@@ -863,4 +866,14 @@ exports.getSyncState = function() {
 
 exports.getSyncStateEnum = function() {
   return SYNC_STATUS_ENUM;
+};
+
+exports.setPreventScreenLock = function(value) {
+  console.log("setting value", value);
+  this.preventScreenLock = value;
+  reRender();
+};
+
+exports.getPreventScreenLock = function() {
+  return this.preventScreenLock;
 };

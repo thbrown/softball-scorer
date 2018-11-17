@@ -1,15 +1,17 @@
 "use strict";
 
-const React = require("react");
-const expose = require("./expose");
 const DOM = require("react-dom-factories");
-const css = require("css");
 const Draggable = require("react-draggable");
-const WalkupSong = require("component-walkup-song");
+const React = require("react");
 
+const css = require("css");
 const dialog = require("dialog");
-const state = require("state");
+const expose = require("./expose");
 const results = require("plate-appearance-results");
+const state = require("state");
+
+const RightHeaderButton = require("component-right-header-button");
+const WalkupSong = require("component-walkup-song");
 
 const LOCATION_DENOMINATOR = 32767;
 
@@ -371,7 +373,8 @@ module.exports = class CardPlateAppearance extends expose.Component {
             className: "prevent-overflow card-title-text-with-arrow"
           },
           this.props.player.name
-        )
+        ),
+        React.createElement(RightHeaderButton, {})
       ),
       this.renderButtonList(),
       this.renderField(imageSrcForCurrentPa),

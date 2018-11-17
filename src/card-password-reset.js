@@ -1,10 +1,12 @@
 "use strict";
 
-const expose = require("./expose");
 const DOM = require("react-dom-factories");
 
-const network = require("network");
 const dialog = require("dialog");
+const expose = require("./expose");
+const network = require("network");
+
+const RightHeaderButton = require("component-right-header-button");
 
 module.exports = class CardPasswordReset extends expose.Component {
   constructor(props) {
@@ -152,7 +154,8 @@ module.exports = class CardPasswordReset extends expose.Component {
             style: {}
           },
           "Reset Password"
-        )
+        ),
+        React.createElement(RightHeaderButton, {})
       ),
       this.renderAuthInterface()
     );

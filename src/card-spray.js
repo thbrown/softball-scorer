@@ -1,10 +1,12 @@
 "use strict";
 
-const expose = require("./expose");
 const DOM = require("react-dom-factories");
 
-const state = require("state");
+const expose = require("./expose");
 const results = require("plate-appearance-results");
+const state = require("state");
+
+const RightHeaderButton = require("component-right-header-button");
 
 const LOCATION_DENOMINATOR = 32767;
 
@@ -129,7 +131,8 @@ module.exports = class CardAtBat extends expose.Component {
             className: "prevent-overflow card-title-text-with-arrow"
           },
           state.getPlayer(this.props.playerId).name
-        )
+        ),
+        React.createElement(RightHeaderButton, {})
       ),
       this.renderField()
     );

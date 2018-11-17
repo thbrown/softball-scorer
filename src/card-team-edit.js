@@ -1,12 +1,14 @@
 "use strict";
 
-const React = require("react");
-const expose = require("./expose");
 const DOM = require("react-dom-factories");
+const React = require("react");
+
 const css = require("css");
 const dialog = require("dialog");
-
+const expose = require("./expose");
 const state = require("state");
+
+const RightHeaderButton = require("component-right-header-button");
 
 module.exports = class CardTeamEdit extends expose.Component {
   constructor(props) {
@@ -169,7 +171,8 @@ module.exports = class CardTeamEdit extends expose.Component {
             className: "prevent-overflow card-title-text-with-arrow"
           },
           "Edit Team"
-        )
+        ),
+        React.createElement(RightHeaderButton, {})
       ),
       this.renderTeamEdit()
     );
