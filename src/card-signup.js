@@ -1,13 +1,15 @@
 "use strict";
 
-const expose = require("./expose");
 const DOM = require("react-dom-factories");
-const css = require("css");
 
-const network = require("network.js");
-const dialog = require("dialog");
-const state = require("state");
 const config = require("config");
+const css = require("css");
+const dialog = require("dialog");
+const expose = require("./expose");
+const network = require("network.js");
+const state = require("state");
+
+const RightHeaderButton = require("component-right-header-button");
 
 module.exports = class CardSignup extends expose.Component {
   constructor(props) {
@@ -241,7 +243,8 @@ module.exports = class CardSignup extends expose.Component {
             className: "prevent-overflow card-title-text-with-arrow"
           },
           "Signup"
-        )
+        ),
+        React.createElement(RightHeaderButton, {})
       ),
       this.renderAuthInterface()
     );

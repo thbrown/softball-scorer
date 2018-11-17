@@ -1,15 +1,15 @@
 "use strict";
 
-const expose = require("./expose");
 const DOM = require("react-dom-factories");
 const FileSaver = require("file-saver");
-const css = require("css");
 
+const css = require("css");
+const expose = require("./expose");
 const dialog = require("dialog");
-const hasher = require("object-hash");
 const network = require("network.js");
-const objectMerge = require("../object-merge.js");
 const state = require("state");
+
+const RightHeaderButton = require("component-right-header-button");
 
 module.exports = class CardMenu extends expose.Component {
   constructor(props) {
@@ -267,13 +267,23 @@ module.exports = class CardMenu extends expose.Component {
   render() {
     return DOM.div(
       {
+        className: "card",
         style: {}
       },
       DOM.div(
         {
           className: "card-title"
         },
-        "Menu"
+        DOM.div({
+          className: "back-arrow" /* Dummy div the size of the back-arrow */
+        }),
+        DOM.div(
+          {
+            className: "prevent-overflow card-title-text-with-arrow"
+          },
+          "Menu"
+        ),
+        React.createElement(RightHeaderButton, {})
       ),
       this.renderMenuOptions()
     );

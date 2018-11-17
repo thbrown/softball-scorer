@@ -7,6 +7,8 @@ const css = require("css");
 
 const dialog = require("dialog");
 const network = require("network");
+const noSleepImport = require("./lib/nosleep.js");
+const noSleep = new noSleepImport();
 const state = require("state");
 
 const CardAuth = require("card-auth");
@@ -91,6 +93,13 @@ module.exports = class MainContainer extends expose.Component {
       false
     );
 
+    // Enable wake lock. (must be wrapped in a user input event handler)
+    document.addEventListener("click", enableNoSleep, false);
+    function enableNoSleep() {
+      noSleep.enable();
+      document.removeEventListener("click", enableNoSleep, false);
+    }
+
     window.addEventListener(
       "online",
       () => {
@@ -109,7 +118,6 @@ module.exports = class MainContainer extends expose.Component {
     );
 
     window.addEventListener("beforeinstallprompt", e => {
-      console.log("beforeinstallprompt fired!");
       // Prevent Chrome 67 and earlier from automatically showing the prompt
       e.preventDefault();
       // Stash the event so it can be triggered later.

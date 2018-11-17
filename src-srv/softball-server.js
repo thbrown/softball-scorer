@@ -92,6 +92,7 @@ module.exports = class SoftballServer {
       })
     );
     app.use(
+      // CSP
       helmet.contentSecurityPolicy({
         directives: {
           defaultSrc: ["'self'"], // Only allow scripts/style/fonts/etc from this domain unless otherwise specified below
@@ -106,14 +107,14 @@ module.exports = class SoftballServer {
           scriptSrc: [
             "'self'",
             "https://www.google.com/recaptcha/api.js",
-            "https://www.gstatic.com"
-            //"'unsafe-eval'"
+            "https://www.gstatic.com/recaptcha/"
+            //"'unsafe-eval'" // TODO: the stats page complains about missing this but it still works. This would open up sizable security hole.
           ],
           connectSrc: [
             "'self'",
             "https://fonts.googleapis.com/css",
             "https://fonts.gstatic.com",
-            "https://www.gstatic.com",
+            "https://www.gstatic.com/recaptcha/",
             "https://www.google.com/recaptcha/api.js"
           ],
           frameSrc: [
@@ -121,6 +122,7 @@ module.exports = class SoftballServer {
             "https://www.google.com/", // ReCapcha
             "https://thbrown.github.io/" // YouTube Proxy
           ],
+          mediaSrc: ["data:"], // This is for the noSleep lib, TODO: there might be a way to tighten this up
           reportUri: "/server/report-violation"
         }
       })

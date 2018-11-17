@@ -9,10 +9,6 @@
    `npm run build && node src-srv`.
 5. Visit http://localhost:8888 in your browser.
 
-npm i prettier -g
-npm i eslint -g
-npm i eslint-plugin-react@latest -g
-
 ## Redis setup (optional)
 
 0. Make sure you are in the project root
@@ -49,3 +45,11 @@ Useful commands to clean up docker processes
 ## Postgres setup (optional)
 
 TODO
+
+## Development:
+
+`npm i prettier -g`
+
+`npm i eslint -g`
+
+`npm i eslint-plugin-react@latest -g`

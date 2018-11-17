@@ -2,11 +2,12 @@
 
 const expose = require("./expose");
 const DOM = require("react-dom-factories");
-const css = require("css");
 
 const network = require("network.js");
 const dialog = require("dialog");
 const state = require("state");
+
+const RightHeaderButton = require("component-right-header-button");
 
 module.exports = class CardAuth extends expose.Component {
   constructor(props) {
@@ -243,7 +244,8 @@ module.exports = class CardAuth extends expose.Component {
             className: "card-title-text-with-arrow"
           },
           "Login"
-        )
+        ),
+        React.createElement(RightHeaderButton, {})
       ),
       this.renderAuthInterface()
     );

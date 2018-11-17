@@ -1,12 +1,14 @@
 "use strict";
 
 const React = require("react");
-const expose = require("./expose");
 const DOM = require("react-dom-factories");
+
 const css = require("css");
 const dialog = require("dialog");
-
+const expose = require("./expose");
 const state = require("state");
+
+const RightHeaderButton = require("component-right-header-button");
 const WalkupSong = require("component-walkup-song");
 
 module.exports = class CardGameEdit extends expose.Component {
@@ -277,7 +279,8 @@ module.exports = class CardGameEdit extends expose.Component {
             className: "card-title-text-with-arrow"
           },
           "Edit Player"
-        )
+        ),
+        React.createElement(RightHeaderButton, {})
       ),
       this.renderPlayerEdit()
     );
