@@ -11,7 +11,7 @@ const state = require("state");
 const RightHeaderButton = require("component-right-header-button");
 const WalkupSong = require("component-walkup-song");
 
-module.exports = class CardGameEdit extends expose.Component {
+module.exports = class CardPlayerEdit extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
@@ -57,7 +57,7 @@ module.exports = class CardGameEdit extends expose.Component {
             dialog.show_notification(
               `Unable to delete player ${
                 props.player.name
-              }. This player either has existing plate appearances or is listed on at least one game's lineup.`
+              }. This player either has existing plate appearances and/or is listed on at least one game's lineup.`
             );
           }
         }
@@ -182,6 +182,7 @@ module.exports = class CardGameEdit extends expose.Component {
         }),
         DOM.div(
           {
+            key: "songWraper",
             id: "songWraper",
             style: {
               paddingLeft: "8px",

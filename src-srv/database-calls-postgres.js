@@ -166,8 +166,8 @@ module.exports = class DatabaseCalls {
           state.players[i].song_link = state.players[i].song_link
             ? state.players[i].song_link
             : null;
-          state.players[i].song_start = state.players[i].song_link
-            ? state.players[i].song_link
+          state.players[i].song_start = state.players[i].song_start
+            ? state.players[i].song_start
             : null;
         }
 

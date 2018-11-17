@@ -450,6 +450,28 @@ body {
   margin-top: 3px;
 }
 
+.pulse-animation {
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    -webkit-transform: scale(1);
+    -ms-transform: scale(1);
+    transform: scale(1);
+  }
+  50% {
+    -webkit-transform: scale(1.3);
+    -ms-transform: scale(1.3);
+    transform: scale(1.3);
+  }
+  100% {
+    -webkit-transform: scale(1);
+    -ms-transform: scale(1);
+    transform: scale(1);
+  }
+}
+
 .plate-appearance-baseball,
 .plate-appearance-card-actions {
   padding: 12px;

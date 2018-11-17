@@ -338,11 +338,13 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
   if (obj.players) {
     result.push({
       query:
-        "INSERT INTO players (id, name, gender, account_id) VALUES($1, $2, $3, $4)",
+        "INSERT INTO players (id, name, gender, song_link, song_start, account_id) VALUES($1, $2, $3, $4, $5, $6)",
       values: [
         idUtils.clientIdToServerId(obj.players.id, accountId),
         obj.players.name,
         obj.players.gender,
+        obj.players.song_link,
+        obj.players.song_start,
         accountId
       ]
     });

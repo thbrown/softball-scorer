@@ -126,7 +126,11 @@ module.exports = class SoftballServer {
             "https://thbrown.github.io/" // YouTube Proxy
           ],
           mediaSrc: ["data:"], // This is for the noSleep lib, TODO: there might be a way to tighten this up
-          imgSrc: ["'self'", "https://www.google-analytics.com"],
+          imgSrc: [
+            "'self'",
+            "https://www.google-analytics.com",
+            "https://stats.g.doubleclick.net"
+          ],
           reportUri: "/server/report-violation"
         }
       })
