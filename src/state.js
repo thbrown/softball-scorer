@@ -10,7 +10,7 @@ const hasher = require("object-hash");
 // Constants
 const INITIAL_STATE = { teams: [], players: [] };
 const CURRENT_LS_SCHEMA_VERSION = "5";
-const SYNC_DELAY_MS = 5000;
+const SYNC_DELAY_MS = 10000;
 const SYNC_STATUS_ENUM = Object.freeze({
   COMPLETED: 1,
   ERROR: 2,
@@ -334,6 +334,7 @@ exports.removePlayer = function(playerId) {
     localState.players = localState.players.filter(player => {
       return player.id !== playerId;
     });
+    onEdit();
     return true;
   } else {
     return false;

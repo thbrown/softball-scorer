@@ -79,7 +79,10 @@ module.exports = class CardPlateAppearance extends expose.Component {
       state.updatePlateAppearanceResult(props.plateAppearance, result);
     };
 
-    this.handleDragStart = function(ev) {};
+    this.handleDragStart = function(ev) {
+      var element = document.getElementById("baseball");
+      element.classList.remove("pulse-animation");
+    };
 
     this.handleDrag = function(ev) {
       ev.stopPropagation();
@@ -138,6 +141,10 @@ module.exports = class CardPlateAppearance extends expose.Component {
 
     window.addEventListener("mouseup", this.onmouseup);
     window.addEventListener("touchend", this.onmouseup);
+
+    // TODO: only apply this if there is no hit
+    var element = document.getElementById("baseball");
+    element.classList.add("pulse-animation");
   }
 
   componentWillUnmount() {

@@ -13,7 +13,7 @@ const ALL_RESULTS = [
   "K"
 ];
 const HIT_RESULTS = ["1B", "2B", "3B", "HRi", "HRo"];
-const NO_HIT_RESULTS = ["Out", "E", "FC", "HRi", "HRo"];
+const NO_HIT_RESULTS = ["Out", "E", "FC", "K", "SAC"];
 const NO_AT_BAT_RESULTS = ["BB"];
 
 exports.getAllResults = function() {
