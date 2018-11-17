@@ -5,6 +5,7 @@ const expose = require("./expose");
 const DOM = require("react-dom-factories");
 const css = require("css");
 
+const config = require("config");
 const dialog = require("dialog");
 const network = require("network");
 const noSleepImport = require("./lib/nosleep.js");
@@ -123,6 +124,38 @@ module.exports = class MainContainer extends expose.Component {
       // Stash the event so it can be triggered later.
       state.setAddToHomescreenPrompt(e);
     });
+
+    // Analytics
+    let trackingId =
+      config.analytics && config.analytics.trackingId
+        ? config.analytics.trackingId
+        : undefined;
+    window.ga =
+      window.ga ||
+      function() {
+        (ga.q = ga.q || []).push(arguments);
+      };
+    ga.l = +new Date();
+    ga("create", trackingId, "auto");
+    ga("require", "urlChangeTracker");
+    ga("require", "cleanUrlTracker", {
+      stripQuery: true,
+      indexFilename: "index.html",
+      trailingSlash: "remove",
+      urlFieldsFilter: function(fieldsObj, parseUrl) {
+        fieldsObj.page = parseUrl(fieldsObj.page)
+          .pathname.replace(/teams\/[a-zA-Z0-9]{14}/, "teams/<team-id>")
+          .replace(/player\/[a-zA-Z0-9]{14}/, "player/<player-id>")
+          .replace(/games\/[a-zA-Z0-9]{14}/, "games/<game-id>")
+          .replace(
+            /plateAppearances\/[a-zA-Z0-9]{14}/,
+            "plateAppearances/<pa-id>"
+          )
+          .replace(/players\/[a-zA-Z0-9]{14}/, "players/<player-id>");
+        return fieldsObj;
+      }
+    });
+    ga("send", "pageview");
 
     let startPage = window.location.pathname;
 

@@ -101,13 +101,15 @@ module.exports = class SoftballServer {
             "'self'",
             "https://fonts.googleapis.com",
             "'sha256-eeE4BsGQZBvwOOvyAnxzD6PBzhU/5IfP4NdPMywc3VE='", // react draggable components
-            "'sha256-6IIvUyrpNJsrV0PElO/SFu1ORPnryCprHLVIlaW4hDM='" // inline style (used by many react/babel components)
+            "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='" // inline style (used by many react/babel components)
           ],
           fontSrc: ["'self'", "https://fonts.gstatic.com"],
           scriptSrc: [
             "'self'",
             "https://www.google.com/recaptcha/api.js",
-            "https://www.gstatic.com/recaptcha/"
+            "https://www.gstatic.com/recaptcha/",
+            "https://www.google-analytics.com",
+            "'sha256-OHGELEzahSNrwMFzyUN05OBpNq1AOUmN5hPgB+af9p0='" // Google Analytics inline
             //"'unsafe-eval'" // TODO: the stats page complains about missing this but it still works. This would open up sizable security hole.
           ],
           connectSrc: [
@@ -115,7 +117,8 @@ module.exports = class SoftballServer {
             "https://fonts.googleapis.com/css",
             "https://fonts.gstatic.com",
             "https://www.gstatic.com/recaptcha/",
-            "https://www.google.com/recaptcha/api.js"
+            "https://www.google.com/recaptcha/api.js",
+            "https://www.google-analytics.com"
           ],
           frameSrc: [
             "'self'",
@@ -123,6 +126,7 @@ module.exports = class SoftballServer {
             "https://thbrown.github.io/" // YouTube Proxy
           ],
           mediaSrc: ["data:"], // This is for the noSleep lib, TODO: there might be a way to tighten this up
+          imgSrc: ["'self'", "https://www.google-analytics.com"],
           reportUri: "/server/report-violation"
         }
       })

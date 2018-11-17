@@ -7,5 +7,8 @@ module.exports = {
   },
   network: {
     timeout: 10000
+  },
+  analytics: {
+    trackingId: undefined
   }
 };

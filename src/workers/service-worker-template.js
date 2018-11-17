@@ -16,6 +16,7 @@ self.addEventListener("install", function(event) {
       return cache.addAll([
         "/",
         "/robots.txt",
+        "/server/assets/autotrack.js",
         "/server/assets/back.svg",
         "/server/assets/ballfield2.png",
         "/server/assets/baseball-hit.svg",
@@ -25,9 +26,8 @@ self.addEventListener("install", function(event) {
         "/server/assets/check.svg",
         "/server/assets/delete.svg",
         "/server/assets/drag-handle.png",
-        "/server/assets/fullscreen.svg",
-        "/server/assets/fullscreen-exit.svg",
         "/server/assets/edit.svg",
+        "/server/assets/empty.svg",
         "/server/assets/main.css",
         "/server/assets/remove.svg",
         "/server/assets/spinner.gif",
