@@ -121,7 +121,7 @@ module.exports = class SoftballServer {
             "https://www.google-analytics.com"
           ],
           frameSrc: [
-            "'self'",
+            "*",
             "https://www.google.com/", // ReCapcha
             "https://thbrown.github.io/" // YouTube Proxy
           ],
@@ -131,7 +131,8 @@ module.exports = class SoftballServer {
             "https://www.google-analytics.com",
             "https://stats.g.doubleclick.net"
           ],
-          reportUri: "/server/report-violation"
+          reportUri: "/server/report-violation",
+          frameAncestors: ["*"]
         }
       })
     );

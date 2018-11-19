@@ -16,11 +16,14 @@ module.exports = class CardPlayerEdit extends expose.Component {
     super(props);
     this.expose();
 
-    this.player = props.player;
     this.isNew = props.isNew;
 
-    let playerCopy = JSON.parse(JSON.stringify(this.player));
-    this.playerCopy = playerCopy;
+    this.state = {
+      playerGender: props.player.gender,
+      playerName: props.player.name,
+      playerSongLink: props.player.song_link,
+      playerSongStart: props.player.song_start
+    };
 
     let returnToPlayersListPage = function() {
       expose.set_state("main", {
@@ -28,15 +31,24 @@ module.exports = class CardPlayerEdit extends expose.Component {
       });
     };
 
+    let buildPlayer = function() {
+      let player = JSON.parse(JSON.stringify(props.player));
+      player.name = this.state.playerName;
+      player.gender = this.state.playerGender;
+      player.song_link = this.state.playerSongLink;
+      player.song_start = this.state.playerSongStart;
+      return player;
+    }.bind(this);
+
     this.handleBackClick = function() {
-      state.replacePlayer(props.player.id, playerCopy);
+      state.replacePlayer(props.player.id, buildPlayer());
       returnToPlayersListPage();
-    };
+    }.bind(this);
 
     this.handleConfirmClick = function() {
-      state.replacePlayer(props.player.id, playerCopy);
+      state.replacePlayer(props.player.id, buildPlayer());
       returnToPlayersListPage();
-    };
+    }.bind(this);
 
     this.handleCancelClick = function() {
       if (props.isNew) {
@@ -48,7 +60,7 @@ module.exports = class CardPlayerEdit extends expose.Component {
     this.handleDeleteClick = function() {
       dialog.show_confirm(
         'Are you sure you want to delete the player "' +
-          props.player.name +
+          props.state.playerName +
           '"?',
         () => {
           if (state.removePlayer(props.player.id)) {
@@ -56,7 +68,7 @@ module.exports = class CardPlayerEdit extends expose.Component {
           } else {
             dialog.show_notification(
               `Unable to delete player ${
-                props.player.name
+                props.state.playerName
               }. This player either has existing plate appearances and/or is listed on at least one game's lineup.`
             );
           }
@@ -65,13 +77,16 @@ module.exports = class CardPlayerEdit extends expose.Component {
     };
 
     this.handlePlayerNameChange = function() {
-      let newValue = document.getElementById("playerName").value;
-      playerCopy.name = newValue;
-    };
+      this.setState({
+        playerName: document.getElementById("playerName").value
+      });
+    }.bind(this);
 
     this.handleGenderChange = function(event) {
-      playerCopy.gender = event.target.value;
-    };
+      this.setState({
+        playerGender: event.target.value
+      });
+    }.bind(this);
 
     this.handleSongLinkChange = function() {
       let newValue = document.getElementById("songLink").value;
@@ -79,20 +94,22 @@ module.exports = class CardPlayerEdit extends expose.Component {
       for (let i = 0; i < dataArray.length; i++) {
         let results = dataArray[i].match(/[0-9a-zA-Z-_]{11}/);
         if (results && results.length === 1) {
-          playerCopy.song_link = results[0];
+          this.setState({
+            playerSongLink: results[0]
+          });
         }
       }
-    };
+    }.bind(this);
 
     this.handleSongStartChange = function() {
-      let newValue = document.getElementById("songStart").value;
-      playerCopy.song_start = newValue;
-      console.log(playerCopy);
-    };
+      this.setState({
+        playerSongStart: document.getElementById("songStart").value
+      });
+    }.bind(this);
   }
 
   componentDidMount() {
-    if (this.player.gender === "F") {
+    if (this.state.playerGender === "F") {
       document.getElementById("femaleGenderChoice").checked = true;
     } else {
       document.getElementById("maleGenderChoice").checked = true;
@@ -100,7 +117,6 @@ module.exports = class CardPlayerEdit extends expose.Component {
   }
 
   renderPlayerEdit() {
-    let player = state.getPlayer(this.props.player.id);
     return DOM.div(
       {
         className: "auth-input-container"
@@ -113,7 +129,7 @@ module.exports = class CardPlayerEdit extends expose.Component {
           placeholder: "Player Name",
           maxLength: "50",
           onChange: this.handlePlayerNameChange,
-          defaultValue: this.player.name
+          defaultValue: this.state.playerName
         }),
         DOM.div(
           {
@@ -164,8 +180,8 @@ module.exports = class CardPlayerEdit extends expose.Component {
           placeholder: "Walk up song YouTube link",
           maxLength: "50",
           onChange: this.handleSongLinkChange,
-          defaultValue: this.player.song_link
-            ? `https://youtu.be/${this.player.song_link}`
+          defaultValue: this.state.playerSongLink
+            ? `https://youtu.be/${this.state.playerSongLink}`
             : ""
         }),
         DOM.input({
@@ -178,7 +194,7 @@ module.exports = class CardPlayerEdit extends expose.Component {
           min: "0",
           step: "1",
           onChange: this.handleSongStartChange,
-          defaultValue: this.player.song_start
+          defaultValue: this.state.playerSongStart
         }),
         DOM.div(
           {
@@ -191,7 +207,8 @@ module.exports = class CardPlayerEdit extends expose.Component {
           },
           "Song Preview:",
           React.createElement(WalkupSong, {
-            player: player,
+            songLink: this.state.playerSongLink,
+            songStart: this.state.playerSongStart,
             width: 48,
             height: 48
           })
