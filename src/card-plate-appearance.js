@@ -345,7 +345,8 @@ module.exports = class CardPlateAppearance extends expose.Component {
 
   renderWalkupSong() {
     return React.createElement(WalkupSong, {
-      player: this.props.player,
+      songLink: this.props.player.song_link,
+      songStart: this.props.player.song_start,
       width: 48,
       height: 48
     });
