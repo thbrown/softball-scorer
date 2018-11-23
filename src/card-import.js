@@ -20,9 +20,7 @@ module.exports = class CardImport extends expose.Component {
     };
 
     this.handleBackClick = function() {
-      expose.set_state("main", {
-        page: "/menu"
-      });
+      history.back();
     };
 
     this.handleLoadClick = function() {

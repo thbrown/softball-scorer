@@ -10,31 +10,30 @@ const CardLineup = require("card-lineup");
 const CardScorer = require("card-scorer");
 const RightHeaderButton = require("component-right-header-button");
 
-let tab = "lineup";
+const defaultTab = "lineup";
 
 module.exports = class CardGame extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
 
-    tab = props.tab || tab;
+    let tab = props.tab || defaultTab;
 
     this.handleBackClick = function() {
-      expose.set_state("main", {
-        page: `/teams/${this.props.team.id}/games`,
-        isNew: false
-      });
+      history.back();
     }.bind(this);
 
-    this.handleTabClick = function(t) {
-      tab = t;
+    this.handleTabClick = function(newTab) {
       expose.set_state("main", {
-        page: `/teams/${this.props.team.id}/games/${this.props.game.id}/${tab}`
+        page: `/teams/${this.props.team.id}/games/${
+          this.props.game.id
+        }/${newTab}`
       });
     }.bind(this);
   }
 
   render() {
+    let tab = this.props.tab || defaultTab;
     let subcard = "";
     if (tab === "lineup") {
       subcard = React.createElement(CardLineup, {

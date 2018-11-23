@@ -16,9 +16,7 @@ module.exports = class CardPlayerList extends expose.Component {
     this.state = {};
 
     this.handleBackClick = function() {
-      expose.set_state("main", {
-        page: `/menu`
-      });
+      history.back();
     };
 
     this.handlePlayerClick = function(player) {

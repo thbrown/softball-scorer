@@ -42,7 +42,7 @@ module.exports = class CardPlayerEdit extends expose.Component {
 
     this.handleBackClick = function() {
       state.replacePlayer(props.player.id, buildPlayer());
-      returnToPlayersListPage();
+      history.back();
     }.bind(this);
 
     this.handleConfirmClick = function() {
