@@ -201,8 +201,8 @@ module.exports = class MainContainer extends expose.Component {
     }
 
     if (MainContainer.matches(url, "/", this.state)) {
-      // TODO: maybe this should just redirect to /team
-      return React.createElement(CardTeamList);
+      // TODO: maybe this should just redirect to /menu
+      return React.createElement(CardMenu);
     } else if (MainContainer.matches(url, "/menu", this.state)) {
       return React.createElement(CardMenu);
     } else if (MainContainer.matches(url, "/menu/login", this.state)) {
@@ -377,10 +377,7 @@ module.exports = class MainContainer extends expose.Component {
   render() {
     return DOM.div(
       {
-        style: {
-          // TODO: Make sure we don't need this
-          //height: window.innerHeight + 'px'
-        }
+        style: {}
       },
       this.renderCard(this.state.page)
     );

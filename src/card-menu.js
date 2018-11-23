@@ -17,6 +17,10 @@ module.exports = class CardMenu extends expose.Component {
     this.expose();
     this.state = {};
 
+    this.handleBackClick = function() {
+      history.back();
+    };
+
     this.handleTeamsClick = function() {
       expose.set_state("main", {
         page: "/teams"
@@ -274,8 +278,11 @@ module.exports = class CardMenu extends expose.Component {
         {
           className: "card-title"
         },
-        DOM.div({
-          className: "back-arrow" /* Dummy div the size of the back-arrow */
+        DOM.img({
+          src: "/server/assets/back.svg",
+          className: "back-arrow",
+          onClick: this.handleBackClick,
+          alt: "back"
         }),
         DOM.div(
           {
@@ -283,7 +290,9 @@ module.exports = class CardMenu extends expose.Component {
           },
           "Menu"
         ),
-        React.createElement(RightHeaderButton, {})
+        React.createElement(RightHeaderButton, {
+          showBlogLink: true
+        })
       ),
       this.renderMenuOptions()
     );

@@ -21,15 +21,7 @@ module.exports = class CardAtBat extends expose.Component {
     this.state = {};
 
     this.handleBackClick = function() {
-      if (props.origin === "stats") {
-        expose.set_state("main", {
-          page: `/teams/${props.teamId}/stats`
-        });
-      } else {
-        expose.set_state("main", {
-          page: `/players`
-        });
-      }
+      history.back();
     };
   }
 

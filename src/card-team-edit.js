@@ -28,7 +28,7 @@ module.exports = class CardTeamEdit extends expose.Component {
 
     this.handleBackClick = function() {
       state.replaceTeam(props.team.id, teamCopy);
-      returnToTeamsListPage();
+      history.back();
     };
 
     this.handleConfirmClick = function() {

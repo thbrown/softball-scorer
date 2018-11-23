@@ -23,9 +23,7 @@ module.exports = class CardPlayerSelection extends expose.Component {
     };
 
     this.handleBackClick = () => {
-      expose.set_state("main", {
-        page: `/teams/${this.props.team.id}/games/${this.props.game.id}`
-      });
+      history.back();
     };
 
     this.handleRadioButtonChange = event => {

@@ -31,7 +31,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
     // and replace it on cancel. Other places we edit the copy and commit it on confirm.
     let plateAppearanceCopy = JSON.parse(JSON.stringify(this.plateAppearance));
 
-    let goBack = function() {
+    let backToOrigin = function() {
       if (props.origin === "scorer") {
         expose.set_state("main", {
           page: `/teams/${props.team.id}/games/${props.game.id}/scorer`
@@ -44,11 +44,11 @@ module.exports = class CardPlateAppearance extends expose.Component {
     };
 
     this.handleBackClick = function() {
-      goBack();
+      history.back();
     };
 
     this.handleConfirmClick = function() {
-      goBack();
+      backToOrigin();
     };
 
     this.handleCancelClick = function() {
@@ -62,7 +62,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
           plateAppearanceCopy
         );
       }
-      goBack();
+      backToOrigin();
     };
 
     this.handleDeleteClick = function() {
@@ -70,7 +70,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
         "Are you sure you want to delete this plate appearance?",
         () => {
           state.removePlateAppearance(props.plateAppearance.id, props.game.id);
-          goBack();
+          backToOrigin();
         }
       );
     };

@@ -17,9 +17,7 @@ module.exports = class CardPasswordReset extends expose.Component {
     this.token = props.token;
 
     this.handleBackClick = function() {
-      expose.set_state("main", {
-        page: "Auth"
-      });
+      history.back();
     };
 
     this.handleSubmitClick = async function() {
