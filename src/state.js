@@ -363,20 +363,22 @@ exports.addGame = function(team_id, opposing_team_name) {
   const id = getNextId();
   const team = exports.getTeam(team_id, new_state);
   const timestamp = Math.floor(new Date().getTime() / 1000); // Postgres expects time in seconds not ms
-  let last_lineup = [];
+  let lastLineup = [];
+  let lastLineupType = 0;
   if (team.games.length) {
-    let last_game = team.games[team.games.length - 1];
-    last_lineup = last_game.lineup.slice();
+    let lastGame = team.games[team.games.length - 1];
+    lastLineupType = lastGame.lineupType;
+    lastLineup = lastGame.lineup.slice();
   }
   let game = {
     id: id,
     opponent: opposing_team_name,
-    lineup: last_lineup,
+    lineup: lastLineup ? lastLineup : [],
     date: timestamp,
     park: "Stazio",
     scoreUs: 0,
     scoreThem: 0,
-    lineupType: 2,
+    lineupType: lastLineupType ? lastLineupType : 1,
     plateAppearances: []
   };
   team.games.push(game);
