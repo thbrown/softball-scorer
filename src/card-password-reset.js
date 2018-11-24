@@ -59,7 +59,7 @@ module.exports = class CardPasswordReset extends expose.Component {
           `Success! Your password has been changed. Please login.`,
           function() {
             expose.set_state("main", {
-              page: "Auth"
+              page: "/menu/login"
             });
           }
         );
@@ -68,7 +68,7 @@ module.exports = class CardPasswordReset extends expose.Component {
           `Error! We were not able to change your password. The activation link may have expired. Please request another password reset.`,
           function() {
             expose.set_state("main", {
-              page: "Auth"
+              page: "/menu/login"
             });
           }
         );
@@ -79,7 +79,7 @@ module.exports = class CardPasswordReset extends expose.Component {
           }`,
           function() {
             expose.set_state("main", {
-              page: "Auth"
+              page: "/menu/login"
             });
           }
         );

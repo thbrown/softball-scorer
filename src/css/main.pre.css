@@ -354,12 +354,13 @@ body {
 .dialog {
   position: fixed;
   width: calc(100% - 40px);
-  top: 200px;
+  top: 50px;
   background-color: $css.colors.PRIMARY_LIGHT;
   border: 4px solid $css.colors.SECONDARY_DARK;
   border-radius: 8px;
   color: $css.colors.TEXT_DARK;
   padding: 16px;
+  z-index: 2001;
 }
 
 .dialog-text {
@@ -602,4 +603,26 @@ Scrolling is ~10-20x smoother.
 
 .hidden {
   visibility: "hidden";
+}
+
+.help-parent {
+  display: flex;
+}
+
+.help-icon {
+  padding: 3px;
+  margin-top: 4px;
+}
+
+.overlay {
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  z-index: 2000;
+  background-color: #f0f0f0;
+  opacity: 0.5;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
