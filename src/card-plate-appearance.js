@@ -44,7 +44,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
       return pa;
     }.bind(this);
 
-    let goBack = function() {
+    let backToOrigin = function() {
       if (props.origin === "scorer") {
         expose.set_state("main", {
           page: `/teams/${props.team.id}/games/${props.game.id}/scorer`
@@ -57,13 +57,23 @@ module.exports = class CardPlateAppearance extends expose.Component {
     };
 
     this.handleBackClick = function() {
-      state.replacePlateAppearance(
-        props.plateAppearance.id,
-        props.game.id,
-        props.team.id,
-        buildPlateAppearance()
-      );
-      goBack();
+      let newPa = buildPlateAppearance();
+      if (
+        props.isNew &&
+        JSON.stringify(newPa) === JSON.stringify(props.plateAppearance)
+      ) {
+        // TODO: this re-renders the page (since it no longer exists an error gets logged) then goes back immidataly. This should be cleaned up after we figure out out back button phylsophy
+        // This problem also exists on other pages (teams, games, players) but it happens silently so we don't notice
+        state.removePlateAppearance(props.plateAppearance.id, props.game.id);
+      } else {
+        state.replacePlateAppearance(
+          props.plateAppearance.id,
+          props.game.id,
+          props.team.id,
+          newPa
+        );
+      }
+      history.back();
     };
 
     this.handleConfirmClick = function() {
@@ -73,14 +83,14 @@ module.exports = class CardPlateAppearance extends expose.Component {
         props.team.id,
         buildPlateAppearance()
       );
-      goBack();
+      backToOrigin();
     };
 
     this.handleCancelClick = function() {
       if (props.isNew) {
         state.removePlateAppearance(props.plateAppearance.id, props.game.id);
       }
-      goBack();
+      backToOrigin();
     };
 
     this.handleDeleteClick = function() {
@@ -88,7 +98,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
         "Are you sure you want to delete this plate appearance?",
         () => {
           state.removePlateAppearance(props.plateAppearance.id, props.game.id);
-          goBack();
+          backToOrigin();
         }
       );
     };
