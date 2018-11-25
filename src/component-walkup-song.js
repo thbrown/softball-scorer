@@ -24,7 +24,6 @@ module.exports = class WalkupSong extends expose.Component {
       function() {
         var elem = document.activeElement;
         if (elem && elem.tagName == "IFRAME") {
-          console.log("Clicked", this.clicked);
           if (this.clicked) {
             // Reload youtube iframe on second click, assign the iframe a new key to re-render it
             this.clicked = false;

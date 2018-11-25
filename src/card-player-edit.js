@@ -41,8 +41,16 @@ module.exports = class CardPlayerEdit extends expose.Component {
     }.bind(this);
 
     this.handleBackClick = function() {
-      state.replacePlayer(props.player.id, buildPlayer());
-      returnToPlayersListPage();
+      let newPlayer = buildPlayer();
+      if (
+        props.isNew &&
+        JSON.stringify(newPlayer) === JSON.stringify(props.player)
+      ) {
+        state.removePlayer(props.player.id);
+      } else {
+        state.replacePlayer(props.player.id, newPlayer);
+      }
+      history.back();
     }.bind(this);
 
     this.handleConfirmClick = function() {
@@ -60,7 +68,7 @@ module.exports = class CardPlayerEdit extends expose.Component {
     this.handleDeleteClick = function() {
       dialog.show_confirm(
         'Are you sure you want to delete the player "' +
-          props.state.playerName +
+          this.state.playerName +
           '"?',
         () => {
           if (state.removePlayer(props.player.id)) {
@@ -68,13 +76,13 @@ module.exports = class CardPlayerEdit extends expose.Component {
           } else {
             dialog.show_notification(
               `Unable to delete player ${
-                props.state.playerName
+                this.state.playerName
               }. This player either has existing plate appearances and/or is listed on at least one game's lineup.`
             );
           }
         }
       );
-    };
+    }.bind(this);
 
     this.handlePlayerNameChange = function() {
       this.setState({

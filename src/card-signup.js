@@ -19,9 +19,7 @@ module.exports = class CardSignup extends expose.Component {
     this.recapchaId = {};
 
     this.handleBackClick = function() {
-      expose.set_state("main", {
-        page: "/menu"
-      });
+      history.back();
     };
 
     this.handleSubmitClick = async function() {

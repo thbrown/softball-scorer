@@ -26,8 +26,16 @@ module.exports = class CardGameEdit extends expose.Component {
     };
 
     this.handleBackClick = function() {
-      state.replaceGame(props.game.id, props.team.id, gameCopy);
-      returnToGamesListPage();
+      if (
+        props.isNew &&
+        JSON.stringify(gameCopy) === JSON.stringify(props.game)
+      ) {
+        // No changes, don't save a blank game
+        state.removeGame(props.game.id, props.team.id);
+      } else {
+        state.replaceGame(props.game.id, props.team.id, gameCopy);
+      }
+      history.back();
     };
 
     this.handleConfirmClick = function() {
@@ -63,6 +71,16 @@ module.exports = class CardGameEdit extends expose.Component {
       let newValue = document.getElementById("lineupType").value;
       gameCopy.lineupType = parseInt(newValue);
     };
+
+    this.handleLineupTypeHelpClick = function() {
+      dialog.show_notification(
+        `**Lineup Type** is used by the lineup simulator to determine what lineups are valid. Some leagues have restrictions on which players can bat in which slots. Softball.app supports three types of lineups:
+* **Normal** Any batter is allowed to bat anywhere in the lineup
+* **Alternating Gender** Consecutive batters must have different genders
+* **No Consecutive Females** Females may not bat back-to-back`,
+        undefined
+      );
+    };
   }
 
   componentDidMount() {
@@ -85,21 +103,35 @@ module.exports = class CardGameEdit extends expose.Component {
           onChange: this.handleOpponentNameChange,
           defaultValue: this.game.opponent
         }),
-        DOM.select(
+        DOM.div(
           {
-            key: "lineupType",
-            id: "lineupType",
-            className: "auth-input",
-            onChange: this.handleLineupTypeChange,
-            style: {
-              marginTop: "8px"
-            }
+            key: "helpParent",
+            className: "help-parent"
           },
-          [
-            DOM.option({ key: "normal", value: 1 }, "Normal"),
-            DOM.option({ key: "alternate", value: 2 }, "Alternating Gender")
-            //DOM.option({key:'noConsecutive',value: 3},'No Consecutive Females')
-          ]
+          DOM.select(
+            {
+              key: "lineupType",
+              id: "lineupType",
+              className: "auth-input",
+              onChange: this.handleLineupTypeChange,
+              style: {
+                marginTop: "8px"
+              }
+            },
+            [
+              DOM.option({ key: "normal", value: 1 }, "Normal"),
+              DOM.option({ key: "alternate", value: 2 }, "Alternating Gender"),
+              DOM.option(
+                { key: "noConsecutive", value: 3 },
+                "No Consecutive Females"
+              )
+            ]
+          ),
+          DOM.img({
+            className: "help-icon",
+            src: "/server/assets/help.svg",
+            onClick: this.handleLineupTypeHelpClick
+          })
         )
       ],
       this.renderSaveOptions()

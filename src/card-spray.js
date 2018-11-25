@@ -21,28 +21,20 @@ module.exports = class CardAtBat extends expose.Component {
     this.state = {};
 
     this.handleBackClick = function() {
-      if (props.origin === "stats") {
-        expose.set_state("main", {
-          page: `/teams/${props.teamId}/stats`
-        });
-      } else {
-        expose.set_state("main", {
-          page: `/players`
-        });
-      }
+      history.back();
     };
   }
 
   renderField() {
     let playerPlateAppearances = [];
-    if (this.props.teamId) {
+    if (this.props.origin === "stats") {
       playerPlateAppearances = state.getPlateAppearancesForPlayerOnTeam(
-        this.props.playerId,
-        this.props.teamId
+        this.props.player.id,
+        this.props.team.id
       );
     } else {
       playerPlateAppearances = state.getPlateAppearancesForPlayer(
-        this.props.playerId
+        this.props.player.id
       );
     }
     let indicators = [];
@@ -130,7 +122,7 @@ module.exports = class CardAtBat extends expose.Component {
           {
             className: "prevent-overflow card-title-text-with-arrow"
           },
-          state.getPlayer(this.props.playerId).name
+          this.props.player.name
         ),
         React.createElement(RightHeaderButton, {})
       ),

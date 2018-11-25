@@ -10,18 +10,16 @@ const CardStats = require("card-stats");
 const CardGameList = require("card-game-list");
 const RightHeaderButton = require("component-right-header-button");
 
-let tab = "games";
+let defaultTab = "games";
 
 module.exports = class CardTeam extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
-    tab = props.tab || tab;
+    let tab = props.tab || defaultTab;
 
     this.handleBackClick = function() {
-      expose.set_state("main", {
-        page: "/teams"
-      });
+      history.back();
     };
 
     this.handleTabClick = function(t) {
@@ -33,6 +31,7 @@ module.exports = class CardTeam extends expose.Component {
   }
 
   render() {
+    let tab = this.props.tab || defaultTab;
     let subcard = "";
     if (tab === "stats") {
       subcard = React.createElement(CardStats, { team: this.props.team });

@@ -27,8 +27,15 @@ module.exports = class CardTeamEdit extends expose.Component {
     };
 
     this.handleBackClick = function() {
-      state.replaceTeam(props.team.id, teamCopy);
-      returnToTeamsListPage();
+      if (
+        props.isNew &&
+        JSON.stringify(teamCopy) === JSON.stringify(props.team)
+      ) {
+        state.removeTeam(props.team.id);
+      } else {
+        state.replaceTeam(props.team.id, teamCopy);
+      }
+      history.back();
     };
 
     this.handleConfirmClick = function() {
