@@ -23,13 +23,26 @@ module.exports = class CardPlateAppearance extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
-    this.state = {};
+    this.state = {
+      paResult: props.plateAppearance.result,
+      paLocationX: props.plateAppearance.location
+        ? props.plateAppearance.location.x
+        : null,
+      paLocationY: props.plateAppearance.location
+        ? props.plateAppearance.location.y
+        : null
+    };
 
-    this.plateAppearance = props.plateAppearance;
     this.isNew = props.isNew;
-    // This is the opposite of how we handle the other pages, here we edit the original
-    // and replace it on cancel. Other places we edit the copy and commit it on confirm.
-    let plateAppearanceCopy = JSON.parse(JSON.stringify(this.plateAppearance));
+
+    let buildPlateAppearance = function() {
+      let pa = JSON.parse(JSON.stringify(props.plateAppearance));
+      pa.result = this.state.paResult;
+      pa.location = {};
+      pa.location.x = this.state.paLocationX;
+      pa.location.y = this.state.paLocationY;
+      return pa;
+    }.bind(this);
 
     let goBack = function() {
       if (props.origin === "scorer") {
@@ -44,23 +57,28 @@ module.exports = class CardPlateAppearance extends expose.Component {
     };
 
     this.handleBackClick = function() {
+      state.replacePlateAppearance(
+        props.plateAppearance.id,
+        props.game.id,
+        props.team.id,
+        buildPlateAppearance()
+      );
       goBack();
     };
 
     this.handleConfirmClick = function() {
+      state.replacePlateAppearance(
+        props.plateAppearance.id,
+        props.game.id,
+        props.team.id,
+        buildPlateAppearance()
+      );
       goBack();
     };
 
     this.handleCancelClick = function() {
       if (props.isNew) {
         state.removePlateAppearance(props.plateAppearance.id, props.game.id);
-      } else {
-        state.replacePlateAppearance(
-          props.plateAppearance.id,
-          props.game.id,
-          props.team.id,
-          plateAppearanceCopy
-        );
       }
       goBack();
     };
@@ -76,7 +94,9 @@ module.exports = class CardPlateAppearance extends expose.Component {
     };
 
     this.handleButtonClick = function(result) {
-      state.updatePlateAppearanceResult(props.plateAppearance, result);
+      this.setState({
+        paResult: result
+      });
     };
 
     this.handleDragStart = function(ev) {
@@ -93,12 +113,16 @@ module.exports = class CardPlateAppearance extends expose.Component {
     this.handleDragStop = function() {
       //lame way to make this run after the mouseup event
       setTimeout(() => {
-        let new_x = ((this.mx - 10) / window.innerWidth) * LOCATION_DENOMINATOR;
-        let new_y = ((this.my - 10) / window.innerWidth) * LOCATION_DENOMINATOR;
-        state.updatePlateAppearanceLocation(props.plateAppearance, [
-          new_x,
-          new_y
-        ]);
+        let new_x = Math.floor(
+          ((this.mx - 10) / window.innerWidth) * LOCATION_DENOMINATOR
+        );
+        let new_y = Math.floor(
+          ((this.my - 10) / window.innerWidth) * LOCATION_DENOMINATOR
+        );
+        this.setState({
+          paLocationX: new_x,
+          paLocationY: new_y
+        });
       }, 1);
     };
   }
@@ -173,9 +197,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
           onClick: this.handleButtonClick.bind(this, result),
           style: {
             backgroundColor:
-              this.props.plateAppearance.result === result
-                ? css.colors.SECONDARY
-                : null
+              this.state.paResult === result ? css.colors.SECONDARY : null
           }
         },
         result
@@ -210,14 +232,19 @@ module.exports = class CardPlateAppearance extends expose.Component {
   renderField(imageSrcForCurrentPa) {
     let indicators = [];
 
-    // Add the indicators for all plate appearances for this player, the current plate appearance will be dispalyed in a different color
+    // Add the indicators for all plate appearances for this player, the current plate appearance will be displayed in a different color
     this.props.plateAppearances.forEach(value => {
       let x = -1;
       let y = -1;
+      let imageSrc = "/server/assets/baseball.svg";
 
-      if (value.location) {
-        x = value.location.x;
-        y = value.location.y;
+      if (value.id === this.props.plateAppearance.id) {
+        x = this.state.paLocationX;
+        y = this.state.paLocationY;
+        imageSrc = imageSrcForCurrentPa;
+      } else {
+        x = value.location ? value.location.x : null;
+        y = value.location ? value.location.y : null;
       }
 
       let new_x = Math.floor(
@@ -227,10 +254,6 @@ module.exports = class CardPlateAppearance extends expose.Component {
         normalize(y, 0, LOCATION_DENOMINATOR, 0, window.innerWidth)
       );
 
-      let imageSrc =
-        value.id === this.props.plateAppearance.id
-          ? imageSrcForCurrentPa
-          : "/server/assets/baseball.svg";
       if (value.location && x && y) {
         indicators.push(
           DOM.img({
@@ -355,7 +378,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
   render() {
     let imageSrcForCurrentPa = results
       .getNoHitResults()
-      .includes(this.props.plateAppearance.result)
+      .includes(this.state.paResult)
       ? "/server/assets/baseball-out.svg"
       : "/server/assets/baseball-hit.svg";
     return DOM.div(
