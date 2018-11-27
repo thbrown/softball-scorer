@@ -84,7 +84,6 @@ module.exports = class SoftballServer {
     // Prep the web server
     const app = express();
     const server = http.createServer(app);
-
     // Middleware
     app.use(
       helmet({
@@ -109,8 +108,8 @@ module.exports = class SoftballServer {
             "https://www.google.com/recaptcha/api.js",
             "https://www.gstatic.com/recaptcha/",
             "https://www.google-analytics.com",
-            "'sha256-OHGELEzahSNrwMFzyUN05OBpNq1AOUmN5hPgB+af9p0='" // Google Analytics inline
-            //"'unsafe-eval'" // TODO: the stats page complains about missing this but it still works. This would open up sizable security hole.
+            "'sha256-OHGELEzahSNrwMFzyUN05OBpNq1AOUmN5hPgB+af9p0='", // Google Analytics inline
+            "'unsafe-eval'" // TODO: the stats page and some other things complain about missing this but it still works.
           ],
           connectSrc: [
             "'self'",
@@ -121,7 +120,6 @@ module.exports = class SoftballServer {
             "https://www.google-analytics.com"
           ],
           frameSrc: [
-            "*",
             "https://www.google.com/", // ReCapcha
             "https://thbrown.github.io/" // YouTube Proxy
           ],
@@ -131,12 +129,13 @@ module.exports = class SoftballServer {
             "https://www.google-analytics.com",
             "https://stats.g.doubleclick.net"
           ],
-          reportUri: "/server/report-violation",
-          frameAncestors: ["*"]
-        }
+          reportUri: "/server/report-violation"
+        },
+        browserSniff: false
       })
     );
-    app.use(helmet.referrerPolicy({ policy: "same-origin" }));
+    //app.use(helmet.referrerPolicy({ policy: "same-origin" })); // This breaks embeded youtube on ios safari
+
     app.use(favicon(__dirname + "/../assets/fav-icon.png"));
     app.use(
       "/server/build",

@@ -87,7 +87,7 @@ module.exports = class CardSignup extends expose.Component {
           `Thank you for creating an account on Softball.app! You have been logged in.`,
           function() {
             expose.set_state("main", {
-              page: "/teams"
+              page: "/menu"
             });
           }
         );

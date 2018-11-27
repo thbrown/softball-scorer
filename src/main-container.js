@@ -205,10 +205,14 @@ module.exports = class MainContainer extends expose.Component {
   }
 
   renderCard(url) {
-    console.log("to ", url);
     // Update the base url if necessary
     if (url !== window.location.pathname) {
-      history.pushState({}, "", url);
+      // Don't include edit screens in back browser history
+      if (window.location.pathname.endsWith("edit")) {
+        history.replaceState({}, "", url);
+      } else {
+        history.pushState({}, "", url);
+      }
     }
 
     try {

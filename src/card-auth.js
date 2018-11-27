@@ -101,7 +101,7 @@ module.exports = class CardAuth extends expose.Component {
             if (status === 200) {
               console.log("Done with sync");
               expose.set_state("main", {
-                page: "/teams",
+                page: "/menu",
                 render: true
               });
             } else {

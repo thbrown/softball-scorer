@@ -601,8 +601,16 @@ Scrolling is ~10-20x smoother.
   width: 100%;
 }
 
+.gone {
+  display: none;
+}
+
 .hidden {
   visibility: "hidden";
+}
+
+.fixed {
+  position: fixed;
 }
 
 .help-parent {

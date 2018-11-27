@@ -112,6 +112,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
     this.handleDragStart = function(ev) {
       var element = document.getElementById("baseball");
       element.classList.remove("pulse-animation");
+      //document.body.classList.add("fixed");
     };
 
     this.handleDrag = function(ev) {
@@ -123,6 +124,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
     this.handleDragStop = function() {
       //lame way to make this run after the mouseup event
       setTimeout(() => {
+        //document.body.classList.remove("fixed");
         let new_x = Math.floor(
           ((this.mx - 10) / window.innerWidth) * LOCATION_DENOMINATOR
         );

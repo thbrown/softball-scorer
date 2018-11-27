@@ -209,6 +209,7 @@ module.exports = class CardPlayerEdit extends expose.Component {
             key: "songWraper",
             id: "songWraper",
             style: {
+              display: "grid",
               paddingLeft: "8px",
               paddingTop: "8px"
             }
