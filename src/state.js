@@ -33,7 +33,6 @@ let activeUser = null;
 let addToHomescreenEvent = null;
 let syncState = SYNC_STATUS_ENUM.UNKNOWN;
 let syncTimer = null;
-let preventScreenLock = false;
 
 const state = exports;
 

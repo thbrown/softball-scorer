@@ -76,14 +76,15 @@ module.exports = class MainContainer extends expose.Component {
     window.onpopstate = function() {
       let newPage = window.location.pathname;
       expose.set_state("main", {
-        page: newPage
+        page: newPage,
+        isNew: false
       });
     };
 
     // Sync on first load
     setTimeout(state.sync, 1);
 
-    // Check if we are logged in, online, and who we are logged in as (TODO: Is the really useful? The data will almost always be right unless somebody clears their ls)
+    // Check if we are logged in, online, and who we are logged in as
     setTimeout(network.updateNetworkStatus, 1);
 
     // Reload from local storage each time after the window regains focus

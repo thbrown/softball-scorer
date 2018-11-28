@@ -8,6 +8,9 @@ module.exports = class RightHeaderButton extends expose.Component {
     super(props);
     this.expose();
     this.handleButtonPress = function() {
+      if (props.onPress) {
+        props.onPress();
+      }
       if (props.showBlogLink) {
         window.open("https://blog.softball.app", "_blank");
       } else {

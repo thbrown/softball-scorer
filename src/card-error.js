@@ -5,6 +5,7 @@ const FileSaver = require("file-saver");
 
 const expose = require("./expose");
 
+const LeftHeaderButton = require("component-left-header-button");
 const RightHeaderButton = require("component-right-header-button");
 
 module.exports = class CardError extends expose.Component {
@@ -12,10 +13,6 @@ module.exports = class CardError extends expose.Component {
     super(props);
     this.expose();
     this.state = {};
-
-    this.handleBackClick = function() {
-      history.back();
-    };
   }
 
   render() {
@@ -27,12 +24,7 @@ module.exports = class CardError extends expose.Component {
         {
           className: "card-title"
         },
-        DOM.img({
-          src: "/server/assets/back.svg",
-          className: "back-arrow",
-          onClick: this.handleBackClick,
-          alt: "back"
-        }),
+        React.createElement(LeftHeaderButton, {}),
         DOM.div(
           {
             className: "prevent-overflow card-title-text-with-arrow"

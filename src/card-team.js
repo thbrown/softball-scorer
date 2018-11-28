@@ -8,6 +8,7 @@ const expose = require("./expose");
 
 const CardStats = require("card-stats");
 const CardGameList = require("card-game-list");
+const LeftHeaderButton = require("component-left-header-button");
 const RightHeaderButton = require("component-right-header-button");
 
 let defaultTab = "games";
@@ -17,10 +18,6 @@ module.exports = class CardTeam extends expose.Component {
     super(props);
     this.expose();
     let tab = props.tab || defaultTab;
-
-    this.handleBackClick = function() {
-      history.back();
-    };
 
     this.handleTabClick = function(t) {
       tab = t;
@@ -47,12 +44,7 @@ module.exports = class CardTeam extends expose.Component {
         {
           className: "card-title"
         },
-        DOM.img({
-          src: "/server/assets/back.svg",
-          className: "back-arrow",
-          onClick: this.handleBackClick,
-          alt: "back"
-        }),
+        React.createElement(LeftHeaderButton, {}),
         DOM.div(
           {
             className: "card-title-tab-container",

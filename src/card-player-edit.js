@@ -8,6 +8,7 @@ const dialog = require("dialog");
 const expose = require("./expose");
 const state = require("state");
 
+const LeftHeaderButton = require("component-left-header-button");
 const RightHeaderButton = require("component-right-header-button");
 const WalkupSong = require("component-walkup-song");
 
@@ -40,7 +41,7 @@ module.exports = class CardPlayerEdit extends expose.Component {
       return player;
     }.bind(this);
 
-    this.handleBackClick = function() {
+    this.homeOrBack = function() {
       let newPlayer = buildPlayer();
       if (
         props.isNew &&
@@ -50,8 +51,7 @@ module.exports = class CardPlayerEdit extends expose.Component {
       } else {
         state.replacePlayer(props.player.id, newPlayer);
       }
-      history.back();
-    }.bind(this);
+    };
 
     this.handleConfirmClick = function() {
       state.replacePlayer(props.player.id, buildPlayer());
@@ -209,12 +209,18 @@ module.exports = class CardPlayerEdit extends expose.Component {
             key: "songWraper",
             id: "songWraper",
             style: {
-              display: "grid",
               paddingLeft: "8px",
               paddingTop: "8px"
             }
           },
-          "Song Preview:",
+          DOM.div(
+            {
+              key: "songLabel",
+              id: "songLabel",
+              style: {}
+            },
+            "Song Preview:"
+          ),
           React.createElement(WalkupSong, {
             songLink: this.state.playerSongLink,
             songStart: this.state.playerSongStart,
@@ -295,11 +301,8 @@ module.exports = class CardPlayerEdit extends expose.Component {
         {
           className: "card-title"
         },
-        DOM.img({
-          src: "/server/assets/back.svg",
-          className: "back-arrow",
-          onClick: this.handleBackClick,
-          alt: "back"
+        React.createElement(LeftHeaderButton, {
+          onPress: this.homeOrBack
         }),
         DOM.div(
           {
@@ -307,7 +310,9 @@ module.exports = class CardPlayerEdit extends expose.Component {
           },
           "Edit Player"
         ),
-        React.createElement(RightHeaderButton, {})
+        React.createElement(RightHeaderButton, {
+          onPress: this.homeOrBack
+        })
       ),
       this.renderPlayerEdit()
     );
