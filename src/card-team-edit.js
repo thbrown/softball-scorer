@@ -8,6 +8,7 @@ const dialog = require("dialog");
 const expose = require("./expose");
 const state = require("state");
 
+const LeftHeaderButton = require("component-left-header-button");
 const RightHeaderButton = require("component-right-header-button");
 
 module.exports = class CardTeamEdit extends expose.Component {
@@ -26,7 +27,7 @@ module.exports = class CardTeamEdit extends expose.Component {
       });
     };
 
-    this.handleBackClick = function() {
+    this.homeOrBack = function() {
       if (
         props.isNew &&
         JSON.stringify(teamCopy) === JSON.stringify(props.team)
@@ -35,7 +36,6 @@ module.exports = class CardTeamEdit extends expose.Component {
       } else {
         state.replaceTeam(props.team.id, teamCopy);
       }
-      history.back();
     };
 
     this.handleConfirmClick = function() {
@@ -52,7 +52,7 @@ module.exports = class CardTeamEdit extends expose.Component {
 
     this.handleDeleteClick = function() {
       dialog.show_confirm(
-        'Are you sure you want to delete the team "' + props.team.name + '"?',
+        `Are you sure you want to delete the team ${props.team.name}?`,
         () => {
           state.removeTeam(props.team.id);
           returnToTeamsListPage();
@@ -168,10 +168,8 @@ module.exports = class CardTeamEdit extends expose.Component {
         {
           className: "card-title"
         },
-        DOM.img({
-          src: "/server/assets/back.svg",
-          className: "back-arrow",
-          onClick: this.handleBackClick
+        React.createElement(LeftHeaderButton, {
+          onPress: this.homeOrBack
         }),
         DOM.div(
           {
@@ -179,7 +177,9 @@ module.exports = class CardTeamEdit extends expose.Component {
           },
           "Edit Team"
         ),
-        React.createElement(RightHeaderButton, {})
+        React.createElement(RightHeaderButton, {
+          onPress: this.homeOrBack
+        })
       ),
       this.renderTeamEdit()
     );

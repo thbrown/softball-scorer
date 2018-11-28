@@ -7,6 +7,7 @@ const dialog = require("dialog");
 const expose = require("./expose");
 const state = require("state");
 
+const LeftHeaderButton = require("component-left-header-button");
 const RightHeaderButton = require("component-right-header-button");
 
 module.exports = class CardTeamList extends expose.Component {
@@ -14,10 +15,6 @@ module.exports = class CardTeamList extends expose.Component {
     super(props);
     this.expose();
     this.state = {};
-
-    this.handleBackClick = function() {
-      history.back();
-    };
 
     this.handleTeamClick = function(team) {
       expose.set_state("main", {
@@ -101,12 +98,7 @@ module.exports = class CardTeamList extends expose.Component {
         {
           className: "card-title"
         },
-        DOM.img({
-          src: "/server/assets/back.svg",
-          className: "back-arrow",
-          onClick: this.handleBackClick,
-          alt: "back"
-        }),
+        React.createElement(LeftHeaderButton, {}),
         DOM.div(
           {
             className: "prevent-overflow card-title-text-with-arrow"

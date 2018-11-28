@@ -9,6 +9,7 @@ const expose = require("./expose");
 const network = require("network.js");
 const state = require("state");
 
+const LeftHeaderButton = require("component-left-header-button");
 const RightHeaderButton = require("component-right-header-button");
 
 module.exports = class CardSignup extends expose.Component {
@@ -17,10 +18,6 @@ module.exports = class CardSignup extends expose.Component {
     this.expose();
     this.state = {};
     this.recapchaId = {};
-
-    this.handleBackClick = function() {
-      history.back();
-    };
 
     this.handleSubmitClick = async function() {
       let email = document.getElementById("email");
@@ -230,19 +227,14 @@ module.exports = class CardSignup extends expose.Component {
         {
           className: "card-title"
         },
-        DOM.img({
-          src: "/server/assets/back.svg",
-          className: "back-arrow",
-          onClick: this.handleBackClick,
-          alt: "back"
-        }),
+        React.createElement(LeftHeaderButton, {}),
         DOM.div(
           {
             className: "prevent-overflow card-title-text-with-arrow"
           },
           "Signup"
         ),
-        React.createElement(RightHeaderButton, {})
+        React.createElement(LeftHeaderButton, {})
       ),
       this.renderAuthInterface()
     );

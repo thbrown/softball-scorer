@@ -6,6 +6,7 @@ const dialog = require("dialog");
 const expose = require("./expose");
 const network = require("network");
 
+const LeftHeaderButton = require("component-left-header-button");
 const RightHeaderButton = require("component-right-header-button");
 
 module.exports = class CardPasswordReset extends expose.Component {
@@ -15,10 +16,6 @@ module.exports = class CardPasswordReset extends expose.Component {
     this.state = {};
 
     this.token = props.token;
-
-    this.handleBackClick = function() {
-      history.back();
-    };
 
     this.handleSubmitClick = async function() {
       const password = document.getElementById("password");
@@ -141,12 +138,7 @@ module.exports = class CardPasswordReset extends expose.Component {
         {
           className: "card-title"
         },
-        DOM.img({
-          src: "/server/assets/back.svg",
-          className: "back-arrow",
-          onClick: this.handleBackClick,
-          alt: "back"
-        }),
+        React.createElement(LeftHeaderButton, {}),
         DOM.div(
           {
             style: {}

@@ -10,6 +10,7 @@ const expose = require("./expose");
 const results = require("plate-appearance-results");
 const state = require("state");
 
+const LeftHeaderButton = require("component-left-header-button");
 const RightHeaderButton = require("component-right-header-button");
 const WalkupSong = require("component-walkup-song");
 
@@ -56,7 +57,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
       }
     };
 
-    this.handleBackClick = function() {
+    this.homeOrBack = function() {
       let newPa = buildPlateAppearance();
       if (
         props.isNew &&
@@ -73,7 +74,6 @@ module.exports = class CardPlateAppearance extends expose.Component {
           newPa
         );
       }
-      history.back();
     };
 
     this.handleConfirmClick = function() {
@@ -122,6 +122,10 @@ module.exports = class CardPlateAppearance extends expose.Component {
     };
 
     this.handleDragStop = function() {
+      // Enable scrolling.
+      document.ontouchmove = function(e) {
+        return true;
+      };
       //lame way to make this run after the mouseup event
       setTimeout(() => {
         //document.body.classList.remove("fixed");
@@ -405,11 +409,8 @@ module.exports = class CardPlateAppearance extends expose.Component {
           className: "card-title",
           style: {}
         },
-        DOM.img({
-          src: "/server/assets/back.svg",
-          className: "back-arrow",
-          onClick: this.handleBackClick,
-          alt: "back"
+        React.createElement(LeftHeaderButton, {
+          onPress: this.homeOrBack
         }),
         DOM.div(
           {
@@ -417,7 +418,9 @@ module.exports = class CardPlateAppearance extends expose.Component {
           },
           this.props.player.name
         ),
-        React.createElement(RightHeaderButton, {})
+        React.createElement(RightHeaderButton, {
+          onPress: this.homeOrBack
+        })
       ),
       this.renderButtonList(),
       this.renderField(imageSrcForCurrentPa),

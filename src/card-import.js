@@ -8,6 +8,7 @@ const dialog = require("dialog");
 const objectMerge = require("../object-merge.js");
 const state = require("state");
 
+const LeftHeaderButton = require("component-left-header-button");
 const RightHeaderButton = require("component-right-header-button");
 
 module.exports = class CardImport extends expose.Component {
@@ -17,10 +18,6 @@ module.exports = class CardImport extends expose.Component {
 
     this.state = {
       loadType: undefined
-    };
-
-    this.handleBackClick = function() {
-      history.back();
     };
 
     this.handleLoadClick = function() {
@@ -168,12 +165,7 @@ module.exports = class CardImport extends expose.Component {
         {
           className: "card-title"
         },
-        DOM.img({
-          src: "/server/assets/back.svg",
-          className: "back-arrow",
-          onClick: this.handleBackClick,
-          alt: "back"
-        }),
+        React.createElement(LeftHeaderButton, {}),
         DOM.div(
           {
             className: "card-title-text-with-arrow"

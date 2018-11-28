@@ -14,7 +14,6 @@ module.exports = class WalkupSong extends expose.Component {
 
     let startIframeClickDetect = function() {
       // Handle walkup song clicks
-      this.clicked = false;
       this.monitor = setInterval(
         function() {
           var elem = document.activeElement;
@@ -35,7 +34,6 @@ module.exports = class WalkupSong extends expose.Component {
       this.setState({
         key: Math.random()
       });
-
       document.getElementById("songOverlay").classList.add("gone");
       startIframeClickDetect();
     }.bind(this);
@@ -48,7 +46,7 @@ module.exports = class WalkupSong extends expose.Component {
       this.forceRender
     ) {
       this.forceRender = false;
-      this.clicked = false;
+      document.getElementById("songOverlay").classList.add("gone");
       return true;
     } else {
       return false;

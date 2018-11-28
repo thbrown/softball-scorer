@@ -7,6 +7,7 @@ const expose = require("./expose");
 const dialog = require("dialog");
 const state = require("state");
 
+const LeftHeaderButton = require("component-left-header-button");
 const RightHeaderButton = require("component-right-header-button");
 
 module.exports = class CardGameEdit extends expose.Component {
@@ -25,7 +26,7 @@ module.exports = class CardGameEdit extends expose.Component {
       });
     };
 
-    this.handleBackClick = function() {
+    this.homeOrBack = function() {
       if (
         props.isNew &&
         JSON.stringify(gameCopy) === JSON.stringify(props.game)
@@ -35,7 +36,6 @@ module.exports = class CardGameEdit extends expose.Component {
       } else {
         state.replaceGame(props.game.id, props.team.id, gameCopy);
       }
-      history.back();
     };
 
     this.handleConfirmClick = function() {
@@ -52,9 +52,7 @@ module.exports = class CardGameEdit extends expose.Component {
 
     this.handleDeleteClick = function() {
       dialog.show_confirm(
-        'Are you sure you want to delete the game vs "' +
-          props.game.opponent +
-          '"?',
+        `Are you sure you want to delete the game vs ${props.game.opponent}?`,
         () => {
           state.removeGame(props.game.id, props.team.id);
           returnToGamesListPage();
@@ -222,11 +220,8 @@ module.exports = class CardGameEdit extends expose.Component {
         {
           className: "card-title"
         },
-        DOM.img({
-          src: "/server/assets/back.svg",
-          className: "back-arrow",
-          onClick: this.handleBackClick,
-          alt: "back"
+        React.createElement(LeftHeaderButton, {
+          onPress: this.homeOrBack
         }),
         DOM.div(
           {
@@ -234,7 +229,9 @@ module.exports = class CardGameEdit extends expose.Component {
           },
           "Edit Game"
         ),
-        React.createElement(RightHeaderButton, {})
+        React.createElement(RightHeaderButton, {
+          onPress: this.homeOrBack
+        })
       ),
       this.renderGameEdit()
     );
