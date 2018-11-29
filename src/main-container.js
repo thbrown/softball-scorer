@@ -42,6 +42,8 @@ const CardTeamList = require("card-team-list");
 // Delete account/data
 // Async localstorage interaction
 
+// Iframe generates extra back history entrys
+// On delete, double hisotry entries are generated
 module.exports = class MainContainer extends expose.Component {
   constructor(props) {
     super(props);
