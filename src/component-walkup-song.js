@@ -12,8 +12,9 @@ module.exports = class WalkupSong extends expose.Component {
       key: 0
     };
 
-    let startIframeClickDetect = function() {
+    this.startIframeClickDetect = function() {
       // Handle walkup song clicks
+      clearInterval(this.monitor);
       this.monitor = setInterval(
         function() {
           var elem = document.activeElement;
@@ -26,7 +27,7 @@ module.exports = class WalkupSong extends expose.Component {
       );
     }.bind(this);
 
-    startIframeClickDetect();
+    this.startIframeClickDetect();
 
     this.handleOverlayClick = function() {
       // Reload song iframe
@@ -35,8 +36,14 @@ module.exports = class WalkupSong extends expose.Component {
         key: Math.random()
       });
       document.getElementById("songOverlay").classList.add("gone");
-      startIframeClickDetect();
+      this.startIframeClickDetect();
     }.bind(this);
+
+    this.buildUrl = function(songLink, songStart) {
+      return `https://thbrown.github.io/iframe-proxy/index.html?id=${songLink}&start=${
+        songStart ? songStart : 0
+      }`;
+    };
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -46,11 +53,26 @@ module.exports = class WalkupSong extends expose.Component {
       this.forceRender
     ) {
       this.forceRender = false;
-      document.getElementById("songOverlay").classList.add("gone");
       return true;
     } else {
       return false;
     }
+  }
+
+  componentWillUpdate() {
+    document.getElementById("songOverlay").classList.add("gone");
+
+    // This is a way to prevent the iframe state changes from being persisted to browser history
+    // Iframe relaods only add to history if they are attached to the DOM on change
+    let frame = document.getElementById("currentBatterSong");
+    let parent = frame.parentNode;
+    parent.removeChild(frame);
+    frame.setAttribute(
+      "src",
+      this.buildUrl(this.props.songLink, this.props.songStart)
+    );
+    parent.appendChild(frame);
+    this.startIframeClickDetect();
   }
 
   componentWillUnmount() {
@@ -73,9 +95,8 @@ module.exports = class WalkupSong extends expose.Component {
           id: "currentBatterSong",
           width: this.props.width,
           height: this.props.height,
-          src: `https://thbrown.github.io/iframe-proxy/index.html?id=${
-            this.props.songLink
-          }&start=${this.props.songStart ? this.props.songStart : 0}`,
+          frameBorder: "0",
+          src: this.buildUrl(this.props.songLink, this.props.songStart),
           allow: "autoplay; encrypted-media",
           sandbox: "allow-scripts allow-same-origin"
         }),
@@ -90,7 +111,9 @@ module.exports = class WalkupSong extends expose.Component {
             position: "absolute",
             top: 0,
             left: 0,
-            zIndex: 2
+            zIndex: 2,
+            //backgroundColor: "red",
+            opacity: 0.5
           }
         })
       );
