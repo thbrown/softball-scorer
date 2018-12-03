@@ -8,6 +8,7 @@ const dialog = require("dialog");
 const expose = require("./expose");
 const state = require("state");
 
+const FloatingInput = require("component-floating-input");
 const LeftHeaderButton = require("component-left-header-button");
 const RightHeaderButton = require("component-right-header-button");
 const WalkupSong = require("component-walkup-song");
@@ -26,10 +27,8 @@ module.exports = class CardPlayerEdit extends expose.Component {
       playerSongStart: props.player.song_start
     };
 
-    let returnToPlayersListPage = function() {
-      expose.set_state("main", {
-        page: `/players`
-      });
+    let goBack = function() {
+      history.back();
     };
 
     let buildPlayer = function() {
@@ -55,14 +54,14 @@ module.exports = class CardPlayerEdit extends expose.Component {
 
     this.handleConfirmClick = function() {
       state.replacePlayer(props.player.id, buildPlayer());
-      returnToPlayersListPage();
+      goBack();
     }.bind(this);
 
     this.handleCancelClick = function() {
       if (props.isNew) {
         state.removePlayer(props.player.id);
       }
-      returnToPlayersListPage();
+      goBack();
     };
 
     this.handleDeleteClick = function() {
@@ -72,7 +71,7 @@ module.exports = class CardPlayerEdit extends expose.Component {
           '"?',
         () => {
           if (state.removePlayer(props.player.id)) {
-            returnToPlayersListPage();
+            goBack();
           } else {
             dialog.show_notification(
               `Unable to delete player ${
@@ -114,6 +113,18 @@ module.exports = class CardPlayerEdit extends expose.Component {
         playerSongStart: document.getElementById("songStart").value
       });
     }.bind(this);
+
+    this.handleSongHelpClick = function() {
+      dialog.show_notification(
+        // TODO - Read this from a file so the format isn't dependent on indent spaces.
+        `**Walkup Song**
+
+Clips can be played from the player's plate appearance page
+
+![Plate appearance scoring screenshot](/server/assets/help-walkup.svg)`,
+        undefined
+      );
+    };
   }
 
   componentDidMount() {
@@ -130,13 +141,11 @@ module.exports = class CardPlayerEdit extends expose.Component {
         className: "auth-input-container"
       },
       [
-        DOM.input({
+        React.createElement(FloatingInput, {
           key: "playerName",
           id: "playerName",
-          className: "auth-input", // TODO: make css name generic?
-          placeholder: "Player Name",
-          maxLength: "50",
-          onChange: this.handlePlayerNameChange,
+          label: "Player name",
+          onChange: this.handlePlayerNameChange.bind(this),
           defaultValue: this.state.playerName
         }),
         DOM.div(
@@ -144,89 +153,102 @@ module.exports = class CardPlayerEdit extends expose.Component {
             key: "genderPanel",
             className: "radio-button"
           },
-          DOM.div(
+          DOM.fieldset(
             {
-              className: "radio-button-option"
+              className: "radio-button-fieldset"
             },
-            DOM.input({
-              type: "radio",
-              name: "gender",
-              value: "M",
-              id: "maleGenderChoice",
-              onChange: this.handleGenderChange
-            }),
-            DOM.label(
+            DOM.legend(
               {
-                htmlFor: "maleGenderChoice"
+                className: "radio-button-legend"
               },
-              "Male"
-            )
-          ),
-          DOM.div(
-            {
-              className: "radio-button-option"
-            },
-            DOM.input({
-              type: "radio",
-              name: "gender",
-              value: "F",
-              id: "femaleGenderChoice",
-              onChange: this.handleGenderChange
-            }),
-            DOM.label(
+              "Gender"
+            ),
+            DOM.div(
               {
-                htmlFor: "femaleGenderChoice"
+                className: "radio-button-option"
               },
-              "Female"
+              DOM.input({
+                type: "radio",
+                name: "gender",
+                value: "M",
+                id: "maleGenderChoice",
+                onChange: this.handleGenderChange
+              }),
+              DOM.label(
+                {
+                  htmlFor: "maleGenderChoice"
+                },
+                "Male"
+              )
+            ),
+            DOM.div(
+              {
+                className: "radio-button-option"
+              },
+              DOM.input({
+                type: "radio",
+                name: "gender",
+                value: "F",
+                id: "femaleGenderChoice",
+                onChange: this.handleGenderChange
+              }),
+              DOM.label(
+                {
+                  htmlFor: "femaleGenderChoice"
+                },
+                "Female"
+              )
             )
           )
         ),
-        DOM.input({
+        React.createElement(FloatingInput, {
           key: "songLink",
           id: "songLink",
-          className: "auth-input",
-          placeholder: "Walk up song YouTube link",
-          maxLength: "50",
-          onChange: this.handleSongLinkChange,
+          label: "Walk up song YouTube link (Optional)",
+          onChange: this.handleSongLinkChange.bind(this),
           defaultValue: this.state.playerSongLink
             ? `https://youtu.be/${this.state.playerSongLink}`
             : ""
         }),
-        DOM.input({
+        React.createElement(FloatingInput, {
           key: "songStart",
           id: "songStart",
-          className: "auth-input",
-          placeholder: "Song start time in seconds",
-          maxLength: "50",
+          label: "Song start time in seconds (Optional)",
           type: "number",
           min: "0",
           step: "1",
-          onChange: this.handleSongStartChange,
+          onChange: this.handleSongStartChange.bind(this),
           defaultValue: this.state.playerSongStart
         }),
+
         DOM.div(
           {
-            key: "songWraper",
-            id: "songWraper",
-            style: {
-              paddingLeft: "8px",
-              paddingTop: "8px"
-            }
+            key: "songLabel",
+            id: "songLabel",
+            className: "song-label"
           },
-          DOM.div(
-            {
-              key: "songLabel",
-              id: "songLabel",
-              style: {}
-            },
-            "Song Preview:"
-          ),
+          "Song Preview"
+        ),
+        DOM.div(
+          {
+            key: "songWrapper",
+            id: "songWrapper",
+            className: "song-preview-container"
+          },
           React.createElement(WalkupSong, {
             songLink: this.state.playerSongLink,
             songStart: this.state.playerSongStart,
             width: 48,
             height: 48
-          })
+          }),
+          DOM.div(
+            { className: "help-container" },
+            DOM.img({
+              className: "help-icon",
+              src: "/server/assets/help.svg",
+              onClick: this.handleSongHelpClick
+            })
+          )
         )
       ],
       this.renderSaveOptions()
@@ -241,6 +263,11 @@ module.exports = class CardPlayerEdit extends expose.Component {
         {
           key: "confirm",
           className: "edit-button button confirm-button",
+          // TODO - Make this a component and fix the style there with CSS.
+          style: {
+            marginLeft: "0",
+            marginRight: "0"
+          },
           onClick: this.handleConfirmClick
         },
         DOM.img({
@@ -256,6 +283,11 @@ module.exports = class CardPlayerEdit extends expose.Component {
         {
           key: "cancel",
           className: "edit-button button cancel-button",
+          // TODO - Make this a component and fix the style there with CSS.
+          style: {
+            marginLeft: "0",
+            marginRight: "0"
+          },
           onClick: this.handleCancelClick
         },
         DOM.img({
@@ -272,6 +304,11 @@ module.exports = class CardPlayerEdit extends expose.Component {
           {
             key: "delete",
             className: "edit-button button cancel-button",
+            // TODO - Make this a component and fix the style there with CSS.
+            style: {
+              marginLeft: "0",
+              marginRight: "0"
+            },
             onClick: this.handleDeleteClick
           },
           DOM.img({

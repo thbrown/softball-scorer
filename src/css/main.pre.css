@@ -282,14 +282,38 @@ body {
 
 .radio-button {
   display: flex;
-  flex-direction: column;
   color: $css.colors.TEXT_LIGHT;
   font-size: 18px;
-  margin: 16px 16px 0 16px;
+}
+
+.radio-button-fieldset {
+  border: 1px #795548 solid;
+  border-radius: 4px;
+  padding: 0px;
+  margin-bottom: 8px;
+}
+
+.radio-button-legend {
+  font-size: 12px;
+  margin-left: 8px;
 }
 
 .radio-button-option {
-  margin: 8px 0;
+  font-size: 16px;
+  display: inline-block;
+  margin: 5px 14px 10px 14px;
+}
+
+/* Songs */
+.song-preview-container {
+  display: flex;
+  padding-left: 16px;
+}
+
+.song-label {
+  color: $css.colors.TEXT_LIGHT;
+  font-size: 12px;
+  padding: 0 16px 8px 0;
 }
 
 /* It's possible to make these have prettier names */
@@ -297,6 +321,9 @@ body {
 .auth-input-container {
   position: relative;
   margin: 16px;
+  /* TODO Which color is this supposed to be?  */
+  color: $css.colors.TEXT_LIGHT;
+  color: black;
 }
 
 .react-autosuggest__input,
@@ -617,9 +644,15 @@ Scrolling is ~10-20x smoother.
   display: flex;
 }
 
+.help-container {
+  width: 48px;
+  height: 48px;
+  text-align: center;
+}
+
 .help-icon {
-  padding: 3px;
-  margin-top: 4px;
+  position: relative;
+  top: calc(50% - 12px);
 }
 
 .overlay {
@@ -633,4 +666,49 @@ Scrolling is ~10-20x smoother.
   left: 0;
   right: 0;
   bottom: 0;
+}
+
+* {
+  font-family: arial;
+}
+
+.float-container {
+  border: solid 1px #ccc;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+  padding: 0 8px;
+  position: relative;
+  border-radius: 4px;
+  background-color: white;
+}
+
+.float-container input {
+  border: none;
+  font-size: 16px;
+  outline: 0;
+  padding: 16px 0 3px;
+  line-height: 1.6;
+  width: calc(100% - 10px);
+}
+
+.float-container label {
+  color: black;
+  font-size: 16px;
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.5;
+  transform-origin: top left;
+  transform: translate(0, 14px) scale(1);
+  transition: all 0.1s ease-in-out;
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none;
+}
+
+/** active label */
+.float-container.active label {
+  transform: translate(0, 4px) scale(0.75);
 }
