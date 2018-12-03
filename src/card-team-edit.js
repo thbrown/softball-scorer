@@ -21,10 +21,8 @@ module.exports = class CardTeamEdit extends expose.Component {
 
     let teamCopy = JSON.parse(JSON.stringify(this.team));
 
-    let returnToTeamsListPage = function() {
-      expose.set_state("main", {
-        page: "/teams"
-      });
+    let goBack = function() {
+      history.back();
     };
 
     this.homeOrBack = function() {
@@ -40,14 +38,14 @@ module.exports = class CardTeamEdit extends expose.Component {
 
     this.handleConfirmClick = function() {
       state.replaceTeam(props.team.id, teamCopy);
-      returnToTeamsListPage();
+      goBack();
     };
 
     this.handleCancelClick = function() {
       if (props.isNew) {
         state.removeTeam(props.team.id);
       }
-      returnToTeamsListPage();
+      goBack();
     };
 
     this.handleDeleteClick = function() {
@@ -55,7 +53,7 @@ module.exports = class CardTeamEdit extends expose.Component {
         `Are you sure you want to delete the team ${props.team.name}?`,
         () => {
           state.removeTeam(props.team.id);
-          returnToTeamsListPage();
+          goBack();
         }
       );
     };

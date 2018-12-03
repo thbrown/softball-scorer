@@ -112,13 +112,14 @@ module.exports = class CardPlateAppearance extends expose.Component {
     this.handleDragStart = function(ev) {
       var element = document.getElementById("baseball");
       element.classList.remove("pulse-animation");
-      //document.body.classList.add("fixed");
+      document.body.classList.add("fixed");
     };
 
     this.handleDrag = function(ev) {
       ev.stopPropagation();
       ev.preventDefault(); // Not working for ios, not needed for anything else
       //console.log(ev.defaultPrevented); // This is still false for some reason
+      // Maybe be because this: https://github.com/facebook/react/issues/9809
     };
 
     this.handleDragStop = function() {
@@ -126,9 +127,9 @@ module.exports = class CardPlateAppearance extends expose.Component {
       document.ontouchmove = function(e) {
         return true;
       };
-      //lame way to make this run after the mouseup event
+      // lame way to make this run after the mouseup event
       setTimeout(() => {
-        //document.body.classList.remove("fixed");
+        document.body.classList.remove("fixed");
         let new_x = Math.floor(
           ((this.mx - 10) / window.innerWidth) * LOCATION_DENOMINATOR
         );
@@ -431,9 +432,23 @@ module.exports = class CardPlateAppearance extends expose.Component {
             justifyContent: "space-between"
           }
         },
-        this.renderBaseball(imageSrcForCurrentPa),
+        DOM.div(
+          {
+            style: {
+              paddingLeft: "24px"
+            }
+          },
+          this.renderBaseball(imageSrcForCurrentPa)
+        ),
         this.renderActionsButtons(),
-        this.renderWalkupSong()
+        DOM.div(
+          {
+            style: {
+              paddingRight: "24px"
+            }
+          },
+          this.renderWalkupSong()
+        )
       )
     );
   }

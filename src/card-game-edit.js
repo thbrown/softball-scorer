@@ -20,10 +20,8 @@ module.exports = class CardGameEdit extends expose.Component {
 
     let gameCopy = JSON.parse(JSON.stringify(this.game));
 
-    let returnToGamesListPage = function() {
-      expose.set_state("main", {
-        page: `/teams/${props.team.id}`
-      });
+    let goBack = function() {
+      history.back();
     };
 
     this.homeOrBack = function() {
@@ -40,14 +38,14 @@ module.exports = class CardGameEdit extends expose.Component {
 
     this.handleConfirmClick = function() {
       state.replaceGame(props.game.id, props.team.id, gameCopy);
-      returnToGamesListPage();
+      goBack();
     };
 
     this.handleCancelClick = function() {
       if (props.isNew) {
         state.removeGame(props.game.id, props.team.id);
       }
-      returnToGamesListPage();
+      goBack();
     };
 
     this.handleDeleteClick = function() {
@@ -55,7 +53,7 @@ module.exports = class CardGameEdit extends expose.Component {
         `Are you sure you want to delete the game vs ${props.game.opponent}?`,
         () => {
           state.removeGame(props.game.id, props.team.id);
-          returnToGamesListPage();
+          goBack();
         }
       );
     };
