@@ -7,6 +7,7 @@ const expose = require("./expose");
 const dialog = require("dialog");
 const state = require("state");
 
+const FloatingInput = require("component-floating-input");
 const LeftHeaderButton = require("component-left-header-button");
 const RightHeaderButton = require("component-right-header-button");
 
@@ -90,12 +91,11 @@ module.exports = class CardGameEdit extends expose.Component {
         className: "auth-input-container"
       },
       [
-        DOM.input({
+        React.createElement(FloatingInput, {
           key: "opponentName",
           id: "opponentName",
-          className: "auth-input", // TODO: make css name generic?
-          placeholder: "Opponent",
           maxLength: "50",
+          label: "Opponent",
           onChange: this.handleOpponentNameChange,
           defaultValue: this.game.opponent
         }),
@@ -109,10 +109,7 @@ module.exports = class CardGameEdit extends expose.Component {
               key: "lineupType",
               id: "lineupType",
               className: "auth-input",
-              onChange: this.handleLineupTypeChange,
-              style: {
-                marginTop: "8px"
-              }
+              onChange: this.handleLineupTypeChange
             },
             [
               DOM.option({ key: "normal", value: 1 }, "Normal"),
@@ -123,11 +120,14 @@ module.exports = class CardGameEdit extends expose.Component {
               )
             ]
           ),
-          DOM.img({
-            className: "help-icon",
-            src: "/server/assets/help.svg",
-            onClick: this.handleLineupTypeHelpClick
-          })
+          DOM.div(
+            { className: "help-container" },
+            DOM.img({
+              className: "help-icon",
+              src: "/server/assets/help.svg",
+              onClick: this.handleLineupTypeHelpClick
+            })
+          )
         )
       ],
       this.renderSaveOptions()

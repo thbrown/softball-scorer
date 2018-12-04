@@ -8,6 +8,7 @@ const dialog = require("dialog");
 const expose = require("./expose");
 const state = require("state");
 
+const FloatingInput = require("component-floating-input");
 const LeftHeaderButton = require("component-left-header-button");
 const RightHeaderButton = require("component-right-header-button");
 
@@ -59,7 +60,7 @@ module.exports = class CardTeamEdit extends expose.Component {
     };
 
     this.handleNameChange = function() {
-      let newValue = document.getElementById("name").value;
+      let newValue = document.getElementById("teamName").value;
       teamCopy.name = newValue;
     };
   }
@@ -143,12 +144,11 @@ module.exports = class CardTeamEdit extends expose.Component {
       {
         className: "auth-input-container"
       },
-      DOM.input({
+      React.createElement(FloatingInput, {
         key: "teamName",
-        id: "name",
-        className: "auth-input", // TODO: make css name generic?
-        placeholder: "Team Name",
+        id: "teamName",
         maxLength: "50",
+        label: "Team Name",
         onChange: this.handleNameChange,
         defaultValue: this.team.name
       }),
