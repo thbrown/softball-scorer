@@ -217,6 +217,7 @@ Clips can be played from the player's plate appearance page
           type: "number",
           min: "0",
           step: "1",
+          maxLength: "50",
           onChange: this.handleSongStartChange.bind(this),
           defaultValue: this.state.playerSongStart
         }),
