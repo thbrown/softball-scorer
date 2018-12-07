@@ -1,5 +1,7 @@
 # Web app for tracking softball scores.
 
+Live at https://softball.app/
+
 ## Usage:
 
 1. Clone this repo.
