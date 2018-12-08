@@ -8,6 +8,7 @@ const dialog = require("dialog");
 const state = require("state");
 
 const FloatingInput = require("component-floating-input");
+const FloatingPicklist = require("component-floating-picklist");
 const LeftHeaderButton = require("component-left-header-button");
 const RightHeaderButton = require("component-right-header-button");
 
@@ -80,11 +81,6 @@ module.exports = class CardGameEdit extends expose.Component {
     };
   }
 
-  componentDidMount() {
-    // Setting value on the select box seems to lock the select box to the value we set. So we'll edit it here.
-    document.getElementById("lineupType").value = this.game.lineupType;
-  }
-
   renderGameEdit() {
     return DOM.div(
       {
@@ -104,6 +100,7 @@ module.exports = class CardGameEdit extends expose.Component {
             key: "helpParent",
             className: "help-parent"
           },
+          /*
           DOM.select(
             {
               key: "lineupType",
@@ -119,7 +116,13 @@ module.exports = class CardGameEdit extends expose.Component {
                 "No Consecutive Females"
               )
             ]
-          ),
+          ),*/
+          React.createElement(FloatingPicklist, {
+            id: "lineupType",
+            label: "Lineup Type",
+            defaultValue: this.game.lineupType,
+            onChange: this.handleLineupTypeChange
+          }),
           DOM.div(
             { className: "help-container" },
             DOM.img({

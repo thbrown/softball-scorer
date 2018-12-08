@@ -712,3 +712,11 @@ Scrolling is ~10-20x smoother.
 .float-container.active label {
   transform: translate(0, 4px) scale(0.75);
 }
+
+.select {
+  border: none;
+  margin-top: 18px;
+  font-size: 16px;
+  padding-bottom: 6px;
+  margin-left: -4px;
+}

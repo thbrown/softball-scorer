@@ -1,4 +1,4 @@
-# Web app for tracking softball scores.
+# Web app for recording batting data and optomizing lineps.
 
 Live at https://softball.app/
 
