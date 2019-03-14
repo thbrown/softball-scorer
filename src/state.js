@@ -5,11 +5,12 @@ const objectMerge = require("../object-merge.js");
 const network = require("network.js");
 const idUtils = require("../id-utils.js");
 
+const LZString = require("lz-string");
 const hasher = require("object-hash");
 
 // Constants
 const INITIAL_STATE = { teams: [], players: [] };
-const CURRENT_LS_SCHEMA_VERSION = "5";
+const CURRENT_LS_SCHEMA_VERSION = "6";
 const SYNC_DELAY_MS = 10000;
 const SYNC_STATUS_ENUM = Object.freeze({
   COMPLETED: 1,
@@ -614,12 +615,16 @@ exports.removePlateAppearance = function(plateAppearance_id, game_id) {
 
 exports.saveDbStateToLocalStorage = function() {
   if (typeof Storage !== "undefined") {
-    localStorage.setItem("SCHEMA_VERSION", CURRENT_LS_SCHEMA_VERSION);
-    localStorage.setItem("LOCAL_DB_STATE", JSON.stringify(LOCAL_DB_STATE));
-    localStorage.setItem(
-      "ANCESTOR_DB_STATE",
+    let compressedLocalState = LZString.compress(
+      JSON.stringify(LOCAL_DB_STATE)
+    );
+    let compressedAncesorState = LZString.compress(
       JSON.stringify(ANCESTOR_DB_STATE)
     );
+
+    localStorage.setItem("SCHEMA_VERSION", CURRENT_LS_SCHEMA_VERSION);
+    localStorage.setItem("LOCAL_DB_STATE", compressedLocalState);
+    localStorage.setItem("ANCESTOR_DB_STATE", compressedAncesorState);
   }
 };
 
@@ -670,12 +675,12 @@ exports.loadStateFromLocalStorage = function() {
 
     let localDbState = localStorage.getItem("LOCAL_DB_STATE");
     if (localDbState) {
-      LOCAL_DB_STATE = JSON.parse(localDbState);
+      LOCAL_DB_STATE = JSON.parse(LZString.decompress(localDbState));
     }
 
     let ancestorDbState = localStorage.getItem("ANCESTOR_DB_STATE");
     if (ancestorDbState) {
-      ANCESTOR_DB_STATE = JSON.parse(ancestorDbState);
+      ANCESTOR_DB_STATE = JSON.parse(LZString.decompress(ancestorDbState));
     }
 
     let applicationState = JSON.parse(
