@@ -38,11 +38,7 @@ module.exports = class CardMenu extends expose.Component {
           let status = await state.sync();
           if (status !== 200) {
             let message =
-              "Could not sync account data prior to logout. If you continue to sign out you will lose unsynced data. Continue anyways?";
-            if (state.isOnline() === true) {
-              message =
-                "Could not sync account data prior to logout because of a network failure. If you continue to sign out you will lose unsynced data. Continue anyways?";
-            }
+              "Could not sync account data prior to logout. You may be offline. If you continue to sign out you will lose unsynced data. Continue anyways?";
             dialog.show_confirm(message, () => {
               abort = false;
             });
@@ -52,6 +48,7 @@ module.exports = class CardMenu extends expose.Component {
             abort = false;
           }
           if (abort) {
+            console.log("Aborting logout");
             return;
           }
         }
