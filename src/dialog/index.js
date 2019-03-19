@@ -5,6 +5,7 @@ const ReactDOM = require("react-dom");
 const ConfirmDialog = require("./confirm-dialog");
 const InputDialog = require("./input-dialog");
 const NotificationDialog = require("./notification-dialog");
+const YesNoCancelDialog = require("./yes-no-cancel-dialog");
 
 window.current_confirm = null;
 window.current_cancel = null;
@@ -36,6 +37,20 @@ exports.show_confirm = function(text, on_confirm, on_cancel) {
     React.createElement(ConfirmDialog, {
       text: text,
       on_confirm: on_confirm || function() {},
+      on_cancel: on_cancel || function() {},
+      hide: exports.hide
+    }),
+    document.getElementById("dialog")
+  );
+};
+
+exports.show_yes_no_cancel = function(text, on_yes, on_no, on_cancel) {
+  show();
+  ReactDOM.render(
+    React.createElement(YesNoCancelDialog, {
+      text: text,
+      on_yes: on_yes || function() {},
+      on_no: on_no || function() {},
       on_cancel: on_cancel || function() {},
       hide: exports.hide
     }),

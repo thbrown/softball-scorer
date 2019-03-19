@@ -79,6 +79,37 @@ module.exports = class CardAuth extends expose.Component {
             password: password.value
           });
 
+          // There is some data locally that's not associated with an account, ask if we should keep it
+          let prompt = undefined;
+          console.log("ACTIVE USER", state.getActiveUser());
+          console.log(
+            state.getActiveUser() === null,
+            state.hasAnythingChanged()
+          );
+          if (state.getActiveUser() === null && state.hasAnythingChanged()) {
+            prompt = new Promise(function(resolve, reject) {
+              dialog.show_yes_no_cancel(
+                `Would you like to keep the data you entered here while you weren't logged in? 
+  * Selecting **no** will delete the local data permanently. 
+  * Selecting **yes** will merge local data with your account's data.`,
+                () => {
+                  resolve("KEEP");
+                },
+                () => {
+                  resolve("REJECT");
+                },
+                () => {
+                  resolve("CANCEL");
+                }
+              );
+            });
+          }
+
+          let keepLocalChanges = await prompt;
+          if (keepLocalChanges === "CANCEL") {
+            return;
+          }
+
           let response = await network.request(
             "POST",
             "server/account/login",
@@ -86,12 +117,15 @@ module.exports = class CardAuth extends expose.Component {
           );
 
           if (response.status === 204) {
-            // Don't clear the db state if the user re-logs into the same account
-            if (state.getActiveUser() !== email.value) {
+            if (
+              state.getActiveUser() === email.value ||
+              (state.getActiveUser() === null && keepLocalChanges === "KEEP")
+            ) {
+              // Don't clear the db state if the user re-logs into the same account OR requested that we keep unowned local changes
+              state.resetSyncState();
+            } else {
               state.resetState();
               state.setActiveUser(email.value);
-            } else {
-              state.resetSyncState();
             }
 
             let status = await state.sync();
