@@ -10,7 +10,7 @@ const hasher = require("object-hash");
 
 // Constants
 const INITIAL_STATE = { teams: [], players: [] };
-const CURRENT_LS_SCHEMA_VERSION = "6";
+const CURRENT_LS_SCHEMA_VERSION = "5";
 const SYNC_DELAY_MS = 10000;
 const SYNC_STATUS_ENUM = Object.freeze({
   COMPLETED: 1,
@@ -265,6 +265,10 @@ exports.setAncestorState = function(s) {
 
 exports.getAncestorStateChecksum = function() {
   return getMd5(ANCESTOR_DB_STATE);
+};
+
+exports.hasAnythingChanged = function() {
+  return getMd5(LOCAL_DB_STATE) !== getMd5(INITIAL_STATE);
 };
 
 // TEAM
@@ -615,6 +619,8 @@ exports.removePlateAppearance = function(plateAppearance_id, game_id) {
 
 exports.saveDbStateToLocalStorage = function() {
   if (typeof Storage !== "undefined") {
+    /*
+    // Disable compression for now
     let compressedLocalState = LZString.compress(
       JSON.stringify(LOCAL_DB_STATE)
     );
@@ -625,6 +631,14 @@ exports.saveDbStateToLocalStorage = function() {
     localStorage.setItem("SCHEMA_VERSION", CURRENT_LS_SCHEMA_VERSION);
     localStorage.setItem("LOCAL_DB_STATE", compressedLocalState);
     localStorage.setItem("ANCESTOR_DB_STATE", compressedAncesorState);
+    */
+
+    localStorage.setItem("SCHEMA_VERSION", CURRENT_LS_SCHEMA_VERSION);
+    localStorage.setItem("LOCAL_DB_STATE", JSON.stringify(LOCAL_DB_STATE));
+    localStorage.setItem(
+      "ANCESTOR_DB_STATE",
+      JSON.stringify(ANCESTOR_DB_STATE)
+    );
   }
 };
 
@@ -675,12 +689,14 @@ exports.loadStateFromLocalStorage = function() {
 
     let localDbState = localStorage.getItem("LOCAL_DB_STATE");
     if (localDbState) {
-      LOCAL_DB_STATE = JSON.parse(LZString.decompress(localDbState));
+      // LOCAL_DB_STATE = JSON.parse(LZString.decompress(localDbState));
+      LOCAL_DB_STATE = JSON.parse(localDbState);
     }
 
     let ancestorDbState = localStorage.getItem("ANCESTOR_DB_STATE");
     if (ancestorDbState) {
-      ANCESTOR_DB_STATE = JSON.parse(LZString.decompress(ancestorDbState));
+      // ANCESTOR_DB_STATE = JSON.parse(LZString.decompress(ancestorDbState));
+      ANCESTOR_DB_STATE = JSON.parse(ancestorDbState);
     }
 
     let applicationState = JSON.parse(
