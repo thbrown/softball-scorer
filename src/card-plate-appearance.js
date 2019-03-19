@@ -112,24 +112,14 @@ module.exports = class CardPlateAppearance extends expose.Component {
     this.handleDragStart = function(ev) {
       var element = document.getElementById("baseball");
       element.classList.remove("pulse-animation");
-      document.body.classList.add("fixed");
-    };
-
-    this.handleDrag = function(ev) {
-      ev.stopPropagation();
-      ev.preventDefault(); // Not working for ios, not needed for anything else
-      //console.log(ev.defaultPrevented); // This is still false for some reason
-      // Maybe be because this: https://github.com/facebook/react/issues/9809
+      this.setState({
+        dragging: true
+      });
     };
 
     this.handleDragStop = function() {
-      // Enable scrolling.
-      document.ontouchmove = function(e) {
-        return true;
-      };
       // lame way to make this run after the mouseup event
       setTimeout(() => {
-        document.body.classList.remove("fixed");
         let new_x = Math.floor(
           ((this.mx - 10) / window.innerWidth) * LOCATION_DENOMINATOR
         );
@@ -137,14 +127,30 @@ module.exports = class CardPlateAppearance extends expose.Component {
           ((this.my - 10) / window.innerWidth) * LOCATION_DENOMINATOR
         );
         this.setState({
+          dragging: false,
           paLocationX: new_x,
           paLocationY: new_y
         });
       }, 1);
     };
+
+    // Prevent ios from scrolling while dragging
+    this.handlePreventTouchmoveWhenDragging = function(event) {
+      if (this.state.dragging) {
+        event.preventDefault();
+      }
+    };
   }
 
   componentDidMount() {
+    window.document.body.addEventListener(
+      "touchmove",
+      this.handlePreventTouchmoveWhenDragging.bind(this),
+      {
+        passive: false
+      }
+    );
+
     this.onmouseup = ev => {
       let ballfield = document.getElementById("ballfield");
 
@@ -189,6 +195,14 @@ module.exports = class CardPlateAppearance extends expose.Component {
   }
 
   componentWillUnmount() {
+    window.document.body.removeEventListener(
+      "touchmove",
+      this.handlePreventTouchmoveWhenDragging.bind(this),
+      {
+        passive: false
+      }
+    );
+
     window.removeEventListener("mouseup", this.onmouseup);
     window.removeEventListener("touchend", this.onmouseup);
   }
@@ -322,7 +336,6 @@ module.exports = class CardPlateAppearance extends expose.Component {
         position: { x: 0, y: 0 },
         grid: [1, 1],
         onStart: this.handleDragStart.bind(this),
-        onDrag: this.handleDrag.bind(this),
         onStop: this.handleDragStop.bind(this)
       },
       DOM.img({
