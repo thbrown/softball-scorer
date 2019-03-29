@@ -41,9 +41,6 @@ const CardTeamList = require("card-team-list");
 
 // Delete account/data
 // Async localstorage interaction
-
-// Iframe generates extra back history entrys
-// On delete, double hisotry entries are generated
 module.exports = class MainContainer extends expose.Component {
   constructor(props) {
     super(props);
@@ -105,6 +102,7 @@ module.exports = class MainContainer extends expose.Component {
       document.removeEventListener("click", enableNoSleep, false);
     }
 
+    // Update the network status whenever we receive an 'online' or 'offline' event
     window.addEventListener(
       "online",
       () => {
@@ -217,6 +215,9 @@ module.exports = class MainContainer extends expose.Component {
       history.pushState({}, "", url);
       //}
     }
+
+    // Strip off params
+    url = url.split("?")[0].split("#")[0];
 
     try {
       if (MainContainer.matches(url, "/", this.state)) {
@@ -405,7 +406,7 @@ module.exports = class MainContainer extends expose.Component {
         });
       } else {
         return React.createElement(CardError, {
-          message: "Invalid page selected"
+          message: "Invalid page selected " + url
         });
       }
     } catch (err) {

@@ -342,7 +342,7 @@ module.exports = class SoftballServer {
             .update(token)
             .digest("base64");
 
-          // TODO: send passwowrd reset email
+          // TODO: send password reset email
           logger.log(null, "Would have sent email", token, req.body.email);
 
           await this.databaseCalls.setPasswordTokenHash(
@@ -351,6 +351,8 @@ module.exports = class SoftballServer {
           );
           res.status(204).send();
         } else {
+          // TODO: Always send an email, even if no such email address was found.
+          // Emails that haven't been registerd on the site will say so.
           logger.log("Password reset: No such email found", req.body.email);
           res.status(404).send();
         }

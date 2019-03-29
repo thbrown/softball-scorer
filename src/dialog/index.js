@@ -62,7 +62,12 @@ exports.set_shift_req = function(v) {
   require_shift = v;
 };
 
-exports.show_input = function(node_or_default_text, on_confirm, on_cancel) {
+exports.show_input = function(
+  node_or_default_text,
+  on_confirm,
+  on_cancel,
+  startingValue
+) {
   show();
   let node = null;
   let default_text = null;
@@ -78,7 +83,8 @@ exports.show_input = function(node_or_default_text, on_confirm, on_cancel) {
       on_confirm: on_confirm || function() {},
       on_cancel: on_cancel || function() {},
       whiteSpace: require_shift,
-      hide: exports.hide
+      hide: exports.hide,
+      startingValue: startingValue
     }),
     document.getElementById("dialog")
   );

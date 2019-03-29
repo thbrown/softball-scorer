@@ -7,15 +7,16 @@ module.exports = class InputDialog extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      value: this.getNodeOrDefaultText()
-    };
-
     this.handleInputChange = ev => {
       this.setState({
         value: ev.target.value
       });
     };
+
+    this.state = {
+      value: undefined
+    };
+
     this.handleConfirmClick = window.current_confirm = () => {
       this.props.hide();
       this.props.on_confirm(this.state.value);
@@ -28,6 +29,14 @@ module.exports = class InputDialog extends React.Component {
 
   componentDidMount() {
     document.getElementById("InputDialog-input").focus();
+    if (this.props.startingValue) {
+      document.getElementById(
+        "InputDialog-input"
+      ).value = this.props.startingValue;
+      this.setState({
+        value: this.props.startingValue
+      });
+    }
   }
 
   getNodeOrDefaultText() {
@@ -57,7 +66,7 @@ module.exports = class InputDialog extends React.Component {
           DOM.textarea({
             id: "InputDialog-input",
             onChange: this.handleInputChange,
-            placeholder: this.state.value,
+            placeholder: this.getNodeOrDefaultText(),
             className: "dialog-input-box",
             style: {
               whiteSpace: this.props.whiteSpace ? "pre" : "",
