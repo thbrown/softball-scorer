@@ -3,7 +3,6 @@
 const DOM = require("react-dom-factories");
 
 const config = require("config");
-const css = require("css");
 const dialog = require("dialog");
 const expose = require("./expose");
 const network = require("network.js");
@@ -127,6 +126,11 @@ module.exports = class CardSignup extends expose.Component {
   }
 
   componentDidMount() {
+    let queryObject = state.getQueryObj();
+    let emailParam = queryObject.email;
+    if (emailParam) {
+      document.getElementById("email").value = decodeURIComponent(emailParam);
+    }
     this.showRecapcha();
   }
 
@@ -234,7 +238,7 @@ module.exports = class CardSignup extends expose.Component {
           },
           "Signup"
         ),
-        React.createElement(LeftHeaderButton, {})
+        React.createElement(RightHeaderButton, {})
       ),
       this.renderAuthInterface()
     );

@@ -17,9 +17,16 @@ module.exports = class CardAuth extends expose.Component {
     this.state = {};
 
     this.handleSignupClick = function() {
-      expose.set_state("main", {
-        page: "/menu/signup"
-      });
+      let emailValue = document.getElementById("email").value;
+      if (emailValue) {
+        expose.set_state("main", {
+          page: `/menu/signup?email=${encodeURIComponent(emailValue)}`
+        });
+      } else {
+        expose.set_state("main", {
+          page: `/menu/signup`
+        });
+      }
     };
 
     this.handlePasswordResetClick = function() {
@@ -51,10 +58,12 @@ module.exports = class CardAuth extends expose.Component {
             );
           } else {
             dialog.show_notification(
-              "Failed to send password reset email: " + response.body.message
+              "Failed to send password reset email. Verify the email's validity and try again."
             );
           }
-        }
+        },
+        undefined,
+        document.getElementById("email").value
       );
     };
 

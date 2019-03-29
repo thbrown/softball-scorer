@@ -774,7 +774,7 @@ function getMd5(data) {
   return checksum.slice(0, -2); // Remove trailing '=='
 }
 
-// CANDIDATES FOR REMOVAL
+// NOT SURE IF THIS IS THE RIGHT PLACE FOR THIS. MOVE TO SOME OTHER UTIL?
 
 exports.getQueryObj = function() {
   let queryString = window.location.search || "";
