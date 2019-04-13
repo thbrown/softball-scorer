@@ -34,10 +34,10 @@ describe("sync", () => {
     this.server.start();
 
     let email = `syncTest${utils.randomId(10)}@softball.app`;
-    let accountpassword = "pizza";
+    let accountPassword = "pizza";
 
     await utils.signup(email, password);
-    this.sessionId = await utils.login(email, accountpassword);
+    this.sessionId = await utils.login(email, accountPassword);
     this.stateTracker = new StateTester(this.sessionId);
   });
 
@@ -58,6 +58,7 @@ describe("sync", () => {
           games: []
         }
       ],
+      optimizations: [],
       players: []
     };
     let clientPatch = objectMerge.diff(clientAncestorState, clientLocalState);
@@ -78,6 +79,7 @@ describe("sync", () => {
           games: []
         }
       ],
+      optimizations: [],
       players: []
     };
 
@@ -91,7 +93,7 @@ describe("sync", () => {
 
     // Delete
     clientAncestorState = clientLocalState;
-    clientLocalState = { teams: [], players: [] };
+    clientLocalState = { teams: [], players: [], optimizations: [] };
 
     clientPatch = objectMerge.diff(clientAncestorState, clientLocalState);
     clientHash = utils.getMd5(clientLocalState);
@@ -111,6 +113,7 @@ describe("sync", () => {
           games: []
         }
       ],
+      optimizations: [],
       players: []
     };
 
@@ -134,6 +137,7 @@ describe("sync", () => {
           ]
         }
       ],
+      optimizations: [],
       players: []
     };
 
@@ -157,6 +161,7 @@ describe("sync", () => {
           ]
         }
       ],
+      optimizations: [],
       players: []
     };
 
@@ -193,6 +198,7 @@ describe("sync", () => {
           ]
         }
       ],
+      optimizations: [],
       players: [
         {
           id: "4m3c0OhmJB9XrT",
@@ -266,6 +272,7 @@ describe("sync", () => {
           ]
         }
       ],
+      optimizations: [],
       players: [
         {
           id: "4m3c0OhmJB9XrT",
@@ -343,6 +350,7 @@ describe("sync", () => {
           ]
         }
       ],
+      optimizations: [],
       players: [
         {
           id: "4Q1Mf6d01Akubt",
@@ -536,6 +544,7 @@ describe("sync", () => {
           ]
         }
       ],
+      optimizations: [],
       players: [
         {
           id: "4Q1Mf6d01Akubt",
@@ -720,6 +729,7 @@ describe("sync", () => {
           ]
         }
       ],
+      optimizations: [],
       players: [
         {
           id: "4Q1Mf6d01Akubt",
@@ -758,4 +768,73 @@ describe("sync", () => {
     // Cleanup
     await this.stateTracker.syncStateClientUpdatesOnly(utils.getInitialState());
   });
+
+  /*
+  test("Sync - Optimizations", async () => {
+    // Create
+    let clientAncestorState = utils.getInitialState();
+    let clientLocalState = {
+      teams: [
+        {
+          id: "4MWewta24olLam",
+          name: "BigTeam",
+          games: []
+        }
+      ],
+      players: [],
+      optomizations: [
+        {
+          id: "5iWewta24olLam",
+          name: "Big sim",
+          data: "...",
+          completed: 233,
+          total: 1000,
+          lineup: [],
+          histogram: {}
+        },
+        {}
+      ]
+    };
+    let clientPatch = objectMerge.diff(clientAncestorState, clientLocalState);
+    let clientHash = utils.getMd5(clientLocalState);
+
+    let response = await utils.sync(this.sessionId, clientHash, clientPatch);
+    let serverMd5 = response.body.md5;
+
+    expect(serverMd5).toEqual(clientHash);
+
+    // Edit
+    clientAncestorState = clientLocalState;
+    clientLocalState = {
+      teams: [
+        {
+          id: "4MWewta24olLam",
+          name: "ActuallyThisBigTeam",
+          games: []
+        }
+      ],
+      players: []
+    };
+
+    clientPatch = objectMerge.diff(clientAncestorState, clientLocalState);
+    clientHash = utils.getMd5(clientLocalState);
+
+    response = await utils.sync(this.sessionId, clientHash, clientPatch);
+    serverMd5 = response.body.md5;
+
+    expect(serverMd5).toEqual(clientHash);
+
+    // Delete
+    clientAncestorState = clientLocalState;
+    clientLocalState = { teams: [], players: [] };
+
+    clientPatch = objectMerge.diff(clientAncestorState, clientLocalState);
+    clientHash = utils.getMd5(clientLocalState);
+
+    response = await utils.sync(this.sessionId, clientHash, clientPatch);
+    serverMd5 = response.body.md5;
+
+    expect(serverMd5).toEqual(clientHash);
+  });
+  */
 });

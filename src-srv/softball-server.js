@@ -499,11 +499,13 @@ module.exports = class SoftballServer {
 
             // Now we'll diff the patched version against our original copied version, this gives us a patch without any edits to deleted entries or additions of things that already exist
             let cleanPatch = objectMerge.diff(stateCopy, state);
+            /*
             logger.log(
               accountId,
               "cleanPatch",
               JSON.stringify(cleanPatch, null, 2)
             );
+            */
 
             // We can pass the clean patch to the database to persist
             await this.databaseCalls.patchState(cleanPatch, accountId);

@@ -3,8 +3,8 @@ const objectMerge = require("../../object-merge.js");
 
 module.exports = class StateTester {
   constructor(sessionId) {
-    this.localState = { teams: [], players: [] };
-    this.ancestorState = { teams: [], players: [] };
+    this.localState = { teams: [], players: [], optimizations: [] };
+    this.ancestorState = { teams: [], players: [], optimizations: [] };
     this.sessionId = sessionId;
   }
 
