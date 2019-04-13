@@ -28,6 +28,10 @@ const CardSpray = require("card-spray");
 const CardTeam = require("card-team");
 const CardTeamEdit = require("card-team-edit");
 const CardTeamList = require("card-team-list");
+const CardOptimizationList = require("card-optimization-list");
+const CardOptimizationEdit = require("card-optimization-edit");
+const CardOptimization = require("card-optimization");
+const CardOptimizationStatsOverride = require("card-optimization-stats-override");
 
 // TODO
 // Text directions?
@@ -196,6 +200,7 @@ module.exports = class MainContainer extends expose.Component {
     return true;
   }
 
+  // Make sure these things are defined, if they don't throw a 404
   static validate(...args) {
     args.forEach(val => {
       if (!val) {
@@ -404,6 +409,43 @@ module.exports = class MainContainer extends expose.Component {
           player: player,
           isNew: isNew
         });
+      } else if (MainContainer.matches(url, "/optimizations", this.state)) {
+        return React.createElement(CardOptimizationList);
+      } else if (
+        MainContainer.matches(
+          url,
+          "/optimizations/:optimizationId/edit",
+          this.state
+        )
+      ) {
+        let optimization = state.getOptimization(this.state.optimizationId);
+        let isNew = this.state.isNew;
+        MainContainer.validate(optimization);
+        return React.createElement(CardOptimizationEdit, {
+          optimization: optimization,
+          isNew: isNew
+        });
+      } else if (
+        MainContainer.matches(url, "/optimizations/:optimizationId", this.state)
+      ) {
+        let optimization = state.getOptimization(this.state.optimizationId);
+        MainContainer.validate(optimization);
+        return React.createElement(CardOptimization, {
+          optimization: optimization
+        });
+      } else if (
+        MainContainer.matches(
+          url,
+          "/optimizations/:optimizationId/overrides/:playerId",
+          this.state
+        )
+      ) {
+        let player = state.getPlayer(this.state.playerId);
+        let optimization = state.getOptimization(this.state.optimizationId);
+        return React.createElement(CardOptimizationStatsOverride, {
+          optimization: optimization,
+          player: player
+        });
       } else {
         return React.createElement(CardError, {
           message: "Invalid page selected " + url
@@ -412,7 +454,8 @@ module.exports = class MainContainer extends expose.Component {
     } catch (err) {
       console.log(err);
       return React.createElement(CardError, {
-        message: "This object either does not exist or has been deleted"
+        message:
+          "This object either does not exist, has been deleted, or belongs to another account"
       });
     }
   }

@@ -3,6 +3,10 @@ const redis = require("redis");
 const session = require("express-session");
 const RedisStore = require("connect-redis")(session);
 
+/**
+ * This cache implementation uses redis to store sessions and data that must be shared between different sessions of the same account (e.g. account locking data).
+ * It's used primarally to keep sessions alive between server restarts and to enable future horizontal app server scaling.
+ */
 module.exports = class CacheCalls {
   constructor(host, port, password) {
     this.client = redis.createClient({

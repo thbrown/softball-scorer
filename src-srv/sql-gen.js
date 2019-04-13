@@ -5,27 +5,31 @@ const idUtils = require("../id-utils.js");
 const logger = require("./logger.js");
 
 /*
- *  This class contains the logic for translating the json structure applicationData on client side to sql satatments on the server. It's a hot mess.
+ *  This class contains the logic for translating the json structure applicationData on client side to sql statements on the server. It's a hot mess.
  */
 
+// Map json names to db table names.
 const tableReferences = [
   "teams",
   "players",
   "plateAppearances",
   "games",
-  "lineup"
+  "lineup",
+  "optimizations"
 ];
 const tableNames = [
   "teams",
   "players",
   "plate_appearances",
   "games",
-  "players_games"
+  "players_games",
+  "optimization"
 ];
 
 // Specify what order we should return sql statements to insert/update the tables (deletes are done in reverse order)
 const tableSortOrder = [
   "players",
+  "optimization",
   "teams",
   "games",
   "players_games",
@@ -36,21 +40,31 @@ for (let i = 0; i < tableSortOrder.length; i++) {
   tableOrdering[tableSortOrder[i]] = i;
 }
 
-// Specify what order we should return sql statements that do delete, insert and update
+// Specify what order we should return sql statements that do delete, insert, and update
 const opSortOrder = ["DELETE", "INSERT", "UPDATE"]; // I'm not sure this order matters
-let opOrdering = {}; // map for efficient lookup
+let opOrdering = {}; // map for easy lookup
 for (let i = 0; i < opSortOrder.length; i++) {
   opOrdering[opSortOrder[i]] = i;
 }
 
 // These words show up in the patch object. We need to identify which parts of the patch object are not id's, to do so we reference this list.
+// Do all these need to not be 14 chars?
 const keywords = tableReferences
-  .concat(["date", "opponent", "park", "scoreUs", "scoreThem", "lineupType"]) // game columns TODO: with the underscore??
+  .concat([
+    "type",
+    "inclusions",
+    "bestLineup",
+    "bestScore",
+    "details",
+    "status"
+    /* lineupType already present */
+  ]) // optimization columns
+  .concat(["date", "opponent", "park", "scoreUs", "scoreThem", "lineupType"]) // game columns
   .concat(["result", "location", "x", "y"]) // plate_appearance columns
-  .concat(["name", "gender", "picture", "songLink", "songStart"]) // player columns
+  .concat(["name", "gender", "picture", "song_link", "song_start"]) // player columns
   .concat(["date", "opponent", "park"]) // team columns
   .concat([
-    /*name already present*/
+    /* name already present */
   ]); // teams columns
 
 let getSqlFromPatch = function(patch, accountId) {
@@ -60,7 +74,7 @@ let getSqlFromPatch = function(patch, accountId) {
 
   // Order sql statements to prevent foreign key violations
   const STATEMENT_TYPE_REGEX = /DELETE|UPDATE|INSERT/;
-  const STATEMENT_TABLE_REGEX = /teams|games|players_games|plate_appearances|players/;
+  const STATEMENT_TABLE_REGEX = /teams|games|players_games|plate_appearances|players|optimization/;
 
   // This requires a stable sorting algorithm
   TimSort.sort(result, function(a, b) {
@@ -349,6 +363,25 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
       ]
     });
   }
+  if (obj.optimizations) {
+    result.push({
+      query:
+        "INSERT INTO optimization (id, name, type, inclusions, best_lineup, best_score, details, status, lineup_type, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+      values: [
+        idUtils.clientIdToServerId(obj.optimizations.id, accountId),
+        obj.optimizations.name,
+        obj.optimizations.type,
+        obj.optimizations.inclusions,
+        obj.optimizations.bestLineup,
+        obj.optimizations.bestScore,
+        obj.optimizations.details,
+        obj.optimizations.status,
+        obj.optimizations.lineupType,
+        accountId
+      ],
+      limits: { 4: 5000, 7: 5000 }
+    });
+  }
   if (obj.teams) {
     result.push({
       query: "INSERT INTO teams (id, name, account_id) VALUES($1, $2, $3)",
@@ -461,13 +494,37 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
     for (let i = 0; i < obj.players.length; i++) {
       result.push({
         query:
-          "INSERT INTO players (id, name, gender, account_id) VALUES($1, $2, $3, $4) RETURNING id;",
+          "INSERT INTO players (id, name, gender, song_link, song_start, account_id) VALUES($1, $2, $3, $4, $5, $6) RETURNING id;",
         values: [
           idUtils.clientIdToServerId(obj.players[i].id, accountId),
           obj.players[i].name,
           obj.players[i].gender,
+          obj.players[i].song_link,
+          obj.players[i].song_start,
           accountId
         ]
+      });
+    }
+  }
+
+  if (obj.optimizations) {
+    for (let i = 0; i < obj.players.length; i++) {
+      result.push({
+        query:
+          "INSERT INTO optimization (id, name, type, inclusions, best_lineup, best_score, details, status, lineup_type) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id;",
+        values: [
+          idUtils.clientIdToServerId(obj.optimizations[i].id, accountId),
+          obj.optimizations[i].name,
+          obj.optimizations[i].type,
+          obj.optimizations[i].inclusions,
+          obj.optimizations[i].bestLineup,
+          obj.optimizations[i].bestScore,
+          obj.optimizations[i].details,
+          obj.optimizations[i].status,
+          obj.optimizations[i].lineupType,
+          accountId
+        ],
+        limits: { 4: 5000, 7: 5000 }
       });
     }
   }
@@ -580,7 +637,9 @@ let getColNameFromJSONValue = function(value) {
     y: "hit_location_y",
     lineupType: "lineup_type",
     scoreUs: "score_us",
-    scoreThem: "score_them"
+    scoreThem: "score_them",
+    bestLineup: "best_lineup",
+    bestScore: "best_score"
   };
   if (map[value]) {
     return map[value];

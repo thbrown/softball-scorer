@@ -10,3 +10,4 @@ src/config.js
 *.sublime-project
 *.sublime-workspace
 src-srv/logs
+.vscode

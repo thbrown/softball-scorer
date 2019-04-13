@@ -9,8 +9,8 @@ const LZString = require("lz-string");
 const hasher = require("object-hash");
 
 // Constants
-const INITIAL_STATE = { teams: [], players: [] };
-const CURRENT_LS_SCHEMA_VERSION = "5";
+const INITIAL_STATE = { teams: [], players: [], optimizations: [] };
+const CURRENT_LS_SCHEMA_VERSION = "6";
 const SYNC_DELAY_MS = 10000;
 const SYNC_STATUS_ENUM = Object.freeze({
   COMPLETED: 1,
@@ -19,6 +19,21 @@ const SYNC_STATUS_ENUM = Object.freeze({
   PENDING: 4,
   IN_PROGRESS_AND_PENDING: 5,
   UNKNOWN: 6
+});
+const OPTIMIZATION_STATUS_ENUM = Object.freeze({
+  NOT_STARTED: 0,
+  STARTING: 1,
+  IN_PROGRESS: 2,
+  COMPLETE: 3,
+  PAUSED: 4
+});
+const OPTIMIZATION_TYPE_ENUM = Object.freeze({
+  MONTE_CARLO_EXAUSTIVE: 0
+});
+const LINEUP_TYPE_ENUM = Object.freeze({
+  NORMAL: 0,
+  ALTERNATING_GENDER: 1,
+  NO_CONSECUTIVE_FEMALES: 2
 });
 
 // Database State - Stored in memory, local storage, and persisted in the db
@@ -214,7 +229,7 @@ exports.sync = async function(fullSync) {
       alert(
         "Auto sync failed with status " +
           err.message +
-          ". App will continue to function, but your data won't be synced with the server. Consider backing up your data from the main menu to avoid data loss. Details:" +
+          ". App will continue to function, but your data won't be synced with the server. Consider backing up your data from the main menu to avoid data loss. Details: " +
           err
       );
       console.log(err);
@@ -360,6 +375,84 @@ exports.addPlayer = function(playerName, gender) {
   return player;
 };
 
+// OPTIMIZATION
+
+exports.getOptimization = function(optimizationId, state) {
+  return (state || LOCAL_DB_STATE).optimizations.reduce((prev, curr) => {
+    return curr.id === optimizationId ? curr : prev;
+  }, null);
+};
+
+exports.replaceOptimization = function(optimizationId, newOptimization) {
+  let localState = exports.getLocalState();
+  let oldOptimization = exports.getOptimization(optimizationId, localState);
+
+  let oldOptimizationIndex = localState.optimizations.indexOf(oldOptimization);
+  localState.optimizations[oldOptimizationIndex] = newOptimization;
+  onEdit();
+};
+
+exports.putOverride = function(optimizationId, playerId, override) {
+  let optimization = exports.getOptimization(optimizationId, localState);
+  if (override) {
+    optimization.inclusions.overrides[playerId] = override;
+  } else {
+    delete optimization.inclusions.overrides[playerId];
+  }
+};
+
+exports.getAllOptimizations = function() {
+  return exports.getLocalState().optimizations;
+};
+
+exports.removeOptimization = function(optimizationId) {
+  let localState = exports.getLocalState();
+  localState.optimizations = localState.optimizations.filter(optimization => {
+    return optimization.id !== optimizationId;
+  });
+  onEdit();
+};
+
+exports.addOptimization = function(name, details, inclusions) {
+  const id = getNextId();
+  if (!inclusions) {
+    inclusions = JSON.stringify({
+      staging: {
+        players: [],
+        teams: [],
+        games: [],
+        overrides: {}
+      }
+    });
+  }
+
+  if (!details) {
+    details = JSON.stringify({
+      innings: 7,
+      iterations: 1000000,
+      completedLineups: 0,
+      totalLineups: 0,
+      histogram: {},
+      max: 0,
+      min: 0,
+      mean: 0
+    });
+  }
+
+  let new_state = exports.getLocalState();
+  let optimization = {
+    id: id,
+    name: name,
+    type: OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXAUSTIVE,
+    inclusions: inclusions,
+    details: details,
+    status: OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+  };
+  new_state.optimizations.push(optimization);
+  onEdit();
+  return optimization;
+};
+
 // GAME
 
 exports.addGame = function(team_id, opposing_team_name) {
@@ -382,7 +475,7 @@ exports.addGame = function(team_id, opposing_team_name) {
     park: "Stazio",
     scoreUs: 0,
     scoreThem: 0,
-    lineupType: lastLineupType ? lastLineupType : 1,
+    lineupType: lastLineupType ? lastLineupType : LINEUP_TYPE_ENUM.NORMAL,
     plateAppearances: []
   };
   team.games.push(game);
@@ -657,24 +750,17 @@ exports.saveApplicationStateToLocalStorage = function() {
 exports.loadStateFromLocalStorage = function() {
   if (typeof Storage !== "undefined") {
     // These statements define local storage schema migrations
-    /*
-		if(localStorage.getItem("SCHEMA_VERSION") === "1") {
-			// Example
-			let version2 = JSON.parse(localStorage.getItem("LOCAL_DB_STATE"));
-			version2.doSomeConversion();
-			let version2anc = JSON.parse(localStorage.getItem("ANCESTOR_DB_STATE"));
-			version2anc.doSomeConversion();
-			localStorage.setItem("SCHEMA_VERSION", "2");
-		}
-		if(localStorage.getItem("SCHEMA_VERSION") === "2") {
-			// Example
-			let version3 = JSON.parse(localStorage.getItem("LOCAL_DB_STATE"));
-			version3.doSomeConversion();
-			let version3anc = JSON.parse(localStorage.getItem("ANCESTOR_DB_STATE"));
-			version3anc.doSomeConversion();
-			localStorage.setItem("SCHEMA_VERSION", "3");
-		}
-		*/
+    if (localStorage.getItem("SCHEMA_VERSION") === "5") {
+      // Added optimizations
+      console.log("Upgrading localstorage from version 5 to version 6");
+      let localState = JSON.parse(localStorage.getItem("LOCAL_DB_STATE"));
+      localState["optimizations"] = [];
+      let ancestorState = JSON.parse(localStorage.getItem("ANCESTOR_DB_STATE"));
+      ancestorState["optimizations"] = [];
+      localStorage.setItem("SCHEMA_VERSION", "6");
+      localStorage.setItem("LOCAL_DB_STATE", JSON.stringify(localState));
+      localStorage.setItem("ANCESTOR_DB_STATE", JSON.stringify(ancestorState));
+    }
 
     if (localStorage.getItem("SCHEMA_VERSION") !== CURRENT_LS_SCHEMA_VERSION) {
       console.log(

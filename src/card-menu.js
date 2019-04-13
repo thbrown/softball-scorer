@@ -30,6 +30,12 @@ module.exports = class CardMenu extends expose.Component {
       });
     };
 
+    this.handleOptimizationsClick = function() {
+      expose.set_state("main", {
+        page: "/optimizations"
+      });
+    };
+
     this.handleLogoutClick = async function() {
       dialog.show_confirm("Are you sure you want to log out?", async () => {
         // Do a sync if necessary
@@ -164,6 +170,21 @@ module.exports = class CardMenu extends expose.Component {
           }
         },
         "Players"
+      )
+    );
+
+    elems.push(
+      DOM.div(
+        {
+          key: "optimizations",
+          id: "optimizations",
+          className: "list-item",
+          onClick: this.handleOptimizationsClick.bind(this),
+          style: {
+            backgroundColor: css.colors.BG
+          }
+        },
+        "Optimizations"
       )
     );
 

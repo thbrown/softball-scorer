@@ -1,4 +1,4 @@
-# Web app for recording batting data and optomizing lineps.
+# Web app for recording batting data and optimizing lineps.
 
 Live at https://softball.app/
 
@@ -49,6 +49,8 @@ Useful commands to clean up docker processes
 TODO
 
 ## Development:
+
+### Format/Lint
 
 `npm i prettier -g`
 

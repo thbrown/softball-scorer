@@ -668,10 +668,6 @@ Scrolling is ~10-20x smoother.
   bottom: 0;
 }
 
-* {
-  font-family: arial;
-}
-
 .float-container {
   border: solid 1px #ccc;
   box-sizing: border-box;
@@ -719,4 +715,141 @@ Scrolling is ~10-20x smoother.
   font-size: 16px;
   padding-bottom: 6px;
   margin-left: -4px;
+}
+
+.accordion .chevron {
+  margin-bottom: -4px;
+  margin-right: 4px;
+  transition: transform 0.25s ease-in-out;
+}
+
+.accordion .chevronExpanded {
+  transform: rotate(90deg);
+}
+
+.accordion dl,
+.accordion-list {
+  border: 1px solid $css.colors.WHITE;
+  border-bottom: none;
+}
+
+.accordion dd,
+.accordion__panel {
+  background-color: $css.colors.WHITE;
+  font-size: 1em;
+  margin-inline-start: 0px;
+}
+.accordion p {
+  padding: 1em 2em 1em 2em;
+}
+
+.accordion {
+  position: relative;
+  background-color: $css.colors.WHITE;
+}
+.accordionContainer {
+  max-width: 960px;
+  margin: 0 auto;
+}
+.accordionTitle,
+.accordion__Heading {
+  background-color: $css.colors.PRIMARY;
+  font-size: 20px;
+  padding: 12px;
+  display: block;
+  color: $css.colors.TEXT_LIGHT;
+  transition: background-color 0.25s ease-in-out;
+  border-bottom: 1px solid;
+}
+
+.accordionTitleActive,
+.accordionTitle.is-expanded {
+  background-color: darken($css.colors.PRIMARY, 10%);
+}
+.accordionItem {
+  height: auto;
+  overflow: hidden;
+
+  max-height: 25em;
+  transition: max-height 0.25s;
+}
+
+.accordionItem.is-collapsed {
+  max-height: 0;
+}
+.no-js .accordionItem.is-collapsed {
+  max-height: auto;
+}
+.animateIn {
+  animation: accordionIn 0.25s normal ease-in-out both 1;
+}
+@keyframes accordionIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) rotateX(-60deg);
+    transform-origin: 50% 0;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.playerTable {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.playerTable .title {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.playerTable td,
+.playerTable th {
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+.playerTable .name {
+  width: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  padding-right: 2px;
+  padding-left: 2px;
+}
+
+.playerTable tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.playerTable {
+  border-collapse: collapse;
+}
+
+.playerTable .overriden {
+  font-style: italic;
+}
+
+#gamesMenu label {
+  display: block;
+  border: 1px solid black;
+  border-bottom: none;
+  padding: 15px;
+}
+
+#gamesMenu input {
+  width: 13px;
+  height: 13px;
+  padding: 0;
+  margin: 0;
+  vertical-align: bottom;
+  position: relative;
+  top: -2px;
+  *overflow: hidden;
+}
+
+#footer {
+  text-align: center;
 }

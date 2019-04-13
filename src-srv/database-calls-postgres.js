@@ -3,9 +3,14 @@ const { Pool } = require("pg");
 const HandledError = require("./handled-error.js");
 const idUtils = require("../id-utils.js");
 const logger = require("./logger.js");
-const objectMerge = require("../object-merge.js");
 const sqlGen = require("./sql-gen.js");
 
+/**
+ * This implementation uses postgres db as the persistance layer. Connection info and credentials can be supplied in the server side config.
+ *
+ * During reads, results are ordered first by their created_at timestamps then by a separate counter variable (since records inserted quickly may have duplicated timestamps).
+ * If the coutner fields ever overflows, it's not a big deal (unless sombody is inserting 2 billion + records in the same timestamp).
+ */
 module.exports = class DatabaseCalls {
   constructor(url, port, user, password, cb) {
     logger.log(null, "Connecting to pg", url);
@@ -95,7 +100,7 @@ module.exports = class DatabaseCalls {
   getState(accountId) {
     logger.log(accountId, "Pulling Data");
     if (accountId === undefined) {
-      return { players: [], teams: [] };
+      return { players: [], optimizations: [], teams: [] };
     }
     let self = this;
     return new Promise(function(resolve, reject) {
@@ -109,7 +114,29 @@ module.exports = class DatabaseCalls {
 				  song_start as song_start
 				FROM players
 				WHERE account_id = $1
-				ORDER BY counter ASC
+        ORDER BY 
+          created_at ASC,
+          counter ASC
+			`,
+        [accountId]
+      );
+
+      var optimizations = self.parameterizedQueryPromise(
+        `
+				SELECT 
+				  id as id,
+				  name as name,
+				  type as type,
+				  inclusions as inclusions,
+          best_lineup as best_lineup,
+          best_score as best_score,
+          details as details,
+          status as status
+				FROM optimization
+				WHERE account_id = $1
+        ORDER BY 
+          created_at ASC,
+          counter ASC
 			`,
         [accountId]
       );
@@ -143,9 +170,9 @@ module.exports = class DatabaseCalls {
 				WHERE 
 				  teams.account_id = $1
 				ORDER BY
-				  teams.created_at,
+				  teams.created_at ASC,
 				  teams.counter ASC,
-				  games.created_at,
+				  games.created_at ASC,
 				  games.counter ASC,
 				  plate_appearances.created_at ASC,
 				  plate_appearances.counter ASC;
@@ -153,7 +180,7 @@ module.exports = class DatabaseCalls {
         [accountId]
       );
 
-      Promise.all([players, teams]).then(function(values) {
+      Promise.all([players, optimizations, teams]).then(function(values) {
         var milliseconds = new Date().getTime();
 
         var state = {};
@@ -171,8 +198,34 @@ module.exports = class DatabaseCalls {
             : null;
         }
 
+        // Optimizations
+        state.optimizations = [];
+        let optimizations = values[1].rows;
+        for (let i = 0; i < optimizations.length; i++) {
+          state.optimizations.push({});
+          state.optimizations[i].id = idUtils.serverIdToClientId(
+            optimizations[i].id
+          );
+          state.optimizations[i].inclusions = optimizations[i].inclusions
+            ? JSON.stringify(optimizations[i].inclusions)
+            : null;
+          state.optimizations[i].bestLineup = optimizations[i].best_lineup
+            ? optimizations[i].best_lineup
+            : null;
+          state.optimizations[i].bestScore = optimizations[i].best_score
+            ? optimizations[i].best_score
+            : null;
+          state.optimizations[i].details = optimizations[i].details
+            ? JSON.stringify(optimizations[i].details)
+            : null;
+
+          state.optimizations[i].name = optimizations[i].name;
+          state.optimizations[i].type = optimizations[i].type;
+          state.optimizations[i].status = optimizations[i].status;
+        }
+
         // Teams
-        let plateAppearances = values[1].rows;
+        let plateAppearances = values[2].rows;
         let teamIdSet = new Set();
         let gameIdSet = new Set();
         let teams = [];
@@ -250,7 +303,7 @@ module.exports = class DatabaseCalls {
         state.teams = teams;
 
         // For some reason the object hash changes before and after stringification. I couldn't quite figure out why this was happening
-        // the objects with different hashes appear to be identical. So, I'll add this copy here for now so we are always hashing the post-stringified object.
+        // the objects with different hashes appear to be identical. So, I'll add this deep copy here for now so we are always hashing the post-stringified object.
         state = JSON.parse(JSON.stringify(state));
 
         logger.log(
@@ -278,13 +331,36 @@ module.exports = class DatabaseCalls {
       await client.query("SET CONSTRAINTS ALL DEFERRED");
 
       for (let i = 0; i < sqlToRun.length; i++) {
-        // Don't save fields longer than 50 characters
+        // Check field length before saving
+        // console.log("Checking", )
         for (var j = 0; j < sqlToRun[i].values.length; j++) {
-          if (sqlToRun[i].values[j] && sqlToRun[i].values[j].length > 50) {
-            throw new HandledError(
-              400,
-              "Field was larger than 50 characters " + sqlToRun[i].values[j]
-            );
+          if (sqlToRun[i].values[j]) {
+            // Default field limit is 50 characters unless otherwise overriden
+            console.log("Checking", sqlToRun[i].values[j]);
+            if (
+              sqlToRun[i].limits !== undefined &&
+              sqlToRun[i].limits[j + 1] !== undefined
+            ) {
+              console.log(
+                "Checking",
+                sqlToRun[i].limits,
+                j + 1,
+                sqlToRun[i].limits[j + 1]
+              );
+              if (sqlToRun[i].values[j].length > sqlToRun[i].limits[j + 1]) {
+                throw new HandledError(
+                  400,
+                  `Field was larger than overriden limit ${
+                    sqlToRun.limits[i + 1]
+                  } characters ${sqlToRun[i].values[j]}`
+                );
+              }
+            } else if (sqlToRun[i].values[j].length > 50) {
+              throw new HandledError(
+                400,
+                "Field was larger than 50 characters " + sqlToRun[i].values[j]
+              );
+            }
           }
         }
 
