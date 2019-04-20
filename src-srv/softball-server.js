@@ -99,15 +99,16 @@ module.exports = class SoftballServer {
             // TODO: use nonce to avoid recapcha styling errors: https://developers.google.com/recaptcha/docs/faq
             "'self'",
             "https://fonts.googleapis.com",
-            "'sha256-eeE4BsGQZBvwOOvyAnxzD6PBzhU/5IfP4NdPMywc3VE='", // react draggable components
-            "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='" // inline style (used by many react/babel components)
+            //"'sha256-eeE4BsGQZBvwOOvyAnxzD6PBzhU/5IfP4NdPMywc3VE='", // react draggable components
+            //"'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='", // inline style (used by many react/babel components)
+            "'unsafe-inline'" // I give up on this, too many react cmps use inline styles (react-select spicifically)
           ],
           fontSrc: ["'self'", "https://fonts.gstatic.com"],
           scriptSrc: [
             "'self'",
             "https://www.google.com/recaptcha/api.js",
             "https://www.gstatic.com/recaptcha/",
-            "https://www.google-analytics.com",
+            "https://www.google-analytics.com", // JSONP issues here? https://csp-evaluator.withgoogle.com/
             "'sha256-OHGELEzahSNrwMFzyUN05OBpNq1AOUmN5hPgB+af9p0='", // Google Analytics inline
             "'unsafe-eval'" // TODO: the stats page and some other things complain about missing this but it still works.
           ],
@@ -129,6 +130,7 @@ module.exports = class SoftballServer {
             "https://www.google-analytics.com",
             "https://stats.g.doubleclick.net"
           ],
+          objectSrc: ["'none'"],
           reportUri: "/server/report-violation"
         },
         browserSniff: false

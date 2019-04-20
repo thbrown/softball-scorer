@@ -14,8 +14,8 @@ module.exports = class StateTester {
 
     // Useful for debugging
     //console.log(JSON.stringify(newState, null, 3), clientHash);
-
     let response = await utils.sync(this.sessionId, clientHash, clientPatch);
+
     let serverMd5 = response.body.md5;
 
     expect(serverMd5).toEqual(clientHash);

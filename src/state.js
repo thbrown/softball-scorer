@@ -344,6 +344,21 @@ exports.getAllPlayers = function() {
   return exports.getLocalState().players;
 };
 
+exports.getAllPlayersAlphabetically = function() {
+  let copy = JSON.parse(JSON.stringify(exports.getLocalState()));
+  return copy.sort(this.playerNameComparator);
+};
+
+this.playerNameComparator = function(a, b) {
+  if (a.name.toLowerCase() < b.name.toLowerCase()) {
+    return -1;
+  }
+  if (a.name.toLowerCase() > b.name.toLowerCase()) {
+    return 1;
+  }
+  return 0;
+};
+
 exports.removePlayer = function(playerId) {
   if (
     exports.getGamesWithPlayerInLineup(playerId).length === 0 &&
@@ -377,27 +392,57 @@ exports.addPlayer = function(playerName, gender) {
 
 // OPTIMIZATION
 
-exports.getOptimization = function(optimizationId, state) {
-  return (state || LOCAL_DB_STATE).optimizations.reduce((prev, curr) => {
+exports.getOptimization = function(optimizationId) {
+  return LOCAL_DB_STATE.optimizations.reduce((prev, curr) => {
     return curr.id === optimizationId ? curr : prev;
   }, null);
 };
 
+exports.getDeserializedOptimization = function(optimizationId) {
+  let opt = LOCAL_DB_STATE.optimizations.reduce((prev, curr) => {
+    return curr.id === optimizationId ? curr : prev;
+  }, null);
+
+  console.log(opt);
+  console.log(opt.inclusions + "");
+  opt.inclusions = JSON.parse(opt.inclusions);
+  console.log(opt.details);
+  opt.details = JSON.parse(opt.details);
+
+  return opt;
+};
+
 exports.replaceOptimization = function(optimizationId, newOptimization) {
   let localState = exports.getLocalState();
-  let oldOptimization = exports.getOptimization(optimizationId, localState);
+  let oldOptimization = exports.getOptimization(optimizationId);
 
   let oldOptimizationIndex = localState.optimizations.indexOf(oldOptimization);
   localState.optimizations[oldOptimizationIndex] = newOptimization;
   onEdit();
 };
 
-exports.putOverride = function(optimizationId, playerId, override) {
-  let optimization = exports.getOptimization(optimizationId, localState);
+// Pass in null or undefined to delete
+exports.putOptimizationPlayerOverride = function(
+  optimizationId,
+  playerId,
+  override
+) {
+  let optimization = exports.getOptimization(optimizationId);
+  let deserializedInclusions = JSON.parse(optimization.inclusions);
   if (override) {
-    optimization.inclusions.overrides[playerId] = override;
+    deserializedInclusions.overrides[playerId] = override;
   } else {
-    delete optimization.inclusions.overrides[playerId];
+    delete deserializedInclusions.overrides[playerId];
+  }
+  optimization.inclusions = JSON.stringify(deserializedInclusions);
+};
+
+exports.putOptimizationPlayers = function(optimizationId, players) {
+  if (Array.isArray(players)) {
+    let optimization = exports.getOptimization(optimizationId);
+    optimization.players = players;
+  } else {
+    throw new Error("Players argument must be an array but was " + players);
   }
 };
 

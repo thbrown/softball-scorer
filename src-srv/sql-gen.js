@@ -26,7 +26,7 @@ const tableNames = [
   "optimization"
 ];
 
-// Specify what order we should return sql statements to insert/update the tables (deletes are done in reverse order)
+// Specify what order we should execute sql statements in for inserts/updates (deletes are done in reverse order)
 const tableSortOrder = [
   "players",
   "optimization",
@@ -38,13 +38,6 @@ const tableSortOrder = [
 let tableOrdering = {}; // map for efficient lookup
 for (let i = 0; i < tableSortOrder.length; i++) {
   tableOrdering[tableSortOrder[i]] = i;
-}
-
-// Specify what order we should return sql statements that do delete, insert, and update
-const opSortOrder = ["DELETE", "INSERT", "UPDATE"]; // I'm not sure this order matters
-let opOrdering = {}; // map for easy lookup
-for (let i = 0; i < opSortOrder.length; i++) {
-  opOrdering[opSortOrder[i]] = i;
 }
 
 // These words show up in the patch object. We need to identify which parts of the patch object are not id's, to do so we reference this list.
@@ -72,62 +65,42 @@ let getSqlFromPatch = function(patch, accountId) {
   let result = [];
   getSqlFromPatchInternal(patch, [], result, accountId);
 
-  // Order sql statements to prevent foreign key violations
+  // Order sql statements by the table it affects to prevent foreign key violations
   const STATEMENT_TYPE_REGEX = /DELETE|UPDATE|INSERT/;
   const STATEMENT_TABLE_REGEX = /teams|games|players_games|plate_appearances|players|optimization/;
 
-  // This requires a stable sorting algorithm
+  // This requires a stable sorting algorithm. Keeping the statments of a single table in their previous order is important!
   TimSort.sort(result, function(a, b) {
-    // First order by operation
     // TODO: it would be more efficient to save these results instead of running the regexes each time
     let aOp = a.query.match(STATEMENT_TYPE_REGEX)[0];
     let bOp = b.query.match(STATEMENT_TYPE_REGEX)[0];
 
+    // Order the sql statements by the table they affect
+    let aTable = a.query.match(STATEMENT_TABLE_REGEX)[0];
+    let bTable = b.query.match(STATEMENT_TABLE_REGEX)[0];
     if (aOp && bOp) {
-      let opSort = opOrdering[aOp] - opOrdering[bOp];
-      if (opSort === 0) {
-        // Next order by table
-        let aTable = a.query.match(STATEMENT_TABLE_REGEX)[0];
-        let bTable = b.query.match(STATEMENT_TABLE_REGEX)[0];
-        if (aOp && bOp) {
-          let tableSort = 0;
-          if (aOp === "DELETE") {
-            // DELETEs need to be in reverse order
-            tableSort = tableOrdering[bTable] - tableOrdering[aTable];
-          } else {
-            // INSERTs and UPDATEs need to be in forward order
-            tableSort = tableOrdering[aTable] - tableOrdering[bTable];
-          }
-          if (tableSort || tableSort === 0) {
-            return tableSort;
-          } else {
-            throw new HandledError(
-              500,
-              "Internal Server Error",
-              `Unable to compare these tables: ${aTable} ${bTable}. Please add them to the tableSortOrder constant.`
-            );
-          }
-        } else {
-          throw new HandledError(
-            500,
-            "Internal Server Error",
-            `Could not detemine op of these statements ${a.query} ${b.query}`
-          );
-        }
-      } else if (opSort) {
-        return opSort;
+      let tableSort = 0;
+      if (aOp === "DELETE") {
+        // DELETEs need to be in reverse order
+        tableSort = tableOrdering[bTable] - tableOrdering[aTable];
+      } else {
+        // INSERTs and UPDATEs need to be in forward order
+        tableSort = tableOrdering[aTable] - tableOrdering[bTable];
+      }
+      if (tableSort || tableSort === 0) {
+        return tableSort;
       } else {
         throw new HandledError(
           500,
           "Internal Server Error",
-          `Unable to compare these operations: ${aOp} ${bOp}. Please add them to the opSortOrder constant.`
+          `Unable to compare these tables: ${aTable} ${bTable}. Please add them to the tableSortOrder constant.`
         );
       }
     } else {
       throw new HandledError(
         500,
         "Internal Server Error",
-        `Could not detemine type of these statements ${a.query} ${b.query}`
+        `Could not detemine op of these statements ${a.query} ${b.query}`
       );
     }
   });
@@ -264,9 +237,14 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
         let newOrder = JSON.parse(value.param2);
 
         if (applicableTable != "players_games") {
-          throw "Something unexpected was reordered!" + applicableTable; // The only thing that should be re-orederable is the lineup, other things are all ordered by created_at timestamp.
+          throw "Something unexpected was reordered!" + applicableTable; // The only thing that should be re-orederable is the lineup, other things are all ordered by creation time (i.e. created_at timestamp and serial_counter columns).
         }
 
+        /**
+         * This is a complicated looking sql statement that simply swaps the indicies of the players in the oldOrder with the indicies of the player's counterpart in the newOrder.
+         * We need to do this swap (instead of just assigning the players_games row to be the index of the player's location in the array) because when adding players to a linep and
+         * reordering them in the same sync request, the reorder command's parameters will only contain the players that were originally in the lineup (before any additions or subtractions).
+         */
         let reOrderQuery = `UPDATE players_games AS pg SET lineup_index = c.lineup_index FROM (values`;
         let values = [
           idUtils.clientIdToServerId(getIdFromPath(path, "games"), accountId),
@@ -437,14 +415,15 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
   }
 
   if (obj.lineup) {
+    // Order of these statments is enforced by opSortOrder (update before insert)
     result.push({
       query:
         "UPDATE players_games SET lineup_index = lineup_index + 1 WHERE lineup_index >= $1 AND game_id = $2 AND account_id = $3",
       values: [
-        obj.position + 1,
+        obj.position + 1, // lineup oredering starts at 1 not 0
         idUtils.clientIdToServerId(parents.gameId, accountId),
         accountId
-      ] // lineup oredering starts at 1 not 0
+      ]
     });
     result.push({
       query:
@@ -452,9 +431,9 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
       values: [
         idUtils.clientIdToServerId(obj.lineup, accountId),
         idUtils.clientIdToServerId(parents.gameId, accountId),
-        obj.position + 1,
+        obj.position + 1, // lineup oredering starts at 1 not 0
         accountId
-      ] // lineup oredering starts at 1 not 0
+      ]
     });
   }
 

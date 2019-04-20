@@ -853,3 +853,7 @@ Scrolling is ~10-20x smoother.
 #footer {
   text-align: center;
 }
+
+.buffer {
+  padding: 8px;
+}

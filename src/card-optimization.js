@@ -17,7 +17,7 @@ module.exports = class CardOptimization extends expose.Component {
     super(props);
     this.expose();
     this.state = {
-      optimizationType: props.optimization.type
+      optimizationType: props.deserializedOptimization.type
     };
 
     this.handleSongHelpClick = function(event) {
@@ -35,14 +35,19 @@ Clips can be played from the player's plate appearance page
 
     this.handleOverrideClick = function(player) {
       expose.set_state("main", {
-        page: `/optimizations/${
-          props.optimization.id
-        }/overrides/${"jh893ehq9eh"}`
+        page: `/optimizations/${props.deserializedOptimization.id}/overrides/${
+          player.id
+        }`
       });
     };
 
     this.handleAddPlayerClick = function(event) {
-      console.log("Add player");
+      console.log("Add/Remove players");
+      expose.set_state("main", {
+        page: `/optimizations/${
+          props.deserializedOptimization.id
+        }/overrides/player-select`
+      });
     };
 
     this.data = {
@@ -142,6 +147,46 @@ Clips can be played from the player's plate appearance page
   }
 
   renderOptimizationPage() {
+    // Build table
+    const playerTable = [];
+    playerTable.push(
+      <tr className="title">
+        <th height="35">Name</th>
+        <th width="40">Outs</th>
+        <th width="35">1B</th>
+        <th width="35">2B</th>
+        <th width="35">3B</th>
+        <th width="35">HR</th>
+        <th width="48" />
+      </tr>
+    );
+
+    let players = this.props.deserializedOptimization.inclusions.staging.players.map(
+      playerId => state.getPlayer(playerId)
+    );
+    for (player in players) {
+      playerTable.push(
+        <tr className="overriden">
+          <td height="48" className="name">
+            {player.name}
+          </td>
+          <td>13</td>
+          <td>12</td>
+          <td>2</td>
+          <td>1</td>
+          <td>0</td>
+          <td height="48">
+            <img
+              src="/server/assets/tune-black.svg"
+              alt=">"
+              className="tableButton"
+              onClick={this.handleOverrideClick.bind(this, player)}
+            />
+          </td>
+        </tr>
+      );
+    }
+
     return (
       <div className="accordionContainer">
         <div className="text-div">Status: NOT_STARTED</div>
@@ -167,89 +212,7 @@ Clips can be played from the player's plate appearance page
               aria-hidden="true"
             >
               <table className="playerTable">
-                <tbody>
-                  <tr className="title">
-                    <th height="35">Name</th>
-                    <th width="40">Outs</th>
-                    <th width="35">1B</th>
-                    <th width="35">2B</th>
-                    <th width="35">3B</th>
-                    <th width="35">HR</th>
-                    <th width="48" />
-                  </tr>
-                  <tr className="overriden">
-                    <td height="48" className="name">
-                      Olaf VonGardenburger
-                    </td>
-                    <td>13</td>
-                    <td>12</td>
-                    <td>2</td>
-                    <td>1</td>
-                    <td>0</td>
-                    <td height="48">
-                      <img
-                        src="/server/assets/tune-black.svg"
-                        alt=">"
-                        className="tableButton"
-                        onClick={this.handleOverrideClick.bind(this)}
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td height="48" className="name">
-                      Jan
-                    </td>
-                    <td>373</td>
-                    <td>721</td>
-                    <td>223</td>
-                    <td>122</td>
-                    <td>133</td>
-                    <td>
-                      <img
-                        src="/server/assets/tune-black.svg"
-                        alt=">"
-                        className="tableButton"
-                        onClick={this.handleOverrideClick.bind(this)}
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td height="48" className="name">
-                      Trey Martin
-                    </td>
-                    <td>27</td>
-                    <td>12</td>
-                    <td>2</td>
-                    <td>2</td>
-                    <td>6</td>
-                    <td>
-                      <img
-                        src="/server/assets/tune-black.svg"
-                        alt=">"
-                        className="tableButton"
-                        onClick={this.handleOverrideClick.bind(this)}
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td height="48" className="name">
-                      Heidi Smenger
-                    </td>
-                    <td>37</td>
-                    <td>72</td>
-                    <td>2</td>
-                    <td>0</td>
-                    <td>1</td>
-                    <td>
-                      <img
-                        src="/server/assets/tune-black.svg"
-                        alt=">"
-                        className="tableButton"
-                        onClick={this.handleOverrideClick.bind(this)}
-                      />
-                    </td>
-                  </tr>
-                </tbody>
+                <tbody>{playerTable}</tbody>
               </table>
               <div
                 className="edit-button button cancel-button"
@@ -406,7 +369,7 @@ Clips can be played from the player's plate appearance page
           {
             className: "card-title-text-with-arrow prevent-overflow"
           },
-          this.props.optimization.name
+          this.props.deserializedOptimization.name
         ),
         React.createElement(RightHeaderButton)
       ),

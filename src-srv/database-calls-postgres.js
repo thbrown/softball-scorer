@@ -332,21 +332,13 @@ module.exports = class DatabaseCalls {
 
       for (let i = 0; i < sqlToRun.length; i++) {
         // Check field length before saving
-        // console.log("Checking", )
         for (var j = 0; j < sqlToRun[i].values.length; j++) {
           if (sqlToRun[i].values[j]) {
             // Default field limit is 50 characters unless otherwise overriden
-            console.log("Checking", sqlToRun[i].values[j]);
             if (
               sqlToRun[i].limits !== undefined &&
               sqlToRun[i].limits[j + 1] !== undefined
             ) {
-              console.log(
-                "Checking",
-                sqlToRun[i].limits,
-                j + 1,
-                sqlToRun[i].limits[j + 1]
-              );
               if (sqlToRun[i].values[j].length > sqlToRun[i].limits[j + 1]) {
                 throw new HandledError(
                   400,

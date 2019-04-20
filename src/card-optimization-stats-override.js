@@ -69,7 +69,7 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
 
     // We don't need an isNew prop here because the override doesn't have an id can be described (for url purposes)
     // By a combination of the optimization id and the player id. So we'll just detemine wheter or not it's new
-    // based on the props. TODO: In principle, should this be ouside the constructor in case proprs change?
+    // based on the props. TODO: In principle, should this be ouside the constructor in case props change?
     this.isNew = false;
     if (
       props.optimization.inclusions.staging.overrides[props.player.id] ===
@@ -87,7 +87,7 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
         {
           className: "auth-input-container"
         },
-        "This page is not avilable while optization has status " +
+        "This page is not avilable while optimization has status " +
           state.SYNC_STATUS_ENUM.IN_PROGRESS[props.optimization.status]
       );
     } else {
