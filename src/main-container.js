@@ -23,6 +23,7 @@ const CardPlateAppearance = require("card-plate-appearance");
 const CardPlayerList = require("card-player-list");
 const CardPlayerEdit = require("card-player-edit");
 const CardPlayerSelection = require("card-player-selection");
+const CardPlayerSelect = require("card-player-select");
 const CardSignup = require("card-signup");
 const CardSpray = require("card-spray");
 const CardTeam = require("card-team");
@@ -192,6 +193,7 @@ module.exports = class MainContainer extends expose.Component {
     }
 
     // Copy path vars to state if this path matches the url
+    // TODO: It's bad that we are altering the state directly here, there is no reason why we can't write the data to a fresh object instead
     let pathVarKeys = Object.keys(pathVariables);
     for (let i = 0; i < pathVarKeys.length; i++) {
       state[pathVarKeys[i]] = pathVariables[pathVarKeys[i]];
@@ -428,10 +430,28 @@ module.exports = class MainContainer extends expose.Component {
       } else if (
         MainContainer.matches(url, "/optimizations/:optimizationId", this.state)
       ) {
+        let deserializedOptimization = state.getDeserializedOptimization(
+          this.state.optimizationId
+        );
+        MainContainer.validate(deserializedOptimization);
+        return React.createElement(CardOptimization, {
+          deserializedOptimization: deserializedOptimization
+        });
+      } else if (
+        MainContainer.matches(
+          url,
+          "/optimizations/:optimizationId/overrides/player-select",
+          this.state
+        )
+      ) {
         let optimization = state.getOptimization(this.state.optimizationId);
         MainContainer.validate(optimization);
-        return React.createElement(CardOptimization, {
-          optimization: optimization
+        let onComplete = function(players) {
+          state.putOptimizationPlayers(optimization.id, players);
+        };
+        return React.createElement(CardPlayerSelect, {
+          optimization: optimization,
+          onComplete: onComplete
         });
       } else if (
         MainContainer.matches(
@@ -441,9 +461,12 @@ module.exports = class MainContainer extends expose.Component {
         )
       ) {
         let player = state.getPlayer(this.state.playerId);
-        let optimization = state.getOptimization(this.state.optimizationId);
+        let deserializedOptimization = state.getDeserializedOptimization(
+          this.state.optimizationId
+        );
+        MainContainer.validate(deserializedOptimization, player);
         return React.createElement(CardOptimizationStatsOverride, {
-          optimization: optimization,
+          deserializedOptimization: deserializedOptimization,
           player: player
         });
       } else {

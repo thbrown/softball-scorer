@@ -37,23 +37,12 @@ module.exports = class CardPlayerList extends expose.Component {
         isNew: true
       });
     };
-
-    this.playerNameComparator = function(a, b) {
-      if (a.name.toLowerCase() < b.name.toLowerCase()) {
-        return -1;
-      }
-      if (a.name.toLowerCase() > b.name.toLowerCase()) {
-        return 1;
-      }
-      return 0;
-    };
   }
 
   renderPlayerList() {
-    const s = state.getLocalState();
-    let elems = s.players
+    let elems = state
+      .getAllPlayersAlphabetically()
       .slice()
-      .sort(this.playerNameComparator)
       .map(player => {
         return DOM.div(
           {
