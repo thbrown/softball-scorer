@@ -32,15 +32,10 @@ module.exports = class CardPlayerSelect extends expose.Component {
       gender: "M"
     };
 
-    this.handleChange = function(selectedOption) {
-      this.setState({ selectedOption: selectedOption });
-    };
-
     this.onInputChange = function(inputValue) {
       this.setState({
         typed: inputValue
       });
-      console.log(inputValue);
     };
 
     this.handleRadioButtonChange = function(event) {
@@ -59,12 +54,13 @@ module.exports = class CardPlayerSelect extends expose.Component {
     };
 
     this.homeOrBack = function() {
-      this.handleSubmitClick();
+      this.handleSubmitClick().bind(this);
     };
 
-    this.onChange = (event, { newValue }) => {
+    this.onChange = function(selectedOptions) {
+      let valuesOnly = Array.from(selectedOptions.slice(0).map(v => v.value));
       this.setState({
-        playerNameValue: newValue
+        players: valuesOnly
       });
     };
 
@@ -79,7 +75,7 @@ module.exports = class CardPlayerSelect extends expose.Component {
       state.addPlayer(this.state.typed, this.state.gender);
     };
 
-    this.noOptionsMessage = props => {
+    this.noOptionsMessage = function() {
       return (
         <div>
           Add a new player: <br />
@@ -161,7 +157,7 @@ module.exports = class CardPlayerSelect extends expose.Component {
           <div
             className="edit-button button confirm-button"
             style={{ marginLeft: "16px" }}
-            onClick={this.handleSubmitClick}
+            onClick={this.handleSubmitClick.bind(this)}
           >
             Submit
           </div>
@@ -189,8 +185,9 @@ module.exports = class CardPlayerSelect extends expose.Component {
           autosize={false}
           closeMenuOnSelect={false}
           blurInputOnSelect={false}
+          onChange={this.onChange.bind(this)}
           onInputChange={this.onInputChange.bind(this)}
-          noOptionsMessage={this.noOptionsMessage}
+          noOptionsMessage={this.noOptionsMessage.bind(this)}
         />
       </div>
     );

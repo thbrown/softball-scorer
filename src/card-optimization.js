@@ -17,8 +17,10 @@ module.exports = class CardOptimization extends expose.Component {
     super(props);
     this.expose();
     this.state = {
-      optimizationType: props.deserializedOptimization.type
+      optimizationType: props.optimization.type
     };
+
+    this.parsedInclusions = JSON.parse(this.props.optimization.inclusions);
 
     this.handleSongHelpClick = function(event) {
       event.stopPropagation();
@@ -35,46 +37,19 @@ Clips can be played from the player's plate appearance page
 
     this.handleOverrideClick = function(player) {
       expose.set_state("main", {
-        page: `/optimizations/${props.deserializedOptimization.id}/overrides/${
-          player.id
-        }`
+        page: `/optimizations/${props.optimization.id}/overrides/${player.id}`
       });
     };
 
     this.handleAddPlayerClick = function(event) {
       console.log("Add/Remove players");
       expose.set_state("main", {
-        page: `/optimizations/${
-          props.deserializedOptimization.id
-        }/overrides/player-select`
+        page: `/optimizations/${props.optimization.id}/overrides/player-select`
       });
     };
 
-    this.data = {
-      label: "search me",
-      value: "searchme",
-      children: [
-        {
-          label: "search me too",
-          value: "searchmetoo",
-          children: [
-            {
-              label: "No one can get me",
-              value: "anonymous"
-            }
-          ]
-        }
-      ]
-    };
-
-    this.onChange = (currentNode, selectedNodes) => {
-      console.log("onChange::", currentNode, selectedNodes);
-    };
-    this.onAction = ({ action, node }) => {
-      console.log(`onAction:: [${action}]`, node);
-    };
-    this.onNodeToggle = currentNode => {
-      console.log("onNodeToggle::", currentNode);
+    this.handleTeamCheckboxClick = function(event, team) {
+      console.log(event, team);
     };
   }
 
@@ -147,10 +122,10 @@ Clips can be played from the player's plate appearance page
   }
 
   renderOptimizationPage() {
-    // Build table
+    // Build players table
     const playerTable = [];
     playerTable.push(
-      <tr className="title">
+      <tr key="header" className="title">
         <th height="35">Name</th>
         <th width="40">Outs</th>
         <th width="35">1B</th>
@@ -161,12 +136,12 @@ Clips can be played from the player's plate appearance page
       </tr>
     );
 
-    let players = this.props.deserializedOptimization.inclusions.staging.players.map(
-      playerId => state.getPlayer(playerId)
-    );
-    for (player in players) {
+    let playerIds = this.parsedInclusions.staging.players;
+    for (let i = 0; i < playerIds.length; i++) {
+      let player = state.getPlayer(playerIds[i]);
+      //getPlateAppearancesForPlayerOnTeam
       playerTable.push(
-        <tr className="overriden">
+        <tr key={"row" + player.id} className="overriden">
           <td height="48" className="name">
             {player.name}
           </td>
@@ -184,6 +159,24 @@ Clips can be played from the player's plate appearance page
             />
           </td>
         </tr>
+      );
+    }
+
+    // Build teams checkboxes
+    let teams = state.getLocalState().teams;
+    let teamsCheckboxes = [];
+    console.log(teams);
+    for (let i = 0; i < teams.length; i++) {
+      let team = teams[i];
+      teamsCheckboxes.push(
+        <label key={team.name + "checkboxLabel"}>
+          <input
+            key={team.name + "checkbox"}
+            type="checkbox"
+            onChange={this.handleTeamCheckboxClick.bind(this, team)}
+          />
+          {team.name}
+        </label>
       );
     }
 
@@ -240,20 +233,7 @@ Clips can be played from the player's plate appearance page
               id="accordion2"
               aria-hidden="true"
             >
-              <div id="gamesMenu">
-                <label>
-                  <input type="checkbox" onChange={this.onChange} checked />
-                  Tims Team
-                </label>
-                <label>
-                  <input type="checkbox" onChange={this.onChange} />
-                  Alphabats
-                </label>
-                <label>
-                  <input type="checkbox" onChange={this.onChange} />
-                  Mom's Pasgetti
-                </label>
-              </div>
+              <div id="gamesMenu">{teamsCheckboxes}</div>
             </dd>
             <dt>
               <div
@@ -369,7 +349,7 @@ Clips can be played from the player's plate appearance page
           {
             className: "card-title-text-with-arrow prevent-overflow"
           },
-          this.props.deserializedOptimization.name
+          this.props.optimization.name
         ),
         React.createElement(RightHeaderButton)
       ),
