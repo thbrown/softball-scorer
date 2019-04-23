@@ -430,12 +430,10 @@ module.exports = class MainContainer extends expose.Component {
       } else if (
         MainContainer.matches(url, "/optimizations/:optimizationId", this.state)
       ) {
-        let deserializedOptimization = state.getDeserializedOptimization(
-          this.state.optimizationId
-        );
-        MainContainer.validate(deserializedOptimization);
+        let optimization = state.getOptimization(this.state.optimizationId);
+        MainContainer.validate(optimization);
         return React.createElement(CardOptimization, {
-          deserializedOptimization: deserializedOptimization
+          optimization: optimization
         });
       } else if (
         MainContainer.matches(
@@ -461,12 +459,10 @@ module.exports = class MainContainer extends expose.Component {
         )
       ) {
         let player = state.getPlayer(this.state.playerId);
-        let deserializedOptimization = state.getDeserializedOptimization(
-          this.state.optimizationId
-        );
-        MainContainer.validate(deserializedOptimization, player);
+        let optimization = state.getOptimization(this.state.optimizationId);
+        MainContainer.validate(optimization, player);
         return React.createElement(CardOptimizationStatsOverride, {
-          deserializedOptimization: deserializedOptimization,
+          optimization: optimization,
           player: player
         });
       } else {

@@ -345,7 +345,8 @@ exports.getAllPlayers = function() {
 };
 
 exports.getAllPlayersAlphabetically = function() {
-  let copy = JSON.parse(JSON.stringify(exports.getLocalState()));
+  // Make sure we don't re-order the original array, this will result in sync issues
+  let copy = exports.getLocalState().players.slice(0);
   return copy.sort(this.playerNameComparator);
 };
 
@@ -398,20 +399,6 @@ exports.getOptimization = function(optimizationId) {
   }, null);
 };
 
-exports.getDeserializedOptimization = function(optimizationId) {
-  let opt = LOCAL_DB_STATE.optimizations.reduce((prev, curr) => {
-    return curr.id === optimizationId ? curr : prev;
-  }, null);
-
-  console.log(opt);
-  console.log(opt.inclusions + "");
-  opt.inclusions = JSON.parse(opt.inclusions);
-  console.log(opt.details);
-  opt.details = JSON.parse(opt.details);
-
-  return opt;
-};
-
 exports.replaceOptimization = function(optimizationId, newOptimization) {
   let localState = exports.getLocalState();
   let oldOptimization = exports.getOptimization(optimizationId);
@@ -437,13 +424,45 @@ exports.putOptimizationPlayerOverride = function(
   optimization.inclusions = JSON.stringify(deserializedInclusions);
 };
 
+// TODO: can we assume that staging is always set?
 exports.putOptimizationPlayers = function(optimizationId, players) {
+  let optimization = exports.getOptimization(optimizationId);
+  let deserializedInclusions = JSON.parse(optimization.inclusions);
   if (Array.isArray(players)) {
-    let optimization = exports.getOptimization(optimizationId);
-    optimization.players = players;
+    deserializedInclusions.staging.players = players;
+  } else if (!players) {
+    deserializedInclusions.staging.players = [];
   } else {
-    throw new Error("Players argument must be an array but was " + players);
+    throw new Error(
+      "Players argument must either be an array or falsy (null, undefined, etc.) but was " +
+        players +
+        " of type " +
+        typeof players +
+        " is array? " +
+        Array.isArray(players)
+    );
   }
+  optimization.inclusions = JSON.stringify(deserializedInclusions);
+};
+
+exports.putOptimizationTeams = function(optimizationId, players) {
+  let optimization = exports.getOptimization(optimizationId);
+  let deserializedInclusions = JSON.parse(optimization.inclusions);
+  if (Array.isArray(players)) {
+    deserializedInclusions.staging.teams = teams;
+  } else if (!players) {
+    deserializedInclusions.staging.teams = [];
+  } else {
+    throw new Error(
+      "Teams argument must either be an array or falsy (null, undefined, etc.) but was " +
+        players +
+        " of type " +
+        typeof players +
+        " is array? " +
+        Array.isArray(players)
+    );
+  }
+  optimization.inclusions = JSON.stringify(deserializedInclusions);
 };
 
 exports.getAllOptimizations = function() {

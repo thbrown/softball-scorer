@@ -44,7 +44,7 @@ module.exports = class CardOptimizationList extends expose.Component {
 
   renderOptimizationsList() {
     const s = state.getLocalState();
-    let elems = s.optimizations.slice().map(optimization => {
+    let elems = s.optimizations.slice(0).map(optimization => {
       return DOM.div(
         {
           optimization_id: optimization.id,
