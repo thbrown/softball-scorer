@@ -215,12 +215,7 @@ module.exports = class MainContainer extends expose.Component {
   renderCard(url) {
     // Update the base url if necessary
     if (url !== window.location.pathname) {
-      // Don't include edit screens in back browser history
-      //if (window.location.pathname.endsWith("edit")) {
-      //  history.replaceState({}, "", url);
-      //} else {
       history.pushState({}, "", url);
-      //}
     }
 
     // Strip off params
@@ -447,8 +442,11 @@ module.exports = class MainContainer extends expose.Component {
         let onComplete = function(players) {
           state.putOptimizationPlayers(optimization.id, players);
         };
+        let selectedPlayers = state.getOptimizationPlayersReadOnly(
+          this.state.optimizationId
+        );
         return React.createElement(CardPlayerSelect, {
-          optimization: optimization,
+          selected: selectedPlayers,
           onComplete: onComplete
         });
       } else if (

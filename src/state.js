@@ -40,7 +40,7 @@ const LINEUP_TYPE_ENUM = Object.freeze({
 let ANCESTOR_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
 let LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
 
-// Application State - State that applies across windows. Stored in local storage and in memory.
+// Application State - State that applies across windows/tabs. Stored in local storage and in memory.
 let online = true;
 let sessionValid = false;
 let activeUser = null;
@@ -399,6 +399,15 @@ exports.getOptimization = function(optimizationId) {
   }, null);
 };
 
+/**
+ * Returns a copy of the optimization's players list
+ */
+exports.getOptimizationPlayersReadOnly = function(optimizationId) {
+  let optimization = exports.getOptimization(optimizationId);
+  let deserializedInclusions = JSON.parse(optimization.inclusions);
+  return deserializedInclusions.staging.players;
+};
+
 exports.replaceOptimization = function(optimizationId, newOptimization) {
   let localState = exports.getLocalState();
   let oldOptimization = exports.getOptimization(optimizationId);
@@ -422,6 +431,7 @@ exports.putOptimizationPlayerOverride = function(
     delete deserializedInclusions.overrides[playerId];
   }
   optimization.inclusions = JSON.stringify(deserializedInclusions);
+  onEdit();
 };
 
 // TODO: can we assume that staging is always set?
@@ -443,6 +453,7 @@ exports.putOptimizationPlayers = function(optimizationId, players) {
     );
   }
   optimization.inclusions = JSON.stringify(deserializedInclusions);
+  onEdit();
 };
 
 exports.putOptimizationTeams = function(optimizationId, players) {
@@ -463,6 +474,7 @@ exports.putOptimizationTeams = function(optimizationId, players) {
     );
   }
   optimization.inclusions = JSON.stringify(deserializedInclusions);
+  onEdit();
 };
 
 exports.getAllOptimizations = function() {

@@ -19,20 +19,33 @@ module.exports = class CardPlayerSelect extends expose.Component {
     let players = state.getAllPlayersAlphabetically();
     let options = [];
     for (let playerIndex = 0; playerIndex < players.length; playerIndex++) {
-      options.push({
+      let entry = {
         value: players[playerIndex].id,
         label: players[playerIndex].name
-      });
+      };
+      options.push(entry);
+    }
+
+    let startingValues = [];
+    for (let i = 0; i < props.selected.length; i++) {
+      let player = state.getPlayer(props.selected[i]);
+      let entry = {
+        value: player.id,
+        label: player.name
+      };
+      startingValues.push(entry);
     }
 
     this.state = {
       players: undefined,
       options: options,
+      startingValues: startingValues,
       typed: "",
       gender: "M"
     };
 
     this.onInputChange = function(inputValue) {
+      this.adjustSpacerDivHeight();
       this.setState({
         typed: inputValue
       });
@@ -53,8 +66,8 @@ module.exports = class CardPlayerSelect extends expose.Component {
       history.back();
     };
 
-    this.homeOrBack = function() {
-      this.handleSubmitClick().bind(this);
+    this.handleBackOrHome = function() {
+      props.onComplete(this.state.players);
     };
 
     this.onChange = function(selectedOptions) {
@@ -62,6 +75,21 @@ module.exports = class CardPlayerSelect extends expose.Component {
       this.setState({
         players: valuesOnly
       });
+    };
+
+    this.adjustSpacerDivHeight = function() {
+      let adjust = function() {
+        // not a great selector, but I'm not sure how else to get the menu height from inside the component
+        let menus = document.querySelectorAll('div[class$="-menu"]');
+        let height = 10;
+        if (menus.length === 1) {
+          height = menus[0].clientHeight;
+        }
+        document.getElementById("spacer").style.height = `${height}px`; // inline style :(
+      };
+
+      // Lame way to make sure this gets the height after it's been rendered (Maybe this can go as a callback to setState instead?)
+      setTimeout(adjust, 10);
     };
 
     this.onCreatePlayerClick = function() {
@@ -106,8 +134,6 @@ module.exports = class CardPlayerSelect extends expose.Component {
     this.customStyles = {
       option: (provided, state) => {
         let modifications = {
-          borderBottom: "1px dotted pink",
-          color: state.isSelected ? "red" : "blue",
           padding: 15
         };
         return Object.assign(provided, modifications);
@@ -132,7 +158,7 @@ module.exports = class CardPlayerSelect extends expose.Component {
           className: "card-title"
         },
         React.createElement(LeftHeaderButton, {
-          onPress: this.homeOrBack
+          onPress: this.handleBackOrHome.bind(this)
         }),
         DOM.div(
           {
@@ -141,7 +167,7 @@ module.exports = class CardPlayerSelect extends expose.Component {
           "Add/Remove Players"
         ),
         React.createElement(RightHeaderButton, {
-          onPress: this.homeOrBack
+          onPress: this.handleBackOrHome.bind(this)
         })
       ),
       this.renderPlayerSelection(),
@@ -151,8 +177,7 @@ module.exports = class CardPlayerSelect extends expose.Component {
   renderButtons() {
     return (
       <div>
-        <div id="spacer" />
-        {/* style={{ height: "310px" }}  // TODO: This would put the buttons below the dropdown, but leavs a big blank space. We should make it this big only when dropdown is open. */}
+        <div id="spacer" style={{ transition: "height .25s" }} />
         <div>
           <div
             className="edit-button button confirm-button"
@@ -176,18 +201,24 @@ module.exports = class CardPlayerSelect extends expose.Component {
   }
 
   renderPlayerSelection() {
+    console.log(this.state.startingValues);
     return (
       <div className="buffer">
         <Select
+          inputId="test"
           isMulti
           styles={this.customStyles}
           options={this.state.options}
           autosize={false}
           closeMenuOnSelect={false}
           blurInputOnSelect={false}
+          backspaceRemovesValue={false}
+          onMenuOpen={this.adjustSpacerDivHeight}
+          onMenuClose={this.adjustSpacerDivHeight}
           onChange={this.onChange.bind(this)}
           onInputChange={this.onInputChange.bind(this)}
           noOptionsMessage={this.noOptionsMessage.bind(this)}
+          defaultValue={this.state.startingValues}
         />
       </div>
     );

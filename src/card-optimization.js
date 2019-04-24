@@ -42,7 +42,6 @@ Clips can be played from the player's plate appearance page
     };
 
     this.handleAddPlayerClick = function(event) {
-      console.log("Add/Remove players");
       expose.set_state("main", {
         page: `/optimizations/${props.optimization.id}/overrides/player-select`
       });
@@ -165,7 +164,6 @@ Clips can be played from the player's plate appearance page
     // Build teams checkboxes
     let teams = state.getLocalState().teams;
     let teamsCheckboxes = [];
-    console.log(teams);
     for (let i = 0; i < teams.length; i++) {
       let team = teams[i];
       teamsCheckboxes.push(
