@@ -16,6 +16,7 @@ let databaseCalls = class DatabaseCalls {
     ];
     this.STATES = {
       1: {
+        optimizations: [],
         players: [
           {
             id: "4f4CQExEegoHbV",
