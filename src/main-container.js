@@ -44,8 +44,14 @@ const CardOptimizationStatsOverride = require("card-optimization-stats-override"
 
 // Long names overlap back button on AP page
 
+// Max width for desktop
+// Inport file versioning (fix that page's css)
+
 // Delete account/data
 // Async localstorage interaction
+
+// Optimization changes when status is not NOT_STATED
+// Optimization length limitations
 module.exports = class MainContainer extends expose.Component {
   constructor(props) {
     super(props);
@@ -384,7 +390,6 @@ module.exports = class MainContainer extends expose.Component {
           player: player,
           plateAppearance: plateAppearance,
           plateAppearances: plateAppearances,
-          origin: this.state.urlArray[5],
           isNew: isNew
         });
       } else if (MainContainer.matches(url, "/players", this.state)) {
@@ -407,6 +412,13 @@ module.exports = class MainContainer extends expose.Component {
           isNew: isNew
         });
       } else if (MainContainer.matches(url, "/optimizations", this.state)) {
+        // Optimizations weren't a part of the original JSON state schema, so if somebody imports a file
+        // with the old schema the page will crash. This should be addressed properly by versioning for
+        // exported files. In the meantime, here is a band aid.
+        if (state.getAllOptimizations() === undefined) {
+          state.getLocalState().optimizations = [];
+          console.log("Populating optimizations!");
+        }
         return React.createElement(CardOptimizationList);
       } else if (
         MainContainer.matches(

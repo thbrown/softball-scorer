@@ -4,6 +4,7 @@ const expose = require("expose");
 const objectMerge = require("../object-merge.js");
 const network = require("network.js");
 const idUtils = require("../id-utils.js");
+const results = require("plate-appearance-results.js");
 
 const LZString = require("lz-string");
 const hasher = require("object-hash");
@@ -20,7 +21,7 @@ const SYNC_STATUS_ENUM = Object.freeze({
   IN_PROGRESS_AND_PENDING: 5,
   UNKNOWN: 6
 });
-const OPTIMIZATION_STATUS_ENUM = Object.freeze({
+exports.OPTIMIZATION_STATUS_ENUM = Object.freeze({
   NOT_STARTED: 0,
   STARTING: 1,
   IN_PROGRESS: 2,
@@ -345,19 +346,19 @@ exports.getAllPlayers = function() {
 };
 
 exports.getAllPlayersAlphabetically = function() {
+  let playerNameComparator = function(a, b) {
+    if (a.name.toLowerCase() < b.name.toLowerCase()) {
+      return -1;
+    }
+    if (a.name.toLowerCase() > b.name.toLowerCase()) {
+      return 1;
+    }
+    return 0;
+  };
+
   // Make sure we don't re-order the original array, this will result in sync issues
   let copy = exports.getLocalState().players.slice(0);
-  return copy.sort(this.playerNameComparator);
-};
-
-this.playerNameComparator = function(a, b) {
-  if (a.name.toLowerCase() < b.name.toLowerCase()) {
-    return -1;
-  }
-  if (a.name.toLowerCase() > b.name.toLowerCase()) {
-    return 1;
-  }
-  return 0;
+  return copy.sort(playerNameComparator);
 };
 
 exports.removePlayer = function(playerId) {
@@ -423,12 +424,13 @@ exports.putOptimizationPlayerOverride = function(
   playerId,
   override
 ) {
+  console.log(optimizationId, playerId, override);
   let optimization = exports.getOptimization(optimizationId);
   let deserializedInclusions = JSON.parse(optimization.inclusions);
   if (override) {
-    deserializedInclusions.overrides[playerId] = override;
+    deserializedInclusions.staging.overrides[playerId] = override;
   } else {
-    delete deserializedInclusions.overrides[playerId];
+    delete deserializedInclusions.staging.overrides[playerId];
   }
   optimization.inclusions = JSON.stringify(deserializedInclusions);
   onEdit();
@@ -448,7 +450,7 @@ exports.putOptimizationPlayers = function(optimizationId, players) {
         players +
         " of type " +
         typeof players +
-        " is array? " +
+        ". is array? " +
         Array.isArray(players)
     );
   }
@@ -456,21 +458,21 @@ exports.putOptimizationPlayers = function(optimizationId, players) {
   onEdit();
 };
 
-exports.putOptimizationTeams = function(optimizationId, players) {
+exports.putOptimizationTeams = function(optimizationId, teams) {
   let optimization = exports.getOptimization(optimizationId);
   let deserializedInclusions = JSON.parse(optimization.inclusions);
-  if (Array.isArray(players)) {
+  if (Array.isArray(teams)) {
     deserializedInclusions.staging.teams = teams;
-  } else if (!players) {
+  } else if (!teams) {
     deserializedInclusions.staging.teams = [];
   } else {
     throw new Error(
       "Teams argument must either be an array or falsy (null, undefined, etc.) but was " +
-        players +
+        teams +
         " of type " +
-        typeof players +
-        " is array? " +
-        Array.isArray(players)
+        typeof teams +
+        ". is array? " +
+        Array.isArray(teams)
     );
   }
   optimization.inclusions = JSON.stringify(deserializedInclusions);
@@ -522,7 +524,7 @@ exports.addOptimization = function(name, details, inclusions) {
     type: OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXAUSTIVE,
     inclusions: inclusions,
     details: details,
-    status: OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+    status: exports.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
   };
   new_state.optimizations.push(optimization);
   onEdit();
@@ -738,6 +740,31 @@ exports.getPlateAppearancesForPlayerOnTeam = function(player_id, team_id) {
   return plateAppearances;
 };
 
+exports.getPlateAppearancesForPlayerInGameOrOnTeam = function(
+  playerId,
+  teamIds,
+  gameIds
+) {
+  if (!teamIds) {
+    teamIds = [];
+  }
+  if (!gameIds) {
+    gameIds = [];
+  }
+  let plateAppearances = [];
+  for (let i = 0; i < teamIds.length; i++) {
+    plateAppearances = plateAppearances.concat(
+      exports.getPlateAppearancesForPlayerOnTeam(playerId, teamIds[i])
+    );
+  }
+  for (let i = 0; i < gameIds.length; i++) {
+    plateAppearances = plateAppearances.concat(
+      exports.getPlateAppearancesForPlayerInGame(playerId, gameIds[i])
+    );
+  }
+  return plateAppearances;
+};
+
 exports.getPlateAppearancesForPlayer = function(player_id) {
   let localState = exports.getLocalState();
   let teams = localState.teams;
@@ -936,7 +963,7 @@ function getMd5(data) {
   return checksum.slice(0, -2); // Remove trailing '=='
 }
 
-// NOT SURE IF THIS IS THE RIGHT PLACE FOR THIS. MOVE TO SOME OTHER UTIL?
+// NOT SURE THIS IS THE RIGHT PLACE FOR THESE. MOVE TO SOME OTHER UTIL?
 
 exports.getQueryObj = function() {
   let queryString = window.location.search || "";
@@ -956,7 +983,108 @@ exports.getQueryObj = function() {
   return params;
 };
 
-window.state = exports;
+exports.editQueryObject = function(fieldName, value) {
+  let queryObject = exports.getQueryObj();
+  queryObject[fieldName] = value;
+  let queryString = "";
+  let keys = Object.keys(queryObject);
+  let separationChar = "?";
+  for (let i = 0; i < keys.length; i++) {
+    if (keys[i] && queryObject[keys[i]]) {
+      queryString =
+        queryString + separationChar + keys[i] + "=" + queryObject[keys[i]];
+      separationChar = "&";
+    }
+  }
+  history.replaceState(
+    {},
+    "",
+    window.location.origin + window.location.pathname + queryString
+  );
+};
+
+exports.buildStatsObject = function(playerId, plateAppearances) {
+  const player = state.getPlayer(playerId);
+
+  const stats = {};
+  stats.id = player.id;
+  stats.name = player.name;
+  stats.plateAppearances = 0;
+  stats.totalBasesByHit = 0;
+  stats.atBats = 0;
+  stats.hits = 0;
+  stats.singles = 0;
+  stats.doubles = 0;
+  stats.triples = 0;
+  stats.insideTheParkHR = 0;
+  stats.outsideTheParkHR = 0;
+  stats.reachedOnError = 0;
+  stats.walks = 0;
+  stats.fieldersChoice = 0;
+
+  plateAppearances.forEach(pa => {
+    if (pa.result) {
+      stats.plateAppearances++;
+
+      if (pa.result && !results.getNoAtBatResults().includes(pa.result)) {
+        stats.atBats++;
+      }
+      if (results.getHitResults().includes(pa.result)) {
+        stats.hits++;
+      }
+
+      if (pa.result === "BB") {
+        stats.walks++; // Boo!
+      } else if (pa.result === "E") {
+        stats.reachedOnError++;
+      } else if (pa.result === "FC") {
+        stats.fieldersChoice++;
+      } else if (
+        pa.result === "Out" ||
+        pa.result === "SAC" ||
+        pa.result === "K"
+      ) {
+        // Intentionally blank
+      } else if (pa.result === "1B") {
+        stats.singles++;
+        stats.totalBasesByHit++;
+      } else if (pa.result === "2B") {
+        stats.doubles++;
+        stats.totalBasesByHit += 2;
+      } else if (pa.result === "3B") {
+        stats.triples++;
+        stats.totalBasesByHit += 3;
+      } else if (pa.result === "HRi") {
+        stats.insideTheParkHR++;
+        stats.totalBasesByHit += 4;
+      } else if (pa.result === "HRo") {
+        stats.outsideTheParkHR++;
+        stats.totalBasesByHit += 4;
+      } else {
+        console.log(
+          "WARNING: unrecognized batting result encountered and ignored for stats calculations",
+          pa.result
+        );
+      }
+    }
+  });
+
+  if (stats.atBats === 0) {
+    stats.battingAverage = "-";
+    stats.sluggingPercentage = "-";
+  } else {
+    if (stats.hits === stats.atBats) {
+      stats.battingAverage = "1.000";
+    } else {
+      stats.battingAverage = (stats.hits / stats.atBats).toFixed(3).substr(1);
+    }
+    stats.sluggingPercentage = (stats.totalBasesByHit / stats.atBats).toFixed(
+      3
+    );
+  }
+
+  return stats;
+};
 
 // APPLICATION STATE FUNCTIONS
 
@@ -1062,3 +1190,15 @@ exports.setPreventScreenLock = function(value) {
 exports.getPreventScreenLock = function() {
   return this.preventScreenLock;
 };
+
+// Flip enums for reverse lookups
+let optStatuses = Object.keys(exports.OPTIMIZATION_STATUS_ENUM);
+exports.OPTIMIZATION_STATUS_ENUM_INVERSE = {};
+for (let i = 0; i < optStatuses.length; i++) {
+  let englishValue = optStatuses[i];
+  exports.OPTIMIZATION_STATUS_ENUM_INVERSE[
+    exports.OPTIMIZATION_STATUS_ENUM[englishValue]
+  ] = englishValue;
+}
+
+window.state = exports;

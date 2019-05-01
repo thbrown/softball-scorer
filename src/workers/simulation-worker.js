@@ -1,5 +1,5 @@
 // TODO: minify
-self.addEventListener('message', e => {
+self.addEventListener("message", e => {
   let message = JSON.parse(e.data);
   let lineup = [];
 
@@ -33,12 +33,10 @@ self.addEventListener('message', e => {
   let totalScore = 0;
   // Full Simulation
   for (let i = 0; i < numberOfGamesToSimulate; i++) {
-
     // Game
     let gameScore = 0;
     let hitterIndex = 0;
     for (let inning = 0; INNINGS_PER_GAME > inning; inning++) {
-
       let first = false;
       let second = false;
       let third = false;
@@ -56,7 +54,7 @@ self.addEventListener('message', e => {
             runsResultingFromHit += third ? 1 : 0;
             third = second;
             second = first;
-            first = (i == 0) ? true : false;
+            first = i == 0 ? true : false;
           }
           gameScore += runsResultingFromHit;
         } else {
@@ -66,9 +64,12 @@ self.addEventListener('message', e => {
 
         if (VERBOSE) {
           let message =
-            "\t hit:" + mapBasesToHitType(bases) +
-            "\t outs:" + outs +
-            "\t score:" + gameScore;
+            "\t hit:" +
+            mapBasesToHitType(bases) +
+            "\t outs:" +
+            outs +
+            "\t score:" +
+            gameScore;
           console.log(message);
         }
       }
@@ -83,19 +84,21 @@ self.addEventListener('message', e => {
     }
     if (VERBOSE) {
       console.log("Runs Scored: " + gameScore);
-      console.log("=============================================================");
+      console.log(
+        "============================================================="
+      );
     }
     totalScore += gameScore;
   }
-  console.log('Lineup avg runs', totalScore / numberOfGamesToSimulate);
+  console.log("Lineup avg runs", totalScore / numberOfGamesToSimulate);
   let response = {};
   response.score = totalScore / numberOfGamesToSimulate;
   if (response.score > MAX_RUNS) {
     response.score = MAX_RUNS;
   }
-  response.time = (new Date().getTime() - time);
+  response.time = new Date().getTime() - time;
   self.postMessage(JSON.stringify(response));
-})
+});
 
 function mapBasesToHitType(bases) {
   switch (bases) {
@@ -145,4 +148,10 @@ function hit(historicalHits) {
 function generateRandomInteger(min, max) {
   // TODO: use secure random? A bad rng will likely affect the quality of the simulation
   return Math.floor(min + Math.random() * (max + 1 - min));
+
+  /*
+  var array = new Uint32Array(1);
+  window.crypto.getRandomValues(array);
+  return min + (array[0] % (max + 1 - min)); // This messes up the distribution a bit, does it really matter though?
+  */
 }

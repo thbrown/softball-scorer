@@ -45,18 +45,6 @@ module.exports = class CardPlateAppearance extends expose.Component {
       return pa;
     }.bind(this);
 
-    let backToOrigin = function() {
-      if (props.origin === "scorer") {
-        expose.set_state("main", {
-          page: `/teams/${props.team.id}/games/${props.game.id}/scorer`
-        });
-      } else {
-        expose.set_state("main", {
-          page: `/teams/${props.team.id}/games/${props.game.id}/lineup`
-        });
-      }
-    };
-
     this.homeOrBack = function() {
       let newPa = buildPlateAppearance();
       if (
@@ -83,14 +71,14 @@ module.exports = class CardPlateAppearance extends expose.Component {
         props.team.id,
         buildPlateAppearance()
       );
-      backToOrigin();
+      history.back();
     };
 
     this.handleCancelClick = function() {
       if (props.isNew) {
         state.removePlateAppearance(props.plateAppearance.id, props.game.id);
       }
-      backToOrigin();
+      history.back();
     };
 
     this.handleDeleteClick = function() {
@@ -98,7 +86,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
         "Are you sure you want to delete this plate appearance?",
         () => {
           state.removePlateAppearance(props.plateAppearance.id, props.game.id);
-          backToOrigin();
+          history.back();
         }
       );
     };

@@ -2,7 +2,6 @@
 
 const expose = require("./expose");
 
-const results = require("plate-appearance-results.js");
 const state = require("state");
 
 const { StickyTable, Row, Cell } = require("react-sticky-table");
@@ -216,88 +215,10 @@ module.exports = class CardStats extends expose.Component {
   }
 
   buildStatsObject(teamId, playerId) {
-    const player = state.getPlayer(playerId);
-
-    const stats = {};
-    stats.id = player.id;
-    stats.name = player.name;
-    stats.plateAppearances = 0;
-    stats.totalBasesByHit = 0;
-    stats.atBats = 0;
-    stats.hits = 0;
-    stats.doubles = 0;
-    stats.triples = 0;
-    stats.insideTheParkHR = 0;
-    stats.outsideTheParkHR = 0;
-    stats.reachedOnError = 0;
-    stats.walks = 0;
-    stats.fieldersChoice = 0;
-
     const plateAppearances = state.getPlateAppearancesForPlayerOnTeam(
       playerId,
       teamId
     );
-
-    plateAppearances.forEach(pa => {
-      if (pa.result) {
-        stats.plateAppearances++;
-
-        if (pa.result && !results.getNoAtBatResults().includes(pa.result)) {
-          stats.atBats++;
-        }
-        if (results.getHitResults().includes(pa.result)) {
-          stats.hits++;
-        }
-
-        if (pa.result === "BB") {
-          stats.walks++; // Boo!
-        } else if (pa.result === "E") {
-          stats.reachedOnError++;
-        } else if (pa.result === "FC") {
-          stats.fieldersChoice++;
-        } else if (
-          pa.result === "Out" ||
-          pa.result === "SAC" ||
-          pa.result === "K"
-        ) {
-          // Intentionally blank
-        } else if (pa.result === "1B") {
-          stats.totalBasesByHit++;
-        } else if (pa.result === "2B") {
-          stats.doubles++;
-          stats.totalBasesByHit += 2;
-        } else if (pa.result === "3B") {
-          stats.triples++;
-          stats.totalBasesByHit += 3;
-        } else if (pa.result === "HRi") {
-          stats.insideTheParkHR++;
-          stats.totalBasesByHit += 4;
-        } else if (pa.result === "HRo") {
-          stats.outsideTheParkHR++;
-          stats.totalBasesByHit += 4;
-        } else {
-          console.log(
-            "WARNING: unrecognized batting result encountered and ignored for stats calculations",
-            pa.result
-          );
-        }
-      }
-    });
-
-    if (stats.atBats === 0) {
-      stats.battingAverage = "-";
-      stats.sluggingPercentage = "-";
-    } else {
-      if (stats.hits === stats.atBats) {
-        stats.battingAverage = "1.000";
-      } else {
-        stats.battingAverage = (stats.hits / stats.atBats).toFixed(3).substr(1);
-      }
-      stats.sluggingPercentage = (stats.totalBasesByHit / stats.atBats).toFixed(
-        3
-      );
-    }
-
-    return stats;
+    return state.buildStatsObject(playerId, plateAppearances);
   }
 };

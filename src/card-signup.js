@@ -199,7 +199,7 @@ module.exports = class CardSignup extends expose.Component {
               marginTop: "10px"
             }
           },
-          "Another account is signed in. Any data you see here will not be available in your new account. If you'd like this data, export the data from the menu, signup a new account, then re-import tha data."
+          "Another account is signed in. Any data you see here will not be available in your new account. If you'd like this data, export the data from the menu, signup a new account, then re-import that data."
         )
       );
     }
