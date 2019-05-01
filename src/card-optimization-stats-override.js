@@ -34,11 +34,16 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
 
     this.homeOrBack = function() {
       let newOverride = buildOverride();
-      state.putOverride(props.optimization.id, props.player.id, newOverride);
+      state.putOptimizationPlayerOverride(
+        props.optimization.id,
+        props.player.id,
+        newOverride
+      );
     };
 
     this.handleConfirmClick = function() {
       this.homeOrBack();
+      goBack();
     }.bind(this);
 
     this.handleCancelClick = function() {
@@ -48,47 +53,47 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
     this.handleDeleteClick = function() {
       dialog.show_confirm(
         'Are you sure you want to delete this stat override for player "' +
-          this.props.player.name +
+          props.player.name +
           '"?',
         () => {
-          state.putOverride(props.optimization.id, props.player.id, null);
+          state.putOptimizationPlayerOverride(
+            props.optimization.id,
+            props.player.id,
+            null
+          );
           goBack();
         }
       );
     }.bind(this);
 
-    this.handelOutsChange = function() {}.bind(this);
+    this.handleOutsChange = function() {}.bind(this);
 
-    this.handel1BChange = function() {}.bind(this);
+    this.handle1BChange = function() {}.bind(this);
 
-    this.handel2BChange = function() {}.bind(this);
+    this.handle2BChange = function() {}.bind(this);
 
-    this.handel3BChange = function() {}.bind(this);
+    this.handle3BChange = function() {}.bind(this);
 
-    this.handelHrChange = function() {}.bind(this);
-
-    // We don't need an isNew prop here because the override doesn't have an id can be described (for url purposes)
-    // By a combination of the optimization id and the player id. So we'll just detemine wheter or not it's new
-    // based on the props. TODO: In principle, should this be ouside the constructor in case props change?
-    this.isNew = false;
-    if (
-      props.optimization.inclusions.staging.overrides[props.player.id] ===
-      undefined
-    ) {
-      this.isNew = true;
-    }
+    this.handleHrChange = function() {}.bind(this);
   }
 
   componentDidMount() {}
 
   renderOverridePlayerStats() {
-    if (props.optimization.status !== state.SYNC_STATUS_ENUM.IN_PROGRESS) {
+    // Get the existing override for this player in this optimization (if it exists)
+    let parsedInclusions = JSON.parse(this.props.optimization.inclusions);
+    let existingOverride =
+      parsedInclusions.staging.overrides[this.props.player.id];
+    if (
+      this.props.optimization.status !==
+      state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+    ) {
       return DOM.div(
         {
           className: "auth-input-container"
         },
-        "This page is not avilable while optimization has status " +
-          state.SYNC_STATUS_ENUM.IN_PROGRESS[props.optimization.status]
+        "This page is only available when status is NOT_STARTED. Status is currently " +
+          state.OPTIMIZATION_STATUS_ENUM_INVERSE[this.props.optimization.status]
       );
     } else {
       return DOM.div(
@@ -100,8 +105,10 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
             key: "outs",
             id: "outs",
             label: "Outs",
+            type: "number",
+            maxLength: "50",
             onChange: this.handleOutsChange.bind(this),
-            defaultValue: 0
+            defaultValue: existingOverride ? existingOverride["Outs"] : 0
           })
         ],
         [
@@ -109,8 +116,10 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
             key: "1b",
             id: "1b",
             label: "1B",
+            type: "number",
+            maxLength: "50",
             onChange: this.handle1BChange.bind(this),
-            defaultValue: 0
+            defaultValue: existingOverride ? existingOverride["1B"] : 0
           })
         ],
         [
@@ -118,8 +127,10 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
             key: "2b",
             id: "2b",
             label: "2B",
+            type: "number",
+            maxLength: "50",
             onChange: this.handle2BChange.bind(this),
-            defaultValue: 0
+            defaultValue: existingOverride ? existingOverride["2B"] : 0
           })
         ],
         [
@@ -127,8 +138,10 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
             key: "3b",
             id: "3b",
             label: "3B",
+            type: "number",
+            maxLength: "50",
             onChange: this.handle3BChange.bind(this),
-            defaultValue: 0
+            defaultValue: existingOverride ? existingOverride["3B"] : 0
           })
         ],
         [
@@ -136,8 +149,10 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
             key: "hr",
             id: "hr",
             label: "HR",
-            onChange: this.handleHRChange.bind(this),
-            defaultValue: 0
+            type: "number",
+            maxLength: "50",
+            onChange: this.handleHrChange.bind(this),
+            defaultValue: existingOverride ? existingOverride["HR"] : 0
           })
         ],
         this.renderSaveOptions()
@@ -146,6 +161,17 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
   }
 
   renderSaveOptions() {
+    // We don't need an isNew prop here because the override doesn't have an id as it can be described (for url purposes)
+    // by a combination of the optimization id and the player id. So we'll just detemine wheter or not it's new
+    // based on the data inside the state.
+    let isNew = false;
+    let parsedInclusions = JSON.parse(this.props.optimization.inclusions);
+    if (
+      parsedInclusions.staging.overrides[this.props.player.id] === undefined
+    ) {
+      isNew = true;
+    }
+
     let buttons = [];
 
     buttons.push(
@@ -188,7 +214,7 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
       )
     );
 
-    if (!this.isNew) {
+    if (!isNew) {
       buttons.push(
         DOM.div(
           {
@@ -235,7 +261,7 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
           {
             className: "card-title-text-with-arrow"
           },
-          "Edit Optimization"
+          "Override " + this.props.player.name
         ),
         React.createElement(RightHeaderButton, {
           onPress: this.homeOrBack

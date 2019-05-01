@@ -12,20 +12,19 @@ const FloatingPicklist = require("component-floating-picklist");
 const LeftHeaderButton = require("component-left-header-button");
 const RightHeaderButton = require("component-right-header-button");
 
+const ACCORDION_QUERYPARAM_PREFIX = "acc";
+
 module.exports = class CardOptimization extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
-    this.state = {
-      optimizationType: props.optimization.type
-    };
 
-    this.parsedInclusions = JSON.parse(this.props.optimization.inclusions);
+    this.state = {};
 
     this.handleSongHelpClick = function(event) {
       event.stopPropagation();
       dialog.show_notification(
-        // TODO - Read this from a file so the format isn't dependent on indent spaces.
+        // TODO - Read this from a file so the format isn't dependent on whitespace spaces.
         `**Walkup Song**
 
 Clips can be played from the player's plate appearance page
@@ -41,14 +40,23 @@ Clips can be played from the player's plate appearance page
       });
     };
 
-    this.handleAddPlayerClick = function(event) {
+    this.handleAddPlayerClick = function() {
       expose.set_state("main", {
         page: `/optimizations/${props.optimization.id}/overrides/player-select`
       });
     };
 
-    this.handleTeamCheckboxClick = function(event, team) {
-      console.log(event, team);
+    this.handleTeamCheckboxClick = function(team) {
+      let parsedInclusions = JSON.parse(this.props.optimization.inclusions);
+      let teams = parsedInclusions.staging.teams;
+      let newSet = new Set(teams);
+      if (teams.includes(team.id)) {
+        newSet.delete(team.id);
+        state.putOptimizationTeams(props.optimization.id, Array.from(newSet));
+      } else {
+        newSet.add(team.id);
+        state.putOptimizationTeams(props.optimization.id, Array.from(newSet));
+      }
     };
   }
 
@@ -76,15 +84,17 @@ Clips can be played from the player's plate appearance page
       }
     };
 
-    this.switchAccordion = function(e) {
+    this.switchAccordion = function(index, e) {
       e.preventDefault();
       var accordionTitle = e.currentTarget.parentNode.nextElementSibling;
       var accordionContent = e.currentTarget;
       var accordionChevron = e.currentTarget.children[0];
       if (accordionTitle.classList.contains("is-collapsed")) {
         this.setAccordionAria(accordionContent, accordionTitle, "true");
+        state.editQueryObject(ACCORDION_QUERYPARAM_PREFIX + index, true);
       } else {
         this.setAccordionAria(accordionContent, accordionTitle, "false");
+        state.editQueryObject(ACCORDION_QUERYPARAM_PREFIX + index, null);
       }
       accordionContent.classList.toggle("is-collapsed");
       accordionContent.classList.toggle("is-expanded");
@@ -93,9 +103,10 @@ Clips can be played from the player's plate appearance page
       accordionChevron.classList.toggle("chevronExpanded");
 
       accordionTitle.classList.toggle("animateIn");
-    }.bind(this);
+    };
 
-    // Attach listeners to the accordion
+    // Attach listeners to the accordion (and click if necessary)
+    let queryObject = state.getQueryObj();
     let accordionToggles = document.querySelectorAll(".js-accordionTrigger");
     for (var i = 0, len = accordionToggles.length; i < len; i++) {
       if ("ontouchstart" in window) {
@@ -114,9 +125,14 @@ Clips can be played from the player's plate appearance page
       }
       accordionToggles[i].addEventListener(
         "click",
-        this.switchAccordion,
+        this.switchAccordion.bind(this, i),
         false
       );
+
+      // Open the accordions indicated by he query params
+      if (queryObject[ACCORDION_QUERYPARAM_PREFIX + i] === "true") {
+        accordionToggles[i].click();
+      }
     }
   }
 
@@ -135,26 +151,74 @@ Clips can be played from the player's plate appearance page
       </tr>
     );
 
-    let playerIds = this.parsedInclusions.staging.players;
-    for (let i = 0; i < playerIds.length; i++) {
-      let player = state.getPlayer(playerIds[i]);
-      //getPlateAppearancesForPlayerOnTeam
+    let displayPlayers = [];
+    let parsedInclusions = JSON.parse(this.props.optimization.inclusions);
+    if (
+      this.props.optimization.status ===
+      state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+    ) {
+      let playerIds = parsedInclusions.staging.players;
+      for (let i = 0; i < playerIds.length; i++) {
+        let displayPlayer = {};
+
+        let player = state.getPlayer(playerIds[i]);
+        if (!player) {
+          continue; // Player may have been deleted
+        }
+        let plateAppearances = state.getPlateAppearancesForPlayerInGameOrOnTeam(
+          player.id,
+          parsedInclusions.staging.teams,
+          null
+        );
+
+        displayPlayer.name = player.name;
+        displayPlayer.player = player; // This will be undefined for other statuses
+
+        // Check to see if there are manual overrides of the stats for this player
+        let existingOverride = parsedInclusions.staging.overrides[player.id];
+        if (existingOverride) {
+          Object.assign(displayPlayer, existingOverride);
+          displayPlayer.isOverride = true;
+        } else {
+          let fullStats = state.buildStatsObject(player.id, plateAppearances);
+          displayPlayer["Outs"] = fullStats.atBats - fullStats.hits;
+          displayPlayer["1B"] = fullStats.singles + fullStats.walks;
+          displayPlayer["2B"] = fullStats.doubles;
+          displayPlayer["3B"] = fullStats.triples;
+          displayPlayer["HR"] =
+            fullStats.insideTheParkHR + fullStats.outsideTheParkHR;
+          displayPlayer.isOverride = false;
+        }
+
+        displayPlayers.push(displayPlayer);
+      }
+    } else {
+      displayPlayers = parsedInclusions.execution.players;
+    }
+
+    for (let i = 0; i < displayPlayers.length; i++) {
       playerTable.push(
-        <tr key={"row" + player.id} className="overriden">
+        <tr
+          key={"row" + i}
+          className={displayPlayers[i].isOverride ? "overriden" : undefined}
+        >
           <td height="48" className="name">
-            {player.name}
+            {displayPlayers[i].name}
           </td>
-          <td>13</td>
-          <td>12</td>
-          <td>2</td>
-          <td>1</td>
-          <td>0</td>
+          <td>{displayPlayers[i]["Outs"]}</td>
+          <td>{displayPlayers[i]["1B"]}</td>
+          <td>{displayPlayers[i]["2B"]}</td>
+          <td>{displayPlayers[i]["3B"]}</td>
+          <td>{displayPlayers[i]["HR"]}</td>
           <td height="48">
             <img
               src="/server/assets/tune-black.svg"
               alt=">"
               className="tableButton"
-              onClick={this.handleOverrideClick.bind(this, player)}
+              onClick={this.handleOverrideClick.bind(
+                this,
+                displayPlayers[i].player
+              )}
             />
           </td>
         </tr>
@@ -164,23 +228,52 @@ Clips can be played from the player's plate appearance page
     // Build teams checkboxes
     let teams = state.getLocalState().teams;
     let teamsCheckboxes = [];
-    for (let i = 0; i < teams.length; i++) {
-      let team = teams[i];
-      teamsCheckboxes.push(
-        <label key={team.name + "checkboxLabel"}>
-          <input
-            key={team.name + "checkbox"}
-            type="checkbox"
-            onChange={this.handleTeamCheckboxClick.bind(this, team)}
-          />
-          {team.name}
-        </label>
-      );
+    if (
+      this.props.optimization.status ===
+      state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+    ) {
+      let selectedTeams = new Set(parsedInclusions.staging.teams);
+      for (let i = 0; i < teams.length; i++) {
+        let team = teams[i];
+        teamsCheckboxes.push(
+          <label key={team.name + "checkboxLabel"}>
+            <input
+              key={team.name + "checkbox"}
+              type="checkbox"
+              onChange={this.handleTeamCheckboxClick.bind(this, team)}
+              checked={selectedTeams.has(team.id)}
+            />
+            {team.name}
+          </label>
+        );
+      }
+    } else {
+      let selectedTeams = parsedInclusions.execution.teams;
+      for (let i = 0; i < selectedTeams.length; i++) {
+        teamsCheckboxes.push(
+          <label key={selectedTeams[i].name + "checkboxLabel"}>
+            <input
+              key={selectedTeams[i].name + "checkbox"}
+              type="checkbox"
+              checked={true}
+              disabled="true"
+            />
+            {selectedTeams[i].name}
+          </label>
+        );
+      }
     }
 
     return (
       <div className="accordionContainer">
-        <div className="text-div">Status: NOT_STARTED</div>
+        <div className="text-div">
+          Status:{" "}
+          {
+            state.OPTIMIZATION_STATUS_ENUM_INVERSE[
+              this.props.optimization.status
+            ]
+          }
+        </div>
         <div className="accordion">
           <dl>
             <dt>
@@ -258,7 +351,10 @@ Clips can be played from the player's plate appearance page
                   maxLength: "9",
                   label: "Iterations",
                   onChange: this.onChange,
-                  defaultValue: 10000
+                  defaultValue: 10000,
+                  disaled:
+                    this.props.optimization.status !==
+                    state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
                 })}
                 {React.createElement(FloatingInput, {
                   key: "innings",
@@ -266,13 +362,19 @@ Clips can be played from the player's plate appearance page
                   maxLength: "9",
                   label: "Innings to Simulate",
                   onChange: this.onChange,
-                  defaultValue: 7
+                  defaultValue: 7,
+                  disaled:
+                    this.props.optimization.status !==
+                    state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
                 })}
                 {React.createElement(FloatingPicklist, {
                   id: "lineupType",
                   label: "Lineup Type",
                   defaultValue: "Normal",
-                  onChange: this.onChange
+                  onChange: this.onChange,
+                  disaled:
+                    this.props.optimization.status !==
+                    state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
                 })}
               </div>
             </dd>

@@ -770,7 +770,7 @@ Scrolling is ~10-20x smoother.
   height: auto;
   overflow: hidden;
 
-  max-height: 25em;
+  max-height: 50em;
   transition: max-height 0.25s;
 }
 
@@ -830,6 +830,7 @@ Scrolling is ~10-20x smoother.
 
 .playerTable .overriden {
   font-style: italic;
+  font-weight: 900;
 }
 
 #gamesMenu label {

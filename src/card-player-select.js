@@ -29,6 +29,9 @@ module.exports = class CardPlayerSelect extends expose.Component {
     let startingValues = [];
     for (let i = 0; i < props.selected.length; i++) {
       let player = state.getPlayer(props.selected[i]);
+      //if (!player) {
+      //  continue; // Player may have been deleted, TODO: remove this from the select as well?
+      //}
       let entry = {
         value: player.id,
         label: player.name
@@ -37,7 +40,7 @@ module.exports = class CardPlayerSelect extends expose.Component {
     }
 
     this.state = {
-      players: undefined,
+      players: Array.from(startingValues.slice(0).map(v => v.value)),
       options: options,
       startingValues: startingValues,
       typed: "",
@@ -85,7 +88,10 @@ module.exports = class CardPlayerSelect extends expose.Component {
         if (menus.length === 1) {
           height = menus[0].clientHeight;
         }
-        document.getElementById("spacer").style.height = `${height}px`; // inline style :(
+        let spacer = document.getElementById("spacer");
+        if (spacer) {
+          spacer.style.height = `${height}px`; // inline style :(
+        }
       };
 
       // Lame way to make sure this gets the height after it's been rendered (Maybe this can go as a callback to setState instead?)
@@ -93,14 +99,14 @@ module.exports = class CardPlayerSelect extends expose.Component {
     };
 
     this.onCreatePlayerClick = function() {
+      let newPlayer = state.addPlayer(this.state.typed, this.state.gender);
+
       // Duplicate options
       let optionsCopy = JSON.parse(JSON.stringify(this.state.options));
-      optionsCopy.push({ label: this.state.typed, value: this.state.typed });
+      optionsCopy.push({ label: newPlayer.name, value: newPlayer.value });
       this.setState({
         options: optionsCopy
       });
-
-      state.addPlayer(this.state.typed, this.state.gender);
     };
 
     this.noOptionsMessage = function() {
@@ -201,7 +207,6 @@ module.exports = class CardPlayerSelect extends expose.Component {
   }
 
   renderPlayerSelection() {
-    console.log(this.state.startingValues);
     return (
       <div className="buffer">
         <Select
