@@ -29,9 +29,9 @@ module.exports = class CardPlayerSelect extends expose.Component {
     let startingValues = [];
     for (let i = 0; i < props.selected.length; i++) {
       let player = state.getPlayer(props.selected[i]);
-      //if (!player) {
-      //  continue; // Player may have been deleted, TODO: remove this from the select as well?
-      //}
+      if (!player) {
+        continue; // Player may have been deleted, this should remove them going forward (only applicable for the optimization players list, players in a lineup can't be deleted)
+      }
       let entry = {
         value: player.id,
         label: player.name

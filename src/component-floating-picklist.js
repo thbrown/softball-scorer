@@ -8,6 +8,11 @@ module.exports = class FloatingPicklist extends expose.Component {
     super(props);
     this.expose();
     this.state = {};
+
+    this.onChangeWraper = function() {
+      let value = document.getElementById(this.props.id).value;
+      this.props.onChange(value);
+    };
   }
 
   componentDidMount() {
@@ -35,8 +40,7 @@ module.exports = class FloatingPicklist extends expose.Component {
     floatField.addEventListener("blur", handleBlur);
 
     // Setting value on the select box seems to lock the select box to the value we set. So we'll edit it here.
-    document.getElementById("lineupType").value = this.props.defaultValue;
-    console.log("Change to d " + this.props.defaultValue);
+    document.getElementById(this.props.id).value = this.props.defaultValue;
   }
 
   render() {
@@ -50,9 +54,10 @@ module.exports = class FloatingPicklist extends expose.Component {
       DOM.select(
         {
           id: this.props.id,
-          onChange: this.props.onChange,
+          onChange: this.onChangeWraper.bind(this),
           className: "select"
         },
+        // TODO: this needs to be broken out into a prop when we need this for more than just lineupType
         [
           DOM.option({ key: "normal", value: 1 }, "Normal"),
           DOM.option({ key: "alternate", value: 2 }, "Alternating Gender"),
