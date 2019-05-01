@@ -100,23 +100,6 @@ module.exports = class CardGameEdit extends expose.Component {
             key: "helpParent",
             className: "help-parent"
           },
-          /*
-          DOM.select(
-            {
-              key: "lineupType",
-              id: "lineupType",
-              className: "auth-input",
-              onChange: this.handleLineupTypeChange
-            },
-            [
-              DOM.option({ key: "normal", value: 1 }, "Normal"),
-              DOM.option({ key: "alternate", value: 2 }, "Alternating Gender"),
-              DOM.option(
-                { key: "noConsecutive", value: 3 },
-                "No Consecutive Females"
-              )
-            ]
-          ),*/
           React.createElement(FloatingPicklist, {
             id: "lineupType",
             label: "Lineup Type",

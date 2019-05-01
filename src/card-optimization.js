@@ -58,6 +58,10 @@ Clips can be played from the player's plate appearance page
         state.putOptimizationTeams(props.optimization.id, Array.from(newSet));
       }
     };
+
+    this.onChange = function(fieldName, value) {
+      state.putOptimizationDetail(this.props.optimization.id, fieldName, value);
+    };
   }
 
   componentDidMount() {
@@ -264,6 +268,8 @@ Clips can be played from the player's plate appearance page
       }
     }
 
+    // Parse simulaton details
+    let parsedDetals = JSON.parse(this.props.optimization.details);
     return (
       <div className="accordionContainer">
         <div className="text-div">
@@ -348,31 +354,34 @@ Clips can be played from the player's plate appearance page
                 {React.createElement(FloatingInput, {
                   key: "iterations",
                   id: "iterations",
-                  maxLength: "9",
+                  maxLength: "12",
                   label: "Iterations",
-                  onChange: this.onChange,
-                  defaultValue: 10000,
-                  disaled:
+                  onChange: this.onChange.bind(this, "iterations"),
+                  type: "number",
+                  defaultValue: parsedDetals.iterations,
+                  disabled:
                     this.props.optimization.status !==
                     state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
                 })}
                 {React.createElement(FloatingInput, {
                   key: "innings",
                   id: "innings",
-                  maxLength: "9",
+                  maxLength: "12",
                   label: "Innings to Simulate",
-                  onChange: this.onChange,
-                  defaultValue: 7,
-                  disaled:
+                  onChange: this.onChange.bind(this, "innings"),
+                  maxLength: "2",
+                  type: "number",
+                  defaultValue: parsedDetals.innings,
+                  disabled:
                     this.props.optimization.status !==
                     state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
                 })}
                 {React.createElement(FloatingPicklist, {
                   id: "lineupType",
                   label: "Lineup Type",
-                  defaultValue: "Normal",
-                  onChange: this.onChange,
-                  disaled:
+                  defaultValue: parsedDetals.lineupType, //state.LINEUP_TYPE_ENUM.NORMAL,
+                  onChange: this.onChange.bind(this, "lineupType"),
+                  disabled:
                     this.props.optimization.status !==
                     state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
                 })}
@@ -420,12 +429,12 @@ Clips can be played from the player's plate appearance page
         </div>
         <div id="footer">
           <label>
-            <input type="checkbox" onChange={this.onChange} />
+            <input type="checkbox" onChange={this.onEmailCheckbox} />
             Send me an email when the simulation is complete.
           </label>
           <div
             className="edit-button button cancel-button"
-            onClick={this.onChange}
+            onClick={this.onStartSimulation}
           >
             Start Simulation
           </div>

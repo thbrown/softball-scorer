@@ -31,10 +31,10 @@ exports.OPTIMIZATION_STATUS_ENUM = Object.freeze({
 const OPTIMIZATION_TYPE_ENUM = Object.freeze({
   MONTE_CARLO_EXAUSTIVE: 0
 });
-const LINEUP_TYPE_ENUM = Object.freeze({
-  NORMAL: 0,
-  ALTERNATING_GENDER: 1,
-  NO_CONSECUTIVE_FEMALES: 2
+exports.LINEUP_TYPE_ENUM = Object.freeze({
+  NORMAL: 1,
+  ALTERNATING_GENDER: 2,
+  NO_CONSECUTIVE_FEMALES: 3
 });
 
 // Database State - Stored in memory, local storage, and persisted in the db
@@ -479,6 +479,18 @@ exports.putOptimizationTeams = function(optimizationId, teams) {
   onEdit();
 };
 
+exports.putOptimizationDetail = function(optimizationId, fieldName, value) {
+  let optimization = exports.getOptimization(optimizationId);
+  let deserializedDetails = JSON.parse(optimization.details);
+  if (value) {
+    deserializedDetails[fieldName] = value;
+  } else {
+    delete deserializedDetails[fieldName];
+  }
+  optimization.details = JSON.stringify(deserializedDetails);
+  onEdit();
+};
+
 exports.getAllOptimizations = function() {
   return exports.getLocalState().optimizations;
 };
@@ -507,6 +519,7 @@ exports.addOptimization = function(name, details, inclusions) {
   if (!details) {
     details = JSON.stringify({
       innings: 7,
+      lineupType: 1,
       iterations: 1000000,
       completedLineups: 0,
       totalLineups: 0,
@@ -553,7 +566,9 @@ exports.addGame = function(team_id, opposing_team_name) {
     park: "Stazio",
     scoreUs: 0,
     scoreThem: 0,
-    lineupType: lastLineupType ? lastLineupType : LINEUP_TYPE_ENUM.NORMAL,
+    lineupType: lastLineupType
+      ? lastLineupType
+      : exports.LINEUP_TYPE_ENUM.NORMAL,
     plateAppearances: []
   };
   team.games.push(game);
@@ -1200,5 +1215,16 @@ for (let i = 0; i < optStatuses.length; i++) {
     exports.OPTIMIZATION_STATUS_ENUM[englishValue]
   ] = englishValue;
 }
+
+/*
+let lineupTypes = Object.keys(exports.LINEUP_TYPE_ENUM);
+exports.LINEUP_TYPE_ENUM_INVERSE = {};
+for (let i = 0; i < lineupTypes.length; i++) {
+  let englishValue = lineupTypes[i];
+  exports.LINEUP_TYPE_ENUM_INVERSE[
+    exports.LINEUP_TYPE_ENUM[englishValue]
+  ] = englishValue;
+}
+*/
 
 window.state = exports;

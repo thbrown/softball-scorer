@@ -8,6 +8,11 @@ module.exports = class FloatingInput extends expose.Component {
     super(props);
     this.expose();
     this.state = {};
+
+    this.onChangeWraper = function() {
+      let value = document.getElementById(this.props.id).value;
+      this.props.onChange(value);
+    };
   }
 
   componentDidMount() {
@@ -48,9 +53,10 @@ module.exports = class FloatingInput extends expose.Component {
         type: this.props.type ? this.props.type : "text",
         min: this.props.min,
         step: this.props.step,
-        maxLength: "50",
-        onChange: this.props.onChange,
-        defaultValue: this.props.defaultValue
+        maxLength: this.props.maxLength ? this.props.maxLength : "50",
+        onChange: this.onChangeWraper.bind(this),
+        defaultValue: this.props.defaultValue,
+        disabled: this.props.disabled
       })
     );
   }
