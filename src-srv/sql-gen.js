@@ -282,18 +282,31 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
             ]
           });
         } else {
+          let columnName = getColNameFromJSONValue(value.key);
+          let limit = undefined; // defaults to 50 chars
+
+          // details and inclusions fields on the optimization table contain potentially longer stringified JSON (results do too, but that is read only)
+          if (
+            (columnName === "details" || columnName === "inclusions") &&
+            applicableTable === "optimization"
+          ) {
+            limit = 5000;
+          }
           result.push({
             query:
               "UPDATE " +
               applicableTable +
               " SET " +
-              getColNameFromJSONValue(value.key) +
+              columnName +
               " = $1 WHERE id IN ($2) AND account_id IN ($3);",
             values: [
               value.param2,
               idUtils.clientIdToServerId(getIdFromPath(path), accountId),
               accountId
-            ]
+            ],
+            limits: {
+              1: limit
+            }
           });
         }
       } else if (op === "Add") {

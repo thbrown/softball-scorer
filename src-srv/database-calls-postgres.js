@@ -131,7 +131,8 @@ module.exports = class DatabaseCalls {
           best_lineup as best_lineup,
           best_score as best_score,
           details as details,
-          status as status
+          status as status,
+          results as results
 				FROM optimization
 				WHERE account_id = $1
         ORDER BY 
@@ -208,7 +209,7 @@ module.exports = class DatabaseCalls {
           );
           state.optimizations[i].inclusions = optimizations[i].inclusions
             ? JSON.stringify(optimizations[i].inclusions)
-            : null;
+            : "{}";
           state.optimizations[i].bestLineup = optimizations[i].best_lineup
             ? optimizations[i].best_lineup
             : null;
@@ -217,11 +218,15 @@ module.exports = class DatabaseCalls {
             : null;
           state.optimizations[i].details = optimizations[i].details
             ? JSON.stringify(optimizations[i].details)
-            : null;
+            : "{}";
 
           state.optimizations[i].name = optimizations[i].name;
           state.optimizations[i].type = optimizations[i].type;
           state.optimizations[i].status = optimizations[i].status;
+
+          state.optimizations[i].results = optimizations[i].results
+            ? JSON.stringify(optimizations[i].results)
+            : "{}";
         }
 
         // Teams

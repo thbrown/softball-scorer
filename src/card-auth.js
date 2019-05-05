@@ -91,10 +91,6 @@ module.exports = class CardAuth extends expose.Component {
           // There is some data locally that's not associated with an account, ask if we should keep it
           let prompt = undefined;
           console.log("ACTIVE USER", state.getActiveUser());
-          console.log(
-            state.getActiveUser() === null,
-            state.hasAnythingChanged()
-          );
           if (state.getActiveUser() === null && state.hasAnythingChanged()) {
             prompt = new Promise(function(resolve, reject) {
               dialog.show_yes_no_cancel(
