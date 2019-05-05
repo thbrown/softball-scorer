@@ -80,12 +80,19 @@ module.exports = class CardPlayerSelect extends expose.Component {
       });
     };
 
+    // Lots of bad code in this method, see comments
     this.adjustSpacerDivHeight = function() {
       let adjust = function() {
-        // not a great selector, but I'm not sure how else to get the menu height from inside the component
-        let menus = document.querySelectorAll('div[class$="-menu"]');
+        // Neither of these are good selectors, but I'm not sure how else to get the menu height from inside the component
+        //let menus = document.querySelectorAll('div[class$="-menu"]');
+        //if (!menus) {
+        // Idk why the '-menu' suffix is left off the css class for builds on some computers but not for builds on others, here is an alternitive selector
+        let menus = [
+          document.getElementById("select-container").children[0].children[2]
+        ];
+        //}
         let height = 10;
-        if (menus.length === 1) {
+        if (menus.length === 1 && menus[0]) {
           height = menus[0].clientHeight;
         }
         let spacer = document.getElementById("spacer");
@@ -103,7 +110,8 @@ module.exports = class CardPlayerSelect extends expose.Component {
 
       // Duplicate options
       let optionsCopy = JSON.parse(JSON.stringify(this.state.options));
-      optionsCopy.push({ label: newPlayer.name, value: newPlayer.value });
+      optionsCopy.push({ label: newPlayer.name, value: newPlayer.id });
+      console.log("New Options", optionsCopy);
       this.setState({
         options: optionsCopy
       });
@@ -147,6 +155,12 @@ module.exports = class CardPlayerSelect extends expose.Component {
       multiValue: (provided, state) => {
         let modifications = {
           padding: 14
+        };
+        return Object.assign(provided, modifications);
+      },
+      menu: (provided, state) => {
+        let modifications = {
+          padding: 1
         };
         return Object.assign(provided, modifications);
       }
@@ -208,7 +222,7 @@ module.exports = class CardPlayerSelect extends expose.Component {
 
   renderPlayerSelection() {
     return (
-      <div className="buffer">
+      <div id="select-container" className="buffer">
         <Select
           inputId="test"
           isMulti

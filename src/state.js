@@ -520,15 +520,11 @@ exports.addOptimization = function(name, details, inclusions) {
     details = JSON.stringify({
       innings: 7,
       lineupType: 1,
-      iterations: 1000000,
-      completedLineups: 0,
-      totalLineups: 0,
-      histogram: {},
-      max: 0,
-      min: 0,
-      mean: 0
+      iterations: 1000000
     });
   }
+
+  let results = JSON.stringify({});
 
   let new_state = exports.getLocalState();
   let optimization = {
@@ -537,7 +533,8 @@ exports.addOptimization = function(name, details, inclusions) {
     type: OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXAUSTIVE,
     inclusions: inclusions,
     details: details,
-    status: exports.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+    status: exports.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
+    results: results
   };
   new_state.optimizations.push(optimization);
   onEdit();
