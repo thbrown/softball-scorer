@@ -1,23 +1,22 @@
-"use strict";
-
-const BASE62 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const bs62 = require("base-x")(BASE62);
+import baseX from 'base-x';
+const BASE62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const bs62 = baseX(BASE62);
 
 exports.clientIdToServerId = function(clientId, accountId) {
-  let hexAccountId = accountId.toString(parseInt(16)).padStart(8, "0");
-  let hexId = bs62.decode(clientId).toString("hex");
+  let hexAccountId = accountId.toString(parseInt(16)).padStart(8, '0');
+  let hexId = bs62.decode(clientId).toString('hex');
   let sizedHexId = hexId
     .substring(hexId.length - 24, hexId.length)
-    .padStart(24, "0");
+    .padStart(24, '0');
   return hexAccountId + sizedHexId;
 };
 
 exports.serverIdToClientId = function(serverId) {
   return bs62
-    .encode(new Buffer(serverId.replace(/-/g, "").substr(12), "hex"))
-    .padStart(14, "0");
+    .encode(new Buffer(serverId.replace(/-/g, '').substr(12), 'hex'))
+    .padStart(14, '0');
 };
 
 exports.hexToBase62 = function(hex) {
-  return bs62.encode(new Buffer(hex, "hex"));
+  return bs62.encode(new Buffer(hex, 'hex'));
 };
