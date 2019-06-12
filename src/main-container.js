@@ -1,38 +1,38 @@
-"use strict";
+'use strict';
 
-const React = require("react");
-const expose = require("./expose");
-const DOM = require("react-dom-factories");
-const css = require("css");
+const React = require('react');
+const expose = require('./expose');
+const DOM = require('react-dom-factories');
+const css = require('css');
 
-const config = require("config");
-const dialog = require("dialog");
-const network = require("network");
-const noSleepImport = require("./lib/nosleep.js");
+const config = require('config');
+const dialog = require('dialog');
+const network = require('network');
+const noSleepImport = require('./lib/nosleep.js');
 const noSleep = new noSleepImport();
-const state = require("state");
+const state = require('state');
 
-const CardAuth = require("card-auth");
-const CardError = require("card-error");
-const CardGame = require("card-game");
-const CardGameEdit = require("card-game-edit");
-const CardImport = require("card-import");
-const CardMenu = require("card-menu");
-const CardPasswordReset = require("card-password-reset");
-const CardPlateAppearance = require("card-plate-appearance");
-const CardPlayerList = require("card-player-list");
-const CardPlayerEdit = require("card-player-edit");
-const CardPlayerSelection = require("card-player-selection");
-const CardPlayerSelect = require("card-player-select");
-const CardSignup = require("card-signup");
-const CardSpray = require("card-spray");
-const CardTeam = require("card-team");
-const CardTeamEdit = require("card-team-edit");
-const CardTeamList = require("card-team-list");
-const CardOptimizationList = require("card-optimization-list");
-const CardOptimizationEdit = require("card-optimization-edit");
-const CardOptimization = require("card-optimization");
-const CardOptimizationStatsOverride = require("card-optimization-stats-override");
+const CardAuth = require('card-auth');
+const CardError = require('card-error');
+const CardGame = require('card-game');
+const CardGameEdit = require('card-game-edit');
+const CardImport = require('card-import');
+const CardMenu = require('card-menu');
+const CardPasswordReset = require('card-password-reset');
+const CardPlateAppearance = require('card-plate-appearance');
+const CardPlayerList = require('card-player-list');
+const CardPlayerEdit = require('card-player-edit');
+const CardPlayerSelection = require('card-player-selection');
+const CardPlayerSelect = require('card-player-select');
+const CardSignup = require('card-signup');
+const CardSpray = require('card-spray');
+const CardTeam = require('card-team');
+const CardTeamEdit = require('card-team-edit');
+const CardTeamList = require('card-team-list');
+const CardOptimizationList = require('card-optimization-list');
+const CardOptimizationEdit = require('card-optimization-edit');
+const CardOptimization = require('card-optimization');
+const CardOptimizationStatsOverride = require('card-optimization-stats-override');
 
 // TODO
 // Text directions?
@@ -55,10 +55,10 @@ const CardOptimizationStatsOverride = require("card-optimization-stats-override"
 module.exports = class MainContainer extends expose.Component {
   constructor(props) {
     super(props);
-    this.expose("main");
+    this.expose('main');
 
     // Register a service worker to support offline experience and quick subsequent page loads
-    if ("serviceWorker" in navigator) {
+    if ('serviceWorker' in navigator) {
       // When a new service worker is available, re-load the page
       navigator.serviceWorker.oncontrollerchange = () => {
         if (document.hidden) {
@@ -74,8 +74,8 @@ module.exports = class MainContainer extends expose.Component {
       };
 
       // The actual registration
-      window.addEventListener("load", function() {
-        navigator.serviceWorker.register("/service-worker");
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/service-worker');
       });
     }
 
@@ -85,7 +85,7 @@ module.exports = class MainContainer extends expose.Component {
     // When the user pops the state (e.g. on back button press) make sure the react state matches the url.
     window.onpopstate = function() {
       let newPage = window.location.pathname;
-      expose.set_state("main", {
+      expose.set_state('main', {
         page: newPage,
         isNew: false
       });
@@ -99,7 +99,7 @@ module.exports = class MainContainer extends expose.Component {
 
     // Reload from local storage each time after the window regains focus
     window.addEventListener(
-      "focus",
+      'focus',
       () => {
         state.loadStateFromLocalStorage();
       },
@@ -107,15 +107,15 @@ module.exports = class MainContainer extends expose.Component {
     );
 
     // Enable wake lock. (must be wrapped in a user input event handler)
-    document.addEventListener("click", enableNoSleep, false);
+    document.addEventListener('click', enableNoSleep, false);
     function enableNoSleep() {
       noSleep.enable();
-      document.removeEventListener("click", enableNoSleep, false);
+      document.removeEventListener('click', enableNoSleep, false);
     }
 
     // Update the network status whenever we receive an 'online' or 'offline' event
     window.addEventListener(
-      "online",
+      'online',
       () => {
         // This event really just tells us if we are connected to a network, we need to ping the server to know if we are online and authenticated
         network.updateNetworkStatus();
@@ -124,14 +124,14 @@ module.exports = class MainContainer extends expose.Component {
     );
 
     window.addEventListener(
-      "offline",
+      'offline',
       () => {
         state.setOffline();
       },
       false
     );
 
-    window.addEventListener("beforeinstallprompt", e => {
+    window.addEventListener('beforeinstallprompt', e => {
       // Prevent Chrome 67 and earlier from automatically showing the prompt
       e.preventDefault();
       // Stash the event so it can be triggered later.
@@ -149,26 +149,26 @@ module.exports = class MainContainer extends expose.Component {
         (ga.q = ga.q || []).push(arguments);
       };
     ga.l = +new Date();
-    ga("create", trackingId, "auto");
-    ga("require", "urlChangeTracker");
-    ga("require", "cleanUrlTracker", {
+    ga('create', trackingId, 'auto');
+    ga('require', 'urlChangeTracker');
+    ga('require', 'cleanUrlTracker', {
       stripQuery: true,
-      indexFilename: "index.html",
-      trailingSlash: "remove",
+      indexFilename: 'index.html',
+      trailingSlash: 'remove',
       urlFieldsFilter: function(fieldsObj, parseUrl) {
         fieldsObj.page = parseUrl(fieldsObj.page)
-          .pathname.replace(/teams\/[a-zA-Z0-9]{14}/, "teams/<team-id>")
-          .replace(/player\/[a-zA-Z0-9]{14}/, "player/<player-id>")
-          .replace(/games\/[a-zA-Z0-9]{14}/, "games/<game-id>")
+          .pathname.replace(/teams\/[a-zA-Z0-9]{14}/, 'teams/<team-id>')
+          .replace(/player\/[a-zA-Z0-9]{14}/, 'player/<player-id>')
+          .replace(/games\/[a-zA-Z0-9]{14}/, 'games/<game-id>')
           .replace(
             /plateAppearances\/[a-zA-Z0-9]{14}/,
-            "plateAppearances/<pa-id>"
+            'plateAppearances/<pa-id>'
           )
-          .replace(/players\/[a-zA-Z0-9]{14}/, "players/<player-id>");
+          .replace(/players\/[a-zA-Z0-9]{14}/, 'players/<player-id>');
         return fieldsObj;
       }
     });
-    ga("send", "pageview");
+    ga('send', 'pageview');
 
     let startPage = window.location.pathname;
 
@@ -183,14 +183,14 @@ module.exports = class MainContainer extends expose.Component {
    * This method also stores any path variables (marked with the ':' prefix) as properties in the passed in state object.
    */
   static matches(url, path, state) {
-    let urlArray = url.split("/");
-    let pathArray = path.split("/");
+    let urlArray = url.split('/');
+    let pathArray = path.split('/');
     let pathVariables = {};
     if (pathArray.length !== urlArray.length) {
       return false;
     }
     for (let i = 1; i < pathArray.length; i++) {
-      if (pathArray[i].length > 0 && pathArray[i][0] === ":") {
+      if (pathArray[i].length > 0 && pathArray[i][0] === ':') {
         pathVariables[pathArray[i].substring(1)] = urlArray[i];
       } else if (urlArray[i] !== pathArray[i]) {
         pathVariables = {};
@@ -213,7 +213,7 @@ module.exports = class MainContainer extends expose.Component {
     args.forEach(val => {
       if (!val) {
         console.log(val, args);
-        throw "404 Undefined field";
+        throw '404 Undefined field';
       }
     });
   }
@@ -221,46 +221,46 @@ module.exports = class MainContainer extends expose.Component {
   renderCard(url) {
     // Update the base url if necessary
     if (url !== window.location.pathname) {
-      history.pushState({}, "", url);
+      history.pushState({}, '', url);
     }
 
     // Strip off params
-    url = url.split("?")[0].split("#")[0];
+    url = url.split('?')[0].split('#')[0];
 
     try {
-      if (MainContainer.matches(url, "/", this.state)) {
+      if (MainContainer.matches(url, '/', this.state)) {
         // TODO: maybe this should just redirect to /menu
         return React.createElement(CardMenu);
-      } else if (MainContainer.matches(url, "/menu", this.state)) {
+      } else if (MainContainer.matches(url, '/menu', this.state)) {
         return React.createElement(CardMenu);
-      } else if (MainContainer.matches(url, "/menu/login", this.state)) {
+      } else if (MainContainer.matches(url, '/menu/login', this.state)) {
         return React.createElement(CardAuth);
-      } else if (MainContainer.matches(url, "/menu/signup", this.state)) {
+      } else if (MainContainer.matches(url, '/menu/signup', this.state)) {
         return React.createElement(CardSignup);
-      } else if (MainContainer.matches(url, "/menu/import", this.state)) {
+      } else if (MainContainer.matches(url, '/menu/import', this.state)) {
         return React.createElement(CardImport);
       } else if (
-        MainContainer.matches(url, "/account/password-reset/:token", this.state)
+        MainContainer.matches(url, '/account/password-reset/:token', this.state)
       ) {
         let token = this.state.token;
         return React.createElement(CardPasswordReset, {
           token: token
         });
-      } else if (MainContainer.matches(url, "/teams", this.state)) {
+      } else if (MainContainer.matches(url, '/teams', this.state)) {
         return React.createElement(CardTeamList);
       } else if (
-        MainContainer.matches(url, "/teams/:teamId", this.state) ||
-        MainContainer.matches(url, "/teams/:teamId/games", this.state)
+        MainContainer.matches(url, '/teams/:teamId', this.state) ||
+        MainContainer.matches(url, '/teams/:teamId/games', this.state)
       ) {
         let teamId = this.state.teamId;
         let team = state.getTeam(teamId);
         MainContainer.validate(team);
         return React.createElement(CardTeam, {
           team: team,
-          tab: "games"
+          tab: 'games'
         });
       } else if (
-        MainContainer.matches(url, "/teams/:teamId/edit", this.state)
+        MainContainer.matches(url, '/teams/:teamId/edit', this.state)
       ) {
         let teamId = this.state.teamId;
         let team = state.getTeam(teamId);
@@ -271,19 +271,19 @@ module.exports = class MainContainer extends expose.Component {
           isNew: isNew
         });
       } else if (
-        MainContainer.matches(url, "/teams/:teamId/stats", this.state)
+        MainContainer.matches(url, '/teams/:teamId/stats', this.state)
       ) {
         let teamId = this.state.teamId;
         let team = state.getTeam(teamId);
         MainContainer.validate(team);
         return React.createElement(CardTeam, {
           team: team,
-          tab: "stats"
+          tab: 'stats'
         });
       } else if (
         MainContainer.matches(
           url,
-          "/teams/:teamId/stats/player/:playerId",
+          '/teams/:teamId/stats/player/:playerId',
           this.state
         )
       ) {
@@ -293,17 +293,17 @@ module.exports = class MainContainer extends expose.Component {
         return React.createElement(CardSpray, {
           player: player,
           team: team,
-          origin: "stats"
+          origin: 'stats'
         });
       } else if (
         MainContainer.matches(
           url,
-          "/teams/:teamId/games/:gameId",
+          '/teams/:teamId/games/:gameId',
           this.state
         ) ||
         MainContainer.matches(
           url,
-          "/teams/:teamId/games/:gameId/lineup",
+          '/teams/:teamId/games/:gameId/lineup',
           this.state
         )
       ) {
@@ -313,12 +313,12 @@ module.exports = class MainContainer extends expose.Component {
         return React.createElement(CardGame, {
           team: team,
           game: game,
-          tab: "lineup"
+          tab: 'lineup'
         });
       } else if (
         MainContainer.matches(
           url,
-          "/teams/:teamId/games/:gameId/scorer",
+          '/teams/:teamId/games/:gameId/scorer',
           this.state
         )
       ) {
@@ -328,12 +328,12 @@ module.exports = class MainContainer extends expose.Component {
         return React.createElement(CardGame, {
           team: team,
           game: game,
-          tab: "scorer"
+          tab: 'scorer'
         });
       } else if (
         MainContainer.matches(
           url,
-          "/teams/:teamId/games/:gameId/player-selection",
+          '/teams/:teamId/games/:gameId/player-selection',
           this.state
         )
       ) {
@@ -347,7 +347,7 @@ module.exports = class MainContainer extends expose.Component {
       } else if (
         MainContainer.matches(
           url,
-          "/teams/:teamId/games/:gameId/edit",
+          '/teams/:teamId/games/:gameId/edit',
           this.state
         )
       ) {
@@ -363,12 +363,12 @@ module.exports = class MainContainer extends expose.Component {
       } else if (
         MainContainer.matches(
           url,
-          "/teams/:teamId/games/:gameId/lineup/plateAppearances/:plateAppearanceId",
+          '/teams/:teamId/games/:gameId/lineup/plateAppearances/:plateAppearanceId',
           this.state
         ) ||
         MainContainer.matches(
           url,
-          "/teams/:teamId/games/:gameId/scorer/plateAppearances/:plateAppearanceId",
+          '/teams/:teamId/games/:gameId/scorer/plateAppearances/:plateAppearanceId',
           this.state
         )
       ) {
@@ -392,17 +392,17 @@ module.exports = class MainContainer extends expose.Component {
           plateAppearances: plateAppearances,
           isNew: isNew
         });
-      } else if (MainContainer.matches(url, "/players", this.state)) {
+      } else if (MainContainer.matches(url, '/players', this.state)) {
         return React.createElement(CardPlayerList);
-      } else if (MainContainer.matches(url, "/players/:playerId", this.state)) {
+      } else if (MainContainer.matches(url, '/players/:playerId', this.state)) {
         let player = state.getPlayer(this.state.playerId);
         MainContainer.validate(player);
         return React.createElement(CardSpray, {
           player: player,
-          origin: "players"
+          origin: 'players'
         });
       } else if (
-        MainContainer.matches(url, "/players/:playerId/edit", this.state)
+        MainContainer.matches(url, '/players/:playerId/edit', this.state)
       ) {
         let player = state.getPlayer(this.state.playerId);
         let isNew = this.state.isNew;
@@ -411,19 +411,19 @@ module.exports = class MainContainer extends expose.Component {
           player: player,
           isNew: isNew
         });
-      } else if (MainContainer.matches(url, "/optimizations", this.state)) {
+      } else if (MainContainer.matches(url, '/optimizations', this.state)) {
         // Optimizations weren't a part of the original JSON state schema, so if somebody imports a file
         // with the old schema the page will crash. This should be addressed properly by versioning for
         // exported files. In the meantime, here is a band aid.
         if (state.getAllOptimizations() === undefined) {
           state.getLocalState().optimizations = [];
-          console.log("Populating optimizations!");
+          console.log('Populating optimizations!');
         }
         return React.createElement(CardOptimizationList);
       } else if (
         MainContainer.matches(
           url,
-          "/optimizations/:optimizationId/edit",
+          '/optimizations/:optimizationId/edit',
           this.state
         )
       ) {
@@ -435,7 +435,7 @@ module.exports = class MainContainer extends expose.Component {
           isNew: isNew
         });
       } else if (
-        MainContainer.matches(url, "/optimizations/:optimizationId", this.state)
+        MainContainer.matches(url, '/optimizations/:optimizationId', this.state)
       ) {
         let optimization = state.getOptimization(this.state.optimizationId);
         MainContainer.validate(optimization);
@@ -445,7 +445,7 @@ module.exports = class MainContainer extends expose.Component {
       } else if (
         MainContainer.matches(
           url,
-          "/optimizations/:optimizationId/overrides/player-select",
+          '/optimizations/:optimizationId/overrides/player-select',
           this.state
         )
       ) {
@@ -464,7 +464,7 @@ module.exports = class MainContainer extends expose.Component {
       } else if (
         MainContainer.matches(
           url,
-          "/optimizations/:optimizationId/overrides/:playerId",
+          '/optimizations/:optimizationId/overrides/:playerId',
           this.state
         )
       ) {
@@ -477,14 +477,14 @@ module.exports = class MainContainer extends expose.Component {
         });
       } else {
         return React.createElement(CardError, {
-          message: "Invalid page selected " + url
+          message: 'Invalid page selected ' + url
         });
       }
     } catch (err) {
       console.log(err);
       return React.createElement(CardError, {
         message:
-          "This object either does not exist, has been deleted, or belongs to another account"
+          'This object either does not exist, has been deleted, or belongs to another account'
       });
     }
   }
