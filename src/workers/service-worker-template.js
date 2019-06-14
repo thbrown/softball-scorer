@@ -24,6 +24,7 @@ self.addEventListener("install", function(event) {
         "/server/assets/baseball.svg",
         "/server/assets/cancel.svg",
         "/server/assets/check.svg",
+        "/server/assets/chevron-right.svg",
         "/server/assets/delete.svg",
         "/server/assets/drag-handle.png",
         "/server/assets/edit.svg",
@@ -49,7 +50,7 @@ self.addEventListener("fetch", function(event) {
   // If the url's path doesn't begin with 'server', it's a app url. Redirect it to / and the client code will handle it.
   // The service worker itself is an exception, it we served it under /server/service-worker it would not be able to
   // cache the request to the root '/' due to scoping. So we've put it under /service-worker.
-  // Robots.txt is also an exception
+  // robots.txt is also an exception
   var url = new URL(event.request.url);
   let pathArray = url.pathname ? url.pathname.split("/") : undefined;
   if (

@@ -23,10 +23,11 @@ const SYNC_STATUS_ENUM = Object.freeze({
 });
 exports.OPTIMIZATION_STATUS_ENUM = Object.freeze({
   NOT_STARTED: 0,
-  STARTING: 1,
+  ALLOCATING_RESOURCES: 1,
   IN_PROGRESS: 2,
   COMPLETE: 3,
-  PAUSED: 4
+  PAUSED: 4,
+  ERROR: 5
 });
 const OPTIMIZATION_TYPE_ENUM = Object.freeze({
   MONTE_CARLO_EXAUSTIVE: 0
@@ -73,6 +74,8 @@ exports.sync = async function(fullSync) {
     );
     await sleep(500);
   }
+  // Kill any scheduled syncs
+  clearTimeout(syncTimer);
   setSyncState(SYNC_STATUS_ENUM.IN_PROGRESS);
   try {
     // Save a deep copy of the local state
@@ -400,14 +403,20 @@ exports.getOptimization = function(optimizationId) {
   }, null);
 };
 
+exports.getAllOptimizations = function() {
+  return exports.getLocalState().optimizations;
+};
+
 /**
  * Returns a copy of the optimization's players list
  */
-exports.getOptimizationPlayersReadOnly = function(optimizationId) {
+/*
+exports.getOptimizationStagingPlayersReadOnly = function(optimizationId) {
   let optimization = exports.getOptimization(optimizationId);
-  let deserializedInclusions = JSON.parse(optimization.inclusions);
-  return deserializedInclusions.staging.players;
+  let parsedStagingData = JSON.parse(optimization.stagingData);
+  return parsedStagingData.players;
 };
+*/
 
 exports.replaceOptimization = function(optimizationId, newOptimization) {
   let localState = exports.getLocalState();
@@ -418,81 +427,44 @@ exports.replaceOptimization = function(optimizationId, newOptimization) {
   onEdit();
 };
 
-// Pass in null or undefined to delete
-exports.putOptimizationPlayerOverride = function(
+// TODO: can this be merged with setOptimizationField?
+exports.setOptimizationCustomDataField = function(
   optimizationId,
-  playerId,
-  override
+  fieldName,
+  fieldValue
 ) {
-  console.log(optimizationId, playerId, override);
   let optimization = exports.getOptimization(optimizationId);
-  let deserializedInclusions = JSON.parse(optimization.inclusions);
-  if (override) {
-    deserializedInclusions.staging.overrides[playerId] = override;
+  let customData = JSON.parse(optimization.customData);
+  if (fieldValue) {
+    customData[fieldName] = fieldValue;
   } else {
-    delete deserializedInclusions.staging.overrides[playerId];
+    delete customData[fieldName];
   }
-  optimization.inclusions = JSON.stringify(deserializedInclusions);
+  optimization.customData = JSON.stringify(customData);
   onEdit();
 };
 
-// TODO: can we assume that staging is always set?
-exports.putOptimizationPlayers = function(optimizationId, players) {
+exports.setOptimizationField = function(
+  optimizationId,
+  fieldName,
+  fieldValue,
+  isJson
+) {
+  console.log("Setting field", fieldName, fieldValue);
+
   let optimization = exports.getOptimization(optimizationId);
-  let deserializedInclusions = JSON.parse(optimization.inclusions);
-  if (Array.isArray(players)) {
-    deserializedInclusions.staging.players = players;
-  } else if (!players) {
-    deserializedInclusions.staging.players = [];
+  if (isJson) {
+    optimization[fieldName] = JSON.stringify(fieldValue);
   } else {
-    throw new Error(
-      "Players argument must either be an array or falsy (null, undefined, etc.) but was " +
-        players +
-        " of type " +
-        typeof players +
-        ". is array? " +
-        Array.isArray(players)
-    );
+    optimization[fieldName] = fieldValue;
   }
-  optimization.inclusions = JSON.stringify(deserializedInclusions);
   onEdit();
 };
 
-exports.putOptimizationTeams = function(optimizationId, teams) {
+exports.getOptimizationCustomDataField = function(optimizationId, fieldName) {
   let optimization = exports.getOptimization(optimizationId);
-  let deserializedInclusions = JSON.parse(optimization.inclusions);
-  if (Array.isArray(teams)) {
-    deserializedInclusions.staging.teams = teams;
-  } else if (!teams) {
-    deserializedInclusions.staging.teams = [];
-  } else {
-    throw new Error(
-      "Teams argument must either be an array or falsy (null, undefined, etc.) but was " +
-        teams +
-        " of type " +
-        typeof teams +
-        ". is array? " +
-        Array.isArray(teams)
-    );
-  }
-  optimization.inclusions = JSON.stringify(deserializedInclusions);
-  onEdit();
-};
-
-exports.putOptimizationDetail = function(optimizationId, fieldName, value) {
-  let optimization = exports.getOptimization(optimizationId);
-  let deserializedDetails = JSON.parse(optimization.details);
-  if (value) {
-    deserializedDetails[fieldName] = value;
-  } else {
-    delete deserializedDetails[fieldName];
-  }
-  optimization.details = JSON.stringify(deserializedDetails);
-  onEdit();
-};
-
-exports.getAllOptimizations = function() {
-  return exports.getLocalState().optimizations;
+  let customData = JSON.parse(optimization.customData);
+  return customData[fieldName];
 };
 
 exports.removeOptimization = function(optimizationId) {
@@ -503,38 +475,27 @@ exports.removeOptimization = function(optimizationId) {
   onEdit();
 };
 
-exports.addOptimization = function(name, details, inclusions) {
+exports.addOptimization = function(name) {
   const id = getNextId();
-  if (!inclusions) {
-    inclusions = JSON.stringify({
-      staging: {
-        players: [],
-        teams: [],
-        games: [],
-        overrides: {}
-      }
-    });
-  }
-
-  if (!details) {
-    details = JSON.stringify({
-      innings: 7,
-      lineupType: 1,
-      iterations: 1000000
-    });
-  }
-
-  let results = JSON.stringify({});
-
   let new_state = exports.getLocalState();
   let optimization = {
     id: id,
     name: name,
     type: OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXAUSTIVE,
-    inclusions: inclusions,
-    details: details,
+    customData: JSON.stringify({
+      innings: 7,
+      iterations: 10000
+    }),
+    overrideData: JSON.stringify({}),
     status: exports.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
-    results: results
+    resultData: null,
+    statusMessage: null,
+    sendEmail: false,
+    teamList: JSON.stringify([]),
+    gameList: JSON.stringify([]),
+    playerList: JSON.stringify([]),
+    lineupType: 1,
+    executionData: null
   };
   new_state.optimizations.push(optimization);
   onEdit();
@@ -739,7 +700,7 @@ exports.getPlateAppearancesForPlayerOnTeam = function(player_id, team_id) {
   let team = exports.getTeam(team_id);
   let plateAppearances = [];
 
-  if (team.games) {
+  if (team && team.games) {
     team.games.forEach(game => {
       if (game.plateAppearances) {
         const plateAppearancesThisGame = game.plateAppearances.filter(
@@ -1124,7 +1085,6 @@ exports.setActiveUser = function(user) {
 
 // This assumes all routes are behind login
 exports.setStatusBasedOnHttpResponse = function(code) {
-  //console.log(`OLD -- Online: ${online} SessionValid: ${sessionValid}`);
   if (code >= 200 && code < 300) {
     sessionValid = true;
     online = true;
@@ -1140,7 +1100,6 @@ exports.setStatusBasedOnHttpResponse = function(code) {
     online = false;
   }
   exports.saveApplicationStateToLocalStorage();
-  //console.log(`NEW -- Online: ${online} SessionValid: ${sessionValid}`);
 };
 exports.setAddToHomescreenPrompt = function(e) {
   addToHomescreenEvent = e;
@@ -1166,12 +1125,13 @@ exports.scheduleSync = function(time = SYNC_DELAY_MS) {
   }
 
   console.log("sync scheduled");
-  if (syncTimer) {
-    clearTimeout(syncTimer);
-  }
+  clearTimeout(syncTimer);
 
   syncTimer = setTimeout(function() {
-    if (exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS) {
+    if (
+      exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS ||
+      currentState === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
+    ) {
       console.log("There is already a sync in progress");
       exports.scheduleSync(SYNC_DELAY_MS);
       return;
@@ -1180,9 +1140,15 @@ exports.scheduleSync = function(time = SYNC_DELAY_MS) {
   }, time);
 };
 
-let setSyncState = function(newState) {
-  syncState = newState;
-  reRender();
+let setSyncState = function(newState, skipRender) {
+  // Skip unnecessary renders
+  if (syncState !== newState) {
+    console.log("Sync state updated from ", syncState, "to", newState);
+    syncState = newState;
+    if (!skipRender) {
+      reRender();
+    }
+  }
 };
 
 exports.getSyncState = function() {

@@ -629,11 +629,11 @@ Scrolling is ~10-20x smoother.
 }
 
 .gone {
-  display: none;
+  display: none !important;
 }
 
 .hidden {
-  visibility: "hidden";
+  visibility: hidden !important;
 }
 
 .fixed {
@@ -858,3 +858,59 @@ Scrolling is ~10-20x smoother.
 .buffer {
   padding: 8px;
 }
+
+.pie-timer {
+  background: -webkit-linear-gradient(left, $css.colors.PRIMARY 50%, #795548 50%); /* $css.colors.SECONDARY doesn't get substitued here, so I'm hardcoding #4caf50 */
+  border-radius: 100%;
+  height: 25px; /* Height and width */
+  position: relative;
+  width: 25px; /* Height and width */
+  -webkit-animation: time 5s steps(200, start);
+  animation: time 5s steps(200, start);
+  margin-top: 8px;
+  display: inline-flex;
+}
+.pie-mask {
+  border-radius: 100% 0 0 100% / 50% 0 0 50%;
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 50%;
+  -webkit-animation: pie-mask 5s steps(100, start);
+  -webkit-transform-origin: 100% 50%;
+  animation: pie-mask 5s steps(100, start);
+  transform-origin: 100% 50%;
+}
+.pie-wrapper {
+  width: 25px;
+  height: 25px;
+}
+@-webkit-keyframes time {
+  100% { 
+      -webkit-transform: rotate(360deg);
+      transform: rotate(360deg);
+  }
+}
+@-webkit-keyframes pie-mask {
+  0% {
+      background: $css.colors.SECONDARY; /* Background colour */
+      -webkit-transform: rotate(0deg);
+      transform: rotate(0deg);
+  }
+  50% {
+      background: $css.colors.SECONDARY; /* Background colour */
+      -webkit-transform: rotate(-180deg);
+      transform: rotate(-180deg);
+  }
+  50.01% {
+      background: $css.colors.PRIMARY; /* Foreground colour */
+      -webkit-transform: rotate(0deg);
+      transform: rotate(0deg);
+  }
+  100% {
+      background: $css.colors.PRIMARY; /* Foreground colour */
+      -webkit-transform: rotate(-180deg);
+      transform: rotate(-180deg);
+  }
+}​

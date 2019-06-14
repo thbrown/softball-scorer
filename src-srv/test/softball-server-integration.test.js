@@ -5,6 +5,7 @@ const objectHash = require("object-hash");
 const got = require("got");
 
 const CacheCallsLocal = require("../cache-calls-local");
+const ComputeLocal = require("../compute-local");
 const config = require("../config");
 const DatabaseCallsPostgres = require("../database-calls-postgres");
 const SoftballServer = require("../softball-server");
@@ -23,6 +24,7 @@ describe("sync", () => {
       username,
       password
     );
+    this.compute = new ComputeLocal();
     this.cache = new CacheCallsLocal();
     this.server = new SoftballServer(this.databaseCalls, this.cache);
     this.server.start();

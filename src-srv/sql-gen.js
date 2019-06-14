@@ -40,19 +40,32 @@ for (let i = 0; i < tableSortOrder.length; i++) {
   tableOrdering[tableSortOrder[i]] = i;
 }
 
+const JSON_BLOB_MAX_CHARS = 5000;
+const JSON_LIST_MAX_CHARS = 500; // Can hold just under 30 ids (TODO: this is too small for game list, and maybe too small for team list)
+
 // These words show up in the patch object. We need to identify which parts of the patch object are not id's, to do so we reference this list.
 // Do all these need to not be 14 chars?
 const keywords = tableReferences
   .concat([
     "type",
-    "inclusions",
-    "bestLineup",
-    "bestScore",
-    "details",
-    "status"
-    /* lineupType already present */
+    "customData",
+    "overrideData",
+    "status",
+    "resultData",
+    "statusMessage",
+    "teamList",
+    "playerList",
+    "gameList",
+    "sendEmail",
+    "lineupType"
   ]) // optimization columns
-  .concat(["date", "opponent", "park", "scoreUs", "scoreThem", "lineupType"]) // game columns
+  .concat([
+    "date",
+    "opponent",
+    "park",
+    "scoreUs",
+    "scoreThem" /* lineupType already present */
+  ]) // game columns
   .concat(["result", "location", "x", "y"]) // plate_appearance columns
   .concat(["name", "gender", "picture", "song_link", "song_start"]) // player columns
   .concat(["date", "opponent", "park"]) // team columns
@@ -70,6 +83,7 @@ let getSqlFromPatch = function(patch, accountId) {
   const STATEMENT_TABLE_REGEX = /teams|games|players_games|plate_appearances|players|optimization/;
 
   // This requires a stable sorting algorithm. Keeping the statments of a single table in their previous order is important!
+  // TODO: Yikes hitting this lib issue sometimes (https://github.com/mziccard/node-timsort/issues/14) may need to switch implementations
   TimSort.sort(result, function(a, b) {
     // TODO: it would be more efficient to save these results instead of running the regexes each time
     let aOp = a.query.match(STATEMENT_TYPE_REGEX)[0];
@@ -285,13 +299,24 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
           let columnName = getColNameFromJSONValue(value.key);
           let limit = undefined; // defaults to 50 chars
 
-          // details and inclusions fields on the optimization table contain potentially longer stringified JSON (results do too, but that is read only)
-          if (
-            (columnName === "details" || columnName === "inclusions") &&
-            applicableTable === "optimization"
-          ) {
-            limit = 5000;
+          // customData, snapshtotData, teams, games, players, and results fields on the optimization table contain potentially longer stringified JSON
+          if (applicableTable === "optimization") {
+            if (
+              columnName === "custom_data" ||
+              columnName === "override_data" ||
+              columnName === "result_data"
+            ) {
+              limit = JSON_BLOB_MAX_CHARS;
+            } else if (
+              columnName === "team_list" ||
+              columnName === "game_list" ||
+              columnName === "player_list"
+            ) {
+              limit = JSON_LIST_MAX_CHARS;
+            }
           }
+
+          // TODO: This can update any field on the applicable table, limit this to exposed fields only. Make getColNameFromJSONValue only return editable fields.
           result.push({
             query:
               "UPDATE " +
@@ -357,20 +382,31 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
   if (obj.optimizations) {
     result.push({
       query:
-        "INSERT INTO optimization (id, name, type, inclusions, best_lineup, best_score, details, status, lineup_type, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+        "INSERT INTO optimization (id, name, type, custom_data, override_data, status, result_data, status_message, send_email, team_list, game_list, player_list, lineup_type, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
       values: [
         idUtils.clientIdToServerId(obj.optimizations.id, accountId),
         obj.optimizations.name,
         obj.optimizations.type,
-        obj.optimizations.inclusions,
-        obj.optimizations.bestLineup,
-        obj.optimizations.bestScore,
-        obj.optimizations.details,
+        obj.optimizations.customData,
+        obj.optimizations.overrideData,
         obj.optimizations.status,
+        obj.optimizations.resultData,
+        obj.optimizations.statusMessage,
+        obj.optimizations.sendEmail,
+        obj.optimizations.teamList,
+        obj.optimizations.gameList,
+        obj.optimizations.playerList,
         obj.optimizations.lineupType,
         accountId
       ],
-      limits: { 4: 5000, 7: 5000 }
+      limits: {
+        4: JSON_BLOB_MAX_CHARS,
+        5: JSON_BLOB_MAX_CHARS,
+        7: JSON_BLOB_MAX_CHARS,
+        10: JSON_LIST_MAX_CHARS,
+        11: JSON_LIST_MAX_CHARS,
+        12: JSON_LIST_MAX_CHARS
+      }
     });
   }
   if (obj.teams) {
@@ -499,24 +535,36 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
     }
   }
 
+  // I'm not sure this will ever get called, optimizations can't be inserted raw (i.e. nested within another object). Same goes for teams I believe.
   if (obj.optimizations) {
     for (let i = 0; i < obj.players.length; i++) {
       result.push({
         query:
-          "INSERT INTO optimization (id, name, type, inclusions, best_lineup, best_score, details, status, lineup_type) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id;",
+          "INSERT INTO optimization (id, name, type, custom_data, override_data, status, result_data, status_message, send_email, team_list, game_list, player_list, lineup_type, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING id;",
         values: [
           idUtils.clientIdToServerId(obj.optimizations[i].id, accountId),
           obj.optimizations[i].name,
           obj.optimizations[i].type,
-          obj.optimizations[i].inclusions,
-          obj.optimizations[i].bestLineup,
-          obj.optimizations[i].bestScore,
-          obj.optimizations[i].details,
+          obj.optimizations[i].customData,
+          obj.optimizations[i].overrideData,
           obj.optimizations[i].status,
+          obj.optimizations[i].resultData,
+          obj.optimizations[i].statusMessage,
+          obj.optimizations[i].sendEmail,
+          obj.optimizations[i].teamList,
+          obj.optimizations[i].gameList,
+          obj.optimizations[i].playerList,
           obj.optimizations[i].lineupType,
           accountId
         ],
-        limits: { 4: 5000, 7: 5000 }
+        limits: {
+          4: JSON_BLOB_MAX_CHARS,
+          5: JSON_BLOB_MAX_CHARS,
+          7: JSON_BLOB_MAX_CHARS,
+          10: JSON_LIST_MAX_CHARS,
+          11: JSON_LIST_MAX_CHARS,
+          12: JSON_LIST_MAX_CHARS
+        }
       });
     }
   }
@@ -630,12 +678,25 @@ let getColNameFromJSONValue = function(value) {
     lineupType: "lineup_type",
     scoreUs: "score_us",
     scoreThem: "score_them",
-    bestLineup: "best_lineup",
-    bestScore: "best_score"
+    customData: "custom_data",
+    resultData: "result_data",
+    overrideData: "override_data",
+    playerList: "player_list",
+    teamList: "team_list",
+    gameList: "game_list",
+    sendEmail: "send_email"
   };
   if (map[value]) {
     return map[value];
   } else {
+    if (value === "account_id") {
+      // TODO: are there casing workarounds here?
+      throw new HandledError(
+        500,
+        "Internal Server Error",
+        `Security Issue. User attempted to modify row ownership.`
+      );
+    }
     return value;
   }
 };

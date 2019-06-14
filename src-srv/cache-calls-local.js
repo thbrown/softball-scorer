@@ -35,6 +35,10 @@ module.exports = class CacheCalls {
     this.putData(accountId, "stateMd5", stateMd5);
   }
 
+  async clearStateMd5(accountId) {
+    this.deleteData(accountId, "stateMd5");
+  }
+
   // Intended for these to be private methods
   getData(accountId, field) {
     if (this.cache[accountId]) {

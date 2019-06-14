@@ -351,6 +351,84 @@ let databaseCalls = class DatabaseCalls {
     }
     this.ACCOUNTS.splice(indexToRemove, 1);
   }
+
+  async getNumberOfOptimizationsInProgress(accountId) {
+    logger.log(accountId, "getting optimization in progress count");
+    let state = this.STATES[accountId];
+    let count = 0;
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (status == 1 || status == 2) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  async setOptimizationStatus(
+    accountId,
+    optimizationId,
+    newStatus,
+    optionalMessage
+  ) {
+    logger.log(accountId, "setting optimization status");
+    let state = this.STATES[accountId];
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
+        state.optimizations[i].status = newStatus;
+        if (optionalMessage !== undefined) {
+          state.optimizations[i].status_message = optionalMessage;
+        } else {
+          state.optimizations[i].status_message = null;
+        }
+        break;
+      }
+    }
+  }
+
+  async setOptimizationResultData(accountId, optimizationId, newResults) {
+    logger.log(accountId, "getting optimization result data");
+    let state = this.STATES[accountId];
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
+        state.optimizations[i].resultsData = newResults;
+      }
+    }
+  }
+
+  async getOptimizationResultData(accountId, optimizationId) {
+    logger.log(accountId, "setting optimization result data");
+    let state = this.STATES[accountId];
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
+        return state.optimizations[i].resultsData;
+      }
+    }
+  }
+
+  async setOptimizationExecutionData(
+    accountId,
+    optimizationId,
+    newExecutionData
+  ) {
+    logger.log(accountId, "setting optimization execution data");
+    let state = this.STATES[accountId];
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
+        state.optimizations[i].executionData = newExecutionData;
+        break;
+      }
+    }
+  }
+
+  async getOptimizationExecutionData(accountId, optimizationId) {
+    logger.log(accountId, "setting optimization execution data");
+    let state = this.STATES[accountId];
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
+        return state.optimizations[i].executionData;
+      }
+    }
+  }
 };
 
 // Node only

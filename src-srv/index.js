@@ -15,6 +15,7 @@ const DatabaseCallsStatic = require("./database-calls-static");
 const SoftballServer = require("./softball-server");
 const CacheCallsRedis = require("./cache-calls-redis");
 const CacheCallsLocal = require("./cache-calls-local");
+const ComputeLocal = require("./compute-local");
 
 process.on("SIGINT", function() {
   console.log("SIGINT");
@@ -28,11 +29,7 @@ process.on("exit", function() {
   process.stdout.write("Bye\n");
 });
 
-function startServer(databaseCalls, cacheCalls) {
-  const softballServer = new SoftballServer(databaseCalls, cacheCalls);
-  softballServer.start();
-}
-
+// Inject the database service based on config values
 const {
   host: pghost,
   port: pgport,
@@ -59,14 +56,23 @@ if (pghost && pgport && pgusername && pgpassword) {
   databaseCalls = new DatabaseCallsStatic();
 }
 
+// Inject the cache service based on config values
 const { host: redisHost, port: redisPort, password: redisPassword } =
   config.cache || {};
 let cacheCalls = null;
 if (redisHost && redisPort && redisPassword) {
   cacheCalls = new CacheCallsRedis(redisHost, redisPort, redisPassword);
 } else {
-  console.log("Warning: running with local in memory cache");
+  console.log("Warning: running with local in-memory cache");
   cacheCalls = new CacheCallsLocal();
 }
 
-startServer(databaseCalls, cacheCalls);
+// Inject the compute service (for running optimizations)
+let compute = new ComputeLocal();
+
+function startServer(databaseCalls, cacheCalls, compute) {
+  const softballServer = new SoftballServer(databaseCalls, cacheCalls, compute);
+  softballServer.start();
+}
+
+startServer(databaseCalls, cacheCalls, compute);

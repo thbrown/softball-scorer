@@ -76,6 +76,10 @@ module.exports = class CacheCalls {
     await this.hsetAsync(accountId, "stateMd5", stateMd5);
   }
 
+  async clearStateMd5(accountId) {
+    await this.hdelAsync(accountId, "stateMd5");
+  }
+
   getSessionStore() {
     return new RedisStore({
       client: this.client
