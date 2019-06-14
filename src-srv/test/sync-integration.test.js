@@ -5,6 +5,7 @@ const objectHash = require("object-hash");
 const got = require("got");
 
 const CacheCallsLocal = require("../cache-calls-local");
+const ComputeLocal = require("./compute-local");
 const config = require("../config");
 const DatabaseCallsPostgres = require("../database-calls-postgres");
 const MockDb = require("./database-calls-mock");
@@ -30,7 +31,12 @@ describe("sync", () => {
       password
     );
     this.cache = new CacheCallsLocal();
-    this.server = new SoftballServer(this.databaseCalls, this.cache);
+    this.compute = new ComputeLocal();
+    this.server = new SoftballServer(
+      this.databaseCalls,
+      this.cache,
+      this.compute
+    );
     this.server.start();
 
     let email = `syncTest${utils.randomId(10)}@softball.app`;

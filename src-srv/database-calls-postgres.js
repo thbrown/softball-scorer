@@ -106,78 +106,82 @@ module.exports = class DatabaseCalls {
     return new Promise(function(resolve, reject) {
       var players = self.parameterizedQueryPromise(
         `
-				SELECT 
-				  id as id,
-				  name as name,
-				  gender as gender,
-				  song_link as song_link,
-				  song_start as song_start
-				FROM players
-				WHERE account_id = $1
+        SELECT 
+          id as id,
+          name as name,
+          gender as gender,
+          song_link as song_link,
+          song_start as song_start
+        FROM players
+        WHERE account_id = $1
         ORDER BY 
           created_at ASC,
           counter ASC
-			`,
+      `,
         [accountId]
       );
 
       var optimizations = self.parameterizedQueryPromise(
         `
-				SELECT 
-				  id as id,
-				  name as name,
-				  type as type,
-				  inclusions as inclusions,
-          best_lineup as best_lineup,
-          best_score as best_score,
-          details as details,
+        SELECT 
+          id as id,
+          name as name,
+          type as type,
+          custom_data as custom_data,
+          override_data as override_data,
           status as status,
-          results as results
-				FROM optimization
-				WHERE account_id = $1
+          result_data as result_data,
+          status_message as status_message,
+          send_email as send_email,
+          team_list as team_list,
+          game_list as game_list,
+          player_list as player_list,
+          lineup_type as lineup_type
+        FROM optimization
+        WHERE account_id = $1
         ORDER BY 
           created_at ASC,
           counter ASC
-			`,
+        `,
         [accountId]
       );
 
       var teams = self.parameterizedQueryPromise(
         `
-				SELECT
-				  teams.id as team_id, 
-				  teams.name as team_name,
-				  games.id as game_id,
-				  extract (epoch from games.date) as game_date, 
-				  games.opponent as game_opponent, 
-				  games.park as game_park, 
-				  games.score_us as score_us, 
-				  games.score_them as score_them,
-				  games.lineup_type as lineup_type,
-				  plate_appearances.id as plate_appearance_id, 
-				  plate_appearances.result as result,
-				  plate_appearances.hit_location_x as x,
-				  plate_appearances.hit_location_y as y,
-				  plate_appearances.player_id as player_id,
-				  sub_lineup.lineup as lineup
-				FROM 
-				  plate_appearances
-				FULL JOIN games ON games.id=plate_appearances.game_id
-				FULL JOIN (SELECT players_games.game_id as game_id, string_agg(players_games.player_id::text, ', ' order by players_games.lineup_index) as lineup
-				  FROM players_games
-				  WHERE players_games.account_id = $1
-				  GROUP BY players_games.game_id) as sub_lineup ON sub_lineup.game_id=games.id
-				FULL JOIN teams ON games.team_id=teams.id
-				WHERE 
-				  teams.account_id = $1
-				ORDER BY
-				  teams.created_at ASC,
-				  teams.counter ASC,
-				  games.created_at ASC,
-				  games.counter ASC,
-				  plate_appearances.created_at ASC,
-				  plate_appearances.counter ASC;
-			`,
+        SELECT
+          teams.id as team_id, 
+          teams.name as team_name,
+          games.id as game_id,
+          extract (epoch from games.date) as game_date, 
+          games.opponent as game_opponent, 
+          games.park as game_park, 
+          games.score_us as score_us, 
+          games.score_them as score_them,
+          games.lineup_type as lineup_type,
+          plate_appearances.id as plate_appearance_id, 
+          plate_appearances.result as result,
+          plate_appearances.hit_location_x as x,
+          plate_appearances.hit_location_y as y,
+          plate_appearances.player_id as player_id,
+          sub_lineup.lineup as lineup
+        FROM 
+          plate_appearances
+        FULL JOIN games ON games.id=plate_appearances.game_id
+        FULL JOIN (SELECT players_games.game_id as game_id, string_agg(players_games.player_id::text, ', ' order by players_games.lineup_index) as lineup
+          FROM players_games
+          WHERE players_games.account_id = $1
+          GROUP BY players_games.game_id) as sub_lineup ON sub_lineup.game_id=games.id
+        FULL JOIN teams ON games.team_id=teams.id
+        WHERE 
+          teams.account_id = $1
+        ORDER BY
+          teams.created_at ASC,
+          teams.counter ASC,
+          games.created_at ASC,
+          games.counter ASC,
+          plate_appearances.created_at ASC,
+          plate_appearances.counter ASC;
+      `,
         [accountId]
       );
 
@@ -207,26 +211,33 @@ module.exports = class DatabaseCalls {
           state.optimizations[i].id = idUtils.serverIdToClientId(
             optimizations[i].id
           );
-          state.optimizations[i].inclusions = optimizations[i].inclusions
-            ? JSON.stringify(optimizations[i].inclusions)
-            : "{}";
-          state.optimizations[i].bestLineup = optimizations[i].best_lineup
-            ? optimizations[i].best_lineup
-            : null;
-          state.optimizations[i].bestScore = optimizations[i].best_score
-            ? optimizations[i].best_score
-            : null;
-          state.optimizations[i].details = optimizations[i].details
-            ? JSON.stringify(optimizations[i].details)
-            : "{}";
 
           state.optimizations[i].name = optimizations[i].name;
           state.optimizations[i].type = optimizations[i].type;
-          state.optimizations[i].status = optimizations[i].status;
 
-          state.optimizations[i].results = optimizations[i].results
-            ? JSON.stringify(optimizations[i].results)
+          state.optimizations[i].customData = optimizations[i].custom_data
+            ? JSON.stringify(optimizations[i].custom_data)
             : "{}";
+          state.optimizations[i].overrideData = optimizations[i].override_data
+            ? JSON.stringify(optimizations[i].override_data)
+            : "{}";
+          state.optimizations[i].status = optimizations[i].status;
+          state.optimizations[i].resultData = optimizations[i].result_data
+            ? JSON.stringify(optimizations[i].result_data)
+            : "{}";
+          state.optimizations[i].statusMessage =
+            optimizations[i].status_message;
+          state.optimizations[i].sendEmail = optimizations[i].send_email;
+          state.optimizations[i].teamList = optimizations[i].team_list
+            ? JSON.stringify(optimizations[i].team_list)
+            : "[]";
+          state.optimizations[i].gameList = optimizations[i].game_list
+            ? JSON.stringify(optimizations[i].game_list)
+            : "[]";
+          state.optimizations[i].playerList = optimizations[i].player_list
+            ? JSON.stringify(optimizations[i].player_list)
+            : "[]";
+          state.optimizations[i].lineupType = optimizations[i].lineup_type;
         }
 
         // Teams
@@ -349,13 +360,18 @@ module.exports = class DatabaseCalls {
                   400,
                   `Field was larger than overriden limit ${
                     sqlToRun.limits[i + 1]
-                  } characters ${sqlToRun[i].values[j]}`
+                  } characters ${sqlToRun[i].values[j]} -- ${JSON.stringify(
+                    sqlToRun[i]
+                  )}`
                 );
               }
             } else if (sqlToRun[i].values[j].length > 50) {
               throw new HandledError(
                 400,
-                "Field was larger than 50 characters " + sqlToRun[i].values[j]
+                "Field was larger than 50 characters " +
+                  sqlToRun[i].values[j] +
+                  " -- " +
+                  JSON.stringify(sqlToRun[i])
               );
             }
           }
@@ -377,10 +393,10 @@ module.exports = class DatabaseCalls {
   async signup(email, passwordHash, passwordTokenHash) {
     let result = await this.parameterizedQueryPromise(
       `
-				INSERT INTO account (email, password_hash, password_token_hash, password_token_expiration, status)
-				VALUES ($1, $2, $3, now() + interval '1' hour, 'TRIAL')
-				RETURNING account_id, email
-			`,
+        INSERT INTO account (email, password_hash, password_token_hash, password_token_expiration, status)
+        VALUES ($1, $2, $3, now() + interval '1' hour, 'TRIAL')
+        RETURNING account_id, email
+      `,
       [email, passwordHash, passwordTokenHash]
     );
     return result.rows[0];
@@ -390,11 +406,11 @@ module.exports = class DatabaseCalls {
     logger.log(null, "Seraching for", passwordTokenHash.trim());
     let results = await this.parameterizedQueryPromise(
       `
-				SELECT account_id, email, password_hash, verified_email
-				FROM account 
-				WHERE password_token_hash = $1
-				AND password_token_expiration >= now()
-			`,
+        SELECT account_id, email, password_hash, verified_email
+        FROM account 
+        WHERE password_token_hash = $1
+        AND password_token_expiration >= now()
+      `,
       [passwordTokenHash.trim()]
     );
     if (results.rowCount > 1) {
@@ -412,10 +428,10 @@ module.exports = class DatabaseCalls {
   async confirmEmail(accountId) {
     await this.parameterizedQueryPromise(
       `
-				UPDATE account 
-				SET verified_email = TRUE 
-				WHERE account_id = $1
-			`,
+        UPDATE account 
+        SET verified_email = TRUE 
+        WHERE account_id = $1
+      `,
       [accountId]
     );
   }
@@ -439,10 +455,10 @@ module.exports = class DatabaseCalls {
   async setPasswordHashAndExpireToken(accountId, newPasswordHash) {
     await this.parameterizedQueryPromise(
       `
-				UPDATE account 
-				SET password_hash = $1, password_token_expiration = now()
-				WHERE account_id = $2
-			`,
+        UPDATE account 
+        SET password_hash = $1, password_token_expiration = now()
+        WHERE account_id = $2
+      `,
       [newPasswordHash, accountId]
     );
   }
@@ -450,10 +466,10 @@ module.exports = class DatabaseCalls {
   async setPasswordTokenHash(accountId, newPasswordHash) {
     await this.parameterizedQueryPromise(
       `
-				UPDATE account 
-				SET password_token_hash = $1, password_token_expiration = now() + interval '24' hour
-				WHERE account_id = $2
-			`,
+        UPDATE account 
+        SET password_token_hash = $1, password_token_expiration = now() + interval '24' hour
+        WHERE account_id = $2
+      `,
       [newPasswordHash, accountId]
     );
   }
@@ -462,10 +478,140 @@ module.exports = class DatabaseCalls {
     logger.log(accountId, "deleting");
     await this.parameterizedQueryPromise(
       `
-				DELETE FROM account 
-				WHERE account_id = $1
-			`,
+        DELETE FROM account 
+        WHERE account_id = $1
+      `,
       [accountId]
     );
+  }
+
+  // TODO: tie the states that count as 'in progress' to the enum in state.java so we don't have two sources of truth
+  async getNumberOfOptimizationsInProgress(accountId) {
+    logger.log(accountId, "getting optimization in progress count");
+    let result = await this.parameterizedQueryPromise(
+      `
+      SELECT COUNT(*)
+      FROM optimization
+      WHERE account_id = $1 AND status IN (1,2);
+      `,
+      [accountId]
+    );
+    if (result.rowCount === 1) {
+      return result.rows[0].count;
+    } else if (result.rowCount !== 0) {
+      throw new HandledError(
+        500,
+        `A strange number of results were returned: ${optimizationId} ${result}`
+      );
+    }
+    return undefined;
+  }
+
+  async setOptimizationStatus(
+    accountId,
+    optimizationId,
+    newStatus,
+    optionalMessage
+  ) {
+    logger.log(
+      accountId,
+      "changing optimization status to ",
+      newStatus,
+      optionalMessage
+    );
+    // TODO: We might need to enforce what states can be updated to what other states here
+    if (optionalMessage === undefined) {
+      await this.parameterizedQueryPromise(
+        `
+          UPDATE optimization
+          SET status = $1, status_message = NULL
+          WHERE id = $2 AND account_id = $3
+        `,
+        [newStatus, optimizationId, accountId]
+      );
+    } else {
+      await this.parameterizedQueryPromise(
+        `
+          UPDATE optimization
+          SET status = $1, status_message = $4
+          WHERE id = $2 AND account_id = $3
+        `,
+        [newStatus, optimizationId, accountId, optionalMessage]
+      );
+    }
+  }
+
+  async setOptimizationResultData(accountId, optimizationId, newResults) {
+    logger.log(accountId, "setting optimization results");
+    await this.parameterizedQueryPromise(
+      `
+        UPDATE optimization
+        SET result_data = $1 
+        WHERE id = $2 AND account_id = $3
+      `,
+      [newResults, optimizationId, accountId]
+    );
+  }
+
+  async getOptimizationResultData(accountId, optimizationId) {
+    logger.log(accountId, "getting optimization results data", optimizationId);
+    let result = await this.parameterizedQueryPromise(
+      `
+        SELECT result_data
+        FROM optimization
+        WHERE id = $1 AND account_id = $2
+      `,
+      [optimizationId, accountId]
+    );
+    if (result.rowCount === 1) {
+      return result.rows[0].result_data;
+    } else if (result.rowCount !== 0) {
+      throw new HandledError(
+        500,
+        `A strange number of optimization result datas were returned: ${optimizationId} ${result}`
+      );
+    }
+    return undefined;
+  }
+
+  async setOptimizationExecutionData(
+    accountId,
+    optimizationId,
+    newExecutionData
+  ) {
+    logger.log(
+      accountId,
+      "setting optimization execution data ",
+      optimizationId
+    );
+    await this.parameterizedQueryPromise(
+      `
+        UPDATE optimization
+        SET execution_data = $1 
+        WHERE id = $2 AND account_id = $3
+      `,
+      [newExecutionData, optimizationId, accountId]
+    );
+  }
+
+  async getOptimizationExecutionData(accountId, optimizationId) {
+    logger.log(accountId, "getting optimization execution data");
+    let result = await this.parameterizedQueryPromise(
+      `
+        SELECT execution_data
+        FROM optimization
+        WHERE id = $1 AND account_id = $2
+      `,
+      [optimizationId, accountId]
+    );
+    if (result.rowCount === 1) {
+      return result.rows[0].execution_data;
+    } else if (result.rowCount !== 0) {
+      throw new HandledError(
+        500,
+        `A strange number of optimizatio execution datas were returned: ${optimizationId} ${result}`
+      );
+    }
+    return undefined;
   }
 };

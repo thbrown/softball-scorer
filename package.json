@@ -34,6 +34,7 @@
     "folder-hash": "^2.1.1",
     "got": "^8.3.2",
     "helmet": "^3.12.1",
+    "ip": "^1.1.5",
     "lz-string": "^1.4.4",
     "marked": "^0.6.2",
     "object-hash": "^1.3.0",

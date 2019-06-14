@@ -15,20 +15,26 @@ const crypto = require("crypto");
 const hasher = require("object-hash");
 const got = require("got");
 
-const objectMerge = require("../object-merge.js");
-const HandledError = require("./handled-error.js");
 const config = require("./config");
-const logger = require("./logger.js");
+const HandledError = require("./handled-error");
+const idUtils = require("../id-utils");
+const logger = require("./logger");
+const objectMerge = require("../object-merge");
+const OptimizationServer = require("./optimization-server");
 
 module.exports = class SoftballServer {
-  constructor(databaseCalls, cacheCalls) {
+  constructor(databaseCalls, cacheCalls, compute) {
     this.databaseCalls = databaseCalls;
     this.cacheCalls = cacheCalls;
+    this.compute = compute;
     this.PORT = 8888;
   }
 
   start() {
     logger.log(null, "Starting");
+
+    // Start the optimization server
+    new OptimizationServer(this.databaseCalls, this.cacheCalls);
 
     // Authentication
     let self = this;
@@ -612,6 +618,277 @@ module.exports = class SoftballServer {
         }
       })
     );
+
+    app.post(
+      "/server/start-optimization",
+      wrapForErrorProcessing(async (req, res, next) => {
+        if (!req.isAuthenticated()) {
+          res.status(403).send();
+          return;
+        }
+
+        let accountId = extractSessionInfo(req, "accountId");
+        logger.log(accountId, `Starting optimization`);
+
+        let optimizationId = undefined;
+
+        // This lock is just to make sure we don't get two optimizations running at the same time
+        await lockAccount(accountId);
+        try {
+          // Is there another optimization state IN_PROGRESS (or in ALLOCATING_RESOURCES)
+          // If so, don't start another one
+          let inProgressCount = await this.databaseCalls.getNumberOfOptimizationsInProgress(
+            accountId
+          );
+          if (inProgressCount !== 0) {
+            logger.log(accountId, "Simulations running", inProgressCount);
+            res.status(404).send("There is already an optimization running");
+            return;
+          }
+
+          let data = req.body;
+
+          // TODO: Do some validation?
+          // minimum players (this should be on the client side too)
+          // must have id
+          // required fields?
+          // some size restriction?
+
+          // Convert client optimization id to the server one
+          optimizationId = idUtils.clientIdToServerId(
+            data.optimizationId,
+            accountId
+          );
+
+          // Write execution data to db
+          logger.log(
+            accountId,
+            "writing execution data",
+            JSON.stringify(data.executionData, null, 2)
+          );
+          await this.databaseCalls.setOptimizationExecutionData(
+            accountId,
+            optimizationId,
+            data.executionData
+          );
+
+          // Transition status to ALLOCATION_RESOURCES
+          await this.databaseCalls.setOptimizationStatus(
+            accountId,
+            optimizationId,
+            1 //state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES, TODO: make this a common server/client enum
+          );
+          await this.cacheCalls.clearStateMd5();
+
+          // Now unlock the account
+        } catch (error) {
+          logger.log(accountId, "Setting optimization status to error", error);
+          await this.databaseCalls.setOptimizationStatus(
+            accountId,
+            optimizationId,
+            5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
+            error
+          );
+          await this.cacheCalls.clearStateMd5();
+          throw error;
+        } finally {
+          await unlockAccount(accountId);
+        }
+
+        // Return success
+        res.status(204).send();
+
+        try {
+          // Start the computer that will run the optimization
+          logger.log(accountId, "Starting optimization server");
+          await this.compute.start(
+            accountId,
+            optimizationId,
+            function(accountId, optimizationId, message) {
+              this.databaseCalls.setOptimizationStatus(
+                accountId,
+                optimizationId,
+                5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
+                message
+              );
+            }.bind(this)
+          );
+        } catch (error) {
+          // Transition status to ERROR
+          logger.log(
+            accountId,
+            optimizationId,
+            "Setting optimization status to error in compute start",
+            error
+          );
+          await this.databaseCalls.setOptimizationStatus(
+            accountId,
+            optimizationId,
+            5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
+            error
+          );
+          await this.cacheCalls.clearStateMd5();
+          throw error;
+          // TODO: Kill the compute instance? If it's not dead already. This should really happen inside the start command
+        }
+
+        // TODO frontend: Don't allow deletion of running simulation. Why not? What about account deletions?
+      })
+    );
+
+    // TODO: some of this is duplicate from start-optimization
+    app.post(
+      "/server/resume-optimization",
+      wrapForErrorProcessing(async (req, res, next) => {
+        if (!req.isAuthenticated()) {
+          res.status(403).send();
+          return;
+        }
+
+        let accountId = extractSessionInfo(req, "accountId");
+        logger.log(accountId, `Starting optimization`);
+
+        let optimizationId = undefined;
+
+        // This lock is just to make sure we don't get two optimizations running at the same time
+        await lockAccount(accountId);
+        try {
+          // Is there another optimization state IN_PROGRESS (or in ALLOCATING_RESOURCES)
+          // If so, don't start another one
+          let inProgressCount = await this.databaseCalls.getNumberOfOptimizationsInProgress(
+            accountId
+          );
+          if (inProgressCount !== 0) {
+            logger.log(accountId, "Simulations running", inProgressCount);
+            res.status(404).send("There is already an optimization running");
+            return;
+          }
+
+          let data = req.body;
+
+          // TODO: Do some validation?
+          // minimum players (this should be on the client side too)
+          // must have id
+          // required fields?
+          // some size restriction?
+
+          // Convert client optimization id to the server one
+          optimizationId = idUtils.clientIdToServerId(
+            data.optimizationId,
+            accountId
+          );
+
+          // Retrieve execution data from db for validation purposes
+          logger.log(
+            accountId,
+            "retrieving execution data",
+            data.optimizationId
+          );
+          let executionData = await this.databaseCalls.getOptimizationExecutionData(
+            accountId,
+            optimizationId
+          );
+
+          if (!executionData) {
+            res.status(404).send("Execution data was not found");
+          }
+
+          // Transition status to ALLOCATION_RESOURCES
+          await this.databaseCalls.setOptimizationStatus(
+            accountId,
+            optimizationId,
+            1 //state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES, TODO: make this a common server/client enum
+          );
+          await this.cacheCalls.clearStateMd5();
+
+          // Now unlock the account
+        } catch (error) {
+          logger.log(accountId, "Setting optimization status to error", error);
+          await this.databaseCalls.setOptimizationStatus(
+            accountId,
+            optimizationId,
+            5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
+            error
+          );
+          await this.cacheCalls.clearStateMd5();
+          throw error;
+        } finally {
+          await unlockAccount(accountId);
+        }
+
+        // Return success
+        res.status(204).send();
+
+        try {
+          // Start the computer that will run the optimization
+          logger.log(accountId, "Starting optimization server");
+          await this.compute.start(
+            accountId,
+            optimizationId,
+            function(accountId, optimizationId, message) {
+              this.databaseCalls.setOptimizationStatus(
+                accountId,
+                optimizationId,
+                5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
+                message
+              );
+            }.bind(this)
+          );
+        } catch (error) {
+          // Transition status to ERROR
+          logger.log(
+            accountId,
+            optimizationId,
+            "Setting optimization status to error in compute start",
+            error
+          );
+          await this.databaseCalls.setOptimizationStatus(
+            accountId,
+            optimizationId,
+            5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
+            error.message
+          );
+          await this.cacheCalls.clearStateMd5();
+          throw error;
+          // TODO: Kill the compute instance? If it's not dead already. This should really happen inside the start command
+        }
+
+        // TODO frontend: Don't allow deletion of running simulation. Why not? What about account deletions?
+      })
+    );
+
+    /*
+    TODO
+    app.post("/server/pause-optimization", function(req, res) {
+      wrapForErrorProcessing(async (req, res, next) => {
+        if (!req.isAuthenticated()) {
+          res.status(403).send();
+          return;
+        }
+
+        let accountId = extractSessionInfo(req, "accountId");
+        logger.log(accountId, `Pausing optimization`);
+
+        await lockAccount(accountId);
+        try {
+          // Is there another simulation currently in progress?
+
+          // Pause any optimization
+
+          // Mark status as paused in db (will sync on the other end)
+
+          // Actually it is already paused... (or have an idempotent post?)
+
+          res.status(204).send();
+        } catch (error) {
+          logger.log(accountId, "An error occured while deleting the account");
+          throw error;
+        } finally {
+          await unlockAccount(accountId);
+        }
+      });
+    });
+    */
 
     app.get("/server/current-account", function(req, res) {
       if (!req.isAuthenticated()) {

@@ -50,6 +50,9 @@ const CardOptimizationStatsOverride = require("card-optimization-stats-override"
 // Delete account/data
 // Async localstorage interaction
 
+// Bad sql field in getState query results in unhandled promise rejection
+// Convert bad sync alert to native dialog
+
 // Optimization changes when status is not NOT_STATED
 // Optimization length limitations
 module.exports = class MainContainer extends expose.Component {
@@ -91,11 +94,11 @@ module.exports = class MainContainer extends expose.Component {
       });
     };
 
-    // Sync on first load
-    setTimeout(state.sync, 1);
-
     // Check if we are logged in, online, and who we are logged in as
-    setTimeout(network.updateNetworkStatus, 1);
+    setTimeout(network.updateNetworkStatus, 1); // TODO: can this be moved to componentDidMount() ??
+
+    // Sync on first load
+    setTimeout(state.sync, 1); // TODO: can this be moved to componentDidMount() ??
 
     // Reload from local storage each time after the window regains focus
     window.addEventListener(
@@ -452,13 +455,15 @@ module.exports = class MainContainer extends expose.Component {
         let optimization = state.getOptimization(this.state.optimizationId);
         MainContainer.validate(optimization);
         let onComplete = function(players) {
-          state.putOptimizationPlayers(optimization.id, players);
+          state.setOptimizationField(
+            optimization.id,
+            "playerList",
+            players,
+            true
+          );
         };
-        let selectedPlayers = state.getOptimizationPlayersReadOnly(
-          this.state.optimizationId
-        );
         return React.createElement(CardPlayerSelect, {
-          selected: selectedPlayers,
+          selected: JSON.parse(optimization.playerList),
           onComplete: onComplete
         });
       } else if (

@@ -191,6 +191,7 @@ module.exports = class CardSignup extends expose.Component {
         )
       );
     } else {
+      // TODO: Bug: sometimes this message shows up when it's not supposed to
       toRender.push(
         DOM.div(
           {

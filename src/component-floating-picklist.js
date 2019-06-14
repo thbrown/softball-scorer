@@ -41,6 +41,10 @@ module.exports = class FloatingPicklist extends expose.Component {
 
     // Setting value on the select box seems to lock the select box to the value we set. So we'll edit it here.
     document.getElementById(this.props.id).value = this.props.defaultValue;
+
+    if (this.props.disabled === true) {
+      document.getElementById(this.props.id).disabled = true;
+    }
   }
 
   render() {
@@ -58,6 +62,7 @@ module.exports = class FloatingPicklist extends expose.Component {
           className: "select"
         },
         // TODO: this needs to be broken out into a prop when we need this for more than just lineupType
+        // TODO: tie these values to the snum in the state (LINEUP_TYPE_ENUM)
         [
           DOM.option({ key: "normal", value: 1 }, "Normal"),
           DOM.option({ key: "alternate", value: 2 }, "Alternating Gender"),
