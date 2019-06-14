@@ -1,0 +1,25 @@
+parser: 'babel-eslint'
+
+extends:
+  - 'react-app'
+
+plugins:
+  - 'babel'
+  - 'prettier'
+  - 'mocha'
+
+settings:
+  react:
+    version: 'detect'
+
+env:
+  browser: true
+  mocha: true
+
+overrides:
+  - files: '**/*.test.js'
+    rules:
+      no-class-assign: 0
+      no-console: 0
+      no-unused-vars: 0
+      no-unused-expressions: 0
