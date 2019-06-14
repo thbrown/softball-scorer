@@ -1,18 +1,17 @@
-"use strict";
-const React = require("react");
-const ReactDOM = require("react-dom");
-const MainContainer = require("./main-container");
+const React = require('react');
+const ReactDOM = require('react-dom');
+const MainContainer = require('./main-container');
 
-window.React = React;
+global.React = React;
 
 // Prepend polyfill
 // from: https://github.com/jserz/js_piece/blob/master/DOM/ParentNode/prepend()/prepend().md
 (function(arr) {
   arr.forEach(function(item) {
-    if (item.hasOwnProperty("prepend")) {
+    if (item.hasOwnProperty('prepend')) {
       return;
     }
-    Object.defineProperty(item, "prepend", {
+    Object.defineProperty(item, 'prepend', {
       configurable: true,
       enumerable: true,
       writable: true,
@@ -33,7 +32,7 @@ window.React = React;
   });
 })([Element.prototype, Document.prototype, DocumentFragment.prototype]);
 
-const container = document.createElement("div");
+const container = document.createElement('div');
 document.body.prepend(container);
 
 let Main = (global.Main = {});
@@ -47,7 +46,7 @@ Main.render = function() {
 Main.render();
 
 let _resize_timeout = null;
-window.addEventListener("resize", function() {
+window.addEventListener('resize', function() {
   if (_resize_timeout !== null) {
     clearTimeout(_resize_timeout);
   }
