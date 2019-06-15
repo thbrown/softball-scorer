@@ -1,4 +1,4 @@
-import baseX from 'base-x';
+const baseX = require('base-x');
 const BASE62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const bs62 = baseX(BASE62);
 
