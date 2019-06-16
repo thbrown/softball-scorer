@@ -294,9 +294,7 @@ module.exports = class SoftballServer {
           };
           try {
             const recapchaResponse = await got.post(
-              `https://www.google.com/recaptcha/api/siteverify?secret=${
-                config.recapcha.secretkey
-              }&response=${req.body.reCAPCHA}`
+              `https://www.google.com/recaptcha/api/siteverify?secret=${config.recapcha.secretkey}&response=${req.body.reCAPCHA}`
             );
             let recapchaResponseBody = JSON.parse(recapchaResponse.body);
             if (!recapchaResponseBody.success) {

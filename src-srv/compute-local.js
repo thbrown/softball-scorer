@@ -76,7 +76,7 @@ module.exports = class ComputeLocal {
 
     // Get the optimization jar if necessary
     await this.download(
-      "https://github.com/thbrown/softball-sim/releases/download/v0.1/softball-sim.jar",
+      "https://github.com/thbrown/softball-sim/releases/download/v0.2/softball-sim.jar",
       FILE_NAME
     );
 
