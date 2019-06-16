@@ -14,7 +14,7 @@ const INITIAL_STATE = { teams: [], players: [], optimizations: [] };
 const CURRENT_LS_SCHEMA_VERSION = "6";
 const SYNC_DELAY_MS = 10000;
 const SYNC_STATUS_ENUM = Object.freeze({
-  COMPLETED: 1,
+  COMPLETE: 1,
   ERROR: 2,
   IN_PROGRESS: 3,
   PENDING: 4,
