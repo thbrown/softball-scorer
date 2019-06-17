@@ -640,7 +640,9 @@ module.exports = class SoftballServer {
           );
           if (inProgressCount !== 0) {
             logger.log(accountId, "Simulations running", inProgressCount);
-            res.status(404).send("There is already an optimization running");
+            res
+              .status(404)
+              .send({ message: `There is already an optimization running.` });
             return;
           }
 
@@ -651,6 +653,7 @@ module.exports = class SoftballServer {
           // must have id
           // required fields?
           // some size restriction?
+          // Make sure optimization exists!
 
           // Convert client optimization id to the server one
           optimizationId = idUtils.clientIdToServerId(
@@ -659,11 +662,7 @@ module.exports = class SoftballServer {
           );
 
           // Write execution data to db
-          logger.log(
-            accountId,
-            "writing execution data",
-            JSON.stringify(data.executionData, null, 2)
-          );
+          logger.log(accountId, "writing execution data");
           await this.databaseCalls.setOptimizationExecutionData(
             accountId,
             optimizationId,
@@ -698,7 +697,6 @@ module.exports = class SoftballServer {
 
         try {
           // Start the computer that will run the optimization
-          logger.log(accountId, "Starting optimization server");
           await this.compute.start(
             accountId,
             optimizationId,
@@ -788,7 +786,9 @@ module.exports = class SoftballServer {
           );
 
           if (!executionData) {
-            res.status(404).send("Execution data was not found");
+            res.status(404).send({
+              message: `Optimization data was not found. Sync and try again.`
+            });
           }
 
           // Transition status to ALLOCATION_RESOURCES
@@ -907,7 +907,7 @@ module.exports = class SoftballServer {
       } else {
         logger.log(accountId, "CSP Violation: No data received!");
       }
-      res.status(204).end();
+      res.status(204).send();
     });
 
     // The root should retrun the whole app
