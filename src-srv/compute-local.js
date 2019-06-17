@@ -11,8 +11,8 @@ const FILE_NAME = "softball-sim.jar";
  */
 module.exports = class ComputeLocal {
   constructor() {
-    this.download = function(url, dest) {
-      if (fs.existsSync(FILE_NAME)) {
+    this.download = function(url, dest, skipExistenceCheck) {
+      if (fs.existsSync(FILE_NAME) && !skipExistenceCheck) {
         logger.log(
           null,
           "Optimization jar already exists on file system. Will not download."
@@ -28,7 +28,12 @@ module.exports = class ComputeLocal {
             async function(response) {
               if (response.statusCode == 302) {
                 logger.log(null, "Handling redirect");
-                return await this.download(response.headers.location, dest); // TODO: avoid infinite loop here
+                try {
+                  await this.download(response.headers.location, dest, true); // TODO: avoid infinite loop here
+                  return resolve();
+                } catch (error) {
+                  return reject();
+                }
               } else {
                 response.pipe(file);
                 file.on("finish", function() {
@@ -76,7 +81,7 @@ module.exports = class ComputeLocal {
 
     // Get the optimization jar if necessary
     await this.download(
-      "https://github.com/thbrown/softball-sim/releases/download/v0.2/softball-sim.jar",
+      "https://github.com/thbrown/softball-sim/releases/download/v0.3/softball-sim.jar",
       FILE_NAME
     );
 

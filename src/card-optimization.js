@@ -252,7 +252,12 @@ Clips can be played from the player's plate appearance page
         buttonDiv.classList.remove("disabled");
         buttonDiv.innerHTML = "Start Simulation";
       } else {
-        dialog.show_notification("Something went wrong. " + response.status);
+        dialog.show_notification(
+          "Something went wrong. " +
+            response.status +
+            " " +
+            JSON.stringify(response.body)
+        );
         buttonDiv.classList.remove("disabled");
         buttonDiv.innerHTML = "Start Simulation";
       }
@@ -695,6 +700,7 @@ Clips can be played from the player's plate appearance page
 
   renderResultsAccordion() {
     // Results
+    console.log(this.optimization.resultData);
     let resultData = JSON.parse(this.optimization.resultData);
 
     let groupA;
