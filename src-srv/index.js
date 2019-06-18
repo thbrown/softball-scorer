@@ -17,6 +17,8 @@ const CacheCallsRedis = require("./cache-calls-redis");
 const CacheCallsLocal = require("./cache-calls-local");
 const ComputeLocal = require("./compute-local");
 
+const logger = require("./logger.js");
+
 process.on("SIGINT", function() {
   console.log("SIGINT");
   process.exit(0);
@@ -52,7 +54,7 @@ if (pghost && pgport && pgusername && pgpassword) {
     }
   );
 } else {
-  console.log("Warning: running without database connection");
+  logger.warn(null, "Warning: running without database connection");
   databaseCalls = new DatabaseCallsStatic();
 }
 
@@ -63,7 +65,7 @@ let cacheCalls = null;
 if (redisHost && redisPort && redisPassword) {
   cacheCalls = new CacheCallsRedis(redisHost, redisPort, redisPassword);
 } else {
-  console.log("Warning: running with local in-memory cache");
+  logger.warn(null, "Warning: running with local in-memory cache");
   cacheCalls = new CacheCallsLocal();
 }
 

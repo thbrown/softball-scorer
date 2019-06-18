@@ -249,7 +249,7 @@ module.exports = class SoftballServer {
       wrapForErrorProcessing((req, res, next) => {
         passport.authenticate("local", function(err, accountInfo, info) {
           if (err || !accountInfo) {
-            logger.log(null, "Authentication Failed", accountInfo, err, info);
+            logger.warn(null, "Authentication Failed", accountInfo, err, info);
             res.status(400).send();
             return;
           }
@@ -349,7 +349,7 @@ module.exports = class SoftballServer {
             .digest("base64");
 
           // TODO: send password reset email
-          logger.log(null, "Would have sent email", token, req.body.email);
+          logger.warn(null, "Would have sent email", token, req.body.email);
 
           await this.databaseCalls.setPasswordTokenHash(
             account.account_id,
@@ -359,7 +359,7 @@ module.exports = class SoftballServer {
         } else {
           // TODO: Always send an email, even if no such email address was found.
           // Emails that haven't been registerd on the site will say so.
-          logger.log("Password reset: No such email found", req.body.email);
+          logger.warn("Password reset: No such email found", req.body.email);
           res.status(404).send();
         }
       })
@@ -397,7 +397,7 @@ module.exports = class SoftballServer {
           // logIn(account, req, res);
           res.status(204).send();
         } else {
-          logger.log(
+          logger.warn(
             null,
             "Could not find account from reset token",
             req.body.token
@@ -433,7 +433,10 @@ module.exports = class SoftballServer {
 
           res.status(204).send();
         } catch (error) {
-          logger.log(accountId, "An error occured while deleting the account");
+          logger.error(
+            accountId,
+            "An error occured while deleting the account"
+          );
           throw error;
         } finally {
           await unlockAccount(accountId);
@@ -585,7 +588,7 @@ module.exports = class SoftballServer {
               responseData.patches = patchesOnly;
             } else {
               // We don't have any patches saved in the session for this timestamp, or the client requested we send the whole state back.
-              logger.log(accountId, "no patches found, sending whole state");
+              logger.warn(accountId, "no patches found, sending whole state");
               responseData.base =
                 state || (await this.databaseCalls.getState(accountId));
             }
@@ -711,7 +714,7 @@ module.exports = class SoftballServer {
           );
         } catch (error) {
           // Transition status to ERROR
-          logger.log(
+          logger.error(
             accountId,
             optimizationId,
             "Setting optimization status to error in compute start",
@@ -922,7 +925,7 @@ module.exports = class SoftballServer {
     app.get(
       "*",
       wrapForErrorProcessing((req, res) => {
-        logger.log(null, "unanticipated url", req.originalUrl);
+        logger.warn(null, "unanticipated url", req.originalUrl);
         res.sendFile(path.join(__dirname + "/../index.html").normalize());
       })
     );
@@ -937,7 +940,7 @@ module.exports = class SoftballServer {
 
       res.setHeader("content-type", "application/json");
       if (error instanceof HandledError) {
-        logger.log(accountId, "Sending Error", error.getExternalMessage());
+        logger.error(accountId, "Sending Error", error.getExternalMessage());
         res
           .status(error.getStatusCode())
           .send({ message: [error.getExternalMessage()] });
@@ -951,10 +954,10 @@ module.exports = class SoftballServer {
         res
           .status(500)
           .send({ message: `Internal Server Error. Error id: ${errorId}.` });
-        logger.log(accountId, `SERVER ERROR ${errorId} - ${accountId}`, {
+        logger.error(accountId, `SERVER ERROR ${errorId} - ${accountId}`, {
           message: [error.message]
         });
-        logger.log(accountId, `Error`, error);
+        logger.error(accountId, `Error`, error);
       }
     });
 
