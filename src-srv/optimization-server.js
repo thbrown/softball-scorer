@@ -1,6 +1,6 @@
-var net = require("net");
-var HOST = "127.0.0.1";
-let PORT = "8414"; // TODO: move to config?
+const net = require("net");
+const HOST = "127.0.0.1";
+const PORT = "8414"; // TODO: move to config?
 const logger = require("./logger.js");
 const idUtils = require("../id-utils.js");
 
