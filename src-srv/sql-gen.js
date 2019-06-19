@@ -1,4 +1,5 @@
-const TimSort = require("timsort");
+//const TimSort = require("timsort"); -- Buggy (mergeLow preconditions were not respected)
+const MergeSort = require("merge-sort");
 
 const HandledError = require("./handled-error.js");
 const idUtils = require("../id-utils.js");
@@ -84,7 +85,7 @@ let getSqlFromPatch = function(patch, accountId) {
 
   // This requires a stable sorting algorithm. Keeping the statments of a single table in their previous order is important!
   // TODO: Yikes hitting this lib issue sometimes (https://github.com/mziccard/node-timsort/issues/14) may need to switch implementations
-  TimSort.sort(result, function(a, b) {
+  MergeSort(function(a, b) {
     // TODO: it would be more efficient to save these results instead of running the regexes each time
     let aOp = a.query.match(STATEMENT_TYPE_REGEX)[0];
     let bOp = b.query.match(STATEMENT_TYPE_REGEX)[0];
@@ -117,7 +118,7 @@ let getSqlFromPatch = function(patch, accountId) {
         `Could not detemine op of these statements ${a.query} ${b.query}`
       );
     }
-  });
+  }, result);
   return result;
 };
 
