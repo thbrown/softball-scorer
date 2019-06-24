@@ -16,6 +16,7 @@ const hasher = require("object-hash");
 const got = require("got");
 
 const config = require("./config");
+const email = require("./email");
 const HandledError = require("./handled-error");
 const idUtils = require("../id-utils");
 const logger = require("./logger");
@@ -317,10 +318,24 @@ module.exports = class SoftballServer {
           }
         }
 
+        let token = await generateToken();
+        let tokenHash = crypto
+          .createHash("sha256")
+          .update(token)
+          .digest("base64");
+
         let hashedPassword = await bcrypt.hash(req.body.password, 12);
         let account = await this.databaseCalls.signup(
           req.body.email,
-          hashedPassword
+          hashedPassword,
+          tokenHash
+        );
+
+        email.sendMessage(
+          account.account_id,
+          req.body.email,
+          "Welcome to Softball.app!",
+          `Thank you for signing up for an account on https://softball.app. Please click this activation link to verify your email address: https://softball.app/account/verify-email/${token}`
         );
 
         logger.log(
@@ -348,18 +363,27 @@ module.exports = class SoftballServer {
             .update(token)
             .digest("base64");
 
-          // TODO: send password reset email
-          logger.warn(null, "Would have sent email", token, req.body.email);
-
           await this.databaseCalls.setPasswordTokenHash(
             account.account_id,
             tokenHash
           );
+
+          email.sendMessage(
+            account.account_id,
+            req.body.email,
+            "Softball.app Password Reset",
+            `Sombody tried to reset the password for the softball.app (https://softball.app) account associated with this email address (hopefully it was you!). Please click this link to reset the password: https://softball.app/account/password-reset/${token}`
+          );
+
           res.status(204).send();
         } else {
           // TODO: Always send an email, even if no such email address was found.
           // Emails that haven't been registerd on the site will say so.
-          logger.warn("Password reset: No such email found", req.body.email);
+          logger.warn(
+            "N/A",
+            "Password reset: No such email found",
+            req.body.email
+          );
           res.status(404).send();
         }
       })
@@ -368,7 +392,6 @@ module.exports = class SoftballServer {
     app.post(
       "/server/account/reset-password",
       wrapForErrorProcessing(async (req, res, next) => {
-        logger.log(null, "Password update recieved. Token", req.body.token);
         checkRequiredField(req.body.password, "password");
         checkFieldLength(req.body.password, 320);
         checkFieldLength(req.body.token, 320);
@@ -381,6 +404,12 @@ module.exports = class SoftballServer {
           tokenHash
         );
         if (account) {
+          logger.log(
+            account.account_id,
+            "Password update recieved. Token",
+            req.body.token
+          );
+          // If the user reset their passowrd, the email address is confirmed
           await this.databaseCalls.confirmEmail(account.account_id);
 
           let hashedPassword = await bcrypt.hash(req.body.password, 12);
@@ -394,6 +423,40 @@ module.exports = class SoftballServer {
           // If an attacker somehow guesses the reset token and resets the password, they still don't know the email.
           // So, we wont log the password resetter in automatically. We can change this if we think it really affects
           // usability but I think it's okay. If users are resetting their passwords they are probably aready engaged.
+          // logIn(account, req, res);
+          res.status(204).send();
+        } else {
+          logger.warn(
+            null,
+            "Could not find account from reset token",
+            req.body.token
+          );
+          res.status(404).send();
+        }
+      })
+    );
+
+    app.post(
+      "/server/account/verify-email",
+      wrapForErrorProcessing(async (req, res, next) => {
+        checkFieldLength(req.body.token, 320);
+        let token = req.body.token;
+        let tokenHash = crypto
+          .createHash("sha256")
+          .update(token)
+          .digest("base64");
+        let account = await this.databaseCalls.getAccountFromTokenHash(
+          tokenHash
+        );
+        if (account) {
+          logger.log(
+            account.account_id,
+            "Email verification received. Token",
+            req.body.token
+          );
+          await this.databaseCalls.confirmEmail(account.account_id);
+
+          // Don't log in automatically (for security over usability, is this woth the tradeoff?)
           // logIn(account, req, res);
           res.status(204).send();
         } else {
