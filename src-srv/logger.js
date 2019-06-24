@@ -2,7 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
-var util = require("util");
+const util = require("util");
 
 const config = require("./config");
 

@@ -7,10 +7,6 @@ const idUtils = require("../id-utils.js");
 /*
 TODO:
 1) Delete execution data
-2) Dynamic update frequency
-3) Actually send the email if selected
-4) Display status message
-5) Bug with no consecutive female lineup
 */
 module.exports = class OptimizationServer {
   constructor(databaseCalls, cacheCalls) {

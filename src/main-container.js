@@ -18,6 +18,10 @@ const CardGame = require("card-game");
 const CardGameEdit = require("card-game-edit");
 const CardImport = require("card-import");
 const CardMenu = require("card-menu");
+const CardOptimizationList = require("card-optimization-list");
+const CardOptimizationEdit = require("card-optimization-edit");
+const CardOptimization = require("card-optimization");
+const CardOptimizationStatsOverride = require("card-optimization-stats-override");
 const CardPasswordReset = require("card-password-reset");
 const CardPlateAppearance = require("card-plate-appearance");
 const CardPlayerList = require("card-player-list");
@@ -29,10 +33,7 @@ const CardSpray = require("card-spray");
 const CardTeam = require("card-team");
 const CardTeamEdit = require("card-team-edit");
 const CardTeamList = require("card-team-list");
-const CardOptimizationList = require("card-optimization-list");
-const CardOptimizationEdit = require("card-optimization-edit");
-const CardOptimization = require("card-optimization");
-const CardOptimizationStatsOverride = require("card-optimization-stats-override");
+const CardVerifyEmail = require("card-verify-email");
 
 // TODO
 // Text directions?
@@ -242,6 +243,13 @@ module.exports = class MainContainer extends expose.Component {
         return React.createElement(CardSignup);
       } else if (MainContainer.matches(url, "/menu/import", this.state)) {
         return React.createElement(CardImport);
+      } else if (
+        MainContainer.matches(url, "/account/verify-email/:token", this.state)
+      ) {
+        let token = this.state.token;
+        return React.createElement(CardVerifyEmail, {
+          token: token
+        });
       } else if (
         MainContainer.matches(url, "/account/password-reset/:token", this.state)
       ) {

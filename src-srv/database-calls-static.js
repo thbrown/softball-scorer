@@ -290,20 +290,26 @@ let databaseCalls = class DatabaseCalls {
     let newAccount = {
       account_id: this.idCounter,
       email: email,
-      password_hash: passwordHash, // pizza
+      password_hash: passwordHash,
       password_token_hash: passwordTokenHash,
       password_token_expiration: Date.now() + 3600000
     };
     this.ACCOUNTS.push(newAccount);
     this.idCounter++;
+    logger.log(null, "Account added", JSON.stringify(this.ACCOUNTS, null, 2));
     return JSON.parse(JSON.stringify(newAccount));
   }
 
   async getAccountFromTokenHash(passwordTokenHash) {
-    logger.log(null, "Seraching for", passwordTokenHash.trim());
+    logger.log(
+      null,
+      "Seraching for",
+      passwordTokenHash.trim(),
+      JSON.stringify(this.ACCOUNTS, null, 2)
+    );
     for (let i = 0; i < this.ACCOUNTS.length; i++) {
-      if (this.ACCOUNTS[i].passwordTokenHash === passwordTokenHash) {
-        if (this.ACCOUNTS[i].passwordTokenExpiration > Date.now()) {
+      if (this.ACCOUNTS[i].password_token_hash === passwordTokenHash) {
+        if (this.ACCOUNTS[i].password_token_expiration > Date.now()) {
           // TODO: 1000 above should be current time in millis
           return this.ACCOUNTS[i];
         } else {
@@ -326,17 +332,17 @@ let databaseCalls = class DatabaseCalls {
   async setPasswordHashAndExpireToken(accountId, newPasswordHash) {
     for (let i = 0; i < this.ACCOUNTS.length; i++) {
       if (this.ACCOUNTS[i].id === accountId) {
-        this.ACCOUNTS[i].passwordHash = newPasswordHash;
-        this.ACCOUNTS[i].passwordTokenExpiration = 0;
+        this.ACCOUNTS[i].password_token_hash = newPasswordHash;
+        this.ACCOUNTS[i].password_token_expiration = 0;
       }
     }
     return undefined;
   }
 
-  async setPasswordTokenHash(accountId, newPasswordHash) {
+  async setPasswordTokenHash(accountId, tokenHash) {
     for (let i = 0; i < this.ACCOUNTS.length; i++) {
       if (this.ACCOUNTS[i].id === accountId) {
-        this.ACCOUNTS[i].password_token_hash = newPasswordHash;
+        this.ACCOUNTS[i].password_token_hash = tokenHash;
         this.ACCOUNTS[i].password_token_expiration = Date.now() + 3600000;
       }
     }

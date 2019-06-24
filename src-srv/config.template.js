@@ -26,5 +26,11 @@ module.exports = {
 
   logging: {
     logToFile: false
+  },
+
+  email: {
+    apiKey: undefined,
+    domain: undefined,
+    allowAllDomains: false
   }
 };
