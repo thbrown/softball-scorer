@@ -68,7 +68,7 @@ exports.sync = async function(fullSync) {
     exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS ||
     exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
   ) {
-    // Simultanious syncs might be okay, but we'll still limit it to one at a time for clarity
+    // Simultaneous syncs might be okay, but we'll still limit it to one at a time for clarity
     console.log(
       "waiting for in progress sync to finish" + exports.getSyncState()
     );
@@ -79,7 +79,9 @@ exports.sync = async function(fullSync) {
   setSyncState(SYNC_STATUS_ENUM.IN_PROGRESS);
   try {
     // Save a deep copy of the local state
-    let localStateCopy = JSON.parse(JSON.stringify(state.getLocalState()));
+    let localStateCopyPreRequest = JSON.parse(
+      JSON.stringify(state.getLocalState())
+    );
     let localState = state.getLocalState();
 
     // Save the ancestor state so we can restore it if something goes wrong
@@ -88,9 +90,8 @@ exports.sync = async function(fullSync) {
     );
 
     // Get the patch ready to send to the server
-    let ancestorChecksum = state.getAncestorStateChecksum();
     let body = {
-      md5: ancestorChecksum,
+      md5: getMd5(localState),
       patch: objectMerge.diff(state.getAncestorState(), localState),
       type: fullSync ? "full" : "any"
     };
@@ -109,68 +110,58 @@ exports.sync = async function(fullSync) {
 
       // First gather any changes that were made locally while the request was still working
       let localChangesDuringRequest = objectMerge.diff(
-        localStateCopy,
+        localStateCopyPreRequest,
         localState
       );
 
-      // Update the ancestor if updates were received from server
+      // Update the ancestor if updates were received from the server
       if (serverState.base) {
         // The entire state was sent, we can just save it directly
         state.setAncestorState(serverState.base);
       } else if (serverState.patches) {
-        // Patches were sent, apply all patches to ancestor state
-        let ancestorState = state.getAncestorState();
-        if (serverState.patches) {
-          console.log(
-            `Applying ${serverState.patches.length} patches `,
-            serverState.patches
-          );
-          serverState.patches.forEach(patch => {
-            objectMerge.patch(ancestorState, patch);
-          });
-        }
+        // Patches were sent, apply all patches to a copy of the local state
+        console.log(`Applying patches `);
+
+        serverState.patches.forEach(patch => {
+          objectMerge.patch(localStateCopyPreRequest, patch);
+        });
+        // The local state with the server updates is the new ancestor
+        state.setAncestorState(localStateCopyPreRequest);
       } else {
         console.log("No updates recieved from server");
+        state.setAncestorState(localStateCopyPreRequest);
       }
 
-      // If the server state changed, verify the ancesor state (after updates) has the same hash as the server state
-      if (serverState.base || serverState.patches) {
-        // Verify checksum
-        let ancestorHash = getMd5(state.getAncestorState());
-        console.log("CLIENT: ", ancestorHash, " SERVER: ", serverState.md5);
-        if (ancestorHash !== serverState.md5) {
-          if (fullSync) {
-            // Something went wrong after trying a full sync, we probaly can't do anything about it!
-            // serverState.base should have contained a verbatium copy of what the server has, so this is weird.
-            console.log(
-              "Yikes! Something went wrong while attempting full sync"
-            );
-            console.log(state.getAncestorState(), serverState.base);
-            // Set the state back to what it was when we first did a sync
-            state.setAncestorState(ancestorStateCopy);
-            throw new Error(-3);
-          } else {
-            // Something bad happened with a patch based sync, we may be able to repeat the request with type "full" so we'll get the whole state back, not just the patches
-            console.log("Something went wrong while attempting patch sync");
-            console.log(state.getAncestorState(), serverState.base);
-            console.log(
-              objectMerge.diff(state.getAncestorState(), serverState.base)
-            );
-
-            let A = getMd5(state.getAncestorState());
-            let B = getMd5(serverState.base);
-            console.log(A, B);
-
-            // Set the state back to what it was when we first did a sync
-            state.setAncestorState(ancestorStateCopy);
-            throw new Error(-2);
-          }
-        } else {
+      // Verify that the ancestor state (after updates) has the same hash as the server state
+      let ancestorHash = state.getAncestorStateChecksum();
+      console.log("CLIENT: ", ancestorHash, " SERVER: ", serverState.md5);
+      if (ancestorHash !== serverState.md5) {
+        if (fullSync) {
+          // Something went wrong after trying a full sync, we probaly can't do anything about it!
+          // serverState.base should have contained a verbatium copy of what the server has, so this is weird.
+          console.log("Yikes! Something went wrong while attempting full sync");
           console.log(
-            "Sync was successful! (client and server checksums match)"
+            getMd5(state.getAncestorState()),
+            getMd5(serverState.base)
           );
+          console.log(state.getAncestorState(), serverState.base);
+          // Set the state back to what it was when we first did a sync
+          state.setAncestorState(ancestorStateCopy);
+          throw new Error(-3);
+        } else {
+          // Something went wrong with the patch based sync, perhaps the server's cached data was incorrect
+          // We should be able to repeat the request with type "full" so we'll get the whole state back, not just the patches
+          console.log("Something went wrong while attempting patch sync");
+          console.log(getMd5(state.getLocalState), serverState.md5);
+
+          // Set the state back to what it was when we first did a sync
+          state.setAncestorState(ancestorStateCopy);
+          throw new Error(-2);
         }
+      } else {
+        console.log("Sync was successful! (client and server checksums match)");
       }
+
       // Copy
       let newLocalState = JSON.parse(JSON.stringify(state.getAncestorState()));
 
@@ -226,7 +217,7 @@ exports.sync = async function(fullSync) {
     } else if (err.message == -2) {
       // Issue with patch based sync, re-try with a full sync
       console.log("Issue with patch sync: attemtping full sync");
-      await exports.sync(true);
+      return await exports.sync(true);
     } else {
       // Other 500s, 400s are probably bugs :(, tell the user something is wrong
       console.log("Probable bug encountered");
@@ -407,17 +398,6 @@ exports.getAllOptimizations = function() {
   return exports.getLocalState().optimizations;
 };
 
-/**
- * Returns a copy of the optimization's players list
- */
-/*
-exports.getOptimizationStagingPlayersReadOnly = function(optimizationId) {
-  let optimization = exports.getOptimization(optimizationId);
-  let parsedStagingData = JSON.parse(optimization.stagingData);
-  return parsedStagingData.players;
-};
-*/
-
 exports.replaceOptimization = function(optimizationId, newOptimization) {
   let localState = exports.getLocalState();
   let oldOptimization = exports.getOptimization(optimizationId);
@@ -521,9 +501,7 @@ exports.addGame = function(team_id, opposing_team_name) {
     opponent: opposing_team_name,
     lineup: lastLineup ? lastLineup : [],
     date: timestamp,
-    park: "Stazio",
-    scoreUs: 0,
-    scoreThem: 0,
+    park: null,
     lineupType: lastLineupType
       ? lastLineupType
       : exports.LINEUP_TYPE_ENUM.NORMAL,
@@ -1101,6 +1079,7 @@ exports.setStatusBasedOnHttpResponse = function(code) {
   }
   exports.saveApplicationStateToLocalStorage();
 };
+
 exports.setAddToHomescreenPrompt = function(e) {
   addToHomescreenEvent = e;
   reRender();

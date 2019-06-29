@@ -3,6 +3,8 @@ const redis = require("redis");
 const session = require("express-session");
 const RedisStore = require("connect-redis")(session);
 
+const logger = require("./logger");
+
 /**
  * This cache implementation uses redis to store sessions and data that must be shared between different sessions of the same account (e.g. account locking data).
  * It's used primarally to keep sessions alive between server restarts and to enable future horizontal app server scaling.
@@ -42,10 +44,39 @@ module.exports = class CacheCalls {
       */
     });
 
+    this.client.on("error", function(err) {
+      logger.error("sys", "Redis Error - " + err);
+    });
+
+    this.client.on("ready", function() {
+      logger.log("sys", "Redis Ready");
+    });
+
+    this.client.on("connect", function() {
+      logger.log("sys", "Redis Connect");
+    });
+
+    this.client.on("reconnecting", function() {
+      logger.warn("sys", "Redis Reconnecting");
+    });
+
+    this.client.on("end", function() {
+      logger.warn("sys", "Redis End");
+    });
+
+    this.client.on("warning", function(warn) {
+      logger.warn("sys", "Redis Warning " + warn);
+    });
+
     this.hgetAsync = promisify(this.client.hget).bind(this.client);
     this.hsetAsync = promisify(this.client.hset).bind(this.client);
     this.hsetnxAsync = promisify(this.client.hsetnx).bind(this.client);
     this.hdelAsync = promisify(this.client.hdel).bind(this.client);
+  }
+
+  async init() {
+    // Test
+    await this.hsetnxAsync("0", "0", "0");
   }
 
   async lockAccount(accountId) {
@@ -56,28 +87,18 @@ module.exports = class CacheCalls {
     await this.hdelAsync(accountId, "locked");
   }
 
-  async getPatches(accountId) {
-    return JSON.parse(await this.hgetAsync(accountId, "stateRecentPatches"));
+  async getAncestor(accountId, sessionId) {
+    //logger.log(accountId, "getting ancestor", sessionId);
+    let stringData = await this.hgetAsync(accountId, "ancestor" + sessionId);
+    if (stringData) {
+      return JSON.parse(stringData);
+    }
+    return null;
   }
 
-  async setPatches(accountId, stateRecentPatches) {
-    await this.hsetAsync(
-      accountId,
-      "stateRecentPatches",
-      JSON.stringify(stateRecentPatches)
-    );
-  }
-
-  async getStateMd5(accountId) {
-    return await this.hgetAsync(accountId, "stateMd5");
-  }
-
-  async setStateMd5(accountId, stateMd5) {
-    await this.hsetAsync(accountId, "stateMd5", stateMd5);
-  }
-
-  async clearStateMd5(accountId) {
-    await this.hdelAsync(accountId, "stateMd5");
+  async setAncestor(accountId, sessionId, ancestor) {
+    //logger.log(accountId, "setting ancestor", sessionId);
+    this.hsetAsync(accountId, "ancestor" + sessionId, JSON.stringify(ancestor));
   }
 
   getSessionStore() {

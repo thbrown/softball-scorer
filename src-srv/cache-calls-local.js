@@ -19,24 +19,12 @@ module.exports = class CacheCalls {
     this.deleteData(accountId, "locked");
   }
 
-  async getPatches(accountId) {
-    this.getData(accountId, "stateRecentPatches");
+  async getAncestor(accountId, sessionId) {
+    this.getData(accountId, "ancestor" + sessionId);
   }
 
-  async setPatches(accountId, stateRecentPatches) {
-    this.putData(accountId, "stateRecentPatches", stateRecentPatches);
-  }
-
-  async getStateMd5(accountId) {
-    this.getData(accountId, "stateMd5");
-  }
-
-  async setStateMd5(accountId, stateMd5) {
-    this.putData(accountId, "stateMd5", stateMd5);
-  }
-
-  async clearStateMd5(accountId) {
-    this.deleteData(accountId, "stateMd5");
+  async setAncestor(accountId, sessionId, ancestor) {
+    this.putData(accountId, "ancestor" + sessionId, ancestor);
   }
 
   // Intended for these to be private methods
