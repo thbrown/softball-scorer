@@ -20,11 +20,11 @@ const ComputeLocal = require("./compute-local");
 const logger = require("./logger.js");
 
 process.on("SIGINT", function() {
-  console.log("SIGINT");
+  logger.log("sys", "SIGINT");
   process.exit(0);
 });
 process.on("SIGTERM", function() {
-  console.log("SIGTERM");
+  logger.log("sys", "SIGTERM");
   process.exit(0);
 });
 process.on("exit", function() {
@@ -47,14 +47,14 @@ if (pghost && pgport && pgusername && pgpassword) {
     pgpassword,
     err => {
       if (err) {
-        console.log("Encountered an error connecting to db", err);
+        logger.log("sys", "Encountered an error connecting to db", err);
         process.exit(1);
       }
-      console.log("Connected to db.");
+      logger.log("sys", "Connected to db.");
     }
   );
 } else {
-  logger.warn(null, "Warning: running without database connection");
+  logger.warn("sys", "Warning: running without database connection");
   databaseCalls = new DatabaseCallsStatic();
 }
 
@@ -72,9 +72,6 @@ if (redisHost && redisPort && redisPassword) {
 // Inject the compute service (for running optimizations)
 let compute = new ComputeLocal();
 
-function startServer(databaseCalls, cacheCalls, compute) {
-  const softballServer = new SoftballServer(databaseCalls, cacheCalls, compute);
-  softballServer.start();
-}
-
-startServer(databaseCalls, cacheCalls, compute);
+// Start the server!
+const softballServer = new SoftballServer(databaseCalls, cacheCalls, compute);
+softballServer.start();

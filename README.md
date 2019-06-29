@@ -11,42 +11,51 @@ Live at https://softball.app/
    `npm run build && node src-srv`.
 5. Visit http://localhost:8888 in your browser.
 
-## Redis setup (optional)
+## Additions
 
-0. Make sure you are in the project root
+By default the app will run with in memory versions of database and cache.
+If you'd like the setup Postgres and/or Redis follow these steps.
 
-### Windows
+### Redis setup (tested on version 4.0.9)
 
-#### With default config
+#### Windows
 
-1. Install and run docker for Windows https://docs.docker.com/docker-for-windows/
-2. In powershell run `docker pull redis`
-3. In powershell run `docker run --name softballApp -p 6379:6379/tcp redis redis-server` (Start Redis on port 6379)
-4. Update/Create ./src-svr/config.js with redis server info (see ./src-svr/config-template.js)
+Windows requires the use of Windows Subsystem for Linux (WSL)
 
-#### With custom config
+1. Enable WSL by opening powershell as an admin and running this command (this will require a restart)
+   `Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux`
 
-It gets a bit more complicated with a Redis config file. These steps have not been tested:
+2. Install Ubuntu 18.04 from the Microsoft store
+   https://www.microsoft.com/en-us/p/ubuntu-1804/9n9tngvndl3q?activetab=pivot:overviewtab
 
-1. Share your drive with docker. Unfortunatly your windows user must have a password to do so(https://forums.docker.com/t/how-to-share-windows-drives-with-a-user-without-password/22933/4)
-2. Run docker with volume
-3. In powershell run `docker run --name softballApp -p 6379:6379/tcp -v ./redis.conf:/usr/local/etc/redis/redis.conf redis redis-server /usr/local/etc/redis/redis.conf` (Start Redis on port 6379)
-4. Be lucky. I never got this working because I didn't want to make a windows user w/ a password.
+3. Make some default user
 
-Useful commands to clean up docker processes
-`docker kill $(docker ps -q)`
+4. Open Ubuntu in windows and follow the Ubuntu instructions below
 
-`docker rm $(docker ps -a -q)`
+#### Ubuntu
 
-### Ubuntu
-
+1. Make sure you are in the project root
+1. `sudo apt-get update`
+1. `sudo apt-get upgrade`
 1. `sudo apt-get install redis-server`
-2. `sudo redis-server ./redis.conf`
-3. Update/Create ./src-svr/config.js with redis server info (see ./src-svr/config-template.js)
+1. `sudo redis-server ./redis.conf`
+1. Update/Create ./src-svr/config.js with Redis server info (see ./src-svr/config-template.js)
 
-## Postgres setup (optional)
+redis.conf
 
-TODO
+```
+requirepass "JtmpasEY9wSfu27XuYeK9Q4rdDPmXXeD_change_me"
+port 6379
+
+# Don't persist to disk
+save ""
+```
+
+### TODO: Postgres setup
+
+### TODO: Nginx
+
+### TODO: email
 
 ## Development:
 

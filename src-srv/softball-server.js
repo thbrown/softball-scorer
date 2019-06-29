@@ -530,18 +530,12 @@ module.exports = class SoftballServer {
         }
 
         let accountId = extractSessionInfo(req, "accountId");
-        let stateRecentPatches =
-          (await this.cacheCalls.getPatches(accountId)) || [];
-        let state = undefined;
-        //console.log("State patches", stateRecentPatches);
 
-        // We need this information to know what state the client is in
+        // Log the begining of the request
         let data = req.body;
-        logger.log(
-          accountId,
-          "Sync request received by server ",
-          JSON.stringify(data, null, 2)
-        );
+        logger.log(accountId, "Sync request received by server ");
+
+        // Validate the request
         if (!data["md5"]) {
           throw new HandledError(400, "Missing required field", data);
         }
@@ -552,7 +546,9 @@ module.exports = class SoftballServer {
         // For testing locks
         // await sleep(10000);
 
+        let state = undefined;
         let responseData = {};
+        let anyChangesMade = false;
 
         try {
           // Check if the client sent updates to the server
@@ -571,17 +567,11 @@ module.exports = class SoftballServer {
 
             // Now we'll diff the patched version against our original copied version, this gives us a patch without any edits to deleted entries or additions of things that already exist
             let cleanPatch = objectMerge.diff(stateCopy, state);
-            /*
-            logger.log(
-              accountId,
-              "cleanPatch",
-              JSON.stringify(cleanPatch, null, 2)
-            );
-            */
 
             // We can pass the clean patch to the database to persist
             await this.databaseCalls.patchState(cleanPatch, accountId);
             state = await this.databaseCalls.getState(accountId);
+
             // Useful for debuging
             /*logger.log(
               accountId,
@@ -590,74 +580,73 @@ module.exports = class SoftballServer {
               getMd5(state)
             );
             */
-
-            // Now we can derive the patch for this update (with the correct server ids) as well as the checksum of the most recent state and timestamp
-            let syncPatch = objectMerge.diff(stateCopy, state);
-            let checksum = getMd5(state);
-
-            // Update the checksum on the response object and the session
-            responseData.md5 = checksum;
-            await this.cacheCalls.setStateMd5(accountId, checksum);
-
-            // Save the patch for this sync to the session (to speed up future syncs).
-            let savedPatch = {};
-            savedPatch.patch = syncPatch;
-            savedPatch.md5 = checksum;
-            stateRecentPatches.push(savedPatch);
-            //console.log("Setting patches", stateRecentPatches);
-            await this.cacheCalls.setPatches(accountId, stateRecentPatches);
+            anyChangesMade = true;
           } else {
             logger.log(accountId, "No updates from client");
           }
 
-          // Get info about the checksum of the current state from account info
-          let stateMd5 = await this.cacheCalls.getStateMd5(accountId);
+          // Calculate the checksum current state
+          state = state || (await this.databaseCalls.getState(accountId));
+          let checksum = getMd5(state);
 
-          // Calculate the checksum current state if it's not stored in session storage
-          if (!stateMd5) {
-            logger.log(
-              accountId,
-              "No state hash stored in the session, getting state info"
-            );
-            state = state || (await this.databaseCalls.getState(accountId));
-            let checksum = getMd5(state);
+          logger.log(accountId, "Server CHECKSUM: ", checksum);
 
-            await this.cacheCalls.setStateMd5(accountId, checksum);
-            stateMd5 = checksum;
-          }
-
-          // Check if the server has updates for the client.
-          if (data.md5 !== stateMd5) {
+          // Compare the calculated checksum with the checksum provided by the client to determine if the server has updates for the client.
+          if (data.md5 !== checksum) {
             logger.log(
               accountId,
               "Server has updates. CLIENT: ",
               data.md5,
               " SERVER: ",
-              stateMd5
+              checksum
             );
-            // If we have a record of the patches we need to update the client, send those instead of the entire state
-            let foundMatch = false;
-            let patches = stateRecentPatches.filter(v => {
-              if (v.md5 === data.md5) {
-                foundMatch = true;
-              }
-              return foundMatch && v.md5 !== data.md5; // We want all patches after the matching md5
-            });
 
-            if (patches.length > 0 && data.type !== "full") {
-              // Yay, we have patches saved that will update the client to the current state, just send those.
-              logger.log(accountId, "patches found, sending those instead"); //, stateRecentPatches);
-              let patchesOnly = patches.map(v => v.patch);
-              responseData.patches = patchesOnly;
+            // If we have an ancestor state cached and client did not request a full sync we'll send only a patch representing the server's updates
+            // If the client requested a full sync or we don't have a cached ancestor we'll send the entire state to the client
+            let serverAncestor = await this.cacheCalls.getAncestor(
+              accountId,
+              req.sessionID
+            );
+            if (data.type === "any" && serverAncestor) {
+              // Yes we have an ancestor!
+              logger.log(accountId, "performing patch sync w/ ancestor");
+
+              // Apply the client's patch to the ancestor
+              objectMerge.patch(serverAncestor, data.patch, true);
+
+              // Diff the ancestor and the localState (dbState) to get the patch we need to send back to the server
+              let serverPatch = objectMerge.diff(serverAncestor, state);
+              logger.log(
+                accountId,
+                "Server Patch",
+                JSON.stringify(serverPatch, null, 2)
+              );
+
+              // Array for historical reasons, no reason this can't be a single object
+              responseData.patches = [serverPatch];
             } else {
-              // We don't have any patches saved in the session for this timestamp, or the client requested we send the whole state back.
-              logger.warn(accountId, "no patches found, sending whole state");
+              // No we have no ancestor OR sync status is full, send back the whole state
+              logger.warn(
+                accountId,
+                "performing full sync",
+                data.type,
+                new Boolean(serverAncestor)
+              );
               responseData.base =
                 state || (await this.databaseCalls.getState(accountId));
             }
-            responseData.md5 = stateMd5;
+
+            anyChangesMade = true;
           } else {
-            logger.log(accountId, "No updates from server", data.md5, stateMd5);
+            logger.log(accountId, "No updates from server", data.md5, checksum);
+          }
+
+          // Whatever happened,we need to send the checksum back
+          responseData.md5 = checksum;
+
+          // Finally, if changes were made by either the client or the server, update the ancestor state for this session. This will reduce network egress for subsequent syncs.
+          if (anyChangesMade) {
+            await this.cacheCalls.setAncestor(accountId, req.sessionID, state);
           }
         } finally {
           // Unlock the account
@@ -665,21 +654,7 @@ module.exports = class SoftballServer {
         }
 
         // Woot, done
-        if (responseData.base) {
-          let testCs = getMd5(responseData.base);
-        }
         res.status(200).send(responseData);
-
-        // Delete values if we are storing too many patches (Not the most refined technique, but it's something)
-        while (JSON.stringify(stateRecentPatches).length > 20000) {
-          logger.log(
-            accountId,
-            "Erasing old patch data. New length: " +
-              stateRecentPatches.length -
-              1
-          );
-          stateRecentPatches.splice(-1, 1);
-        }
       })
     );
 
@@ -741,7 +716,6 @@ module.exports = class SoftballServer {
             optimizationId,
             1 //state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES, TODO: make this a common server/client enum
           );
-          await this.cacheCalls.clearStateMd5();
 
           // Now unlock the account
         } catch (error) {
@@ -752,7 +726,6 @@ module.exports = class SoftballServer {
             5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
             error
           );
-          await this.cacheCalls.clearStateMd5();
           throw error;
         } finally {
           await unlockAccount(accountId);
@@ -789,7 +762,6 @@ module.exports = class SoftballServer {
             5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
             error
           );
-          await this.cacheCalls.clearStateMd5();
           throw error;
           // TODO: Kill the compute instance? If it's not dead already. This should really happen inside the start command
         }
@@ -863,7 +835,6 @@ module.exports = class SoftballServer {
             optimizationId,
             1 //state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES, TODO: make this a common server/client enum
           );
-          await this.cacheCalls.clearStateMd5();
 
           // Now unlock the account
         } catch (error) {
@@ -874,7 +845,6 @@ module.exports = class SoftballServer {
             5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
             error
           );
-          await this.cacheCalls.clearStateMd5();
           throw error;
         } finally {
           await unlockAccount(accountId);
@@ -912,7 +882,6 @@ module.exports = class SoftballServer {
             5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
             error.message
           );
-          await this.cacheCalls.clearStateMd5();
           throw error;
           // TODO: Kill the compute instance? If it's not dead already. This should really happen inside the start command
         }
@@ -1036,7 +1005,6 @@ module.exports = class SoftballServer {
         try {
           await fn(req, res, next);
         } catch (error) {
-          //console.log("An error was thrown!", error);
           next(error);
         }
       };

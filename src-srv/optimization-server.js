@@ -7,6 +7,7 @@ const idUtils = require("../id-utils.js");
 /*
 TODO:
 1) Delete execution data
+3) Actually send the email if selected
 */
 module.exports = class OptimizationServer {
   constructor(databaseCalls, cacheCalls) {
@@ -43,56 +44,6 @@ module.exports = class OptimizationServer {
             logger.log(sock.accountId, JSON.stringify(executionData, null, 2));
 
             let optimizationData = executionData;
-
-            /*
-            optimizationData = {
-              iterations: 100000,
-              lineupType: 1,
-              startIndex: 0,
-              innings: 7,
-              lineup: [
-                {
-                  id: "Ava",
-                  gender: "F",
-                  outs: 10,
-                  singles: 0,
-                  doubles: 2,
-                  triples: 3,
-                  homeruns: 0
-                },
-                {
-                  id: "Jen",
-                  gender: "F",
-                  outs: 12,
-                  singles: 3,
-                  doubles: 2,
-                  triples: 1,
-                  homeruns: 0
-                },
-                {
-                  id: "Caitlin",
-                  gender: "F",
-                  outs: 4,
-                  singles: 3,
-                  doubles: 2,
-                  triples: 1,
-                  homeruns: 0
-                },
-                {
-                  id: "Sue",
-                  gender: "F",
-                  outs: 1,
-                  singles: 3,
-                  doubles: 2,
-                  triples: 1,
-                  homeruns: 6
-                }
-              ],
-              initialLineup: null,
-              initialScore: null,
-              initialHistogram: null
-            };
-            */
 
             // Get partial results (if any) so we don't start from scratch if we've already run part of this optimization
             let existingResult = await databaseCalls.getOptimizationResultData(
@@ -168,10 +119,6 @@ module.exports = class OptimizationServer {
                 100
               ).toFixed(1)}%)`
             );
-
-            // TODO: test if this is necessary - I though it would be required for any server side writes to the db, but status
-            // changes seem to tolerate writes with no cache clears...
-            await cacheCalls.clearStateMd5();
           } else if (parsedData.command === "COMPLETE") {
             logger.log(sock.accountId, "COMPLETE");
 
@@ -187,7 +134,6 @@ module.exports = class OptimizationServer {
               sock.optimizationId,
               3 // TODO: state.OPTIMIZATION_STATUS_ENUM.COMPLETE
             );
-            await cacheCalls.clearStateMd5();
             sock.isComplete = true;
           } else if (parsedData.command === "ERROR") {
             logger.log(sock.accountId, "ERROR");

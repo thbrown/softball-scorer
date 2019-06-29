@@ -13,7 +13,7 @@ const sqlGen = require("./sql-gen.js");
  */
 module.exports = class DatabaseCalls {
   constructor(url, port, user, password, cb) {
-    logger.log(null, "Connecting to pg", url);
+    logger.log("sys", "Connecting to pg", url);
     this.pool = new Pool({
       user: user,
       host: url,
@@ -33,11 +33,16 @@ module.exports = class DatabaseCalls {
     // Verify connection
     this.pool.connect(function(err) {
       if (err) {
-        console.log("There was a problem getting db connection:", err);
+        logger.error(
+          "sys",
+          "There was a problem getting the db connection:",
+          err
+        );
         if (cb) {
           cb(err);
         }
       } else {
+        logger.log("sys", "Postgres Connected");
         if (cb) {
           cb(null);
         }
@@ -47,7 +52,7 @@ module.exports = class DatabaseCalls {
 
   disconnect() {
     this.pool.end(() => {
-      logger.log(null, "Pg pool has been closed");
+      logger.warn(null, "Pg pool has been closed");
     });
   }
 
@@ -56,15 +61,15 @@ module.exports = class DatabaseCalls {
     return new Promise(function(resolve, reject) {
       self.pool.connect(function(err, client, done) {
         if (err) {
-          logger.log(null, "There was a problem getting db connection:");
-          logger.log(err);
+          logger.error(null, "There was a problem getting db connection:");
+          logger.error(err);
           reject(err);
         }
 
         client.query(queryString, function(err, result) {
           done();
           if (err) {
-            logger.log(null, err);
+            logger.error(null, err);
             reject(err);
           } else {
             resolve(result);
@@ -79,8 +84,8 @@ module.exports = class DatabaseCalls {
     return new Promise(function(resolve, reject) {
       self.pool.connect(function(err, client, done) {
         if (err) {
-          logger.log(null, "There was a problem getting db connection:");
-          logger.log(null, err);
+          logger.error(null, "There was a problem getting db connection:");
+          logger.error(null, err);
           process.exit(1);
         }
 
@@ -98,7 +103,6 @@ module.exports = class DatabaseCalls {
   }
 
   getState(accountId) {
-    logger.log(accountId, "Pulling Data");
     if (accountId === undefined) {
       return { players: [], optimizations: [], teams: [] };
     }
@@ -272,8 +276,6 @@ module.exports = class DatabaseCalls {
             newGame.opponent = plateAppearance.game_opponent;
             newGame.date = plateAppearance.game_date;
             newGame.park = plateAppearance.game_park;
-            //newGame.scoreUs = plateAppearance.score_us;
-            //newGame.scoreThem = plateAppearance.score_them;
             newGame.lineupType = plateAppearance.lineup_type;
             if (plateAppearance.lineup) {
               newGame.lineup = plateAppearance.lineup

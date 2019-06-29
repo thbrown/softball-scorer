@@ -1,4 +1,4 @@
-//const TimSort = require("timsort"); -- Buggy (mergeLow preconditions were not respected)
+//const TimSort = require("timsort"); -- Buggy (https://github.com/mziccard/node-timsort/issues/14)
 const MergeSort = require("merge-sort");
 
 const HandledError = require("./handled-error.js");
@@ -75,7 +75,7 @@ const keywords = tableReferences
   ]); // teams columns
 
 let getSqlFromPatch = function(patch, accountId) {
-  logger.log(accountId, "PATCH", JSON.stringify(patch, null, 2));
+  logger.log(accountId, "Converting patch to sql");
   let result = [];
   getSqlFromPatchInternal(patch, [], result, accountId);
 
@@ -84,7 +84,6 @@ let getSqlFromPatch = function(patch, accountId) {
   const STATEMENT_TABLE_REGEX = /teams|games|players_games|plate_appearances|players|optimization/;
 
   // This requires a stable sorting algorithm. Keeping the statments of a single table in their previous order is important!
-  // TODO: Yikes hitting this lib issue sometimes (https://github.com/mziccard/node-timsort/issues/14) may need to switch implementations
   MergeSort(function(a, b) {
     // TODO: it would be more efficient to save these results instead of running the regexes each time
     let aOp = a.query.match(STATEMENT_TYPE_REGEX)[0];
