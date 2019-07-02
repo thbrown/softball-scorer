@@ -48,12 +48,22 @@ module.exports = class DatabaseCalls {
         }
       }
     });
+
+    this.pool.on("error", error => {
+      logger.error(null, `Postgres error: ${error}`);
+    });
   }
 
   disconnect() {
-    this.pool.end(() => {
-      logger.warn(null, "Pg pool has been closed");
-    });
+    logger.log(null, "disconnecting from posrgres");
+    return new Promise(
+      function(resolve, reject) {
+        this.pool
+          .end()
+          .then(() => resolve())
+          .catch(err => reject(err));
+      }.bind(this)
+    );
   }
 
   queryPromise(queryString) {

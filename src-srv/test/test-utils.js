@@ -4,7 +4,7 @@ const hasher = require("object-hash");
 exports.signup = async function(email, password, reCapcha) {
   try {
     const response = await got.post(
-      "http://localhost:8888/server/account/signup",
+      "http://localhost:80/server/account/signup",
       {
         body: {
           email: email,
@@ -22,16 +22,13 @@ exports.signup = async function(email, password, reCapcha) {
 
 exports.login = async function(email, password) {
   try {
-    var response = await got.post(
-      "http://localhost:8888/server/account/login",
-      {
-        body: {
-          email: email,
-          password: password
-        },
-        json: true
-      }
-    );
+    var response = await got.post("http://localhost:80/server/account/login", {
+      body: {
+        email: email,
+        password: password
+      },
+      json: true
+    });
   } catch (error) {
     throw error;
   }
@@ -41,7 +38,7 @@ exports.login = async function(email, password) {
 
 exports.deleteAccount = async function(sessionId) {
   try {
-    const response = await got.delete("http://localhost:8888/server/account", {
+    const response = await got.delete("http://localhost:80/server/account", {
       headers: {
         cookie: sessionId
       },
@@ -55,7 +52,7 @@ exports.deleteAccount = async function(sessionId) {
 
 exports.sync = async function(sessionId, checksum, patch) {
   try {
-    const response = await got.post("http://localhost:8888/server/sync", {
+    const response = await got.post("http://localhost:80/server/sync", {
       headers: {
         cookie: sessionId
       },
