@@ -8,7 +8,6 @@ const FETCH_TIMEOUT =
 
 exports.request = async function(method, url, body) {
   url = exports.getServerUrl(url);
-  console.log("Request to ", url);
   try {
     let response = await requestInternal(method, url, body);
     state.setStatusBasedOnHttpResponse(response.status);
@@ -55,6 +54,7 @@ let requestInternal = async function(method, url, body) {
           },
           body: body
         });
+
         resolve(reqResp);
       } catch (err) {
         reject(new Error("Something went wrong during the request: " + err));
@@ -75,6 +75,7 @@ let requestInternal = async function(method, url, body) {
 
     state.setStatusBasedOnHttpResponse(response.status);
   } else {
+    console.log("xhr", new XMLHttpRequest());
     // TODO: This is untested and probably doesn't work
     const request = await new Promise(function(resolve, reject) {
       const xhr = new XMLHttpRequest();

@@ -1,5 +1,5 @@
 //const TimSort = require("timsort"); -- Buggy (https://github.com/mziccard/node-timsort/issues/14)
-const MergeSort = require("merge-sort");
+const stable = require("stable");
 
 const HandledError = require("./handled-error.js");
 const idUtils = require("../id-utils.js");
@@ -28,6 +28,7 @@ const tableNames = [
 ];
 
 // Specify what order we should execute sql statements in for inserts/updates (deletes are done in reverse order)
+// This is importatnt because it prevents foreign key violations between tables, items at the top have are referenced by lower items
 const tableSortOrder = [
   "players",
   "optimization",
@@ -39,6 +40,14 @@ const tableSortOrder = [
 let tableOrdering = {}; // map for efficient lookup
 for (let i = 0; i < tableSortOrder.length; i++) {
   tableOrdering[tableSortOrder[i]] = i;
+}
+
+// Specify what order we should return sql statements that do delete, insert, and update
+// This also prevents foreign key violations because we need to do delets in reverse order and inserts/updates in forward order (order per tableSortOrder)
+const opSortOrder = ["DELETE", "INSERT", "UPDATE"];
+let opOrdering = {}; // map for easy lookup
+for (let i = 0; i < opSortOrder.length; i++) {
+  opOrdering[opSortOrder[i]] = i;
 }
 
 const JSON_BLOB_MAX_CHARS = 5000;
@@ -79,45 +88,58 @@ let getSqlFromPatch = function(patch, accountId) {
   let result = [];
   getSqlFromPatchInternal(patch, [], result, accountId);
 
-  // Order sql statements by the table it affects to prevent foreign key violations
-  const STATEMENT_TYPE_REGEX = /DELETE|UPDATE|INSERT/;
+  // User regex to determine what table a query will affect (TODO: hard code these like we do with order [INSERT, UPDATE, DELETE]);
   const STATEMENT_TABLE_REGEX = /teams|games|players_games|plate_appearances|players|optimization/;
 
   // This requires a stable sorting algorithm. Keeping the statments of a single table in their previous order is important!
-  MergeSort(function(a, b) {
-    // TODO: it would be more efficient to save these results instead of running the regexes each time
-    let aOp = a.query.match(STATEMENT_TYPE_REGEX)[0];
-    let bOp = b.query.match(STATEMENT_TYPE_REGEX)[0];
+  stable.inplace(result, function(a, b) {
+    // First order by operation
+    let aOp = a.order;
+    let bOp = b.order;
 
-    // Order the sql statements by the table they affect
-    let aTable = a.query.match(STATEMENT_TABLE_REGEX)[0];
-    let bTable = b.query.match(STATEMENT_TABLE_REGEX)[0];
     if (aOp && bOp) {
-      let tableSort = 0;
-      if (aOp === "DELETE") {
-        // DELETEs need to be in reverse order
-        tableSort = tableOrdering[bTable] - tableOrdering[aTable];
-      } else {
-        // INSERTs and UPDATEs need to be in forward order
-        tableSort = tableOrdering[aTable] - tableOrdering[bTable];
-      }
-      if (tableSort || tableSort === 0) {
-        return tableSort;
+      let opSort = opOrdering[aOp] - opOrdering[bOp];
+
+      if (opSort === 0) {
+        // Op order is the same, next order by table
+        let aTable = a.query.match(STATEMENT_TABLE_REGEX)[0];
+        let bTable = b.query.match(STATEMENT_TABLE_REGEX)[0];
+
+        let tableSort = 0;
+        if (aOp === "DELETE") {
+          // DELETEs need to be in reverse order
+          tableSort = tableOrdering[bTable] - tableOrdering[aTable];
+        } else {
+          // INSERTs and UPDATEs need to be in forward order
+          tableSort = tableOrdering[aTable] - tableOrdering[bTable];
+        }
+
+        if (tableSort || tableSort === 0) {
+          return tableSort;
+        } else {
+          throw new HandledError(
+            500,
+            "Internal Server Error",
+            `Unable to compare these tables: ${aTable} ${bTable}. Please add them to the tableSortOrder constant.`
+          );
+        }
+      } else if (opSort) {
+        return opSort;
       } else {
         throw new HandledError(
           500,
           "Internal Server Error",
-          `Unable to compare these tables: ${aTable} ${bTable}. Please add them to the tableSortOrder constant.`
+          `Unable to compare these tables: ${opOrdering[aOp]} ${opOrdering[bOp]}. Please add them to the opSortOrder constant.`
         );
       }
     } else {
       throw new HandledError(
         500,
         "Internal Server Error",
-        `Could not detemine op of these statements ${a.query} ${b.query}`
+        `Could not detemine order of these statements ${a.query} ${b.query}. Add an order property to the query object.`
       );
     }
-  }, result);
+  });
   return result;
 };
 
@@ -148,7 +170,8 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
             values: [
               idUtils.clientIdToServerId(value.key, accountId),
               accountId
-            ]
+            ],
+            order: "DELETE"
           });
           result.push({
             query:
@@ -156,7 +179,8 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
             values: [
               idUtils.clientIdToServerId(value.key, accountId),
               accountId
-            ]
+            ],
+            order: "DELETE"
           });
           result.push({
             query:
@@ -164,7 +188,8 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
             values: [
               idUtils.clientIdToServerId(value.key, accountId),
               accountId
-            ]
+            ],
+            order: "DELETE"
           });
         }
 
@@ -175,7 +200,8 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
             values: [
               idUtils.clientIdToServerId(value.key, accountId),
               accountId
-            ]
+            ],
+            order: "DELETE"
           });
           result.push({
             query:
@@ -183,7 +209,8 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
             values: [
               idUtils.clientIdToServerId(value.key, accountId),
               accountId
-            ]
+            ],
+            order: "DELETE"
           });
         }
 
@@ -198,7 +225,8 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
                 accountId
               ),
               accountId
-            ]
+            ],
+            order: "DELETE"
           });
           result.push({
             query:
@@ -210,7 +238,8 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
                 accountId
               ),
               accountId
-            ]
+            ],
+            order: "DELETE"
           });
         } else {
           result.push({
@@ -221,7 +250,8 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
             values: [
               idUtils.clientIdToServerId(value.key, accountId),
               accountId
-            ]
+            ],
+            order: "DELETE"
           });
         }
       } else if (op === "ArrayAdd") {
@@ -279,7 +309,8 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
 
         result.push({
           query: reOrderQuery,
-          values: values
+          values: values,
+          order: "UPDATE"
         });
       } else if (op === "Edit") {
         if (
@@ -293,7 +324,8 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
               value.param2,
               idUtils.clientIdToServerId(getIdFromPath(path), accountId),
               accountId
-            ]
+            ],
+            order: "UPDATE"
           });
         } else {
           let columnName = getColNameFromJSONValue(value.key);
@@ -331,7 +363,8 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
             ],
             limits: {
               1: limit
-            }
+            },
+            order: "UPDATE"
           });
         }
       } else if (op === "Add") {
@@ -376,7 +409,8 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
         obj.players.song_link,
         obj.players.song_start,
         accountId
-      ]
+      ],
+      order: "INSERT"
     });
   }
   if (obj.optimizations) {
@@ -406,7 +440,8 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
         10: JSON_LIST_MAX_CHARS,
         11: JSON_LIST_MAX_CHARS,
         12: JSON_LIST_MAX_CHARS
-      }
+      },
+      order: "INSERT"
     });
   }
   if (obj.teams) {
@@ -416,7 +451,8 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
         idUtils.clientIdToServerId(obj.teams.id, accountId),
         obj.teams.name,
         accountId
-      ]
+      ],
+      order: "INSERT"
     });
     if (obj.teams.games) {
       let insertObject = {};
@@ -443,7 +479,8 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
         idUtils.clientIdToServerId(parents.teamId, accountId),
         obj.games.lineupType,
         accountId
-      ]
+      ],
+      order: "INSERT"
     });
     if (obj.games.plateAppearances) {
       let insertObject = {};
@@ -464,7 +501,6 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
   }
 
   if (obj.lineup) {
-    // Order of these statments is enforced by opSortOrder (update before insert)
     result.push({
       query:
         "UPDATE players_games SET lineup_index = lineup_index + 1 WHERE lineup_index >= $1 AND game_id = $2 AND account_id = $3",
@@ -472,7 +508,8 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
         obj.position + 1, // lineup oredering starts at 1 not 0
         idUtils.clientIdToServerId(parents.gameId, accountId),
         accountId
-      ]
+      ],
+      order: "INSERT" // Run with the inserts, these two statements must be run one after the other
     });
     result.push({
       query:
@@ -482,7 +519,8 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
         idUtils.clientIdToServerId(parents.gameId, accountId),
         obj.position + 1, // lineup oredering starts at 1 not 0
         accountId
-      ]
+      ],
+      order: "INSERT"
     });
   }
 
@@ -505,7 +543,8 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
         x,
         y,
         accountId
-      ]
+      ],
+      order: "INSERT"
     });
   }
 };
@@ -530,7 +569,8 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
           obj.players[i].song_link,
           obj.players[i].song_start,
           accountId
-        ]
+        ],
+        order: "INSERT"
       });
     }
   }
@@ -564,7 +604,8 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
           10: JSON_LIST_MAX_CHARS,
           11: JSON_LIST_MAX_CHARS,
           12: JSON_LIST_MAX_CHARS
-        }
+        },
+        order: "INSERT"
       });
     }
   }
@@ -578,7 +619,8 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
           idUtils.clientIdToServerId(obj.teams[i].id, accountId),
           obj.teams[i].name,
           accountId
-        ]
+        ],
+        order: "INSERT"
       });
       if (obj.teams[i].games) {
         let insertObject = {};
@@ -606,7 +648,8 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
           idUtils.clientIdToServerId(parents.teamId, accountId),
           obj.games[i].lineupType,
           accountId
-        ]
+        ],
+        order: "INSERT"
       });
       if (obj.games[i].plateAppearances) {
         let insertObject = {};
@@ -637,7 +680,8 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
           idUtils.clientIdToServerId(parents.gameId, accountId),
           i + 1,
           accountId
-        ]
+        ],
+        order: "INSERT"
       });
     }
   }
@@ -665,7 +709,8 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
           x,
           y,
           accountId
-        ]
+        ],
+        order: "INSERT"
       });
     }
   }

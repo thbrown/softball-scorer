@@ -58,7 +58,7 @@ exports.getServerUrl = function(path) {
   return window.location.href + path;
 };
 
-// HTTP Standard Status codes plus:
+// HTTP standard status codes plus:
 // -1 network issue
 // -2 failed on fullSync = false
 // -3 failed on fullSync = true
@@ -70,7 +70,7 @@ exports.sync = async function(fullSync) {
   ) {
     // Simultaneous syncs might be okay, but we'll still limit it to one at a time for clarity
     console.log(
-      "waiting for in progress sync to finish" + exports.getSyncState()
+      "waiting for in progress sync to finish " + exports.getSyncState()
     );
     await sleep(500);
   }
@@ -252,8 +252,17 @@ exports.resetState = function() {
   exports.saveDbStateToLocalStorage();
 };
 
+exports.deleteAllLocalData = function() {
+  LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+  onEdit();
+};
+
 exports.getLocalState = function() {
   return LOCAL_DB_STATE;
+};
+
+exports.getLocalStateChecksum = function() {
+  return getMd5(LOCAL_DB_STATE);
 };
 
 exports.setLocalState = function(newState) {
@@ -573,12 +582,11 @@ exports.addPlayerToLineup = function(lineup, player_id) {
   onEdit();
 };
 
-exports.updateLineup = function(lineup, player_id, position_index) {
-  let ind = lineup.indexOf(player_id);
+exports.updateLineup = function(lineup, playerId, newIndex) {
+  let ind = lineup.indexOf(playerId);
   lineup.splice(ind, 1);
-  lineup.splice(position_index, 0, player_id);
+  lineup.splice(newIndex, 0, playerId);
   onEdit();
-  return lineup;
 };
 
 exports.removePlayerFromLineup = function(lineup, player_id) {
@@ -897,7 +905,7 @@ function dec2hex(dec) {
 function getNextId() {
   let len = 20;
   var arr = new Uint8Array((len || 40) / 2);
-  window.crypto.getRandomValues(arr);
+  crypto.getRandomValues(arr);
   let hex = Array.from(arr, dec2hex).join("");
   return idUtils.hexToBase62(hex).padStart(14, "0");
 }

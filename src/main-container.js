@@ -212,12 +212,12 @@ module.exports = class MainContainer extends expose.Component {
     return true;
   }
 
-  // Make sure these things are defined, if they don't throw a 404
+  // Make sure these things are defined, if they aren't throw a 404
   static validate(...args) {
     args.forEach(val => {
       if (!val) {
-        console.log(val, args);
-        throw "404 Undefined field";
+        console.log(args);
+        throw "404 - One of these fields was undefined" + JSON.stringify(args);
       }
     });
   }

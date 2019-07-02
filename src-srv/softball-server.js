@@ -28,7 +28,7 @@ module.exports = class SoftballServer {
     this.databaseCalls = databaseCalls;
     this.cacheCalls = cacheCalls;
     this.compute = compute;
-    this.PORT = 8888;
+    this.PORT = 80;
   }
 
   start() {
@@ -289,6 +289,7 @@ module.exports = class SoftballServer {
 
         if (config && config.recapcha && config.recapcha.secretkey) {
           let body = {
+            // TODO: why isn't this used?
             secret: config.recapcha.secretkey,
             response: req.body.reCAPCHA,
             remoteip: req.connection.remoteAddress
@@ -485,7 +486,11 @@ module.exports = class SoftballServer {
         try {
           // First delete all the data
           let state = await this.databaseCalls.getState(accountId);
-          let deletePatch = objectMerge.diff(state, { teams: [], players: [] });
+          let deletePatch = objectMerge.diff(state, {
+            teams: [],
+            players: [],
+            optimizations: []
+          });
           await this.databaseCalls.patchState(deletePatch, accountId);
 
           // Then delete the account
@@ -530,14 +535,15 @@ module.exports = class SoftballServer {
         }
 
         let accountId = extractSessionInfo(req, "accountId");
-
-        // Log the begining of the request
         let data = req.body;
-        logger.log(accountId, "Sync request received by server ");
 
         // Validate the request
         if (!data["md5"]) {
-          throw new HandledError(400, "Missing required field", data);
+          throw new HandledError(
+            400,
+            "Missing required field: md5",
+            JSON.stringify(data)
+          );
         }
 
         // Prevent race conditions across requests
@@ -1098,8 +1104,6 @@ module.exports = class SoftballServer {
           });
         });
         logger.log(account.account_id, "Login Successful -- backdoor!");
-        let accountId = extractSessionInfo(req, "accountId");
-        logger.log(account.account_id, `Data ${accountId}`);
       } catch (e) {
         logger.log(account.account_id, "ERROR", e);
         res.status(500).send();
@@ -1150,7 +1154,17 @@ module.exports = class SoftballServer {
   }
 
   stop() {
-    logger.log(null, "Closing App");
-    this.server.close();
+    return new Promise(
+      function(resolve, reject) {
+        logger.log(null, "Closing App");
+        this.server.close(function(err) {
+          if (err) {
+            reject(err);
+          }
+          logger.log(null, "App Closed");
+          resolve();
+        });
+      }.bind(this)
+    );
   }
 };

@@ -23,6 +23,7 @@ exports.sendMessage = function(accountId, destinationEmail, subject, message) {
   }
 
   // So we don't email randos during testing, only allow emails to be sent to softball.app domains
+  // TODO: make domain configurable
   if (!allowAllDomains && !destinationEmail.endsWith("softball.app")) {
     logger.warn(
       accountId,
