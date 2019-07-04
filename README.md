@@ -38,7 +38,7 @@ Windows requires the use of Windows Subsystem for Linux (WSL)
 1. `sudo apt-get update`
 1. `sudo apt-get upgrade`
 1. `sudo apt-get install redis-server`
-1. `sudo redis-server ./redis.conf`
+1. `sudo redis-server` optionally supply `./redis.conf`
 1. Update/Create ./src-svr/config.js with Redis server info (see ./src-svr/config-template.js)
 
 redis.conf

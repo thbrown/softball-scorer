@@ -2,6 +2,7 @@ const { promisify } = require("util");
 const redis = require("redis");
 const session = require("express-session");
 const RedisStore = require("connect-redis")(session);
+const zlib = require("zlib");
 
 const logger = require("./logger");
 
@@ -89,15 +90,24 @@ module.exports = class CacheCalls {
   }
 
   async getAncestor(accountId, sessionId) {
-    let stringData = await this.hgetAsync(accountId, "ancestor" + sessionId);
+    let stringData = await this.hgetAsync(accountId, "ancestor:" + sessionId);
     if (stringData) {
-      return JSON.parse(stringData);
+      var inflated = zlib
+        .inflateSync(new Buffer(stringData, "base64"))
+        .toString();
+      logger.warn(null, "retrieving ancestor", inflated, stringData);
+
+      return JSON.parse(inflated);
     }
     return null;
   }
 
   async setAncestor(accountId, sessionId, ancestor) {
-    this.hsetAsync(accountId, "ancestor" + sessionId, JSON.stringify(ancestor));
+    var deflated = zlib
+      .deflateSync(JSON.stringify(ancestor))
+      .toString("base64");
+    logger.warn(null, "setting ancestor", JSON.stringify(ancestor), deflated);
+    this.hsetAsync(accountId, "ancestor:" + sessionId, deflated);
   }
 
   getSessionStore() {
