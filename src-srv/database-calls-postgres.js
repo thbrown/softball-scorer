@@ -464,6 +464,26 @@ module.exports = class DatabaseCalls {
     return undefined;
   }
 
+  async getAccountById(id) {
+    let result = await this.parameterizedQueryPromise(
+      "SELECT email, verified_email FROM account WHERE account_id = $1",
+      [id]
+    );
+    if (result.rowCount === 1) {
+      let object = result.rows[0];
+      let newObject = {};
+      newObject.email = object.email;
+      newObject.verifiedEmail = object.verified_email;
+      return newObject;
+    } else if (result.rowCount !== 0) {
+      throw new HandledError(
+        500,
+        `A strange number of accounts were returned: ${email} ${result}`
+      );
+    }
+    return undefined;
+  }
+
   async setPasswordHashAndExpireToken(accountId, newPasswordHash) {
     await this.parameterizedQueryPromise(
       `
@@ -577,6 +597,31 @@ module.exports = class DatabaseCalls {
     );
     if (result.rowCount === 1) {
       return result.rows[0].result_data;
+    } else if (result.rowCount !== 0) {
+      throw new HandledError(
+        500,
+        `A strange number of optimization result datas were returned: ${optimizationId} ${result}`
+      );
+    }
+    return undefined;
+  }
+
+  async getOptimizationDetails(accountId, optimizationId) {
+    logger.log(accountId, "getting optimization results data", optimizationId);
+    let result = await this.parameterizedQueryPromise(
+      `
+        SELECT name, send_email
+        FROM optimization
+        WHERE id = $1 AND account_id = $2
+      `,
+      [optimizationId, accountId]
+    );
+    if (result.rowCount === 1) {
+      let object = result.rows[0];
+      let newObject = {};
+      newObject.name = object.name;
+      newObject.sendEmail = object.send_email;
+      return newObject;
     } else if (result.rowCount !== 0) {
       throw new HandledError(
         500,

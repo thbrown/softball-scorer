@@ -230,6 +230,9 @@ Clips can be played from the player's plate appearance page
         lineupType: this.optimization.lineupType
       };
 
+      // Be sure the server has out optimization details before it tried to run the optimization
+      await state.sync();
+
       let body = JSON.stringify({
         executionData: executionData,
         optimizationId: this.optimization.id
