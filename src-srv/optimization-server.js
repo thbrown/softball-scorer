@@ -1,14 +1,11 @@
 const net = require("net");
-const HOST = "127.0.0.1";
-const PORT = "8414"; // TODO: move to config?
+const configAccessor = require("./config-accessor");
 const logger = require("./logger.js");
 const idUtils = require("../id-utils.js");
 
-/*
-TODO:
-1) Delete execution data
-3) Actually send the email if selected
-*/
+const HOST = "127.0.0.1";
+const PORT = configAccessor.getOptimizationServerPort();
+
 module.exports = class OptimizationServer {
   constructor(databaseCalls, cacheCalls) {
     logger.log(null, "Starting Optimization TCP server");
@@ -94,7 +91,7 @@ module.exports = class OptimizationServer {
               2 // TODO: state.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS
             );
 
-            console.log("SENT:", JSON.stringify(job));
+            logger.log("?", "SENT:", JSON.stringify(job));
           } else if (parsedData.command === "IN_PROGRESS") {
             // We've got an update!
             logger.log(
@@ -135,6 +132,36 @@ module.exports = class OptimizationServer {
               3 // TODO: state.OPTIMIZATION_STATUS_ENUM.COMPLETE
             );
             sock.isComplete = true;
+
+            // Send Completion Email
+            let optimization = await databaseCalls.getOptimizationDetails(
+              sock.accountId,
+              sock.optimizationId
+            );
+            let account = await databaseCalls.getAccountById(sock.accountId);
+            if (optimization.sendEmail && account.verifiedEmail) {
+              let email = configAccessor.getEmailService();
+              email.sendMessage(
+                sock.accountId,
+                account.email,
+                `Softball.app Optimization ${optimization.name} has Completed!`,
+                JSON.stringify(parsedData, null, 2)
+              );
+            } else {
+              logger.warn(
+                sock.accountId,
+                "Did not send email on optimization completion",
+                optimization.sendEmail,
+                account.verifiedEmail
+              );
+            }
+
+            // Delete the execution_data
+            await databaseCalls.setOptimizationExecutionData(
+              sock.accountId,
+              sock.optimizationId,
+              null
+            );
           } else if (parsedData.command === "ERROR") {
             logger.log(sock.accountId, "ERROR");
             logger.log(sock.accountId, parsedData.message);
