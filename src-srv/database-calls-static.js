@@ -14,7 +14,8 @@ let databaseCalls = class DatabaseCalls {
         password_hash:
           "$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2", // pizza
         password_token_hash: "abcdefg",
-        password_token_expiration: Date.now() + 3600000
+        password_token_expiration: Date.now() + 3600000,
+        verifiedEmail: true
       }
     ];
     this.STATES = {
@@ -272,6 +273,15 @@ let databaseCalls = class DatabaseCalls {
     return undefined;
   }
 
+  async getAccountById(id) {
+    for (let i = 0; i < this.ACCOUNTS.length; i++) {
+      if (this.ACCOUNTS[i].account_id === id) {
+        return this.ACCOUNTS[i];
+      }
+    }
+    return undefined;
+  }
+
   getState(accountId) {
     // Return a copy of the state
     return JSON.parse(JSON.stringify(this.STATES[accountId]));
@@ -322,7 +332,7 @@ let databaseCalls = class DatabaseCalls {
 
   async confirmEmail(accountId) {
     for (let i = 0; i < this.ACCOUNTS.length; i++) {
-      if (this.ACCOUNTS[i].id === accountId) {
+      if (this.ACCOUNTS[i].account_id === accountId) {
         this.ACCOUNTS[i].verifiedEmail = true;
       }
     }
@@ -331,7 +341,7 @@ let databaseCalls = class DatabaseCalls {
 
   async setPasswordHashAndExpireToken(accountId, newPasswordHash) {
     for (let i = 0; i < this.ACCOUNTS.length; i++) {
-      if (this.ACCOUNTS[i].id === accountId) {
+      if (this.ACCOUNTS[i].account_id === accountId) {
         this.ACCOUNTS[i].password_token_hash = newPasswordHash;
         this.ACCOUNTS[i].password_token_expiration = 0;
       }
@@ -341,7 +351,7 @@ let databaseCalls = class DatabaseCalls {
 
   async setPasswordTokenHash(accountId, tokenHash) {
     for (let i = 0; i < this.ACCOUNTS.length; i++) {
-      if (this.ACCOUNTS[i].id === accountId) {
+      if (this.ACCOUNTS[i].account_id === accountId) {
         this.ACCOUNTS[i].password_token_hash = tokenHash;
         this.ACCOUNTS[i].password_token_expiration = Date.now() + 3600000;
       }
@@ -353,7 +363,7 @@ let databaseCalls = class DatabaseCalls {
     logger.log(accountId, "deleting");
     let indexToRemove = undefined;
     for (let i = 0; i < this.ACCOUNTS.length; i++) {
-      if (this.ACCOUNTS[i].id === accountId) {
+      if (this.ACCOUNTS[i].account_id === accountId) {
         indexToRemove = i;
         break;
       }
@@ -415,7 +425,7 @@ let databaseCalls = class DatabaseCalls {
     let state = this.STATES[accountId];
     for (let i = 0; i < state.optimizations.length; i++) {
       if (state.optimizations[i].id === optimizationId) {
-        // Postgres converts to stringified data on read, there is no such logic for static, so we'll jsut store it as a stringified object.
+        // Postgres converts to stringified data on read, there is no such logic for static, so we'll just store it as a stringified object.
         // No need to stringify execution data because that stays on the server side.
         state.optimizations[i].resultData = JSON.stringify(newResults);
         return;
@@ -436,6 +446,23 @@ let databaseCalls = class DatabaseCalls {
     for (let i = 0; i < state.optimizations.length; i++) {
       if (state.optimizations[i].id === optimizationId) {
         return state.optimizations[i].resultData;
+      }
+    }
+    throw new Error(
+      "Optimization not found 3 " +
+        optimizationId +
+        " " +
+        JSON.stringify(state.optimizations)
+    );
+  }
+
+  async getOptimizationDetails(accountId, optimizationId) {
+    optimizationId = idUtils.serverIdToClientId(optimizationId);
+    logger.log(accountId, "getting optimization result data");
+    let state = this.STATES[accountId];
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
+        return state.optimizations[i];
       }
     }
     throw new Error(
