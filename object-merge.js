@@ -104,7 +104,11 @@ let diffInternal = function(mine, theirs, path, result) {
     throw "I don't know how to diff objects of different types! " +
       typeof mine +
       " " +
-      typeof theirs;
+      typeof theirs +
+      " " +
+      JSON.stringify(mine) +
+      " " +
+      JSON.stringify(theirs);
   }
   return result;
 };

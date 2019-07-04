@@ -95,8 +95,6 @@ module.exports = class CacheCalls {
       var inflated = zlib
         .inflateSync(new Buffer(stringData, "base64"))
         .toString();
-      logger.warn(null, "retrieving ancestor", inflated, stringData);
-
       return JSON.parse(inflated);
     }
     return null;
@@ -106,7 +104,6 @@ module.exports = class CacheCalls {
     var deflated = zlib
       .deflateSync(JSON.stringify(ancestor))
       .toString("base64");
-    logger.warn(null, "setting ancestor", JSON.stringify(ancestor), deflated);
     this.hsetAsync(accountId, "ancestor:" + sessionId, deflated);
   }
 
