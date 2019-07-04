@@ -1,10 +1,13 @@
 const got = require("got");
 const hasher = require("object-hash");
+const configAccessor = require("../config-accessor");
+
+let port = configAccessor.getAppServerPort();
 
 exports.signup = async function(email, password, reCapcha) {
   try {
     const response = await got.post(
-      "http://localhost:80/server/account/signup",
+      `http://localhost:${port}/server/account/signup`,
       {
         body: {
           email: email,
@@ -22,13 +25,16 @@ exports.signup = async function(email, password, reCapcha) {
 
 exports.login = async function(email, password) {
   try {
-    var response = await got.post("http://localhost:80/server/account/login", {
-      body: {
-        email: email,
-        password: password
-      },
-      json: true
-    });
+    var response = await got.post(
+      `http://localhost:${port}/server/account/login`,
+      {
+        body: {
+          email: email,
+          password: password
+        },
+        json: true
+      }
+    );
   } catch (error) {
     throw error;
   }
@@ -38,12 +44,15 @@ exports.login = async function(email, password) {
 
 exports.deleteAccount = async function(sessionId) {
   try {
-    const response = await got.delete("http://localhost:80/server/account", {
-      headers: {
-        cookie: sessionId
-      },
-      json: true
-    });
+    const response = await got.delete(
+      `http://localhost:${port}/server/account`,
+      {
+        headers: {
+          cookie: sessionId
+        },
+        json: true
+      }
+    );
     return response;
   } catch (error) {
     throw error;
@@ -52,7 +61,7 @@ exports.deleteAccount = async function(sessionId) {
 
 exports.sync = async function(sessionId, checksum, patch) {
   try {
-    const response = await got.post("http://localhost:80/server/sync", {
+    const response = await got.post(`http://localhost:${port}/server/sync`, {
       headers: {
         cookie: sessionId
       },

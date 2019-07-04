@@ -4,13 +4,13 @@ const fs = require("fs");
 const path = require("path");
 const util = require("util");
 
-const config = require("./config");
+const config = require("./config.js");
 
-// TODO: move these options to the config file
-const COLOR = true;
-const LOCATION = true;
+const COLOR_OFF = (config.logging && config.logging.colorOff) || false;
+const LOG_TO_FILE = (config.logging && config.logging.toFile) || false;
 const LOG_LOCATION = __dirname + "/logs/server.log";
-if (config.logging && config.logging.logToFile) {
+
+if (LOG_TO_FILE) {
   ensureDirectoryExistence(LOG_LOCATION);
   var logFile = fs.createWriteStream(LOG_LOCATION, { flags: "w" }); // TODO: rotate by day
 }
@@ -33,31 +33,31 @@ let logColor = function(accountId, color, ...messages) {
 
   process.stdout.write(timestamp + "\t");
   process.stdout.write(accountId + "\t");
-  if (COLOR) {
-    for (let i = 0; i < messages.length; i++) {
-      process.stdout.write(`\x1b[${color}${util.format(messages[i])}\x1b[0m\t`);
-    }
-    process.stdout.write(`\x1b[34m${location}\x1b[0m\n`);
-  } else {
+  if (COLOR_OFF) {
     for (let i = 0; i < messages.length; i++) {
       process.stdout.write(`${util.format(messages[i])}\t`);
     }
     process.stdout.write(location + "\n");
+  } else {
+    for (let i = 0; i < messages.length; i++) {
+      process.stdout.write(`\x1b[${color}${util.format(messages[i])}\x1b[0m\t`);
+    }
+    process.stdout.write(`\x1b[34m${location}\x1b[0m\n`);
   }
 
-  if (config.logging && config.logging.logToFile) {
+  if (LOG_TO_FILE) {
     logFile.write(timestamp + "\t");
     logFile.write(accountId + "\t");
-    if (COLOR) {
-      for (let i = 0; i < messages.length; i++) {
-        logFile.write(`\x1b[${color}${util.format(messages[i])}\x1b[0m\t`);
-      }
-      logFile.write(`\x1b[34m${location}\x1b[0m\n`);
-    } else {
+    if (COLOR_OFF) {
       for (let i = 0; i < messages.length; i++) {
         logFile.write(`${util.format(messages[i])}\t`);
       }
       logFile.write(location + "\n");
+    } else {
+      for (let i = 0; i < messages.length; i++) {
+        logFile.write(`\x1b[${color}${util.format(messages[i])}\x1b[0m\t`);
+      }
+      logFile.write(`\x1b[34m${location}\x1b[0m\n`);
     }
   }
 };

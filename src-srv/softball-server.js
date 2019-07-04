@@ -15,8 +15,7 @@ const crypto = require("crypto");
 const hasher = require("object-hash");
 const got = require("got");
 
-const config = require("./config");
-const email = require("./email");
+const configAccessor = require("./config-accessor");
 const HandledError = require("./handled-error");
 const idUtils = require("../id-utils");
 const logger = require("./logger");
@@ -24,11 +23,12 @@ const objectMerge = require("../object-merge");
 const OptimizationServer = require("./optimization-server");
 
 module.exports = class SoftballServer {
-  constructor(databaseCalls, cacheCalls, compute) {
+  constructor(appPort, optimizationPort, databaseCalls, cacheCalls, compute) {
     this.databaseCalls = databaseCalls;
     this.cacheCalls = cacheCalls;
     this.compute = compute;
-    this.PORT = 80;
+    this.port = appPort;
+    this.optimizationPort = optimizationPort;
   }
 
   start() {
@@ -187,10 +187,7 @@ module.exports = class SoftballServer {
     app.use(
       passportSession({
         store: this.cacheCalls.getSessionStore(),
-        secret:
-          config.session && config.session.secretkey
-            ? config.session.secretkey
-            : crypto.randomBytes(20).toString("hex"),
+        secret: configAccessor.getSessionSecretKey(),
         resave: false,
         saveUninitialized: false,
         name: "softball.sid",
@@ -286,17 +283,12 @@ module.exports = class SoftballServer {
         checkFieldLength(req.body.password, 320);
 
         checkRequiredField(req.body.reCAPCHA, "reCAPCHA");
-
-        if (config && config.recapcha && config.recapcha.secretkey) {
-          let body = {
-            // TODO: why isn't this used?
-            secret: config.recapcha.secretkey,
-            response: req.body.reCAPCHA,
-            remoteip: req.connection.remoteAddress
-          };
+        if (configAccessor.getRecapchaSecretKey()) {
           try {
             const recapchaResponse = await got.post(
-              `https://www.google.com/recaptcha/api/siteverify?secret=${config.recapcha.secretkey}&response=${req.body.reCAPCHA}`
+              `https://www.google.com/recaptcha/api/siteverify?secret=${configAccessor.getRecapchaSecretKey()}&response=${
+                req.body.reCAPCHA
+              }`
             );
             let recapchaResponseBody = JSON.parse(recapchaResponse.body);
             if (!recapchaResponseBody.success) {
@@ -332,12 +324,14 @@ module.exports = class SoftballServer {
           tokenHash
         );
 
-        email.sendMessage(
-          account.account_id,
-          req.body.email,
-          "Welcome to Softball.app!",
-          `Thank you for signing up for an account on https://softball.app. Please click this activation link to verify your email address: https://softball.app/account/verify-email/${token}`
-        );
+        configAccessor
+          .getEmailService()
+          .sendMessage(
+            account.account_id,
+            req.body.email,
+            "Welcome to Softball.app!",
+            `Thank you for signing up for an account on https://softball.app. Please click this activation link to verify your email address: https://softball.app/account/verify-email/${token}`
+          );
 
         logger.log(
           account.account_id,
@@ -369,12 +363,14 @@ module.exports = class SoftballServer {
             tokenHash
           );
 
-          email.sendMessage(
-            account.account_id,
-            req.body.email,
-            "Softball.app Password Reset",
-            `Sombody tried to reset the password for the softball.app (https://softball.app) account associated with this email address (hopefully it was you!). Please click this link to reset the password: https://softball.app/account/password-reset/${token}`
-          );
+          configAccessor
+            .getEmailService()
+            .sendMessage(
+              account.account_id,
+              req.body.email,
+              "Softball.app Password Reset",
+              `Sombody tried to reset the password for the softball.app (https://softball.app) account associated with this email address (hopefully it was you!). Please click this link to reset the password: https://softball.app/account/password-reset/${token}`
+            );
 
           res.status(204).send();
         } else {
@@ -999,7 +995,7 @@ module.exports = class SoftballServer {
       }
     });
 
-    this.server = server.listen(this.PORT, function listening() {
+    this.server = server.listen(this.port, function listening() {
       logger.log(null, "Softball App: Listening on", server.address().port);
     });
 

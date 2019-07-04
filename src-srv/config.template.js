@@ -2,6 +2,10 @@
  * This is the server side configuration template. To add your own configuration, please copy this file and rename it to 'config.js'
  **/
 module.exports = {
+  app: {
+    port: undefined
+  },
+
   database: {
     host: undefined,
     port: undefined,
@@ -25,12 +29,17 @@ module.exports = {
   },
 
   logging: {
-    logToFile: false
+    toFile: false,
+    colorOff: false
   },
 
   email: {
     apiKey: undefined,
     domain: undefined,
-    allowAllDomains: false
+    restrictEmailsToDomain: undefined
+  },
+
+  optimization: {
+    port: undefined
   }
 };
