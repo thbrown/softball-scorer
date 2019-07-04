@@ -19,7 +19,25 @@ let databaseCalls = class DatabaseCalls {
     ];
     this.STATES = {
       1: {
-        optimizations: [],
+        optimizations: [
+          {
+            id: "0R8p2xFmJSiDAZ",
+            name: "6/18 optimization",
+            type: 0,
+            customData: '{"innings":7,"iterations":10000}',
+            overrideData: "{}",
+            status: 0,
+            resultData: null,
+            statusMessage: null,
+            sendEmail: true,
+            teamList: '["4fKFOTF7Wn4WIa","4W78nKNVldoDZ4","4jouU8AOMIpbj"]',
+            gameList: "[]",
+            playerList:
+              '["4ZqtZbpYtlxOVW","47guOwUQN5QLPc","4f4CQExEegoHbV","4SFlePddQQh8OY","4ePGkCgKNTSnH4","4yIOlHpfiREBfJ"]',
+            lineupType: 1,
+            executionData: null
+          }
+        ],
         players: [
           {
             id: "4f4CQExEegoHbV",

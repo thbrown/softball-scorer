@@ -2,7 +2,6 @@
 "use strict";
 
 const SoftballServer = require("./softball-server");
-const ComputeLocal = require("./compute-local");
 
 const configAccessor = require("./config-accessor");
 const logger = require("./logger.js");
@@ -27,7 +26,7 @@ const databaseCalls = configAccessor.getDatabaseService();
 const cacheCalls = configAccessor.getCacheService();
 
 // Inject the compute service (for running optimizations)
-const compute = new ComputeLocal();
+const compute = configAccessor.getComputeService();
 
 // Specify the ports
 let appPort = configAccessor.getAppServerPort();

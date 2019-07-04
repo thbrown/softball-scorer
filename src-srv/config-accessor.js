@@ -2,6 +2,7 @@ const DatabaseCallsPostgres = require("./database-calls-postgres");
 const DatabaseCallsStatic = require("./database-calls-static");
 const CacheCallsRedis = require("./cache-calls-redis");
 const CacheCallsLocal = require("./cache-calls-local");
+const ComputeGCP = require("./compute-gcp");
 const ComputeLocal = require("./compute-local");
 const EmailLogOnly = require("./email-log-only");
 const EmailMailgun = require("./email-mailgun");
@@ -107,7 +108,19 @@ module.exports.getComputeService = function() {
   if (compute) {
     return compute;
   }
-  compute = new ComputeLocal();
+
+  const computeMode = config.compute ? config.compute.mode : null;
+  if (computeMode === "local" || !computeMode) {
+    logger.warn(null, "Warning: running with local compute");
+    compute = new ComputeLocal();
+  } else if (computeMode === "gcp") {
+    const gcpParams = config.compute.params;
+    compute = new ComputeGCP(gcpParams);
+  } else {
+    throw new Error(
+      `Invalid compute mode specified in src-srv/config.js: ${compute}`
+    );
+  }
   return compute;
 };
 
