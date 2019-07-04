@@ -46,6 +46,7 @@ module.exports = class CacheCalls {
 
     this.client.on("error", function(err) {
       logger.error("sys", "Redis Error - " + err);
+      process.exit(1);
     });
 
     this.client.on("ready", function() {
@@ -88,7 +89,6 @@ module.exports = class CacheCalls {
   }
 
   async getAncestor(accountId, sessionId) {
-    //logger.log(accountId, "getting ancestor", sessionId);
     let stringData = await this.hgetAsync(accountId, "ancestor" + sessionId);
     if (stringData) {
       return JSON.parse(stringData);
@@ -97,7 +97,6 @@ module.exports = class CacheCalls {
   }
 
   async setAncestor(accountId, sessionId, ancestor) {
-    //logger.log(accountId, "setting ancestor", sessionId);
     this.hsetAsync(accountId, "ancestor" + sessionId, JSON.stringify(ancestor));
   }
 

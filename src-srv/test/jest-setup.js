@@ -1,5 +1,7 @@
 // Setup for jest tests - provide node implementations for browser apis
 
+const configAccessor = require("../config-accessor.js");
+
 // localstorage - https://stackoverflow.com/questions/32911630/how-do-i-deal-with-localstorage-in-jest-tests
 class LocalStorageMock {
   constructor() {
@@ -27,7 +29,6 @@ global.localStorage = new LocalStorageMock();
 
 // crypto - https://stackoverflow.com/questions/52612122/how-to-use-jest-to-test-functions-using-crypto-or-window-mscrypto
 const crypto = require("crypto");
-
 Object.defineProperty(global.self, "crypto", {
   value: {
     // web crypto overrides the passed in array, node crypto returns a random array of the passed in length
@@ -58,4 +59,11 @@ global.fetch = function(url, opts) {
 
   let fetch = nodeFetch(url, opts);
   return fetch;
+};
+
+// window location - origin is used by network.js
+delete global.window.location;
+global.window = Object.create(window);
+global.window.location = {
+  origin: `http://localhost:${configAccessor.getAppServerPort()}`
 };

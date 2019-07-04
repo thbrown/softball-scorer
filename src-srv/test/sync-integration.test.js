@@ -4,14 +4,8 @@
 const objectHash = require("object-hash");
 const got = require("got");
 
-const CacheCallsLocal = require("../cache-calls-local");
-const ComputeLocal = require("../compute-local");
-const config = require("../config");
-const DatabaseCallsPostgres = require("../database-calls-postgres");
-const MockDb = require("./database-calls-mock");
-const objectMerge = require("../../object-merge.js");
+const configAccessor = require("../config-accessor");
 const SoftballServer = require("../softball-server");
-const StateTester = require("./test-state-tracker.js");
 const utils = require("./test-utils.js");
 const state = require("../../src/state.js");
 
@@ -26,19 +20,12 @@ describe("sync", () => {
   let server;
   let sessionId;
   beforeAll(async () => {
-    const pghost = config.database.host;
-    const pgport = config.database.port;
-    const username = config.database.username;
-    const password = config.database.password;
-    databaseCalls = new DatabaseCallsPostgres(
-      pghost,
-      pgport,
-      username,
-      password
-    );
-    cache = new CacheCallsLocal();
-    compute = new ComputeLocal();
-    server = new SoftballServer(databaseCalls, cache, compute);
+    const port = configAccessor.getAppServerPort();
+    const optPort = configAccessor.getOptimizationServerPort();
+    databaseCalls = configAccessor.getDatabaseService();
+    cache = configAccessor.getCacheService();
+    compute = configAccessor.getComputeService();
+    server = new SoftballServer(port, optPort, databaseCalls, cache, compute);
     server.start();
 
     // Wait for services to start up (TODO: fix this)
@@ -46,7 +33,7 @@ describe("sync", () => {
 
     let email = `syncTest${utils.randomId(10)}@softball.app`;
     let accountPassword = "pizza";
-    await utils.signup(email, password);
+    await utils.signup(email, accountPassword);
 
     sessionId = await utils.login(email, accountPassword);
     authenticate(sessionId); // see jest-setup.js
@@ -74,7 +61,7 @@ describe("sync", () => {
 
     if (clientChecksum !== serverChecksum) {
       // Checksums don't care about ordering, so they are the definitive answer
-      // If those don't match, we'll compare the strings becaus eethy are much easier to debug
+      // If those don't match, we'll compare the strings because they are much easier to debug
       console.log(
         "Pre",
         beforeSyncCopy,
