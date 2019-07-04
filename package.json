@@ -58,6 +58,7 @@
   },
   "homepage": "https://github.com/thbrown/softball-scorer#readme",
   "dependencies": {
+    "acorn": "^6.1.1",
     "base-x": "^3.0.4",
     "bcrypt": "^3.0.6",
     "body-parser": "^1.18.3",
@@ -66,6 +67,7 @@
     "express-session": "^1.15.6",
     "file-saver": "^2.0.0-rc.3",
     "folder-hash": "^2.1.1",
+    "googleapis": "^40.0.0",
     "got": "^8.3.2",
     "helmet": "^3.12.1",
     "ip": "^1.1.5",

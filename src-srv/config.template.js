@@ -7,25 +7,25 @@ module.exports = {
   },
 
   database: {
-    host: undefined,
-    port: undefined,
-    username: undefined,
-    password: undefined
+    host: null,
+    port: null,
+    username: null,
+    password: null
   },
 
   cache: {
-    host: undefined,
-    port: undefined,
-    username: undefined,
-    password: undefined
+    host: null,
+    port: null,
+    username: null,
+    password: null
   },
 
   session: {
-    secretkey: undefined
+    secretkey: null
   },
 
   recapcha: {
-    secretkey: undefined
+    secretkey: null
   },
 
   logging: {
@@ -41,5 +41,10 @@ module.exports = {
 
   optimization: {
     port: undefined
+  },
+
+  compute: {
+    mode: "local",
+    params: null
   }
 };

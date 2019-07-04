@@ -91,7 +91,7 @@ module.exports = class ComputeLocal {
 
     let versionArray = javaVersion.split(".");
     if (versionArray[1] < 8 || versionArray[0] !== "1") {
-      logger.log(
+      logger.warn(
         accountId,
         `WARNING: installed version of Java (${javaVersion}) may not be compatible with jar build`
       );
@@ -132,6 +132,6 @@ module.exports = class ComputeLocal {
       logger.log(accountId, "Optimization client stderr", data.toString());
       onError(accountId, optimizationId, data.toString());
     });
-    // TODO: save the java log somewhere
+    return Promise.resolve();
   }
 };
