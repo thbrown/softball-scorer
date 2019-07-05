@@ -941,7 +941,12 @@ Clips can be played from the player's plate appearance page
         ),
         React.createElement(RightHeaderButton)
       ),
-      this.renderOptimizationPage()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderOptimizationPage()
+      )
     );
   }
 };

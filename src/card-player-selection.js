@@ -67,9 +67,14 @@ module.exports = class CardPlayerSelection extends expose.Component {
         ),
         React.createElement(RightHeaderButton, {})
       ),
-      this.renderPlayerSelection(),
-      this.maybeRenderGenderRadioButton(),
-      this.renderSubmitButton()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderPlayerSelection(),
+        this.maybeRenderGenderRadioButton(),
+        this.renderSubmitButton()
+      )
     );
   }
 

@@ -16,6 +16,8 @@ const WalkupSong = require("component-walkup-song");
 
 const LOCATION_DENOMINATOR = 32767;
 
+const BALLFIELD_MAX_WIDTH = 500;
+
 const normalize = function(x, A, B, C, D) {
   return C + ((x - A) * (D - C)) / (B - A);
 };
@@ -109,10 +111,12 @@ module.exports = class CardPlateAppearance extends expose.Component {
       // lame way to make this run after the mouseup event
       setTimeout(() => {
         let new_x = Math.floor(
-          ((this.mx - 10) / window.innerWidth) * LOCATION_DENOMINATOR
+          ((this.mx - 10) / Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH)) *
+            LOCATION_DENOMINATOR
         );
         let new_y = Math.floor(
-          ((this.my - 10) / window.innerWidth) * LOCATION_DENOMINATOR
+          ((this.my - 10) / Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH)) *
+            LOCATION_DENOMINATOR
         );
         this.setState({
           dragging: false,
@@ -267,10 +271,22 @@ module.exports = class CardPlateAppearance extends expose.Component {
       }
 
       let new_x = Math.floor(
-        normalize(x, 0, LOCATION_DENOMINATOR, 0, window.innerWidth)
+        normalize(
+          x,
+          0,
+          LOCATION_DENOMINATOR,
+          0,
+          Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH)
+        )
       );
       let new_y = Math.floor(
-        normalize(y, 0, LOCATION_DENOMINATOR, 0, window.innerWidth)
+        normalize(
+          y,
+          0,
+          LOCATION_DENOMINATOR,
+          0,
+          Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH)
+        )
       );
 
       if (value.location && x && y) {
@@ -297,8 +313,8 @@ module.exports = class CardPlateAppearance extends expose.Component {
           position: "relative",
           borderTop: "1px solid white",
           borderBottom: "1px solid white",
-          width: window.innerWidth - 2 + "px",
-          height: window.innerWidth - 2 + "px",
+          width: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + "px",
+          height: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + "px",
           overflow: "hidden"
         }
       },
@@ -424,31 +440,40 @@ module.exports = class CardPlateAppearance extends expose.Component {
           onPress: this.homeOrBack
         })
       ),
-      this.renderButtonList(),
-      this.renderField(imageSrcForCurrentPa),
       DOM.div(
         {
+          className: "card-body",
           style: {
-            display: "flex",
-            justifyContent: "space-between"
+            maxWidth: BALLFIELD_MAX_WIDTH + "px"
           }
         },
+
+        this.renderButtonList(),
+        this.renderField(imageSrcForCurrentPa),
         DOM.div(
           {
             style: {
-              paddingLeft: "24px"
+              display: "flex",
+              justifyContent: "space-between"
             }
           },
-          this.renderBaseball(imageSrcForCurrentPa)
-        ),
-        this.renderActionsButtons(),
-        DOM.div(
-          {
-            style: {
-              paddingRight: "24px"
-            }
-          },
-          this.renderWalkupSong()
+          DOM.div(
+            {
+              style: {
+                paddingLeft: "24px"
+              }
+            },
+            this.renderBaseball(imageSrcForCurrentPa)
+          ),
+          this.renderActionsButtons(),
+          DOM.div(
+            {
+              style: {
+                paddingRight: "24px"
+              }
+            },
+            this.renderWalkupSong()
+          )
         )
       )
     );

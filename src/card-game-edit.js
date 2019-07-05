@@ -217,7 +217,12 @@ module.exports = class CardGameEdit extends expose.Component {
           onPress: this.homeOrBack
         })
       ),
-      this.renderGameEdit()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderGameEdit()
+      )
     );
   }
 };

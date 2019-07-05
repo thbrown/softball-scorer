@@ -238,7 +238,12 @@ module.exports = class CardSignup extends expose.Component {
         ),
         React.createElement(RightHeaderButton, {})
       ),
-      this.renderAuthInterface()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderAuthInterface()
+      )
     );
   }
 };

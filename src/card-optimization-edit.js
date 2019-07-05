@@ -191,7 +191,12 @@ module.exports = class CardOptimizationEdit extends expose.Component {
           onPress: this.homeOrBack
         })
       ),
-      this.renderOptimizationEdit()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderOptimizationEdit()
+      )
     );
   }
 };

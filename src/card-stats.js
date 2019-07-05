@@ -209,7 +209,9 @@ module.exports = class CardStats extends expose.Component {
         className="card"
         style={{ width: "100%", height: height, marginTop: "20px" }}
       >
-        <StickyTable>{tableElems}</StickyTable>
+        <div className="card-body">
+          <StickyTable>{tableElems}</StickyTable>
+        </div>
       </div>
     );
   }
