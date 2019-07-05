@@ -105,7 +105,12 @@ module.exports = class CardVerifyEmail extends expose.Component {
         ),
         React.createElement(RightHeaderButton, {})
       ),
-      this.renderPage()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderPage()
+      )
     );
   }
 };

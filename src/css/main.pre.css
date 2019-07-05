@@ -18,6 +18,11 @@ body {
   animation: fadein 0.3s;
 }
 
+.card-body {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
 @keyframes fadein {
   from {
     opacity: 0;
@@ -748,8 +753,6 @@ Scrolling is ~10-20x smoother.
   background-color: $css.colors.WHITE;
 }
 .accordionContainer {
-  max-width: 960px;
-  margin: 0 auto;
 }
 .accordionTitle,
 .accordion__Heading {

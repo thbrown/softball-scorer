@@ -190,8 +190,13 @@ module.exports = class CardPlayerSelect extends expose.Component {
           onPress: this.handleBackOrHome.bind(this)
         })
       ),
-      this.renderPlayerSelection(),
-      this.renderButtons()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderPlayerSelection(),
+        this.renderButtons()
+      )
     );
   }
   renderButtons() {

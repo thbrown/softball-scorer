@@ -271,7 +271,12 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
           onPress: this.homeOrBack
         })
       ),
-      this.renderOverridePlayerStats(existingOverride)
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderOverridePlayerStats(existingOverride)
+      )
     );
   }
 };

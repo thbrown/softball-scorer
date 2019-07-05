@@ -315,7 +315,12 @@ module.exports = class CardMenu extends expose.Component {
           showBlogLink: true
         })
       ),
-      this.renderMenuOptions()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderMenuOptions()
+      )
     );
   }
 };
