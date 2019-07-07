@@ -4,6 +4,7 @@ const session = require("express-session");
 const RedisStore = require("connect-redis")(session);
 const zlib = require("zlib");
 
+const configAccessor = require("./config-accessor");
 const logger = require("./logger");
 
 /**
@@ -74,6 +75,8 @@ module.exports = class CacheCalls {
     this.hsetAsync = promisify(this.client.hset).bind(this.client);
     this.hsetnxAsync = promisify(this.client.hsetnx).bind(this.client);
     this.hdelAsync = promisify(this.client.hdel).bind(this.client);
+    this.setAsync = promisify(this.client.set).bind(this.client);
+    this.evalAsync = promisify(this.client.eval).bind(this.client);
   }
 
   async init() {
@@ -87,6 +90,21 @@ module.exports = class CacheCalls {
 
   async unlockAccount(accountId) {
     await this.hdelAsync(accountId, "locked");
+  }
+
+  async lockOptimization(optimizationId, serverId, ttl) {
+    // This redis function (lua) either
+    // 1) Takes the lock if nobody else has it (returns true)
+    // 2) Extends the lock ttl if the lock is already held by the server requesting it (returns true) or
+    // 3) Returns false if the lock is owned by another server
+    let result = await this.evalAsync(
+      "local value = redis.call('get', KEYS[1]); if not value then redis.call('set', KEYS[1], ARGV[1], 'EX', ARGV[2]) return true elseif (value == ARGV[1]) then redis.call('expire', KEYS[1], ARGV[2]) return true else return false end",
+      "1",
+      "optlock:" + optimizationId,
+      serverId,
+      ttl
+    );
+    return result ? true : false;
   }
 
   async getAncestor(accountId, sessionId) {

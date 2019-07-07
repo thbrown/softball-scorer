@@ -143,6 +143,14 @@ module.exports.getSessionSecretKey = function() {
   );
 };
 
+module.exports.getAppOptimizationLockTTL = function() {
+  return (config && config.app && config.app.optimizationLockTTL) || 30;
+};
+
+module.exports.getAppOptimizationSweeperPeriod = function() {
+  return (config && config.app && config.app.optimizationSweeperPeriod) || 120;
+};
+
 // Logger must access the config directly because it we can't require modules that use the logger beofre the logger is configured
 /*
 module.exports.getToFile = function() {

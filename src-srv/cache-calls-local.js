@@ -1,9 +1,12 @@
+const configAccessor = require("./config-accessor");
+
 /**
  * This cache implementation just stores cached data in local memory. It will not scale past one process.
  */
 module.exports = class CacheCalls {
   constructor() {
     this.cache = {};
+    this.timers = {};
   }
   async lockAccount(accountId) {
     let lockStatus = this.getData(accountId, "locked");
@@ -17,6 +20,24 @@ module.exports = class CacheCalls {
 
   async unlockAccount(accountId) {
     this.deleteData(accountId, "locked");
+  }
+
+  async lockOptimization(optimizationId, serverId, ttl) {
+    let key = "optlock:" + optimizationId;
+    let value = this.cache[key];
+    if (!value) {
+      // Nobody currently holds the lock, lock it
+      this.putDataTTL(key, ttl, serverId);
+      return true;
+    } else if (value === serverId) {
+      // This server currently holds the lock, extend it
+      this.putDataTTL(key, ttl, serverId);
+      return true;
+    } else {
+      // Another server owns the lock, fail the call
+      this.putDataTTL(key, ttl, serverId);
+      return false;
+    }
   }
 
   async getAncestor(accountId, sessionId) {
@@ -36,18 +57,34 @@ module.exports = class CacheCalls {
     }
   }
 
-  putData(accountId, field, value) {
-    if (!this.cache[accountId]) {
-      this.cache[accountId] = {};
+  putDataTTL(key, ttl, value) {
+    this.cache[key] = value;
+
+    if (this.timers[key]) {
+      console.log("clearign timeout", key, value);
+      clearTimeout(this.timers[key]);
     }
-    this.cache[accountId][field] = value;
+    this.timers[key] = setTimeout(
+      function() {
+        console.log("keyHasExpired", key, value);
+        delete this.cache[key];
+      }.bind(this),
+      ttl * 1000
+    );
   }
 
-  deleteData(accountId, field) {
-    if (!this.cache[accountId]) {
+  putData(key, field, value) {
+    if (!this.cache[key]) {
+      this.cache[key] = {};
+    }
+    this.cache[key][field] = value;
+  }
+
+  deleteData(key, field) {
+    if (!this.cache[key]) {
       return true;
     }
-    return delete this.cache[accountId][field];
+    return delete this.cache[key][field];
   }
 
   getSessionStore() {
