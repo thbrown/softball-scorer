@@ -3,7 +3,9 @@
  **/
 module.exports = {
   app: {
-    port: undefined
+    port: undefined,
+    optimizationSweeperPeriod: undefined,
+    optimizationLockTTL: undefined
   },
 
   database: {
@@ -16,7 +18,6 @@ module.exports = {
   cache: {
     host: null,
     port: null,
-    username: null,
     password: null
   },
 
