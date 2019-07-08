@@ -4,6 +4,7 @@ const CacheCallsRedis = require("./cache-calls-redis");
 const CacheCallsLocal = require("./cache-calls-local");
 const ComputeGCP = require("./compute-gcp");
 const ComputeLocal = require("./compute-local");
+const ComputeNone = require("./compute-none");
 const EmailLogOnly = require("./email-log-only");
 const EmailMailgun = require("./email-mailgun");
 
@@ -113,6 +114,9 @@ module.exports.getComputeService = function() {
   if (computeMode === "local" || !computeMode) {
     logger.warn(null, "Warning: running with local compute");
     compute = new ComputeLocal();
+  } else if (computeMode === "none") {
+    logger.warn(null, "Warning: running with noop compute");
+    compute = new ComputeNone();
   } else if (computeMode === "gcp") {
     const gcpParams = config.compute.params;
     compute = new ComputeGCP(gcpParams);

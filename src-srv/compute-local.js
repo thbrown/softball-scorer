@@ -134,4 +134,12 @@ module.exports = class ComputeLocal {
     });
     return Promise.resolve();
   }
+
+  async retry(accountId, optimizationId, onError) {
+    return this.start(accountId, optimizationId, onError);
+  }
+
+  async cleanup(accountId, optimizationId) {
+    // no cleanup necessary
+  }
 };

@@ -22,10 +22,10 @@ module.exports = class ComputeGCP {
           this.authorize(function(authClient) {
             var request = {
               project: gcpParams.project,
-              zone: gcpParams.zone,
+              zone: this.getZone(),
               resource: {
                 name: name,
-                machineType: `zones/${gcpParams.zone}/machineTypes/custom-${coreCount}-${memoryMb}`,
+                machineType: `zones/${this.getZone()}/machineTypes/custom-${coreCount}-${memoryMb}`,
                 scheduling: {
                   preemptible: true
                 },
@@ -73,7 +73,7 @@ module.exports = class ComputeGCP {
           this.authorize(async function(authClient) {
             var request = {
               project: gcpParams.project,
-              zone: gcpParams.zone,
+              zone: this.getZone(),
               instance: name,
               auth: authClient
             };
@@ -144,6 +144,56 @@ module.exports = class ComputeGCP {
         callback(authClient);
       });
     };
+
+    // These methods track the gcp zone we are running commands against.
+    // The config lists zones in order of preference. Zones closer to the
+    // app server cost less for network egress, but compute resources aren't
+    // always available.
+    this.zoneMap = {};
+
+    this.getZone = function(optimizationId) {
+      let zoneIndex = this.zoneMap[optimizationId];
+      if (!zoneIndex) {
+        this.zoneMap[optimizationId] = 0;
+      }
+      return gcpParams.zones[zoneIndex];
+    };
+
+    this.nextZone = async function(accountId, optimizationID) {
+      let zoneIndex = this.getZone(optimizationID);
+      if (zoneIndex < gcpParams.zones.length - 1) {
+        logger.warn(
+          accountId,
+          "Switching from zone",
+          this.zoneMap[optimizationId],
+          gcpParams.zones[this.zoneMap[optimizationId]],
+          "to",
+          this.zoneMap[optimizationId] + 1,
+          gcpParams.zones[this.zoneMap[optimizationId] + 1]
+        );
+        this.zoneMap[optimizationId] = this.zoneMap[optimizationId] + 1;
+      } else {
+        logger.error(
+          accountId,
+          "Zones exhausted, waiting to retry existing list"
+        );
+        throw new Error(
+          `Resource shortage: zones exhausted ${gcpParams.zones}`
+        );
+        /*
+        // We've exausted our list of zones, wait a couple minutes and try again
+        function sleep(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        await sleep(120000);
+        this.zoneMap[optimizationId] = 0;
+        */
+      }
+    };
+
+    this.removeZoneCounter = function(optimizationID) {
+      delete this.zoneMap[optimizationID];
+    };
   }
 
   async start(accountId, optimizationId, onError) {
@@ -169,13 +219,29 @@ module.exports = class ComputeGCP {
       logger.log(accountId, "Instance is in state RUNNING");
       return Promise.resolve();
     } catch (error) {
-      logger.error(accountId, error);
-      onError(accountId, optimizationId, JSON.stringify(error));
-      return Promise.reject();
+      // TODO: only retry on resource allocation errors
+      logger.warn(accountId, "retrying", JSON.stringify(error));
+      try {
+        return await retry(accountId, optimizationId, onError);
+      } catch (error) {
+        onError(accountId, optimizationId, JSON.stringify(error));
+        return Promise.reject();
+      }
     }
   }
 
+  async retry(accountId, optimizationId, onError) {
+    this.nextZone(accountId, optimizationId);
+    return await this.start(accountId, optimizationId, onError);
+  }
+
+  async cleanup(accountId, optimizationId) {
+    logger.log(accountId, "running optimization cleanup");
+    this.removeZoneCounter(optimizationId);
+    // TODO: Delete instance??
+  }
+
   async stop(accountId, name) {
-    logger.log(accountId, "Stoping simulation on gcp");
+    logger.log(accountId, "Stoping simulation on gcp - NOT IMPLEMENTED");
   }
 };

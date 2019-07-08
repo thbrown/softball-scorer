@@ -1,6 +1,7 @@
 # GCP Compute
 
-This directory contains instructions and a start up script for running optimizations on gcp compute instances.
+This directory contains instructions and a start up script for running optimizations on gcp compute instances. These
+instructions are for running both the app server and the compute instances in gcp, not just the optimization compute instances.
 
 Prerequisite: you must have a Google Cloud Platform (GCP) account.
 
@@ -23,11 +24,11 @@ sudo nano mystartup.sh
 sudo chmod +x /etc/init.d/mystartup.sh
 sudo ln -s /etc/init.d/mystartup.sh /etc/rc3.d/S99mystartup
 
-// Example Startup Script:
-#!/bin/bash
-cd /home/thbrown/Server/MonsterServer
-sudo bash -c 'echo STARTUP `date` >> /home/thbrown/scripts.log'
-screen -d -m -S minecraft sudo ./ServerStart.sh
+// Startup Script:
+#! /bin/bash
+REMOTE_IP=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/remote-ip -H "Metadata-Flavor: Google")
+OPTIMIZATION_ID=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/optimization-id -H "Metadata-Flavor: Google")
+java -jar softball-sim.jar NETWORK OPTIMIZATION_ID REMOTE_IP false
 ```
 
 7. Shutdown the instance.
@@ -58,9 +59,11 @@ Add/Modify the compute node to/in the src-srv config.js. Make sure you are mofif
     type: "gcp",
     params: {
       projectId: "some-project-123456",
-      zone: "us-central1-b",
+      zones: ["us-central1-b", "us-central1-a", "us-central1-c"],
       snaphotName: "optimization-base"
     }
   }
 ...
 ```
+
+Note: zones are listed in priority order
