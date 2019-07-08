@@ -58,9 +58,9 @@ Add/Modify the compute node to/in the src-srv config.js. Make sure you are mofif
   compute: {
     type: "gcp",
     params: {
-      projectId: "some-project-123456",
+      project: "some-project-123456",
       zones: ["us-central1-b", "us-central1-a", "us-central1-c"],
-      snaphotName: "optimization-base"
+      snapshotName: "optimization-base"
     }
   }
 ...

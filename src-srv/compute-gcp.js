@@ -19,46 +19,54 @@ module.exports = class ComputeGCP {
     ) {
       return new Promise(
         function(resolve, reject) {
-          this.authorize(function(authClient) {
-            var request = {
-              project: gcpParams.project,
-              zone: this.getZone(),
-              resource: {
-                name: name,
-                machineType: `zones/${this.getZone()}/machineTypes/custom-${coreCount}-${memoryMb}`,
-                scheduling: {
-                  preemptible: true
-                },
-                metadata: {
-                  items: [
-                    { key: "remote-ip", value: remoteIp },
-                    { key: "optimization-id", value: optimizationId }
+          this.authorize(
+            function(authClient) {
+              var request = {
+                project: gcpParams.project,
+                zone: this.getZone(optimizationId),
+                resource: {
+                  name: name,
+                  machineType: `zones/${this.getZone(
+                    optimizationId
+                  )}/machineTypes/custom-${coreCount}-${memoryMb}`,
+                  scheduling: {
+                    preemptible: true
+                  },
+                  metadata: {
+                    items: [
+                      { key: "remote-ip", value: remoteIp },
+                      { key: "optimization-id", value: optimizationId }
+                    ]
+                  },
+                  networkInterfaces: [{ network: "global/networks/default" }],
+                  disks: [
+                    {
+                      boot: true,
+                      initializeParams: {
+                        sourceSnapshot: `global/snapshots/${gcpParams.snapshotName}`
+                      },
+                      autoDelete: true
+                    }
                   ]
                 },
-                networkInterfaces: [{ network: "global/networks/default" }],
-                disks: [
-                  {
-                    boot: true,
-                    initializeParams: {
-                      sourceSnapshot: `global/snapshots/${gcpParams.snapshotName}`
-                    },
-                    autoDelete: true
-                  }
-                ]
-              },
-              auth: authClient
-            };
+                auth: authClient
+              };
 
-            compute.instances.insert(request, function(err, response) {
-              if (err) {
-                logger.error(err);
-                reject(accountId, err);
-                return;
-              }
-              resolve();
-              logger.log(accountId, "Inserted new instance");
-            });
-          });
+              compute.instances.insert(request, function(err) {
+                if (err) {
+                  logger.error(
+                    accountId,
+                    err.code, // 400
+                    err.message
+                  );
+                  reject(err);
+                  return;
+                }
+                resolve();
+                logger.log(accountId, "Inserted new instance");
+              });
+            }.bind(this)
+          );
         }.bind(this)
       );
     };
@@ -70,56 +78,60 @@ module.exports = class ComputeGCP {
     ) {
       return new Promise(
         function(resolve, reject) {
-          this.authorize(async function(authClient) {
-            var request = {
-              project: gcpParams.project,
-              zone: this.getZone(),
-              instance: name,
-              auth: authClient
-            };
-            let status = "UNKNOWN";
+          this.authorize(
+            async function(authClient) {
+              var request = {
+                project: gcpParams.project,
+                zone: this.getZone(optimizationId),
+                instance: name,
+                auth: authClient
+              };
+              let status = "UNKNOWN";
 
-            const MAX_RETRY = 40;
-            let counter = 0;
-            do {
-              // Wait 3 seconds
-              await new Promise((resolve, reject) => setTimeout(resolve, 3000));
+              const MAX_RETRY = 40;
+              let counter = 0;
+              do {
+                // Wait 3 seconds
+                await new Promise((resolve, reject) =>
+                  setTimeout(resolve, 3000)
+                );
 
-              // Is the status what we want it to be?
-              status = await new Promise(function(resolve, reject) {
-                compute.instances.get(request, function(err, response) {
-                  if (err) {
-                    logger.error(accountId, err);
-                    reject(err);
-                    return;
-                  }
-                  resolve(response);
+                // Is the status what we want it to be?
+                status = await new Promise(function(resolve, reject) {
+                  compute.instances.get(request, function(err, response) {
+                    if (err) {
+                      logger.error(accountId, err);
+                      reject(err);
+                      return;
+                    }
+                    resolve(response);
+                  });
                 });
-              });
-              logger.log(
-                accountId,
-                `Status is now ${JSON.stringify(
-                  status,
-                  null,
-                  2
-                )} - Retrys remaining ${MAX_RETRY - counter}`
-              );
-              counter++;
-            } while (status !== desiredStatus && counter < MAX_RETRY);
+                logger.log(
+                  accountId,
+                  `Status is now ${JSON.stringify(
+                    status,
+                    null,
+                    2
+                  )} - Retrys remaining ${MAX_RETRY - counter}`
+                );
+                counter++;
+              } while (status !== desiredStatus && counter < MAX_RETRY);
 
-            // Either it worked or it didn't
-            if (counter >= MAX_RETRY) {
-              logger.error(
-                accountId,
-                `Timeout while waiting for instance ${name} to be in status ${desiredStatus}. Instance was in status ${status} instead.`
-              );
-              reject(
-                `Timeout while waiting for instance ${name} to be in status ${desiredStatus}. Instance was in status ${status} instead.`
-              );
-            } else {
-              resolve();
-            }
-          });
+              // Either it worked or it didn't
+              if (counter >= MAX_RETRY) {
+                logger.error(
+                  accountId,
+                  `Timeout while waiting for instance ${name} to be in status ${desiredStatus}. Instance was in status ${status} instead.`
+                );
+                reject(
+                  `Timeout while waiting for instance ${name} to be in status ${desiredStatus}. Instance was in status ${status} instead.`
+                );
+              } else {
+                resolve();
+              }
+            }.bind(this)
+          );
         }.bind(this)
       );
     };
@@ -154,32 +166,21 @@ module.exports = class ComputeGCP {
     this.getZone = function(optimizationId) {
       let zoneIndex = this.zoneMap[optimizationId];
       if (!zoneIndex) {
-        this.zoneMap[optimizationId] = 0;
+        zoneIndex = 0;
+        this.zoneMap[optimizationId] = zoneIndex;
       }
       return gcpParams.zones[zoneIndex];
     };
 
-    this.nextZone = async function(accountId, optimizationID) {
-      let zoneIndex = this.getZone(optimizationID);
+    this.nextZone = function(accountId, optimizationId) {
+      this.getZone(optimizationId); // Make sure the zone map is populated
+      let zoneIndex = this.zoneMap[optimizationId];
       if (zoneIndex < gcpParams.zones.length - 1) {
-        logger.warn(
-          accountId,
-          "Switching from zone",
-          this.zoneMap[optimizationId],
-          gcpParams.zones[this.zoneMap[optimizationId]],
-          "to",
-          this.zoneMap[optimizationId] + 1,
-          gcpParams.zones[this.zoneMap[optimizationId] + 1]
-        );
         this.zoneMap[optimizationId] = this.zoneMap[optimizationId] + 1;
+        return true;
       } else {
-        logger.error(
-          accountId,
-          "Zones exhausted, waiting to retry existing list"
-        );
-        throw new Error(
-          `Resource shortage: zones exhausted ${gcpParams.zones}`
-        );
+        logger.error(accountId, "Zones exhausted");
+        return false;
         /*
         // We've exausted our list of zones, wait a couple minutes and try again
         function sleep(ms) {
@@ -196,8 +197,12 @@ module.exports = class ComputeGCP {
     };
   }
 
-  async start(accountId, optimizationId, onError) {
-    logger.log(accountId, "Starting simulation on gcp");
+  async start(accountId, optimizationId) {
+    logger.log(
+      accountId,
+      "Starting simulation on gcp",
+      this.getZone(optimizationId)
+    );
     try {
       let instanceName = `optimization-${optimizationId}`;
       await this.createInstance(
@@ -219,20 +224,40 @@ module.exports = class ComputeGCP {
       logger.log(accountId, "Instance is in state RUNNING");
       return Promise.resolve();
     } catch (error) {
-      // TODO: only retry on resource allocation errors
-      logger.warn(accountId, "retrying", JSON.stringify(error));
       try {
-        return await retry(accountId, optimizationId, onError);
-      } catch (error) {
-        onError(accountId, optimizationId, JSON.stringify(error));
-        return Promise.reject();
+        if (error.code >= 500) {
+          logger.warn(
+            accountId,
+            "retrying because of",
+            error.code,
+            error.message
+          );
+          return await this.retry(accountId, optimizationId);
+        } else {
+          logger.error(
+            accountId,
+            "not retrying because of",
+            error.code,
+            error.message
+          );
+          return Promise.reject(`${error.code} - ${error.message}`);
+        }
+      } catch (error2) {
+        return Promise.reject(error2);
       }
     }
   }
 
-  async retry(accountId, optimizationId, onError) {
-    this.nextZone(accountId, optimizationId);
-    return await this.start(accountId, optimizationId, onError);
+  async retry(accountId, optimizationId) {
+    logger.log(accountId, "attempting retry");
+    let moreZonesToProcess = this.nextZone(accountId, optimizationId);
+    if (moreZonesToProcess) {
+      return await this.start(accountId, optimizationId);
+    } else {
+      return Promise.reject(
+        "Cloud resource shortage - compute zone options exhausted, please try again later"
+      );
+    }
   }
 
   async cleanup(accountId, optimizationId) {
