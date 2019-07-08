@@ -57,6 +57,10 @@ save ""
 
 ### TODO: email
 
+### Google Cloud Platform
+
+To use gcp instances for optimization computation see the README in the gcp folder.
+
 ## Development:
 
 ### Format/Lint

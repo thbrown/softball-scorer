@@ -3,11 +3,13 @@ const configAccessor = require("./config-accessor");
 const logger = require("./logger.js");
 const idUtils = require("../id-utils.js");
 
-const HOST = "127.0.0.1";
+const ip = require("ip");
+
+const HOST = ip.address();
 const PORT = configAccessor.getOptimizationServerPort();
 
 module.exports = class OptimizationServer {
-  constructor(databaseCalls, cacheCalls) {
+  constructor(databaseCalls, computeService) {
     logger.log(null, "Starting Optimization TCP server");
 
     // Create server to listen for TCP connection on PORT
@@ -162,6 +164,9 @@ module.exports = class OptimizationServer {
               sock.optimizationId,
               null
             );
+
+            // Call any compute spicific cleanup
+            computeService.cleanup(sock.accountId, sock.optimizationId);
           } else if (parsedData.command === "ERROR") {
             logger.log(sock.accountId, "ERROR");
             logger.log(sock.accountId, parsedData.message);
@@ -178,32 +183,50 @@ module.exports = class OptimizationServer {
           }
         });
 
-        sock.on("close", async function(data) {
+        sock.on("close", async function(hadError) {
           // Closed connection
           logger.log(
             sock.accountId,
             "CLOSED: " + sock.remoteAddress + " " + sock.remotePort,
             sock.isComplete,
-            sock.errorRecorded
+            sock.errorRecorded,
+            hadError
           );
         });
 
         sock.on("error", async function(err) {
-          logger.log(sock.accountId, "ERROR2: ", err);
+          logger.warn(sock.accountId, "SOCKET ERROR: ", err);
           // Transition the optimization to error state if we haven't already(TODO: is the errorRecorded check necessary?)
           if (!sock.errorRecorded) {
-            let message = JSON.stringify(err);
             if (err.code === "ECONNRESET") {
-              message =
-                "The connection to compute resource was terminated. This might be because compute resources in the cloud are currently sparse. Please resume the optimization later.";
+              // The compute client was closed unexpectedly, this is a retryable condition.
+              // Deligate to each compute implementation to decide how to handle it
+              logger.log(sock.accountId, "attempting retry");
+              try {
+                return await retry(accountId, optimizationId, onError);
+              } catch (error) {
+                computeService.cleanup(sock.accountId, sock.optimizationId);
+                await databaseCalls.setOptimizationStatus(
+                  sock.accountId,
+                  sock.optimizationId,
+                  5, // TODO: state.OPTIMIZATION_STATUS_ENUM.ERROR
+                  `Insufficient cloud resources, try again later`
+                );
+                logger.log(
+                  sock.accountId,
+                  `Error: ${JSON.stringify(error)} caused by ${err}`
+                );
+              }
+            } else {
+              // Otherwise set the status to error
+              computeService.cleanup(sock.accountId, sock.optimizationId);
+              await databaseCalls.setOptimizationStatus(
+                sock.accountId,
+                sock.optimizationId,
+                5, // TODO: state.OPTIMIZATION_STATUS_ENUM.ERROR
+                JSON.stringify(err)
+              );
             }
-
-            await databaseCalls.setOptimizationStatus(
-              sock.accountId,
-              sock.optimizationId,
-              5, // TODO: state.OPTIMIZATION_STATUS_ENUM.ERROR
-              message
-            );
           }
         });
       })

@@ -35,7 +35,7 @@ module.exports = class SoftballServer {
     logger.log(null, "Starting");
 
     // Start the optimization server
-    new OptimizationServer(this.databaseCalls, this.cacheCalls);
+    new OptimizationServer(this.databaseCalls, this.compute);
 
     // Authentication
     let self = this;
