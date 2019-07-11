@@ -179,7 +179,12 @@ module.exports = class CardTeamEdit extends expose.Component {
           onPress: this.homeOrBack
         })
       ),
-      this.renderTeamEdit()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderTeamEdit()
+      )
     );
   }
 };

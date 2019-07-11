@@ -1,18 +1,20 @@
-const expose = require('expose');
-const objectMerge = require('../object-merge.js');
-const network = require('network.js');
-const idUtils = require('../id-utils.js');
-const results = require('plate-appearance-results.js');
+"use strict";
 
-const LZString = require('lz-string');
-const hasher = require('object-hash');
+const expose = require("expose");
+const objectMerge = require("../object-merge.js");
+const network = require("network.js");
+const idUtils = require("../id-utils.js");
+const results = require("plate-appearance-results.js");
+
+const LZString = require("lz-string");
+const hasher = require("object-hash");
 
 // Constants
 const INITIAL_STATE = { teams: [], players: [], optimizations: [] };
-const CURRENT_LS_SCHEMA_VERSION = '6';
+const CURRENT_LS_SCHEMA_VERSION = "6";
 const SYNC_DELAY_MS = 10000;
 const SYNC_STATUS_ENUM = Object.freeze({
-  COMPLETED: 1,
+  COMPLETE: 1,
   ERROR: 2,
   IN_PROGRESS: 3,
   PENDING: 4,
@@ -21,10 +23,11 @@ const SYNC_STATUS_ENUM = Object.freeze({
 });
 exports.OPTIMIZATION_STATUS_ENUM = Object.freeze({
   NOT_STARTED: 0,
-  STARTING: 1,
+  ALLOCATING_RESOURCES: 1,
   IN_PROGRESS: 2,
   COMPLETE: 3,
-  PAUSED: 4
+  PAUSED: 4,
+  ERROR: 5
 });
 const OPTIMIZATION_TYPE_ENUM = Object.freeze({
   MONTE_CARLO_EXAUSTIVE: 0
@@ -55,26 +58,30 @@ exports.getServerUrl = function(path) {
   return window.location.href + path;
 };
 
-// HTTP Standard Status codes plus:
+// HTTP standard status codes plus:
 // -1 network issue
 // -2 failed on fullSync = false
 // -3 failed on fullSync = true
 exports.sync = async function(fullSync) {
-  console.log('Sync requested', fullSync ? 'full' : 'patchOnly');
+  console.log("Sync requested", fullSync ? "full" : "patchOnly");
   while (
     exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS ||
     exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
   ) {
-    // Simultanious syncs might be okay, but we'll still limit it to one at a time for clarity
+    // Simultaneous syncs might be okay, but we'll still limit it to one at a time for clarity
     console.log(
-      'waiting for in progress sync to finish' + exports.getSyncState()
+      "waiting for in progress sync to finish " + exports.getSyncState()
     );
     await sleep(500);
   }
+  // Kill any scheduled syncs
+  clearTimeout(syncTimer);
   setSyncState(SYNC_STATUS_ENUM.IN_PROGRESS);
   try {
     // Save a deep copy of the local state
-    let localStateCopy = JSON.parse(JSON.stringify(state.getLocalState()));
+    let localStateCopyPreRequest = JSON.parse(
+      JSON.stringify(state.getLocalState())
+    );
     let localState = state.getLocalState();
 
     // Save the ancestor state so we can restore it if something goes wrong
@@ -83,89 +90,78 @@ exports.sync = async function(fullSync) {
     );
 
     // Get the patch ready to send to the server
-    let ancestorChecksum = state.getAncestorStateChecksum();
     let body = {
-      md5: ancestorChecksum,
+      md5: getMd5(localState),
       patch: objectMerge.diff(state.getAncestorState(), localState),
-      type: fullSync ? 'full' : 'any'
+      type: fullSync ? "full" : "any"
     };
 
     // Ship it
-    console.log('SENDING SYNC', body);
+    console.log("SENDING SYNC", body);
     let response = await network.request(
-      'POST',
-      'server/sync',
+      "POST",
+      "server/sync",
       JSON.stringify(body)
     );
 
     if (response.status === 200) {
       let serverState = response.body;
-      console.log('Received', serverState);
+      console.log("Received", serverState);
 
       // First gather any changes that were made locally while the request was still working
       let localChangesDuringRequest = objectMerge.diff(
-        localStateCopy,
+        localStateCopyPreRequest,
         localState
       );
 
-      // Update the ancestor if updates were received from server
+      // Update the ancestor if updates were received from the server
       if (serverState.base) {
         // The entire state was sent, we can just save it directly
         state.setAncestorState(serverState.base);
       } else if (serverState.patches) {
-        // Patches were sent, apply all patches to ancestor state
-        let ancestorState = state.getAncestorState();
-        if (serverState.patches) {
+        // Patches were sent, apply all patches to a copy of the local state
+        console.log(`Applying patches `);
+
+        serverState.patches.forEach(patch => {
+          objectMerge.patch(localStateCopyPreRequest, patch);
+        });
+        // The local state with the server updates is the new ancestor
+        state.setAncestorState(localStateCopyPreRequest);
+      } else {
+        console.log("No updates recieved from server");
+        state.setAncestorState(localStateCopyPreRequest);
+      }
+
+      // Verify that the ancestor state (after updates) has the same hash as the server state
+      let ancestorHash = state.getAncestorStateChecksum();
+      console.log("CLIENT: ", ancestorHash, " SERVER: ", serverState.md5);
+      if (ancestorHash !== serverState.md5) {
+        if (fullSync) {
+          // Something went wrong after trying a full sync, we probaly can't do anything about it!
+          // serverState.base should have contained a verbatium copy of what the server has, so this is weird.
+          console.log("Yikes! Something went wrong while attempting full sync");
           console.log(
-            `Applying ${serverState.patches.length} patches `,
-            serverState.patches
+            getMd5(state.getAncestorState()),
+            getMd5(serverState.base)
           );
-          serverState.patches.forEach(patch => {
-            objectMerge.patch(ancestorState, patch);
-          });
+          console.log(state.getAncestorState(), serverState.base);
+          // Set the state back to what it was when we first did a sync
+          state.setAncestorState(ancestorStateCopy);
+          throw new Error(-3);
+        } else {
+          // Something went wrong with the patch based sync, perhaps the server's cached data was incorrect
+          // We should be able to repeat the request with type "full" so we'll get the whole state back, not just the patches
+          console.log("Something went wrong while attempting patch sync");
+          console.log(getMd5(state.getLocalState), serverState.md5);
+
+          // Set the state back to what it was when we first did a sync
+          state.setAncestorState(ancestorStateCopy);
+          throw new Error(-2);
         }
       } else {
-        console.log('No updates recieved from server');
+        console.log("Sync was successful! (client and server checksums match)");
       }
 
-      // If the server state changed, verify the ancesor state (after updates) has the same hash as the server state
-      if (serverState.base || serverState.patches) {
-        // Verify checksum
-        let ancestorHash = getMd5(state.getAncestorState());
-        console.log('CLIENT: ', ancestorHash, ' SERVER: ', serverState.md5);
-        if (ancestorHash !== serverState.md5) {
-          if (fullSync) {
-            // Something went wrong after trying a full sync, we probaly can't do anything about it!
-            // serverState.base should have contained a verbatium copy of what the server has, so this is weird.
-            console.log(
-              'Yikes! Something went wrong while attempting full sync'
-            );
-            console.log(state.getAncestorState(), serverState.base);
-            // Set the state back to what it was when we first did a sync
-            state.setAncestorState(ancestorStateCopy);
-            throw new Error(-3);
-          } else {
-            // Something bad happened with a patch based sync, we may be able to repeat the request with type "full" so we'll get the whole state back, not just the patches
-            console.log('Something went wrong while attempting patch sync');
-            console.log(state.getAncestorState(), serverState.base);
-            console.log(
-              objectMerge.diff(state.getAncestorState(), serverState.base)
-            );
-
-            let A = getMd5(state.getAncestorState());
-            let B = getMd5(serverState.base);
-            console.log(A, B);
-
-            // Set the state back to what it was when we first did a sync
-            state.setAncestorState(ancestorStateCopy);
-            throw new Error(-2);
-          }
-        } else {
-          console.log(
-            'Sync was successful! (client and server checksums match)'
-          );
-        }
-      }
       // Copy
       let newLocalState = JSON.parse(JSON.stringify(state.getAncestorState()));
 
@@ -191,7 +187,7 @@ exports.sync = async function(fullSync) {
       setSyncState(SYNC_STATUS_ENUM.PENDING);
     } else {
       // Don't think this should be possible
-      console.log('Invalid state transition');
+      console.log("Invalid state transition");
       setSyncState(SYNC_STATUS_ENUM.UNKNOWN);
     }
 
@@ -209,24 +205,24 @@ exports.sync = async function(fullSync) {
       // 1) User is not signed in
       // 2) App is in offline mode
       console.log(
-        'Auth problem or offline mode is active: retrying sync later'
+        "Auth problem or offline mode is active: retrying sync later"
       );
       setSyncState(SYNC_STATUS_ENUM.ERROR);
     } else if (err.message == 503 || err.message == -1) {
       // Re-try later might work for
       // 1) Server rate limiting errors
       // 2) Weird network conditions
-      console.log('Network issues or server is busy: retrying sync later');
+      console.log("Network issues or server is busy: retrying sync later");
       scheduleSync();
     } else if (err.message == -2) {
       // Issue with patch based sync, re-try with a full sync
-      console.log('Issue with patch sync: attemtping full sync');
-      await exports.sync(true);
+      console.log("Issue with patch sync: attemtping full sync");
+      return await exports.sync(true);
     } else {
       // Other 500s, 400s are probably bugs :(, tell the user something is wrong
-      console.log('Probable bug encountered');
+      console.log("Probable bug encountered");
       alert(
-        'Auto sync failed with status ' +
+        "Auto sync failed with status " +
           err.message +
           ". App will continue to function, but your data won't be synced with the server. Consider backing up your data from the main menu to avoid data loss. Details: " +
           err
@@ -256,8 +252,17 @@ exports.resetState = function() {
   exports.saveDbStateToLocalStorage();
 };
 
+exports.deleteAllLocalData = function() {
+  LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+  onEdit();
+};
+
 exports.getLocalState = function() {
   return LOCAL_DB_STATE;
+};
+
+exports.getLocalStateChecksum = function() {
+  return getMd5(LOCAL_DB_STATE);
 };
 
 exports.setLocalState = function(newState) {
@@ -398,13 +403,8 @@ exports.getOptimization = function(optimizationId) {
   }, null);
 };
 
-/**
- * Returns a copy of the optimization's players list
- */
-exports.getOptimizationPlayersReadOnly = function(optimizationId) {
-  let optimization = exports.getOptimization(optimizationId);
-  let deserializedInclusions = JSON.parse(optimization.inclusions);
-  return deserializedInclusions.staging.players;
+exports.getAllOptimizations = function() {
+  return exports.getLocalState().optimizations;
 };
 
 exports.replaceOptimization = function(optimizationId, newOptimization) {
@@ -416,81 +416,44 @@ exports.replaceOptimization = function(optimizationId, newOptimization) {
   onEdit();
 };
 
-// Pass in null or undefined to delete
-exports.putOptimizationPlayerOverride = function(
+// TODO: can this be merged with setOptimizationField?
+exports.setOptimizationCustomDataField = function(
   optimizationId,
-  playerId,
-  override
+  fieldName,
+  fieldValue
 ) {
-  console.log(optimizationId, playerId, override);
   let optimization = exports.getOptimization(optimizationId);
-  let deserializedInclusions = JSON.parse(optimization.inclusions);
-  if (override) {
-    deserializedInclusions.staging.overrides[playerId] = override;
+  let customData = JSON.parse(optimization.customData);
+  if (fieldValue) {
+    customData[fieldName] = fieldValue;
   } else {
-    delete deserializedInclusions.staging.overrides[playerId];
+    delete customData[fieldName];
   }
-  optimization.inclusions = JSON.stringify(deserializedInclusions);
+  optimization.customData = JSON.stringify(customData);
   onEdit();
 };
 
-// TODO: can we assume that staging is always set?
-exports.putOptimizationPlayers = function(optimizationId, players) {
+exports.setOptimizationField = function(
+  optimizationId,
+  fieldName,
+  fieldValue,
+  isJson
+) {
+  console.log("Setting field", fieldName, fieldValue);
+
   let optimization = exports.getOptimization(optimizationId);
-  let deserializedInclusions = JSON.parse(optimization.inclusions);
-  if (Array.isArray(players)) {
-    deserializedInclusions.staging.players = players;
-  } else if (!players) {
-    deserializedInclusions.staging.players = [];
+  if (isJson) {
+    optimization[fieldName] = JSON.stringify(fieldValue);
   } else {
-    throw new Error(
-      'Players argument must either be an array or falsy (null, undefined, etc.) but was ' +
-        players +
-        ' of type ' +
-        typeof players +
-        '. is array? ' +
-        Array.isArray(players)
-    );
+    optimization[fieldName] = fieldValue;
   }
-  optimization.inclusions = JSON.stringify(deserializedInclusions);
   onEdit();
 };
 
-exports.putOptimizationTeams = function(optimizationId, teams) {
+exports.getOptimizationCustomDataField = function(optimizationId, fieldName) {
   let optimization = exports.getOptimization(optimizationId);
-  let deserializedInclusions = JSON.parse(optimization.inclusions);
-  if (Array.isArray(teams)) {
-    deserializedInclusions.staging.teams = teams;
-  } else if (!teams) {
-    deserializedInclusions.staging.teams = [];
-  } else {
-    throw new Error(
-      'Teams argument must either be an array or falsy (null, undefined, etc.) but was ' +
-        teams +
-        ' of type ' +
-        typeof teams +
-        '. is array? ' +
-        Array.isArray(teams)
-    );
-  }
-  optimization.inclusions = JSON.stringify(deserializedInclusions);
-  onEdit();
-};
-
-exports.putOptimizationDetail = function(optimizationId, fieldName, value) {
-  let optimization = exports.getOptimization(optimizationId);
-  let deserializedDetails = JSON.parse(optimization.details);
-  if (value) {
-    deserializedDetails[fieldName] = value;
-  } else {
-    delete deserializedDetails[fieldName];
-  }
-  optimization.details = JSON.stringify(deserializedDetails);
-  onEdit();
-};
-
-exports.getAllOptimizations = function() {
-  return exports.getLocalState().optimizations;
+  let customData = JSON.parse(optimization.customData);
+  return customData[fieldName];
 };
 
 exports.removeOptimization = function(optimizationId) {
@@ -501,38 +464,27 @@ exports.removeOptimization = function(optimizationId) {
   onEdit();
 };
 
-exports.addOptimization = function(name, details, inclusions) {
+exports.addOptimization = function(name) {
   const id = getNextId();
-  if (!inclusions) {
-    inclusions = JSON.stringify({
-      staging: {
-        players: [],
-        teams: [],
-        games: [],
-        overrides: {}
-      }
-    });
-  }
-
-  if (!details) {
-    details = JSON.stringify({
-      innings: 7,
-      lineupType: 1,
-      iterations: 1000000
-    });
-  }
-
-  let results = JSON.stringify({});
-
   let new_state = exports.getLocalState();
   let optimization = {
     id: id,
     name: name,
     type: OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXAUSTIVE,
-    inclusions: inclusions,
-    details: details,
+    customData: JSON.stringify({
+      innings: 7,
+      iterations: 10000
+    }),
+    overrideData: JSON.stringify({}),
     status: exports.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
-    results: results
+    resultData: null,
+    statusMessage: null,
+    sendEmail: false,
+    teamList: JSON.stringify([]),
+    gameList: JSON.stringify([]),
+    playerList: JSON.stringify([]),
+    lineupType: 1,
+    executionData: null
   };
   new_state.optimizations.push(optimization);
   onEdit();
@@ -558,9 +510,7 @@ exports.addGame = function(team_id, opposing_team_name) {
     opponent: opposing_team_name,
     lineup: lastLineup ? lastLineup : [],
     date: timestamp,
-    park: 'Stazio',
-    scoreUs: 0,
-    scoreThem: 0,
+    park: null,
     lineupType: lastLineupType
       ? lastLineupType
       : exports.LINEUP_TYPE_ENUM.NORMAL,
@@ -632,12 +582,11 @@ exports.addPlayerToLineup = function(lineup, player_id) {
   onEdit();
 };
 
-exports.updateLineup = function(lineup, player_id, position_index) {
-  let ind = lineup.indexOf(player_id);
+exports.updateLineup = function(lineup, playerId, newIndex) {
+  let ind = lineup.indexOf(playerId);
   lineup.splice(ind, 1);
-  lineup.splice(position_index, 0, player_id);
+  lineup.splice(newIndex, 0, playerId);
   onEdit();
-  return lineup;
 };
 
 exports.removePlayerFromLineup = function(lineup, player_id) {
@@ -658,7 +607,7 @@ exports.removeGame = function(game_id, team_id) {
   if (index > -1) {
     new_state.teams[index] = team;
   } else {
-    console.log('Game not found ' + game_id);
+    console.log("Game not found " + game_id);
   }
   onEdit();
 };
@@ -737,7 +686,7 @@ exports.getPlateAppearancesForPlayerOnTeam = function(player_id, team_id) {
   let team = exports.getTeam(team_id);
   let plateAppearances = [];
 
-  if (team.games) {
+  if (team && team.games) {
     team.games.forEach(game => {
       if (game.plateAppearances) {
         const plateAppearancesThisGame = game.plateAppearances.filter(
@@ -824,7 +773,7 @@ exports.removePlateAppearance = function(plateAppearance_id, game_id) {
 // LOCAL STORAGE
 
 exports.saveDbStateToLocalStorage = function() {
-  if (typeof Storage !== 'undefined') {
+  if (typeof Storage !== "undefined") {
     /*
     // Disable compression for now
     let compressedLocalState = LZString.compress(
@@ -839,46 +788,46 @@ exports.saveDbStateToLocalStorage = function() {
     localStorage.setItem("ANCESTOR_DB_STATE", compressedAncesorState);
     */
 
-    localStorage.setItem('SCHEMA_VERSION', CURRENT_LS_SCHEMA_VERSION);
-    localStorage.setItem('LOCAL_DB_STATE', JSON.stringify(LOCAL_DB_STATE));
+    localStorage.setItem("SCHEMA_VERSION", CURRENT_LS_SCHEMA_VERSION);
+    localStorage.setItem("LOCAL_DB_STATE", JSON.stringify(LOCAL_DB_STATE));
     localStorage.setItem(
-      'ANCESTOR_DB_STATE',
+      "ANCESTOR_DB_STATE",
       JSON.stringify(ANCESTOR_DB_STATE)
     );
   }
 };
 
 exports.saveApplicationStateToLocalStorage = function() {
-  if (typeof Storage !== 'undefined') {
-    localStorage.setItem('SCHEMA_VERSION', CURRENT_LS_SCHEMA_VERSION);
+  if (typeof Storage !== "undefined") {
+    localStorage.setItem("SCHEMA_VERSION", CURRENT_LS_SCHEMA_VERSION);
     let applicationState = {
       online: online,
       sessionValid: sessionValid,
       activeUser: activeUser
     };
-    localStorage.setItem('APPLICATION_STATE', JSON.stringify(applicationState));
+    localStorage.setItem("APPLICATION_STATE", JSON.stringify(applicationState));
   }
 };
 
 exports.loadStateFromLocalStorage = function() {
-  if (typeof Storage !== 'undefined') {
+  if (typeof Storage !== "undefined") {
     // These statements define local storage schema migrations
-    if (localStorage.getItem('SCHEMA_VERSION') === '5') {
+    if (localStorage.getItem("SCHEMA_VERSION") === "5") {
       // Added optimizations
-      console.log('Upgrading localstorage from version 5 to version 6');
-      let localState = JSON.parse(localStorage.getItem('LOCAL_DB_STATE'));
-      localState['optimizations'] = [];
-      let ancestorState = JSON.parse(localStorage.getItem('ANCESTOR_DB_STATE'));
-      ancestorState['optimizations'] = [];
-      localStorage.setItem('SCHEMA_VERSION', '6');
-      localStorage.setItem('LOCAL_DB_STATE', JSON.stringify(localState));
-      localStorage.setItem('ANCESTOR_DB_STATE', JSON.stringify(ancestorState));
+      console.log("Upgrading localstorage from version 5 to version 6");
+      let localState = JSON.parse(localStorage.getItem("LOCAL_DB_STATE"));
+      localState["optimizations"] = [];
+      let ancestorState = JSON.parse(localStorage.getItem("ANCESTOR_DB_STATE"));
+      ancestorState["optimizations"] = [];
+      localStorage.setItem("SCHEMA_VERSION", "6");
+      localStorage.setItem("LOCAL_DB_STATE", JSON.stringify(localState));
+      localStorage.setItem("ANCESTOR_DB_STATE", JSON.stringify(ancestorState));
     }
 
-    if (localStorage.getItem('SCHEMA_VERSION') !== CURRENT_LS_SCHEMA_VERSION) {
+    if (localStorage.getItem("SCHEMA_VERSION") !== CURRENT_LS_SCHEMA_VERSION) {
       console.log(
         `Removing invalid localStorage data ${localStorage.getItem(
-          'SCHEMA_VERSION'
+          "SCHEMA_VERSION"
         )}`
       );
       exports.clearLocalStorage();
@@ -886,20 +835,20 @@ exports.loadStateFromLocalStorage = function() {
       exports.saveApplicationStateToLocalStorage();
     }
 
-    let localDbState = localStorage.getItem('LOCAL_DB_STATE');
+    let localDbState = localStorage.getItem("LOCAL_DB_STATE");
     if (localDbState) {
       // LOCAL_DB_STATE = JSON.parse(LZString.decompress(localDbState));
       LOCAL_DB_STATE = JSON.parse(localDbState);
     }
 
-    let ancestorDbState = localStorage.getItem('ANCESTOR_DB_STATE');
+    let ancestorDbState = localStorage.getItem("ANCESTOR_DB_STATE");
     if (ancestorDbState) {
       // ANCESTOR_DB_STATE = JSON.parse(LZString.decompress(ancestorDbState));
       ANCESTOR_DB_STATE = JSON.parse(ancestorDbState);
     }
 
     let applicationState = JSON.parse(
-      localStorage.getItem('APPLICATION_STATE')
+      localStorage.getItem("APPLICATION_STATE")
     );
     if (applicationState) {
       online = applicationState.online ? applicationState.online : true;
@@ -910,7 +859,7 @@ exports.loadStateFromLocalStorage = function() {
         ? applicationState.activeUser
         : null;
     } else {
-      console.log('Tried to load null, falling back to defaults');
+      console.log("Tried to load null, falling back to defaults");
       online = true;
       sessionValid = false;
       activeUser = null;
@@ -921,7 +870,7 @@ exports.loadStateFromLocalStorage = function() {
 };
 
 exports.clearLocalStorage = function() {
-  console.log('Clearing ls ');
+  console.log("Clearing ls ");
   localStorage.clear();
 };
 
@@ -934,7 +883,7 @@ function onEdit() {
 }
 
 function reRender() {
-  expose.set_state('main', {
+  expose.set_state("main", {
     render: true
   });
 }
@@ -950,25 +899,25 @@ async function sleep(ms) {
 
 // TODO: don't go through hex, just go dec to base62
 function dec2hex(dec) {
-  return ('0' + dec.toString(16)).substr(-2);
+  return ("0" + dec.toString(16)).substr(-2);
 }
 
 function getNextId() {
   let len = 20;
   var arr = new Uint8Array((len || 40) / 2);
-  window.crypto.getRandomValues(arr);
-  let hex = Array.from(arr, dec2hex).join('');
-  return idUtils.hexToBase62(hex).padStart(14, '0');
+  crypto.getRandomValues(arr);
+  let hex = Array.from(arr, dec2hex).join("");
+  return idUtils.hexToBase62(hex).padStart(14, "0");
 }
 
 function getMd5(data) {
   let checksum = hasher(data, {
-    algorithm: 'md5',
+    algorithm: "md5",
     excludeValues: false,
     respectFunctionProperties: false,
     respectFunctionNames: false,
     respectType: false,
-    encoding: 'base64'
+    encoding: "base64"
   });
   return checksum.slice(0, -2); // Remove trailing '=='
 }
@@ -976,8 +925,8 @@ function getMd5(data) {
 // NOT SURE THIS IS THE RIGHT PLACE FOR THESE. MOVE TO SOME OTHER UTIL?
 
 exports.getQueryObj = function() {
-  let queryString = window.location.search || '';
-  if (queryString[0] === '?') {
+  let queryString = window.location.search || "";
+  if (queryString[0] === "?") {
     queryString = queryString.slice(1);
   }
   let params = {},
@@ -985,9 +934,9 @@ exports.getQueryObj = function() {
     temp,
     i,
     l;
-  queries = queryString.split('&');
+  queries = queryString.split("&");
   for (i = 0, l = queries.length; i < l; i++) {
-    temp = queries[i].split('=');
+    temp = queries[i].split("=");
     params[temp[0]] = temp[1];
   }
   return params;
@@ -996,19 +945,19 @@ exports.getQueryObj = function() {
 exports.editQueryObject = function(fieldName, value) {
   let queryObject = exports.getQueryObj();
   queryObject[fieldName] = value;
-  let queryString = '';
+  let queryString = "";
   let keys = Object.keys(queryObject);
-  let separationChar = '?';
+  let separationChar = "?";
   for (let i = 0; i < keys.length; i++) {
     if (keys[i] && queryObject[keys[i]]) {
       queryString =
-        queryString + separationChar + keys[i] + '=' + queryObject[keys[i]];
-      separationChar = '&';
+        queryString + separationChar + keys[i] + "=" + queryObject[keys[i]];
+      separationChar = "&";
     }
   }
   history.replaceState(
     {},
-    '',
+    "",
     window.location.origin + window.location.pathname + queryString
   );
 };
@@ -1043,36 +992,36 @@ exports.buildStatsObject = function(playerId, plateAppearances) {
         stats.hits++;
       }
 
-      if (pa.result === 'BB') {
+      if (pa.result === "BB") {
         stats.walks++; // Boo!
-      } else if (pa.result === 'E') {
+      } else if (pa.result === "E") {
         stats.reachedOnError++;
-      } else if (pa.result === 'FC') {
+      } else if (pa.result === "FC") {
         stats.fieldersChoice++;
       } else if (
-        pa.result === 'Out' ||
-        pa.result === 'SAC' ||
-        pa.result === 'K'
+        pa.result === "Out" ||
+        pa.result === "SAC" ||
+        pa.result === "K"
       ) {
         // Intentionally blank
-      } else if (pa.result === '1B') {
+      } else if (pa.result === "1B") {
         stats.singles++;
         stats.totalBasesByHit++;
-      } else if (pa.result === '2B') {
+      } else if (pa.result === "2B") {
         stats.doubles++;
         stats.totalBasesByHit += 2;
-      } else if (pa.result === '3B') {
+      } else if (pa.result === "3B") {
         stats.triples++;
         stats.totalBasesByHit += 3;
-      } else if (pa.result === 'HRi') {
+      } else if (pa.result === "HRi") {
         stats.insideTheParkHR++;
         stats.totalBasesByHit += 4;
-      } else if (pa.result === 'HRo') {
+      } else if (pa.result === "HRo") {
         stats.outsideTheParkHR++;
         stats.totalBasesByHit += 4;
       } else {
         console.log(
-          'WARNING: unrecognized batting result encountered and ignored for stats calculations',
+          "WARNING: unrecognized batting result encountered and ignored for stats calculations",
           pa.result
         );
       }
@@ -1080,11 +1029,11 @@ exports.buildStatsObject = function(playerId, plateAppearances) {
   });
 
   if (stats.atBats === 0) {
-    stats.battingAverage = '-';
-    stats.sluggingPercentage = '-';
+    stats.battingAverage = "-";
+    stats.sluggingPercentage = "-";
   } else {
     if (stats.hits === stats.atBats) {
-      stats.battingAverage = '1.000';
+      stats.battingAverage = "1.000";
     } else {
       stats.battingAverage = (stats.hits / stats.atBats).toFixed(3).substr(1);
     }
@@ -1122,7 +1071,6 @@ exports.setActiveUser = function(user) {
 
 // This assumes all routes are behind login
 exports.setStatusBasedOnHttpResponse = function(code) {
-  //console.log(`OLD -- Online: ${online} SessionValid: ${sessionValid}`);
   if (code >= 200 && code < 300) {
     sessionValid = true;
     online = true;
@@ -1138,8 +1086,8 @@ exports.setStatusBasedOnHttpResponse = function(code) {
     online = false;
   }
   exports.saveApplicationStateToLocalStorage();
-  //console.log(`NEW -- Online: ${online} SessionValid: ${sessionValid}`);
 };
+
 exports.setAddToHomescreenPrompt = function(e) {
   addToHomescreenEvent = e;
   reRender();
@@ -1152,7 +1100,7 @@ exports.getAddToHomescreenPrompt = function() {
 exports.scheduleSync = function(time = SYNC_DELAY_MS) {
   let currentState = exports.getSyncState();
   if (currentState === SYNC_STATUS_ENUM.ERROR) {
-    console.log('Sync skipped, in error state');
+    console.log("Sync skipped, in error state");
     return;
   } else if (
     currentState === SYNC_STATUS_ENUM.IN_PROGRESS ||
@@ -1163,14 +1111,15 @@ exports.scheduleSync = function(time = SYNC_DELAY_MS) {
     setSyncState(SYNC_STATUS_ENUM.PENDING);
   }
 
-  console.log('sync scheduled');
-  if (syncTimer) {
-    clearTimeout(syncTimer);
-  }
+  console.log("sync scheduled");
+  clearTimeout(syncTimer);
 
   syncTimer = setTimeout(function() {
-    if (exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS) {
-      console.log('There is already a sync in progress');
+    if (
+      exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS ||
+      currentState === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
+    ) {
+      console.log("There is already a sync in progress");
       exports.scheduleSync(SYNC_DELAY_MS);
       return;
     }
@@ -1178,9 +1127,15 @@ exports.scheduleSync = function(time = SYNC_DELAY_MS) {
   }, time);
 };
 
-let setSyncState = function(newState) {
-  syncState = newState;
-  reRender();
+let setSyncState = function(newState, skipRender) {
+  // Skip unnecessary renders
+  if (syncState !== newState) {
+    console.log("Sync state updated from ", syncState, "to", newState);
+    syncState = newState;
+    if (!skipRender) {
+      reRender();
+    }
+  }
 };
 
 exports.getSyncState = function() {
@@ -1192,7 +1147,7 @@ exports.getSyncStateEnum = function() {
 };
 
 exports.setPreventScreenLock = function(value) {
-  console.log('setting value', value);
+  console.log("setting value", value);
   this.preventScreenLock = value;
   reRender();
 };

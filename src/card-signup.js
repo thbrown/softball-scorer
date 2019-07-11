@@ -80,7 +80,7 @@ module.exports = class CardSignup extends expose.Component {
         state.setActiveUser(email.value);
 
         dialog.show_notification(
-          `Thank you for creating an account on Softball.app! You have been logged in.`,
+          `Thank you for creating an account on Softball.app! You have been logged in. To enable all softball.app features, please verify your email by clicking the activation link in the welcome email sent to ${email.value}. This link will expire after 24 hours.`,
           function() {
             expose.set_state("main", {
               page: "/menu"
@@ -89,9 +89,7 @@ module.exports = class CardSignup extends expose.Component {
         );
       } else {
         dialog.show_notification(
-          `There was a problem creating your account ${response.status} - ${
-            response.body.message
-          }`
+          `There was a problem creating your account ${response.status} - ${response.body.message}`
         );
         console.log(response);
       }
@@ -187,7 +185,7 @@ module.exports = class CardSignup extends expose.Component {
               marginTop: "10px"
             }
           },
-          "Any data you have entered will be associated with your new account"
+          "Any data you have entered so far will be available in your new account"
         )
       );
     } else {
@@ -199,7 +197,7 @@ module.exports = class CardSignup extends expose.Component {
               marginTop: "10px"
             }
           },
-          "Another account is signed in. Any data you see here will not be available in your new account. If you'd like this data, export the data from the menu, signup a new account, then re-import that data."
+          "Another account's data is loaded locally. Any data you see here will not be available in your new account."
         )
       );
     }
@@ -240,7 +238,12 @@ module.exports = class CardSignup extends expose.Component {
         ),
         React.createElement(RightHeaderButton, {})
       ),
-      this.renderAuthInterface()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderAuthInterface()
+      )
     );
   }
 };

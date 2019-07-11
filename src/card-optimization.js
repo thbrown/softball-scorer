@@ -5,6 +5,7 @@ const DOM = require("react-dom-factories");
 
 const dialog = require("dialog");
 const expose = require("./expose");
+const network = require("network.js");
 const state = require("state");
 
 const FloatingInput = require("component-floating-input");
@@ -13,6 +14,7 @@ const LeftHeaderButton = require("component-left-header-button");
 const RightHeaderButton = require("component-right-header-button");
 
 const ACCORDION_QUERYPARAM_PREFIX = "acc";
+const SYNC_DELAY_MS = 5000; // This value also exists in the CSS
 
 module.exports = class CardOptimization extends expose.Component {
   constructor(props) {
@@ -20,6 +22,10 @@ module.exports = class CardOptimization extends expose.Component {
     this.expose();
 
     this.state = {};
+
+    // Optimization is mutable inside this component so we'll stor it in an instance
+    // variable instead fo using the props. This gets updated in the render method.
+    this.optimization = props.optimization;
 
     this.handleSongHelpClick = function(event) {
       event.stopPropagation();
@@ -34,37 +40,296 @@ Clips can be played from the player's plate appearance page
       );
     };
 
-    this.handleOverrideClick = function(player) {
+    this.handleOverrideClick = function(playerId) {
       expose.set_state("main", {
-        page: `/optimizations/${props.optimization.id}/overrides/${player.id}`
+        page: `/optimizations/${this.optimization.id}/overrides/${playerId}`
       });
-    };
+    }.bind(this);
 
     this.handleAddPlayerClick = function() {
       expose.set_state("main", {
-        page: `/optimizations/${props.optimization.id}/overrides/player-select`
+        page: `/optimizations/${this.optimization.id}/overrides/player-select`
       });
+    }.bind(this);
+
+    this.doAutoSync = async function() {
+      this.startCssAnimation();
+      this.activeTime = setTimeout(
+        async function() {
+          await state.sync();
+          this.doAutoSync();
+        }.bind(this),
+        SYNC_DELAY_MS
+      );
+    }.bind(this);
+
+    this.startCssAnimation = function() {
+      let element = document.getElementById("pie-timer");
+      element.classList.remove("hidden");
+
+      // Removing an element from the dom then reinserting it restarts the animation
+      element.classList.add("gone");
+      element.offsetHeight; /* trigger reflow https://gist.github.com/paulirish/5d52fb081b3570c81e3a */
+      element.classList.remove("gone");
+
+      setTimeout(function() {
+        element.classList.add("hidden");
+      }, SYNC_DELAY_MS);
+    };
+
+    this.onRenderUpdateOrMount = function() {
+      // Make sure we are working with the most up-to-date optimization
+      this.optimization = state.getOptimization(this.props.optimization.id);
     };
 
     this.handleTeamCheckboxClick = function(team) {
-      let parsedInclusions = JSON.parse(this.props.optimization.inclusions);
-      let teams = parsedInclusions.staging.teams;
-      let newSet = new Set(teams);
-      if (teams.includes(team.id)) {
+      let parsedTeams = JSON.parse(this.optimization.teamList);
+      let newSet = new Set(parsedTeams);
+      if (parsedTeams.includes(team.id)) {
         newSet.delete(team.id);
-        state.putOptimizationTeams(props.optimization.id, Array.from(newSet));
+        state.setOptimizationField(
+          this.optimization.id,
+          "teamList",
+          Array.from(newSet),
+          true
+        );
       } else {
         newSet.add(team.id);
-        state.putOptimizationTeams(props.optimization.id, Array.from(newSet));
+        state.setOptimizationField(
+          this.optimization.id,
+          "teamList",
+          Array.from(newSet),
+          true
+        );
       }
-    };
+    }.bind(this);
 
-    this.onChange = function(fieldName, value) {
-      state.putOptimizationDetail(this.props.optimization.id, fieldName, value);
+    this.onOptionsChange = function(fieldName, value) {
+      if (fieldName === "lineupType") {
+        state.setOptimizationField(this.optimization.id, "lineupType", value);
+      } else {
+        state.setOptimizationCustomDataField(
+          this.optimization.id,
+          fieldName,
+          value
+        );
+      }
+    }.bind(this);
+
+    this.handleSendEmailCheckbox = function() {
+      if (this.optimization.sendEmail) {
+        state.setOptimizationField(this.optimization.id, "sendEmail", false);
+      } else {
+        state.setOptimizationField(this.optimization.id, "sendEmail", true);
+      }
+    }.bind(this);
+
+    this.handleStartClick = async function() {
+      // Disable button in the UI
+      let buttonDiv = document.getElementById("start-optimization-button");
+      buttonDiv.innerHTML = "Starting...";
+      buttonDiv.classList.add("disabled");
+
+      // Extract data an list fields
+      let playerIds = JSON.parse(this.optimization.playerList);
+      let teamIds = JSON.parse(this.optimization.teamList);
+      let gameIds = JSON.parse(this.optimization.gameList);
+      let customData = JSON.parse(this.optimization.customData);
+      let overrideData = JSON.parse(this.optimization.overrideData);
+
+      // Filter out any delted teams or games
+      let filteredTeamList = teamIds.filter(teamId => state.getTeam(teamId));
+      state.setOptimizationField(
+        this.optimization.id,
+        "teamList",
+        filteredTeamList,
+        true
+      );
+
+      let filteredGameList = gameIds.filter(gameId => state.getTeam(gameId));
+      state.setOptimizationField(
+        this.optimization.id,
+        "gameList",
+        filteredGameList,
+        true
+      );
+
+      // Filter out any overrides that don't belong to a player in the playerList
+      let overridePlayerIds = Object.keys(overrideData);
+      let filteredOverrides = {};
+      for (let i = 0; i < overridePlayerIds.length; i++) {
+        if (playerIds.includes(overridePlayerIds[i])) {
+          filteredOverrides[overridePlayerIds[i]] =
+            overrideData[overridePlayerIds[i]];
+        }
+      }
+      state.setOptimizationField(
+        this.optimization.id,
+        "overrideData",
+        filteredOverrides,
+        true
+      );
+
+      // Reload values that may have change after filtering
+      teamIds = JSON.parse(this.optimization.teamList);
+      gameIds = JSON.parse(this.optimization.gameList);
+      overrideData = JSON.parse(this.optimization.overrideData);
+
+      // Gather player data (TODO: a lot of this is duplicated from render)
+      let executionPlayers = [];
+
+      for (let i = 0; i < playerIds.length; i++) {
+        let executionPlayer = {};
+
+        let player = state.getPlayer(playerIds[i]);
+        if (!player) {
+          continue; // Player may have been deleted
+        }
+
+        let plateAppearances = state.getPlateAppearancesForPlayerInGameOrOnTeam(
+          player.id,
+          teamIds,
+          null // TODO: gameIds
+        );
+
+        executionPlayer.id = player.id;
+        executionPlayer.gender = player.gender;
+
+        // Check to see if there are manual overrides of the stats for this player
+        let existingOverride = overrideData[player.id];
+        if (existingOverride) {
+          Object.assign(executionPlayer, existingOverride);
+        } else {
+          // Gather the stats required for the optimization
+          let fullStats = state.buildStatsObject(player.id, plateAppearances);
+          let compressedStats = this.getCompressedStats(fullStats);
+
+          // There isn't an override for this player, create one so stats on the
+          // optimization page stay consistent with the moment this optimization was run
+          overrideData[player.id] = compressedStats;
+          state.setOptimizationField(
+            this.optimization.id,
+            "overrideData",
+            overrideData,
+            true
+          );
+
+          Object.assign(executionPlayer, compressedStats);
+        }
+
+        executionPlayers.push(executionPlayer);
+      }
+
+      // Flaten all this data into a single execution data object
+      let executionData = {
+        players: executionPlayers,
+        teams: filteredTeamList,
+        games: filteredGameList,
+        innings: customData.innings,
+        iterations: customData.iterations,
+        lineupType: this.optimization.lineupType
+      };
+
+      // Be sure the server has out optimization details before it tried to run the optimization
+      await state.sync();
+
+      let body = JSON.stringify({
+        executionData: executionData,
+        optimizationId: this.optimization.id
+      });
+      let response = await network.request(
+        "POST",
+        "server/start-optimization",
+        body
+      );
+      if (response.status === 204 || response.status === 200) {
+        dialog.show_notification("Sent start request.");
+        // Do a sync, since the above call succeeded server has updated the optimization's status on it's end
+        await state.sync();
+        // Start auto refresh
+        this.doAutoSync();
+      } else if (response.status === 403) {
+        dialog.show_notification(
+          "You must be logged in to run a lineup simulation. Please [Login](/menu/login) or [Signup](/menu/signup)."
+        );
+        buttonDiv.classList.remove("disabled");
+        buttonDiv.innerHTML = "Start Simulation";
+      } else {
+        dialog.show_notification(
+          "Something went wrong. " +
+            response.status +
+            " " +
+            JSON.stringify(response.body)
+        );
+        buttonDiv.classList.remove("disabled");
+        buttonDiv.innerHTML = "Start Simulation";
+      }
+    }.bind(this);
+
+    this.handleResumeClick = async function() {
+      // Disable button in the UI
+      let buttonDiv = document.getElementById("start-optimization-button");
+      buttonDiv.innerHTML = "Starting...";
+      buttonDiv.classList.add("disabled");
+
+      let body = JSON.stringify({
+        optimizationId: this.optimization.id
+      });
+      let response = await network.request(
+        "POST",
+        "server/start-optimization",
+        body
+      );
+      if (response.status === 204 || response.status === 200) {
+        dialog.show_notification("Sent start request.");
+
+        // Do a sync, since the above call succeeded server has updated the optimization's status on it's end
+        state.sync();
+      } else if (response.status === 403) {
+        dialog.show_notification(
+          "You must be logged in to run a lineup simulation. Please [Login](/menu/login) or [Signup](/menu/signup)."
+        );
+        buttonDiv.classList.remove("disabled");
+        buttonDiv.innerHTML = "Start Simulation";
+      } else {
+        dialog.show_notification("Something went wrong. " + response.status);
+        buttonDiv.classList.remove("disabled");
+        buttonDiv.innerHTML = "Start Simulation";
+      }
+    }.bind(this);
+
+    this.getCompressedStats = function(fullStats) {
+      let result = {};
+      result.outs = fullStats.atBats - fullStats.hits;
+      result.singles = fullStats.singles + fullStats.walks;
+      result.doubles = fullStats.doubles;
+      result.triples = fullStats.triples;
+      result.homeruns = fullStats.insideTheParkHR + fullStats.outsideTheParkHR;
+      return result;
     };
   }
 
+  componentWillUnmount() {
+    // TODO: call this on transition to complete or error. Not a super big deal it just results in an error printed in console.
+    clearTimeout(this.activeTime);
+  }
+
+  componentDidUpdate() {
+    this.onRenderUpdateOrMount();
+  }
+
   componentDidMount() {
+    this.onRenderUpdateOrMount();
+
+    if (
+      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
+      this.optimization.status ===
+        state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
+    ) {
+      // Frequently perform syncs on this page to check for server updates to the optimization object
+      this.doAutoSync();
+    }
+
     this.skipClickDelay = function(e) {
       e.preventDefault();
       e.target.click();
@@ -141,6 +406,9 @@ Clips can be played from the player's plate appearance page
   }
 
   renderOptimizationPage() {
+    let isInNotStartedState =
+      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED;
+
     // Build players table
     const playerTable = [];
     playerTable.push(
@@ -151,53 +419,48 @@ Clips can be played from the player's plate appearance page
         <th width="35">2B</th>
         <th width="35">3B</th>
         <th width="35">HR</th>
-        <th width="48" />
+        {isInNotStartedState ? (
+          <th width="48" />
+        ) : (
+          false // Don't show the last column for already started optimizations
+        )}
       </tr>
     );
 
     let displayPlayers = [];
-    let parsedInclusions = JSON.parse(this.props.optimization.inclusions);
-    if (
-      this.props.optimization.status ===
-      state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
-    ) {
-      let playerIds = parsedInclusions.staging.players;
-      for (let i = 0; i < playerIds.length; i++) {
-        let displayPlayer = {};
+    let playerIds = JSON.parse(this.optimization.playerList);
+    for (let i = 0; i < playerIds.length; i++) {
+      let displayPlayer = {};
 
-        let player = state.getPlayer(playerIds[i]);
+      // Check to see if there are manual overrides of the stats for this player
+      let overrides = JSON.parse(this.optimization.overrideData);
+      let existingOverride = overrides[playerIds[i]];
+
+      let player = state.getPlayer(playerIds[i]);
+      if (existingOverride) {
+        Object.assign(displayPlayer, existingOverride);
+        displayPlayer.isOverride = true;
+      } else {
         if (!player) {
-          continue; // Player may have been deleted
+          // Player doesn't exist (may have been deleted) and there are no
+          // overrides, just skip em!
+          continue;
         }
+
         let plateAppearances = state.getPlateAppearancesForPlayerInGameOrOnTeam(
           player.id,
-          parsedInclusions.staging.teams,
+          JSON.parse(this.optimization.teamList),
           null
         );
 
-        displayPlayer.name = player.name;
-        displayPlayer.player = player; // This will be undefined for other statuses
-
-        // Check to see if there are manual overrides of the stats for this player
-        let existingOverride = parsedInclusions.staging.overrides[player.id];
-        if (existingOverride) {
-          Object.assign(displayPlayer, existingOverride);
-          displayPlayer.isOverride = true;
-        } else {
-          let fullStats = state.buildStatsObject(player.id, plateAppearances);
-          displayPlayer["Outs"] = fullStats.atBats - fullStats.hits;
-          displayPlayer["1B"] = fullStats.singles + fullStats.walks;
-          displayPlayer["2B"] = fullStats.doubles;
-          displayPlayer["3B"] = fullStats.triples;
-          displayPlayer["HR"] =
-            fullStats.insideTheParkHR + fullStats.outsideTheParkHR;
-          displayPlayer.isOverride = false;
-        }
-
-        displayPlayers.push(displayPlayer);
+        let fullStats = state.buildStatsObject(player.id, plateAppearances);
+        let compressedStats = this.getCompressedStats(fullStats);
+        Object.assign(displayPlayer, compressedStats);
+        displayPlayer.isOverride = false;
       }
-    } else {
-      displayPlayers = parsedInclusions.execution.players;
+      displayPlayer.name = player ? player.name : "<Player was deleted>";
+      displayPlayer.playerId = playerIds[i];
+      displayPlayers.push(displayPlayer);
     }
 
     for (let i = 0; i < displayPlayers.length; i++) {
@@ -209,76 +472,114 @@ Clips can be played from the player's plate appearance page
           <td height="48" className="name">
             {displayPlayers[i].name}
           </td>
-          <td>{displayPlayers[i]["Outs"]}</td>
-          <td>{displayPlayers[i]["1B"]}</td>
-          <td>{displayPlayers[i]["2B"]}</td>
-          <td>{displayPlayers[i]["3B"]}</td>
-          <td>{displayPlayers[i]["HR"]}</td>
-          <td height="48">
-            <img
-              src="/server/assets/tune-black.svg"
-              alt=">"
-              className="tableButton"
-              onClick={this.handleOverrideClick.bind(
-                this,
-                displayPlayers[i].player
-              )}
-            />
-          </td>
+          <td>{displayPlayers[i].outs}</td>
+          <td>{displayPlayers[i].singles}</td>
+          <td>{displayPlayers[i].doubles}</td>
+          <td>{displayPlayers[i].triples}</td>
+          <td>{displayPlayers[i].homeruns}</td>
+          {isInNotStartedState ? (
+            <td height="48">
+              <img
+                src="/server/assets/tune-black.svg"
+                alt=">"
+                className="tableButton"
+                onClick={this.handleOverrideClick.bind(
+                  this,
+                  displayPlayers[i].playerId
+                )}
+              />
+            </td>
+          ) : (
+            false // Don't show override column for optimizations that have already started
+          )}
         </tr>
       );
     }
 
     // Build teams checkboxes
-    let teams = state.getLocalState().teams;
+    let allTeams = state.getLocalState().teams;
     let teamsCheckboxes = [];
-    if (
-      this.props.optimization.status ===
-      state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
-    ) {
-      let selectedTeams = new Set(parsedInclusions.staging.teams);
-      for (let i = 0; i < teams.length; i++) {
-        let team = teams[i];
+
+    let selectedTeams = JSON.parse(this.optimization.teamList);
+    let selectedTeamsSet = new Set(selectedTeams);
+    if (isInNotStartedState) {
+      // What if there are not games/teams selected?
+      if (allTeams.length === 0) {
+        teamsCheckboxes.push(
+          <i key="no-games">You haven't added any teams yet!</i>
+        );
+      }
+
+      for (let i = 0; i < allTeams.length; i++) {
+        let team = allTeams[i];
         teamsCheckboxes.push(
           <label key={team.name + "checkboxLabel"}>
             <input
               key={team.name + "checkbox"}
               type="checkbox"
               onChange={this.handleTeamCheckboxClick.bind(this, team)}
-              checked={selectedTeams.has(team.id)}
+              checked={selectedTeamsSet.has(team.id)}
             />
             {team.name}
           </label>
         );
       }
     } else {
-      let selectedTeams = parsedInclusions.execution.teams;
-      for (let i = 0; i < selectedTeams.length; i++) {
+      // What if there are not games/teams selected?
+      if (selectedTeams.length === 0) {
         teamsCheckboxes.push(
-          <label key={selectedTeams[i].name + "checkboxLabel"}>
+          <i key="no-games">No teams or games were selected</i>
+        );
+      }
+      for (let i = 0; i < selectedTeams.length; i++) {
+        let team = state.getTeam(selectedTeams[i]);
+        let teamName;
+        if (!team) {
+          teamName = "<Team was deleted>";
+        } else {
+          teamName = team.name;
+        }
+        teamsCheckboxes.push(
+          <label key={selectedTeams[i] + "checkboxLabel"}>
             <input
-              key={selectedTeams[i].name + "checkbox"}
+              key={selectedTeams[i] + "checkbox"}
               type="checkbox"
               checked={true}
               disabled="true"
             />
-            {selectedTeams[i].name}
+            {teamName}
           </label>
         );
       }
     }
 
-    // Parse simulaton details
-    let parsedDetals = JSON.parse(this.props.optimization.details);
+    // Spinner (if necessary)
+    let spinner = false;
+    if (
+      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
+      this.optimization.status ===
+        state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
+    ) {
+      spinner = (
+        <div>
+          <div id="pie-timer" className="pie-timer hidden">
+            <div className="pie-mask" />
+          </div>
+        </div>
+      );
+    }
+
+    // Simulation Options
+    let parsedCustomData = JSON.parse(this.optimization.customData);
+
     return (
       <div className="accordionContainer">
         <div className="text-div">
           Status:{" "}
-          {
-            state.OPTIMIZATION_STATUS_ENUM_INVERSE[
-              this.props.optimization.status
-            ]
-          }
+          {state.OPTIMIZATION_STATUS_ENUM_INVERSE[this.optimization.status]}
+          <br />
+          {this.optimization.statusMessage}
+          {spinner}
         </div>
         <div className="accordion">
           <dl>
@@ -304,12 +605,17 @@ Clips can be played from the player's plate appearance page
               <table className="playerTable">
                 <tbody>{playerTable}</tbody>
               </table>
-              <div
-                className="edit-button button cancel-button"
-                onClick={this.handleAddPlayerClick}
-              >
-                + Add/Remove Players
-              </div>
+              {this.optimization.status ===
+              state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ? (
+                <div
+                  className="edit-button button cancel-button"
+                  onClick={this.handleAddPlayerClick}
+                >
+                  + Add/Remove Players
+                </div>
+              ) : (
+                false // Don't show add/remove button for optimizations that have already started
+              )}
             </dd>
             <dt>
               <div
@@ -356,11 +662,11 @@ Clips can be played from the player's plate appearance page
                   id: "iterations",
                   maxLength: "12",
                   label: "Iterations",
-                  onChange: this.onChange.bind(this, "iterations"),
+                  onChange: this.onOptionsChange.bind(this, "iterations"),
                   type: "number",
-                  defaultValue: parsedDetals.iterations,
+                  defaultValue: parsedCustomData.iterations,
                   disabled:
-                    this.props.optimization.status !==
+                    this.optimization.status !==
                     state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
                 })}
                 {React.createElement(FloatingInput, {
@@ -368,79 +674,252 @@ Clips can be played from the player's plate appearance page
                   id: "innings",
                   maxLength: "12",
                   label: "Innings to Simulate",
-                  onChange: this.onChange.bind(this, "innings"),
+                  onChange: this.onOptionsChange.bind(this, "innings"),
                   maxLength: "2",
                   type: "number",
-                  defaultValue: parsedDetals.innings,
+                  defaultValue: parsedCustomData.innings,
                   disabled:
-                    this.props.optimization.status !==
+                    this.optimization.status !==
                     state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
                 })}
                 {React.createElement(FloatingPicklist, {
                   id: "lineupType",
                   label: "Lineup Type",
-                  defaultValue: parsedDetals.lineupType, //state.LINEUP_TYPE_ENUM.NORMAL,
-                  onChange: this.onChange.bind(this, "lineupType"),
+                  defaultValue: this.optimization.lineupType,
+                  onChange: this.onOptionsChange.bind(this, "lineupType"),
                   disabled:
-                    this.props.optimization.status !==
+                    this.optimization.status !==
                     state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
                 })}
               </div>
             </dd>
-            <dt>
-              <div
-                aria-expanded="false"
-                aria-controls="accordion4"
-                className="accordion-title accordionTitle js-accordionTrigger"
-              >
-                <img
-                  src="/server/assets/chevron-right.svg"
-                  alt=">"
-                  className="chevron"
-                />
-                Results
-                {/*
-                <div className="help-container">
-                  <img
-                    src="/server/assets/help.svg"
-                    alt="?"
-                    onClick={this.handleSongHelpClick}
-                  />
-                </div>
-                */}
-              </div>
-            </dt>
-            <dd
-              className="accordion-content accordionItem is-collapsed"
-              id="accordion3"
-              aria-hidden="true"
-            >
-              <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi
-                eu interdum diam. Donec interdum porttitor risus non bibendum.
-                Maecenas sollicitudin eros in quam imperdiet placerat. Cras
-                justo purus, rhoncus nec lobortis ut, iaculis vel ipsum. Donec
-                dignissim arcu nec elit faucibus condimentum. Donec facilisis
-                consectetur enim sit amet varius. Pellentesque justo dui,
-                sodales quis luctus a, iaculis eget mauris.{" "}
-              </p>
-            </dd>
+            {this.renderResultsAccordion()}
           </dl>
         </div>
+        {this.renderFooter()}
+      </div>
+    );
+  }
+
+  renderResultsAccordion() {
+    // Results
+    console.log(this.optimization.resultData);
+    let resultData = JSON.parse(this.optimization.resultData);
+
+    let groupA;
+    let groupB;
+    let bestScore;
+    let bestPlayers = [];
+    let progress;
+    if (resultData && resultData.lineup) {
+      bestScore = resultData.score;
+      let completed = resultData.complete;
+      let total = resultData.total;
+      if (total === 0) {
+        progress = <div>0%</div>;
+      } else if (completed === total) {
+        progress = <div>100% Complete</div>;
+      } else {
+        progress = <div>{((completed / total) * 100).toFixed(1)}%</div>;
+      }
+      if (
+        this.optimization.lineupType === state.LINEUP_TYPE_ENUM.NORMAL ||
+        this.optimization.lineupType ===
+          state.LINEUP_TYPE_ENUM.NO_CONSECUTIVE_FEMALES
+      ) {
+        groupA = resultData.lineup.GroupA;
+
+        for (let i = 0; i < groupA.length; i++) {
+          let displayPlayer = {};
+          let player = state.getPlayer(groupA[i]);
+          if (!player) {
+            displayPlayer.name = "<Player was deleted>";
+          } else {
+            displayPlayer.name = player.name;
+          }
+          bestPlayers.push(
+            <div key={i}>
+              {displayPlayer.name}
+              <br />
+            </div>
+          );
+        }
+      } else if (
+        this.optimization.lineupType ===
+        state.LINEUP_TYPE_ENUM.ALTERNATING_GENDER
+      ) {
+        groupA = resultData.lineup.GroupA;
+        groupB = resultData.lineup.GroupB;
+
+        bestPlayers.push(
+          <div key="first-group">
+            <i>First Group:</i>
+          </div>
+        );
+
+        for (let i = 0; i < groupA.length; i++) {
+          let displayPlayer = {};
+          let player = state.getPlayer(groupA[i]);
+          if (!player) {
+            displayPlayer.name = "<Player was deleted>";
+          } else {
+            displayPlayer.name = player.name;
+          }
+          bestPlayers.push(
+            <div key={"a" + i}>
+              {displayPlayer.name}
+              <br />
+            </div>
+          );
+        }
+
+        bestPlayers.push(
+          <div key="second-group">
+            <i>Second Group:</i>
+          </div>
+        );
+
+        for (let i = 0; i < groupB.length; i++) {
+          let displayPlayer = {};
+          let player = state.getPlayer(groupB[i]);
+          if (!player) {
+            displayPlayer.name = "<Player was deleted>";
+          } else {
+            displayPlayer.name = player.name;
+          }
+          bestPlayers.push(
+            <div key={"b" + i}>
+              {displayPlayer.name}
+              <br />
+            </div>
+          );
+        }
+      } else {
+        bestPlayers.push(
+          <div key="bad-lineup-type">
+            Unrecognized LineupType
+            <br />
+          </div>
+        );
+      }
+    } else {
+      bestScore = "-";
+      bestPlayers = "-";
+      progress = "-";
+    }
+
+    if (
+      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+    ) {
+      return false;
+    }
+    return (
+      <div>
+        <dt>
+          <div
+            aria-expanded="false"
+            aria-controls="accordion4"
+            className="accordion-title accordionTitle js-accordionTrigger"
+          >
+            <img
+              src="/server/assets/chevron-right.svg"
+              alt=">"
+              className="chevron"
+            />
+            Results
+            {/*
+            <div className="help-container">
+              <img
+                src="/server/assets/help.svg"
+                alt="?"
+                onClick={this.handleSongHelpClick}
+              />
+            </div>
+            */}
+          </div>
+        </dt>
+        <dd
+          className="accordion-content accordionItem is-collapsed"
+          id="accordion3"
+          aria-hidden="true"
+        >
+          <div>
+            <b>Best Score:</b>
+            <br />
+            {bestScore}
+            <br />
+            <br />
+            <b>Best Lineup:</b>
+            <br />
+            {bestPlayers}
+            <br />
+            <b>Progress:</b>
+            <br />
+            {progress}
+          </div>
+        </dd>
+      </div>
+    );
+  }
+
+  renderFooter() {
+    if (
+      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+    ) {
+      return (
         <div id="footer">
           <label>
-            <input type="checkbox" onChange={this.onEmailCheckbox} />
+            <input
+              type="checkbox"
+              onChange={this.handleSendEmailCheckbox}
+              checked={this.optimization.sendEmail}
+            />
             Send me an email when the simulation is complete.
           </label>
           <div
+            id="start-optimization-button"
             className="edit-button button cancel-button"
-            onClick={this.onStartSimulation}
+            onClick={this.handleStartClick.bind(this)}
           >
             Start Simulation
           </div>
         </div>
-      </div>
-    );
+      );
+    }
+    if (this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.ERROR) {
+      return (
+        <div id="footer">
+          <label>
+            <input
+              type="checkbox"
+              onChange={this.handleSendEmailCheckbox}
+              checked={this.optimization.sendEmail}
+            />
+            Send me an email when the simulation is complete.
+          </label>
+          <div
+            id="start-optimization-button"
+            className="edit-button button cancel-button"
+            onClick={this.handleResumeClick.bind(this)}
+          >
+            Resume Simulation
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div id="footer">
+          <label>
+            <input
+              type="checkbox"
+              checked={this.optimization.sendEmail}
+              disabled={true}
+            />
+            Send me an email when the simulation is complete.
+          </label>
+        </div>
+      );
+    }
   }
 
   render() {
@@ -458,11 +937,16 @@ Clips can be played from the player's plate appearance page
           {
             className: "card-title-text-with-arrow prevent-overflow"
           },
-          this.props.optimization.name
+          this.optimization.name
         ),
         React.createElement(RightHeaderButton)
       ),
-      this.renderOptimizationPage()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderOptimizationPage()
+      )
     );
   }
 };

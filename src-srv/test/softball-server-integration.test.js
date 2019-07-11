@@ -5,7 +5,9 @@ const objectHash = require("object-hash");
 const got = require("got");
 
 const CacheCallsLocal = require("../cache-calls-local");
+const ComputeLocal = require("../compute-local");
 const config = require("../config");
+const configAccessor = require("../config-accessor.js");
 const DatabaseCallsPostgres = require("../database-calls-postgres");
 const SoftballServer = require("../softball-server");
 const utils = require("./test-utils.js");
@@ -13,18 +15,18 @@ const objectMerge = require("../../object-merge.js");
 
 describe("sync", () => {
   beforeAll(async () => {
-    const pghost = config.database.host;
-    const pgport = config.database.port;
-    const username = config.database.username;
-    const password = config.database.password;
-    this.databaseCalls = new DatabaseCallsPostgres(
-      pghost,
-      pgport,
-      username,
-      password
+    const port = configAccessor.getAppServerPort();
+    const optPort = configAccessor.getOptimizationServerPort();
+    this.databaseCalls = configAccessor.getDatabaseService();
+    this.compute = configAccessor.getComputeService();
+    this.cache = configAccessor.getCacheService();
+    this.server = new SoftballServer(
+      port,
+      optPort,
+      this.databaseCalls,
+      this.cache,
+      this.compute
     );
-    this.cache = new CacheCallsLocal();
-    this.server = new SoftballServer(this.databaseCalls, this.cache);
     this.server.start();
   });
 

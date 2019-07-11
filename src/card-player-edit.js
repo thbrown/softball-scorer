@@ -74,9 +74,7 @@ module.exports = class CardPlayerEdit extends expose.Component {
             goBack();
           } else {
             dialog.show_notification(
-              `Unable to delete player ${
-                this.state.playerName
-              }. This player either has existing plate appearances and/or is listed on at least one game's lineup.`
+              `Unable to delete player ${this.state.playerName}. This player either has existing plate appearances and/or is listed on at least one game's lineup.`
             );
           }
         }
@@ -352,7 +350,12 @@ Clips can be played from the player's plate appearance page
           onPress: this.homeOrBack
         })
       ),
-      this.renderPlayerEdit()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderPlayerEdit()
+      )
     );
   }
 };

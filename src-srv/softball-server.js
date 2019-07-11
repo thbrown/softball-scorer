@@ -15,20 +15,27 @@ const crypto = require("crypto");
 const hasher = require("object-hash");
 const got = require("got");
 
-const objectMerge = require("../object-merge.js");
-const HandledError = require("./handled-error.js");
-const config = require("./config");
-const logger = require("./logger.js");
+const configAccessor = require("./config-accessor");
+const HandledError = require("./handled-error");
+const idUtils = require("../id-utils");
+const logger = require("./logger");
+const objectMerge = require("../object-merge");
+const OptimizationServer = require("./optimization-server");
 
 module.exports = class SoftballServer {
-  constructor(databaseCalls, cacheCalls) {
+  constructor(appPort, optimizationPort, databaseCalls, cacheCalls, compute) {
     this.databaseCalls = databaseCalls;
     this.cacheCalls = cacheCalls;
-    this.PORT = 8888;
+    this.compute = compute;
+    this.port = appPort;
+    this.optimizationPort = optimizationPort;
   }
 
   start() {
     logger.log(null, "Starting");
+
+    // Start the optimization server
+    new OptimizationServer(this.databaseCalls, this.compute);
 
     // Authentication
     let self = this;
@@ -180,10 +187,7 @@ module.exports = class SoftballServer {
     app.use(
       passportSession({
         store: this.cacheCalls.getSessionStore(),
-        secret:
-          config.session && config.session.secretkey
-            ? config.session.secretkey
-            : crypto.randomBytes(20).toString("hex"),
+        secret: configAccessor.getSessionSecretKey(),
         resave: false,
         saveUninitialized: false,
         name: "softball.sid",
@@ -243,7 +247,7 @@ module.exports = class SoftballServer {
       wrapForErrorProcessing((req, res, next) => {
         passport.authenticate("local", function(err, accountInfo, info) {
           if (err || !accountInfo) {
-            logger.log(null, "Authentication Failed", accountInfo, err, info);
+            logger.warn(null, "Authentication Failed", accountInfo, err, info);
             res.status(400).send();
             return;
           }
@@ -279,18 +283,12 @@ module.exports = class SoftballServer {
         checkFieldLength(req.body.password, 320);
 
         checkRequiredField(req.body.reCAPCHA, "reCAPCHA");
-
-        if (config && config.recapcha && config.recapcha.secretkey) {
-          let body = {
-            secret: config.recapcha.secretkey,
-            response: req.body.reCAPCHA,
-            remoteip: req.connection.remoteAddress
-          };
+        if (configAccessor.getRecapchaSecretKey()) {
           try {
             const recapchaResponse = await got.post(
-              `https://www.google.com/recaptcha/api/siteverify?secret=${
-                config.recapcha.secretkey
-              }&response=${req.body.reCAPCHA}`
+              `https://www.google.com/recaptcha/api/siteverify?secret=${configAccessor.getRecapchaSecretKey()}&response=${
+                req.body.reCAPCHA
+              }`
             );
             let recapchaResponseBody = JSON.parse(recapchaResponse.body);
             if (!recapchaResponseBody.success) {
@@ -313,11 +311,27 @@ module.exports = class SoftballServer {
           }
         }
 
+        let token = await generateToken();
+        let tokenHash = crypto
+          .createHash("sha256")
+          .update(token)
+          .digest("base64");
+
         let hashedPassword = await bcrypt.hash(req.body.password, 12);
         let account = await this.databaseCalls.signup(
           req.body.email,
-          hashedPassword
+          hashedPassword,
+          tokenHash
         );
+
+        configAccessor
+          .getEmailService()
+          .sendMessage(
+            account.account_id,
+            req.body.email,
+            "Welcome to Softball.app!",
+            `Thank you for signing up for an account on https://softball.app. Please click this activation link to verify your email address: https://softball.app/account/verify-email/${token}`
+          );
 
         logger.log(
           account.account_id,
@@ -344,18 +358,29 @@ module.exports = class SoftballServer {
             .update(token)
             .digest("base64");
 
-          // TODO: send password reset email
-          logger.log(null, "Would have sent email", token, req.body.email);
-
           await this.databaseCalls.setPasswordTokenHash(
             account.account_id,
             tokenHash
           );
+
+          configAccessor
+            .getEmailService()
+            .sendMessage(
+              account.account_id,
+              req.body.email,
+              "Softball.app Password Reset",
+              `Sombody tried to reset the password for the softball.app (https://softball.app) account associated with this email address (hopefully it was you!). Please click this link to reset the password: https://softball.app/account/password-reset/${token}`
+            );
+
           res.status(204).send();
         } else {
           // TODO: Always send an email, even if no such email address was found.
           // Emails that haven't been registerd on the site will say so.
-          logger.log("Password reset: No such email found", req.body.email);
+          logger.warn(
+            "N/A",
+            "Password reset: No such email found",
+            req.body.email
+          );
           res.status(404).send();
         }
       })
@@ -364,7 +389,6 @@ module.exports = class SoftballServer {
     app.post(
       "/server/account/reset-password",
       wrapForErrorProcessing(async (req, res, next) => {
-        logger.log(null, "Password update recieved. Token", req.body.token);
         checkRequiredField(req.body.password, "password");
         checkFieldLength(req.body.password, 320);
         checkFieldLength(req.body.token, 320);
@@ -377,6 +401,12 @@ module.exports = class SoftballServer {
           tokenHash
         );
         if (account) {
+          logger.log(
+            account.account_id,
+            "Password update recieved. Token",
+            req.body.token
+          );
+          // If the user reset their passowrd, the email address is confirmed
           await this.databaseCalls.confirmEmail(account.account_id);
 
           let hashedPassword = await bcrypt.hash(req.body.password, 12);
@@ -393,7 +423,41 @@ module.exports = class SoftballServer {
           // logIn(account, req, res);
           res.status(204).send();
         } else {
+          logger.warn(
+            null,
+            "Could not find account from reset token",
+            req.body.token
+          );
+          res.status(404).send();
+        }
+      })
+    );
+
+    app.post(
+      "/server/account/verify-email",
+      wrapForErrorProcessing(async (req, res, next) => {
+        checkFieldLength(req.body.token, 320);
+        let token = req.body.token;
+        let tokenHash = crypto
+          .createHash("sha256")
+          .update(token)
+          .digest("base64");
+        let account = await this.databaseCalls.getAccountFromTokenHash(
+          tokenHash
+        );
+        if (account) {
           logger.log(
+            account.account_id,
+            "Email verification received. Token",
+            req.body.token
+          );
+          await this.databaseCalls.confirmEmail(account.account_id);
+
+          // Don't log in automatically (for security over usability, is this woth the tradeoff?)
+          // logIn(account, req, res);
+          res.status(204).send();
+        } else {
+          logger.warn(
             null,
             "Could not find account from reset token",
             req.body.token
@@ -418,7 +482,11 @@ module.exports = class SoftballServer {
         try {
           // First delete all the data
           let state = await this.databaseCalls.getState(accountId);
-          let deletePatch = objectMerge.diff(state, { teams: [], players: [] });
+          let deletePatch = objectMerge.diff(state, {
+            teams: [],
+            players: [],
+            optimizations: []
+          });
           await this.databaseCalls.patchState(deletePatch, accountId);
 
           // Then delete the account
@@ -429,7 +497,10 @@ module.exports = class SoftballServer {
 
           res.status(204).send();
         } catch (error) {
-          logger.log(accountId, "An error occured while deleting the account");
+          logger.error(
+            accountId,
+            "An error occured while deleting the account"
+          );
           throw error;
         } finally {
           await unlockAccount(accountId);
@@ -460,20 +531,15 @@ module.exports = class SoftballServer {
         }
 
         let accountId = extractSessionInfo(req, "accountId");
-        let stateRecentPatches =
-          (await this.cacheCalls.getPatches(accountId)) || [];
-        let state = undefined;
-        //console.log("State patches", stateRecentPatches);
-
-        // We need this information to know what state the client is in
         let data = req.body;
-        logger.log(
-          accountId,
-          "Sync request received by server ",
-          JSON.stringify(data, null, 2)
-        );
+
+        // Validate the request
         if (!data["md5"]) {
-          throw new HandledError(400, "Missing required field", data);
+          throw new HandledError(
+            400,
+            "Missing required field: md5",
+            JSON.stringify(data)
+          );
         }
 
         // Prevent race conditions across requests
@@ -482,7 +548,9 @@ module.exports = class SoftballServer {
         // For testing locks
         // await sleep(10000);
 
+        let state = undefined;
         let responseData = {};
+        let anyChangesMade = false;
 
         try {
           // Check if the client sent updates to the server
@@ -501,17 +569,11 @@ module.exports = class SoftballServer {
 
             // Now we'll diff the patched version against our original copied version, this gives us a patch without any edits to deleted entries or additions of things that already exist
             let cleanPatch = objectMerge.diff(stateCopy, state);
-            /*
-            logger.log(
-              accountId,
-              "cleanPatch",
-              JSON.stringify(cleanPatch, null, 2)
-            );
-            */
 
             // We can pass the clean patch to the database to persist
             await this.databaseCalls.patchState(cleanPatch, accountId);
             state = await this.databaseCalls.getState(accountId);
+
             // Useful for debuging
             /*logger.log(
               accountId,
@@ -520,74 +582,73 @@ module.exports = class SoftballServer {
               getMd5(state)
             );
             */
-
-            // Now we can derive the patch for this update (with the correct server ids) as well as the checksum of the most recent state and timestamp
-            let syncPatch = objectMerge.diff(stateCopy, state);
-            let checksum = getMd5(state);
-
-            // Update the checksum on the response object and the session
-            responseData.md5 = checksum;
-            await this.cacheCalls.setStateMd5(accountId, checksum);
-
-            // Save the patch for this sync to the session (to speed up future syncs).
-            let savedPatch = {};
-            savedPatch.patch = syncPatch;
-            savedPatch.md5 = checksum;
-            stateRecentPatches.push(savedPatch);
-            //console.log("Setting patches", stateRecentPatches);
-            await this.cacheCalls.setPatches(accountId, stateRecentPatches);
+            anyChangesMade = true;
           } else {
             logger.log(accountId, "No updates from client");
           }
 
-          // Get info about the checksum of the current state from account info
-          let stateMd5 = await this.cacheCalls.getStateMd5(accountId);
+          // Calculate the checksum current state
+          state = state || (await this.databaseCalls.getState(accountId));
+          let checksum = getMd5(state);
 
-          // Calculate the checksum current state if it's not stored in session storage
-          if (!stateMd5) {
-            logger.log(
-              accountId,
-              "No state hash stored in the session, getting state info"
-            );
-            state = state || (await this.databaseCalls.getState(accountId));
-            let checksum = getMd5(state);
+          logger.log(accountId, "Server CHECKSUM: ", checksum);
 
-            await this.cacheCalls.setStateMd5(accountId, checksum);
-            stateMd5 = checksum;
-          }
-
-          // Check if the server has updates for the client.
-          if (data.md5 !== stateMd5) {
+          // Compare the calculated checksum with the checksum provided by the client to determine if the server has updates for the client.
+          if (data.md5 !== checksum) {
             logger.log(
               accountId,
               "Server has updates. CLIENT: ",
               data.md5,
               " SERVER: ",
-              stateMd5
+              checksum
             );
-            // If we have a record of the patches we need to update the client, send those instead of the entire state
-            let foundMatch = false;
-            let patches = stateRecentPatches.filter(v => {
-              if (v.md5 === data.md5) {
-                foundMatch = true;
-              }
-              return foundMatch && v.md5 !== data.md5; // We want all patches after the matching md5
-            });
 
-            if (patches.length > 0 && data.type !== "full") {
-              // Yay, we have patches saved that will update the client to the current state, just send those.
-              logger.log(accountId, "patches found, sending those instead"); //, stateRecentPatches);
-              let patchesOnly = patches.map(v => v.patch);
-              responseData.patches = patchesOnly;
+            // If we have an ancestor state cached and client did not request a full sync we'll send only a patch representing the server's updates
+            // If the client requested a full sync or we don't have a cached ancestor we'll send the entire state to the client
+            let serverAncestor = await this.cacheCalls.getAncestor(
+              accountId,
+              req.sessionID
+            );
+            if (data.type === "any" && serverAncestor) {
+              // Yes we have an ancestor!
+              logger.log(accountId, "performing patch sync w/ ancestor");
+
+              // Apply the client's patch to the ancestor
+              objectMerge.patch(serverAncestor, data.patch, true);
+
+              // Diff the ancestor and the localState (dbState) to get the patch we need to send back to the server
+              let serverPatch = objectMerge.diff(serverAncestor, state);
+              logger.log(
+                accountId,
+                "Server Patch",
+                JSON.stringify(serverPatch, null, 2)
+              );
+
+              // Array for historical reasons, no reason this can't be a single object
+              responseData.patches = [serverPatch];
             } else {
-              // We don't have any patches saved in the session for this timestamp, or the client requested we send the whole state back.
-              logger.log(accountId, "no patches found, sending whole state");
+              // No we have no ancestor OR sync status is full, send back the whole state
+              logger.warn(
+                accountId,
+                "performing full sync",
+                data.type,
+                new Boolean(serverAncestor)
+              );
               responseData.base =
                 state || (await this.databaseCalls.getState(accountId));
             }
-            responseData.md5 = stateMd5;
+
+            anyChangesMade = true;
           } else {
-            logger.log(accountId, "No updates from server", data.md5, stateMd5);
+            logger.log(accountId, "No updates from server", data.md5, checksum);
+          }
+
+          // Whatever happened,we need to send the checksum back
+          responseData.md5 = checksum;
+
+          // Finally, if changes were made by either the client or the server, update the ancestor state for this session. This will reduce network egress for subsequent syncs.
+          if (anyChangesMade) {
+            await this.cacheCalls.setAncestor(accountId, req.sessionID, state);
           }
         } finally {
           // Unlock the account
@@ -595,23 +656,274 @@ module.exports = class SoftballServer {
         }
 
         // Woot, done
-        if (responseData.base) {
-          let testCs = getMd5(responseData.base);
-        }
         res.status(200).send(responseData);
-
-        // Delete values if we are storing too many patches (Not the most refined technique, but it's something)
-        while (JSON.stringify(stateRecentPatches).length > 20000) {
-          logger.log(
-            accountId,
-            "Erasing old patch data. New length: " +
-              stateRecentPatches.length -
-              1
-          );
-          stateRecentPatches.splice(-1, 1);
-        }
       })
     );
+
+    app.post(
+      "/server/start-optimization",
+      wrapForErrorProcessing(async (req, res, next) => {
+        if (!req.isAuthenticated()) {
+          res.status(403).send();
+          return;
+        }
+
+        let accountId = extractSessionInfo(req, "accountId");
+        logger.log(accountId, `Starting optimization`);
+
+        let optimizationId = undefined;
+
+        // This lock is just to make sure we don't get two optimizations running at the same time
+        await lockAccount(accountId);
+        try {
+          // Is there another optimization state IN_PROGRESS (or in ALLOCATING_RESOURCES)
+          // If so, don't start another one
+          let inProgressCount = await this.databaseCalls.getNumberOfOptimizationsInProgress(
+            accountId
+          );
+          if (inProgressCount !== 0) {
+            logger.log(accountId, "Simulations running", inProgressCount);
+            res
+              .status(404)
+              .send({ message: `There is already an optimization running.` });
+            return;
+          }
+
+          let data = req.body;
+
+          // TODO: Do some validation?
+          // minimum players (this should be on the client side too)
+          // must have id
+          // required fields?
+          // some size restriction?
+          // Make sure optimization exists!
+
+          // Convert client optimization id to the server one
+          optimizationId = idUtils.clientIdToServerId(
+            data.optimizationId,
+            accountId
+          );
+
+          // Write execution data to db
+          logger.log(accountId, "writing execution data");
+          await this.databaseCalls.setOptimizationExecutionData(
+            accountId,
+            optimizationId,
+            data.executionData
+          );
+
+          // Transition status to ALLOCATION_RESOURCES
+          await this.databaseCalls.setOptimizationStatus(
+            accountId,
+            optimizationId,
+            1 //state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES, TODO: make this a common server/client enum
+          );
+
+          // Now unlock the account
+        } catch (error) {
+          logger.log(accountId, "Setting optimization status to error", error);
+          await this.databaseCalls.setOptimizationStatus(
+            accountId,
+            optimizationId,
+            5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
+            error
+          );
+          throw error;
+        } finally {
+          await unlockAccount(accountId);
+        }
+
+        // Return success
+        res.status(204).send();
+
+        try {
+          // Start the computer that will run the optimization
+          await this.compute.start(
+            accountId,
+            optimizationId,
+            function(accountId, optimizationId, message) {
+              this.databaseCalls.setOptimizationStatus(
+                accountId,
+                optimizationId,
+                5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
+                message
+              );
+            }.bind(this)
+          );
+        } catch (error) {
+          // Transition status to ERROR
+          logger.error(
+            accountId,
+            optimizationId,
+            "Setting optimization status to error in compute start",
+            error
+          );
+          await this.databaseCalls.setOptimizationStatus(
+            accountId,
+            optimizationId,
+            5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
+            error
+          );
+          throw error;
+          // TODO: Kill the compute instance? If it's not dead already. This should really happen inside the start command
+        }
+
+        // TODO frontend: Don't allow deletion of running simulation. Why not? What about account deletions?
+      })
+    );
+
+    // TODO: some of this is duplicate from start-optimization
+    app.post(
+      "/server/resume-optimization",
+      wrapForErrorProcessing(async (req, res, next) => {
+        if (!req.isAuthenticated()) {
+          res.status(403).send();
+          return;
+        }
+
+        let accountId = extractSessionInfo(req, "accountId");
+        logger.log(accountId, `Starting optimization`);
+
+        let optimizationId = undefined;
+
+        // This lock is just to make sure we don't get two optimizations running at the same time
+        await lockAccount(accountId);
+        try {
+          // Is there another optimization state IN_PROGRESS (or in ALLOCATING_RESOURCES)
+          // If so, don't start another one
+          let inProgressCount = await this.databaseCalls.getNumberOfOptimizationsInProgress(
+            accountId
+          );
+          if (inProgressCount !== 0) {
+            logger.log(accountId, "Simulations running", inProgressCount);
+            res.status(404).send("There is already an optimization running");
+            return;
+          }
+
+          let data = req.body;
+
+          // TODO: Do some validation?
+          // minimum players (this should be on the client side too)
+          // must have id
+          // required fields?
+          // some size restriction?
+
+          // Convert client optimization id to the server one
+          optimizationId = idUtils.clientIdToServerId(
+            data.optimizationId,
+            accountId
+          );
+
+          // Retrieve execution data from db for validation purposes
+          logger.log(
+            accountId,
+            "retrieving execution data",
+            data.optimizationId
+          );
+          let executionData = await this.databaseCalls.getOptimizationExecutionData(
+            accountId,
+            optimizationId
+          );
+
+          if (!executionData) {
+            res.status(404).send({
+              message: `Optimization data was not found. Sync and try again.`
+            });
+          }
+
+          // Transition status to ALLOCATION_RESOURCES
+          await this.databaseCalls.setOptimizationStatus(
+            accountId,
+            optimizationId,
+            1 //state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES, TODO: make this a common server/client enum
+          );
+
+          // Now unlock the account
+        } catch (error) {
+          logger.log(accountId, "Setting optimization status to error", error);
+          await this.databaseCalls.setOptimizationStatus(
+            accountId,
+            optimizationId,
+            5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
+            error
+          );
+          throw error;
+        } finally {
+          await unlockAccount(accountId);
+        }
+
+        // Return success
+        res.status(204).send();
+
+        try {
+          // Start the computer that will run the optimization
+          logger.log(accountId, "Starting optimization server");
+          await this.compute.start(
+            accountId,
+            optimizationId,
+            function(accountId, optimizationId, message) {
+              this.databaseCalls.setOptimizationStatus(
+                accountId,
+                optimizationId,
+                5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
+                message
+              );
+            }.bind(this)
+          );
+        } catch (error) {
+          // Transition status to ERROR
+          logger.log(
+            accountId,
+            optimizationId,
+            "Setting optimization status to error in compute start",
+            error
+          );
+          await this.databaseCalls.setOptimizationStatus(
+            accountId,
+            optimizationId,
+            5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
+            error.message
+          );
+          throw error;
+          // TODO: Kill the compute instance? If it's not dead already. This should really happen inside the start command
+        }
+
+        // TODO frontend: Don't allow deletion of running simulation. Why not? What about account deletions?
+      })
+    );
+
+    /*
+    TODO
+    app.post("/server/pause-optimization", function(req, res) {
+      wrapForErrorProcessing(async (req, res, next) => {
+        if (!req.isAuthenticated()) {
+          res.status(403).send();
+          return;
+        }
+
+        let accountId = extractSessionInfo(req, "accountId");
+        logger.log(accountId, `Pausing optimization`);
+
+        await lockAccount(accountId);
+        try {
+          // Is there another simulation currently in progress?
+
+          // Pause any optimization
+
+          // Mark status as paused in db (will sync on the other end)
+
+          // Actually it is already paused... (or have an idempotent post?)
+
+          res.status(204).send();
+        } catch (error) {
+          logger.log(accountId, "An error occured while deleting the account");
+          throw error;
+        } finally {
+          await unlockAccount(accountId);
+        }
+      });
+    });
+    */
 
     app.get("/server/current-account", function(req, res) {
       if (!req.isAuthenticated()) {
@@ -632,7 +944,7 @@ module.exports = class SoftballServer {
       } else {
         logger.log(accountId, "CSP Violation: No data received!");
       }
-      res.status(204).end();
+      res.status(204).send();
     });
 
     // The root should retrun the whole app
@@ -647,7 +959,7 @@ module.exports = class SoftballServer {
     app.get(
       "*",
       wrapForErrorProcessing((req, res) => {
-        logger.log(null, "unanticipated url", req.originalUrl);
+        logger.warn(null, "unanticipated url", req.originalUrl);
         res.sendFile(path.join(__dirname + "/../index.html").normalize());
       })
     );
@@ -662,7 +974,7 @@ module.exports = class SoftballServer {
 
       res.setHeader("content-type", "application/json");
       if (error instanceof HandledError) {
-        logger.log(accountId, "Sending Error", error.getExternalMessage());
+        logger.error(accountId, "Sending Error", error.getExternalMessage());
         res
           .status(error.getStatusCode())
           .send({ message: [error.getExternalMessage()] });
@@ -676,14 +988,14 @@ module.exports = class SoftballServer {
         res
           .status(500)
           .send({ message: `Internal Server Error. Error id: ${errorId}.` });
-        logger.log(accountId, `SERVER ERROR ${errorId} - ${accountId}`, {
+        logger.error(accountId, `SERVER ERROR ${errorId} - ${accountId}`, {
           message: [error.message]
         });
-        logger.log(accountId, `Error`, error);
+        logger.error(accountId, `Error`, error);
       }
     });
 
-    this.server = server.listen(this.PORT, function listening() {
+    this.server = server.listen(this.port, function listening() {
       logger.log(null, "Softball App: Listening on", server.address().port);
     });
 
@@ -695,7 +1007,6 @@ module.exports = class SoftballServer {
         try {
           await fn(req, res, next);
         } catch (error) {
-          //console.log("An error was thrown!", error);
           next(error);
         }
       };
@@ -789,8 +1100,6 @@ module.exports = class SoftballServer {
           });
         });
         logger.log(account.account_id, "Login Successful -- backdoor!");
-        let accountId = extractSessionInfo(req, "accountId");
-        logger.log(account.account_id, `Data ${accountId}`);
       } catch (e) {
         logger.log(account.account_id, "ERROR", e);
         res.status(500).send();
@@ -841,7 +1150,17 @@ module.exports = class SoftballServer {
   }
 
   stop() {
-    logger.log(null, "Closing App");
-    this.server.close();
+    return new Promise(
+      function(resolve, reject) {
+        logger.log(null, "Closing App");
+        this.server.close(function(err) {
+          if (err) {
+            reject(err);
+          }
+          logger.log(null, "App Closed");
+          resolve();
+        });
+      }.bind(this)
+    );
   }
 };

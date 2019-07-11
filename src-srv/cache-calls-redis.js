@@ -2,6 +2,10 @@ const { promisify } = require("util");
 const redis = require("redis");
 const session = require("express-session");
 const RedisStore = require("connect-redis")(session);
+const zlib = require("zlib");
+
+const configAccessor = require("./config-accessor");
+const logger = require("./logger");
 
 /**
  * This cache implementation uses redis to store sessions and data that must be shared between different sessions of the same account (e.g. account locking data).
@@ -42,10 +46,42 @@ module.exports = class CacheCalls {
       */
     });
 
+    this.client.on("error", function(err) {
+      logger.error("sys", "Redis Error - " + err);
+      process.exit(1);
+    });
+
+    this.client.on("ready", function() {
+      logger.log("sys", "Redis Ready");
+    });
+
+    this.client.on("connect", function() {
+      logger.log("sys", "Redis Connect");
+    });
+
+    this.client.on("reconnecting", function() {
+      logger.warn("sys", "Redis Reconnecting");
+    });
+
+    this.client.on("end", function() {
+      logger.warn("sys", "Redis End");
+    });
+
+    this.client.on("warning", function(warn) {
+      logger.warn("sys", "Redis Warning " + warn);
+    });
+
     this.hgetAsync = promisify(this.client.hget).bind(this.client);
     this.hsetAsync = promisify(this.client.hset).bind(this.client);
     this.hsetnxAsync = promisify(this.client.hsetnx).bind(this.client);
     this.hdelAsync = promisify(this.client.hdel).bind(this.client);
+    this.setAsync = promisify(this.client.set).bind(this.client);
+    this.evalAsync = promisify(this.client.eval).bind(this.client);
+  }
+
+  async init() {
+    // Test
+    await this.hsetnxAsync("0", "0", "0");
   }
 
   async lockAccount(accountId) {
@@ -56,24 +92,37 @@ module.exports = class CacheCalls {
     await this.hdelAsync(accountId, "locked");
   }
 
-  async getPatches(accountId) {
-    return JSON.parse(await this.hgetAsync(accountId, "stateRecentPatches"));
-  }
-
-  async setPatches(accountId, stateRecentPatches) {
-    await this.hsetAsync(
-      accountId,
-      "stateRecentPatches",
-      JSON.stringify(stateRecentPatches)
+  async lockOptimization(optimizationId, serverId, ttl) {
+    // This redis function (lua) either
+    // 1) Takes the lock if nobody else has it (returns true)
+    // 2) Extends the lock ttl if the lock is already held by the server requesting it (returns true) or
+    // 3) Returns false if the lock is owned by another server
+    let result = await this.evalAsync(
+      "local value = redis.call('get', KEYS[1]); if not value then redis.call('set', KEYS[1], ARGV[1], 'EX', ARGV[2]) return true elseif (value == ARGV[1]) then redis.call('expire', KEYS[1], ARGV[2]) return true else return false end",
+      "1",
+      "optlock:" + optimizationId,
+      serverId,
+      ttl
     );
+    return result ? true : false;
   }
 
-  async getStateMd5(accountId) {
-    return await this.hgetAsync(accountId, "stateMd5");
+  async getAncestor(accountId, sessionId) {
+    let stringData = await this.hgetAsync(accountId, "ancestor:" + sessionId);
+    if (stringData) {
+      var inflated = zlib
+        .inflateSync(new Buffer(stringData, "base64"))
+        .toString();
+      return JSON.parse(inflated);
+    }
+    return null;
   }
 
-  async setStateMd5(accountId, stateMd5) {
-    await this.hsetAsync(accountId, "stateMd5", stateMd5);
+  async setAncestor(accountId, sessionId, ancestor) {
+    var deflated = zlib
+      .deflateSync(JSON.stringify(ancestor))
+      .toString("base64");
+    this.hsetAsync(accountId, "ancestor:" + sessionId, deflated);
   }
 
   getSessionStore() {

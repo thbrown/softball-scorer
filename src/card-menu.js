@@ -44,13 +44,24 @@ module.exports = class CardMenu extends expose.Component {
           let status = await state.sync();
           if (status !== 200) {
             let message =
-              "Could not sync account data prior to logout. You may be offline. If you continue to sign out you will lose unsynced data. Continue anyways?";
-            dialog.show_confirm(message, () => {
-              abort = false;
+              "Could not sync account data prior to logout. You may be offline. If you continue to sign out you will lose unsynced data. You might consider backing up your data [here](/menu) before continuing. Continue anyways?";
+
+            // Wait for user to select an option
+            // TODO: make all dialogs return promises
+            await new Promise(function(resolve, reject) {
+              dialog.show_confirm(
+                message,
+                () => {
+                  abort = false;
+                  resolve();
+                },
+                () => {
+                  resolve();
+                }
+              );
             });
-            return;
           } else {
-            console.log("Skiping sync, changes are already in sync");
+            console.log("Sync completed successfully, continuing logout");
             abort = false;
           }
           if (abort) {
@@ -68,10 +79,10 @@ module.exports = class CardMenu extends expose.Component {
             });
           });
         } else {
-          // We can't delete our cookies in javascript because they have the httpOnly header, it has to be done from the server
-          // TODO: We might be able to get around this by sending a phony login request, catch it with the service worker and pretend it succeded
+          // We can't delete our sid cookie in javascript because is has the httpOnly header, it has to be done from the server.
+          // TODO: I think we can get aroud this by having two session cookies, one httpOnly and one we can remove with javascript. Both would be required to auth.
           dialog.show_notification(
-            "Logout failed. You must be online to logout",
+            `Logout failed. You must be online to logout (${response.status})`,
             function() {
               expose.set_state("main", {
                 page: "/menu"
@@ -304,7 +315,12 @@ module.exports = class CardMenu extends expose.Component {
           showBlogLink: true
         })
       ),
-      this.renderMenuOptions()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderMenuOptions()
+      )
     );
   }
 };

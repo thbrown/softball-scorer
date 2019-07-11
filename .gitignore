@@ -11,3 +11,6 @@ src/config.js
 *.sublime-workspace
 src-srv/logs
 .vscode
+softball-sim.jar
+java.log
+cred.json
