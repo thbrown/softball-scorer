@@ -1,6 +1,9 @@
 const objectMerge = require("../object-merge.js");
 const HandledError = require("./handled-error.js");
 
+const idUtils = require("../id-utils.js");
+const logger = require("./logger.js");
+
 let databaseCalls = class DatabaseCalls {
   constructor() {
     this.idCounter = 2;
@@ -11,12 +14,31 @@ let databaseCalls = class DatabaseCalls {
         password_hash:
           "$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2", // pizza
         password_token_hash: "abcdefg",
-        password_token_expiration: Date.now() + 3600000
+        password_token_expiration: Date.now() + 3600000,
+        verifiedEmail: true
       }
     ];
     this.STATES = {
       1: {
-        optimizations: [],
+        optimizations: [
+          {
+            id: "0R8p2xFmJSiDAZ",
+            name: "6/18 optimization",
+            type: 0,
+            customData: '{"innings":7,"iterations":10000}',
+            overrideData: "{}",
+            status: 0,
+            resultData: null,
+            statusMessage: null,
+            sendEmail: true,
+            teamList: '["4fKFOTF7Wn4WIa","4W78nKNVldoDZ4","4jouU8AOMIpbj"]',
+            gameList: "[]",
+            playerList:
+              '["4ZqtZbpYtlxOVW","47guOwUQN5QLPc","4f4CQExEegoHbV","4SFlePddQQh8OY","4ePGkCgKNTSnH4","4yIOlHpfiREBfJ"]',
+            lineupType: 1,
+            executionData: null
+          }
+        ],
         players: [
           {
             id: "4f4CQExEegoHbV",
@@ -269,6 +291,15 @@ let databaseCalls = class DatabaseCalls {
     return undefined;
   }
 
+  async getAccountById(id) {
+    for (let i = 0; i < this.ACCOUNTS.length; i++) {
+      if (this.ACCOUNTS[i].account_id === id) {
+        return this.ACCOUNTS[i];
+      }
+    }
+    return undefined;
+  }
+
   getState(accountId) {
     // Return a copy of the state
     return JSON.parse(JSON.stringify(this.STATES[accountId]));
@@ -278,7 +309,7 @@ let databaseCalls = class DatabaseCalls {
     if (accountId === undefined) {
       throw new HandledError(403, "Please sign in first");
     }
-    console.log("Attempting to merge", this.STATES[accountId], patch, "Pizza");
+    logger.log("Attempting to merge", this.STATES[accountId], patch);
     objectMerge.patch(this.STATES[accountId], patch);
   }
 
@@ -287,20 +318,26 @@ let databaseCalls = class DatabaseCalls {
     let newAccount = {
       account_id: this.idCounter,
       email: email,
-      password_hash: passwordHash, // pizza
+      password_hash: passwordHash,
       password_token_hash: passwordTokenHash,
       password_token_expiration: Date.now() + 3600000
     };
     this.ACCOUNTS.push(newAccount);
     this.idCounter++;
+    logger.log(null, "Account added", JSON.stringify(this.ACCOUNTS, null, 2));
     return JSON.parse(JSON.stringify(newAccount));
   }
 
   async getAccountFromTokenHash(passwordTokenHash) {
-    logger.log(null, "Seraching for", passwordTokenHash.trim());
+    logger.log(
+      null,
+      "Seraching for",
+      passwordTokenHash.trim(),
+      JSON.stringify(this.ACCOUNTS, null, 2)
+    );
     for (let i = 0; i < this.ACCOUNTS.length; i++) {
-      if (this.ACCOUNTS[i].passwordTokenHash === passwordTokenHash) {
-        if (this.ACCOUNTS[i].passwordTokenExpiration > Date.now()) {
+      if (this.ACCOUNTS[i].password_token_hash === passwordTokenHash) {
+        if (this.ACCOUNTS[i].password_token_expiration > Date.now()) {
           // TODO: 1000 above should be current time in millis
           return this.ACCOUNTS[i];
         } else {
@@ -313,7 +350,7 @@ let databaseCalls = class DatabaseCalls {
 
   async confirmEmail(accountId) {
     for (let i = 0; i < this.ACCOUNTS.length; i++) {
-      if (this.ACCOUNTS[i].id === accountId) {
+      if (this.ACCOUNTS[i].account_id === accountId) {
         this.ACCOUNTS[i].verifiedEmail = true;
       }
     }
@@ -322,18 +359,18 @@ let databaseCalls = class DatabaseCalls {
 
   async setPasswordHashAndExpireToken(accountId, newPasswordHash) {
     for (let i = 0; i < this.ACCOUNTS.length; i++) {
-      if (this.ACCOUNTS[i].id === accountId) {
-        this.ACCOUNTS[i].passwordHash = newPasswordHash;
-        this.ACCOUNTS[i].passwordTokenExpiration = 0;
+      if (this.ACCOUNTS[i].account_id === accountId) {
+        this.ACCOUNTS[i].password_token_hash = newPasswordHash;
+        this.ACCOUNTS[i].password_token_expiration = 0;
       }
     }
     return undefined;
   }
 
-  async setPasswordTokenHash(accountId, newPasswordHash) {
+  async setPasswordTokenHash(accountId, tokenHash) {
     for (let i = 0; i < this.ACCOUNTS.length; i++) {
-      if (this.ACCOUNTS[i].id === accountId) {
-        this.ACCOUNTS[i].password_token_hash = newPasswordHash;
+      if (this.ACCOUNTS[i].account_id === accountId) {
+        this.ACCOUNTS[i].password_token_hash = tokenHash;
         this.ACCOUNTS[i].password_token_expiration = Date.now() + 3600000;
       }
     }
@@ -344,12 +381,162 @@ let databaseCalls = class DatabaseCalls {
     logger.log(accountId, "deleting");
     let indexToRemove = undefined;
     for (let i = 0; i < this.ACCOUNTS.length; i++) {
-      if (this.ACCOUNTS[i].id === accountId) {
+      if (this.ACCOUNTS[i].account_id === accountId) {
         indexToRemove = i;
         break;
       }
     }
     this.ACCOUNTS.splice(indexToRemove, 1);
+  }
+
+  async getNumberOfOptimizationsInProgress(accountId) {
+    logger.log(accountId, "getting optimization in progress count");
+    let state = this.STATES[accountId];
+    let count = 0;
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (
+        state.optimizations[i].status == 1 ||
+        state.optimizations[i].status == 2
+      ) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  async setOptimizationStatus(
+    accountId,
+    optimizationId,
+    newStatus,
+    optionalMessage
+  ) {
+    optimizationId = idUtils.serverIdToClientId(optimizationId);
+    logger.log(
+      accountId,
+      "setting optimization status",
+      newStatus,
+      optionalMessage
+    );
+    let state = this.STATES[accountId];
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
+        state.optimizations[i].status = newStatus;
+        if (optionalMessage !== undefined) {
+          state.optimizations[i].statusMessage = optionalMessage;
+        } else {
+          state.optimizations[i].statusMessage = null;
+        }
+        return;
+      }
+    }
+    throw new Error(
+      "Optimization not found 5 " +
+        optimizationId +
+        " " +
+        JSON.stringify(state.optimizations)
+    );
+  }
+
+  async setOptimizationResultData(accountId, optimizationId, newResults) {
+    optimizationId = idUtils.serverIdToClientId(optimizationId);
+    logger.log(accountId, "setting optimization result data", newResults);
+    let state = this.STATES[accountId];
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
+        // Postgres converts to stringified data on read, there is no such logic for static, so we'll just store it as a stringified object.
+        // No need to stringify execution data because that stays on the server side.
+        state.optimizations[i].resultData = JSON.stringify(newResults);
+        return;
+      }
+    }
+    throw new Error(
+      "Optimization not found 4 " +
+        optimizationId +
+        " " +
+        JSON.stringify(state.optimizations)
+    );
+  }
+
+  async getOptimizationResultData(accountId, optimizationId) {
+    optimizationId = idUtils.serverIdToClientId(optimizationId);
+    logger.log(accountId, "getting optimization result data");
+    let state = this.STATES[accountId];
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
+        return state.optimizations[i].resultData;
+      }
+    }
+    throw new Error(
+      "Optimization not found 3 " +
+        optimizationId +
+        " " +
+        JSON.stringify(state.optimizations)
+    );
+  }
+
+  async getOptimizationDetails(accountId, optimizationId) {
+    optimizationId = idUtils.serverIdToClientId(optimizationId);
+    logger.log(accountId, "getting optimization result data");
+    let state = this.STATES[accountId];
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
+        return state.optimizations[i];
+      }
+    }
+    throw new Error(
+      "Optimization not found 3 " +
+        optimizationId +
+        " " +
+        JSON.stringify(state.optimizations)
+    );
+  }
+
+  async setOptimizationExecutionData(
+    accountId,
+    optimizationId,
+    newExecutionData
+  ) {
+    optimizationId = idUtils.serverIdToClientId(optimizationId);
+    logger.log(
+      accountId,
+      "setting optimization execution data",
+      optimizationId
+    );
+    let state = this.STATES[accountId];
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
+        state.optimizations[i].executionData = newExecutionData;
+        return;
+      }
+    }
+    throw new Error(
+      "Optimization not found 2 " +
+        optimizationId +
+        " " +
+        JSON.stringify(state.optimizations)
+    );
+  }
+
+  async getOptimizationExecutionData(accountId, optimizationId) {
+    optimizationId = idUtils.serverIdToClientId(optimizationId);
+
+    logger.log(
+      accountId,
+      "getting optimization execution data",
+      optimizationId
+    );
+    let state = this.STATES[accountId];
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
+        return state.optimizations[i].executionData;
+      }
+    }
+    throw new Error(
+      "Optimization not found 1 " +
+        optimizationId +
+        " " +
+        JSON.stringify(state.optimizations)
+    );
   }
 };
 

@@ -2,29 +2,50 @@
  * This is the server side configuration template. To add your own configuration, please copy this file and rename it to 'config.js'
  **/
 module.exports = {
-  database: {
-    host: undefined,
+  app: {
     port: undefined,
-    username: undefined,
-    password: undefined
+    optimizationSweeperPeriod: undefined,
+    optimizationLockTTL: undefined
+  },
+
+  database: {
+    host: null,
+    port: null,
+    username: null,
+    password: null
   },
 
   cache: {
-    host: undefined,
-    port: undefined,
-    username: undefined,
-    password: undefined
+    host: null,
+    port: null,
+    password: null
   },
 
   session: {
-    secretkey: undefined
+    secretkey: null
   },
 
   recapcha: {
-    secretkey: undefined
+    secretkey: null
   },
 
   logging: {
-    logToFile: false
+    toFile: false,
+    colorOff: false
+  },
+
+  email: {
+    apiKey: undefined,
+    domain: undefined,
+    restrictEmailsToDomain: undefined
+  },
+
+  optimization: {
+    port: undefined
+  },
+
+  compute: {
+    mode: "local",
+    params: null
   }
 };

@@ -1,19 +1,29 @@
 /*eslint no-process-exit:*/
 "use strict";
 
+const configAccessor = require("./config-accessor");
 const objectHash = require("object-hash");
 const got = require("got");
 
 const CacheCallsLocal = require("../cache-calls-local");
+const ComputeLocal = require("./compute-local");
 const SoftballServer = require("../softball-server");
 const MockDb = require("./database-calls-mock");
 const utils = require("./test-utils.js");
 
 describe("sync", () => {
   beforeAll(async () => {
+    const port = configAccessor.getAppServerPort();
+
     this.mockDb = new MockDb();
-    this.cache = new CacheCallsLocal();
-    this.server = new SoftballServer(this.mockDb, this.cache);
+    this.cache = configAccessor.getCacheService();
+    this.compute = configAccessor.getComputeService();
+    this.server = new SoftballServer(
+      port,
+      this.mockDb,
+      this.cache,
+      this.compute
+    );
     this.server.start();
     this.sessionId = await utils.login("brutongaster@softball.app", "pizza");
   });

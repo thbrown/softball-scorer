@@ -109,7 +109,12 @@ module.exports = class CardPlayerList extends expose.Component {
         ),
         React.createElement(RightHeaderButton, {})
       ),
-      this.renderPlayerList()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderPlayerList()
+      )
     );
   }
 };

@@ -32,6 +32,7 @@ export default class CardError extends expose.Component {
       ),
       DOM.div(
         {
+          className: "card-body",
           style: {
             padding: '20px',
           },

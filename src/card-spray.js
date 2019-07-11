@@ -11,6 +11,8 @@ const RightHeaderButton = require("component-right-header-button");
 
 const LOCATION_DENOMINATOR = 32767;
 
+const BALLFIELD_MAX_WIDTH = 500;
+
 const normalize = function(x, A, B, C, D) {
   return C + ((x - A) * (D - C)) / (B - A);
 };
@@ -45,10 +47,22 @@ module.exports = class CardAtBat extends expose.Component {
       }
 
       let new_x = Math.floor(
-        normalize(x, 0, LOCATION_DENOMINATOR, 0, window.innerWidth)
+        normalize(
+          x,
+          0,
+          LOCATION_DENOMINATOR,
+          0,
+          Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH)
+        )
       );
       let new_y = Math.floor(
-        normalize(y, 0, LOCATION_DENOMINATOR, 0, window.innerWidth)
+        normalize(
+          y,
+          0,
+          LOCATION_DENOMINATOR,
+          0,
+          Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH)
+        )
       );
 
       if (value.location && x && y) {
@@ -79,10 +93,8 @@ module.exports = class CardAtBat extends expose.Component {
         id: "ballfield",
         style: {
           position: "relative",
-          borderTop: "1px solid white",
-          borderBottom: "1px solid white",
-          width: window.innerWidth - 2 + "px",
-          height: window.innerWidth - 2 + "px",
+          width: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + "px",
+          height: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + "px",
           overflow: "hidden"
         }
       },
@@ -119,7 +131,15 @@ module.exports = class CardAtBat extends expose.Component {
         ),
         React.createElement(RightHeaderButton, {})
       ),
-      this.renderField()
+      DOM.div(
+        {
+          className: "card-body",
+          style: {
+            maxWidth: BALLFIELD_MAX_WIDTH + "px"
+          }
+        },
+        this.renderField()
+      )
     );
   }
 };

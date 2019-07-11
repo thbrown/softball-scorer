@@ -77,17 +77,13 @@ module.exports = class CardLineup extends expose.Component {
 
     this.handleCreateClick = function() {
       expose.set_state("main", {
-        page: `/teams/${this.props.team.id}/games/${
-          this.props.game.id
-        }/player-selection`
+        page: `/teams/${this.props.team.id}/games/${this.props.game.id}/player-selection`
       });
     }.bind(this);
 
     this.handleBoxClick = function(plateAppearanceId) {
       expose.set_state("main", {
-        page: `/teams/${this.props.team.id}/games/${
-          this.props.game.id
-        }/lineup/plateAppearances/${plateAppearanceId}`,
+        page: `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearanceId}`,
         isNew: false
       });
     }.bind(this);
@@ -99,9 +95,7 @@ module.exports = class CardLineup extends expose.Component {
         team_id
       );
       expose.set_state("main", {
-        page: `/teams/${this.props.team.id}/games/${
-          this.props.game.id
-        }/lineup/plateAppearances/${plateAppearance.id}`,
+        page: `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearance.id}`,
         isNew: true
       });
     }.bind(this);
@@ -570,9 +564,14 @@ module.exports = class CardLineup extends expose.Component {
           marginTop: "10px"
         }
       },
-      this.renderLineupScore(),
-      this.renderLineupPlayerList(),
-      this.renderNonLineupAtBats()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderLineupScore(),
+        this.renderLineupPlayerList(),
+        this.renderNonLineupAtBats()
+      )
     );
   }
 };

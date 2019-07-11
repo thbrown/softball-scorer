@@ -28,9 +28,6 @@ export default class CardAuth extends expose.Component {
     };
 
     this.handlePasswordResetClick = function() {
-      // TODO: pre-populate dialog with the email address that was already entered
-      // let email = document.getElementById( 'email' );
-      // email.value
       dialog.show_input(
         'To reset your password, please enter your email address',
         async email => {
@@ -274,7 +271,12 @@ export default class CardAuth extends expose.Component {
         ),
         React.createElement(RightHeaderButton, {})
       ),
-      this.renderAuthInterface()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderAuthInterface()
+      )
     );
   }
 }

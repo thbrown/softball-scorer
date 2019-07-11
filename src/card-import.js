@@ -174,7 +174,12 @@ module.exports = class CardImport extends expose.Component {
         ),
         React.createElement(RightHeaderButton, {})
       ),
-      this.renderLoadPage()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderLoadPage()
+      )
     );
   }
 };

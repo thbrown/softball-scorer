@@ -110,7 +110,12 @@ module.exports = class CardOptimizationList extends expose.Component {
         ),
         React.createElement(RightHeaderButton, {})
       ),
-      this.renderOptimizationsList()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderOptimizationsList()
+      )
     );
   }
 };

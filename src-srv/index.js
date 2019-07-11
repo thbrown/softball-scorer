@@ -1,71 +1,43 @@
 /*eslint no-process-exit:*/
+"use strict";
 
-let config = null;
+const SoftballServer = require("./softball-server");
 
-try {
-  config = require('./config.js');
-} catch (e) {
-  console.log('Error: No ./config.js present.');
-  process.exit(1);
-}
+const configAccessor = require("./config-accessor");
+const logger = require("./logger.js");
 
-const DatabaseCallsPostgres = require('./database-calls-postgres');
-const DatabaseCallsStatic = require('./database-calls-static');
-const SoftballServer = require('./softball-server');
-const CacheCallsRedis = require('./cache-calls-redis');
-const CacheCallsLocal = require('./cache-calls-local');
-
-process.on('SIGINT', function() {
-  console.log('SIGINT');
+// Log on inturruptions
+process.on("SIGINT", function() {
+  logger.log("sys", "SIGINT");
   process.exit(0);
 });
-process.on('SIGTERM', function() {
-  console.log('SIGTERM');
+process.on("SIGTERM", function() {
+  logger.log("sys", "SIGTERM");
   process.exit(0);
 });
-process.on('exit', function() {
-  process.stdout.write('Bye\n');
+process.on("exit", function() {
+  process.stdout.write("Bye\n");
 });
 
-function startServer(databaseCalls, cacheCalls) {
-  const softballServer = new SoftballServer(databaseCalls, cacheCalls);
-  softballServer.start();
-}
+// Inject the database service based on config values
+const databaseCalls = configAccessor.getDatabaseService();
 
-const {
-  host: pghost,
-  port: pgport,
-  username: pgusername,
-  password: pgpassword
-} = config.database || {};
-let databaseCalls = null;
-if (pghost && pgport && pgusername && pgpassword) {
-  databaseCalls = new DatabaseCallsPostgres(
-    pghost,
-    pgport,
-    pgusername,
-    pgpassword,
-    err => {
-      if (err) {
-        console.log('Encountered an error connecting to db', err);
-        process.exit(1);
-      }
-      console.log('Connected to db.');
-    }
-  );
-} else {
-  console.log('Warning: running without database connection');
-  databaseCalls = new DatabaseCallsStatic();
-}
+// Inject the cache service based on config values
+const cacheCalls = configAccessor.getCacheService();
 
-const { host: redisHost, port: redisPort, password: redisPassword } =
-  config.cache || {};
-let cacheCalls = null;
-if (redisHost && redisPort && redisPassword) {
-  cacheCalls = new CacheCallsRedis(redisHost, redisPort, redisPassword);
-} else {
-  console.log('Warning: running with local in memory cache');
-  cacheCalls = new CacheCallsLocal();
-}
-asdf
-startServer(databaseCalls, cacheCalls);
+// Inject the compute service (for running optimizations)
+const compute = configAccessor.getComputeService();
+
+// Specify the ports
+let appPort = configAccessor.getAppServerPort();
+let optPort = configAccessor.getOptimizationServerPort();
+
+// Start the server!
+const softballServer = new SoftballServer(
+  appPort,
+  optPort,
+  databaseCalls,
+  cacheCalls,
+  compute
+);
+softballServer.start();

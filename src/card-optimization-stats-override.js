@@ -24,20 +24,23 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
 
     let buildOverride = function() {
       return {
-        Outs: document.getElementById("outs").value,
-        "1B": document.getElementById("1b").value,
-        "2B": document.getElementById("2b").value,
-        "3B": document.getElementById("3b").value,
-        HR: document.getElementById("hr").value
+        outs: document.getElementById("outs").value,
+        singles: document.getElementById("1b").value,
+        doubles: document.getElementById("2b").value,
+        triples: document.getElementById("3b").value,
+        homeruns: document.getElementById("hr").value
       };
     }.bind(this);
 
     this.homeOrBack = function() {
       let newOverride = buildOverride();
-      state.putOptimizationPlayerOverride(
+      let allOverrides = JSON.parse(props.optimization.overrideData);
+      allOverrides[props.player.id] = newOverride;
+      state.setOptimizationField(
         props.optimization.id,
-        props.player.id,
-        newOverride
+        "overrideData",
+        allOverrides,
+        true
       );
     };
 
@@ -56,10 +59,13 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
           props.player.name +
           '"?',
         () => {
-          state.putOptimizationPlayerOverride(
+          let allOverrides = JSON.parse(props.optimization.overrideData);
+          delete allOverrides[props.player.id];
+          state.setOptimizationField(
             props.optimization.id,
-            props.player.id,
-            null
+            "overrideData",
+            allOverrides,
+            true
           );
           goBack();
         }
@@ -79,11 +85,7 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
 
   componentDidMount() {}
 
-  renderOverridePlayerStats() {
-    // Get the existing override for this player in this optimization (if it exists)
-    let parsedInclusions = JSON.parse(this.props.optimization.inclusions);
-    let existingOverride =
-      parsedInclusions.staging.overrides[this.props.player.id];
+  renderOverridePlayerStats(existingOverride) {
     if (
       this.props.optimization.status !==
       state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
@@ -92,7 +94,7 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
         {
           className: "auth-input-container"
         },
-        "This page is only available when status is NOT_STARTED. Status is currently " +
+        "This page is only available when optimization status is NOT_STARTED. Status is currently " +
           state.OPTIMIZATION_STATUS_ENUM_INVERSE[this.props.optimization.status]
       );
     } else {
@@ -108,7 +110,7 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
             type: "number",
             maxLength: "50",
             onChange: this.handleOutsChange.bind(this),
-            defaultValue: existingOverride ? existingOverride["Outs"] : 0
+            defaultValue: existingOverride ? existingOverride.outs : 0
           })
         ],
         [
@@ -119,7 +121,7 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
             type: "number",
             maxLength: "50",
             onChange: this.handle1BChange.bind(this),
-            defaultValue: existingOverride ? existingOverride["1B"] : 0
+            defaultValue: existingOverride ? existingOverride.singles : 0
           })
         ],
         [
@@ -130,7 +132,7 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
             type: "number",
             maxLength: "50",
             onChange: this.handle2BChange.bind(this),
-            defaultValue: existingOverride ? existingOverride["2B"] : 0
+            defaultValue: existingOverride ? existingOverride.doubles : 0
           })
         ],
         [
@@ -141,7 +143,7 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
             type: "number",
             maxLength: "50",
             onChange: this.handle3BChange.bind(this),
-            defaultValue: existingOverride ? existingOverride["3B"] : 0
+            defaultValue: existingOverride ? existingOverride.triples : 0
           })
         ],
         [
@@ -152,23 +154,20 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
             type: "number",
             maxLength: "50",
             onChange: this.handleHrChange.bind(this),
-            defaultValue: existingOverride ? existingOverride["HR"] : 0
+            defaultValue: existingOverride ? existingOverride.homeruns : 0
           })
         ],
-        this.renderSaveOptions()
+        this.renderSaveOptions(existingOverride)
       );
     }
   }
 
-  renderSaveOptions() {
+  renderSaveOptions(existingOverride) {
     // We don't need an isNew prop here because the override doesn't have an id as it can be described (for url purposes)
-    // by a combination of the optimization id and the player id. So we'll just detemine wheter or not it's new
+    // by a combination of the optimization id and the player id. So we'll just detemine whether or not it's new
     // based on the data inside the state.
     let isNew = false;
-    let parsedInclusions = JSON.parse(this.props.optimization.inclusions);
-    if (
-      parsedInclusions.staging.overrides[this.props.player.id] === undefined
-    ) {
+    if (existingOverride === undefined) {
       isNew = true;
     }
 
@@ -245,6 +244,11 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
   }
 
   render() {
+    // Get the existing override for this player in this optimization (if it exists)
+    let existingOverride = JSON.parse(this.props.optimization.overrideData)[
+      this.props.player.id
+    ];
+
     return DOM.div(
       {
         className: "card",
@@ -267,7 +271,12 @@ module.exports = class CardOptimizationStatsOverride extends expose.Component {
           onPress: this.homeOrBack
         })
       ),
-      this.renderOverridePlayerStats()
+      DOM.div(
+        {
+          className: "card-body"
+        },
+        this.renderOverridePlayerStats(existingOverride)
+      )
     );
   }
 };
