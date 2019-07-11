@@ -1,16 +1,13 @@
-"use strict";
+import React from 'react';
+import DOM from 'react-dom-factories';
+import expose from './expose';
+import state from 'state';
+import dialog from 'dialog';
+import network from 'network';
+import LeftHeaderButton from 'component-left-header-button';
+import RightHeaderButton from 'component-right-header-button';
 
-const expose = require("./expose");
-const DOM = require("react-dom-factories");
-
-const dialog = require("dialog");
-const network = require("network.js");
-const state = require("state");
-
-const LeftHeaderButton = require("component-left-header-button");
-const RightHeaderButton = require("component-right-header-button");
-
-module.exports = class CardVerifyEmail extends expose.Component {
+export default class CardVerifyEmail extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
@@ -20,44 +17,44 @@ module.exports = class CardVerifyEmail extends expose.Component {
 
     this.validateEmail = async function() {
       let body = {
-        token: this.token
+        token: this.token,
       };
 
       let response = await network.request(
-        "POST",
+        'POST',
         `server/account/verify-email`,
         JSON.stringify(body)
       );
 
       if (response.status === 204) {
         let message = `Thank you. Your email address has been verified. Please sign in.`;
-        let redirect = "/menu/login";
+        let redirect = '/menu/login';
         if (state.isSessionValid()) {
           message = `Thank you. Your email address has been verified.`;
-          redirect = "/menu";
+          redirect = '/menu';
         }
         dialog.show_notification(message, function() {
-          expose.set_state("main", {
-            page: redirect
+          expose.set_state('main', {
+            page: redirect,
           });
         });
       } else if (response.status === 404) {
         dialog.show_notification(
           `We were unable to verify your email. The token may have expired.`, // TODO: resend
           function() {
-            expose.set_state("main", {
-              page: "/menu"
+            expose.set_state('main', {
+              page: '/menu',
             });
           }
         );
       } else {
         dialog.show_notification(
           `We were unable to verify your email. ${
-            response.body ? response.body.message : ""
+            response.body ? response.body.message : ''
           }`,
           function() {
-            expose.set_state("main", {
-              page: "/menu"
+            expose.set_state('main', {
+              page: '/menu',
             });
           }
         );
@@ -73,41 +70,41 @@ module.exports = class CardVerifyEmail extends expose.Component {
     return DOM.div(
       {
         style: {
-          padding: "15px"
-        }
+          padding: '15px',
+        },
       },
       DOM.img({
-        id: "score-spinner",
-        src: "/server/assets/spinner.gif",
+        id: 'score-spinner',
+        src: '/server/assets/spinner.gif',
         style: {
-          visibility: "unset"
-        }
+          visibility: 'unset',
+        },
       }),
-      " Verifying email... "
+      ' Verifying email... '
     );
   }
 
   render() {
     return DOM.div(
       {
-        style: {}
+        style: {},
       },
       DOM.div(
         {
-          className: "card-title"
+          className: 'card-title',
         },
         React.createElement(LeftHeaderButton, {}),
         DOM.div(
           {
-            className: "card-title-text-with-arrow"
+            className: 'card-title-text-with-arrow',
           },
-          "Email Verification"
+          'Email Verification'
         ),
         React.createElement(RightHeaderButton, {})
       ),
       DOM.div(
         {
-          className: "card-body"
+          className: 'card-body',
         },
         this.renderPage()
       )

@@ -1,9 +1,7 @@
-"use strict";
+import expose from 'expose';
+import DOM from 'react-dom-factories';
 
-const expose = require("./expose");
-const DOM = require("react-dom-factories");
-
-module.exports = class FloatingInput extends expose.Component {
+export default class FloatingInput extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
@@ -16,48 +14,48 @@ module.exports = class FloatingInput extends expose.Component {
   }
 
   componentDidMount() {
-    const floatContainer = document.getElementById(this.props.id + "container");
+    const floatContainer = document.getElementById(this.props.id + 'container');
 
-    if (floatContainer.querySelector("input").value) {
-      floatContainer.classList.add("active");
+    if (floatContainer.querySelector('input').value) {
+      floatContainer.classList.add('active');
     }
 
     const handleFocus = e => {
       const target = e.target;
-      target.parentNode.classList.add("active");
+      target.parentNode.classList.add('active');
     };
 
     const handleBlur = e => {
       const target = e.target;
       if (!target.value) {
-        target.parentNode.classList.remove("active");
+        target.parentNode.classList.remove('active');
       }
-      target.removeAttribute("placeholder");
+      target.removeAttribute('placeholder');
     };
 
-    const floatField = floatContainer.querySelector("input");
-    floatField.addEventListener("focus", handleFocus);
-    floatField.addEventListener("blur", handleBlur);
+    const floatField = floatContainer.querySelector('input');
+    floatField.addEventListener('focus', handleFocus);
+    floatField.addEventListener('blur', handleBlur);
   }
 
   render() {
     return DOM.div(
       {
-        key: this.props.id + "container",
-        id: this.props.id + "container",
-        className: "float-container"
+        key: this.props.id + 'container',
+        id: this.props.id + 'container',
+        className: 'float-container',
       },
       DOM.label({}, this.props.label),
       DOM.input({
         id: this.props.id,
-        type: this.props.type ? this.props.type : "text",
+        type: this.props.type ? this.props.type : 'text',
         min: this.props.min,
         step: this.props.step,
-        maxLength: this.props.maxLength ? this.props.maxLength : "50",
+        maxLength: this.props.maxLength ? this.props.maxLength : '50',
         onChange: this.onChangeWraper.bind(this),
         defaultValue: this.props.defaultValue,
-        disabled: this.props.disabled
+        disabled: this.props.disabled,
       })
     );
   }
-};
+}

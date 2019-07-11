@@ -1,19 +1,19 @@
-"use strict";
+import config from 'config';
+import state from 'state';
 
-const config = require("config");
-const state = require("state");
+const exp = {};
 
 const FETCH_TIMEOUT =
   config.network && config.network.timeout ? config.network.timeout : 10000;
 
-exports.request = async function(method, url, body) {
-  url = exports.getServerUrl(url);
+exp.request = async function(method, url, body) {
+  url = exp.getServerUrl(url);
   try {
     let response = await requestInternal(method, url, body);
     state.setStatusBasedOnHttpResponse(response.status);
     return response;
   } catch (err) {
-    console.log("Encountered an error during network request");
+    console.log('Encountered an error during network request');
     console.log(err);
     state.setOffline();
     // We'll just return -1 to say that something went wrong with the network
@@ -25,13 +25,13 @@ exports.request = async function(method, url, body) {
   }
 };
 
-exports.getServerUrl = function(path) {
-  return window.location.origin + "/" + path;
+exp.getServerUrl = function(path) {
+  return window.location.origin + '/' + path;
 };
 
 // TODO: Should we move this to the state?
-exports.updateNetworkStatus = async function() {
-  let resp = await exports.request("GET", "server/current-account");
+exp.updateNetworkStatus = async function() {
+  let resp = await exp.request('GET', 'server/current-account');
   if (resp.status === 200) {
     console.log(`Active User: ${resp.body.email}`);
     state.setActiveUser(resp.body.email);
@@ -40,24 +40,24 @@ exports.updateNetworkStatus = async function() {
 
 let requestInternal = async function(method, url, body) {
   const response = {};
-  if ("fetch" in window) {
+  if ('fetch' in window) {
     const res = await new Promise(async function(resolve, reject) {
       const timeout = setTimeout(function() {
-        reject(new Error("Request timed out"));
+        reject(new Error('Request timed out'));
       }, FETCH_TIMEOUT);
       try {
         let reqResp = await fetch(url, {
           method: method,
-          credentials: "same-origin",
+          credentials: 'same-origin',
           headers: {
-            "content-type": "application/json"
+            'content-type': 'application/json',
           },
-          body: body
+          body: body,
         });
 
         resolve(reqResp);
       } catch (err) {
-        reject(new Error("Something went wrong during the request: " + err));
+        reject(new Error('Something went wrong during the request: ' + err));
       } finally {
         clearTimeout(timeout);
       }
@@ -75,12 +75,12 @@ let requestInternal = async function(method, url, body) {
 
     state.setStatusBasedOnHttpResponse(response.status);
   } else {
-    console.log("xhr", new XMLHttpRequest());
+    console.log('xhr', new XMLHttpRequest());
     // TODO: This is untested and probably doesn't work
     const request = await new Promise(function(resolve, reject) {
       const xhr = new XMLHttpRequest();
       xhr.open(method, url, true);
-      xhr.setRequestHeader("Content-type", "application/json");
+      xhr.setRequestHeader('Content-type', 'application/json');
       xhr.onload = function() {
         if (this.status >= 200 && this.status < 300) {
           resolve(xhr.response);
@@ -88,14 +88,14 @@ let requestInternal = async function(method, url, body) {
           reject({
             status: this.status,
             statusText: xhr.statusText,
-            response: xhr.response
+            response: xhr.response,
           });
         }
       };
       xhr.onerror = function() {
         reject({
           status: this.status,
-          statusText: xhr.statusText
+          statusText: xhr.statusText,
         });
       };
       xhr.send(JSON.stringify(body));
@@ -105,8 +105,9 @@ let requestInternal = async function(method, url, body) {
       response.body = request.response;
     }
   }
-  console.log("Request Complete", url, response.status);
+  console.log('Request Complete', url, response.status);
   return response;
 };
 
-window.state = exports;
+export default exp;
+window.network = exp;

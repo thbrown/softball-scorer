@@ -273,7 +273,7 @@ export default class CardAuth extends expose.Component {
       ),
       DOM.div(
         {
-          className: "card-body"
+          className: 'card-body',
         },
         this.renderAuthInterface()
       )

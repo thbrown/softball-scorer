@@ -1,11 +1,11 @@
-"use strict";
+import React from 'react';
+import ReactDOM from 'react-dom';
+import ConfirmDialog from './confirm-dialog';
+import InputDialog from './input-dialog';
+import NotificationDialog from './notification-dialog';
+import YesNoCancelDialog from './yes-no-cancel-dialog';
 
-const React = require("react");
-const ReactDOM = require("react-dom");
-const ConfirmDialog = require("./confirm-dialog");
-const InputDialog = require("./input-dialog");
-const NotificationDialog = require("./notification-dialog");
-const YesNoCancelDialog = require("./yes-no-cancel-dialog");
+const exp = {};
 
 window.current_confirm = null;
 window.current_cancel = null;
@@ -28,23 +28,23 @@ let on_key_down = function(ev) {
 
 const show = function() {
   is_visible = true;
-  window.addEventListener("keydown", on_key_down);
+  window.addEventListener('keydown', on_key_down);
 };
 
-exports.show_confirm = function(text, on_confirm, on_cancel) {
+exp.show_confirm = function(text, on_confirm, on_cancel) {
   show();
   ReactDOM.render(
     React.createElement(ConfirmDialog, {
       text: text,
       on_confirm: on_confirm || function() {},
       on_cancel: on_cancel || function() {},
-      hide: exports.hide
+      hide: exp.hide,
     }),
-    document.getElementById("dialog")
+    document.getElementById('dialog')
   );
 };
 
-exports.show_yes_no_cancel = function(text, on_yes, on_no, on_cancel) {
+exp.show_yes_no_cancel = function(text, on_yes, on_no, on_cancel) {
   show();
   ReactDOM.render(
     React.createElement(YesNoCancelDialog, {
@@ -52,17 +52,17 @@ exports.show_yes_no_cancel = function(text, on_yes, on_no, on_cancel) {
       on_yes: on_yes || function() {},
       on_no: on_no || function() {},
       on_cancel: on_cancel || function() {},
-      hide: exports.hide
+      hide: exp.hide,
     }),
-    document.getElementById("dialog")
+    document.getElementById('dialog')
   );
 };
 
-exports.set_shift_req = function(v) {
+exp.set_shift_req = function(v) {
   require_shift = v;
 };
 
-exports.show_input = function(
+exp.show_input = function(
   node_or_default_text,
   on_confirm,
   on_cancel,
@@ -71,7 +71,7 @@ exports.show_input = function(
   show();
   let node = null;
   let default_text = null;
-  if (typeof node_or_default_text === "object") {
+  if (typeof node_or_default_text === 'object') {
     node = node_or_default_text;
   } else {
     default_text = node_or_default_text;
@@ -83,31 +83,33 @@ exports.show_input = function(
       on_confirm: on_confirm || function() {},
       on_cancel: on_cancel || function() {},
       whiteSpace: require_shift,
-      hide: exports.hide,
-      startingValue: startingValue
+      hide: exp.hide,
+      startingValue: startingValue,
     }),
-    document.getElementById("dialog")
+    document.getElementById('dialog')
   );
 };
 
-exports.show_notification = function(text, on_confirm) {
+exp.show_notification = function(text, on_confirm) {
   show();
   ReactDOM.render(
     React.createElement(NotificationDialog, {
       text: text,
       on_confirm: on_confirm || function() {},
-      hide: exports.hide
+      hide: exp.hide,
     }),
-    document.getElementById("dialog")
+    document.getElementById('dialog')
   );
 };
 
-exports.hide = function() {
+exp.hide = function() {
   is_visible = false;
-  window.removeEventListener("keydown", on_key_down);
-  ReactDOM.unmountComponentAtNode(document.getElementById("dialog"));
+  window.removeEventListener('keydown', on_key_down);
+  ReactDOM.unmountComponentAtNode(document.getElementById('dialog'));
 };
 
-exports.is_visible = function() {
+exp.is_visible = function() {
   return is_visible;
 };
+
+export default exp;
