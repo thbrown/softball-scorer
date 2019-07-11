@@ -171,7 +171,6 @@ exp.sync = async function(fullSync) {
       // Write the most updated data to local storage
       exp.saveDbStateToLocalStorage();
     } else {
-      console.log(response.status);
       throw new Error(response.status);
     }
 
@@ -192,10 +191,10 @@ exp.sync = async function(fullSync) {
     // We might be able to re-try some problems, like if the network is temporarally out
     setSyncState(SYNC_STATUS_ENUM.PENDING); // Assume re-try
     if (
-      (err.message === -1 && !exp.isOnline()) ||
-      err.message === 403 ||
-      err.message === 401 ||
-      err.message === 502
+      (+err.message === -1 && !exp.isOnline()) ||
+      +err.message === 403 ||
+      +err.message === 401 ||
+      +err.message === 502
     ) {
       // Pause future syncs but don't sound the alert alarm for these cases (not bugs) for
       // 1) User is not signed in
@@ -204,19 +203,19 @@ exp.sync = async function(fullSync) {
         'Auth problem or offline mode is active: retrying sync later'
       );
       setSyncState(SYNC_STATUS_ENUM.ERROR);
-    } else if (err.message === 503 || err.message === -1) {
+    } else if (+err.message === 503 || +err.message === -1) {
       // Re-try later might work for
       // 1) Server rate limiting errors
       // 2) Weird network conditions
       console.log('Network issues or server is busy: retrying sync later');
       exp.scheduleSync();
-    } else if (err.message === -2) {
+    } else if (+err.message === -2) {
       // Issue with patch based sync, re-try with a full sync
       console.log('Issue with patch sync: attemtping full sync');
       return await exp.sync(true);
     } else {
       // Other 500s, 400s are probably bugs :(, tell the user something is wrong
-      console.log('Probable bug encountered');
+      console.log('Probable bug encountered2');
       alert(
         'Auto sync failed with status ' +
           err.message +
