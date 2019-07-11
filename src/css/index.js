@@ -19,4 +19,4 @@ const exp = {
     'fixed-table-col-width': '80px',
   },
 };
-export default exp;
+module.exports = exp;
