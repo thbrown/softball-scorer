@@ -1,27 +1,25 @@
-"use strict";
+import React from 'react';
+import expose from './expose';
+import DOM from 'react-dom-factories';
+import css from 'css';
+import dialog from 'dialog';
+import objectMerge from '../object-merge.js';
+import state from 'state';
 
-const expose = require("./expose");
-const DOM = require("react-dom-factories");
+import LeftHeaderButton from 'component-left-header-button';
+import RightHeaderButton from 'component-right-header-button';
 
-const css = require("css");
-const dialog = require("dialog");
-const objectMerge = require("../object-merge.js");
-const state = require("state");
-
-const LeftHeaderButton = require("component-left-header-button");
-const RightHeaderButton = require("component-right-header-button");
-
-module.exports = class CardImport extends expose.Component {
+export default class CardImport extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
 
     this.state = {
-      loadType: undefined
+      loadType: undefined,
     };
 
     this.handleLoadClick = function() {
-      let file = document.getElementById("fileData").files[0];
+      let file = document.getElementById('fileData').files[0];
       if (file) {
         var reader = new FileReader();
         let self = this;
@@ -31,13 +29,13 @@ module.exports = class CardImport extends expose.Component {
             parsedData = JSON.parse(e.target.result); // TODO: additional verification of object structure
           } catch (exception) {
             dialog.show_notification(
-              "There was an error while parsing file input: " +
+              'There was an error while parsing file input: ' +
                 exception.message
             );
             return;
           }
 
-          if (self.state.loadType === "Merge") {
+          if (self.state.loadType === 'Merge') {
             let diff = objectMerge.diff(state.getLocalState(), parsedData);
             let stateCopy = JSON.parse(JSON.stringify(state.getLocalState()));
             objectMerge.patch(stateCopy, diff, true, true);
@@ -45,16 +43,16 @@ module.exports = class CardImport extends expose.Component {
             dialog.show_notification(
               "This file's data has been merged into local data"
             );
-            expose.set_state("main", {
-              page: "/teams"
+            expose.set_state('main', {
+              page: '/teams',
             });
-          } else if (self.state.loadType === "Overwrite") {
+          } else if (self.state.loadType === 'Overwrite') {
             state.setLocalState(parsedData);
             dialog.show_notification(
               "This file's data has been copied to local data"
             );
-            expose.set_state("main", {
-              page: "/teams"
+            expose.set_state('main', {
+              page: '/teams',
             });
           } else {
             dialog.show_notification(
@@ -70,7 +68,7 @@ module.exports = class CardImport extends expose.Component {
 
     this.handleRadioButtonChange = event => {
       this.setState({
-        loadType: event.target.value
+        loadType: event.target.value,
       });
     };
   }
@@ -79,104 +77,104 @@ module.exports = class CardImport extends expose.Component {
     if (!window.FileReader) {
       return DOM.div(
         {
-          key: "login",
-          id: "login",
-          className: "list-item",
+          key: 'login',
+          id: 'login',
+          className: 'list-item',
           onClick: this.handleLoginClick.bind(this),
           style: {
-            backgroundColor: css.colors.BG
-          }
+            backgroundColor: css.colors.BG,
+          },
         },
-        "Files can not be loaded because FileReader is not supported by this browser."
+        'Files can not be loaded because FileReader is not supported by this browser.'
       ); // TODO: load copy and paste text area instead
     }
 
     return [
       DOM.input({
-        type: "file",
-        name: "fileData",
-        key: "fieldData",
-        id: "fileData",
-        className: "radio-button" // TODO: Different class name
+        type: 'file',
+        name: 'fileData',
+        key: 'fieldData',
+        id: 'fileData',
+        className: 'radio-button', // TODO: Different class name
       }),
       DOM.div(
         {
-          key: "loadTypeRadio",
-          className: "radio-button"
+          key: 'loadTypeRadio',
+          className: 'radio-button',
         },
         DOM.div(
           {
-            className: "radio-button-option"
+            className: 'radio-button-option',
           },
           DOM.input({
-            type: "radio",
-            name: "loadType",
-            value: "Merge",
-            id: "mergeChoice",
-            onChange: this.handleRadioButtonChange
+            type: 'radio',
+            name: 'loadType',
+            value: 'Merge',
+            id: 'mergeChoice',
+            onChange: this.handleRadioButtonChange,
           }),
           DOM.label(
             {
-              htmlFor: "mergeChoice"
+              htmlFor: 'mergeChoice',
             },
-            "Merge"
+            'Merge'
           )
         ),
         DOM.div(
           {
-            className: "radio-button-option"
+            className: 'radio-button-option',
           },
           DOM.input({
-            type: "radio",
-            name: "loadType",
-            value: "Overwrite",
-            id: "overwriteChoice",
-            onChange: this.handleRadioButtonChange
+            type: 'radio',
+            name: 'loadType',
+            value: 'Overwrite',
+            id: 'overwriteChoice',
+            onChange: this.handleRadioButtonChange,
           }),
           DOM.label(
             {
-              htmlFor: "overwriteChoice"
+              htmlFor: 'overwriteChoice',
             },
-            "Overwrite"
+            'Overwrite'
           )
         )
       ),
       DOM.div(
         {
-          key: "load",
-          id: "load",
-          className: "button confirm-button",
+          key: 'load',
+          id: 'load',
+          className: 'button confirm-button',
           onClick: this.handleLoadClick.bind(this),
           style: {
-            backgroundColor: css.colors.BG
-          }
+            backgroundColor: css.colors.BG,
+          },
         },
-        "Load"
-      )
+        'Load'
+      ),
     ];
   }
 
   render() {
     return DOM.div(
       {
-        style: {}
+        style: {},
       },
       DOM.div(
         {
-          className: "card-title"
+          className: 'card-title',
         },
         React.createElement(LeftHeaderButton, {}),
         DOM.div(
           {
-            className: "card-title-text-with-arrow"
+            className: 'card-title-text-with-arrow',
           },
-          "Load from File"
+          'Load from File'
         ),
         React.createElement(RightHeaderButton, {})
       ),
       DOM.div(
         {
-          className: "card-body"
+          className: 'card-body',
         },
         this.renderLoadPage()
       )

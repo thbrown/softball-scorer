@@ -1,19 +1,14 @@
-"use strict";
+import React from 'react';
+import DOM from 'react-dom-factories';
+import expose from './expose';
+import dialog from 'dialog';
+import state from 'state';
+import LeftHeaderButton from 'component-left-header-button';
+import RightHeaderButton from 'component-right-header-button';
+import FloatingInput from 'component-floating-input';
+import WalkupSong from 'component-walkup-song';
 
-const React = require("react");
-const DOM = require("react-dom-factories");
-
-const css = require("css");
-const dialog = require("dialog");
-const expose = require("./expose");
-const state = require("state");
-
-const FloatingInput = require("component-floating-input");
-const LeftHeaderButton = require("component-left-header-button");
-const RightHeaderButton = require("component-right-header-button");
-const WalkupSong = require("component-walkup-song");
-
-module.exports = class CardPlayerEdit extends expose.Component {
+export default class CardPlayerEdit extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
@@ -24,11 +19,11 @@ module.exports = class CardPlayerEdit extends expose.Component {
       playerGender: props.player.gender,
       playerName: props.player.name,
       playerSongLink: props.player.song_link,
-      playerSongStart: props.player.song_start
+      playerSongStart: props.player.song_start,
     };
 
     let goBack = function() {
-      history.back();
+      window.history.back();
     };
 
     let buildPlayer = function() {
@@ -55,7 +50,7 @@ module.exports = class CardPlayerEdit extends expose.Component {
     this.handleConfirmClick = function() {
       state.replacePlayer(props.player.id, buildPlayer());
       goBack();
-    }.bind(this);
+    };
 
     this.handleCancelClick = function() {
       if (props.isNew) {
@@ -83,24 +78,24 @@ module.exports = class CardPlayerEdit extends expose.Component {
 
     this.handlePlayerNameChange = function() {
       this.setState({
-        playerName: document.getElementById("playerName").value
+        playerName: document.getElementById('playerName').value,
       });
     }.bind(this);
 
     this.handleGenderChange = function(event) {
       this.setState({
-        playerGender: event.target.value
+        playerGender: event.target.value,
       });
     }.bind(this);
 
     this.handleSongLinkChange = function() {
-      let newValue = document.getElementById("songLink").value;
-      let dataArray = newValue.split(/\/|\?|\=|%3D|&/);
+      let newValue = document.getElementById('songLink').value;
+      let dataArray = newValue.split(/\/|\?|=|%3D|&/);
       for (let i = 0; i < dataArray.length; i++) {
         let results = dataArray[i].match(/[0-9a-zA-Z-_]{11}/);
         if (results && results.length === 1) {
           this.setState({
-            playerSongLink: results[0]
+            playerSongLink: results[0],
           });
         }
       }
@@ -108,7 +103,7 @@ module.exports = class CardPlayerEdit extends expose.Component {
 
     this.handleSongStartChange = function() {
       this.setState({
-        playerSongStart: document.getElementById("songStart").value
+        playerSongStart: document.getElementById('songStart').value,
       });
     }.bind(this);
 
@@ -126,129 +121,129 @@ Clips can be played from the player's plate appearance page
   }
 
   componentDidMount() {
-    if (this.state.playerGender === "F") {
-      document.getElementById("femaleGenderChoice").checked = true;
+    if (this.state.playerGender === 'F') {
+      document.getElementById('femaleGenderChoice').checked = true;
     } else {
-      document.getElementById("maleGenderChoice").checked = true;
+      document.getElementById('maleGenderChoice').checked = true;
     }
   }
 
   renderPlayerEdit() {
     return DOM.div(
       {
-        className: "auth-input-container"
+        className: 'auth-input-container',
       },
       [
         React.createElement(FloatingInput, {
-          key: "playerName",
-          id: "playerName",
-          label: "Player name",
+          key: 'playerName',
+          id: 'playerName',
+          label: 'Player name',
           onChange: this.handlePlayerNameChange.bind(this),
-          defaultValue: this.state.playerName
+          defaultValue: this.state.playerName,
         }),
         DOM.div(
           {
-            key: "genderPanel",
-            className: "radio-button"
+            key: 'genderPanel',
+            className: 'radio-button',
           },
           DOM.fieldset(
             {
-              className: "radio-button-fieldset"
+              className: 'radio-button-fieldset',
             },
             DOM.legend(
               {
-                className: "radio-button-legend"
+                className: 'radio-button-legend',
               },
-              "Gender"
+              'Gender'
             ),
             DOM.div(
               {
-                className: "radio-button-option"
+                className: 'radio-button-option',
               },
               DOM.input({
-                type: "radio",
-                name: "gender",
-                value: "M",
-                id: "maleGenderChoice",
-                onChange: this.handleGenderChange
+                type: 'radio',
+                name: 'gender',
+                value: 'M',
+                id: 'maleGenderChoice',
+                onChange: this.handleGenderChange,
               }),
               DOM.label(
                 {
-                  htmlFor: "maleGenderChoice"
+                  htmlFor: 'maleGenderChoice',
                 },
-                "Male"
+                'Male'
               )
             ),
             DOM.div(
               {
-                className: "radio-button-option"
+                className: 'radio-button-option',
               },
               DOM.input({
-                type: "radio",
-                name: "gender",
-                value: "F",
-                id: "femaleGenderChoice",
-                onChange: this.handleGenderChange
+                type: 'radio',
+                name: 'gender',
+                value: 'F',
+                id: 'femaleGenderChoice',
+                onChange: this.handleGenderChange,
               }),
               DOM.label(
                 {
-                  htmlFor: "femaleGenderChoice"
+                  htmlFor: 'femaleGenderChoice',
                 },
-                "Female"
+                'Female'
               )
             )
           )
         ),
         React.createElement(FloatingInput, {
-          key: "songLink",
-          id: "songLink",
-          label: "Walk up song YouTube link (Optional)",
+          key: 'songLink',
+          id: 'songLink',
+          label: 'Walk up song YouTube link (Optional)',
           onChange: this.handleSongLinkChange.bind(this),
           defaultValue: this.state.playerSongLink
             ? `https://youtu.be/${this.state.playerSongLink}`
-            : ""
+            : '',
         }),
         React.createElement(FloatingInput, {
-          key: "songStart",
-          id: "songStart",
-          label: "Song start time in seconds (Optional)",
-          type: "number",
-          min: "0",
-          step: "1",
-          maxLength: "50",
+          key: 'songStart',
+          id: 'songStart',
+          label: 'Song start time in seconds (Optional)',
+          type: 'number',
+          min: '0',
+          step: '1',
+          maxLength: '50',
           onChange: this.handleSongStartChange.bind(this),
-          defaultValue: this.state.playerSongStart
+          defaultValue: this.state.playerSongStart,
         }),
 
         DOM.div(
           {
-            key: "songLabel",
-            id: "songLabel",
-            className: "song-label"
+            key: 'songLabel',
+            id: 'songLabel',
+            className: 'song-label',
           },
-          "Song Preview"
+          'Song Preview'
         ),
         DOM.div(
           {
-            key: "songWrapper",
-            id: "songWrapper",
-            className: "song-preview-container"
+            key: 'songWrapper',
+            id: 'songWrapper',
+            className: 'song-preview-container',
           },
           React.createElement(WalkupSong, {
             songLink: this.state.playerSongLink,
             songStart: this.state.playerSongStart,
             width: 48,
-            height: 48
+            height: 48,
           }),
           DOM.div(
-            { className: "help-container" },
+            { className: 'help-container' },
             DOM.img({
-              className: "help-icon",
-              src: "/server/assets/help.svg",
-              onClick: this.handleSongHelpClick
+              className: 'help-icon',
+              src: '/server/assets/help.svg',
+              onClick: this.handleSongHelpClick,
             })
           )
-        )
+        ),
       ],
       this.renderSaveOptions()
     );
@@ -260,40 +255,40 @@ Clips can be played from the player's plate appearance page
     buttons.push(
       DOM.div(
         {
-          key: "confirm",
-          className: "edit-button button confirm-button",
+          key: 'confirm',
+          className: 'edit-button button confirm-button',
           // TODO - Make this a component and fix the style there with CSS.
           style: {
-            marginLeft: "0",
-            marginRight: "0"
+            marginLeft: '0',
+            marginRight: '0',
           },
-          onClick: this.handleConfirmClick
+          onClick: this.handleConfirmClick,
         },
         DOM.img({
-          className: "edit-button-icon",
-          src: "/server/assets/check.svg"
+          className: 'edit-button-icon',
+          src: '/server/assets/check.svg',
         }),
-        "Save"
+        'Save'
       )
     );
 
     buttons.push(
       DOM.div(
         {
-          key: "cancel",
-          className: "edit-button button cancel-button",
+          key: 'cancel',
+          className: 'edit-button button cancel-button',
           // TODO - Make this a component and fix the style there with CSS.
           style: {
-            marginLeft: "0",
-            marginRight: "0"
+            marginLeft: '0',
+            marginRight: '0',
           },
-          onClick: this.handleCancelClick
+          onClick: this.handleCancelClick,
         },
         DOM.img({
-          className: "edit-button-icon",
-          src: "/server/assets/cancel.svg"
+          className: 'edit-button-icon',
+          src: '/server/assets/cancel.svg',
         }),
-        "Cancel"
+        'Cancel'
       )
     );
 
@@ -301,27 +296,27 @@ Clips can be played from the player's plate appearance page
       buttons.push(
         DOM.div(
           {
-            key: "delete",
-            className: "edit-button button cancel-button",
+            key: 'delete',
+            className: 'edit-button button cancel-button',
             // TODO - Make this a component and fix the style there with CSS.
             style: {
-              marginLeft: "0",
-              marginRight: "0"
+              marginLeft: '0',
+              marginRight: '0',
             },
-            onClick: this.handleDeleteClick
+            onClick: this.handleDeleteClick,
           },
           DOM.img({
-            className: "edit-button-icon",
-            src: "/server/assets/delete.svg"
+            className: 'edit-button-icon',
+            src: '/server/assets/delete.svg',
           }),
-          "Delete"
+          'Delete'
         )
       );
     }
 
     return DOM.div(
       {
-        key: "saveOptions"
+        key: 'saveOptions',
       },
       buttons
     );
@@ -330,29 +325,29 @@ Clips can be played from the player's plate appearance page
   render() {
     return DOM.div(
       {
-        className: "card",
-        style: {}
+        className: 'card',
+        style: {},
       },
       DOM.div(
         {
-          className: "card-title"
+          className: 'card-title',
         },
         React.createElement(LeftHeaderButton, {
-          onPress: this.homeOrBack
+          onPress: this.homeOrBack,
         }),
         DOM.div(
           {
-            className: "card-title-text-with-arrow"
+            className: 'card-title-text-with-arrow',
           },
-          "Edit Player"
+          'Edit Player'
         ),
         React.createElement(RightHeaderButton, {
-          onPress: this.homeOrBack
+          onPress: this.homeOrBack,
         })
       ),
       DOM.div(
         {
-          className: "card-body"
+          className: 'card-body',
         },
         this.renderPlayerEdit()
       )

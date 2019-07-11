@@ -1,13 +1,11 @@
-"use strict";
-
-const React = require("react");
-const DOM = require("react-dom-factories");
-const marked = require("marked");
+import React from 'react';
+import DOM from 'react-dom-factories';
+import marked from 'marked';
 marked.setOptions({
-  sanitize: true
+  sanitize: true,
 });
 
-module.exports = class YesNoCancelDialog extends React.Component {
+export default class YesNoCancelDialog extends React.Component {
   constructor(props) {
     super(props);
 
@@ -34,60 +32,60 @@ module.exports = class YesNoCancelDialog extends React.Component {
         {},
         DOM.div(
           {
-            className: "dialog"
+            className: 'dialog',
           },
           DOM.div({
-            className: "dialog-text",
-            dangerouslySetInnerHTML: { __html: marked(this.props.text) }
+            className: 'dialog-text',
+            dangerouslySetInnerHTML: { __html: marked(this.props.text) },
           }),
           DOM.div(
             {
               style: {
-                display: "flex",
-                justifyContent: "flex-end"
-              }
+                display: 'flex',
+                justifyContent: 'flex-end',
+              },
             },
             DOM.div(
               {
-                className: "button confirm-button",
-                onClick: this.handleYesClick
+                className: 'button confirm-button',
+                onClick: this.handleYesClick,
               },
               DOM.span(
                 {
-                  className: "no-select"
+                  className: 'no-select',
                 },
-                "Yes"
+                'Yes'
               )
             ),
             DOM.div(
               {
-                className: "button confirm-button",
-                onClick: this.handleNoClick
+                className: 'button confirm-button',
+                onClick: this.handleNoClick,
               },
               DOM.span(
                 {
-                  className: "no-select"
+                  className: 'no-select',
                 },
-                "No"
+                'No'
               )
             ),
             DOM.div(
               {
-                className: "button cancel-button",
-                onClick: this.handleCancelClick
+                className: 'button cancel-button',
+                onClick: this.handleCancelClick,
               },
               DOM.span(
                 {
-                  className: "no-select"
+                  className: 'no-select',
                 },
-                "Cancel"
+                'Cancel'
               )
             )
           )
         )
       ),
       DOM.div({
-        className: "overlay"
+        className: 'overlay',
       })
     );
   }

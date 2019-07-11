@@ -2,11 +2,11 @@ parser: 'babel-eslint'
 
 extends:
   - 'react-app'
+  - 'plugin:prettier/recommended'
 
 plugins:
   - 'babel'
   - 'prettier'
-  - 'mocha'
 
 settings:
   react:
@@ -14,7 +14,14 @@ settings:
 
 env:
   browser: true
-  mocha: true
+
+rules:
+  prettier/prettier:
+    - 2
+    - bracketSpacing: true
+      singleQuote: true
+      tabWidth: 2
+      trailingComma: 'es5'
 
 overrides:
   - files: '**/*.test.js'

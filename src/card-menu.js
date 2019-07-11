@@ -1,54 +1,51 @@
-"use strict";
+import React from 'react';
+import DOM from 'react-dom-factories';
+import expose from './expose';
+import state from 'state';
+import dialog from 'dialog';
+import FileSaver from 'file-saver';
+import css from 'css';
+import network from 'network';
+import LeftHeaderButton from 'component-left-header-button';
+import RightHeaderButton from 'component-right-header-button';
 
-const DOM = require("react-dom-factories");
-const FileSaver = require("file-saver");
-
-const css = require("css");
-const expose = require("./expose");
-const dialog = require("dialog");
-const network = require("network.js");
-const state = require("state");
-
-const LeftHeaderButton = require("component-left-header-button");
-const RightHeaderButton = require("component-right-header-button");
-
-module.exports = class CardMenu extends expose.Component {
+export default class CardMenu extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
     this.state = {};
 
     this.handleTeamsClick = function() {
-      expose.set_state("main", {
-        page: "/teams"
+      expose.set_state('main', {
+        page: '/teams',
       });
     };
 
     this.handlePlayersClick = function() {
-      expose.set_state("main", {
-        page: "/players"
+      expose.set_state('main', {
+        page: '/players',
       });
     };
 
     this.handleOptimizationsClick = function() {
-      expose.set_state("main", {
-        page: "/optimizations"
+      expose.set_state('main', {
+        page: '/optimizations',
       });
     };
 
     this.handleLogoutClick = async function() {
-      dialog.show_confirm("Are you sure you want to log out?", async () => {
+      dialog.show_confirm('Are you sure you want to log out?', async () => {
         // Do a sync if necessary
         if (state.getSyncState() !== state.getSyncStateEnum().COMPLETE) {
           let abort = true;
           let status = await state.sync();
           if (status !== 200) {
             let message =
-              "Could not sync account data prior to logout. You may be offline. If you continue to sign out you will lose unsynced data. You might consider backing up your data [here](/menu) before continuing. Continue anyways?";
+              'Could not sync account data prior to logout. You may be offline. If you continue to sign out you will lose unsynced data. You might consider backing up your data [here](/menu) before continuing. Continue anyways?';
 
             // Wait for user to select an option
             // TODO: make all dialogs return promises
-            await new Promise(function(resolve, reject) {
+            await new Promise(function(resolve) {
               dialog.show_confirm(
                 message,
                 () => {
@@ -61,21 +58,21 @@ module.exports = class CardMenu extends expose.Component {
               );
             });
           } else {
-            console.log("Sync completed successfully, continuing logout");
+            console.log('Sync completed successfully, continuing logout');
             abort = false;
           }
           if (abort) {
-            console.log("Aborting logout");
+            console.log('Aborting logout');
             return;
           }
         }
 
-        let response = await network.request("POST", "server/account/logout");
+        let response = await network.request('POST', 'server/account/logout');
         if (response.status === 204) {
           state.resetState();
-          dialog.show_notification("Logout successful", function() {
-            expose.set_state("main", {
-              page: "/menu/login"
+          dialog.show_notification('Logout successful', function() {
+            expose.set_state('main', {
+              page: '/menu/login',
             });
           });
         } else {
@@ -84,8 +81,8 @@ module.exports = class CardMenu extends expose.Component {
           dialog.show_notification(
             `Logout failed. You must be online to logout (${response.status})`,
             function() {
-              expose.set_state("main", {
-                page: "/menu"
+              expose.set_state('main', {
+                page: '/menu',
               });
             }
           );
@@ -94,41 +91,41 @@ module.exports = class CardMenu extends expose.Component {
     };
 
     this.handleLoginClick = function() {
-      expose.set_state("main", {
-        page: "/menu/login"
+      expose.set_state('main', {
+        page: '/menu/login',
       });
     };
 
     this.handleSyncClick = async function() {
-      let buttonDiv = document.getElementById("sync");
-      buttonDiv.innerHTML = "Sync (In Progress)";
-      buttonDiv.classList.add("disabled");
+      let buttonDiv = document.getElementById('sync');
+      buttonDiv.innerHTML = 'Sync (In Progress)';
+      buttonDiv.classList.add('disabled');
       let status = await state.sync();
       if (status === 200) {
-        buttonDiv.innerHTML = "Sync (Success)";
+        buttonDiv.innerHTML = 'Sync (Success)';
       } else if (status === 403) {
-        dialog.show_notification("Please log in");
-        buttonDiv.innerHTML = "Force Sync";
+        dialog.show_notification('Please log in');
+        buttonDiv.innerHTML = 'Force Sync';
       } else if (status === -1) {
-        dialog.show_notification("Sync Failed. App is in offline mode");
-        buttonDiv.innerHTML = "Force Sync";
+        dialog.show_notification('Sync Failed. App is in offline mode');
+        buttonDiv.innerHTML = 'Force Sync';
       } else {
         buttonDiv.innerHTML = `Sync (Fail - ${status})`;
       }
-      buttonDiv.classList.remove("disabled");
+      buttonDiv.classList.remove('disabled');
     };
 
     this.handleSaveClick = function() {
       var today = new Date().getTime();
       var blob = new Blob([JSON.stringify(state.getLocalState(), null, 2)], {
-        type: "text/plain;charset=utf-8"
+        type: 'text/plain;charset=utf-8',
       });
-      FileSaver.saveAs(blob, "save" + today + ".json");
+      FileSaver.saveAs(blob, 'save' + today + '.json');
     };
 
     this.handleLoadClick = function() {
-      expose.set_state("main", {
-        page: "/menu/import"
+      expose.set_state('main', {
+        page: '/menu/import',
       });
     };
 
@@ -140,10 +137,10 @@ module.exports = class CardMenu extends expose.Component {
           // Wait for the user to respond to the prompt
           deferredPrompt.userChoice.then(choice => {
             state.setAddToHomescreenPrompt(null);
-            if (choice.outcome === "accepted") {
-              console.log("User accepted the prompt");
+            if (choice.outcome === 'accepted') {
+              console.log('User accepted the prompt');
             } else {
-              console.log("User dismissed the prompt");
+              console.log('User dismissed the prompt');
             }
           });
         }
@@ -157,45 +154,45 @@ module.exports = class CardMenu extends expose.Component {
     elems.push(
       DOM.div(
         {
-          key: "teams",
-          id: "teams",
-          className: "list-item",
+          key: 'teams',
+          id: 'teams',
+          className: 'list-item',
           onClick: this.handleTeamsClick.bind(this),
           style: {
-            backgroundColor: css.colors.BG
-          }
+            backgroundColor: css.colors.BG,
+          },
         },
-        "Teams"
+        'Teams'
       )
     );
 
     elems.push(
       DOM.div(
         {
-          key: "players",
-          id: "players",
-          className: "list-item",
+          key: 'players',
+          id: 'players',
+          className: 'list-item',
           onClick: this.handlePlayersClick.bind(this),
           style: {
-            backgroundColor: css.colors.BG
-          }
+            backgroundColor: css.colors.BG,
+          },
         },
-        "Players"
+        'Players'
       )
     );
 
     elems.push(
       DOM.div(
         {
-          key: "optimizations",
-          id: "optimizations",
-          className: "list-item",
+          key: 'optimizations',
+          id: 'optimizations',
+          className: 'list-item',
           onClick: this.handleOptimizationsClick.bind(this),
           style: {
-            backgroundColor: css.colors.BG
-          }
+            backgroundColor: css.colors.BG,
+          },
         },
-        "Optimizations"
+        'Optimizations'
       )
     );
 
@@ -203,15 +200,15 @@ module.exports = class CardMenu extends expose.Component {
       elems.push(
         DOM.div(
           {
-            key: "addToHomescreen",
-            id: "addToHomescreen",
-            className: "list-item",
+            key: 'addToHomescreen',
+            id: 'addToHomescreen',
+            className: 'list-item',
             onClick: this.handleAddToHomeScreenClick.bind(this),
             style: {
-              backgroundColor: css.colors.BG
-            }
+              backgroundColor: css.colors.BG,
+            },
           },
-          "Add App to Homescreen"
+          'Add App to Homescreen'
         )
       );
     }
@@ -220,30 +217,30 @@ module.exports = class CardMenu extends expose.Component {
       elems.push(
         DOM.div(
           {
-            key: "logout",
-            id: "logout",
-            className: "list-item",
+            key: 'logout',
+            id: 'logout',
+            className: 'list-item',
             onClick: this.handleLogoutClick.bind(this),
             style: {
-              backgroundColor: css.colors.BG
-            }
+              backgroundColor: css.colors.BG,
+            },
           },
-          "Logout"
+          'Logout'
         )
       );
     } else {
       elems.push(
         DOM.div(
           {
-            key: "login",
-            id: "login",
-            className: "list-item",
+            key: 'login',
+            id: 'login',
+            className: 'list-item',
             onClick: this.handleLoginClick.bind(this),
             style: {
-              backgroundColor: css.colors.BG
-            }
+              backgroundColor: css.colors.BG,
+            },
           },
-          "Login/Signup"
+          'Login/Signup'
         )
       );
     }
@@ -251,43 +248,43 @@ module.exports = class CardMenu extends expose.Component {
     elems.push(
       DOM.div(
         {
-          key: "sync",
-          id: "sync",
-          className: "list-item",
+          key: 'sync',
+          id: 'sync',
+          className: 'list-item',
           onClick: this.handleSyncClick.bind(this),
           style: {
-            backgroundColor: css.colors.BG
-          }
+            backgroundColor: css.colors.BG,
+          },
         },
-        "Force Sync"
+        'Force Sync'
       )
     );
 
     elems.push(
       DOM.div(
         {
-          key: "save",
-          className: "list-item",
+          key: 'save',
+          className: 'list-item',
           onClick: this.handleSaveClick.bind(this),
           style: {
-            backgroundColor: css.colors.BG
-          }
+            backgroundColor: css.colors.BG,
+          },
         },
-        "Save as File"
+        'Save as File'
       )
     );
 
     elems.push(
       DOM.div(
         {
-          key: "load",
-          className: "list-item",
+          key: 'load',
+          className: 'list-item',
           onClick: this.handleLoadClick.bind(this),
           style: {
-            backgroundColor: css.colors.BG
-          }
+            backgroundColor: css.colors.BG,
+          },
         },
-        "Load from File"
+        'Load from File'
       )
     );
 
@@ -297,27 +294,27 @@ module.exports = class CardMenu extends expose.Component {
   render() {
     return DOM.div(
       {
-        className: "card",
-        style: {}
+        className: 'card',
+        style: {},
       },
       DOM.div(
         {
-          className: "card-title"
+          className: 'card-title',
         },
         React.createElement(LeftHeaderButton, {}),
         DOM.div(
           {
-            className: "prevent-overflow card-title-text-with-arrow"
+            className: 'prevent-overflow card-title-text-with-arrow',
           },
-          "Menu"
+          'Menu'
         ),
         React.createElement(RightHeaderButton, {
-          showBlogLink: true
+          showBlogLink: true,
         })
       ),
       DOM.div(
         {
-          className: "card-body"
+          className: 'card-body',
         },
         this.renderMenuOptions()
       )

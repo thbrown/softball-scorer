@@ -1,31 +1,27 @@
-"use strict";
+import React from 'react';
+import DOM from 'react-dom-factories';
+import expose from './expose';
+import state from 'state';
+import LeftHeaderButton from 'component-left-header-button';
+import RightHeaderButton from 'component-right-header-button';
+import Autosuggest from 'react-autosuggest';
 
-const Autosuggest = require("react-autosuggest");
-const DOM = require("react-dom-factories");
-const React = require("react");
-
-const expose = require("./expose");
-const state = require("state");
-
-const LeftHeaderButton = require("component-left-header-button");
-const RightHeaderButton = require("component-right-header-button");
-
-module.exports = class CardPlayerSelection extends expose.Component {
+export default class CardPlayerSelection extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
 
     this.state = {
-      playerNameValue: "",
+      playerNameValue: '',
       suggestions: [],
       player: undefined,
       createNewPlayer: false,
-      gender: undefined
+      gender: undefined,
     };
 
     this.handleRadioButtonChange = event => {
       this.setState({
-        gender: event.target.value
+        gender: event.target.value,
       });
     };
 
@@ -37,14 +33,14 @@ module.exports = class CardPlayerSelection extends expose.Component {
         );
       }
       state.addPlayerToLineup(this.props.game.lineup, this.state.player.id);
-      expose.set_state("main", {
-        page: `/teams/${this.props.team.id}/games/${this.props.game.id}`
+      expose.set_state('main', {
+        page: `/teams/${this.props.team.id}/games/${this.props.game.id}`,
       });
     };
 
     this.onChange = (event, { newValue }) => {
       this.setState({
-        playerNameValue: newValue
+        playerNameValue: newValue,
       });
     };
   }
@@ -52,24 +48,24 @@ module.exports = class CardPlayerSelection extends expose.Component {
   render() {
     return DOM.div(
       {
-        style: {}
+        style: {},
       },
       DOM.div(
         {
-          className: "card-title"
+          className: 'card-title',
         },
         React.createElement(LeftHeaderButton, {}),
         DOM.div(
           {
-            className: "prevent-overflow card-title-text-with-arrow"
+            className: 'prevent-overflow card-title-text-with-arrow',
           },
-          "Player"
+          'Player'
         ),
         React.createElement(RightHeaderButton, {})
       ),
       DOM.div(
         {
-          className: "card-body"
+          className: 'card-body',
         },
         this.renderPlayerSelection(),
         this.maybeRenderGenderRadioButton(),
@@ -81,17 +77,17 @@ module.exports = class CardPlayerSelection extends expose.Component {
   renderSubmitButton() {
     return DOM.div(
       {
-        className: "button confirm-button",
+        className: 'button confirm-button',
         style: {
-          marginLeft: "16px"
+          marginLeft: '16px',
         },
-        onClick: this.handleSubmitClick
+        onClick: this.handleSubmitClick,
       },
       DOM.span(
         {
-          className: "no-select"
+          className: 'no-select',
         },
-        "Submit"
+        'Submit'
       )
     );
   }
@@ -100,42 +96,42 @@ module.exports = class CardPlayerSelection extends expose.Component {
     if (this.state.createNewPlayer) {
       return DOM.div(
         {
-          className: "radio-button"
+          className: 'radio-button',
         },
         DOM.div(
           {
-            className: "radio-button-option"
+            className: 'radio-button-option',
           },
           DOM.input({
-            type: "radio",
-            name: "gender",
-            value: "M",
-            id: "maleGenderChoice",
-            onChange: this.handleRadioButtonChange
+            type: 'radio',
+            name: 'gender',
+            value: 'M',
+            id: 'maleGenderChoice',
+            onChange: this.handleRadioButtonChange,
           }),
           DOM.label(
             {
-              htmlFor: "maleGenderChoice"
+              htmlFor: 'maleGenderChoice',
             },
-            "Male"
+            'Male'
           )
         ),
         DOM.div(
           {
-            className: "radio-button-option"
+            className: 'radio-button-option',
           },
           DOM.input({
-            type: "radio",
-            name: "gender",
-            value: "F",
-            id: "femaleGenderChoice",
-            onChange: this.handleRadioButtonChange
+            type: 'radio',
+            name: 'gender',
+            value: 'F',
+            id: 'femaleGenderChoice',
+            onChange: this.handleRadioButtonChange,
           }),
           DOM.label(
             {
-              htmlFor: "femaleGenderChoice"
+              htmlFor: 'femaleGenderChoice',
             },
-            "Female"
+            'Female'
           )
         )
       );
@@ -146,10 +142,10 @@ module.exports = class CardPlayerSelection extends expose.Component {
   renderPlayerSelection() {
     const { playerNameValue } = this.state;
     const inputProps = {
-      placeholder: "Player Name",
-      maxLength: "50",
+      placeholder: 'Player Name',
+      maxLength: '50',
       value: playerNameValue,
-      onChange: this.onChange.bind(this)
+      onChange: this.onChange.bind(this),
     };
     return React.createElement(Autosuggest, {
       suggestions: this.state.suggestions,
@@ -158,7 +154,7 @@ module.exports = class CardPlayerSelection extends expose.Component {
       renderSuggestion: this.renderSuggestion.bind(this),
       onSuggestionsClearRequested: this.onSuggestionsClearRequested.bind(this),
       onSuggestionSelected: this.onSuggestionSelected.bind(this),
-      inputProps: inputProps
+      inputProps: inputProps,
     });
   }
 
@@ -196,7 +192,7 @@ module.exports = class CardPlayerSelection extends expose.Component {
 
   renderSuggestion(suggestion) {
     if (suggestion.isAddNew) {
-      return DOM.span({}, "[+] Add new: " + this.state.playerNameValue);
+      return DOM.span({}, '[+] Add new: ' + this.state.playerNameValue);
     }
 
     return DOM.div({}, suggestion.name);
@@ -204,26 +200,26 @@ module.exports = class CardPlayerSelection extends expose.Component {
 
   onSuggestionsFetchRequested({ value }) {
     this.setState({
-      suggestions: this.getSuggestions(value)
+      suggestions: this.getSuggestions(value),
     });
   }
 
   onSuggestionsClearRequested() {
     this.setState({
-      suggestions: []
+      suggestions: [],
     });
   }
 
   onSuggestionSelected(event, { suggestion }) {
     if (suggestion.isAddNew) {
       this.setState({
-        createNewPlayer: true
+        createNewPlayer: true,
       });
     } else {
       this.setState({
         player: suggestion,
-        createNewPlayer: false
+        createNewPlayer: false,
       });
     }
   }
-};
+}

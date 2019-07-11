@@ -1,17 +1,14 @@
-"use strict";
+import React from 'react';
+import DOM from 'react-dom-factories';
+import expose from './expose';
+import state from 'state';
+import dialog from 'dialog';
+import network from 'network';
+import LeftHeaderButton from 'component-left-header-button';
+import RightHeaderButton from 'component-right-header-button';
+import config from 'config';
 
-const DOM = require("react-dom-factories");
-
-const config = require("config");
-const dialog = require("dialog");
-const expose = require("./expose");
-const network = require("network.js");
-const state = require("state");
-
-const LeftHeaderButton = require("component-left-header-button");
-const RightHeaderButton = require("component-right-header-button");
-
-module.exports = class CardSignup extends expose.Component {
+export default class CardSignup extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
@@ -19,10 +16,10 @@ module.exports = class CardSignup extends expose.Component {
     this.recapchaId = {};
 
     this.handleSubmitClick = async function() {
-      let email = document.getElementById("email");
-      let password = document.getElementById("password");
-      let passwordConfirm = document.getElementById("passwordConfirm");
-      let recapchaResult = grecaptcha.getResponse(this.recapchaId);
+      let email = document.getElementById('email');
+      let password = document.getElementById('password');
+      let passwordConfirm = document.getElementById('passwordConfirm');
+      let recapchaResult = window.grecaptcha.getResponse(this.recapchaId);
 
       if (
         !email.value ||
@@ -33,26 +30,26 @@ module.exports = class CardSignup extends expose.Component {
         let map = {
           Email: email.value,
           Password: password.value,
-          "Confirm Password": passwordConfirm.value,
-          reCAPTCHA: recapchaResult
+          'Confirm Password': passwordConfirm.value,
+          reCAPTCHA: recapchaResult,
         };
         let missingFields = Object.keys(map).filter(field => {
           return !map[field];
         });
         dialog.show_notification(
-          "Please fill out the following required fields: " +
-            missingFields.join(", ")
+          'Please fill out the following required fields: ' +
+            missingFields.join(', ')
         );
         return;
       }
 
       if (!this.validateEmail(email.value)) {
-        dialog.show_notification("You entered an invalid email address");
+        dialog.show_notification('You entered an invalid email address');
         return;
       }
 
       if (password.value !== passwordConfirm.value) {
-        dialog.show_notification("Passwords do not match");
+        dialog.show_notification('Passwords do not match');
         return;
       }
 
@@ -63,11 +60,11 @@ module.exports = class CardSignup extends expose.Component {
       let body = {
         email: email.value,
         password: password.value,
-        reCAPCHA: recapchaResult
+        reCAPCHA: recapchaResult,
       };
       let response = await network.request(
-        "POST",
-        "server/account/signup",
+        'POST',
+        'server/account/signup',
         JSON.stringify(body)
       );
       if (response.status === 204) {
@@ -82,8 +79,8 @@ module.exports = class CardSignup extends expose.Component {
         dialog.show_notification(
           `Thank you for creating an account on Softball.app! You have been logged in. To enable all softball.app features, please verify your email by clicking the activation link in the welcome email sent to ${email.value}. This link will expire after 24 hours.`,
           function() {
-            expose.set_state("main", {
-              page: "/menu"
+            expose.set_state('main', {
+              page: '/menu',
             });
           }
         );
@@ -97,21 +94,21 @@ module.exports = class CardSignup extends expose.Component {
 
     this.showRecapcha = function() {
       showRecapchaInternal();
-    }.bind(this);
+    };
 
     let showRecapchaInternal = function() {
       if (
-        typeof grecaptcha !== "undefined" &&
-        grecaptcha &&
-        grecaptcha.render
+        typeof grecaptcha !== 'undefined' &&
+        window.grecaptcha &&
+        window.grecaptcha.render
       ) {
-        this.recapchaId = grecaptcha.render("recapcha", {
-          sitekey: config.recapcha.sitekey
+        this.recapchaId = window.grecaptcha.render('recapcha', {
+          sitekey: config.recapcha.sitekey,
         });
 
         // Apparently CSP and reCAPCHA are a disaster in Chrome. Because we can't get the styling from Google, we'll just hide the annoying box that shows up. That's the styling we care about most.
         // https://bugs.chromium.org/p/chromium/issues/detail?id=546106
-        let box = document.getElementById("g-recaptcha-response");
+        let box = document.getElementById('g-recaptcha-response');
         if (box) {
           box.hidden = true;
         }
@@ -127,47 +124,47 @@ module.exports = class CardSignup extends expose.Component {
     let queryObject = state.getQueryObj();
     let emailParam = queryObject.email;
     if (emailParam) {
-      document.getElementById("email").value = decodeURIComponent(emailParam);
+      document.getElementById('email').value = decodeURIComponent(emailParam);
     }
     this.showRecapcha();
   }
 
   validateEmail(email) {
-    var re = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    var re = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     return re.test(String(email).toLowerCase());
   }
 
   renderAuthInterface() {
     return DOM.div(
       {
-        className: "auth-input-container"
+        className: 'auth-input-container',
       },
       DOM.input({
-        key: "email",
-        id: "email",
-        className: "auth-input",
-        placeholder: "Email",
-        type: "email"
+        key: 'email',
+        id: 'email',
+        className: 'auth-input',
+        placeholder: 'Email',
+        type: 'email',
       }),
       DOM.input({
-        key: "password",
-        id: "password",
-        className: "auth-input",
-        placeholder: "Password",
-        type: "password"
+        key: 'password',
+        id: 'password',
+        className: 'auth-input',
+        placeholder: 'Password',
+        type: 'password',
       }),
       DOM.input({
-        key: "passwordConfirm",
-        id: "passwordConfirm",
-        className: "auth-input",
-        placeholder: "Confirm Password",
-        type: "password"
+        key: 'passwordConfirm',
+        id: 'passwordConfirm',
+        className: 'auth-input',
+        placeholder: 'Confirm Password',
+        type: 'password',
       }),
       DOM.div({
-        id: "recapcha",
+        id: 'recapcha',
         style: {
-          marginTop: "10px"
-        }
+          marginTop: '10px',
+        },
       }),
       this.renderSubmitButton()
     );
@@ -180,22 +177,22 @@ module.exports = class CardSignup extends expose.Component {
       toRender.push(
         DOM.div(
           {
-            key: "info",
+            key: 'info',
             style: {
-              marginTop: "10px"
-            }
+              marginTop: '10px',
+            },
           },
-          "Any data you have entered so far will be available in your new account"
+          'Any data you have entered so far will be available in your new account'
         )
       );
     } else {
       toRender.push(
         DOM.div(
           {
-            key: "info",
+            key: 'info',
             style: {
-              marginTop: "10px"
-            }
+              marginTop: '10px',
+            },
           },
           "Another account's data is loaded locally. Any data you see here will not be available in your new account."
         )
@@ -205,15 +202,15 @@ module.exports = class CardSignup extends expose.Component {
     toRender.push(
       DOM.div(
         {
-          key: "submit",
-          id: "submit",
-          className: "button confirm-button",
+          key: 'submit',
+          id: 'submit',
+          className: 'button confirm-button',
           onClick: this.handleSubmitClick.bind(this),
           style: {
-            marginLeft: "0"
-          }
+            marginLeft: '0',
+          },
         },
-        "Submit"
+        'Submit'
       )
     );
 
@@ -223,27 +220,27 @@ module.exports = class CardSignup extends expose.Component {
   render() {
     return DOM.div(
       {
-        style: {}
+        style: {},
       },
       DOM.div(
         {
-          className: "card-title"
+          className: 'card-title',
         },
         React.createElement(LeftHeaderButton, {}),
         DOM.div(
           {
-            className: "prevent-overflow card-title-text-with-arrow"
+            className: 'prevent-overflow card-title-text-with-arrow',
           },
-          "Signup"
+          'Signup'
         ),
         React.createElement(RightHeaderButton, {})
       ),
       DOM.div(
         {
-          className: "card-body"
+          className: 'card-body',
         },
         this.renderAuthInterface()
       )
     );
   }
-};
+}
