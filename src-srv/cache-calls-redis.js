@@ -68,7 +68,7 @@ module.exports = class CacheCalls {
     });
 
     this.client.on("warning", function(warn) {
-      logger.warn("sys", "Redis Warning " + warn);
+      logger.warn("sys", "Redis Warning - " + warn);
     });
 
     this.hgetAsync = promisify(this.client.hget).bind(this.client);

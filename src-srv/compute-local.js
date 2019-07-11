@@ -1,6 +1,8 @@
 const https = require("https");
 const fs = require("fs");
 
+const ip = require("ip");
+
 const logger = require("./logger.js");
 
 const FILE_NAME = "softball-sim.jar";
@@ -81,7 +83,7 @@ module.exports = class ComputeLocal {
 
     // Get the optimization jar if necessary
     await this.download(
-      "https://github.com/thbrown/softball-sim/releases/download/v0.3/softball-sim.jar",
+      "https://github.com/thbrown/softball-sim/releases/download/v0.4/softball-sim.jar",
       FILE_NAME
     );
 
@@ -113,7 +115,7 @@ module.exports = class ComputeLocal {
         "-jar",
         FILE_NAME,
         "NETWORK",
-        "127.0.0.1",
+        ip.address(),
         optimizationId
       ],
       {

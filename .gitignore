@@ -14,3 +14,4 @@ src-srv/logs
 softball-sim.jar
 java.log
 cred.json
+.gradle

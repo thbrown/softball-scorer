@@ -4,7 +4,7 @@ Live at https://softball.app/
 
 ## Usage:
 
-1. Clone this repo.
+1. Clone this repo `git clone https://github.com/thbrown/softball-scorer.git`.
 2. Install node.js (8.10.0+) and npm (5.6.0+). Older versions _wont_ work.
 3. From this repo's root directory, run `npm install`.
 4. Run this command from the root directory:  
