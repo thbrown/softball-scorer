@@ -1,14 +1,11 @@
-"use strict";
+import React from 'react';
+import DOM from 'react-dom-factories';
+import expose from './expose';
 
-const DOM = require("react-dom-factories");
-const FileSaver = require("file-saver");
+import LeftHeaderButton from 'component-left-header-button';
+import RightHeaderButton from 'component-right-header-button';
 
-const expose = require("./expose");
-
-const LeftHeaderButton = require("component-left-header-button");
-const RightHeaderButton = require("component-right-header-button");
-
-module.exports = class CardError extends expose.Component {
+export default class CardError extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
@@ -18,26 +15,26 @@ module.exports = class CardError extends expose.Component {
   render() {
     return DOM.div(
       {
-        className: "card"
+        className: 'card',
       },
       DOM.div(
         {
-          className: "card-title"
+          className: 'card-title',
         },
         React.createElement(LeftHeaderButton, {}),
         DOM.div(
           {
-            className: "prevent-overflow card-title-text-with-arrow"
+            className: 'prevent-overflow card-title-text-with-arrow',
           },
-          "Error"
+          'Error'
         ),
         React.createElement(RightHeaderButton, {})
       ),
       DOM.div(
         {
           style: {
-            padding: "20px"
-          }
+            padding: '20px',
+          },
         },
         this.props.message
       )
