@@ -1,28 +1,21 @@
-"use strict";
-
-const DOM = require("react-dom-factories");
-const Draggable = require("react-draggable");
-const React = require("react");
-
-const css = require("css");
-const dialog = require("dialog");
-const expose = require("./expose");
-const results = require("plate-appearance-results");
-const state = require("state");
-
-const LeftHeaderButton = require("component-left-header-button");
-const RightHeaderButton = require("component-right-header-button");
-const WalkupSong = require("component-walkup-song");
+import React from 'react';
+import DOM from 'react-dom-factories';
+import expose from './expose';
+import dialog from 'dialog';
+import Draggable from 'react-draggable';
+import LeftHeaderButton from 'component-left-header-button';
+import RightHeaderButton from 'component-right-header-button';
+import css from 'css';
+import results from 'plate-appearance-results';
+import state from 'state';
+import WalkupSong from 'component-walkup-song';
+import { normalize } from 'utils/functions';
 
 const LOCATION_DENOMINATOR = 32767;
 
 const BALLFIELD_MAX_WIDTH = 500;
 
-const normalize = function(x, A, B, C, D) {
-  return C + ((x - A) * (D - C)) / (B - A);
-};
-
-module.exports = class CardPlateAppearance extends expose.Component {
+export default class CardPlateAppearance extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
@@ -33,7 +26,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
         : null,
       paLocationY: props.plateAppearance.location
         ? props.plateAppearance.location.y
-        : null
+        : null,
     };
 
     this.isNew = props.isNew;
@@ -73,37 +66,37 @@ module.exports = class CardPlateAppearance extends expose.Component {
         props.team.id,
         buildPlateAppearance()
       );
-      history.back();
+      window.history.back();
     };
 
     this.handleCancelClick = function() {
       if (props.isNew) {
         state.removePlateAppearance(props.plateAppearance.id, props.game.id);
       }
-      history.back();
+      window.history.back();
     };
 
     this.handleDeleteClick = function() {
       dialog.show_confirm(
-        "Are you sure you want to delete this plate appearance?",
+        'Are you sure you want to delete this plate appearance?',
         () => {
           state.removePlateAppearance(props.plateAppearance.id, props.game.id);
-          history.back();
+          window.history.back();
         }
       );
     };
 
     this.handleButtonClick = function(result) {
       this.setState({
-        paResult: result
+        paResult: result,
       });
     };
 
     this.handleDragStart = function(ev) {
-      var element = document.getElementById("baseball");
-      element.classList.remove("pulse-animation");
+      var element = document.getElementById('baseball');
+      element.classList.remove('pulse-animation');
       this.setState({
-        dragging: true
+        dragging: true,
       });
     };
 
@@ -121,7 +114,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
         this.setState({
           dragging: false,
           paLocationX: new_x,
-          paLocationY: new_y
+          paLocationY: new_y,
         });
       }, 1);
     };
@@ -136,15 +129,15 @@ module.exports = class CardPlateAppearance extends expose.Component {
 
   componentDidMount() {
     window.document.body.addEventListener(
-      "touchmove",
+      'touchmove',
       this.handlePreventTouchmoveWhenDragging.bind(this),
       {
-        passive: false
+        passive: false,
       }
     );
 
     this.onmouseup = ev => {
-      let ballfield = document.getElementById("ballfield");
+      let ballfield = document.getElementById('ballfield');
 
       if (ev.changedTouches) {
         this.mx = ev.changedTouches[0].pageX - ballfield.offsetLeft;
@@ -178,25 +171,25 @@ module.exports = class CardPlateAppearance extends expose.Component {
       }
     };
 
-    window.addEventListener("mouseup", this.onmouseup);
-    window.addEventListener("touchend", this.onmouseup);
+    window.addEventListener('mouseup', this.onmouseup);
+    window.addEventListener('touchend', this.onmouseup);
 
     // TODO: only apply this if there is no hit
-    var element = document.getElementById("baseball");
-    element.classList.add("pulse-animation");
+    var element = document.getElementById('baseball');
+    element.classList.add('pulse-animation');
   }
 
   componentWillUnmount() {
     window.document.body.removeEventListener(
-      "touchmove",
+      'touchmove',
       this.handlePreventTouchmoveWhenDragging.bind(this),
       {
-        passive: false
+        passive: false,
       }
     );
 
-    window.removeEventListener("mouseup", this.onmouseup);
-    window.removeEventListener("touchend", this.onmouseup);
+    window.removeEventListener('mouseup', this.onmouseup);
+    window.removeEventListener('touchend', this.onmouseup);
   }
 
   renderButtonList() {
@@ -207,21 +200,21 @@ module.exports = class CardPlateAppearance extends expose.Component {
       !this.props.plateAppearance
     ) {
       return DOM.div(
-        { className: "page-error" },
-        "PlateAppearance: No game or team or player or PlateAppearance exists."
+        { className: 'page-error' },
+        'PlateAppearance: No game or team or player or PlateAppearance exists.'
       );
     }
 
     let elems = results.getAllResults().map((result, i) => {
       return DOM.div(
         {
-          key: i + " " + result,
-          className: "result-button",
+          key: i + ' ' + result,
+          className: 'result-button',
           onClick: this.handleButtonClick.bind(this, result),
           style: {
             backgroundColor:
-              this.state.paResult === result ? css.colors.SECONDARY : null
-          }
+              this.state.paResult === result ? css.colors.SECONDARY : null,
+          },
         },
         result
       );
@@ -232,20 +225,20 @@ module.exports = class CardPlateAppearance extends expose.Component {
       DOM.div(
         {
           style: {
-            display: "flex",
-            justifyContent: "space-around",
-            margin: "4px"
-          }
+            display: 'flex',
+            justifyContent: 'space-around',
+            margin: '4px',
+          },
         },
         elems.slice(0, elems.length / 2)
       ),
       DOM.div(
         {
           style: {
-            display: "flex",
-            justifyContent: "space-around",
-            margin: "4px"
-          }
+            display: 'flex',
+            justifyContent: 'space-around',
+            margin: '4px',
+          },
         },
         elems.slice(elems.length / 2, elems.length)
       )
@@ -259,7 +252,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
     this.props.plateAppearances.forEach(value => {
       let x = -1;
       let y = -1;
-      let imageSrc = "/server/assets/baseball.svg";
+      let imageSrc = '/server/assets/baseball.svg';
 
       if (value.id === this.props.plateAppearance.id) {
         x = this.state.paLocationX;
@@ -294,13 +287,13 @@ module.exports = class CardPlateAppearance extends expose.Component {
           DOM.img({
             key: value.id,
             src: imageSrc,
-            alt: "previous result",
+            alt: 'previous result',
             style: {
-              position: "absolute",
-              width: "20px",
-              left: new_x + "px",
-              top: new_y + "px"
-            }
+              position: 'absolute',
+              width: '20px',
+              left: new_x + 'px',
+              top: new_y + 'px',
+            },
           })
         );
       }
@@ -308,23 +301,23 @@ module.exports = class CardPlateAppearance extends expose.Component {
 
     return DOM.div(
       {
-        id: "ballfield",
+        id: 'ballfield',
         style: {
-          position: "relative",
-          borderTop: "1px solid white",
-          borderBottom: "1px solid white",
-          width: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + "px",
-          height: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + "px",
-          overflow: "hidden"
-        }
+          position: 'relative',
+          borderTop: '1px solid white',
+          borderBottom: '1px solid white',
+          width: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + 'px',
+          height: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + 'px',
+          overflow: 'hidden',
+        },
       },
       DOM.img({
         draggable: true,
-        src: "/server/assets/ballfield2.png",
-        alt: "ballfield",
+        src: '/server/assets/ballfield2.png',
+        alt: 'ballfield',
         style: {
-          width: "100%"
-        }
+          width: '100%',
+        },
       }),
       indicators
     );
@@ -334,24 +327,24 @@ module.exports = class CardPlateAppearance extends expose.Component {
     return React.createElement(
       Draggable,
       {
-        key: "baseball",
-        axis: "both",
+        key: 'baseball',
+        axis: 'both',
         allowAnyClick: true,
         position: { x: 0, y: 0 },
         grid: [1, 1],
         onStart: this.handleDragStart.bind(this),
-        onStop: this.handleDragStop.bind(this)
+        onStop: this.handleDragStop.bind(this),
       },
       DOM.img({
-        id: "baseball",
+        id: 'baseball',
         draggable: false,
         src: imageSrcForCurrentPa,
-        alt: "ball",
-        className: "plate-appearance-baseball",
+        alt: 'ball',
+        className: 'plate-appearance-baseball',
         style: {
-          touchAction: "none",
-          transform: "translate(0px, 0px)"
-        }
+          touchAction: 'none',
+          transform: 'translate(0px, 0px)',
+        },
       })
     );
   }
@@ -359,42 +352,42 @@ module.exports = class CardPlateAppearance extends expose.Component {
   renderActionsButtons() {
     let buttons = [];
     let confirm = DOM.img({
-      key: "confirm",
-      src: "/server/assets/check.svg",
+      key: 'confirm',
+      src: '/server/assets/check.svg',
       onClick: this.handleConfirmClick,
-      alt: "confirm",
-      className: "plate-appearance-card-actions"
+      alt: 'confirm',
+      className: 'plate-appearance-card-actions',
     });
     buttons.push(confirm);
 
     let cancel = DOM.img({
-      key: "cancel",
-      src: "/server/assets/cancel.svg",
+      key: 'cancel',
+      src: '/server/assets/cancel.svg',
       onClick: this.handleCancelClick,
-      alt: "cancel",
-      className: "plate-appearance-card-actions"
+      alt: 'cancel',
+      className: 'plate-appearance-card-actions',
     });
     buttons.push(cancel);
 
     if (!this.props.isNew) {
       let trash = DOM.img({
-        key: "delete",
-        src: "/server/assets/delete.svg",
+        key: 'delete',
+        src: '/server/assets/delete.svg',
         onClick: this.handleDeleteClick,
-        alt: "delete",
-        className: "plate-appearance-card-actions"
+        alt: 'delete',
+        className: 'plate-appearance-card-actions',
       });
       buttons.push(trash);
     }
 
     return DOM.div(
       {
-        id: "options-buttons",
+        id: 'options-buttons',
         style: {
-          position: "relative",
-          display: "flex",
-          overflow: "hidden"
-        }
+          position: 'relative',
+          display: 'flex',
+          overflow: 'hidden',
+        },
       },
       buttons
     );
@@ -405,7 +398,7 @@ module.exports = class CardPlateAppearance extends expose.Component {
       songLink: this.props.player.song_link,
       songStart: this.props.player.song_start,
       width: 48,
-      height: 48
+      height: 48,
     });
   }
 
@@ -413,39 +406,39 @@ module.exports = class CardPlateAppearance extends expose.Component {
     let imageSrcForCurrentPa = results
       .getNoHitResults()
       .includes(this.state.paResult)
-      ? "/server/assets/baseball-out.svg"
-      : "/server/assets/baseball-hit.svg";
+      ? '/server/assets/baseball-out.svg'
+      : '/server/assets/baseball-hit.svg';
     return DOM.div(
       {
-        className: "card",
+        className: 'card',
         style: {
-          position: "relative"
-        }
+          position: 'relative',
+        },
       },
       DOM.div(
         {
-          className: "card-title",
-          style: {}
+          className: 'card-title',
+          style: {},
         },
         React.createElement(LeftHeaderButton, {
-          onPress: this.homeOrBack
+          onPress: this.homeOrBack,
         }),
         DOM.div(
           {
-            className: "prevent-overflow card-title-text-with-arrow"
+            className: 'prevent-overflow card-title-text-with-arrow',
           },
           this.props.player.name
         ),
         React.createElement(RightHeaderButton, {
-          onPress: this.homeOrBack
+          onPress: this.homeOrBack,
         })
       ),
       DOM.div(
         {
-          className: "card-body",
+          className: 'card-body',
           style: {
-            maxWidth: BALLFIELD_MAX_WIDTH + "px"
-          }
+            maxWidth: BALLFIELD_MAX_WIDTH + 'px',
+          },
         },
 
         this.renderButtonList(),
@@ -453,15 +446,15 @@ module.exports = class CardPlateAppearance extends expose.Component {
         DOM.div(
           {
             style: {
-              display: "flex",
-              justifyContent: "space-between"
-            }
+              display: 'flex',
+              justifyContent: 'space-between',
+            },
           },
           DOM.div(
             {
               style: {
-                paddingLeft: "24px"
-              }
+                paddingLeft: '24px',
+              },
             },
             this.renderBaseball(imageSrcForCurrentPa)
           ),
@@ -469,8 +462,8 @@ module.exports = class CardPlateAppearance extends expose.Component {
           DOM.div(
             {
               style: {
-                paddingRight: "24px"
-              }
+                paddingRight: '24px',
+              },
             },
             this.renderWalkupSong()
           )

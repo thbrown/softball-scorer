@@ -1,9 +1,7 @@
-"use strict";
+import expose from 'expose';
+import DOM from 'react-dom-factories';
 
-const expose = require("./expose");
-const DOM = require("react-dom-factories");
-
-module.exports = class RightHeaderButton extends expose.Component {
+export default class RightHeaderButton extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
@@ -12,10 +10,10 @@ module.exports = class RightHeaderButton extends expose.Component {
         props.onPress();
       }
       if (props.showBlogLink) {
-        window.open("https://blog.softball.app", "_blank");
+        window.open('https://blog.softball.app', '_blank');
       } else {
-        expose.set_state("main", {
-          page: "/menu"
+        expose.set_state('main', {
+          page: '/menu',
         });
       }
     };
@@ -23,14 +21,14 @@ module.exports = class RightHeaderButton extends expose.Component {
 
   render() {
     let src = this.props.showBlogLink
-      ? "/server/assets/logo192.png"
-      : "/server/assets/home.svg";
-    let alt = this.props.showBlogLink ? "blog" : "home";
+      ? '/server/assets/logo192.png'
+      : '/server/assets/home.svg';
+    let alt = this.props.showBlogLink ? 'blog' : 'home';
     return DOM.img({
       src: src,
-      className: "header-right",
+      className: 'header-right',
       onClick: this.handleButtonPress,
-      alt: alt
+      alt: alt,
     });
   }
-};
+}

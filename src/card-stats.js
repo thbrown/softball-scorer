@@ -1,51 +1,48 @@
-"use strict";
+import React from 'react';
+import expose from './expose';
+import state from 'state';
+import { StickyTable, Row, Cell } from 'react-sticky-table';
 
-const expose = require("./expose");
-
-const state = require("state");
-
-const { StickyTable, Row, Cell } = require("react-sticky-table");
-
-const DSC_CHAR = "▼"; //'\25bc';
-const ASC_CHAR = "▲"; //'\25be';
+const DSC_CHAR = '▼'; //'\25bc';
+const ASC_CHAR = '▲'; //'\25be';
 
 const STATS_NAMES = [
-  "battingAverage",
-  "sluggingPercentage",
-  "atBats",
-  "doubles",
-  "triples",
-  "insideTheParkHR",
-  "outsideTheParkHR",
-  "walks",
-  "reachedOnError"
+  'battingAverage',
+  'sluggingPercentage',
+  'atBats',
+  'doubles',
+  'triples',
+  'insideTheParkHR',
+  'outsideTheParkHR',
+  'walks',
+  'reachedOnError',
 ];
 
 const STAT_ALIASES = {
-  name: "Name",
-  battingAverage: "BA",
-  sluggingPercentage: "SLG",
-  atBats: "AB",
-  doubles: "2B",
-  triples: "3B",
-  insideTheParkHR: "HRI",
-  outsideTheParkHR: "HRO",
-  walks: "BB",
-  reachedOnError: "ROE"
+  name: 'Name',
+  battingAverage: 'BA',
+  sluggingPercentage: 'SLG',
+  atBats: 'AB',
+  doubles: '2B',
+  triples: '3B',
+  insideTheParkHR: 'HRI',
+  outsideTheParkHR: 'HRO',
+  walks: 'BB',
+  reachedOnError: 'ROE',
 };
 
-module.exports = class CardStats extends expose.Component {
+export default class CardStats extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
 
     this.state = {
-      sortField: "atBats",
-      sortDirection: "DSC"
+      sortField: 'atBats',
+      sortDirection: 'DSC',
     };
 
     this.sortByState = (a, b) => {
-      if (this.state.sortDirection === "DSC") {
+      if (this.state.sortDirection === 'DSC') {
         if (isNaN(a[this.state.sortField]) || isNaN(b[this.state.sortField])) {
           if (a[this.state.sortField] < b[this.state.sortField]) {
             return -1;
@@ -81,17 +78,17 @@ module.exports = class CardStats extends expose.Component {
       const newState = Object.assign({}, this.state);
       if (newState.sortField === sortField) {
         newState.sortDirection =
-          newState.sortDirection === "DSC" ? "ASC" : "DSC";
+          newState.sortDirection === 'DSC' ? 'ASC' : 'DSC';
       } else {
-        newState.sortDirection = "DSC";
+        newState.sortDirection = 'DSC';
         newState.sortField = sortField;
       }
       this.setState(newState);
     }.bind(this);
 
     this.handlePlayerClick = function(playerId) {
-      expose.set_state("main", {
-        page: `/teams/${this.props.team.id}/stats/player/${playerId}`
+      expose.set_state('main', {
+        page: `/teams/${this.props.team.id}/stats/player/${playerId}`,
       });
     };
   }
@@ -100,7 +97,7 @@ module.exports = class CardStats extends expose.Component {
     if (statName === this.state.sortField) {
       const ret =
         STAT_ALIASES[statName] +
-        (this.state.sortDirection === "DSC" ? DSC_CHAR : ASC_CHAR);
+        (this.state.sortDirection === 'DSC' ? DSC_CHAR : ASC_CHAR);
       return ret;
     } else {
       return STAT_ALIASES[statName];
@@ -108,28 +105,28 @@ module.exports = class CardStats extends expose.Component {
   }
 
   getCellClassName(statName) {
-    let className = "table-cell";
-    if (statName === "name") {
-      className = className + " name-stat-cell";
+    let className = 'table-cell';
+    if (statName === 'name') {
+      className = className + ' name-stat-cell';
     } else {
       className =
         className +
         ` ${
-          STATS_NAMES.slice(0, 2).includes(statName) ? "percentage" : "number"
+          STATS_NAMES.slice(0, 2).includes(statName) ? 'percentage' : 'number'
         }-stat-cell`;
     }
     return className;
   }
 
   renderStatsHeader() {
-    const elems = ["name"].concat(STATS_NAMES).map(statName => {
+    const elems = ['name'].concat(STATS_NAMES).map(statName => {
       return (
         <Cell key={statName}>
           <div
             className={this.getCellClassName(statName)}
             onClick={this.handleStatsClick.bind(this, statName)}
           >
-            <span style={{ userSelect: "none" }}>
+            <span style={{ userSelect: 'none' }}>
               {this.getHeaderText(statName)}
             </span>
           </div>
@@ -141,10 +138,10 @@ module.exports = class CardStats extends expose.Component {
       <Row
         key="header"
         style={{
-          cursor: "default",
-          color: "white",
-          display: "flex",
-          fontWeight: "bold"
+          cursor: 'default',
+          color: 'white',
+          display: 'flex',
+          fontWeight: 'bold',
         }}
       >
         {elems}
@@ -153,7 +150,7 @@ module.exports = class CardStats extends expose.Component {
   }
 
   renderPlayerRow(playerStats) {
-    const elems = ["name"].concat(STATS_NAMES).map((statName, i) => {
+    const elems = ['name'].concat(STATS_NAMES).map((statName, i) => {
       return (
         <Cell key={statName}>
           <div
@@ -162,7 +159,7 @@ module.exports = class CardStats extends expose.Component {
               !i ? this.handlePlayerClick.bind(this, playerStats.id) : null
             }
           >
-            <span style={{ userSelect: "none" }}>{playerStats[statName]}</span>
+            <span style={{ userSelect: 'none' }}>{playerStats[statName]}</span>
           </div>
         </Cell>
       );
@@ -171,7 +168,7 @@ module.exports = class CardStats extends expose.Component {
     return (
       <Row
         key={playerStats.name}
-        style={{ cursor: "default", color: "white", display: "flex" }}
+        style={{ cursor: 'default', color: 'white', display: 'flex' }}
       >
         {elems}
       </Row>
@@ -203,11 +200,11 @@ module.exports = class CardStats extends expose.Component {
       })
     );
 
-    const height = window.innerHeight - 80 + "px";
+    const height = window.innerHeight - 80 + 'px';
     return (
       <div
         className="card"
-        style={{ width: "100%", height: height, marginTop: "20px" }}
+        style={{ width: '100%', height: height, marginTop: '20px' }}
       >
         <div className="card-body">
           <StickyTable>{tableElems}</StickyTable>

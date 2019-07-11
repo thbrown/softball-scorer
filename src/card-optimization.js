@@ -1,22 +1,18 @@
-"use strict";
+import React from 'react';
+import DOM from 'react-dom-factories';
+import expose from './expose';
+import state from 'state';
+import dialog from 'dialog';
+import network from 'network';
+import LeftHeaderButton from 'component-left-header-button';
+import RightHeaderButton from 'component-right-header-button';
+import FloatingInput from 'component-floating-input';
+import FloatingPicklist from 'component-floating-picklist';
 
-const React = require("react");
-const DOM = require("react-dom-factories");
-
-const dialog = require("dialog");
-const expose = require("./expose");
-const network = require("network.js");
-const state = require("state");
-
-const FloatingInput = require("component-floating-input");
-const FloatingPicklist = require("component-floating-picklist");
-const LeftHeaderButton = require("component-left-header-button");
-const RightHeaderButton = require("component-right-header-button");
-
-const ACCORDION_QUERYPARAM_PREFIX = "acc";
+const ACCORDION_QUERYPARAM_PREFIX = 'acc';
 const SYNC_DELAY_MS = 5000; // This value also exists in the CSS
 
-module.exports = class CardOptimization extends expose.Component {
+export default class CardOptimization extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
@@ -41,14 +37,14 @@ Clips can be played from the player's plate appearance page
     };
 
     this.handleOverrideClick = function(playerId) {
-      expose.set_state("main", {
-        page: `/optimizations/${this.optimization.id}/overrides/${playerId}`
+      expose.set_state('main', {
+        page: `/optimizations/${this.optimization.id}/overrides/${playerId}`,
       });
     }.bind(this);
 
     this.handleAddPlayerClick = function() {
-      expose.set_state("main", {
-        page: `/optimizations/${this.optimization.id}/overrides/player-select`
+      expose.set_state('main', {
+        page: `/optimizations/${this.optimization.id}/overrides/player-select`,
       });
     }.bind(this);
 
@@ -64,16 +60,16 @@ Clips can be played from the player's plate appearance page
     }.bind(this);
 
     this.startCssAnimation = function() {
-      let element = document.getElementById("pie-timer");
-      element.classList.remove("hidden");
+      let element = document.getElementById('pie-timer');
+      element.classList.remove('hidden');
 
       // Removing an element from the dom then reinserting it restarts the animation
-      element.classList.add("gone");
-      element.offsetHeight; /* trigger reflow https://gist.github.com/paulirish/5d52fb081b3570c81e3a */
-      element.classList.remove("gone");
+      element.classList.add('gone');
+      element.offsetHeight = +element.offsetHeight; /* trigger reflow https://gist.github.com/paulirish/5d52fb081b3570c81e3a */
+      element.classList.remove('gone');
 
       setTimeout(function() {
-        element.classList.add("hidden");
+        element.classList.add('hidden');
       }, SYNC_DELAY_MS);
     };
 
@@ -89,7 +85,7 @@ Clips can be played from the player's plate appearance page
         newSet.delete(team.id);
         state.setOptimizationField(
           this.optimization.id,
-          "teamList",
+          'teamList',
           Array.from(newSet),
           true
         );
@@ -97,7 +93,7 @@ Clips can be played from the player's plate appearance page
         newSet.add(team.id);
         state.setOptimizationField(
           this.optimization.id,
-          "teamList",
+          'teamList',
           Array.from(newSet),
           true
         );
@@ -105,8 +101,8 @@ Clips can be played from the player's plate appearance page
     }.bind(this);
 
     this.onOptionsChange = function(fieldName, value) {
-      if (fieldName === "lineupType") {
-        state.setOptimizationField(this.optimization.id, "lineupType", value);
+      if (fieldName === 'lineupType') {
+        state.setOptimizationField(this.optimization.id, 'lineupType', value);
       } else {
         state.setOptimizationCustomDataField(
           this.optimization.id,
@@ -118,17 +114,17 @@ Clips can be played from the player's plate appearance page
 
     this.handleSendEmailCheckbox = function() {
       if (this.optimization.sendEmail) {
-        state.setOptimizationField(this.optimization.id, "sendEmail", false);
+        state.setOptimizationField(this.optimization.id, 'sendEmail', false);
       } else {
-        state.setOptimizationField(this.optimization.id, "sendEmail", true);
+        state.setOptimizationField(this.optimization.id, 'sendEmail', true);
       }
     }.bind(this);
 
     this.handleStartClick = async function() {
       // Disable button in the UI
-      let buttonDiv = document.getElementById("start-optimization-button");
-      buttonDiv.innerHTML = "Starting...";
-      buttonDiv.classList.add("disabled");
+      let buttonDiv = document.getElementById('start-optimization-button');
+      buttonDiv.innerHTML = 'Starting...';
+      buttonDiv.classList.add('disabled');
 
       // Extract data an list fields
       let playerIds = JSON.parse(this.optimization.playerList);
@@ -141,7 +137,7 @@ Clips can be played from the player's plate appearance page
       let filteredTeamList = teamIds.filter(teamId => state.getTeam(teamId));
       state.setOptimizationField(
         this.optimization.id,
-        "teamList",
+        'teamList',
         filteredTeamList,
         true
       );
@@ -149,7 +145,7 @@ Clips can be played from the player's plate appearance page
       let filteredGameList = gameIds.filter(gameId => state.getTeam(gameId));
       state.setOptimizationField(
         this.optimization.id,
-        "gameList",
+        'gameList',
         filteredGameList,
         true
       );
@@ -165,7 +161,7 @@ Clips can be played from the player's plate appearance page
       }
       state.setOptimizationField(
         this.optimization.id,
-        "overrideData",
+        'overrideData',
         filteredOverrides,
         true
       );
@@ -209,7 +205,7 @@ Clips can be played from the player's plate appearance page
           overrideData[player.id] = compressedStats;
           state.setOptimizationField(
             this.optimization.id,
-            "overrideData",
+            'overrideData',
             overrideData,
             true
           );
@@ -227,7 +223,7 @@ Clips can be played from the player's plate appearance page
         games: filteredGameList,
         innings: customData.innings,
         iterations: customData.iterations,
-        lineupType: this.optimization.lineupType
+        lineupType: this.optimization.lineupType,
       };
 
       // Be sure the server has out optimization details before it tried to run the optimization
@@ -235,66 +231,66 @@ Clips can be played from the player's plate appearance page
 
       let body = JSON.stringify({
         executionData: executionData,
-        optimizationId: this.optimization.id
+        optimizationId: this.optimization.id,
       });
       let response = await network.request(
-        "POST",
-        "server/start-optimization",
+        'POST',
+        'server/start-optimization',
         body
       );
       if (response.status === 204 || response.status === 200) {
-        dialog.show_notification("Sent start request.");
+        dialog.show_notification('Sent start request.');
         // Do a sync, since the above call succeeded server has updated the optimization's status on it's end
         await state.sync();
         // Start auto refresh
         this.doAutoSync();
       } else if (response.status === 403) {
         dialog.show_notification(
-          "You must be logged in to run a lineup simulation. Please [Login](/menu/login) or [Signup](/menu/signup)."
+          'You must be logged in to run a lineup simulation. Please [Login](/menu/login) or [Signup](/menu/signup).'
         );
-        buttonDiv.classList.remove("disabled");
-        buttonDiv.innerHTML = "Start Simulation";
+        buttonDiv.classList.remove('disabled');
+        buttonDiv.innerHTML = 'Start Simulation';
       } else {
         dialog.show_notification(
-          "Something went wrong. " +
+          'Something went wrong. ' +
             response.status +
-            " " +
+            ' ' +
             JSON.stringify(response.body)
         );
-        buttonDiv.classList.remove("disabled");
-        buttonDiv.innerHTML = "Start Simulation";
+        buttonDiv.classList.remove('disabled');
+        buttonDiv.innerHTML = 'Start Simulation';
       }
     }.bind(this);
 
     this.handleResumeClick = async function() {
       // Disable button in the UI
-      let buttonDiv = document.getElementById("start-optimization-button");
-      buttonDiv.innerHTML = "Starting...";
-      buttonDiv.classList.add("disabled");
+      let buttonDiv = document.getElementById('start-optimization-button');
+      buttonDiv.innerHTML = 'Starting...';
+      buttonDiv.classList.add('disabled');
 
       let body = JSON.stringify({
-        optimizationId: this.optimization.id
+        optimizationId: this.optimization.id,
       });
       let response = await network.request(
-        "POST",
-        "server/start-optimization",
+        'POST',
+        'server/start-optimization',
         body
       );
       if (response.status === 204 || response.status === 200) {
-        dialog.show_notification("Sent start request.");
+        dialog.show_notification('Sent start request.');
 
         // Do a sync, since the above call succeeded server has updated the optimization's status on it's end
         state.sync();
       } else if (response.status === 403) {
         dialog.show_notification(
-          "You must be logged in to run a lineup simulation. Please [Login](/menu/login) or [Signup](/menu/signup)."
+          'You must be logged in to run a lineup simulation. Please [Login](/menu/login) or [Signup](/menu/signup).'
         );
-        buttonDiv.classList.remove("disabled");
-        buttonDiv.innerHTML = "Start Simulation";
+        buttonDiv.classList.remove('disabled');
+        buttonDiv.innerHTML = 'Start Simulation';
       } else {
-        dialog.show_notification("Something went wrong. " + response.status);
-        buttonDiv.classList.remove("disabled");
-        buttonDiv.innerHTML = "Start Simulation";
+        dialog.show_notification('Something went wrong. ' + response.status);
+        buttonDiv.classList.remove('disabled');
+        buttonDiv.innerHTML = 'Start Simulation';
       }
     }.bind(this);
 
@@ -340,13 +336,13 @@ Clips can be played from the player's plate appearance page
     };
     this.setAccordionAria = function(el1, el2, expanded) {
       switch (expanded) {
-        case "true":
-          this.setAriaAttr(el1, "aria-expanded", "true");
-          this.setAriaAttr(el2, "aria-hidden", "false");
+        case 'true':
+          this.setAriaAttr(el1, 'aria-expanded', 'true');
+          this.setAriaAttr(el2, 'aria-hidden', 'false');
           break;
-        case "false":
-          this.setAriaAttr(el1, "aria-expanded", "false");
-          this.setAriaAttr(el2, "aria-hidden", "true");
+        case 'false':
+          this.setAriaAttr(el1, 'aria-expanded', 'false');
+          this.setAriaAttr(el2, 'aria-hidden', 'true');
           break;
         default:
           break;
@@ -358,48 +354,48 @@ Clips can be played from the player's plate appearance page
       var accordionTitle = e.currentTarget.parentNode.nextElementSibling;
       var accordionContent = e.currentTarget;
       var accordionChevron = e.currentTarget.children[0];
-      if (accordionTitle.classList.contains("is-collapsed")) {
-        this.setAccordionAria(accordionContent, accordionTitle, "true");
+      if (accordionTitle.classList.contains('is-collapsed')) {
+        this.setAccordionAria(accordionContent, accordionTitle, 'true');
         state.editQueryObject(ACCORDION_QUERYPARAM_PREFIX + index, true);
       } else {
-        this.setAccordionAria(accordionContent, accordionTitle, "false");
+        this.setAccordionAria(accordionContent, accordionTitle, 'false');
         state.editQueryObject(ACCORDION_QUERYPARAM_PREFIX + index, null);
       }
-      accordionContent.classList.toggle("is-collapsed");
-      accordionContent.classList.toggle("is-expanded");
-      accordionTitle.classList.toggle("is-collapsed");
-      accordionTitle.classList.toggle("is-expanded");
-      accordionChevron.classList.toggle("chevronExpanded");
+      accordionContent.classList.toggle('is-collapsed');
+      accordionContent.classList.toggle('is-expanded');
+      accordionTitle.classList.toggle('is-collapsed');
+      accordionTitle.classList.toggle('is-expanded');
+      accordionChevron.classList.toggle('chevronExpanded');
 
-      accordionTitle.classList.toggle("animateIn");
+      accordionTitle.classList.toggle('animateIn');
     };
 
     // Attach listeners to the accordion (and click if necessary)
     let queryObject = state.getQueryObj();
-    let accordionToggles = document.querySelectorAll(".js-accordionTrigger");
+    let accordionToggles = document.querySelectorAll('.js-accordionTrigger');
     for (var i = 0, len = accordionToggles.length; i < len; i++) {
-      if ("ontouchstart" in window) {
+      if ('ontouchstart' in window) {
         accordionToggles[i].addEventListener(
-          "touchstart",
+          'touchstart',
           this.skipClickDelay,
           false
         );
       }
-      if ("pointerdown" in window) {
+      if ('pointerdown' in window) {
         accordionToggles[i].addEventListener(
-          "pointerdown",
+          'pointerdown',
           this.skipClickDelay,
           false
         );
       }
       accordionToggles[i].addEventListener(
-        "click",
+        'click',
         this.switchAccordion.bind(this, i),
         false
       );
 
       // Open the accordions indicated by he query params
-      if (queryObject[ACCORDION_QUERYPARAM_PREFIX + i] === "true") {
+      if (queryObject[ACCORDION_QUERYPARAM_PREFIX + i] === 'true') {
         accordionToggles[i].click();
       }
     }
@@ -458,7 +454,7 @@ Clips can be played from the player's plate appearance page
         Object.assign(displayPlayer, compressedStats);
         displayPlayer.isOverride = false;
       }
-      displayPlayer.name = player ? player.name : "<Player was deleted>";
+      displayPlayer.name = player ? player.name : '<Player was deleted>';
       displayPlayer.playerId = playerIds[i];
       displayPlayers.push(displayPlayer);
     }
@@ -466,8 +462,8 @@ Clips can be played from the player's plate appearance page
     for (let i = 0; i < displayPlayers.length; i++) {
       playerTable.push(
         <tr
-          key={"row" + i}
-          className={displayPlayers[i].isOverride ? "overriden" : undefined}
+          key={'row' + i}
+          className={displayPlayers[i].isOverride ? 'overriden' : undefined}
         >
           <td height="48" className="name">
             {displayPlayers[i].name}
@@ -513,9 +509,9 @@ Clips can be played from the player's plate appearance page
       for (let i = 0; i < allTeams.length; i++) {
         let team = allTeams[i];
         teamsCheckboxes.push(
-          <label key={team.name + "checkboxLabel"}>
+          <label key={team.name + 'checkboxLabel'}>
             <input
-              key={team.name + "checkbox"}
+              key={team.name + 'checkbox'}
               type="checkbox"
               onChange={this.handleTeamCheckboxClick.bind(this, team)}
               checked={selectedTeamsSet.has(team.id)}
@@ -535,14 +531,14 @@ Clips can be played from the player's plate appearance page
         let team = state.getTeam(selectedTeams[i]);
         let teamName;
         if (!team) {
-          teamName = "<Team was deleted>";
+          teamName = '<Team was deleted>';
         } else {
           teamName = team.name;
         }
         teamsCheckboxes.push(
-          <label key={selectedTeams[i] + "checkboxLabel"}>
+          <label key={selectedTeams[i] + 'checkboxLabel'}>
             <input
-              key={selectedTeams[i] + "checkbox"}
+              key={selectedTeams[i] + 'checkbox'}
               type="checkbox"
               checked={true}
               disabled="true"
@@ -575,7 +571,7 @@ Clips can be played from the player's plate appearance page
     return (
       <div className="accordionContainer">
         <div className="text-div">
-          Status:{" "}
+          Status:{' '}
           {state.OPTIMIZATION_STATUS_ENUM_INVERSE[this.optimization.status]}
           <br />
           {this.optimization.statusMessage}
@@ -658,38 +654,38 @@ Clips can be played from the player's plate appearance page
             >
               <div id="simulationOptionsMenu">
                 {React.createElement(FloatingInput, {
-                  key: "iterations",
-                  id: "iterations",
-                  maxLength: "12",
-                  label: "Iterations",
-                  onChange: this.onOptionsChange.bind(this, "iterations"),
-                  type: "number",
+                  key: 'iterations',
+                  id: 'iterations',
+                  maxLength: '12',
+                  label: 'Iterations',
+                  onChange: this.onOptionsChange.bind(this, 'iterations'),
+                  type: 'number',
                   defaultValue: parsedCustomData.iterations,
                   disabled:
                     this.optimization.status !==
-                    state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+                    state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
                 })}
                 {React.createElement(FloatingInput, {
-                  key: "innings",
-                  id: "innings",
-                  maxLength: "12",
-                  label: "Innings to Simulate",
-                  onChange: this.onOptionsChange.bind(this, "innings"),
-                  maxLength: "2",
-                  type: "number",
+                  key: 'innings',
+                  id: 'innings',
+                  maxLength: '12',
+                  label: 'Innings to Simulate',
+                  onChange: this.onOptionsChange.bind(this, 'innings'),
+                  maxLength: '2',
+                  type: 'number',
                   defaultValue: parsedCustomData.innings,
                   disabled:
                     this.optimization.status !==
-                    state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+                    state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
                 })}
                 {React.createElement(FloatingPicklist, {
-                  id: "lineupType",
-                  label: "Lineup Type",
+                  id: 'lineupType',
+                  label: 'Lineup Type',
                   defaultValue: this.optimization.lineupType,
-                  onChange: this.onOptionsChange.bind(this, "lineupType"),
+                  onChange: this.onOptionsChange.bind(this, 'lineupType'),
                   disabled:
                     this.optimization.status !==
-                    state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+                    state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
                 })}
               </div>
             </dd>
@@ -733,7 +729,7 @@ Clips can be played from the player's plate appearance page
           let displayPlayer = {};
           let player = state.getPlayer(groupA[i]);
           if (!player) {
-            displayPlayer.name = "<Player was deleted>";
+            displayPlayer.name = '<Player was deleted>';
           } else {
             displayPlayer.name = player.name;
           }
@@ -761,12 +757,12 @@ Clips can be played from the player's plate appearance page
           let displayPlayer = {};
           let player = state.getPlayer(groupA[i]);
           if (!player) {
-            displayPlayer.name = "<Player was deleted>";
+            displayPlayer.name = '<Player was deleted>';
           } else {
             displayPlayer.name = player.name;
           }
           bestPlayers.push(
-            <div key={"a" + i}>
+            <div key={'a' + i}>
               {displayPlayer.name}
               <br />
             </div>
@@ -783,12 +779,12 @@ Clips can be played from the player's plate appearance page
           let displayPlayer = {};
           let player = state.getPlayer(groupB[i]);
           if (!player) {
-            displayPlayer.name = "<Player was deleted>";
+            displayPlayer.name = '<Player was deleted>';
           } else {
             displayPlayer.name = player.name;
           }
           bestPlayers.push(
-            <div key={"b" + i}>
+            <div key={'b' + i}>
               {displayPlayer.name}
               <br />
             </div>
@@ -803,9 +799,9 @@ Clips can be played from the player's plate appearance page
         );
       }
     } else {
-      bestScore = "-";
-      bestPlayers = "-";
-      progress = "-";
+      bestScore = '-';
+      bestPlayers = '-';
+      progress = '-';
     }
 
     let resultsStyle = {};
@@ -926,17 +922,17 @@ Clips can be played from the player's plate appearance page
   render() {
     return DOM.div(
       {
-        className: "card",
-        style: {}
+        className: 'card',
+        style: {},
       },
       DOM.div(
         {
-          className: "card-title"
+          className: 'card-title',
         },
         React.createElement(LeftHeaderButton),
         DOM.div(
           {
-            className: "card-title-text-with-arrow prevent-overflow"
+            className: 'card-title-text-with-arrow prevent-overflow',
           },
           this.optimization.name
         ),
@@ -944,7 +940,7 @@ Clips can be played from the player's plate appearance page
       ),
       DOM.div(
         {
-          className: "card-body"
+          className: 'card-body',
         },
         this.renderOptimizationPage()
       )

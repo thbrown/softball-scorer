@@ -1,16 +1,11 @@
-"use strict";
+import React from 'react';
+import DOM from 'react-dom-factories';
+import expose from './expose';
+import state from 'state';
+import dialog from 'dialog';
+import order from 'batting-order';
 
-const React = require("react");
-const expose = require("./expose");
-const DOM = require("react-dom-factories");
-const css = require("css");
-const dialog = require("dialog");
-const Draggable = require("react-draggable");
-const order = require("batting-order");
-
-const state = require("state");
-
-module.exports = class CardScorer extends expose.Component {
+export default class CardScorer extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
@@ -27,17 +22,17 @@ module.exports = class CardScorer extends expose.Component {
     };
 
     this.handleCreateClick = function() {
-      expose.set_state("main", {
-        page: "PlayerSelection"
+      expose.set_state('main', {
+        page: 'PlayerSelection',
       });
-    }.bind(this);
+    };
 
     this.handleBoxClick = function(player, plateAppearanceId) {
-      expose.set_state("main", {
+      expose.set_state('main', {
         page: `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearanceId}`,
-        isNew: false
+        isNew: false,
       });
-    }.bind(this);
+    };
 
     this.handleNewPlateAppearanceClick = function(player, game_id, team_id) {
       let plateAppearance = state.addPlateAppearance(
@@ -45,20 +40,20 @@ module.exports = class CardScorer extends expose.Component {
         game_id,
         team_id
       );
-      expose.set_state("main", {
+      expose.set_state('main', {
         page: `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearance.id}`,
-        isNew: true
+        isNew: true,
       });
     }.bind(this);
 
     this.handleDragStart = function(player) {
-      let elem = document.getElementById("lineup_" + player.id);
-      elem.style["z-index"] = 100;
-      elem.style.position = "absolute";
+      let elem = document.getElementById('lineup_' + player.id);
+      elem.style['z-index'] = 100;
+      elem.style.position = 'absolute';
     };
     this.handleDragStop = function(player) {
-      let elem = document.getElementById("lineup_" + player.id);
-      elem.style["z-index"] = 1;
+      let elem = document.getElementById('lineup_' + player.id);
+      elem.style['z-index'] = 1;
       elem.style.position = null;
 
       let deltaY = parseInt(elem.style.transform.slice(15)) - 15;
@@ -75,16 +70,16 @@ module.exports = class CardScorer extends expose.Component {
   renderLineupPlayerList() {
     if (!this.props.game || !this.props.team) {
       console.error(
-        "game:",
+        'game:',
         this.props.game,
-        "team:",
+        'team:',
         this.props.team,
-        "lineup:",
+        'lineup:',
         !this.props.game.lineup
       );
       return DOM.div(
-        { className: "page-error" },
-        "Lineup: No game, team, or lineup exist."
+        { className: 'page-error' },
+        'Lineup: No game, team, or lineup exist.'
       );
     }
 
@@ -98,26 +93,26 @@ module.exports = class CardScorer extends expose.Component {
 
       let player_name = DOM.div(
         {
-          key: "name" + i,
-          className: "player-name prevent-overflow"
+          key: 'name' + i,
+          className: 'player-name prevent-overflow',
         },
-        i + 1 + ") " + player.name
+        i + 1 + ') ' + player.name
       );
 
       let box = DOM.div(
         {
-          key: "box" + i,
+          key: 'box' + i,
           onClick: this.handleBoxClick.bind(this, player, plateAppearance.id),
-          className: "lineup-box"
+          className: 'lineup-box',
         },
         DOM.div({}, plateAppearance.result)
       );
 
       let div = DOM.div(
         {
-          id: "pa_" + plateAppearance.id,
-          key: "pa" + plateAppearance.id,
-          className: "scorer-row"
+          id: 'pa_' + plateAppearance.id,
+          key: 'pa' + plateAppearance.id,
+          className: 'scorer-row',
           //onClick: this.handleButtonClick.bind( this, team )
         },
         player_name,
@@ -127,29 +122,29 @@ module.exports = class CardScorer extends expose.Component {
       elems.push(div);
     }
 
-    elems.push(DOM.hr({ key: "divider" }));
+    elems.push(DOM.hr({ key: 'divider' }));
 
     let currentBatter = order.getNthBatter(this.props.game.id, 1);
     let currentBatterEl = DOM.div(
       {
-        key: "currentBatter",
-        className: "player-name"
+        key: 'currentBatter',
+        className: 'player-name',
       },
-      "At Bat - " + (currentBatter ? currentBatter.name : "nobody")
+      'At Bat - ' + (currentBatter ? currentBatter.name : 'nobody')
     );
 
     let newPa = DOM.div(
       {
-        key: "newPa",
+        key: 'newPa',
         onClick: this.handleNewPlateAppearanceClick.bind(
           this,
           currentBatter,
           this.props.game.id,
           this.props.team.id
         ),
-        className: "lineup-box"
+        className: 'lineup-box',
       },
-      DOM.div({}, "+")
+      DOM.div({}, '+')
     );
 
     if (currentBatter) {
@@ -157,9 +152,9 @@ module.exports = class CardScorer extends expose.Component {
       elems.push(
         DOM.div(
           {
-            id: "currentBatter",
-            key: "currentBatterKey",
-            className: "future-batter-row"
+            id: 'currentBatter',
+            key: 'currentBatterKey',
+            className: 'future-batter-row',
           },
           currentBatterEl,
           walkup,
@@ -170,9 +165,9 @@ module.exports = class CardScorer extends expose.Component {
       elems.push(
         DOM.div(
           {
-            id: "currentBatter",
-            key: "currentBatterKey",
-            className: "future-batter-row"
+            id: 'currentBatter',
+            key: 'currentBatterKey',
+            className: 'future-batter-row',
           },
           currentBatterEl
         )
@@ -182,17 +177,17 @@ module.exports = class CardScorer extends expose.Component {
     let onDeckBatterBatter = order.getNthBatter(this.props.game.id, 2);
     let onDeckBatterEl = DOM.div(
       {
-        key: "onDeckBatter",
-        className: "player-name"
+        key: 'onDeckBatter',
+        className: 'player-name',
       },
-      "On Deck - " + (onDeckBatterBatter ? onDeckBatterBatter.name : "nobody")
+      'On Deck - ' + (onDeckBatterBatter ? onDeckBatterBatter.name : 'nobody')
     );
     elems.push(
       DOM.div(
         {
-          id: "onDeckBatterBatter",
-          key: "onDeckBatterKey",
-          className: "future-batter-row"
+          id: 'onDeckBatterBatter',
+          key: 'onDeckBatterKey',
+          className: 'future-batter-row',
         },
         onDeckBatterEl
       )
@@ -201,17 +196,17 @@ module.exports = class CardScorer extends expose.Component {
     let inTheHoleBatter = order.getNthBatter(this.props.game.id, 3);
     let inTheHoleBatterEl = DOM.div(
       {
-        key: "inTheHoleBatter",
-        className: "player-name"
+        key: 'inTheHoleBatter',
+        className: 'player-name',
       },
-      "In the Hole - " + (inTheHoleBatter ? inTheHoleBatter.name : "nobody")
+      'In the Hole - ' + (inTheHoleBatter ? inTheHoleBatter.name : 'nobody')
     );
     elems.push(
       DOM.div(
         {
-          id: "inTheHoleBatter",
-          key: "inTheHoleBatterKey",
-          className: "future-batter-row"
+          id: 'inTheHoleBatter',
+          key: 'inTheHoleBatterKey',
+          className: 'future-batter-row',
         },
         inTheHoleBatterEl
       )
@@ -219,12 +214,12 @@ module.exports = class CardScorer extends expose.Component {
 
     elems.unshift(
       DOM.div({
-        key: "lineup-padding",
-        id: "lineup-padding",
+        key: 'lineup-padding',
+        id: 'lineup-padding',
         style: {
-          display: "none",
-          height: "52px"
-        }
+          display: 'none',
+          height: '52px',
+        },
       })
     );
 
@@ -232,17 +227,10 @@ module.exports = class CardScorer extends expose.Component {
   }
 
   render() {
-    return DOM.div(
-      {
-        className: "card",
-        style: {}
-      },
-      DOM.div(
-        {
-          className: "card-body"
-        },
-        this.renderLineupPlayerList()
-      )
+    return (
+      <div className="card">
+        <div className="card-body">{this.renderLineupPlayerList()}</div>
+      </div>
     );
   }
-};
+}

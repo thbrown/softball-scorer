@@ -126,6 +126,7 @@ body {
 }
 
 .list-item {
+  cursor: default;
   padding: 12px;
   margin: 10px;
   border-radius: 4px;
@@ -272,6 +273,7 @@ body {
 }
 
 .result-button {
+  cursor: default;
   width: 48px;
   padding: 12px;
   color: $css.colors.TEXT_LIGHT;

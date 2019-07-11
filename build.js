@@ -16,7 +16,7 @@ const _execute = function(cmd, cb) {
   const obj = shell.exec(
     cmd,
     {
-      env: env
+      env: env,
     },
     cb
   );
@@ -30,7 +30,7 @@ const _executeAsync = async function(cmd) {
     const obj = shell.exec(
       cmd,
       {
-        env: env
+        env: env,
       },
       resolve
     );
@@ -58,7 +58,9 @@ const rules = {
         }
         try {
           await _executeAsync('webpack');
-          await _executeAsync('terser --compress --mangle -o build/main.js -- build/main.js');
+          await _executeAsync(
+            'terser --compress --mangle -o build/main.js -- build/main.js'
+          );
           updateServiceWorker(cb);
         } catch (e) {
           console.error('ERROR', e);
@@ -86,7 +88,7 @@ const rules = {
     const main_bundle = process.env.npm_package_config_bundles_main_out;
     const cmd = `rm -f ${vendor_bundle} ${main_bundle}`;
     _execute(cmd, cb);
-  }
+  },
 };
 const rule = argv._.shift();
 if (rules[rule]) {
@@ -103,17 +105,6 @@ if (rules[rule]) {
   process.exit(1);
 }
 
-function _vendor_modules() {
-  let base = 'npm_package_config_vendor_modules_',
-    out = [],
-    i = 0;
-  while (process.env[base + i]) {
-    out.push(process.env[base + i]);
-    i += 1;
-  }
-  return out;
-}
-
 function build_css(cb) {
   const pre_css_folder = './src/css/';
   const dest_css_filename = './assets/main.css';
@@ -127,7 +118,7 @@ function build_css(cb) {
       }
       const uglified = uglifycss.processFiles([dest_css_filename], {
         maxLineLen: 500,
-        expandVars: true
+        expandVars: true,
       });
       fs.writeFile(dest_css_filename, uglified, cb);
     });
@@ -206,7 +197,7 @@ function updateServiceWorker(cb) {
   // https://www.npmjs.com/package/folder-hash
   const options = {
     folders: { exclude: ['node_modules', 'build'] },
-    files: { exclude: ['service-worker.js'] }
+    files: { exclude: ['service-worker.js'] },
   };
 
   hashElement('.', options)

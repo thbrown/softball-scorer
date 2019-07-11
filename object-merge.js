@@ -1,4 +1,4 @@
-const hasher = require("object-hash");
+const hasher = require('object-hash');
 
 /**
  *	This is a library to diff and merge objects with similar structures.
@@ -14,7 +14,7 @@ let diffInternal = function(mine, theirs, path, result) {
       x => !theirs.find(v => getUniqueId(v) === getUniqueId(x))
     );
     deletes.forEach(del => {
-      addToResult(result, path, getUniqueId(del), "Delete");
+      addToResult(result, path, getUniqueId(del), 'Delete');
     });
 
     // Add everything to mine that is in theirs
@@ -30,7 +30,7 @@ let diffInternal = function(mine, theirs, path, result) {
         result,
         path,
         key,
-        "ArrayAdd",
+        'ArrayAdd',
         JSON.stringify(add),
         theirs.indexOf(add)
       );
@@ -48,12 +48,12 @@ let diffInternal = function(mine, theirs, path, result) {
     let commonElementsAIds = commonElementsA.map(v => getUniqueId(v));
     let commonElementsBIds = commonElementsB.map(v => getUniqueId(v));
     if (!arraysEqual(commonElementsAIds, commonElementsBIds)) {
-      let key = "ReOrder";
+      let key = 'ReOrder';
       addToResult(
         result,
         path,
         key,
-        "ReOrder",
+        'ReOrder',
         JSON.stringify(commonElementsAIds),
         JSON.stringify(commonElementsBIds)
       );
@@ -72,8 +72,8 @@ let diffInternal = function(mine, theirs, path, result) {
     }
   } else if (
     mine !== null &&
-    typeof mine === "object" &&
-    (theirs !== null && typeof theirs === "object")
+    typeof mine === 'object' &&
+    (theirs !== null && typeof theirs === 'object')
   ) {
     let deletes = Object.keys(mine).filter(
       x =>
@@ -82,13 +82,13 @@ let diffInternal = function(mine, theirs, path, result) {
         )
     );
     deletes.forEach(del => {
-      addToResult(result, path, getUniqueId(del), "Delete");
+      addToResult(result, path, getUniqueId(del), 'Delete');
     });
     let adds = Object.keys(theirs).filter(
       x => !Object.keys(mine).find(v => getUniqueId(v) === getUniqueId(x))
     );
     adds.forEach(add => {
-      return addToResult(result, path, getUniqueId(add), "Add", theirs[add]);
+      return addToResult(result, path, getUniqueId(add), 'Add', theirs[add]);
     });
     let commonProps = Object.keys(theirs).filter(x =>
       Object.keys(mine).find(v => getUniqueId(v) === getUniqueId(x))
@@ -98,16 +98,16 @@ let diffInternal = function(mine, theirs, path, result) {
     });
   } else if (mine !== Object(mine) && theirs !== Object(theirs)) {
     if (mine !== theirs) {
-      addToResult(result, path, undefined, "Edit", mine, theirs);
+      addToResult(result, path, undefined, 'Edit', mine, theirs);
     }
   } else {
     throw "I don't know how to diff objects of different types! " +
       typeof mine +
-      " " +
+      ' ' +
       typeof theirs +
-      " " +
+      ' ' +
       JSON.stringify(mine) +
-      " " +
+      ' ' +
       JSON.stringify(theirs);
   }
   return result;
@@ -140,7 +140,7 @@ let addToResult = function(result, path, value, op, param1, param2) {
     op: op,
     key: value,
     param1: param1,
-    param2: param2
+    param2: param2,
   };
   handle[value.toString()] = inst;
   return result;
@@ -155,7 +155,7 @@ let getUniqueId = function(value) {
       // This object doesn't have an id field, identify it by its first key
       return Object.keys(value)[0];
     } else {
-      throw "Tried to find the id of an empty object";
+      throw 'Tried to find the id of an empty object';
     }
   } else {
     return value;
@@ -179,9 +179,9 @@ let patch = function(
     if (isLeaf(patchObj[key])) {
       let op = patchObj[key].op;
       let value = patchObj[key].key;
-      if (op == "Delete") {
+      if (op == 'Delete') {
         if (skipDeletes) {
-          console.log("Delete was skipped");
+          console.log('Delete was skipped');
         } else {
           if (Array.isArray(toPatch)) {
             let delIndex = toPatch.findIndex(
@@ -193,11 +193,11 @@ let patch = function(
                 return;
               } else {
                 throw new Error(
-                  "Bad patch:\n" +
+                  'Bad patch:\n' +
                     skipDeletes +
-                    " " +
+                    ' ' +
                     JSON.stringify(toPatch, null, 2) +
-                    "\n" +
+                    '\n' +
                     JSON.stringify(patchObj, null, 2)
                 );
               }
@@ -208,7 +208,7 @@ let patch = function(
             delete toPatch[key];
           }
         }
-      } else if (op == "ArrayAdd") {
+      } else if (op == 'ArrayAdd') {
         let newEntry = JSON.parse(patchObj[key].param1);
         let existingIndex = toPatch.findIndex(
           v => getUniqueId(v) === getUniqueId(newEntry)
@@ -222,14 +222,14 @@ let patch = function(
             patch(toPatch[existingIndex], subpatch, true, true); // We want to merge these two objects, not overwrite the existing one. So we'll specify skip delete.
           } else {
             throw new Error(
-              "This patch can not be applied: Attempting to arrayAdd " +
+              'This patch can not be applied: Attempting to arrayAdd ' +
                 JSON.stringify(newEntry) +
-                " but a property with that id already exists " +
+                ' but a property with that id already exists ' +
                 JSON.stringify(toPatch[existingIndex])
             );
           }
         }
-      } else if (op == "ReOrder") {
+      } else if (op == 'ReOrder') {
         let oldOrder = JSON.parse(patchObj[key].param1);
         let newOrder = JSON.parse(patchObj[key].param2);
         let indexesInToPatch = [];
@@ -244,13 +244,13 @@ let patch = function(
           let index = newOrder.indexOf(oldOrder[i]);
           replacements.push({
             destination: indexesInToPatch[index],
-            whatToMove: toPatch[indexesInToPatch[i]]
+            whatToMove: toPatch[indexesInToPatch[i]],
           });
         }
         for (let i = 0; i < replacements.length; i++) {
           toPatch[replacements[i].destination] = replacements[i].whatToMove;
         }
-      } else if (op == "Add") {
+      } else if (op == 'Add') {
         if (toPatch[value] !== undefined) {
           // We are attempting to add something that already exists, either merge it or throw an error
           if (skipOperationOnNonExistant) {
@@ -258,22 +258,22 @@ let patch = function(
             patch(toPatch[value], subpatch, true, true); // Instead we want to merge these two objects, so we'll specify skip delete
           } else {
             throw new Error(
-              "This patch can not be applied: Attempting to add " +
+              'This patch can not be applied: Attempting to add ' +
                 patchObj[key].param1 +
-                " but a property with that id already exists " +
+                ' but a property with that id already exists ' +
                 toPatch[value]
             );
           }
         } else {
           toPatch[value] = patchObj[key].param1;
         }
-      } else if (op == "Edit") {
+      } else if (op == 'Edit') {
         // TODO: Check if value is param2 before change?
         toPatch[value] = patchObj[key].param2;
       } else {
-        throw "Unrecognized operation: " +
+        throw 'Unrecognized operation: ' +
           op +
-          " " +
+          ' ' +
           JSON.stringify(patchObj[key]);
       }
     } else {
@@ -293,7 +293,7 @@ let patch = function(
           throw new Error(
             "This patch can not be applied: Can't find key " +
               key +
-              " in " +
+              ' in ' +
               toPatch
           );
         } else {
@@ -317,7 +317,7 @@ let isLeaf = function(obj) {
   let keys = Object.keys(obj);
   for (var i = 0; i < keys.length; i++) {
     let key = keys[i];
-    if (obj[key] !== null && typeof obj[key] === "object") {
+    if (obj[key] !== null && typeof obj[key] === 'object') {
       return false;
     }
   }
@@ -349,7 +349,7 @@ let mergeDeep = function(target, ...sources) {
 };
 
 let isObject = function(item) {
-  return item && typeof item === "object" && !Array.isArray(item);
+  return item && typeof item === 'object' && !Array.isArray(item);
 };
 
 let diff3 = function(mine, ancestor, theirs) {
@@ -362,17 +362,17 @@ let diff3 = function(mine, ancestor, theirs) {
 // Calculate the md5 checksum of the data and return the result as a base64 string
 function getMd5(data) {
   let checksum = hasher(data, {
-    algorithm: "md5",
+    algorithm: 'md5',
     excludeValues: false,
     respectFunctionProperties: false,
     respectFunctionNames: false,
     respectType: false,
-    encoding: "base64"
+    encoding: 'base64',
   });
   return checksum.slice(0, -2); // Remove trailing '=='
 }
 
 module.exports = {
   diff: diff,
-  patch: patch
+  patch: patch,
 };

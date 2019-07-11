@@ -1,23 +1,17 @@
-"use strict";
-
-const DOM = require("react-dom-factories");
-
-const expose = require("./expose");
-const results = require("plate-appearance-results");
-const state = require("state");
-
-const LeftHeaderButton = require("component-left-header-button");
-const RightHeaderButton = require("component-right-header-button");
+import React from 'react';
+import DOM from 'react-dom-factories';
+import expose from './expose';
+import state from 'state';
+import LeftHeaderButton from 'component-left-header-button';
+import RightHeaderButton from 'component-right-header-button';
+import results from 'plate-appearance-results';
+import { normalize } from 'utils/functions';
 
 const LOCATION_DENOMINATOR = 32767;
 
 const BALLFIELD_MAX_WIDTH = 500;
 
-const normalize = function(x, A, B, C, D) {
-  return C + ((x - A) * (D - C)) / (B - A);
-};
-
-module.exports = class CardAtBat extends expose.Component {
+export default class CardAtBat extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
@@ -26,7 +20,7 @@ module.exports = class CardAtBat extends expose.Component {
 
   renderField() {
     let playerPlateAppearances = [];
-    if (this.props.origin === "stats") {
+    if (this.props.origin === 'stats') {
       playerPlateAppearances = state.getPlateAppearancesForPlayerOnTeam(
         this.props.player.id,
         this.props.team.id
@@ -67,22 +61,22 @@ module.exports = class CardAtBat extends expose.Component {
 
       if (value.location && x && y) {
         let image = results.getNoHitResults().includes(value.result)
-          ? "/server/assets/baseball-out.svg"
-          : "/server/assets/baseball-hit.svg";
+          ? '/server/assets/baseball-out.svg'
+          : '/server/assets/baseball-hit.svg';
         let alt = results.getNoHitResults().includes(value.result)
-          ? "out"
-          : "hitg";
+          ? 'out'
+          : 'hitg';
         indicators.push(
           DOM.img({
             key: value.id,
             src: image,
             alt: alt,
             style: {
-              position: "absolute",
-              width: "20px",
-              left: new_x + "px",
-              top: new_y + "px"
-            }
+              position: 'absolute',
+              width: '20px',
+              left: new_x + 'px',
+              top: new_y + 'px',
+            },
           })
         );
       }
@@ -90,20 +84,20 @@ module.exports = class CardAtBat extends expose.Component {
 
     return DOM.div(
       {
-        id: "ballfield",
+        id: 'ballfield',
         style: {
-          position: "relative",
-          width: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + "px",
-          height: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + "px",
-          overflow: "hidden"
-        }
+          position: 'relative',
+          width: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + 'px',
+          height: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + 'px',
+          overflow: 'hidden',
+        },
       },
       DOM.img({
         draggable: true,
-        src: "/server/assets/ballfield2.png",
+        src: '/server/assets/ballfield2.png',
         style: {
-          width: "100%"
-        }
+          width: '100%',
+        },
       }),
       indicators
     );
@@ -112,20 +106,20 @@ module.exports = class CardAtBat extends expose.Component {
   render() {
     return DOM.div(
       {
-        className: "card",
+        className: 'card',
         style: {
-          position: "relative"
-        }
+          position: 'relative',
+        },
       },
       DOM.div(
         {
-          className: "card-title",
-          style: {}
+          className: 'card-title',
+          style: {},
         },
         React.createElement(LeftHeaderButton, {}),
         DOM.div(
           {
-            className: "prevent-overflow card-title-text-with-arrow"
+            className: 'prevent-overflow card-title-text-with-arrow',
           },
           this.props.player.name
         ),
@@ -133,13 +127,13 @@ module.exports = class CardAtBat extends expose.Component {
       ),
       DOM.div(
         {
-          className: "card-body",
+          className: 'card-body',
           style: {
-            maxWidth: BALLFIELD_MAX_WIDTH + "px"
-          }
+            maxWidth: BALLFIELD_MAX_WIDTH + 'px',
+          },
         },
         this.renderField()
       )
     );
   }
-};
+}

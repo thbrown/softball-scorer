@@ -1,13 +1,11 @@
-"use strict";
-
-const React = require("react");
-const DOM = require("react-dom-factories");
-const marked = require("marked");
+import React from 'react';
+import DOM from 'react-dom-factories';
+import marked from 'marked';
 marked.setOptions({
-  sanitize: true
+  sanitize: true,
 });
 
-module.exports = class NotificationDialog extends React.Component {
+export default class NotificationDialog extends React.Component {
   constructor(props) {
     super(props);
 
@@ -23,35 +21,35 @@ module.exports = class NotificationDialog extends React.Component {
       {},
       DOM.div(
         {
-          className: "dialog"
+          className: 'dialog',
         },
         DOM.div({
-          className: "dialog-text",
-          dangerouslySetInnerHTML: { __html: marked(this.props.text) }
+          className: 'dialog-text',
+          dangerouslySetInnerHTML: { __html: marked(this.props.text) },
         }),
         DOM.div(
           {
             style: {
-              display: "flex",
-              justifyContent: "flex-end"
-            }
+              display: 'flex',
+              justifyContent: 'flex-end',
+            },
           },
           DOM.div(
             {
-              className: "button confirm-button",
-              onClick: this.handleConfirmClick
+              className: 'button confirm-button',
+              onClick: this.handleConfirmClick,
             },
             DOM.span(
               {
-                className: "no-select"
+                className: 'no-select',
               },
-              "Got it"
+              'Got it'
             )
           )
         )
       ),
       DOM.div({
-        className: "overlay"
+        className: 'overlay',
       })
     );
   }
