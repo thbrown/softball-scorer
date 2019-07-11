@@ -1,17 +1,13 @@
-"use strict";
-
-const DOM = require("react-dom-factories");
-const React = require("react");
-const Select = require("react-select").default;
-
-const expose = require("./expose");
-const state = require("state");
-
-const LeftHeaderButton = require("component-left-header-button");
-const RightHeaderButton = require("component-right-header-button");
+import React from 'react';
+import DOM from 'react-dom-factories';
+import expose from './expose';
+import state from 'state';
+import LeftHeaderButton from 'component-left-header-button';
+import RightHeaderButton from 'component-right-header-button';
+import Select from 'react-select';
 
 // This is a more generic player selection card to replace card-player-selection
-module.exports = class CardPlayerSelect extends expose.Component {
+export default class CardPlayerSelect extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
@@ -21,7 +17,7 @@ module.exports = class CardPlayerSelect extends expose.Component {
     for (let playerIndex = 0; playerIndex < players.length; playerIndex++) {
       let entry = {
         value: players[playerIndex].id,
-        label: players[playerIndex].name
+        label: players[playerIndex].name,
       };
       options.push(entry);
     }
@@ -34,7 +30,7 @@ module.exports = class CardPlayerSelect extends expose.Component {
       }
       let entry = {
         value: player.id,
-        label: player.name
+        label: player.name,
       };
       startingValues.push(entry);
     }
@@ -43,30 +39,30 @@ module.exports = class CardPlayerSelect extends expose.Component {
       players: Array.from(startingValues.slice(0).map(v => v.value)),
       options: options,
       startingValues: startingValues,
-      typed: "",
-      gender: "M"
+      typed: '',
+      gender: 'M',
     };
 
     this.onInputChange = function(inputValue) {
       this.adjustSpacerDivHeight();
       this.setState({
-        typed: inputValue
+        typed: inputValue,
       });
     };
 
     this.handleRadioButtonChange = function(event) {
       this.setState({
-        gender: event.target.value
+        gender: event.target.value,
       });
     };
 
     this.handleSubmitClick = function() {
       props.onComplete(this.state.players);
-      history.back();
+      window.history.back();
     };
 
     this.handleCancelClick = function() {
-      history.back();
+      window.history.back();
     };
 
     this.handleBackOrHome = function() {
@@ -76,7 +72,7 @@ module.exports = class CardPlayerSelect extends expose.Component {
     this.onChange = function(selectedOptions) {
       let valuesOnly = Array.from(selectedOptions.slice(0).map(v => v.value));
       this.setState({
-        players: valuesOnly
+        players: valuesOnly,
       });
     };
 
@@ -88,14 +84,14 @@ module.exports = class CardPlayerSelect extends expose.Component {
         //if (!menus) {
         // Idk why the '-menu' suffix is left off the css class for builds on some computers but not for builds on others, here is an alternitive selector
         let menus = [
-          document.getElementById("select-container").children[0].children[2]
+          document.getElementById('select-container').children[0].children[2],
         ];
         //}
         let height = 10;
         if (menus.length === 1 && menus[0]) {
           height = menus[0].clientHeight;
         }
-        let spacer = document.getElementById("spacer");
+        let spacer = document.getElementById('spacer');
         if (spacer) {
           spacer.style.height = `${height}px`; // inline style :(
         }
@@ -111,9 +107,9 @@ module.exports = class CardPlayerSelect extends expose.Component {
       // Duplicate options
       let optionsCopy = JSON.parse(JSON.stringify(this.state.options));
       optionsCopy.push({ label: newPlayer.name, value: newPlayer.id });
-      console.log("New Options", optionsCopy);
+      console.log('New Options', optionsCopy);
       this.setState({
-        options: optionsCopy
+        options: optionsCopy,
       });
     };
 
@@ -128,14 +124,14 @@ module.exports = class CardPlayerSelect extends expose.Component {
             onClick={this.handleRadioButtonChange.bind(this)}
             name="gender"
             value="M"
-          />{" "}
+          />{' '}
           Male
           <input
             type="radio"
             onClick={this.handleRadioButtonChange.bind(this)}
             name="gender"
             value="female"
-          />{" "}
+          />{' '}
           Female <br />
           <button type="button" onClick={this.onCreatePlayerClick.bind(this)}>
             Create
@@ -146,53 +142,53 @@ module.exports = class CardPlayerSelect extends expose.Component {
 
     // https://react-select.com/styles
     this.customStyles = {
-      option: (provided, state) => {
+      option: provided => {
         let modifications = {
-          padding: 15
+          padding: 15,
         };
         return Object.assign(provided, modifications);
       },
-      multiValue: (provided, state) => {
+      multiValue: provided => {
         let modifications = {
-          padding: 14
+          padding: 14,
         };
         return Object.assign(provided, modifications);
       },
-      menu: (provided, state) => {
+      menu: provided => {
         let modifications = {
-          padding: 1
+          padding: 1,
         };
         return Object.assign(provided, modifications);
-      }
+      },
     };
   }
 
   render() {
     return DOM.div(
       {
-        className: "card",
-        style: {}
+        className: 'card',
+        style: {},
       },
       DOM.div(
         {
-          className: "card-title"
+          className: 'card-title',
         },
         React.createElement(LeftHeaderButton, {
-          onPress: this.handleBackOrHome.bind(this)
+          onPress: this.handleBackOrHome.bind(this),
         }),
         DOM.div(
           {
-            className: "card-title-text-with-arrow"
+            className: 'card-title-text-with-arrow',
           },
-          "Add/Remove Players"
+          'Add/Remove Players'
         ),
         React.createElement(RightHeaderButton, {
-          onPress: this.handleBackOrHome.bind(this)
+          onPress: this.handleBackOrHome.bind(this),
         })
       ),
       DOM.div(
         {
-          className: "card-body"
+          className: 'card-body',
         },
         this.renderPlayerSelection(),
         this.renderButtons()
@@ -202,11 +198,11 @@ module.exports = class CardPlayerSelect extends expose.Component {
   renderButtons() {
     return (
       <div>
-        <div id="spacer" style={{ transition: "height .25s" }} />
+        <div id="spacer" style={{ transition: 'height .25s' }} />
         <div>
           <div
             className="edit-button button confirm-button"
-            style={{ marginLeft: "16px" }}
+            style={{ marginLeft: '16px' }}
             onClick={this.handleSubmitClick.bind(this)}
           >
             Submit
@@ -215,7 +211,7 @@ module.exports = class CardPlayerSelect extends expose.Component {
         <div>
           <div
             className="edit-button button cancel-button"
-            style={{ marginLeft: "16px" }}
+            style={{ marginLeft: '16px' }}
             onClick={this.handleCancelClick}
           >
             Cancel

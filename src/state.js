@@ -1,17 +1,15 @@
-"use strict";
+import expose from 'expose';
+import objectMerge from '../object-merge';
+import network from 'network';
+import idUtils from '../id-utils';
+import results from 'plate-appearance-results';
+import hasher from 'object-hash';
 
-const expose = require("expose");
-const objectMerge = require("../object-merge.js");
-const network = require("network.js");
-const idUtils = require("../id-utils.js");
-const results = require("plate-appearance-results.js");
-
-const LZString = require("lz-string");
-const hasher = require("object-hash");
+const exp = {};
 
 // Constants
 const INITIAL_STATE = { teams: [], players: [], optimizations: [] };
-const CURRENT_LS_SCHEMA_VERSION = "6";
+const CURRENT_LS_SCHEMA_VERSION = '6';
 const SYNC_DELAY_MS = 10000;
 const SYNC_STATUS_ENUM = Object.freeze({
   COMPLETE: 1,
@@ -19,23 +17,23 @@ const SYNC_STATUS_ENUM = Object.freeze({
   IN_PROGRESS: 3,
   PENDING: 4,
   IN_PROGRESS_AND_PENDING: 5,
-  UNKNOWN: 6
+  UNKNOWN: 6,
 });
-exports.OPTIMIZATION_STATUS_ENUM = Object.freeze({
+exp.OPTIMIZATION_STATUS_ENUM = Object.freeze({
   NOT_STARTED: 0,
   ALLOCATING_RESOURCES: 1,
   IN_PROGRESS: 2,
   COMPLETE: 3,
   PAUSED: 4,
-  ERROR: 5
+  ERROR: 5,
 });
 const OPTIMIZATION_TYPE_ENUM = Object.freeze({
-  MONTE_CARLO_EXAUSTIVE: 0
+  MONTE_CARLO_EXAUSTIVE: 0,
 });
-exports.LINEUP_TYPE_ENUM = Object.freeze({
+exp.LINEUP_TYPE_ENUM = Object.freeze({
   NORMAL: 1,
   ALTERNATING_GENDER: 2,
-  NO_CONSECUTIVE_FEMALES: 3
+  NO_CONSECUTIVE_FEMALES: 3,
 });
 
 // Database State - Stored in memory, local storage, and persisted in the db
@@ -52,9 +50,9 @@ let addToHomescreenEvent = null;
 let syncState = SYNC_STATUS_ENUM.UNKNOWN;
 let syncTimer = null;
 
-const state = exports;
+const state = exp;
 
-exports.getServerUrl = function(path) {
+exp.getServerUrl = function(path) {
   return window.location.href + path;
 };
 
@@ -62,16 +60,14 @@ exports.getServerUrl = function(path) {
 // -1 network issue
 // -2 failed on fullSync = false
 // -3 failed on fullSync = true
-exports.sync = async function(fullSync) {
-  console.log("Sync requested", fullSync ? "full" : "patchOnly");
+exp.sync = async function(fullSync) {
+  console.log('Sync requested', fullSync ? 'full' : 'patchOnly');
   while (
-    exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS ||
-    exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
+    exp.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS ||
+    exp.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
   ) {
     // Simultaneous syncs might be okay, but we'll still limit it to one at a time for clarity
-    console.log(
-      "waiting for in progress sync to finish " + exports.getSyncState()
-    );
+    console.log('waiting for in progress sync to finish ' + exp.getSyncState());
     await sleep(500);
   }
   // Kill any scheduled syncs
@@ -93,20 +89,20 @@ exports.sync = async function(fullSync) {
     let body = {
       md5: getMd5(localState),
       patch: objectMerge.diff(state.getAncestorState(), localState),
-      type: fullSync ? "full" : "any"
+      type: fullSync ? 'full' : 'any',
     };
 
     // Ship it
-    console.log("SENDING SYNC", body);
+    console.log('SENDING SYNC', body);
     let response = await network.request(
-      "POST",
-      "server/sync",
+      'POST',
+      'server/sync',
       JSON.stringify(body)
     );
 
     if (response.status === 200) {
       let serverState = response.body;
-      console.log("Received", serverState);
+      console.log('Received', serverState);
 
       // First gather any changes that were made locally while the request was still working
       let localChangesDuringRequest = objectMerge.diff(
@@ -128,18 +124,18 @@ exports.sync = async function(fullSync) {
         // The local state with the server updates is the new ancestor
         state.setAncestorState(localStateCopyPreRequest);
       } else {
-        console.log("No updates recieved from server");
+        console.log('No updates recieved from server');
         state.setAncestorState(localStateCopyPreRequest);
       }
 
       // Verify that the ancestor state (after updates) has the same hash as the server state
       let ancestorHash = state.getAncestorStateChecksum();
-      console.log("CLIENT: ", ancestorHash, " SERVER: ", serverState.md5);
+      console.log('CLIENT: ', ancestorHash, ' SERVER: ', serverState.md5);
       if (ancestorHash !== serverState.md5) {
         if (fullSync) {
           // Something went wrong after trying a full sync, we probaly can't do anything about it!
           // serverState.base should have contained a verbatium copy of what the server has, so this is weird.
-          console.log("Yikes! Something went wrong while attempting full sync");
+          console.log('Yikes! Something went wrong while attempting full sync');
           console.log(
             getMd5(state.getAncestorState()),
             getMd5(serverState.base)
@@ -151,7 +147,7 @@ exports.sync = async function(fullSync) {
         } else {
           // Something went wrong with the patch based sync, perhaps the server's cached data was incorrect
           // We should be able to repeat the request with type "full" so we'll get the whole state back, not just the patches
-          console.log("Something went wrong while attempting patch sync");
+          console.log('Something went wrong while attempting patch sync');
           console.log(getMd5(state.getLocalState), serverState.md5);
 
           // Set the state back to what it was when we first did a sync
@@ -159,7 +155,7 @@ exports.sync = async function(fullSync) {
           throw new Error(-2);
         }
       } else {
-        console.log("Sync was successful! (client and server checksums match)");
+        console.log('Sync was successful! (client and server checksums match)');
       }
 
       // Copy
@@ -173,21 +169,21 @@ exports.sync = async function(fullSync) {
       reRender();
 
       // Write the most updated data to local storage
-      exports.saveDbStateToLocalStorage();
+      exp.saveDbStateToLocalStorage();
     } else {
       console.log(response.status);
       throw new Error(response.status);
     }
 
-    if (exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS) {
+    if (exp.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS) {
       setSyncState(SYNC_STATUS_ENUM.COMPLETE);
     } else if (
-      exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
+      exp.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
     ) {
       setSyncState(SYNC_STATUS_ENUM.PENDING);
     } else {
       // Don't think this should be possible
-      console.log("Invalid state transition");
+      console.log('Invalid state transition');
       setSyncState(SYNC_STATUS_ENUM.UNKNOWN);
     }
 
@@ -196,33 +192,33 @@ exports.sync = async function(fullSync) {
     // We might be able to re-try some problems, like if the network is temporarally out
     setSyncState(SYNC_STATUS_ENUM.PENDING); // Assume re-try
     if (
-      (err.message == -1 && !exports.isOnline()) ||
-      err.message == 403 ||
-      err.message == 401 ||
-      err.message == 502
+      (err.message === -1 && !exp.isOnline()) ||
+      err.message === 403 ||
+      err.message === 401 ||
+      err.message === 502
     ) {
       // Pause future syncs but don't sound the alert alarm for these cases (not bugs) for
       // 1) User is not signed in
       // 2) App is in offline mode
       console.log(
-        "Auth problem or offline mode is active: retrying sync later"
+        'Auth problem or offline mode is active: retrying sync later'
       );
       setSyncState(SYNC_STATUS_ENUM.ERROR);
-    } else if (err.message == 503 || err.message == -1) {
+    } else if (err.message === 503 || err.message === -1) {
       // Re-try later might work for
       // 1) Server rate limiting errors
       // 2) Weird network conditions
-      console.log("Network issues or server is busy: retrying sync later");
-      scheduleSync();
-    } else if (err.message == -2) {
+      console.log('Network issues or server is busy: retrying sync later');
+      exp.scheduleSync();
+    } else if (err.message === -2) {
       // Issue with patch based sync, re-try with a full sync
-      console.log("Issue with patch sync: attemtping full sync");
-      return await exports.sync(true);
+      console.log('Issue with patch sync: attemtping full sync');
+      return await exp.sync(true);
     } else {
       // Other 500s, 400s are probably bugs :(, tell the user something is wrong
-      console.log("Probable bug encountered");
+      console.log('Probable bug encountered');
       alert(
-        "Auto sync failed with status " +
+        'Auto sync failed with status ' +
           err.message +
           ". App will continue to function, but your data won't be synced with the server. Consider backing up your data from the main menu to avoid data loss. Details: " +
           err
@@ -234,11 +230,11 @@ exports.sync = async function(fullSync) {
   }
 };
 
-exports.resetSyncState = function() {
+exp.resetSyncState = function() {
   setSyncState(SYNC_STATUS_ENUM.UNKNOWN);
 };
 
-exports.resetState = function() {
+exp.resetState = function() {
   setSyncState(SYNC_STATUS_ENUM.UNKNOWN);
 
   online = true;
@@ -248,24 +244,24 @@ exports.resetState = function() {
   LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
   ANCESTOR_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
 
-  exports.saveApplicationStateToLocalStorage();
-  exports.saveDbStateToLocalStorage();
+  exp.saveApplicationStateToLocalStorage();
+  exp.saveDbStateToLocalStorage();
 };
 
-exports.deleteAllLocalData = function() {
+exp.deleteAllLocalData = function() {
   LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
   onEdit();
 };
 
-exports.getLocalState = function() {
+exp.getLocalState = function() {
   return LOCAL_DB_STATE;
 };
 
-exports.getLocalStateChecksum = function() {
+exp.getLocalStateChecksum = function() {
   return getMd5(LOCAL_DB_STATE);
 };
 
-exports.setLocalState = function(newState) {
+exp.setLocalState = function(newState) {
   LOCAL_DB_STATE = newState;
   onEdit();
 };
@@ -274,53 +270,53 @@ let setLocalStateNoSideEffects = function(newState) {
   LOCAL_DB_STATE = newState;
 };
 
-exports.getAncestorState = function() {
+exp.getAncestorState = function() {
   return ANCESTOR_DB_STATE;
 };
 
-exports.setAncestorState = function(s) {
+exp.setAncestorState = function(s) {
   ANCESTOR_DB_STATE = s;
 };
 
-exports.getAncestorStateChecksum = function() {
+exp.getAncestorStateChecksum = function() {
   return getMd5(ANCESTOR_DB_STATE);
 };
 
-exports.hasAnythingChanged = function() {
+exp.hasAnythingChanged = function() {
   return getMd5(LOCAL_DB_STATE) !== getMd5(INITIAL_STATE);
 };
 
 // TEAM
 
-exports.getTeam = function(team_id, state) {
+exp.getTeam = function(team_id, state) {
   return (state || LOCAL_DB_STATE).teams.reduce((prev, curr) => {
     return curr.id === team_id ? curr : prev;
   }, null);
 };
 
-exports.addTeam = function(team_name) {
+exp.addTeam = function(team_name) {
   const id = getNextId();
-  let new_state = exports.getLocalState();
+  let new_state = exp.getLocalState();
   let team = {
     id: id,
     name: team_name,
-    games: []
+    games: [],
   };
   new_state.teams.push(team);
   onEdit();
   return team;
 };
 
-exports.replaceTeam = function(oldTeamId, newTeam) {
-  let localState = exports.getLocalState();
-  let oldTeam = exports.getTeam(oldTeamId);
+exp.replaceTeam = function(oldTeamId, newTeam) {
+  let localState = exp.getLocalState();
+  let oldTeam = exp.getTeam(oldTeamId);
   let oldTeamIndex = localState.teams.indexOf(oldTeam);
   localState.teams[oldTeamIndex] = newTeam;
   onEdit();
 };
 
-exports.removeTeam = function(team_id) {
-  let new_state = exports.getLocalState();
+exp.removeTeam = function(team_id) {
+  let new_state = exp.getLocalState();
   new_state.teams = new_state.teams.filter(team => {
     return team.id !== team_id;
   });
@@ -329,26 +325,26 @@ exports.removeTeam = function(team_id) {
 
 // PLAYER
 
-exports.getPlayer = function(player_id, state) {
+exp.getPlayer = function(player_id, state) {
   return (state || LOCAL_DB_STATE).players.reduce((prev, curr) => {
     return curr.id === player_id ? curr : prev;
   }, null);
 };
 
-exports.replacePlayer = function(playerId, newPlayer) {
-  let localState = exports.getLocalState();
-  let oldPlayer = exports.getPlayer(playerId, localState);
+exp.replacePlayer = function(playerId, newPlayer) {
+  let localState = exp.getLocalState();
+  let oldPlayer = exp.getPlayer(playerId, localState);
 
   let oldPlayerIndex = localState.players.indexOf(oldPlayer);
   localState.players[oldPlayerIndex] = newPlayer;
   onEdit();
 };
 
-exports.getAllPlayers = function() {
-  return exports.getLocalState().players;
+exp.getAllPlayers = function() {
+  return exp.getLocalState().players;
 };
 
-exports.getAllPlayersAlphabetically = function() {
+exp.getAllPlayersAlphabetically = function() {
   let playerNameComparator = function(a, b) {
     if (a.name.toLowerCase() < b.name.toLowerCase()) {
       return -1;
@@ -360,16 +356,16 @@ exports.getAllPlayersAlphabetically = function() {
   };
 
   // Make sure we don't re-order the original array, this will result in sync issues
-  let copy = exports.getLocalState().players.slice(0);
+  let copy = exp.getLocalState().players.slice(0);
   return copy.sort(playerNameComparator);
 };
 
-exports.removePlayer = function(playerId) {
+exp.removePlayer = function(playerId) {
   if (
-    exports.getGamesWithPlayerInLineup(playerId).length === 0 &&
-    exports.getGamesWherePlayerHasPlateAppearances(playerId).length === 0
+    exp.getGamesWithPlayerInLineup(playerId).length === 0 &&
+    exp.getGamesWherePlayerHasPlateAppearances(playerId).length === 0
   ) {
-    let localState = exports.getLocalState();
+    let localState = exp.getLocalState();
     localState.players = localState.players.filter(player => {
       return player.id !== playerId;
     });
@@ -380,15 +376,15 @@ exports.removePlayer = function(playerId) {
   }
 };
 
-exports.addPlayer = function(playerName, gender) {
+exp.addPlayer = function(playerName, gender) {
   const id = getNextId();
-  let new_state = exports.getLocalState();
+  let new_state = exp.getLocalState();
   let player = {
     id: id,
     name: playerName,
     gender: gender,
     song_link: null,
-    song_start: null
+    song_start: null,
   };
   new_state.players.push(player);
   onEdit();
@@ -397,19 +393,19 @@ exports.addPlayer = function(playerName, gender) {
 
 // OPTIMIZATION
 
-exports.getOptimization = function(optimizationId) {
+exp.getOptimization = function(optimizationId) {
   return LOCAL_DB_STATE.optimizations.reduce((prev, curr) => {
     return curr.id === optimizationId ? curr : prev;
   }, null);
 };
 
-exports.getAllOptimizations = function() {
-  return exports.getLocalState().optimizations;
+exp.getAllOptimizations = function() {
+  return exp.getLocalState().optimizations;
 };
 
-exports.replaceOptimization = function(optimizationId, newOptimization) {
-  let localState = exports.getLocalState();
-  let oldOptimization = exports.getOptimization(optimizationId);
+exp.replaceOptimization = function(optimizationId, newOptimization) {
+  let localState = exp.getLocalState();
+  let oldOptimization = exp.getOptimization(optimizationId);
 
   let oldOptimizationIndex = localState.optimizations.indexOf(oldOptimization);
   localState.optimizations[oldOptimizationIndex] = newOptimization;
@@ -417,12 +413,12 @@ exports.replaceOptimization = function(optimizationId, newOptimization) {
 };
 
 // TODO: can this be merged with setOptimizationField?
-exports.setOptimizationCustomDataField = function(
+exp.setOptimizationCustomDataField = function(
   optimizationId,
   fieldName,
   fieldValue
 ) {
-  let optimization = exports.getOptimization(optimizationId);
+  let optimization = exp.getOptimization(optimizationId);
   let customData = JSON.parse(optimization.customData);
   if (fieldValue) {
     customData[fieldName] = fieldValue;
@@ -433,15 +429,15 @@ exports.setOptimizationCustomDataField = function(
   onEdit();
 };
 
-exports.setOptimizationField = function(
+exp.setOptimizationField = function(
   optimizationId,
   fieldName,
   fieldValue,
   isJson
 ) {
-  console.log("Setting field", fieldName, fieldValue);
+  console.log('Setting field', fieldName, fieldValue);
 
-  let optimization = exports.getOptimization(optimizationId);
+  let optimization = exp.getOptimization(optimizationId);
   if (isJson) {
     optimization[fieldName] = JSON.stringify(fieldValue);
   } else {
@@ -450,33 +446,33 @@ exports.setOptimizationField = function(
   onEdit();
 };
 
-exports.getOptimizationCustomDataField = function(optimizationId, fieldName) {
-  let optimization = exports.getOptimization(optimizationId);
+exp.getOptimizationCustomDataField = function(optimizationId, fieldName) {
+  let optimization = exp.getOptimization(optimizationId);
   let customData = JSON.parse(optimization.customData);
   return customData[fieldName];
 };
 
-exports.removeOptimization = function(optimizationId) {
-  let localState = exports.getLocalState();
+exp.removeOptimization = function(optimizationId) {
+  let localState = exp.getLocalState();
   localState.optimizations = localState.optimizations.filter(optimization => {
     return optimization.id !== optimizationId;
   });
   onEdit();
 };
 
-exports.addOptimization = function(name) {
+exp.addOptimization = function(name) {
   const id = getNextId();
-  let new_state = exports.getLocalState();
+  let new_state = exp.getLocalState();
   let optimization = {
     id: id,
     name: name,
     type: OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXAUSTIVE,
     customData: JSON.stringify({
       innings: 7,
-      iterations: 10000
+      iterations: 10000,
     }),
     overrideData: JSON.stringify({}),
-    status: exports.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
+    status: exp.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
     resultData: null,
     statusMessage: null,
     sendEmail: false,
@@ -484,7 +480,7 @@ exports.addOptimization = function(name) {
     gameList: JSON.stringify([]),
     playerList: JSON.stringify([]),
     lineupType: 1,
-    executionData: null
+    executionData: null,
   };
   new_state.optimizations.push(optimization);
   onEdit();
@@ -493,10 +489,10 @@ exports.addOptimization = function(name) {
 
 // GAME
 
-exports.addGame = function(team_id, opposing_team_name) {
-  let new_state = exports.getLocalState();
+exp.addGame = function(team_id, opposing_team_name) {
+  let new_state = exp.getLocalState();
   const id = getNextId();
-  const team = exports.getTeam(team_id, new_state);
+  const team = exp.getTeam(team_id, new_state);
   const timestamp = Math.floor(new Date().getTime() / 1000); // Postgres expects time in seconds not ms
   let lastLineup = [];
   let lastLineupType = 0;
@@ -511,21 +507,19 @@ exports.addGame = function(team_id, opposing_team_name) {
     lineup: lastLineup ? lastLineup : [],
     date: timestamp,
     park: null,
-    lineupType: lastLineupType
-      ? lastLineupType
-      : exports.LINEUP_TYPE_ENUM.NORMAL,
-    plateAppearances: []
+    lineupType: lastLineupType ? lastLineupType : exp.LINEUP_TYPE_ENUM.NORMAL,
+    plateAppearances: [],
   };
   team.games.push(game);
   onEdit();
   return game;
 };
 
-exports.replaceGame = function(oldGameId, teamId, newGame) {
-  let localState = exports.getLocalState();
-  let oldGame = exports.getGame(oldGameId);
+exp.replaceGame = function(oldGameId, teamId, newGame) {
+  let localState = exp.getLocalState();
+  let oldGame = exp.getGame(oldGameId);
 
-  let team = exports.getTeam(teamId);
+  let team = exp.getTeam(teamId);
   let teamIndex = localState.teams.indexOf(team);
 
   let oldGameIndex = localState.teams[teamIndex].games.indexOf(oldGame);
@@ -533,7 +527,7 @@ exports.replaceGame = function(oldGameId, teamId, newGame) {
   onEdit();
 };
 
-exports.getGame = function(game_id, state) {
+exp.getGame = function(game_id, state) {
   for (let team of (state || LOCAL_DB_STATE).teams) {
     for (let game of team.games) {
       if (game.id === game_id) {
@@ -545,9 +539,9 @@ exports.getGame = function(game_id, state) {
   return null;
 };
 
-exports.getGamesWithPlayerInLineup = function(playerId) {
+exp.getGamesWithPlayerInLineup = function(playerId) {
   let games = [];
-  let localState = exports.getLocalState();
+  let localState = exp.getLocalState();
   for (let team of localState.teams) {
     for (let game of team.games) {
       for (let i = 0; i < game.lineup.length; i++) {
@@ -561,9 +555,9 @@ exports.getGamesWithPlayerInLineup = function(playerId) {
   return games;
 };
 
-exports.getGamesWherePlayerHasPlateAppearances = function(playerId) {
+exp.getGamesWherePlayerHasPlateAppearances = function(playerId) {
   let games = [];
-  let localState = exports.getLocalState();
+  let localState = exp.getLocalState();
   for (let team of localState.teams) {
     for (let game of team.games) {
       for (let pa of game.plateAppearances) {
@@ -577,27 +571,27 @@ exports.getGamesWherePlayerHasPlateAppearances = function(playerId) {
   return games;
 };
 
-exports.addPlayerToLineup = function(lineup, player_id) {
+exp.addPlayerToLineup = function(lineup, player_id) {
   lineup.push(player_id);
   onEdit();
 };
 
-exports.updateLineup = function(lineup, playerId, newIndex) {
+exp.updateLineup = function(lineup, playerId, newIndex) {
   let ind = lineup.indexOf(playerId);
   lineup.splice(ind, 1);
   lineup.splice(newIndex, 0, playerId);
   onEdit();
 };
 
-exports.removePlayerFromLineup = function(lineup, player_id) {
+exp.removePlayerFromLineup = function(lineup, player_id) {
   let index = lineup.indexOf(player_id);
   lineup.splice(index, 1);
   onEdit();
 };
 
-exports.removeGame = function(game_id, team_id) {
-  const new_state = exports.getLocalState();
-  const team = exports.getTeam(team_id);
+exp.removeGame = function(game_id, team_id) {
+  const new_state = exp.getLocalState();
+  const team = exp.getTeam(team_id);
   const index = new_state.teams.indexOf(team);
 
   team.games = team.games.filter(game => {
@@ -607,15 +601,15 @@ exports.removeGame = function(game_id, team_id) {
   if (index > -1) {
     new_state.teams[index] = team;
   } else {
-    console.log("Game not found " + game_id);
+    console.log('Game not found ' + game_id);
   }
   onEdit();
 };
 
 // PLATE APPEARANCE
 
-exports.addPlateAppearance = function(player_id, game_id) {
-  let game = exports.getGame(game_id);
+exp.addPlateAppearance = function(player_id, game_id) {
+  let game = exp.getGame(game_id);
   let plateAppearances = game.plateAppearances;
   let id = getNextId();
   let plateAppearance = {
@@ -624,22 +618,22 @@ exports.addPlateAppearance = function(player_id, game_id) {
     result: null,
     location: {
       x: null,
-      y: null
-    }
+      y: null,
+    },
   };
   plateAppearances.push(plateAppearance);
   onEdit();
   return plateAppearance;
 };
 
-exports.replacePlateAppearance = function(paId, gameId, teamId, newPa) {
-  let localState = exports.getLocalState();
-  let oldPa = exports.getPlateAppearance(paId);
+exp.replacePlateAppearance = function(paId, gameId, teamId, newPa) {
+  let localState = exp.getLocalState();
+  let oldPa = exp.getPlateAppearance(paId);
 
-  let team = exports.getTeam(teamId);
+  let team = exp.getTeam(teamId);
   let teamIndex = localState.teams.indexOf(team);
 
-  let game = exports.getGame(gameId);
+  let game = exp.getGame(gameId);
   let gameIndex = localState.teams[teamIndex].games.indexOf(game);
 
   let oldPaIndex = localState.teams[teamIndex].games[
@@ -652,7 +646,7 @@ exports.replacePlateAppearance = function(paId, gameId, teamId, newPa) {
 };
 
 // TODO: allow for passing team and game ids to improve perf
-exports.getPlateAppearance = function(pa_id, state) {
+exp.getPlateAppearance = function(pa_id, state) {
   for (let team of (state || LOCAL_DB_STATE).teams) {
     for (let game of team.games) {
       for (let pa of game.plateAppearances) {
@@ -665,25 +659,25 @@ exports.getPlateAppearance = function(pa_id, state) {
   return null;
 };
 
-exports.getPlateAppearancesForGame = function(gameId) {
-  let game = exports.getGame(gameId);
+exp.getPlateAppearancesForGame = function(gameId) {
+  let game = exp.getGame(gameId);
   if (!game) {
     return null;
   }
   return game.plateAppearances;
 };
 
-exports.getPlateAppearancesForPlayerInGame = function(player_id, game_id) {
-  let game = exports.getGame(game_id);
-  let player = exports.getPlayer(player_id);
+exp.getPlateAppearancesForPlayerInGame = function(player_id, game_id) {
+  let game = exp.getGame(game_id);
+  let player = exp.getPlayer(player_id);
   if (!game || !player) {
     return null;
   }
   return game.plateAppearances.filter(pa => pa.player_id === player_id);
 };
 
-exports.getPlateAppearancesForPlayerOnTeam = function(player_id, team_id) {
-  let team = exports.getTeam(team_id);
+exp.getPlateAppearancesForPlayerOnTeam = function(player_id, team_id) {
+  let team = exp.getTeam(team_id);
   let plateAppearances = [];
 
   if (team && team.games) {
@@ -699,7 +693,7 @@ exports.getPlateAppearancesForPlayerOnTeam = function(player_id, team_id) {
   return plateAppearances;
 };
 
-exports.getPlateAppearancesForPlayerInGameOrOnTeam = function(
+exp.getPlateAppearancesForPlayerInGameOrOnTeam = function(
   playerId,
   teamIds,
   gameIds
@@ -713,19 +707,19 @@ exports.getPlateAppearancesForPlayerInGameOrOnTeam = function(
   let plateAppearances = [];
   for (let i = 0; i < teamIds.length; i++) {
     plateAppearances = plateAppearances.concat(
-      exports.getPlateAppearancesForPlayerOnTeam(playerId, teamIds[i])
+      exp.getPlateAppearancesForPlayerOnTeam(playerId, teamIds[i])
     );
   }
   for (let i = 0; i < gameIds.length; i++) {
     plateAppearances = plateAppearances.concat(
-      exports.getPlateAppearancesForPlayerInGame(playerId, gameIds[i])
+      exp.getPlateAppearancesForPlayerInGame(playerId, gameIds[i])
     );
   }
   return plateAppearances;
 };
 
-exports.getPlateAppearancesForPlayer = function(player_id) {
-  let localState = exports.getLocalState();
+exp.getPlateAppearancesForPlayer = function(player_id) {
+  let localState = exp.getLocalState();
   let teams = localState.teams;
   let plateAppearances = [];
 
@@ -748,21 +742,21 @@ exports.getPlateAppearancesForPlayer = function(player_id) {
   return plateAppearances;
 };
 
-exports.updatePlateAppearanceResult = function(plateAppearance, result) {
+exp.updatePlateAppearanceResult = function(plateAppearance, result) {
   plateAppearance.result = result;
   onEdit();
 };
 
-exports.updatePlateAppearanceLocation = function(plateAppearance, location) {
+exp.updatePlateAppearanceLocation = function(plateAppearance, location) {
   plateAppearance.location = {};
   plateAppearance.location.x = Math.floor(location[0]);
   plateAppearance.location.y = Math.floor(location[1]);
   onEdit();
 };
 
-exports.removePlateAppearance = function(plateAppearance_id, game_id) {
-  exports.getLocalState();
-  let game = exports.getGame(game_id);
+exp.removePlateAppearance = function(plateAppearance_id, game_id) {
+  exp.getLocalState();
+  let game = exp.getGame(game_id);
 
   game.plateAppearances = game.plateAppearances.filter(pa => {
     return pa.id !== plateAppearance_id;
@@ -772,8 +766,8 @@ exports.removePlateAppearance = function(plateAppearance_id, game_id) {
 
 // LOCAL STORAGE
 
-exports.saveDbStateToLocalStorage = function() {
-  if (typeof Storage !== "undefined") {
+exp.saveDbStateToLocalStorage = function() {
+  if (typeof Storage !== 'undefined') {
     /*
     // Disable compression for now
     let compressedLocalState = LZString.compress(
@@ -788,67 +782,67 @@ exports.saveDbStateToLocalStorage = function() {
     localStorage.setItem("ANCESTOR_DB_STATE", compressedAncesorState);
     */
 
-    localStorage.setItem("SCHEMA_VERSION", CURRENT_LS_SCHEMA_VERSION);
-    localStorage.setItem("LOCAL_DB_STATE", JSON.stringify(LOCAL_DB_STATE));
+    localStorage.setItem('SCHEMA_VERSION', CURRENT_LS_SCHEMA_VERSION);
+    localStorage.setItem('LOCAL_DB_STATE', JSON.stringify(LOCAL_DB_STATE));
     localStorage.setItem(
-      "ANCESTOR_DB_STATE",
+      'ANCESTOR_DB_STATE',
       JSON.stringify(ANCESTOR_DB_STATE)
     );
   }
 };
 
-exports.saveApplicationStateToLocalStorage = function() {
-  if (typeof Storage !== "undefined") {
-    localStorage.setItem("SCHEMA_VERSION", CURRENT_LS_SCHEMA_VERSION);
+exp.saveApplicationStateToLocalStorage = function() {
+  if (typeof Storage !== 'undefined') {
+    localStorage.setItem('SCHEMA_VERSION', CURRENT_LS_SCHEMA_VERSION);
     let applicationState = {
       online: online,
       sessionValid: sessionValid,
-      activeUser: activeUser
+      activeUser: activeUser,
     };
-    localStorage.setItem("APPLICATION_STATE", JSON.stringify(applicationState));
+    localStorage.setItem('APPLICATION_STATE', JSON.stringify(applicationState));
   }
 };
 
-exports.loadStateFromLocalStorage = function() {
-  if (typeof Storage !== "undefined") {
+exp.loadStateFromLocalStorage = function() {
+  if (typeof Storage !== 'undefined') {
     // These statements define local storage schema migrations
-    if (localStorage.getItem("SCHEMA_VERSION") === "5") {
+    if (localStorage.getItem('SCHEMA_VERSION') === '5') {
       // Added optimizations
-      console.log("Upgrading localstorage from version 5 to version 6");
-      let localState = JSON.parse(localStorage.getItem("LOCAL_DB_STATE"));
-      localState["optimizations"] = [];
-      let ancestorState = JSON.parse(localStorage.getItem("ANCESTOR_DB_STATE"));
-      ancestorState["optimizations"] = [];
-      localStorage.setItem("SCHEMA_VERSION", "6");
-      localStorage.setItem("LOCAL_DB_STATE", JSON.stringify(localState));
-      localStorage.setItem("ANCESTOR_DB_STATE", JSON.stringify(ancestorState));
+      console.log('Upgrading localstorage from version 5 to version 6');
+      let localState = JSON.parse(localStorage.getItem('LOCAL_DB_STATE'));
+      localState['optimizations'] = [];
+      let ancestorState = JSON.parse(localStorage.getItem('ANCESTOR_DB_STATE'));
+      ancestorState['optimizations'] = [];
+      localStorage.setItem('SCHEMA_VERSION', '6');
+      localStorage.setItem('LOCAL_DB_STATE', JSON.stringify(localState));
+      localStorage.setItem('ANCESTOR_DB_STATE', JSON.stringify(ancestorState));
     }
 
-    if (localStorage.getItem("SCHEMA_VERSION") !== CURRENT_LS_SCHEMA_VERSION) {
+    if (localStorage.getItem('SCHEMA_VERSION') !== CURRENT_LS_SCHEMA_VERSION) {
       console.log(
         `Removing invalid localStorage data ${localStorage.getItem(
-          "SCHEMA_VERSION"
+          'SCHEMA_VERSION'
         )}`
       );
-      exports.clearLocalStorage();
-      exports.saveDbStateToLocalStorage();
-      exports.saveApplicationStateToLocalStorage();
+      exp.clearLocalStorage();
+      exp.saveDbStateToLocalStorage();
+      exp.saveApplicationStateToLocalStorage();
     }
 
-    let localDbState = localStorage.getItem("LOCAL_DB_STATE");
+    let localDbState = localStorage.getItem('LOCAL_DB_STATE');
     if (localDbState) {
       // LOCAL_DB_STATE = JSON.parse(LZString.decompress(localDbState));
       LOCAL_DB_STATE = JSON.parse(localDbState);
     }
 
-    let ancestorDbState = localStorage.getItem("ANCESTOR_DB_STATE");
+    let ancestorDbState = localStorage.getItem('ANCESTOR_DB_STATE');
     if (ancestorDbState) {
       // ANCESTOR_DB_STATE = JSON.parse(LZString.decompress(ancestorDbState));
       ANCESTOR_DB_STATE = JSON.parse(ancestorDbState);
     }
 
     let applicationState = JSON.parse(
-      localStorage.getItem("APPLICATION_STATE")
+      localStorage.getItem('APPLICATION_STATE')
     );
     if (applicationState) {
       online = applicationState.online ? applicationState.online : true;
@@ -859,7 +853,7 @@ exports.loadStateFromLocalStorage = function() {
         ? applicationState.activeUser
         : null;
     } else {
-      console.log("Tried to load null, falling back to defaults");
+      console.log('Tried to load null, falling back to defaults');
       online = true;
       sessionValid = false;
       activeUser = null;
@@ -869,8 +863,8 @@ exports.loadStateFromLocalStorage = function() {
   reRender();
 };
 
-exports.clearLocalStorage = function() {
-  console.log("Clearing ls ");
+exp.clearLocalStorage = function() {
+  console.log('Clearing ls ');
   localStorage.clear();
 };
 
@@ -878,13 +872,13 @@ exports.clearLocalStorage = function() {
 
 function onEdit() {
   reRender();
-  exports.saveDbStateToLocalStorage();
-  exports.scheduleSync();
+  exp.saveDbStateToLocalStorage();
+  exp.scheduleSync();
 }
 
 function reRender() {
-  expose.set_state("main", {
-    render: true
+  expose.set_state('main', {
+    render: true,
   });
 }
 
@@ -899,34 +893,34 @@ async function sleep(ms) {
 
 // TODO: don't go through hex, just go dec to base62
 function dec2hex(dec) {
-  return ("0" + dec.toString(16)).substr(-2);
+  return ('0' + dec.toString(16)).substr(-2);
 }
 
 function getNextId() {
   let len = 20;
   var arr = new Uint8Array((len || 40) / 2);
   crypto.getRandomValues(arr);
-  let hex = Array.from(arr, dec2hex).join("");
-  return idUtils.hexToBase62(hex).padStart(14, "0");
+  let hex = Array.from(arr, dec2hex).join('');
+  return idUtils.hexToBase62(hex).padStart(14, '0');
 }
 
 function getMd5(data) {
   let checksum = hasher(data, {
-    algorithm: "md5",
+    algorithm: 'md5',
     excludeValues: false,
     respectFunctionProperties: false,
     respectFunctionNames: false,
     respectType: false,
-    encoding: "base64"
+    encoding: 'base64',
   });
   return checksum.slice(0, -2); // Remove trailing '=='
 }
 
 // NOT SURE THIS IS THE RIGHT PLACE FOR THESE. MOVE TO SOME OTHER UTIL?
 
-exports.getQueryObj = function() {
-  let queryString = window.location.search || "";
-  if (queryString[0] === "?") {
+exp.getQueryObj = function() {
+  let queryString = window.location.search || '';
+  if (queryString[0] === '?') {
     queryString = queryString.slice(1);
   }
   let params = {},
@@ -934,35 +928,35 @@ exports.getQueryObj = function() {
     temp,
     i,
     l;
-  queries = queryString.split("&");
+  queries = queryString.split('&');
   for (i = 0, l = queries.length; i < l; i++) {
-    temp = queries[i].split("=");
+    temp = queries[i].split('=');
     params[temp[0]] = temp[1];
   }
   return params;
 };
 
-exports.editQueryObject = function(fieldName, value) {
-  let queryObject = exports.getQueryObj();
+exp.editQueryObject = function(fieldName, value) {
+  let queryObject = exp.getQueryObj();
   queryObject[fieldName] = value;
-  let queryString = "";
+  let queryString = '';
   let keys = Object.keys(queryObject);
-  let separationChar = "?";
+  let separationChar = '?';
   for (let i = 0; i < keys.length; i++) {
     if (keys[i] && queryObject[keys[i]]) {
       queryString =
-        queryString + separationChar + keys[i] + "=" + queryObject[keys[i]];
-      separationChar = "&";
+        queryString + separationChar + keys[i] + '=' + queryObject[keys[i]];
+      separationChar = '&';
     }
   }
-  history.replaceState(
+  window.history.replaceState(
     {},
-    "",
+    '',
     window.location.origin + window.location.pathname + queryString
   );
 };
 
-exports.buildStatsObject = function(playerId, plateAppearances) {
+exp.buildStatsObject = function(playerId, plateAppearances) {
   const player = state.getPlayer(playerId);
 
   const stats = {};
@@ -992,36 +986,36 @@ exports.buildStatsObject = function(playerId, plateAppearances) {
         stats.hits++;
       }
 
-      if (pa.result === "BB") {
+      if (pa.result === 'BB') {
         stats.walks++; // Boo!
-      } else if (pa.result === "E") {
+      } else if (pa.result === 'E') {
         stats.reachedOnError++;
-      } else if (pa.result === "FC") {
+      } else if (pa.result === 'FC') {
         stats.fieldersChoice++;
       } else if (
-        pa.result === "Out" ||
-        pa.result === "SAC" ||
-        pa.result === "K"
+        pa.result === 'Out' ||
+        pa.result === 'SAC' ||
+        pa.result === 'K'
       ) {
         // Intentionally blank
-      } else if (pa.result === "1B") {
+      } else if (pa.result === '1B') {
         stats.singles++;
         stats.totalBasesByHit++;
-      } else if (pa.result === "2B") {
+      } else if (pa.result === '2B') {
         stats.doubles++;
         stats.totalBasesByHit += 2;
-      } else if (pa.result === "3B") {
+      } else if (pa.result === '3B') {
         stats.triples++;
         stats.totalBasesByHit += 3;
-      } else if (pa.result === "HRi") {
+      } else if (pa.result === 'HRi') {
         stats.insideTheParkHR++;
         stats.totalBasesByHit += 4;
-      } else if (pa.result === "HRo") {
+      } else if (pa.result === 'HRo') {
         stats.outsideTheParkHR++;
         stats.totalBasesByHit += 4;
       } else {
         console.log(
-          "WARNING: unrecognized batting result encountered and ignored for stats calculations",
+          'WARNING: unrecognized batting result encountered and ignored for stats calculations',
           pa.result
         );
       }
@@ -1029,11 +1023,11 @@ exports.buildStatsObject = function(playerId, plateAppearances) {
   });
 
   if (stats.atBats === 0) {
-    stats.battingAverage = "-";
-    stats.sluggingPercentage = "-";
+    stats.battingAverage = '-';
+    stats.sluggingPercentage = '-';
   } else {
     if (stats.hits === stats.atBats) {
-      stats.battingAverage = "1.000";
+      stats.battingAverage = '1.000';
     } else {
       stats.battingAverage = (stats.hits / stats.atBats).toFixed(3).substr(1);
     }
@@ -1047,37 +1041,37 @@ exports.buildStatsObject = function(playerId, plateAppearances) {
 
 // APPLICATION STATE FUNCTIONS
 
-exports.isOnline = function() {
+exp.isOnline = function() {
   return online;
 };
 
-exports.isSessionValid = function() {
+exp.isSessionValid = function() {
   return sessionValid;
 };
 
-exports.getActiveUser = function() {
+exp.getActiveUser = function() {
   return activeUser;
 };
 
-exports.setOffline = function() {
+exp.setOffline = function() {
   online = false;
-  exports.saveApplicationStateToLocalStorage();
+  exp.saveApplicationStateToLocalStorage();
 };
 
-exports.setActiveUser = function(user) {
+exp.setActiveUser = function(user) {
   activeUser = user;
-  exports.saveApplicationStateToLocalStorage();
+  exp.saveApplicationStateToLocalStorage();
 };
 
 // This assumes all routes are behind login
-exports.setStatusBasedOnHttpResponse = function(code) {
+exp.setStatusBasedOnHttpResponse = function(code) {
   if (code >= 200 && code < 300) {
     sessionValid = true;
     online = true;
     // Sync might have been failing for network reasons, give it another shot
-    if (exports.getSyncState() === SYNC_STATUS_ENUM.ERROR) {
+    if (exp.getSyncState() === SYNC_STATUS_ENUM.ERROR) {
       setSyncState(SYNC_STATUS_ENUM.UNKNOWN);
-      exports.scheduleSync();
+      exp.scheduleSync();
     }
   } else if (code === 403 || code === 401) {
     sessionValid = false;
@@ -1085,22 +1079,22 @@ exports.setStatusBasedOnHttpResponse = function(code) {
   } else if (code === -1) {
     online = false;
   }
-  exports.saveApplicationStateToLocalStorage();
+  exp.saveApplicationStateToLocalStorage();
 };
 
-exports.setAddToHomescreenPrompt = function(e) {
+exp.setAddToHomescreenPrompt = function(e) {
   addToHomescreenEvent = e;
   reRender();
 };
 
-exports.getAddToHomescreenPrompt = function() {
+exp.getAddToHomescreenPrompt = function() {
   return addToHomescreenEvent;
 };
 
-exports.scheduleSync = function(time = SYNC_DELAY_MS) {
-  let currentState = exports.getSyncState();
+exp.scheduleSync = function(time = SYNC_DELAY_MS) {
+  let currentState = exp.getSyncState();
   if (currentState === SYNC_STATUS_ENUM.ERROR) {
-    console.log("Sync skipped, in error state");
+    console.log('Sync skipped, in error state');
     return;
   } else if (
     currentState === SYNC_STATUS_ENUM.IN_PROGRESS ||
@@ -1111,26 +1105,26 @@ exports.scheduleSync = function(time = SYNC_DELAY_MS) {
     setSyncState(SYNC_STATUS_ENUM.PENDING);
   }
 
-  console.log("sync scheduled");
+  console.log('sync scheduled');
   clearTimeout(syncTimer);
 
   syncTimer = setTimeout(function() {
     if (
-      exports.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS ||
+      exp.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS ||
       currentState === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
     ) {
-      console.log("There is already a sync in progress");
-      exports.scheduleSync(SYNC_DELAY_MS);
+      console.log('There is already a sync in progress');
+      exp.scheduleSync(SYNC_DELAY_MS);
       return;
     }
-    exports.sync();
+    exp.sync();
   }, time);
 };
 
 let setSyncState = function(newState, skipRender) {
   // Skip unnecessary renders
   if (syncState !== newState) {
-    console.log("Sync state updated from ", syncState, "to", newState);
+    console.log('Sync state updated from ', syncState, 'to', newState);
     syncState = newState;
     if (!skipRender) {
       reRender();
@@ -1138,43 +1132,44 @@ let setSyncState = function(newState, skipRender) {
   }
 };
 
-exports.getSyncState = function() {
+exp.getSyncState = function() {
   return syncState;
 };
 
-exports.getSyncStateEnum = function() {
+exp.getSyncStateEnum = function() {
   return SYNC_STATUS_ENUM;
 };
 
-exports.setPreventScreenLock = function(value) {
-  console.log("setting value", value);
+exp.setPreventScreenLock = function(value) {
+  console.log('setting value', value);
   this.preventScreenLock = value;
   reRender();
 };
 
-exports.getPreventScreenLock = function() {
+exp.getPreventScreenLock = function() {
   return this.preventScreenLock;
 };
 
 // Flip enums for reverse lookups
-let optStatuses = Object.keys(exports.OPTIMIZATION_STATUS_ENUM);
-exports.OPTIMIZATION_STATUS_ENUM_INVERSE = {};
+let optStatuses = Object.keys(exp.OPTIMIZATION_STATUS_ENUM);
+exp.OPTIMIZATION_STATUS_ENUM_INVERSE = {};
 for (let i = 0; i < optStatuses.length; i++) {
   let englishValue = optStatuses[i];
-  exports.OPTIMIZATION_STATUS_ENUM_INVERSE[
-    exports.OPTIMIZATION_STATUS_ENUM[englishValue]
+  exp.OPTIMIZATION_STATUS_ENUM_INVERSE[
+    exp.OPTIMIZATION_STATUS_ENUM[englishValue]
   ] = englishValue;
 }
 
 /*
-let lineupTypes = Object.keys(exports.LINEUP_TYPE_ENUM);
-exports.LINEUP_TYPE_ENUM_INVERSE = {};
+let lineupTypes = Object.keys(exp.LINEUP_TYPE_ENUM);
+exp.LINEUP_TYPE_ENUM_INVERSE = {};
 for (let i = 0; i < lineupTypes.length; i++) {
   let englishValue = lineupTypes[i];
-  exports.LINEUP_TYPE_ENUM_INVERSE[
-    exports.LINEUP_TYPE_ENUM[englishValue]
+  exp.LINEUP_TYPE_ENUM_INVERSE[
+    exp.LINEUP_TYPE_ENUM[englishValue]
   ] = englishValue;
 }
 */
 
-window.state = exports;
+window.state = exp;
+export default exp;

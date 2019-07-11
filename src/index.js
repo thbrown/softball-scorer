@@ -1,6 +1,6 @@
-const React = require('react');
-const ReactDOM = require('react-dom');
-const MainContainer = require('./main-container');
+import React from 'react';
+import ReactDOM from 'react-dom';
+import MainContainer from 'main-container';
 
 global.React = React;
 
@@ -27,7 +27,7 @@ global.React = React;
         });
 
         this.insertBefore(docFrag, this.firstChild);
-      }
+      },
     });
   });
 })([Element.prototype, Document.prototype, DocumentFragment.prototype]);
@@ -38,7 +38,7 @@ document.body.prepend(container);
 let Main = (global.Main = {});
 
 let main_props = {
-  main: Main
+  main: Main,
 };
 Main.render = function() {
   ReactDOM.render(React.createElement(MainContainer, main_props), container);

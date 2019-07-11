@@ -1,17 +1,13 @@
-"use strict";
+import React from 'react';
+import DOM from 'react-dom-factories';
+import expose from './expose';
+import state from 'state';
+import dialog from 'dialog';
+import FloatingInput from 'component-floating-input';
+import LeftHeaderButton from 'component-left-header-button';
+import RightHeaderButton from 'component-right-header-button';
 
-const React = require("react");
-const DOM = require("react-dom-factories");
-
-const dialog = require("dialog");
-const expose = require("./expose");
-const state = require("state");
-
-const FloatingInput = require("component-floating-input");
-const LeftHeaderButton = require("component-left-header-button");
-const RightHeaderButton = require("component-right-header-button");
-
-module.exports = class CardOptimizationEdit extends expose.Component {
+export default class CardOptimizationEdit extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
@@ -19,11 +15,11 @@ module.exports = class CardOptimizationEdit extends expose.Component {
     this.isNew = props.isNew;
 
     this.state = {
-      optimizationName: props.optimization.name
+      optimizationName: props.optimization.name,
     };
 
     let goBack = function() {
-      history.back();
+      window.history.back();
     };
 
     let buildOptimization = function() {
@@ -47,7 +43,7 @@ module.exports = class CardOptimizationEdit extends expose.Component {
     this.handleConfirmClick = function() {
       state.replaceOptimization(props.optimization.id, buildOptimization());
       goBack();
-    }.bind(this);
+    };
 
     this.handleCancelClick = function() {
       if (props.isNew) {
@@ -70,7 +66,7 @@ module.exports = class CardOptimizationEdit extends expose.Component {
 
     this.handleOptimizationNameChange = function() {
       this.setState({
-        optimizationName: document.getElementById("optimizationName").value
+        optimizationName: document.getElementById('optimizationName').value,
       });
     }.bind(this);
   }
@@ -80,16 +76,16 @@ module.exports = class CardOptimizationEdit extends expose.Component {
   renderOptimizationEdit() {
     return DOM.div(
       {
-        className: "auth-input-container"
+        className: 'auth-input-container',
       },
       [
         React.createElement(FloatingInput, {
-          key: "optimizationName",
-          id: "optimizationName",
-          label: "Optimization name",
+          key: 'optimizationName',
+          id: 'optimizationName',
+          label: 'Optimization name',
           onChange: this.handleOptimizationNameChange.bind(this),
-          defaultValue: this.state.optimizationName
-        })
+          defaultValue: this.state.optimizationName,
+        }),
       ],
       this.renderSaveOptions()
     );
@@ -101,40 +97,40 @@ module.exports = class CardOptimizationEdit extends expose.Component {
     buttons.push(
       DOM.div(
         {
-          key: "confirm",
-          className: "edit-button button confirm-button",
+          key: 'confirm',
+          className: 'edit-button button confirm-button',
           // TODO - Make this a component and fix the style there with CSS.
           style: {
-            marginLeft: "0",
-            marginRight: "0"
+            marginLeft: '0',
+            marginRight: '0',
           },
-          onClick: this.handleConfirmClick
+          onClick: this.handleConfirmClick,
         },
         DOM.img({
-          className: "edit-button-icon",
-          src: "/server/assets/check.svg"
+          className: 'edit-button-icon',
+          src: '/server/assets/check.svg',
         }),
-        "Save"
+        'Save'
       )
     );
 
     buttons.push(
       DOM.div(
         {
-          key: "cancel",
-          className: "edit-button button cancel-button",
+          key: 'cancel',
+          className: 'edit-button button cancel-button',
           // TODO - Make this a component and fix the style there with CSS.
           style: {
-            marginLeft: "0",
-            marginRight: "0"
+            marginLeft: '0',
+            marginRight: '0',
           },
-          onClick: this.handleCancelClick
+          onClick: this.handleCancelClick,
         },
         DOM.img({
-          className: "edit-button-icon",
-          src: "/server/assets/cancel.svg"
+          className: 'edit-button-icon',
+          src: '/server/assets/cancel.svg',
         }),
-        "Cancel"
+        'Cancel'
       )
     );
 
@@ -142,27 +138,27 @@ module.exports = class CardOptimizationEdit extends expose.Component {
       buttons.push(
         DOM.div(
           {
-            key: "delete",
-            className: "edit-button button cancel-button",
+            key: 'delete',
+            className: 'edit-button button cancel-button',
             // TODO - Make this a component and fix the style there with CSS.
             style: {
-              marginLeft: "0",
-              marginRight: "0"
+              marginLeft: '0',
+              marginRight: '0',
             },
-            onClick: this.handleDeleteClick
+            onClick: this.handleDeleteClick,
           },
           DOM.img({
-            className: "edit-button-icon",
-            src: "/server/assets/delete.svg"
+            className: 'edit-button-icon',
+            src: '/server/assets/delete.svg',
           }),
-          "Delete"
+          'Delete'
         )
       );
     }
 
     return DOM.div(
       {
-        key: "saveOptions"
+        key: 'saveOptions',
       },
       buttons
     );
@@ -171,29 +167,29 @@ module.exports = class CardOptimizationEdit extends expose.Component {
   render() {
     return DOM.div(
       {
-        className: "card",
-        style: {}
+        className: 'card',
+        style: {},
       },
       DOM.div(
         {
-          className: "card-title"
+          className: 'card-title',
         },
         React.createElement(LeftHeaderButton, {
-          onPress: this.homeOrBack
+          onPress: this.homeOrBack,
         }),
         DOM.div(
           {
-            className: "card-title-text-with-arrow"
+            className: 'card-title-text-with-arrow',
           },
-          "Edit Optimization"
+          'Edit Optimization'
         ),
         React.createElement(RightHeaderButton, {
-          onPress: this.homeOrBack
+          onPress: this.homeOrBack,
         })
       ),
       DOM.div(
         {
-          className: "card-body"
+          className: 'card-body',
         },
         this.renderOptimizationEdit()
       )

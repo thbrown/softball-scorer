@@ -1,18 +1,13 @@
-"use strict";
+import React from 'react';
+import DOM from 'react-dom-factories';
+import expose from './expose';
+import state from 'state';
+import dialog from 'dialog';
+import LeftHeaderButton from 'component-left-header-button';
+import RightHeaderButton from 'component-right-header-button';
+import FloatingInput from 'component-floating-input';
 
-const DOM = require("react-dom-factories");
-const React = require("react");
-
-const css = require("css");
-const dialog = require("dialog");
-const expose = require("./expose");
-const state = require("state");
-
-const FloatingInput = require("component-floating-input");
-const LeftHeaderButton = require("component-left-header-button");
-const RightHeaderButton = require("component-right-header-button");
-
-module.exports = class CardTeamEdit extends expose.Component {
+export default class CardTeamEdit extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
@@ -23,7 +18,7 @@ module.exports = class CardTeamEdit extends expose.Component {
     let teamCopy = JSON.parse(JSON.stringify(this.team));
 
     let goBack = function() {
-      history.back();
+      window.history.back();
     };
 
     this.homeOrBack = function() {
@@ -60,7 +55,7 @@ module.exports = class CardTeamEdit extends expose.Component {
     };
 
     this.handleNameChange = function() {
-      let newValue = document.getElementById("teamName").value;
+      let newValue = document.getElementById('teamName').value;
       teamCopy.name = newValue;
     };
   }
@@ -71,20 +66,20 @@ module.exports = class CardTeamEdit extends expose.Component {
     buttons.push(
       DOM.div(
         {
-          key: "confirm",
-          className: "edit-button button confirm-button",
-          onClick: this.handleConfirmClick
+          key: 'confirm',
+          className: 'edit-button button confirm-button',
+          onClick: this.handleConfirmClick,
         },
         DOM.img({
-          className: "edit-button-icon",
-          src: "/server/assets/check.svg",
-          alt: "back"
+          className: 'edit-button-icon',
+          src: '/server/assets/check.svg',
+          alt: 'back',
         }),
         DOM.span(
           {
-            className: "edit-button-icon"
+            className: 'edit-button-icon',
           },
-          "Save"
+          'Save'
         )
       )
     );
@@ -92,19 +87,19 @@ module.exports = class CardTeamEdit extends expose.Component {
     buttons.push(
       DOM.div(
         {
-          key: "cancel",
-          className: "edit-button button cancel-button",
-          onClick: this.handleCancelClick
+          key: 'cancel',
+          className: 'edit-button button cancel-button',
+          onClick: this.handleCancelClick,
         },
         DOM.img({
-          className: "edit-button-icon",
-          src: "/server/assets/cancel.svg"
+          className: 'edit-button-icon',
+          src: '/server/assets/cancel.svg',
         }),
         DOM.span(
           {
-            className: "edit-button-icon"
+            className: 'edit-button-icon',
           },
-          "Cancel"
+          'Cancel'
         )
       )
     );
@@ -113,19 +108,19 @@ module.exports = class CardTeamEdit extends expose.Component {
       buttons.push(
         DOM.div(
           {
-            key: "delete",
-            className: "edit-button button cancel-button",
-            onClick: this.handleDeleteClick
+            key: 'delete',
+            className: 'edit-button button cancel-button',
+            onClick: this.handleDeleteClick,
           },
           DOM.img({
-            className: "edit-button-icon",
-            src: "/server/assets/delete.svg"
+            className: 'edit-button-icon',
+            src: '/server/assets/delete.svg',
           }),
           DOM.span(
             {
-              className: "edit-button-icon"
+              className: 'edit-button-icon',
             },
-            "Delete"
+            'Delete'
           )
         )
       );
@@ -133,7 +128,7 @@ module.exports = class CardTeamEdit extends expose.Component {
 
     return DOM.div(
       {
-        key: "saveOptions"
+        key: 'saveOptions',
       },
       buttons
     );
@@ -142,15 +137,15 @@ module.exports = class CardTeamEdit extends expose.Component {
   renderTeamEdit() {
     return DOM.div(
       {
-        className: "auth-input-container"
+        className: 'auth-input-container',
       },
       React.createElement(FloatingInput, {
-        key: "teamName",
-        id: "teamName",
-        maxLength: "50",
-        label: "Team Name",
+        key: 'teamName',
+        id: 'teamName',
+        maxLength: '50',
+        label: 'Team Name',
         onChange: this.handleNameChange,
-        defaultValue: this.team.name
+        defaultValue: this.team.name,
       }),
       this.renderSaveOptions()
     );
@@ -159,29 +154,29 @@ module.exports = class CardTeamEdit extends expose.Component {
   render() {
     return DOM.div(
       {
-        className: "card",
-        style: {}
+        className: 'card',
+        style: {},
       },
       DOM.div(
         {
-          className: "card-title"
+          className: 'card-title',
         },
         React.createElement(LeftHeaderButton, {
-          onPress: this.homeOrBack
+          onPress: this.homeOrBack,
         }),
         DOM.div(
           {
-            className: "prevent-overflow card-title-text-with-arrow"
+            className: 'prevent-overflow card-title-text-with-arrow',
           },
-          "Edit Team"
+          'Edit Team'
         ),
         React.createElement(RightHeaderButton, {
-          onPress: this.homeOrBack
+          onPress: this.homeOrBack,
         })
       ),
       DOM.div(
         {
-          className: "card-body"
+          className: 'card-body',
         },
         this.renderTeamEdit()
       )

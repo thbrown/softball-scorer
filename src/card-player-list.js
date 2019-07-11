@@ -1,40 +1,35 @@
-"use strict";
+import React from 'react';
+import DOM from 'react-dom-factories';
+import expose from './expose';
+import state from 'state';
+import LeftHeaderButton from 'component-left-header-button';
+import RightHeaderButton from 'component-right-header-button';
 
-const DOM = require("react-dom-factories");
-
-const css = require("css");
-const dialog = require("dialog");
-const expose = require("./expose");
-const state = require("state");
-
-const LeftHeaderButton = require("component-left-header-button");
-const RightHeaderButton = require("component-right-header-button");
-
-module.exports = class CardPlayerList extends expose.Component {
+export default class CardPlayerList extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
     this.state = {};
 
     this.handlePlayerClick = function(player) {
-      expose.set_state("main", {
-        page: `/players/${player.id}`
+      expose.set_state('main', {
+        page: `/players/${player.id}`,
       });
     };
 
     this.handleEditClick = function(player, ev) {
-      expose.set_state("main", {
+      expose.set_state('main', {
         page: `/players/${player.id}/edit`,
-        isNew: false
+        isNew: false,
       });
       ev.stopPropagation();
     };
 
     this.handleCreateClick = function() {
-      let player = state.addPlayer("", "M");
-      expose.set_state("main", {
+      let player = state.addPlayer('', 'M');
+      expose.set_state('main', {
         page: `/players/${player.id}/edit`,
-        isNew: true
+        isNew: true,
       });
     };
   }
@@ -47,30 +42,29 @@ module.exports = class CardPlayerList extends expose.Component {
         return DOM.div(
           {
             player_id: player.id,
-            key: "player" + player.id,
-            className: "list-item",
+            key: 'player' + player.id,
+            className: 'list-item',
             onClick: this.handlePlayerClick.bind(this, player),
             style: {
-              display: "flex",
-              justifyContent: "space-between"
-            }
+              display: 'flex',
+              justifyContent: 'space-between',
+            },
           },
           DOM.div(
             {
-              className: "prevent-overflow"
+              className: 'prevent-overflow',
             },
             player.name
           ),
           DOM.div(
             {
-              style: {}
+              style: {},
             },
             DOM.img({
-              src: "/server/assets/edit.svg",
-              alt: "edit",
-              className: "list-button",
+              src: '/server/assets/edit.svg',
+              alt: 'edit',
+              className: 'list-button',
               onClick: this.handleEditClick.bind(this, player),
-              alt: "edit"
             })
           )
         );
@@ -79,11 +73,11 @@ module.exports = class CardPlayerList extends expose.Component {
     elems.push(
       DOM.div(
         {
-          key: "newplayer",
-          className: "list-item add-list-item",
-          onClick: this.handleCreateClick
+          key: 'newplayer',
+          className: 'list-item add-list-item',
+          onClick: this.handleCreateClick,
         },
-        "+ Add New Player"
+        '+ Add New Player'
       )
     );
 
@@ -93,28 +87,28 @@ module.exports = class CardPlayerList extends expose.Component {
   render() {
     return DOM.div(
       {
-        className: "card",
-        style: {}
+        className: 'card',
+        style: {},
       },
       DOM.div(
         {
-          className: "card-title"
+          className: 'card-title',
         },
         React.createElement(LeftHeaderButton, {}),
         DOM.div(
           {
-            className: "prevent-overflow card-title-text-with-arrow"
+            className: 'prevent-overflow card-title-text-with-arrow',
           },
-          "Players"
+          'Players'
         ),
         React.createElement(RightHeaderButton, {})
       ),
       DOM.div(
         {
-          className: "card-body"
+          className: 'card-body',
         },
         this.renderPlayerList()
       )
     );
   }
-};
+}

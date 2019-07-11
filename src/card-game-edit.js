@@ -1,18 +1,16 @@
-"use strict";
+import React from 'react';
+import expose from './expose';
+import DOM from 'react-dom-factories';
+import dialog from 'dialog';
+import state from 'state';
 
-const React = require("react");
-const DOM = require("react-dom-factories");
+import LeftHeaderButton from 'component-left-header-button';
+import RightHeaderButton from 'component-right-header-button';
 
-const expose = require("./expose");
-const dialog = require("dialog");
-const state = require("state");
+import FloatingInput from 'component-floating-input';
+import FloatingPicklist from 'component-floating-picklist';
 
-const FloatingInput = require("component-floating-input");
-const FloatingPicklist = require("component-floating-picklist");
-const LeftHeaderButton = require("component-left-header-button");
-const RightHeaderButton = require("component-right-header-button");
-
-module.exports = class CardGameEdit extends expose.Component {
+export default class CardGameEdit extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
@@ -23,7 +21,7 @@ module.exports = class CardGameEdit extends expose.Component {
     let gameCopy = JSON.parse(JSON.stringify(this.game));
 
     let goBack = function() {
-      history.back();
+      window.history.back();
     };
 
     this.homeOrBack = function() {
@@ -61,12 +59,12 @@ module.exports = class CardGameEdit extends expose.Component {
     };
 
     this.handleOpponentNameChange = function() {
-      let newValue = document.getElementById("opponentName").value;
+      let newValue = document.getElementById('opponentName').value;
       gameCopy.opponent = newValue;
     };
 
     this.handleLineupTypeChange = function() {
-      let newValue = document.getElementById("lineupType").value;
+      let newValue = document.getElementById('lineupType').value;
       gameCopy.lineupType = parseInt(newValue);
     };
 
@@ -84,37 +82,37 @@ module.exports = class CardGameEdit extends expose.Component {
   renderGameEdit() {
     return DOM.div(
       {
-        className: "auth-input-container"
+        className: 'auth-input-container',
       },
       [
         React.createElement(FloatingInput, {
-          key: "opponentName",
-          id: "opponentName",
-          maxLength: "50",
-          label: "Opponent",
+          key: 'opponentName',
+          id: 'opponentName',
+          maxLength: '50',
+          label: 'Opponent',
           onChange: this.handleOpponentNameChange,
-          defaultValue: this.game.opponent
+          defaultValue: this.game.opponent,
         }),
         DOM.div(
           {
-            key: "helpParent",
-            className: "help-parent"
+            key: 'helpParent',
+            className: 'help-parent',
           },
           React.createElement(FloatingPicklist, {
-            id: "lineupType",
-            label: "Lineup Type",
+            id: 'lineupType',
+            label: 'Lineup Type',
             defaultValue: this.game.lineupType,
-            onChange: this.handleLineupTypeChange
+            onChange: this.handleLineupTypeChange,
           }),
           DOM.div(
-            { className: "help-container" },
+            { className: 'help-container' },
             DOM.img({
-              className: "help-icon",
-              src: "/server/assets/help.svg",
-              onClick: this.handleLineupTypeHelpClick
+              className: 'help-icon',
+              src: '/server/assets/help.svg',
+              onClick: this.handleLineupTypeHelpClick,
             })
           )
-        )
+        ),
       ],
       this.renderSaveOptions()
     );
@@ -126,20 +124,20 @@ module.exports = class CardGameEdit extends expose.Component {
     buttons.push(
       DOM.div(
         {
-          key: "confirm",
-          className: "edit-button button confirm-button",
-          onClick: this.handleConfirmClick
+          key: 'confirm',
+          className: 'edit-button button confirm-button',
+          onClick: this.handleConfirmClick,
         },
         DOM.img({
-          className: "edit-button-icon",
-          src: "/server/assets/check.svg",
-          alt: "back"
+          className: 'edit-button-icon',
+          src: '/server/assets/check.svg',
+          alt: 'back',
         }),
         DOM.span(
           {
-            className: "edit-button-icon"
+            className: 'edit-button-icon',
           },
-          "Save"
+          'Save'
         )
       )
     );
@@ -147,19 +145,19 @@ module.exports = class CardGameEdit extends expose.Component {
     buttons.push(
       DOM.div(
         {
-          key: "cancel",
-          className: "edit-button button cancel-button",
-          onClick: this.handleCancelClick
+          key: 'cancel',
+          className: 'edit-button button cancel-button',
+          onClick: this.handleCancelClick,
         },
         DOM.img({
-          className: "edit-button-icon",
-          src: "/server/assets/cancel.svg"
+          className: 'edit-button-icon',
+          src: '/server/assets/cancel.svg',
         }),
         DOM.span(
           {
-            className: "edit-button-icon"
+            className: 'edit-button-icon',
           },
-          "Cancel"
+          'Cancel'
         )
       )
     );
@@ -168,19 +166,19 @@ module.exports = class CardGameEdit extends expose.Component {
       buttons.push(
         DOM.div(
           {
-            key: "delete",
-            className: "edit-button button cancel-button",
-            onClick: this.handleDeleteClick
+            key: 'delete',
+            className: 'edit-button button cancel-button',
+            onClick: this.handleDeleteClick,
           },
           DOM.img({
-            className: "edit-button-icon",
-            src: "/server/assets/delete.svg"
+            className: 'edit-button-icon',
+            src: '/server/assets/delete.svg',
           }),
           DOM.span(
             {
-              className: "edit-button-icon"
+              className: 'edit-button-icon',
             },
-            "Delete"
+            'Delete'
           )
         )
       );
@@ -188,7 +186,7 @@ module.exports = class CardGameEdit extends expose.Component {
 
     return DOM.div(
       {
-        key: "saveOptions"
+        key: 'saveOptions',
       },
       buttons
     );
@@ -197,32 +195,32 @@ module.exports = class CardGameEdit extends expose.Component {
   render() {
     return DOM.div(
       {
-        className: "card",
-        style: {}
+        className: 'card',
+        style: {},
       },
       DOM.div(
         {
-          className: "card-title"
+          className: 'card-title',
         },
         React.createElement(LeftHeaderButton, {
-          onPress: this.homeOrBack
+          onPress: this.homeOrBack,
         }),
         DOM.div(
           {
-            className: "card-title-text-with-arrow"
+            className: 'card-title-text-with-arrow',
           },
-          "Edit Game"
+          'Edit Game'
         ),
         React.createElement(RightHeaderButton, {
-          onPress: this.homeOrBack
+          onPress: this.homeOrBack,
         })
       ),
       DOM.div(
         {
-          className: "card-body"
+          className: 'card-body',
         },
         this.renderGameEdit()
       )
     );
   }
-};
+}

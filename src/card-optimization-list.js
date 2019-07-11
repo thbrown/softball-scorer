@@ -1,31 +1,26 @@
-"use strict";
+import React from 'react';
+import DOM from 'react-dom-factories';
+import expose from './expose';
+import state from 'state';
+import LeftHeaderButton from 'component-left-header-button';
+import RightHeaderButton from 'component-right-header-button';
 
-const DOM = require("react-dom-factories");
-
-const css = require("css");
-const dialog = require("dialog");
-const expose = require("./expose");
-const state = require("state");
-
-const LeftHeaderButton = require("component-left-header-button");
-const RightHeaderButton = require("component-right-header-button");
-
-module.exports = class CardOptimizationList extends expose.Component {
+export default class CardOptimizationList extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
     this.state = {};
 
     this.handleOptimizationClick = function(optimization) {
-      expose.set_state("main", {
-        page: `/optimizations/${optimization.id}`
+      expose.set_state('main', {
+        page: `/optimizations/${optimization.id}`,
       });
     };
 
     this.handleEditClick = function(optimization, ev) {
-      expose.set_state("main", {
+      expose.set_state('main', {
         page: `/optimizations/${optimization.id}/edit`,
-        isNew: false
+        isNew: false,
       });
       ev.stopPropagation();
     };
@@ -35,9 +30,9 @@ module.exports = class CardOptimizationList extends expose.Component {
       let optimization = state.addOptimization(
         `${d.getMonth() + 1}/${d.getDate()} optimization`
       );
-      expose.set_state("main", {
+      expose.set_state('main', {
         page: `/optimizations/${optimization.id}/edit`,
-        isNew: true
+        isNew: true,
       });
     };
   }
@@ -48,30 +43,29 @@ module.exports = class CardOptimizationList extends expose.Component {
       return DOM.div(
         {
           optimization_id: optimization.id,
-          key: "optimization" + optimization.id,
-          className: "list-item",
+          key: 'optimization' + optimization.id,
+          className: 'list-item',
           onClick: this.handleOptimizationClick.bind(this, optimization),
           style: {
-            display: "flex",
-            justifyContent: "space-between"
-          }
+            display: 'flex',
+            justifyContent: 'space-between',
+          },
         },
         DOM.div(
           {
-            className: "prevent-overflow"
+            className: 'prevent-overflow',
           },
           optimization.name
         ),
         DOM.div(
           {
-            style: {}
+            style: {},
           },
           DOM.img({
-            src: "/server/assets/edit.svg",
-            alt: "edit",
-            className: "list-button",
+            src: '/server/assets/edit.svg',
+            className: 'list-button',
             onClick: this.handleEditClick.bind(this, optimization),
-            alt: "edit"
+            alt: 'edit',
           })
         )
       );
@@ -80,11 +74,11 @@ module.exports = class CardOptimizationList extends expose.Component {
     elems.push(
       DOM.div(
         {
-          key: "newoptimization",
-          className: "list-item add-list-item",
-          onClick: this.handleCreateClick
+          key: 'newoptimization',
+          className: 'list-item add-list-item',
+          onClick: this.handleCreateClick,
         },
-        "+ Add New Optimization"
+        '+ Add New Optimization'
       )
     );
 
@@ -94,25 +88,25 @@ module.exports = class CardOptimizationList extends expose.Component {
   render() {
     return DOM.div(
       {
-        className: "card",
-        style: {}
+        className: 'card',
+        style: {},
       },
       DOM.div(
         {
-          className: "card-title"
+          className: 'card-title',
         },
         React.createElement(LeftHeaderButton, {}),
         DOM.div(
           {
-            className: "prevent-overflow card-title-text-with-arrow"
+            className: 'prevent-overflow card-title-text-with-arrow',
           },
-          "Optimizations"
+          'Optimizations'
         ),
         React.createElement(RightHeaderButton, {})
       ),
       DOM.div(
         {
-          className: "card-body"
+          className: 'card-body',
         },
         this.renderOptimizationsList()
       )

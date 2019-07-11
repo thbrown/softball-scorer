@@ -1,20 +1,18 @@
-"use strict";
+import React from 'react';
+import DOM from 'react-dom-factories';
 
-const React = require("react");
-const DOM = require("react-dom-factories");
-
-module.exports = class InputDialog extends React.Component {
+export default class InputDialog extends React.Component {
   constructor(props) {
     super(props);
 
     this.handleInputChange = ev => {
       this.setState({
-        value: ev.target.value
+        value: ev.target.value,
       });
     };
 
     this.state = {
-      value: undefined
+      value: undefined,
     };
 
     this.handleConfirmClick = window.current_confirm = () => {
@@ -28,13 +26,13 @@ module.exports = class InputDialog extends React.Component {
   }
 
   componentDidMount() {
-    document.getElementById("InputDialog-input").focus();
+    document.getElementById('InputDialog-input').focus();
     if (this.props.startingValue) {
       document.getElementById(
-        "InputDialog-input"
+        'InputDialog-input'
       ).value = this.props.startingValue;
       this.setState({
-        value: this.props.startingValue
+        value: this.props.startingValue,
       });
     }
   }
@@ -55,60 +53,60 @@ module.exports = class InputDialog extends React.Component {
         {},
         DOM.div(
           {
-            className: "dialog"
+            className: 'dialog',
           },
           DOM.div(
             {
-              className: "dialog-text"
+              className: 'dialog-text',
             },
             this.getNodeOrDefaultText()
           ),
           DOM.textarea({
-            id: "InputDialog-input",
+            id: 'InputDialog-input',
             onChange: this.handleInputChange,
             placeholder: this.getNodeOrDefaultText(),
-            className: "dialog-input-box",
+            className: 'dialog-input-box',
             style: {
-              whiteSpace: this.props.whiteSpace ? "pre" : "",
-              height: this.props.node ? "360px" : "36px"
-            }
+              whiteSpace: this.props.whiteSpace ? 'pre' : '',
+              height: this.props.node ? '360px' : '36px',
+            },
           }),
           DOM.div(
             {
               style: {
-                display: "flex",
-                justifyContent: "flex-end"
-              }
+                display: 'flex',
+                justifyContent: 'flex-end',
+              },
             },
             DOM.div(
               {
-                className: "button confirm-button",
-                onClick: this.handleConfirmClick
+                className: 'button confirm-button',
+                onClick: this.handleConfirmClick,
               },
               DOM.span(
                 {
-                  className: "no-select"
+                  className: 'no-select',
                 },
-                "Submit"
+                'Submit'
               )
             ),
             DOM.div(
               {
-                className: "button cancel-button",
-                onClick: this.handleCancelClick
+                className: 'button cancel-button',
+                onClick: this.handleCancelClick,
               },
               DOM.span(
                 {
-                  className: "no-select"
+                  className: 'no-select',
                 },
-                "Cancel"
+                'Cancel'
               )
             )
           )
         )
       ),
       DOM.div({
-        className: "overlay"
+        className: 'overlay',
       })
     );
   }
