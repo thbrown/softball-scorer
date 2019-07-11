@@ -691,6 +691,12 @@ module.exports = class SoftballServer {
 
           let data = req.body;
 
+          // Convert client optimization id to the server one
+          optimizationId = idUtils.clientIdToServerId(
+            data.optimizationId,
+            accountId
+          );
+
           // TODO: Do some validation?
           // minimum players (this should be on the client side too)
           // must have id
@@ -698,11 +704,20 @@ module.exports = class SoftballServer {
           // some size restriction?
           // Make sure optimization exists!
 
-          // Convert client optimization id to the server one
-          optimizationId = idUtils.clientIdToServerId(
-            data.optimizationId,
-            accountId
+          // If the send email checkbox is checked but the email address has not been validated, complain
+          // This is also checked by the optimization server after the optimization completes
+          let account = await this.databaseCalls.getAccountById(accountId);
+          let optimization = await this.databaseCalls.getOptimizationDetails(
+            accountId,
+            optimizationId
           );
+          if (optimization.sendEmail && !account.verifiedEmail) {
+            res.status(400).send({
+              message:
+                "The 'send me an email...' checkbox was checked but the email address associated with this account has not been verified. Please verify your email or uncheck the box."
+            });
+            return;
+          }
 
           // Write execution data to db
           logger.log(accountId, "writing execution data");
@@ -796,7 +811,11 @@ module.exports = class SoftballServer {
           );
           if (inProgressCount !== 0) {
             logger.log(accountId, "Simulations running", inProgressCount);
-            res.status(404).send("There is already an optimization running");
+            res
+              .status(400)
+              .send(
+                "There is already an optimization running, pause it or wait for it to complete before starting a new one"
+              );
             return;
           }
 

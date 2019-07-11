@@ -808,13 +808,14 @@ Clips can be played from the player's plate appearance page
       progress = "-";
     }
 
+    let resultsStyle = {};
     if (
       this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
     ) {
-      return false;
+      resultsStyle = { display: "none" };
     }
     return (
-      <div>
+      <div style={resultsStyle}>
         <dt>
           <div
             aria-expanded="false"

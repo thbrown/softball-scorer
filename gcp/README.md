@@ -15,20 +15,26 @@ From the GCP web UI:
 2. Ssh into that instance
 3. Update the instance (`sudo apt-get update`)
 4. Install jdk (`sudo apt-get install -y default-jre-headless`)
-5. Download SoftballSim.jar
+5. Download SoftballSim.jar (`wget https://github.com/thbrown/softball-sim/releases/download/v0.3/softball-sim.jar`)
 6. Add startup script
 
 ```
 cd /etc/init.d
-sudo nano mystartup.sh
+sudo nano mystartup.sh # Paste in the script below (make substitutions for <your_home_directory>)
 sudo chmod +x /etc/init.d/mystartup.sh
 sudo ln -s /etc/init.d/mystartup.sh /etc/rc3.d/S99mystartup
+```
 
-// Startup Script:
+Startup Script:
+
+```
 #! /bin/bash
 REMOTE_IP=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/remote-ip -H "Metadata-Flavor: Google")
 OPTIMIZATION_ID=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/optimization-id -H "Metadata-Flavor: Google")
-java -jar softball-sim.jar NETWORK OPTIMIZATION_ID REMOTE_IP false
+cd '/home/<your_home_directory>'
+echo $OPTIMIZATION_ID
+echo $REMOTE_IP
+java -jar /home/<your_home_directory>/softball-sim.jar NETWORK $REMOTE_IP $OPTIMIZATION_ID true
 ```
 
 7. Shutdown the instance.
@@ -59,11 +65,15 @@ Add/Modify the compute node to/in the src-srv config.js. Make sure you are mofif
     type: "gcp",
     params: {
       project: "some-project-123456",
-      zones: ["us-central1-b", "us-central1-a", "us-central1-c"],
+      zones: ["us-central1-b", "us-central1-c", "us-central1-a", "us-central1-f"],
       snapshotName: "optimization-base"
     }
   }
 ...
 ```
 
-Note: zones are listed in priority order
+Note: zones are listed in priority order, put the zones closest to your app server location first
+
+### Other notes
+
+Startup script logs can be seen using `cat /var/log/daemon.log`

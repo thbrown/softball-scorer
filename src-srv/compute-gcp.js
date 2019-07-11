@@ -208,20 +208,22 @@ module.exports = class ComputeGCP {
       await this.createInstance(
         accountId,
         instanceName,
-        1, // CPU count
-        1024, // Memory MB
+        4, // CPU count
+        4096, // Memory MB
         ip.address(),
         optimizationId
       );
 
+      // Don't even bother to wait for the status to be ready, assume that the instance will connect with the optimization server once it starts up
       // TODO: There is a bug here for really short optimizations that complete their whole cycle and transition the instance to TERMINATED before
-      // we can detect the RUNNING status
+      /*
       await this.waitForInstanceToBeInStatus(
         accountId,
         instanceName,
         "RUNNING"
       );
       logger.log(accountId, "Instance is in state RUNNING");
+      */
       return Promise.resolve();
     } catch (error) {
       try {
