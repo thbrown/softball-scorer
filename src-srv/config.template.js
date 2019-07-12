@@ -5,47 +5,48 @@ module.exports = {
   app: {
     port: undefined,
     optimizationSweeperPeriod: undefined,
-    optimizationLockTTL: undefined
+    optimizationLockTTL: undefined,
   },
 
   database: {
     host: null,
     port: null,
     username: null,
-    password: null
+    password: null,
+    database: null,
   },
 
   cache: {
     host: null,
     port: null,
-    password: null
+    password: null,
   },
 
   session: {
-    secretkey: null
+    secretkey: null,
   },
 
   recapcha: {
-    secretkey: null
+    secretkey: null,
   },
 
   logging: {
     toFile: false,
-    colorOff: false
+    colorOff: false,
   },
 
   email: {
     apiKey: undefined,
     domain: undefined,
-    restrictEmailsToDomain: undefined
+    restrictEmailsToDomain: undefined,
   },
 
   optimization: {
-    port: undefined
+    port: undefined,
   },
 
   compute: {
-    mode: "local",
-    params: null
-  }
+    mode: 'local',
+    params: null,
+  },
 };

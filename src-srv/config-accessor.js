@@ -1,22 +1,22 @@
-const DatabaseCallsPostgres = require("./database-calls-postgres");
-const DatabaseCallsStatic = require("./database-calls-static");
-const CacheCallsRedis = require("./cache-calls-redis");
-const CacheCallsLocal = require("./cache-calls-local");
-const ComputeGCP = require("./compute-gcp");
-const ComputeLocal = require("./compute-local");
-const ComputeNone = require("./compute-none");
-const EmailLogOnly = require("./email-log-only");
-const EmailMailgun = require("./email-mailgun");
+const DatabaseCallsPostgres = require('./database-calls-postgres');
+const DatabaseCallsStatic = require('./database-calls-static');
+const CacheCallsRedis = require('./cache-calls-redis');
+const CacheCallsLocal = require('./cache-calls-local');
+const ComputeGCP = require('./compute-gcp');
+const ComputeLocal = require('./compute-local');
+const ComputeNone = require('./compute-none');
+const EmailLogOnly = require('./email-log-only');
+const EmailMailgun = require('./email-mailgun');
 
-const logger = require("./logger");
+const logger = require('./logger');
 
-const crypto = require("crypto");
+const crypto = require('crypto');
 
 let config = null;
 try {
-  config = require("./config.js");
+  config = require('./config.js');
 } catch (e) {
-  console.log("Error: No ./src-srv/config.js file is present.");
+  console.log('Error: No ./src-srv/config.js file is present.');
   process.exit(1);
 }
 
@@ -37,7 +37,8 @@ module.exports.getDatabaseService = function() {
     host: pghost,
     port: pgport,
     username: pgusername,
-    password: pgpassword
+    password: pgpassword,
+    database: pgdatabase,
   } = config.database || {};
   if (pghost && pgport && pgusername && pgpassword) {
     database = new DatabaseCallsPostgres(
@@ -45,16 +46,17 @@ module.exports.getDatabaseService = function() {
       pgport,
       pgusername,
       pgpassword,
+      pgdatabase,
       err => {
         if (err) {
-          logger.log("sys", "Encountered an error connecting to db", err);
+          logger.log('sys', 'Encountered an error connecting to db', err);
           process.exit(1);
         }
-        logger.log("sys", "Connected to db.");
+        logger.log('sys', 'Connected to db.');
       }
     );
   } else {
-    logger.warn("sys", "Warning: running without database connection");
+    logger.warn('sys', 'Warning: running without database connection');
     database = new DatabaseCallsStatic();
   }
   return database;
@@ -69,7 +71,7 @@ module.exports.getCacheService = function() {
   if (redisHost && redisPort && redisPassword) {
     cache = new CacheCallsRedis(redisHost, redisPort, redisPassword);
   } else {
-    logger.warn(null, "Warning: running with local in-memory cache");
+    logger.warn(null, 'Warning: running with local in-memory cache');
     cache = new CacheCallsLocal();
   }
   return cache;
@@ -95,7 +97,7 @@ module.exports.getEmailService = function() {
       email = new EmailMailgun(
         config.email.apiKey,
         config.email.domain,
-        "softball.app"
+        'softball.app'
       );
     }
   } else {
@@ -111,13 +113,13 @@ module.exports.getComputeService = function() {
   }
 
   const computeMode = config.compute ? config.compute.mode : null;
-  if (computeMode === "local" || !computeMode) {
-    logger.warn(null, "Warning: running with local compute");
+  if (computeMode === 'local' || !computeMode) {
+    logger.warn(null, 'Warning: running with local compute');
     compute = new ComputeLocal();
-  } else if (computeMode === "none") {
-    logger.warn(null, "Warning: running with noop compute");
+  } else if (computeMode === 'none') {
+    logger.warn(null, 'Warning: running with noop compute');
     compute = new ComputeNone();
-  } else if (computeMode === "gcp") {
+  } else if (computeMode === 'gcp') {
     const gcpParams = config.compute.params;
     compute = new ComputeGCP(gcpParams);
   } else {
@@ -143,7 +145,7 @@ module.exports.getRecapchaSecretKey = function() {
 module.exports.getSessionSecretKey = function() {
   return (
     (config.session && config.session.secretkey) ||
-    crypto.randomBytes(20).toString("hex")
+    crypto.randomBytes(20).toString('hex')
   );
 };
 
