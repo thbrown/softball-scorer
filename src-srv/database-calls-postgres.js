@@ -1,9 +1,9 @@
-const { Pool } = require("pg");
+const { Pool } = require('pg');
 
-const HandledError = require("./handled-error.js");
-const idUtils = require("../id-utils.js");
-const logger = require("./logger.js");
-const sqlGen = require("./sql-gen.js");
+const HandledError = require('./handled-error.js');
+const idUtils = require('../id-utils.js');
+const logger = require('./logger.js');
+const sqlGen = require('./sql-gen.js');
 
 /**
  * This implementation uses postgres db as the persistance layer. Connection info and credentials can be supplied in the server side config.
@@ -13,19 +13,19 @@ const sqlGen = require("./sql-gen.js");
  */
 module.exports = class DatabaseCalls {
   constructor(url, port, user, password, database, cb) {
-    logger.log("sys", "Connecting to pg", url);
+    logger.log('sys', 'Connecting to pg', url);
     this.pool = new Pool({
       user: user,
       host: url,
-      database: database || "Softball",
+      database: database || 'Softball',
       password: password,
-      port: port
+      port: port,
     });
 
     // We don't ever anticipate storing numeric values larger than the javascript maximum safe integer size
     // (9,007,199,254,740,991) so we'll instruct pg to return all bigints from the database as javascript numbers.
     // See https://github.com/brianc/node-pg-types
-    var types = require("pg").types;
+    var types = require('pg').types;
     types.setTypeParser(20, function(val) {
       return parseInt(val);
     });
@@ -34,28 +34,28 @@ module.exports = class DatabaseCalls {
     this.pool.connect(function(err) {
       if (err) {
         logger.error(
-          "sys",
-          "There was a problem getting the db connection:",
+          'sys',
+          'There was a problem getting the db connection:',
           err
         );
         if (cb) {
           cb(err);
         }
       } else {
-        logger.log("sys", "Postgres Connected");
+        logger.log('sys', 'Postgres Connected');
         if (cb) {
           cb(null);
         }
       }
     });
 
-    this.pool.on("error", error => {
+    this.pool.on('error', error => {
       logger.error(null, `Postgres error: ${error}`);
     });
   }
 
   disconnect() {
-    logger.log(null, "disconnecting from posrgres");
+    logger.log(null, 'disconnecting from posrgres');
     return new Promise(
       function(resolve, reject) {
         this.pool
@@ -71,7 +71,7 @@ module.exports = class DatabaseCalls {
     return new Promise(function(resolve, reject) {
       self.pool.connect(function(err, client, done) {
         if (err) {
-          logger.error(null, "There was a problem getting db connection:");
+          logger.error(null, 'There was a problem getting db connection:');
           logger.error(err);
           reject(err);
         }
@@ -94,7 +94,7 @@ module.exports = class DatabaseCalls {
     return new Promise(function(resolve, reject) {
       self.pool.connect(function(err, client, done) {
         if (err) {
-          logger.error(null, "There was a problem getting db connection:");
+          logger.error(null, 'There was a problem getting db connection:');
           logger.error(null, err);
           process.exit(1);
         }
@@ -231,26 +231,26 @@ module.exports = class DatabaseCalls {
 
           state.optimizations[i].customData = optimizations[i].custom_data
             ? JSON.stringify(optimizations[i].custom_data)
-            : "{}";
+            : '{}';
           state.optimizations[i].overrideData = optimizations[i].override_data
             ? JSON.stringify(optimizations[i].override_data)
-            : "{}";
+            : '{}';
           state.optimizations[i].status = optimizations[i].status;
           state.optimizations[i].resultData = optimizations[i].result_data
             ? JSON.stringify(optimizations[i].result_data)
-            : "{}";
+            : '{}';
           state.optimizations[i].statusMessage =
             optimizations[i].status_message;
           state.optimizations[i].sendEmail = optimizations[i].send_email;
           state.optimizations[i].teamList = optimizations[i].team_list
             ? JSON.stringify(optimizations[i].team_list)
-            : "[]";
+            : '[]';
           state.optimizations[i].gameList = optimizations[i].game_list
             ? JSON.stringify(optimizations[i].game_list)
-            : "[]";
+            : '[]';
           state.optimizations[i].playerList = optimizations[i].player_list
             ? JSON.stringify(optimizations[i].player_list)
-            : "[]";
+            : '[]';
           state.optimizations[i].lineupType = optimizations[i].lineup_type;
         }
 
@@ -289,7 +289,7 @@ module.exports = class DatabaseCalls {
             newGame.lineupType = plateAppearance.lineup_type;
             if (plateAppearance.lineup) {
               newGame.lineup = plateAppearance.lineup
-                .split(",")
+                .split(',')
                 .map(v => idUtils.serverIdToClientId(v.trim()));
             } else {
               newGame.lineup = [];
@@ -313,7 +313,7 @@ module.exports = class DatabaseCalls {
             newPlateAppearance.result = plateAppearance.result;
             newPlateAppearance.location = {
               x: plateAppearance.x,
-              y: plateAppearance.y
+              y: plateAppearance.y,
             };
             let team = teams.find(
               element =>
@@ -346,7 +346,7 @@ module.exports = class DatabaseCalls {
 
   async patchState(patch, accountId) {
     if (accountId === undefined) {
-      throw new HandledError(403, "Please sign in first");
+      throw new HandledError(403, 'Please sign in first');
     }
 
     // Generate sql based off the patch
@@ -355,8 +355,8 @@ module.exports = class DatabaseCalls {
     // Run the sql in a single transaction
     const client = await this.pool.connect();
     try {
-      await client.query("BEGIN");
-      await client.query("SET CONSTRAINTS ALL DEFERRED");
+      await client.query('BEGIN');
+      await client.query('SET CONSTRAINTS ALL DEFERRED');
 
       for (let i = 0; i < sqlToRun.length; i++) {
         // Check field length before saving
@@ -380,9 +380,9 @@ module.exports = class DatabaseCalls {
             } else if (sqlToRun[i].values[j].length > 50) {
               throw new HandledError(
                 400,
-                "Field was larger than 50 characters " +
+                'Field was larger than 50 characters ' +
                   sqlToRun[i].values[j] +
-                  " -- " +
+                  ' -- ' +
                   JSON.stringify(sqlToRun[i])
               );
             }
@@ -393,9 +393,9 @@ module.exports = class DatabaseCalls {
         logger.log(accountId, `Executing:`, sqlToRun[i]);
         await client.query(sqlToRun[i].query, sqlToRun[i].values);
       }
-      await client.query("COMMIT");
+      await client.query('COMMIT');
     } catch (e) {
-      await client.query("ROLLBACK");
+      await client.query('ROLLBACK');
       throw e;
     } finally {
       client.release();
@@ -415,7 +415,7 @@ module.exports = class DatabaseCalls {
   }
 
   async getAccountFromTokenHash(passwordTokenHash) {
-    logger.log(null, "Seraching for", passwordTokenHash.trim());
+    logger.log(null, 'Seraching for', passwordTokenHash.trim());
     let results = await this.parameterizedQueryPromise(
       `
         SELECT account_id, email, password_hash, verified_email
@@ -428,7 +428,7 @@ module.exports = class DatabaseCalls {
     if (results.rowCount > 1) {
       throw new HandledError(
         500,
-        `A strange number of accounts were returned: ${passwordTokenHash} ${result}`
+        `A strange number of accounts were returned: hash=${passwordTokenHash} results=${results}`
       );
     } else if (results.rowCount === 1) {
       return results.rows[0];
@@ -450,7 +450,7 @@ module.exports = class DatabaseCalls {
 
   async getAccountFromEmail(email) {
     let result = await this.parameterizedQueryPromise(
-      "SELECT account_id, password_hash FROM account WHERE email = $1",
+      'SELECT account_id, password_hash FROM account WHERE email = $1',
       [email]
     );
     if (result.rowCount === 1) {
@@ -458,15 +458,37 @@ module.exports = class DatabaseCalls {
     } else if (result.rowCount !== 0) {
       throw new HandledError(
         500,
-        `A strange number of accounts were returned: ${email} ${result}`
+        `A strange number of accounts were returned: email=${email} result=${result}`
       );
     }
     return undefined;
   }
 
+  async getAccountFromStatsPageId(statsPageId) {
+    logger.log(null, 'Seraching statsIds for', statsPageId);
+    let results = await this.parameterizedQueryPromise(
+      `
+        SELECT account_id, email
+        FROM account 
+        WHERE stat_page_id = $1
+      `,
+      [statsPageId.trim()]
+    );
+    if (results.rowCount > 1) {
+      throw new HandledError(
+        500,
+        `A strange number of accounts were returned: statsid=${statsPageId} results=${results}`
+      );
+    } else if (results.rowCount === 1) {
+      return results.rows[0];
+    } else {
+      return undefined;
+    }
+  }
+
   async getAccountById(id) {
     let result = await this.parameterizedQueryPromise(
-      "SELECT email, verified_email FROM account WHERE account_id = $1",
+      'SELECT email, verified_email FROM account WHERE account_id = $1',
       [id]
     );
     if (result.rowCount === 1) {
@@ -478,7 +500,7 @@ module.exports = class DatabaseCalls {
     } else if (result.rowCount !== 0) {
       throw new HandledError(
         500,
-        `A strange number of accounts were returned: ${email} ${result}`
+        `A strange number of accounts were returned: id=${id} result=${result}`
       );
     }
     return undefined;
@@ -507,7 +529,7 @@ module.exports = class DatabaseCalls {
   }
 
   async deleteAccount(accountId) {
-    logger.log(accountId, "deleting");
+    logger.log(accountId, 'deleting');
     await this.parameterizedQueryPromise(
       `
         DELETE FROM account 
@@ -519,7 +541,7 @@ module.exports = class DatabaseCalls {
 
   // TODO: tie the states that count as 'in progress' to the enum in state.java so we don't have two sources of truth
   async getNumberOfOptimizationsInProgress(accountId) {
-    logger.log(accountId, "getting optimization in progress count");
+    logger.log(accountId, 'getting optimization in progress count');
     let result = await this.parameterizedQueryPromise(
       `
       SELECT COUNT(*)
@@ -547,7 +569,7 @@ module.exports = class DatabaseCalls {
   ) {
     logger.log(
       accountId,
-      "changing optimization status to ",
+      'changing optimization status to ',
       newStatus,
       optionalMessage
     );
@@ -574,7 +596,7 @@ module.exports = class DatabaseCalls {
   }
 
   async setOptimizationResultData(accountId, optimizationId, newResults) {
-    logger.log(accountId, "setting optimization results");
+    logger.log(accountId, 'setting optimization results');
     await this.parameterizedQueryPromise(
       `
         UPDATE optimization
@@ -586,7 +608,7 @@ module.exports = class DatabaseCalls {
   }
 
   async getOptimizationResultData(accountId, optimizationId) {
-    logger.log(accountId, "getting optimization results data", optimizationId);
+    logger.log(accountId, 'getting optimization results data', optimizationId);
     let result = await this.parameterizedQueryPromise(
       `
         SELECT result_data
@@ -607,7 +629,7 @@ module.exports = class DatabaseCalls {
   }
 
   async getOptimizationDetails(accountId, optimizationId) {
-    logger.log(accountId, "getting optimization results data", optimizationId);
+    logger.log(accountId, 'getting optimization results data', optimizationId);
     let result = await this.parameterizedQueryPromise(
       `
         SELECT name, send_email
@@ -638,7 +660,7 @@ module.exports = class DatabaseCalls {
   ) {
     logger.log(
       accountId,
-      "setting optimization execution data ",
+      'setting optimization execution data ',
       optimizationId
     );
     await this.parameterizedQueryPromise(
@@ -652,7 +674,7 @@ module.exports = class DatabaseCalls {
   }
 
   async getOptimizationExecutionData(accountId, optimizationId) {
-    logger.log(accountId, "getting optimization execution data");
+    logger.log(accountId, 'getting optimization execution data');
     let result = await this.parameterizedQueryPromise(
       `
         SELECT execution_data

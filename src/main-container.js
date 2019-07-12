@@ -7,7 +7,7 @@ import network from 'network';
 import noSleepImport from './lib/nosleep.js';
 import state from 'state';
 import CardAuth from 'card-auth';
-import CardError from 'card-error';
+import CardNotFound from 'card-not-found';
 import CardGame from 'card-game';
 import CardGameEdit from 'card-game-edit';
 import CardImport from 'card-import';
@@ -486,13 +486,13 @@ export default class MainContainer extends expose.Component {
           player: player,
         });
       } else {
-        return React.createElement(CardError, {
+        return React.createElement(CardNotFound, {
           message: 'Invalid page selected ' + url,
         });
       }
     } catch (err) {
       console.log(err);
-      return React.createElement(CardError, {
+      return React.createElement(CardNotFound, {
         message:
           'This object either does not exist, has been deleted, or belongs to another account',
       });
@@ -507,4 +507,4 @@ export default class MainContainer extends expose.Component {
       this.renderCard(this.state.page)
     );
   }
-};
+}
