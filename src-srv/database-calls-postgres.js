@@ -12,12 +12,12 @@ const sqlGen = require("./sql-gen.js");
  * If the coutner fields ever overflows, it's not a big deal (unless sombody is inserting 2 billion + records in the same timestamp).
  */
 module.exports = class DatabaseCalls {
-  constructor(url, port, user, password, cb) {
+  constructor(url, port, user, password, database, cb) {
     logger.log("sys", "Connecting to pg", url);
     this.pool = new Pool({
       user: user,
       host: url,
-      database: "Softball",
+      database: database || "Softball",
       password: password,
       port: port
     });

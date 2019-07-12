@@ -52,6 +52,15 @@ let syncTimer = null;
 
 const state = exp;
 
+exp.syncStateToSyncStateName = function(syncState) {
+  for (let i in SYNC_STATUS_ENUM) {
+    if (syncState === SYNC_STATUS_ENUM[i]) {
+      return i;
+    }
+  }
+  return '';
+};
+
 exp.getServerUrl = function(path) {
   return window.location.href + path;
 };
@@ -215,7 +224,7 @@ exp.sync = async function(fullSync) {
       return await exp.sync(true);
     } else {
       // Other 500s, 400s are probably bugs :(, tell the user something is wrong
-      console.log('Probable bug encountered2');
+      console.log('Probable bug encountered');
       alert(
         'Auto sync failed with status ' +
           err.message +
@@ -1093,7 +1102,7 @@ exp.getAddToHomescreenPrompt = function() {
 exp.scheduleSync = function(time = SYNC_DELAY_MS) {
   let currentState = exp.getSyncState();
   if (currentState === SYNC_STATUS_ENUM.ERROR) {
-    console.log('Sync skipped, in error state');
+    console.warn('[SYNC] Sync skipped, in error state');
     return;
   } else if (
     currentState === SYNC_STATUS_ENUM.IN_PROGRESS ||
@@ -1104,7 +1113,7 @@ exp.scheduleSync = function(time = SYNC_DELAY_MS) {
     setSyncState(SYNC_STATUS_ENUM.PENDING);
   }
 
-  console.log('sync scheduled');
+  console.log('[SYNC] Sync scheduled');
   clearTimeout(syncTimer);
 
   syncTimer = setTimeout(function() {
@@ -1112,7 +1121,7 @@ exp.scheduleSync = function(time = SYNC_DELAY_MS) {
       exp.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS ||
       currentState === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
     ) {
-      console.log('There is already a sync in progress');
+      console.log('[SYNC] There is already a sync in progress');
       exp.scheduleSync(SYNC_DELAY_MS);
       return;
     }
@@ -1123,7 +1132,11 @@ exp.scheduleSync = function(time = SYNC_DELAY_MS) {
 let setSyncState = function(newState, skipRender) {
   // Skip unnecessary renders
   if (syncState !== newState) {
-    console.log('Sync state updated from ', syncState, 'to', newState);
+    const origStateName = exp.syncStateToSyncStateName(syncState);
+    const newStateName = exp.syncStateToSyncStateName(newState);
+    console.log(
+      `[SYNC] Sync state updated from ${origStateName} (${syncState}) to ${newStateName} (${newState})`
+    );
     syncState = newState;
     if (!skipRender) {
       reRender();
