@@ -1,26 +1,25 @@
 /*eslint no-process-exit:*/
-"use strict";
 
-const http = require("http");
-const path = require("path");
-const express = require("express");
-const helmet = require("helmet");
-const passport = require("passport");
-const passportSession = require("express-session");
-const LocalStrategy = require("passport-local").Strategy;
-const bodyParser = require("body-parser");
-const favicon = require("serve-favicon");
-const bcrypt = require("bcrypt");
-const crypto = require("crypto");
-const hasher = require("object-hash");
-const got = require("got");
+const http = require('http');
+const path = require('path');
+const express = require('express');
+const helmet = require('helmet');
+const passport = require('passport');
+const passportSession = require('express-session');
+const LocalStrategy = require('passport-local').Strategy;
+const bodyParser = require('body-parser');
+const favicon = require('serve-favicon');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const hasher = require('object-hash');
+const got = require('got');
 
-const configAccessor = require("./config-accessor");
-const HandledError = require("./handled-error");
-const idUtils = require("../id-utils");
-const logger = require("./logger");
-const objectMerge = require("../object-merge");
-const OptimizationServer = require("./optimization-server");
+const configAccessor = require('./config-accessor');
+const HandledError = require('./handled-error');
+const idUtils = require('../id-utils');
+const logger = require('./logger');
+const objectMerge = require('../object-merge');
+const OptimizationServer = require('./optimization-server');
 
 module.exports = class SoftballServer {
   constructor(appPort, optimizationPort, databaseCalls, cacheCalls, compute) {
@@ -32,7 +31,7 @@ module.exports = class SoftballServer {
   }
 
   start() {
-    logger.log(null, "Starting");
+    logger.log(null, 'Starting');
 
     // Start the optimization server
     new OptimizationServer(this.databaseCalls, this.compute);
@@ -42,11 +41,11 @@ module.exports = class SoftballServer {
     passport.use(
       new LocalStrategy(
         {
-          usernameField: "email",
-          passwordField: "password"
+          usernameField: 'email',
+          passwordField: 'password',
         },
         async function(email, password, cb) {
-          logger.log(null, "Checking credentials...", email);
+          logger.log(null, 'Checking credentials...', email);
 
           try {
             let accountInfo = await self.databaseCalls.getAccountFromEmail(
@@ -64,13 +63,13 @@ module.exports = class SoftballServer {
             if (isValid) {
               let sessionInfo = {
                 accountId: accountInfo.account_id,
-                email: email
+                email: email,
               };
-              logger.log(accountInfo.account_id, "Login accepted");
+              logger.log(accountInfo.account_id, 'Login accepted');
               cb(null, sessionInfo);
             } else {
               cb(null, false);
-              logger.log(null, "Login rejected", email);
+              logger.log(null, 'Login rejected', email);
             }
           } catch (error) {
             logger.log(null, error, email);
@@ -94,7 +93,7 @@ module.exports = class SoftballServer {
     // Middleware
     app.use(
       helmet({
-        hsts: false // Don't require HTTP Strict Transport Security (https) locally, nginx will set this header to true in production
+        hsts: false, // Don't require HTTP Strict Transport Security (https) locally, nginx will set this header to true in production
       })
     );
     app.use(
@@ -105,83 +104,101 @@ module.exports = class SoftballServer {
           styleSrc: [
             // TODO: use nonce to avoid recapcha styling errors: https://developers.google.com/recaptcha/docs/faq
             "'self'",
-            "https://fonts.googleapis.com",
+            'https://fonts.googleapis.com',
             //"'sha256-eeE4BsGQZBvwOOvyAnxzD6PBzhU/5IfP4NdPMywc3VE='", // react draggable components
             //"'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='", // inline style (used by many react/babel components)
-            "'unsafe-inline'" // I give up on this, too many react cmps use inline styles (react-select spicifically)
+            "'unsafe-inline'", // I give up on this, too many react cmps use inline styles (react-select spicifically)
           ],
-          fontSrc: ["'self'", "https://fonts.gstatic.com"],
+          fontSrc: ["'self'", 'https://fonts.gstatic.com'],
           scriptSrc: [
             "'self'",
-            "https://www.google.com/recaptcha/api.js",
-            "https://www.gstatic.com/recaptcha/",
-            "https://www.google-analytics.com", // JSONP issues here? https://csp-evaluator.withgoogle.com/
+            'https://www.google.com/recaptcha/api.js',
+            'https://www.gstatic.com/recaptcha/',
+            'https://www.google-analytics.com', // JSONP issues here? https://csp-evaluator.withgoogle.com/
             "'sha256-OHGELEzahSNrwMFzyUN05OBpNq1AOUmN5hPgB+af9p0='", // Google Analytics inline
-            "'unsafe-eval'" // TODO: the stats page and some other things complain about missing this but it still works.
+            "'unsafe-eval'", // TODO: the stats page and some other things complain about missing this but it still works.
           ],
           connectSrc: [
             "'self'",
-            "https://fonts.googleapis.com/css",
-            "https://fonts.gstatic.com",
-            "https://www.gstatic.com/recaptcha/",
-            "https://www.google.com/recaptcha/api.js",
-            "https://www.google-analytics.com"
+            'https://fonts.googleapis.com/css',
+            'https://fonts.gstatic.com',
+            'https://www.gstatic.com/recaptcha/',
+            'https://www.google.com/recaptcha/api.js',
+            'https://www.google-analytics.com',
           ],
           frameSrc: [
-            "https://www.google.com/", // ReCapcha
-            "https://thbrown.github.io/" // YouTube Proxy
+            'https://www.google.com/', // ReCapcha
+            'https://thbrown.github.io/', // YouTube Proxy
           ],
-          mediaSrc: ["data:"], // This is for the noSleep lib, TODO: there might be a way to tighten this up
+          mediaSrc: ['data:'], // This is for the noSleep lib, TODO: there might be a way to tighten this up
           imgSrc: [
             "'self'",
-            "https://www.google-analytics.com",
-            "https://stats.g.doubleclick.net"
+            'https://www.google-analytics.com',
+            'https://stats.g.doubleclick.net',
           ],
           objectSrc: ["'none'"],
-          reportUri: "/server/report-violation"
+          reportUri: '/server/report-violation',
         },
-        browserSniff: false
+        browserSniff: false,
       })
     );
     //app.use(helmet.referrerPolicy({ policy: "same-origin" })); // This breaks embeded youtube on ios safari
 
-    app.use(favicon(__dirname + "/../assets/fav-icon.png"));
+    app.use(favicon(__dirname + '/../assets/fav-icon.png'));
     app.use(
-      "/server/build",
-      express.static(path.join(__dirname + "/../build").normalize())
+      '/server/build',
+      express.static(path.join(__dirname + '/../build').normalize())
     );
     app.use(
-      "/server/assets",
-      express.static(path.join(__dirname + "/../assets").normalize())
+      '/server/assets',
+      express.static(path.join(__dirname + '/../assets').normalize())
     );
     // Service worker must be served at project root to intercept all fetches
     app.use(
-      "/service-worker",
+      '/service-worker',
       express.static(
-        path.join(__dirname + "/../src/workers/service-worker.js").normalize()
+        path.join(__dirname + '/../src/workers/service-worker.js').normalize()
       )
     );
     // Robots.txt is served from the root by convention
     app.use(
-      "/robots.txt",
-      express.static(path.join(__dirname + "/../robots.txt").normalize())
+      '/robots.txt',
+      express.static(path.join(__dirname + '/../robots.txt').normalize())
     );
     app.use(
-      "/server/manifest",
-      express.static(path.join(__dirname + "/../manifest.json").normalize())
+      '/server/manifest',
+      express.static(path.join(__dirname + '/../manifest.json').normalize())
     );
     app.use(
-      "/server/simulation-worker",
+      '/server/simulation-worker',
       express.static(
         path
-          .join(__dirname + "/../src/workers/simulation-worker.js")
+          .join(__dirname + '/../src/workers/simulation-worker.js')
           .normalize()
       )
     );
+    app.use('/stats/:id', async (req, res, next) => {
+      const { id: statsPageId } = req.params;
+      const account = await this.databaseCalls.getAccountFromStatsPageId(
+        statsPageId
+      );
+      if (account) {
+        logger.log(null, 'GOT AN ID', statsPageId, account);
+        res.send(
+          'This should be a stats page for ' +
+            account.account_id +
+            ' ' +
+            account.email
+        );
+      } else {
+        logger.warn(null, 'No account found with stat_page_id=' + statsPageId);
+        next();
+      }
+    });
     app.use(
       bodyParser.json({
-        limit: "3mb",
-        type: ["json", "application/json", "application/csp-report"]
+        limit: '3mb',
+        type: ['json', 'application/json', 'application/csp-report'],
       })
     );
     app.use(
@@ -190,13 +207,13 @@ module.exports = class SoftballServer {
         secret: configAccessor.getSessionSecretKey(),
         resave: false,
         saveUninitialized: false,
-        name: "softball.sid",
+        name: 'softball.sid',
         cookie: {
           httpOnly: true,
           expires: new Date(253402300000000),
-          sameSite: "lax"
+          sameSite: 'lax',
           // Secure header is set by nginx reverse proxy
-        }
+        },
       })
     );
     app.use(passport.initialize());
@@ -205,13 +222,13 @@ module.exports = class SoftballServer {
     // Routes
 
     app.get(
-      "/server/state",
+      '/server/state',
       wrapForErrorProcessing(async (req, res) => {
         if (!req.isAuthenticated()) {
           res.status(403).send();
           return;
         }
-        let accountId = extractSessionInfo(req, "accountId");
+        let accountId = extractSessionInfo(req, 'accountId');
         await lockAccount(accountId);
         let state;
         try {
@@ -224,13 +241,13 @@ module.exports = class SoftballServer {
     );
 
     app.get(
-      "/server/state-pretty",
+      '/server/state-pretty',
       wrapForErrorProcessing(async (req, res) => {
         if (!req.isAuthenticated()) {
           res.status(403).send();
           return;
         }
-        let accountId = extractSessionInfo(req, "accountId");
+        let accountId = extractSessionInfo(req, 'accountId');
         await lockAccount(accountId);
         let state;
         try {
@@ -243,16 +260,16 @@ module.exports = class SoftballServer {
     );
 
     app.post(
-      "/server/account/login",
+      '/server/account/login',
       wrapForErrorProcessing((req, res, next) => {
-        passport.authenticate("local", function(err, accountInfo, info) {
+        passport.authenticate('local', function(err, accountInfo, info) {
           if (err || !accountInfo) {
-            logger.warn(null, "Authentication Failed", accountInfo, err, info);
+            logger.warn(null, 'Authentication Failed', accountInfo, err, info);
             res.status(400).send();
             return;
           }
           req.logIn(accountInfo, function() {
-            logger.log(accountInfo.account_id, "Login Successful!");
+            logger.log(accountInfo.account_id, 'Login Successful!');
             res.status(204).send();
           });
         })(req, res, next);
@@ -260,29 +277,29 @@ module.exports = class SoftballServer {
     );
 
     app.post(
-      "/server/account/logout",
+      '/server/account/logout',
       wrapForErrorProcessing((req, res, next) => {
         if (!req.isAuthenticated()) {
           res.status(403).send();
           return;
         }
-        let accountId = extractSessionInfo(req, "accountId");
-        logger.log(accountId, "Logging out");
+        let accountId = extractSessionInfo(req, 'accountId');
+        logger.log(accountId, 'Logging out');
         req.logout();
         res.status(204).send();
       })
     );
 
     app.post(
-      "/server/account/signup",
+      '/server/account/signup',
       wrapForErrorProcessing(async (req, res, next) => {
-        checkRequiredField(req.body.email, "email");
+        checkRequiredField(req.body.email, 'email');
         checkFieldLength(req.body.email, 320);
 
-        checkRequiredField(req.body.password, "password");
+        checkRequiredField(req.body.password, 'password');
         checkFieldLength(req.body.password, 320);
 
-        checkRequiredField(req.body.reCAPCHA, "reCAPCHA");
+        checkRequiredField(req.body.reCAPCHA, 'reCAPCHA');
         if (configAccessor.getRecapchaSecretKey()) {
           try {
             const recapchaResponse = await got.post(
@@ -304,7 +321,7 @@ module.exports = class SoftballServer {
             } else {
               throw new HandledError(
                 500,
-                "Failed to get recapcha approval from Google",
+                'Failed to get recapcha approval from Google',
                 error
               );
             }
@@ -313,9 +330,9 @@ module.exports = class SoftballServer {
 
         let token = await generateToken();
         let tokenHash = crypto
-          .createHash("sha256")
+          .createHash('sha256')
           .update(token)
-          .digest("base64");
+          .digest('base64');
 
         let hashedPassword = await bcrypt.hash(req.body.password, 12);
         let account = await this.databaseCalls.signup(
@@ -329,13 +346,13 @@ module.exports = class SoftballServer {
           .sendMessage(
             account.account_id,
             req.body.email,
-            "Welcome to Softball.app!",
+            'Welcome to Softball.app!',
             `Thank you for signing up for an account on https://softball.app. Please click this activation link to verify your email address: https://softball.app/account/verify-email/${token}`
           );
 
         logger.log(
           account.account_id,
-          "Authenticating after successful signup"
+          'Authenticating after successful signup'
         );
         logIn(account, req, res);
 
@@ -344,19 +361,19 @@ module.exports = class SoftballServer {
     );
 
     app.post(
-      "/server/account/reset-password-request",
+      '/server/account/reset-password-request',
       wrapForErrorProcessing(async (req, res, next) => {
-        checkRequiredField(req.body.email, "email");
+        checkRequiredField(req.body.email, 'email');
         let account = await this.databaseCalls.getAccountFromEmail(
           req.body.email
         );
-        logger.log(null, "Reset password request for", req.body.email);
+        logger.log(null, 'Reset password request for', req.body.email);
         if (account) {
           let token = await generateToken();
           let tokenHash = crypto
-            .createHash("sha256")
+            .createHash('sha256')
             .update(token)
-            .digest("base64");
+            .digest('base64');
 
           await this.databaseCalls.setPasswordTokenHash(
             account.account_id,
@@ -368,7 +385,7 @@ module.exports = class SoftballServer {
             .sendMessage(
               account.account_id,
               req.body.email,
-              "Softball.app Password Reset",
+              'Softball.app Password Reset',
               `Sombody tried to reset the password for the softball.app (https://softball.app) account associated with this email address (hopefully it was you!). Please click this link to reset the password: https://softball.app/account/password-reset/${token}`
             );
 
@@ -377,8 +394,8 @@ module.exports = class SoftballServer {
           // TODO: Always send an email, even if no such email address was found.
           // Emails that haven't been registerd on the site will say so.
           logger.warn(
-            "N/A",
-            "Password reset: No such email found",
+            'N/A',
+            'Password reset: No such email found',
             req.body.email
           );
           res.status(404).send();
@@ -387,23 +404,23 @@ module.exports = class SoftballServer {
     );
 
     app.post(
-      "/server/account/reset-password",
+      '/server/account/reset-password',
       wrapForErrorProcessing(async (req, res, next) => {
-        checkRequiredField(req.body.password, "password");
+        checkRequiredField(req.body.password, 'password');
         checkFieldLength(req.body.password, 320);
         checkFieldLength(req.body.token, 320);
         let token = req.body.token;
         let tokenHash = crypto
-          .createHash("sha256")
+          .createHash('sha256')
           .update(token)
-          .digest("base64");
+          .digest('base64');
         let account = await this.databaseCalls.getAccountFromTokenHash(
           tokenHash
         );
         if (account) {
           logger.log(
             account.account_id,
-            "Password update recieved. Token",
+            'Password update recieved. Token',
             req.body.token
           );
           // If the user reset their passowrd, the email address is confirmed
@@ -415,7 +432,7 @@ module.exports = class SoftballServer {
             hashedPassword
           );
 
-          logger.log(null, "Password successfully reset", req.body.token);
+          logger.log(null, 'Password successfully reset', req.body.token);
 
           // If an attacker somehow guesses the reset token and resets the password, they still don't know the email.
           // So, we wont log the password resetter in automatically. We can change this if we think it really affects
@@ -425,7 +442,7 @@ module.exports = class SoftballServer {
         } else {
           logger.warn(
             null,
-            "Could not find account from reset token",
+            'Could not find account from reset token',
             req.body.token
           );
           res.status(404).send();
@@ -434,21 +451,21 @@ module.exports = class SoftballServer {
     );
 
     app.post(
-      "/server/account/verify-email",
+      '/server/account/verify-email',
       wrapForErrorProcessing(async (req, res, next) => {
         checkFieldLength(req.body.token, 320);
         let token = req.body.token;
         let tokenHash = crypto
-          .createHash("sha256")
+          .createHash('sha256')
           .update(token)
-          .digest("base64");
+          .digest('base64');
         let account = await this.databaseCalls.getAccountFromTokenHash(
           tokenHash
         );
         if (account) {
           logger.log(
             account.account_id,
-            "Email verification received. Token",
+            'Email verification received. Token',
             req.body.token
           );
           await this.databaseCalls.confirmEmail(account.account_id);
@@ -459,7 +476,7 @@ module.exports = class SoftballServer {
         } else {
           logger.warn(
             null,
-            "Could not find account from reset token",
+            'Could not find account from reset token',
             req.body.token
           );
           res.status(404).send();
@@ -468,14 +485,14 @@ module.exports = class SoftballServer {
     );
 
     app.delete(
-      "/server/account",
+      '/server/account',
       wrapForErrorProcessing(async (req, res, next) => {
         if (!req.isAuthenticated()) {
           res.status(403).send();
           return;
         }
 
-        let accountId = extractSessionInfo(req, "accountId");
+        let accountId = extractSessionInfo(req, 'accountId');
         logger.log(accountId, `Deleting account`);
 
         await lockAccount(accountId);
@@ -485,7 +502,7 @@ module.exports = class SoftballServer {
           let deletePatch = objectMerge.diff(state, {
             teams: [],
             players: [],
-            optimizations: []
+            optimizations: [],
           });
           await this.databaseCalls.patchState(deletePatch, accountId);
 
@@ -493,13 +510,13 @@ module.exports = class SoftballServer {
           await this.databaseCalls.deleteAccount(accountId);
 
           // TODO: Invalidate session somehow?
-          logger.log(accountId, "Account successfully deleted");
+          logger.log(accountId, 'Account successfully deleted');
 
           res.status(204).send();
         } catch (error) {
           logger.error(
             accountId,
-            "An error occured while deleting the account"
+            'An error occured while deleting the account'
           );
           throw error;
         } finally {
@@ -523,21 +540,21 @@ module.exports = class SoftballServer {
 			}
 		*/
     app.post(
-      "/server/sync",
+      '/server/sync',
       wrapForErrorProcessing(async (req, res) => {
         if (!req.isAuthenticated()) {
           res.status(403).send();
           return;
         }
 
-        let accountId = extractSessionInfo(req, "accountId");
+        let accountId = extractSessionInfo(req, 'accountId');
         let data = req.body;
 
         // Validate the request
-        if (!data["md5"]) {
+        if (!data['md5']) {
           throw new HandledError(
             400,
-            "Missing required field: md5",
+            'Missing required field: md5',
             JSON.stringify(data)
           );
         }
@@ -557,7 +574,7 @@ module.exports = class SoftballServer {
           if (data.patch && Object.keys(data.patch).length !== 0) {
             logger.log(
               accountId,
-              "client has updates",
+              'client has updates',
               JSON.stringify(data.patch, null, 2)
             );
 
@@ -584,22 +601,22 @@ module.exports = class SoftballServer {
             */
             anyChangesMade = true;
           } else {
-            logger.log(accountId, "No updates from client");
+            logger.log(accountId, 'No updates from client');
           }
 
           // Calculate the checksum current state
           state = state || (await this.databaseCalls.getState(accountId));
           let checksum = getMd5(state);
 
-          logger.log(accountId, "Server CHECKSUM: ", checksum);
+          logger.log(accountId, 'Server CHECKSUM: ', checksum);
 
           // Compare the calculated checksum with the checksum provided by the client to determine if the server has updates for the client.
           if (data.md5 !== checksum) {
             logger.log(
               accountId,
-              "Server has updates. CLIENT: ",
+              'Server has updates. CLIENT: ',
               data.md5,
-              " SERVER: ",
+              ' SERVER: ',
               checksum
             );
 
@@ -609,9 +626,9 @@ module.exports = class SoftballServer {
               accountId,
               req.sessionID
             );
-            if (data.type === "any" && serverAncestor) {
+            if (data.type === 'any' && serverAncestor) {
               // Yes we have an ancestor!
-              logger.log(accountId, "performing patch sync w/ ancestor");
+              logger.log(accountId, 'performing patch sync w/ ancestor');
 
               // Apply the client's patch to the ancestor
               objectMerge.patch(serverAncestor, data.patch, true);
@@ -620,7 +637,7 @@ module.exports = class SoftballServer {
               let serverPatch = objectMerge.diff(serverAncestor, state);
               logger.log(
                 accountId,
-                "Server Patch",
+                'Server Patch',
                 JSON.stringify(serverPatch, null, 2)
               );
 
@@ -630,7 +647,7 @@ module.exports = class SoftballServer {
               // No we have no ancestor OR sync status is full, send back the whole state
               logger.warn(
                 accountId,
-                "performing full sync",
+                'performing full sync',
                 data.type,
                 new Boolean(serverAncestor)
               );
@@ -640,7 +657,7 @@ module.exports = class SoftballServer {
 
             anyChangesMade = true;
           } else {
-            logger.log(accountId, "No updates from server", data.md5, checksum);
+            logger.log(accountId, 'No updates from server', data.md5, checksum);
           }
 
           // Whatever happened,we need to send the checksum back
@@ -661,14 +678,14 @@ module.exports = class SoftballServer {
     );
 
     app.post(
-      "/server/start-optimization",
+      '/server/start-optimization',
       wrapForErrorProcessing(async (req, res, next) => {
         if (!req.isAuthenticated()) {
           res.status(403).send();
           return;
         }
 
-        let accountId = extractSessionInfo(req, "accountId");
+        let accountId = extractSessionInfo(req, 'accountId');
         logger.log(accountId, `Starting optimization`);
 
         let optimizationId = undefined;
@@ -682,7 +699,7 @@ module.exports = class SoftballServer {
             accountId
           );
           if (inProgressCount !== 0) {
-            logger.log(accountId, "Simulations running", inProgressCount);
+            logger.log(accountId, 'Simulations running', inProgressCount);
             res
               .status(404)
               .send({ message: `There is already an optimization running.` });
@@ -714,13 +731,13 @@ module.exports = class SoftballServer {
           if (optimization.sendEmail && !account.verifiedEmail) {
             res.status(400).send({
               message:
-                "The 'send me an email...' checkbox was checked but the email address associated with this account has not been verified. Please verify your email or uncheck the box."
+                "The 'send me an email...' checkbox was checked but the email address associated with this account has not been verified. Please verify your email or uncheck the box.",
             });
             return;
           }
 
           // Write execution data to db
-          logger.log(accountId, "writing execution data");
+          logger.log(accountId, 'writing execution data');
           await this.databaseCalls.setOptimizationExecutionData(
             accountId,
             optimizationId,
@@ -736,7 +753,7 @@ module.exports = class SoftballServer {
 
           // Now unlock the account
         } catch (error) {
-          logger.log(accountId, "Setting optimization status to error", error);
+          logger.log(accountId, 'Setting optimization status to error', error);
           await this.databaseCalls.setOptimizationStatus(
             accountId,
             optimizationId,
@@ -770,7 +787,7 @@ module.exports = class SoftballServer {
           logger.error(
             accountId,
             optimizationId,
-            "Setting optimization status to error in compute start",
+            'Setting optimization status to error in compute start',
             error
           );
           await this.databaseCalls.setOptimizationStatus(
@@ -789,14 +806,14 @@ module.exports = class SoftballServer {
 
     // TODO: some of this is duplicate from start-optimization
     app.post(
-      "/server/resume-optimization",
+      '/server/resume-optimization',
       wrapForErrorProcessing(async (req, res, next) => {
         if (!req.isAuthenticated()) {
           res.status(403).send();
           return;
         }
 
-        let accountId = extractSessionInfo(req, "accountId");
+        let accountId = extractSessionInfo(req, 'accountId');
         logger.log(accountId, `Starting optimization`);
 
         let optimizationId = undefined;
@@ -810,11 +827,11 @@ module.exports = class SoftballServer {
             accountId
           );
           if (inProgressCount !== 0) {
-            logger.log(accountId, "Simulations running", inProgressCount);
+            logger.log(accountId, 'Simulations running', inProgressCount);
             res
               .status(400)
               .send(
-                "There is already an optimization running, pause it or wait for it to complete before starting a new one"
+                'There is already an optimization running, pause it or wait for it to complete before starting a new one'
               );
             return;
           }
@@ -836,7 +853,7 @@ module.exports = class SoftballServer {
           // Retrieve execution data from db for validation purposes
           logger.log(
             accountId,
-            "retrieving execution data",
+            'retrieving execution data',
             data.optimizationId
           );
           let executionData = await this.databaseCalls.getOptimizationExecutionData(
@@ -846,7 +863,7 @@ module.exports = class SoftballServer {
 
           if (!executionData) {
             res.status(404).send({
-              message: `Optimization data was not found. Sync and try again.`
+              message: `Optimization data was not found. Sync and try again.`,
             });
           }
 
@@ -859,7 +876,7 @@ module.exports = class SoftballServer {
 
           // Now unlock the account
         } catch (error) {
-          logger.log(accountId, "Setting optimization status to error", error);
+          logger.log(accountId, 'Setting optimization status to error', error);
           await this.databaseCalls.setOptimizationStatus(
             accountId,
             optimizationId,
@@ -876,7 +893,7 @@ module.exports = class SoftballServer {
 
         try {
           // Start the computer that will run the optimization
-          logger.log(accountId, "Starting optimization server");
+          logger.log(accountId, 'Starting optimization server');
           await this.compute.start(
             accountId,
             optimizationId,
@@ -894,7 +911,7 @@ module.exports = class SoftballServer {
           logger.log(
             accountId,
             optimizationId,
-            "Setting optimization status to error in compute start",
+            'Setting optimization status to error in compute start',
             error
           );
           await this.databaseCalls.setOptimizationStatus(
@@ -944,56 +961,56 @@ module.exports = class SoftballServer {
     });
     */
 
-    app.get("/server/current-account", function(req, res) {
+    app.get('/server/current-account', function(req, res) {
       if (!req.isAuthenticated()) {
         res.status(403).send();
         return;
       }
       let responseData = {};
-      responseData.email = extractSessionInfo(req, "email");
+      responseData.email = extractSessionInfo(req, 'email');
       res.status(200).send(responseData);
     });
 
     // This route just accepts reports of Content Security Policy (CSP) violations
     // https://helmetjs.github.io/docs/csp/
-    app.post("/server/report-violation", function(req, res) {
-      let accountId = extractSessionInfo(req, "accountId");
+    app.post('/server/report-violation', function(req, res) {
+      let accountId = extractSessionInfo(req, 'accountId');
       if (req.body) {
-        logger.log(accountId, "CSP Violation: ", req.body);
+        logger.log(accountId, 'CSP Violation: ', req.body);
       } else {
-        logger.log(accountId, "CSP Violation: No data received!");
+        logger.log(accountId, 'CSP Violation: No data received!');
       }
       res.status(204).send();
     });
 
     // The root should retrun the whole app
     app.get(
-      "/",
+      '/',
       wrapForErrorProcessing((req, res) => {
-        res.sendFile(path.join(__dirname + "/../index.html").normalize());
+        res.sendFile(path.join(__dirname + '/../index.html').normalize());
       })
     );
 
     // Everything else loads the react app and is processed on the client side
     app.get(
-      "*",
+      '*',
       wrapForErrorProcessing((req, res) => {
-        logger.warn(null, "unanticipated url", req.originalUrl);
-        res.sendFile(path.join(__dirname + "/../index.html").normalize());
+        logger.warn(null, 'unanticipated url', req.originalUrl);
+        res.sendFile(path.join(__dirname + '/../index.html').normalize());
       })
     );
 
     // 404 on unrecognized routes
     app.use(function() {
-      throw new HandledError(404, "Resource not found");
+      throw new HandledError(404, 'Resource not found');
     });
 
     app.use(function(error, req, res, next) {
-      let accountId = extractSessionInfo(req, "accountId");
+      let accountId = extractSessionInfo(req, 'accountId');
 
-      res.setHeader("content-type", "application/json");
+      res.setHeader('content-type', 'application/json');
       if (error instanceof HandledError) {
-        logger.error(accountId, "Sending Error", error.getExternalMessage());
+        logger.error(accountId, 'Sending Error', error.getExternalMessage());
         res
           .status(error.getStatusCode())
           .send({ message: [error.getExternalMessage()] });
@@ -1008,14 +1025,14 @@ module.exports = class SoftballServer {
           .status(500)
           .send({ message: `Internal Server Error. Error id: ${errorId}.` });
         logger.error(accountId, `SERVER ERROR ${errorId} - ${accountId}`, {
-          message: [error.message]
+          message: [error.message],
         });
         logger.error(accountId, `Error`, error);
       }
     });
 
     this.server = server.listen(this.port, function listening() {
-      logger.log(null, "Softball App: Listening on", server.address().port);
+      logger.log(null, 'Softball App: Listening on', server.address().port);
     });
 
     // Helpers -- TODO use consistent declarations
@@ -1043,12 +1060,12 @@ module.exports = class SoftballServer {
     // Calculate the md5 checksum of the data and return the result as a base64 string
     function getMd5(data) {
       let checksum = hasher(data, {
-        algorithm: "md5",
+        algorithm: 'md5',
         excludeValues: false,
         respectFunctionProperties: false,
         respectFunctionNames: false,
         respectType: false,
-        encoding: "base64"
+        encoding: 'base64',
       });
       return checksum.slice(0, -2); // Remove trailing '=='
     }
@@ -1062,9 +1079,9 @@ module.exports = class SoftballServer {
             // Make sure the token is url safe
             resolve(
               buf
-                .toString("base64")
-                .replace(/\//g, "_")
-                .replace(/\+/g, "-")
+                .toString('base64')
+                .replace(/\//g, '_')
+                .replace(/\+/g, '-')
             );
           }
         });
@@ -1090,10 +1107,10 @@ module.exports = class SoftballServer {
     }
 
     async function logIn(account, req, res) {
-      logger.log(account.account_id, "Loggin in", account);
+      logger.log(account.account_id, 'Loggin in', account);
       let sessionInfo = {
         accountId: account.account_id,
-        email: account.email
+        email: account.email,
       };
       try {
         await new Promise(function(resolve, reject) {
@@ -1101,7 +1118,7 @@ module.exports = class SoftballServer {
             // We need to serialize some info to the session
             let sessionInfo = {
               accountId: account.account_id,
-              email: account.email
+              email: account.email,
             };
             var doneWrapper = function(req) {
               var done = function(err, user) {
@@ -1118,9 +1135,9 @@ module.exports = class SoftballServer {
             resolve();
           });
         });
-        logger.log(account.account_id, "Login Successful -- backdoor!");
+        logger.log(account.account_id, 'Login Successful -- backdoor!');
       } catch (e) {
-        logger.log(account.account_id, "ERROR", e);
+        logger.log(account.account_id, 'ERROR', e);
         res.status(500).send();
       }
     }
@@ -1147,7 +1164,7 @@ module.exports = class SoftballServer {
         success = await self.cacheCalls.lockAccount(accountId);
 
         if (!success) {
-          logger.log(accountId, "Account already locked, retrying in 200ms");
+          logger.log(accountId, 'Account already locked, retrying in 200ms');
           await sleep(200); // TODO: Do we need a random backoff?
           counter++;
         }
@@ -1155,28 +1172,28 @@ module.exports = class SoftballServer {
         if (counter > 100) {
           throw new HandledError(
             503,
-            "Another request is consuming system resources allocated for this account. Please try agin in a few minutes."
+            'Another request is consuming system resources allocated for this account. Please try agin in a few minutes.'
           );
         }
       } while (!success);
-      logger.log(accountId, "Account Locked");
+      logger.log(accountId, 'Account Locked');
     };
 
     const unlockAccount = async function(accountId) {
       await self.cacheCalls.unlockAccount(accountId);
-      logger.log(accountId, "Account Unlocked");
+      logger.log(accountId, 'Account Unlocked');
     };
   }
 
   stop() {
     return new Promise(
       function(resolve, reject) {
-        logger.log(null, "Closing App");
+        logger.log(null, 'Closing App');
         this.server.close(function(err) {
           if (err) {
             reject(err);
           }
-          logger.log(null, "App Closed");
+          logger.log(null, 'App Closed');
           resolve();
         });
       }.bind(this)

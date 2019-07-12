@@ -125,6 +125,11 @@ body {
   width: calc(100% - 96px); /* 96px  = icon width (48px) * 2 icons */
 }
 
+.card-textbox {
+  padding: 20px;
+  color: $css.colors.TEXT_LIGHT;
+}
+
 .list-item {
   cursor: default;
   padding: 12px;

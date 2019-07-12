@@ -7,6 +7,10 @@ import hasher from 'object-hash';
 
 const exp = {};
 
+exp.isSyncDisabled = () => {
+  return window.location.pathname.slice(0, 7) === '/stats/';
+};
+
 // Constants
 const INITIAL_STATE = { teams: [], players: [], optimizations: [] };
 const CURRENT_LS_SCHEMA_VERSION = '6';
@@ -70,7 +74,11 @@ exp.getServerUrl = function(path) {
 // -2 failed on fullSync = false
 // -3 failed on fullSync = true
 exp.sync = async function(fullSync) {
+  if (exp.isSyncDisabled()) {
+    return;
+  }
   console.log('Sync requested', fullSync ? 'full' : 'patchOnly');
+
   while (
     exp.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS ||
     exp.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
@@ -102,7 +110,7 @@ exp.sync = async function(fullSync) {
     };
 
     // Ship it
-    console.log('SENDING SYNC', body);
+    console.log('[SYNC] Syncing...', body);
     let response = await network.request(
       'POST',
       'server/sync',
