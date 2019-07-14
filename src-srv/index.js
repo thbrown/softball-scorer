@@ -1,22 +1,22 @@
 /*eslint no-process-exit:*/
-"use strict";
+'use strict';
 
-const SoftballServer = require("./softball-server");
+const SoftballServer = require('./softball-server');
 
-const configAccessor = require("./config-accessor");
-const logger = require("./logger.js");
+const configAccessor = require('./config-accessor');
+const logger = require('./logger.js');
 
 // Log on inturruptions
-process.on("SIGINT", function() {
-  logger.log("sys", "SIGINT");
+process.on('SIGINT', function() {
+  logger.log('sys', 'SIGINT');
   process.exit(0);
 });
-process.on("SIGTERM", function() {
-  logger.log("sys", "SIGTERM");
+process.on('SIGTERM', function() {
+  logger.log('sys', 'SIGTERM');
   process.exit(0);
 });
-process.on("exit", function() {
-  process.stdout.write("Bye\n");
+process.on('exit', function() {
+  process.stdout.write('Bye\n');
 });
 
 // Inject the database service based on config values

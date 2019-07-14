@@ -1,6 +1,6 @@
 // Setup for jest tests - provide node implementations for browser apis
 
-const configAccessor = require("../config-accessor.js");
+const configAccessor = require('../config-accessor.js');
 
 // localstorage - https://stackoverflow.com/questions/32911630/how-do-i-deal-with-localstorage-in-jest-tests
 class LocalStorageMock {
@@ -28,8 +28,8 @@ class LocalStorageMock {
 global.localStorage = new LocalStorageMock();
 
 // crypto - https://stackoverflow.com/questions/52612122/how-to-use-jest-to-test-functions-using-crypto-or-window-mscrypto
-const crypto = require("crypto");
-Object.defineProperty(global.self, "crypto", {
+const crypto = require('crypto');
+Object.defineProperty(global.self, 'crypto', {
   value: {
     // web crypto overrides the passed in array, node crypto returns a random array of the passed in length
     getRandomValues: function(arr) {
@@ -37,8 +37,8 @@ Object.defineProperty(global.self, "crypto", {
       for (let i = 0; i < arr.length; i++) {
         arr[i] = randomArray[i];
       }
-    }
-  }
+    },
+  },
 });
 
 // authentication - allow tests to specify a sessionId that should be used for all fetch requests
@@ -55,7 +55,7 @@ global.fetch = function(url, opts) {
     }
     opts.headers.cookie = sessionCookie;
   }
-  let nodeFetch = require("node-fetch");
+  let nodeFetch = require('node-fetch');
 
   let fetch = nodeFetch(url, opts);
   return fetch;
@@ -65,5 +65,5 @@ global.fetch = function(url, opts) {
 delete global.window.location;
 global.window = Object.create(window);
 global.window.location = {
-  origin: `http://localhost:${configAccessor.getAppServerPort()}`
+  origin: `http://localhost:${configAccessor.getAppServerPort()}`,
 };

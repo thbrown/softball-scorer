@@ -1,13 +1,13 @@
-const configAccessor = require("../config-accessor");
+const configAccessor = require('../config-accessor');
 
-describe("cache", () => {
-  test("optimization locking", async () => {
+describe('cache', () => {
+  test('optimization locking', async () => {
     const cacheCalls = configAccessor.getCacheService();
 
-    let optimizationId = "12345678";
+    let optimizationId = '12345678';
     let testTTL = 1;
-    let serverId1 = "A";
-    let serverId2 = "B";
+    let serverId1 = 'A';
+    let serverId2 = 'B';
 
     // Nobody holds the lock, should succeed
     let result = await cacheCalls.lockOptimization(
