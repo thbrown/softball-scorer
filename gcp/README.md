@@ -15,7 +15,7 @@ From the GCP web UI:
 2. Ssh into that instance
 3. Update the instance (`sudo apt-get update`)
 4. Install jdk (`sudo apt-get install -y default-jre-headless`)
-5. Download SoftballSim.jar (`wget https://github.com/thbrown/softball-sim/releases/download/v0.3/softball-sim.jar`)
+5. Download SoftballSim.jar (`wget https://github.com/thbrown/softball-sim/releases/download/v0.4/softball-sim.jar`)
 6. Add startup script
 
 ```

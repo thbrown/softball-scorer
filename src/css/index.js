@@ -18,5 +18,8 @@ const exp = {
     'fixed-table-header-height': '28px',
     'fixed-table-col-width': '80px',
   },
+  config: {
+    SYNC_DELAY: '10s',
+  },
 };
 module.exports = exp;
