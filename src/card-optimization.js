@@ -10,7 +10,7 @@ import FloatingInput from 'component-floating-input';
 import FloatingPicklist from 'component-floating-picklist';
 
 const ACCORDION_QUERYPARAM_PREFIX = 'acc';
-const SYNC_DELAY_MS = 5000; // This value also exists in the CSS
+const SYNC_DELAY_MS = 10000; // This value also exists in the CSS
 
 export default class CardOptimization extends expose.Component {
   constructor(props) {
@@ -48,12 +48,15 @@ Clips can be played from the player's plate appearance page
       });
     }.bind(this);
 
-    this.doAutoSync = async function() {
+    this.enableAutoSync = async function(dontReset) {
+      if (!dontReset) {
+        clearTimeout(this.activeTime);
+      }
       this.startCssAnimation();
       this.activeTime = setTimeout(
         async function() {
           await state.sync();
-          this.doAutoSync();
+          this.enableAutoSync(true);
         }.bind(this),
         SYNC_DELAY_MS
       );
@@ -65,7 +68,7 @@ Clips can be played from the player's plate appearance page
 
       // Removing an element from the dom then reinserting it restarts the animation
       element.classList.add('gone');
-      element.offsetHeight = +element.offsetHeight; /* trigger reflow https://gist.github.com/paulirish/5d52fb081b3570c81e3a */
+      element.getClientRects(); /* trigger reflow https://gist.github.com/paulirish/5d52fb081b3570c81e3a */
       element.classList.remove('gone');
 
       setTimeout(function() {
@@ -76,6 +79,17 @@ Clips can be played from the player's plate appearance page
     this.onRenderUpdateOrMount = function() {
       // Make sure we are working with the most up-to-date optimization
       this.optimization = state.getOptimization(this.props.optimization.id);
+
+      // Frequently perform syncs on this page to check for server updates to the optimization object
+      if (
+        this.optimization.status ===
+          state.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
+        this.optimization.status ===
+          state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES ||
+        this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.PAUSING
+      ) {
+        this.enableAutoSync();
+      }
     };
 
     this.handleTeamCheckboxClick = function(team) {
@@ -120,13 +134,54 @@ Clips can be played from the player's plate appearance page
       }
     }.bind(this);
 
+    this.handlePauseClick = async function() {
+      // Disable button in the UI
+      let buttonDiv = document.getElementById('toggle-optimization-button');
+      buttonDiv.innerHTML = 'Pausing...';
+      buttonDiv.classList.add('disabled');
+
+      let body = JSON.stringify({
+        optimizationId: this.optimization.id,
+      });
+      let response = await network.request(
+        'POST',
+        'server/pause-optimization',
+        body
+      );
+      if (response.status === 204 || response.status === 200) {
+        dialog.show_notification('Sent pause request.');
+        // Do a sync, since the above call succeeded server has updated the optimization's status on it's end
+        await state.sync();
+        buttonDiv.classList.remove('disabled');
+        return;
+      } else if (response.status === 403) {
+        dialog.show_notification(
+          'You must be logged in to pause a lineup simulation. Please [Login](/menu/login) or [Signup](/menu/signup).'
+        );
+      } else if (response.status === -1) {
+        dialog.show_notification(
+          'The network is offline. Try again when you have an internet connection.'
+        );
+      } else {
+        dialog.show_notification(
+          'Something went wrong. ' +
+            response.status +
+            ' ' +
+            JSON.stringify(response.body)
+        );
+      }
+      // Re-enable the button
+      buttonDiv.classList.remove('disabled');
+      buttonDiv.innerHTML = 'Pause Simulation';
+    };
+
     this.handleStartClick = async function() {
       // Disable button in the UI
-      let buttonDiv = document.getElementById('start-optimization-button');
+      let buttonDiv = document.getElementById('toggle-optimization-button');
       buttonDiv.innerHTML = 'Starting...';
       buttonDiv.classList.add('disabled');
 
-      // Extract data an list fields
+      // Extract data from list and json fields
       let playerIds = JSON.parse(this.optimization.playerList);
       let teamIds = JSON.parse(this.optimization.teamList);
       let gameIds = JSON.parse(this.optimization.gameList);
@@ -226,7 +281,7 @@ Clips can be played from the player's plate appearance page
         lineupType: this.optimization.lineupType,
       };
 
-      // Be sure the server has out optimization details before it tried to run the optimization
+      // Be sure the server has our optimization details before it tries to run the optimization
       await state.sync();
 
       let body = JSON.stringify({
@@ -242,14 +297,16 @@ Clips can be played from the player's plate appearance page
         dialog.show_notification('Sent start request.');
         // Do a sync, since the above call succeeded server has updated the optimization's status on it's end
         await state.sync();
-        // Start auto refresh
-        this.doAutoSync();
+        buttonDiv.classList.remove('disabled');
+        return;
       } else if (response.status === 403) {
         dialog.show_notification(
           'You must be logged in to run a lineup simulation. Please [Login](/menu/login) or [Signup](/menu/signup).'
         );
-        buttonDiv.classList.remove('disabled');
-        buttonDiv.innerHTML = 'Start Simulation';
+      } else if (response.status === -1) {
+        dialog.show_notification(
+          'The network is offline. Try again when you have an internet connection.'
+        );
       } else {
         dialog.show_notification(
           'Something went wrong. ' +
@@ -257,41 +314,9 @@ Clips can be played from the player's plate appearance page
             ' ' +
             JSON.stringify(response.body)
         );
-        buttonDiv.classList.remove('disabled');
-        buttonDiv.innerHTML = 'Start Simulation';
       }
-    }.bind(this);
-
-    this.handleResumeClick = async function() {
-      // Disable button in the UI
-      let buttonDiv = document.getElementById('start-optimization-button');
-      buttonDiv.innerHTML = 'Starting...';
-      buttonDiv.classList.add('disabled');
-
-      let body = JSON.stringify({
-        optimizationId: this.optimization.id,
-      });
-      let response = await network.request(
-        'POST',
-        'server/start-optimization',
-        body
-      );
-      if (response.status === 204 || response.status === 200) {
-        dialog.show_notification('Sent start request.');
-
-        // Do a sync, since the above call succeeded server has updated the optimization's status on it's end
-        state.sync();
-      } else if (response.status === 403) {
-        dialog.show_notification(
-          'You must be logged in to run a lineup simulation. Please [Login](/menu/login) or [Signup](/menu/signup).'
-        );
-        buttonDiv.classList.remove('disabled');
-        buttonDiv.innerHTML = 'Start Simulation';
-      } else {
-        dialog.show_notification('Something went wrong. ' + response.status);
-        buttonDiv.classList.remove('disabled');
-        buttonDiv.innerHTML = 'Start Simulation';
-      }
+      buttonDiv.classList.remove('disabled');
+      buttonDiv.innerHTML = 'Start Simulation';
     }.bind(this);
 
     this.getCompressedStats = function(fullStats) {
@@ -306,7 +331,6 @@ Clips can be played from the player's plate appearance page
   }
 
   componentWillUnmount() {
-    // TODO: call this on transition to complete or error. Not a super big deal it just results in an error printed in console.
     clearTimeout(this.activeTime);
   }
 
@@ -316,15 +340,6 @@ Clips can be played from the player's plate appearance page
 
   componentDidMount() {
     this.onRenderUpdateOrMount();
-
-    if (
-      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
-      this.optimization.status ===
-        state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
-    ) {
-      // Frequently perform syncs on this page to check for server updates to the optimization object
-      this.doAutoSync();
-    }
 
     this.skipClickDelay = function(e) {
       e.preventDefault();
@@ -554,7 +569,8 @@ Clips can be played from the player's plate appearance page
     if (
       this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
       this.optimization.status ===
-        state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
+        state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES ||
+      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.PAUSING
     ) {
       spinner = (
         <div>
@@ -699,7 +715,6 @@ Clips can be played from the player's plate appearance page
 
   renderResultsAccordion() {
     // Results
-    console.log(this.optimization.resultData);
     let resultData = JSON.parse(this.optimization.resultData);
 
     let groupA;
@@ -808,7 +823,7 @@ Clips can be played from the player's plate appearance page
     if (
       this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
     ) {
-      resultsStyle = { display: "none" };
+      resultsStyle = { display: 'none' };
     }
     return (
       <div style={resultsStyle}>
@@ -860,63 +875,65 @@ Clips can be played from the player's plate appearance page
   }
 
   renderFooter() {
+    let emailCheckboxDisabled;
+    let toggleButtonText;
+    let toggleButtonHandler;
+    let showToggleButton = true;
+
     if (
       this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
     ) {
-      return (
-        <div id="footer">
-          <label>
-            <input
-              type="checkbox"
-              onChange={this.handleSendEmailCheckbox}
-              checked={this.optimization.sendEmail}
-            />
-            Send me an email when the simulation is complete.
-          </label>
-          <div
-            id="start-optimization-button"
-            className="edit-button button cancel-button"
-            onClick={this.handleStartClick.bind(this)}
-          >
-            Start Simulation
-          </div>
-        </div>
-      );
+      toggleButtonText = 'Start Simulation';
+      emailCheckboxDisabled = false;
+      toggleButtonHandler = this.handleStartClick.bind(this);
+    } else if (
+      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
+      this.optimization.status ===
+        state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RSEOURCES
+    ) {
+      toggleButtonText = 'Pause Simulation';
+      emailCheckboxDisabled = false;
+      toggleButtonHandler = this.handlePauseClick.bind(this);
+    } else if (
+      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.PAUSED
+    ) {
+      toggleButtonText = 'Resume Simulation';
+      emailCheckboxDisabled = false;
+      toggleButtonHandler = this.handleStartClick.bind(this);
+    } else if (
+      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.ERROR ||
+      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.PAUSING ||
+      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.COMPLETE
+    ) {
+      showToggleButton = false;
     }
-    if (this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.ERROR) {
-      return (
-        <div id="footer">
-          <label>
-            <input
-              type="checkbox"
-              onChange={this.handleSendEmailCheckbox}
-              checked={this.optimization.sendEmail}
-            />
-            Send me an email when the simulation is complete.
-          </label>
-          <div
-            id="start-optimization-button"
-            className="edit-button button cancel-button"
-            onClick={this.handleResumeClick.bind(this)}
-          >
-            Resume Simulation
-          </div>
-        </div>
-      );
-    } else {
-      return (
-        <div id="footer">
-          <label>
-            <input
-              type="checkbox"
-              checked={this.optimization.sendEmail}
-              disabled={true}
-            />
-            Send me an email when the simulation is complete.
-          </label>
-        </div>
-      );
-    }
+
+    let toggleButton = showToggleButton ? (
+      <div
+        id="toggle-optimization-button"
+        className="edit-button button cancel-button"
+        onClick={toggleButtonHandler}
+      >
+        {toggleButtonText}
+      </div>
+    ) : (
+      false
+    );
+
+    return (
+      <div id="footer">
+        <label>
+          <input
+            type="checkbox"
+            onChange={this.handleSendEmailCheckbox}
+            checked={this.optimization.sendEmail}
+            disabled={emailCheckboxDisabled}
+          />
+          Send me an email when the simulation is complete.
+        </label>
+        {toggleButton}
+      </div>
+    );
   }
 
   render() {
@@ -946,4 +963,4 @@ Clips can be played from the player's plate appearance page
       )
     );
   }
-};
+}
