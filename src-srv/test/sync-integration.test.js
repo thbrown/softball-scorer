@@ -1,19 +1,19 @@
 /*eslint no-process-exit:*/
-"use strict";
+'use strict';
 
-const objectHash = require("object-hash");
-const got = require("got");
+const objectHash = require('object-hash');
+const got = require('got');
 
-const configAccessor = require("../config-accessor");
-const SoftballServer = require("../softball-server");
-const utils = require("./test-utils.js");
-const state = require("../../src/state.js");
+const configAccessor = require('../config-accessor');
+const SoftballServer = require('../softball-server');
+const utils = require('./test-utils.js');
+const state = require('../../src/state.js');
 
 /**
  * This test requires an attached postgres database.
  * It runs through common sync cases to make sure there are no regressions prior to release.
  */
-describe("sync", () => {
+describe('sync', () => {
   let databaseCalls;
   let cache;
   let compute;
@@ -32,7 +32,7 @@ describe("sync", () => {
     await new Promise(resolve => setTimeout(resolve, 500));
 
     let email = `syncTest${utils.randomId(10)}@softball.app`;
-    let accountPassword = "pizza";
+    let accountPassword = 'pizza';
     await utils.signup(email, accountPassword);
 
     sessionId = await utils.login(email, accountPassword);
@@ -63,10 +63,10 @@ describe("sync", () => {
       // Checksums don't care about ordering, so they are the definitive answer
       // If those don't match, we'll compare the strings because they are much easier to debug
       console.log(
-        "Pre",
+        'Pre',
         beforeSyncCopy,
         serverChecksum,
-        "Post Sync",
+        'Post Sync',
         afterSyncCopy,
         clientChecksum
       );
@@ -74,20 +74,20 @@ describe("sync", () => {
     }
 
     expect(afterSyncCopy).toEqual(beforeSyncCopy);
-    console.log("Sync assertions successful");
+    console.log('Sync assertions successful');
   };
 
-  test("Sync - Players", async () => {
+  test('Sync - Players', async () => {
     state.deleteAllLocalData();
     await performAndValidateSync(state);
 
     // Create
-    let player = state.addPlayer(`Mary`, "F");
+    let player = state.addPlayer(`Mary`, 'F');
     await performAndValidateSync(state);
 
     // Edit
     let updatedPlayer = JSON.parse(JSON.stringify(player));
-    updatedPlayer.name = "HailMary";
+    updatedPlayer.name = 'HailMary';
     state.replacePlayer(player.id, updatedPlayer);
     await performAndValidateSync(state);
 
@@ -96,17 +96,17 @@ describe("sync", () => {
     await performAndValidateSync(state);
   });
 
-  test("Sync - Team", async () => {
+  test('Sync - Team', async () => {
     state.deleteAllLocalData();
     await performAndValidateSync(state);
 
     // Create
-    let team = state.addTeam("BigTeam");
+    let team = state.addTeam('BigTeam');
     await performAndValidateSync(state);
 
     // Edit
     let updatedTeam = JSON.parse(JSON.stringify(team));
-    updatedTeam.name = "ReallyBigTeam";
+    updatedTeam.name = 'ReallyBigTeam';
     state.replaceTeam(team.id, updatedTeam);
     await performAndValidateSync(state);
 
@@ -115,17 +115,17 @@ describe("sync", () => {
     await performAndValidateSync(state);
   });
 
-  test("Sync - Game", async () => {
+  test('Sync - Game', async () => {
     state.deleteAllLocalData();
     await performAndValidateSync(state);
 
     // Create
-    let team = state.addTeam("BigTeam");
-    let game = state.addGame(team.id, "BadGuys");
+    let team = state.addTeam('BigTeam');
+    let game = state.addGame(team.id, 'BadGuys');
 
     // Edit
     let updatedGame = JSON.parse(JSON.stringify(game));
-    updatedGame.opponent = "ActuallyTheseBadGuys";
+    updatedGame.opponent = 'ActuallyTheseBadGuys';
     state.replaceGame(updatedGame.id, team.id, updatedGame);
     await performAndValidateSync(state);
 
@@ -134,18 +134,18 @@ describe("sync", () => {
     await performAndValidateSync(state);
   });
 
-  test("Sync - Lineups", async () => {
+  test('Sync - Lineups', async () => {
     state.deleteAllLocalData();
     await performAndValidateSync(state);
 
     let players = [];
 
     // Create
-    let team = state.addTeam("BigTeam");
-    let game = state.addGame(team.id, "BadGuys");
+    let team = state.addTeam('BigTeam');
+    let game = state.addGame(team.id, 'BadGuys');
     let lineup = game.lineup;
     for (let i = 0; i < 10; i++) {
-      let player = state.addPlayer(`player${i}`, "F");
+      let player = state.addPlayer(`player${i}`, 'F');
       state.addPlayerToLineup(lineup, player.id);
       players.push(player);
     }
@@ -162,7 +162,7 @@ describe("sync", () => {
 
     lineup = state.getGame(game.id).lineup;
     for (let i = 0; i < 4; i++) {
-      let player = state.addPlayer(`addedPlayer${i}`, "F");
+      let player = state.addPlayer(`addedPlayer${i}`, 'F');
       state.addPlayerToLineup(lineup, player.id);
       state.updateLineup(lineup, player.id, i * 2);
     }
@@ -178,7 +178,7 @@ describe("sync", () => {
     await performAndValidateSync(state);
   });
 
-  test("Sync - Plate Appearances", async () => {
+  test('Sync - Plate Appearances', async () => {
     state.deleteAllLocalData();
     await performAndValidateSync(state);
 
@@ -186,19 +186,19 @@ describe("sync", () => {
     let pas = [];
 
     // Create
-    let team = state.addTeam("BigTeam");
-    let game = state.addGame(team.id, "BadGuys");
+    let team = state.addTeam('BigTeam');
+    let game = state.addGame(team.id, 'BadGuys');
     let lineup = game.lineup;
     for (let i = 0; i < 5; i++) {
-      let player = state.addPlayer(`player${i}`, "F");
+      let player = state.addPlayer(`player${i}`, 'F');
       state.addPlayerToLineup(lineup, player.id);
       players.push(player);
       for (let j = 0; j < 2; j++) {
         let pa = state.addPlateAppearance(player.id, game.id);
-        pa.result = "Out";
+        pa.result = 'Out';
         pa.location = {
           x: 12141,
-          y: 12141
+          y: 12141,
         };
         pas.push(pa);
       }
@@ -209,7 +209,7 @@ describe("sync", () => {
     let replacementPa = JSON.parse(
       JSON.stringify(state.getPlateAppearance(pas[1].id))
     );
-    replacementPa.result = "2B";
+    replacementPa.result = '2B';
     state.replacePlateAppearance(
       replacementPa.id,
       game.id,
@@ -233,7 +233,7 @@ describe("sync", () => {
     );
     replacementPa.location = {
       x: null,
-      y: null
+      y: null,
     };
     state.replacePlateAppearance(
       replacementPa.id,
@@ -247,7 +247,7 @@ describe("sync", () => {
     );
     replacementPa.location = {
       x: 1000,
-      y: 3000
+      y: 3000,
     };
     state.replacePlateAppearance(
       replacementPa.id,
@@ -332,16 +332,16 @@ describe("sync", () => {
   });
   */
 
-  test("Ordering - This query includes both deletes and and insert, this tests to makse sure the resulting querys are sorted and performed in the right order", async () => {
+  test('Ordering - This query includes both deletes and and insert, this tests to makse sure the resulting querys are sorted and performed in the right order', async () => {
     state.deleteAllLocalData();
     await performAndValidateSync(state);
 
     // Add a bunch of initial data
-    let team = state.addTeam("BigTeam");
-    let game = state.addGame(team.id, "BadGuys");
+    let team = state.addTeam('BigTeam');
+    let game = state.addGame(team.id, 'BadGuys');
     let players = [];
     for (let i = 0; i < 5; i++) {
-      let player = state.addPlayer(`player${i}`, "F");
+      let player = state.addPlayer(`player${i}`, 'F');
       state.addPlayerToLineup(game.lineup, player.id);
       players.push(player);
     }
@@ -354,7 +354,7 @@ describe("sync", () => {
     for (let i = 0; i < 5; i++) {
       state.removePlayer(players[i].id);
     }
-    state.addTeam("Actually this team");
+    state.addTeam('Actually this team');
     await performAndValidateSync(state);
   });
 });

@@ -1,9 +1,9 @@
 //const TimSort = require("timsort"); -- Buggy (https://github.com/mziccard/node-timsort/issues/14)
-const stable = require("stable");
+const stable = require('stable');
 
-const HandledError = require("./handled-error.js");
-const idUtils = require("../id-utils.js");
-const logger = require("./logger.js");
+const HandledError = require('./handled-error.js');
+const idUtils = require('../id-utils.js');
+const logger = require('./logger.js');
 
 /*
  *  This class contains the logic for translating the json structure applicationData on client side to sql statements on the server. It's a hot mess.
@@ -11,31 +11,31 @@ const logger = require("./logger.js");
 
 // Map json names to db table names.
 const tableReferences = [
-  "teams",
-  "players",
-  "plateAppearances",
-  "games",
-  "lineup",
-  "optimizations"
+  'teams',
+  'players',
+  'plateAppearances',
+  'games',
+  'lineup',
+  'optimizations',
 ];
 const tableNames = [
-  "teams",
-  "players",
-  "plate_appearances",
-  "games",
-  "players_games",
-  "optimization"
+  'teams',
+  'players',
+  'plate_appearances',
+  'games',
+  'players_games',
+  'optimization',
 ];
 
 // Specify what order we should execute sql statements in for inserts/updates (deletes are done in reverse order)
 // This is importatnt because it prevents foreign key violations between tables, items at the top have are referenced by lower items
 const tableSortOrder = [
-  "players",
-  "optimization",
-  "teams",
-  "games",
-  "players_games",
-  "plate_appearances"
+  'players',
+  'optimization',
+  'teams',
+  'games',
+  'players_games',
+  'plate_appearances',
 ];
 let tableOrdering = {}; // map for efficient lookup
 for (let i = 0; i < tableSortOrder.length; i++) {
@@ -44,7 +44,7 @@ for (let i = 0; i < tableSortOrder.length; i++) {
 
 // Specify what order we should return sql statements that do delete, insert, and update
 // This also prevents foreign key violations because we need to do delets in reverse order and inserts/updates in forward order (order per tableSortOrder)
-const opSortOrder = ["DELETE", "INSERT", "UPDATE"];
+const opSortOrder = ['DELETE', 'INSERT', 'UPDATE'];
 let opOrdering = {}; // map for easy lookup
 for (let i = 0; i < opSortOrder.length; i++) {
   opOrdering[opSortOrder[i]] = i;
@@ -57,34 +57,34 @@ const JSON_LIST_MAX_CHARS = 500; // Can hold just under 30 ids (TODO: this is to
 // Do all these need to not be 14 chars?
 const keywords = tableReferences
   .concat([
-    "type",
-    "customData",
-    "overrideData",
-    "status",
-    "resultData",
-    "statusMessage",
-    "teamList",
-    "playerList",
-    "gameList",
-    "sendEmail",
-    "lineupType"
+    'type',
+    'customData',
+    'overrideData',
+    'status',
+    'resultData',
+    'statusMessage',
+    'teamList',
+    'playerList',
+    'gameList',
+    'sendEmail',
+    'lineupType',
   ]) // optimization columns
   .concat([
-    "date",
-    "opponent",
-    "park",
-    "scoreUs",
-    "scoreThem" /* lineupType already present */
+    'date',
+    'opponent',
+    'park',
+    'scoreUs',
+    'scoreThem' /* lineupType already present */,
   ]) // game columns
-  .concat(["result", "location", "x", "y"]) // plate_appearance columns
-  .concat(["name", "gender", "picture", "song_link", "song_start"]) // player columns
-  .concat(["date", "opponent", "park"]) // team columns
+  .concat(['result', 'location', 'x', 'y']) // plate_appearance columns
+  .concat(['name', 'gender', 'picture', 'song_link', 'song_start']) // player columns
+  .concat(['date', 'opponent', 'park']) // team columns
   .concat([
     /* name already present */
   ]); // teams columns
 
 let getSqlFromPatch = function(patch, accountId) {
-  logger.log(accountId, "Converting patch to sql");
+  logger.log(accountId, 'Converting patch to sql');
   let result = [];
   getSqlFromPatchInternal(patch, [], result, accountId);
 
@@ -106,7 +106,7 @@ let getSqlFromPatch = function(patch, accountId) {
         let bTable = b.query.match(STATEMENT_TABLE_REGEX)[0];
 
         let tableSort = 0;
-        if (aOp === "DELETE") {
+        if (aOp === 'DELETE') {
           // DELETEs need to be in reverse order
           tableSort = tableOrdering[bTable] - tableOrdering[aTable];
         } else {
@@ -119,7 +119,7 @@ let getSqlFromPatch = function(patch, accountId) {
         } else {
           throw new HandledError(
             500,
-            "Internal Server Error",
+            'Internal Server Error',
             `Unable to compare these tables: ${aTable} ${bTable}. Please add them to the tableSortOrder constant.`
           );
         }
@@ -128,14 +128,14 @@ let getSqlFromPatch = function(patch, accountId) {
       } else {
         throw new HandledError(
           500,
-          "Internal Server Error",
+          'Internal Server Error',
           `Unable to compare these tables: ${opOrdering[aOp]} ${opOrdering[bOp]}. Please add them to the opSortOrder constant.`
         );
       }
     } else {
       throw new HandledError(
         500,
-        "Internal Server Error",
+        'Internal Server Error',
         `Could not detemine order of these statements ${a.query} ${b.query}. Add an order property to the query object.`
       );
     }
@@ -147,8 +147,8 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
   if (accountId === undefined) {
     throw new HandledError(
       500,
-      "Internal Server Error",
-      "Tried to generate sql while accountId was undefined (no account logged in, or at least no data was stored in the session)"
+      'Internal Server Error',
+      'Tried to generate sql while accountId was undefined (no account logged in, or at least no data was stored in the session)'
     );
   }
   let keys = Object.keys(patch);
@@ -160,113 +160,113 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
       let applicableTable = getTableFromReference(applicableTableReference);
       let op = value.op;
 
-      if (op === "Delete") {
+      if (op === 'Delete') {
         // We have to delete references first
-        if (applicableTable === "teams") {
+        if (applicableTable === 'teams') {
           result.push({
             // We need to do the subquery here because we don't have the game id available in the path
             query:
-              "DELETE FROM players_games WHERE game_id IN (SELECT id FROM games WHERE team_id IN ($1) AND account_id IN ($2)) AND account_id IN ($2)",
+              'DELETE FROM players_games WHERE game_id IN (SELECT id FROM games WHERE team_id IN ($1) AND account_id IN ($2)) AND account_id IN ($2)',
             values: [
               idUtils.clientIdToServerId(value.key, accountId),
-              accountId
+              accountId,
             ],
-            order: "DELETE"
+            order: 'DELETE',
           });
           result.push({
             query:
-              "DELETE FROM plate_appearances WHERE team_id IN ($1) AND account_id IN ($2)",
+              'DELETE FROM plate_appearances WHERE team_id IN ($1) AND account_id IN ($2)',
             values: [
               idUtils.clientIdToServerId(value.key, accountId),
-              accountId
+              accountId,
             ],
-            order: "DELETE"
+            order: 'DELETE',
           });
           result.push({
             query:
-              "DELETE FROM games WHERE team_id IN ($1) AND account_id IN ($2)",
+              'DELETE FROM games WHERE team_id IN ($1) AND account_id IN ($2)',
             values: [
               idUtils.clientIdToServerId(value.key, accountId),
-              accountId
+              accountId,
             ],
-            order: "DELETE"
-          });
-        }
-
-        if (applicableTable === "games") {
-          result.push({
-            query:
-              "DELETE FROM players_games WHERE game_id IN ($1) AND account_id IN ($2)",
-            values: [
-              idUtils.clientIdToServerId(value.key, accountId),
-              accountId
-            ],
-            order: "DELETE"
-          });
-          result.push({
-            query:
-              "DELETE FROM plate_appearances WHERE game_id IN ($1) AND account_id IN ($2)",
-            values: [
-              idUtils.clientIdToServerId(value.key, accountId),
-              accountId
-            ],
-            order: "DELETE"
+            order: 'DELETE',
           });
         }
 
-        if (applicableTable === "players_games") {
+        if (applicableTable === 'games') {
           result.push({
             query:
-              "UPDATE players_games SET lineup_index = lineup_index - 1 WHERE lineup_index >= (SELECT lineup_index FROM players_games WHERE game_id = $2 AND player_id = $1 AND account_id = $3) AND game_id = $2 AND account_id = $3",
+              'DELETE FROM players_games WHERE game_id IN ($1) AND account_id IN ($2)',
             values: [
               idUtils.clientIdToServerId(value.key, accountId),
-              idUtils.clientIdToServerId(
-                getIdFromPath(path, "games"),
-                accountId
-              ),
-              accountId
+              accountId,
             ],
-            order: "DELETE"
+            order: 'DELETE',
           });
           result.push({
             query:
-              "DELETE FROM players_games WHERE player_id IN ($1) AND game_id IN ($2) AND account_id IN ($3)",
+              'DELETE FROM plate_appearances WHERE game_id IN ($1) AND account_id IN ($2)',
+            values: [
+              idUtils.clientIdToServerId(value.key, accountId),
+              accountId,
+            ],
+            order: 'DELETE',
+          });
+        }
+
+        if (applicableTable === 'players_games') {
+          result.push({
+            query:
+              'UPDATE players_games SET lineup_index = lineup_index - 1 WHERE lineup_index >= (SELECT lineup_index FROM players_games WHERE game_id = $2 AND player_id = $1 AND account_id = $3) AND game_id = $2 AND account_id = $3',
             values: [
               idUtils.clientIdToServerId(value.key, accountId),
               idUtils.clientIdToServerId(
-                getIdFromPath(path, "games"),
+                getIdFromPath(path, 'games'),
                 accountId
               ),
-              accountId
+              accountId,
             ],
-            order: "DELETE"
+            order: 'DELETE',
+          });
+          result.push({
+            query:
+              'DELETE FROM players_games WHERE player_id IN ($1) AND game_id IN ($2) AND account_id IN ($3)',
+            values: [
+              idUtils.clientIdToServerId(value.key, accountId),
+              idUtils.clientIdToServerId(
+                getIdFromPath(path, 'games'),
+                accountId
+              ),
+              accountId,
+            ],
+            order: 'DELETE',
           });
         } else {
           result.push({
             query:
-              "DELETE FROM " +
+              'DELETE FROM ' +
               applicableTable +
-              " WHERE id IN ($1) AND account_id IN ($2)",
+              ' WHERE id IN ($1) AND account_id IN ($2)',
             values: [
               idUtils.clientIdToServerId(value.key, accountId),
-              accountId
+              accountId,
             ],
-            order: "DELETE"
+            order: 'DELETE',
           });
         }
-      } else if (op === "ArrayAdd") {
+      } else if (op === 'ArrayAdd') {
         // We need to add the key back to the object
         let insertObject = {};
         insertObject[applicableTableReference] = JSON.parse(value.param1);
 
         // Get the parent ids from the path
         let parents = {};
-        if (applicableTableReference == "games") {
+        if (applicableTableReference == 'games') {
           parents.teamId = path[1];
-        } else if (applicableTableReference == "plateAppearances") {
+        } else if (applicableTableReference == 'plateAppearances') {
           parents.teamId = path[1];
           parents.gameId = path[3];
-        } else if (applicableTableReference == "lineup") {
+        } else if (applicableTableReference == 'lineup') {
           parents.gameId = path[3];
           insertObject.position = value.param2; // lineup is not based on primary key ordering so we need to specify a position
         }
@@ -276,12 +276,12 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
           result,
           accountId
         );
-      } else if (op === "ReOrder") {
+      } else if (op === 'ReOrder') {
         let oldOrder = JSON.parse(value.param1);
         let newOrder = JSON.parse(value.param2);
 
-        if (applicableTable != "players_games") {
-          throw "Something unexpected was reordered!" + applicableTable; // The only thing that should be re-orederable is the lineup, other things are all ordered by creation time (i.e. created_at timestamp and serial_counter columns).
+        if (applicableTable != 'players_games') {
+          throw 'Something unexpected was reordered!' + applicableTable; // The only thing that should be re-orederable is the lineup, other things are all ordered by creation time (i.e. created_at timestamp and serial_counter columns).
         }
 
         /**
@@ -291,8 +291,8 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
          */
         let reOrderQuery = `UPDATE players_games AS pg SET lineup_index = c.lineup_index FROM (values`;
         let values = [
-          idUtils.clientIdToServerId(getIdFromPath(path, "games"), accountId),
-          accountId
+          idUtils.clientIdToServerId(getIdFromPath(path, 'games'), accountId),
+          accountId,
         ];
         for (let entry = 0; entry < oldOrder.length; entry++) {
           reOrderQuery += `($1, $${entry * 2 +
@@ -300,7 +300,7 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
             2 +
             4} AND game_id = $1 AND account_id = $2))`;
           if (entry !== oldOrder.length - 1) {
-            reOrderQuery += ",";
+            reOrderQuery += ',';
           }
           values.push(idUtils.clientIdToServerId(newOrder[entry], accountId));
           values.push(idUtils.clientIdToServerId(oldOrder[entry], accountId));
@@ -310,39 +310,39 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
         result.push({
           query: reOrderQuery,
           values: values,
-          order: "UPDATE"
+          order: 'UPDATE',
         });
-      } else if (op === "Edit") {
+      } else if (op === 'Edit') {
         if (
-          applicableTable === "games" &&
-          getColNameFromJSONValue(value.key) === "date"
+          applicableTable === 'games' &&
+          getColNameFromJSONValue(value.key) === 'date'
         ) {
           result.push({
             query:
-              "UPDATE games SET date = to_timestamp($1) WHERE id IN ($2) AND account_id IN ($3);",
+              'UPDATE games SET date = to_timestamp($1) WHERE id IN ($2) AND account_id IN ($3);',
             values: [
               value.param2,
               idUtils.clientIdToServerId(getIdFromPath(path), accountId),
-              accountId
+              accountId,
             ],
-            order: "UPDATE"
+            order: 'UPDATE',
           });
         } else {
           let columnName = getColNameFromJSONValue(value.key);
           let limit = undefined; // defaults to 50 chars
 
           // customData, snapshtotData, teams, games, players, and results fields on the optimization table contain potentially longer stringified JSON
-          if (applicableTable === "optimization") {
+          if (applicableTable === 'optimization') {
             if (
-              columnName === "custom_data" ||
-              columnName === "override_data" ||
-              columnName === "result_data"
+              columnName === 'custom_data' ||
+              columnName === 'override_data' ||
+              columnName === 'result_data'
             ) {
               limit = JSON_BLOB_MAX_CHARS;
             } else if (
-              columnName === "team_list" ||
-              columnName === "game_list" ||
-              columnName === "player_list"
+              columnName === 'team_list' ||
+              columnName === 'game_list' ||
+              columnName === 'player_list'
             ) {
               limit = JSON_LIST_MAX_CHARS;
             }
@@ -351,32 +351,32 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
           // TODO: This can update any field on the applicable table, limit this to exposed fields only. Make getColNameFromJSONValue only return editable fields.
           result.push({
             query:
-              "UPDATE " +
+              'UPDATE ' +
               applicableTable +
-              " SET " +
+              ' SET ' +
               columnName +
-              " = $1 WHERE id IN ($2) AND account_id IN ($3);",
+              ' = $1 WHERE id IN ($2) AND account_id IN ($3);',
             values: [
               value.param2,
               idUtils.clientIdToServerId(getIdFromPath(path), accountId),
-              accountId
+              accountId,
             ],
             limits: {
-              1: limit
+              1: limit,
             },
-            order: "UPDATE"
+            order: 'UPDATE',
           });
         }
-      } else if (op === "Add") {
+      } else if (op === 'Add') {
         // we can't add things to a table that aren't defined in the schema. That's okay because we shouldn't get these anyways.
-        logger.log(accountId, "WARNING: skipped add");
+        logger.log(accountId, 'WARNING: skipped add');
       } else {
         throw new HandledError(
           400,
-          "The request specified an invalid operation. Try again.",
-          "Unrecognized operation: " +
+          'The request specified an invalid operation. Try again.',
+          'Unrecognized operation: ' +
             op +
-            " " +
+            ' ' +
             (patch ? JSON.stringify(patch[key]) : patch)
         );
       }
@@ -394,29 +394,29 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
   if (accountId === undefined) {
     throw new HandledError(
       500,
-      "Internal Server Error",
-      "Tried to generate sql while accountId was undefined (no account logged in, or at least data was not stored in the session)"
+      'Internal Server Error',
+      'Tried to generate sql while accountId was undefined (no account logged in, or at least data was not stored in the session)'
     );
   }
   if (obj.players) {
     result.push({
       query:
-        "INSERT INTO players (id, name, gender, song_link, song_start, account_id) VALUES($1, $2, $3, $4, $5, $6)",
+        'INSERT INTO players (id, name, gender, song_link, song_start, account_id) VALUES($1, $2, $3, $4, $5, $6)',
       values: [
         idUtils.clientIdToServerId(obj.players.id, accountId),
         obj.players.name,
         obj.players.gender,
         obj.players.song_link,
         obj.players.song_start,
-        accountId
+        accountId,
       ],
-      order: "INSERT"
+      order: 'INSERT',
     });
   }
   if (obj.optimizations) {
     result.push({
       query:
-        "INSERT INTO optimization (id, name, type, custom_data, override_data, status, result_data, status_message, send_email, team_list, game_list, player_list, lineup_type, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
+        'INSERT INTO optimization (id, name, type, custom_data, override_data, status, result_data, status_message, send_email, team_list, game_list, player_list, lineup_type, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)',
       values: [
         idUtils.clientIdToServerId(obj.optimizations.id, accountId),
         obj.optimizations.name,
@@ -431,7 +431,7 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
         obj.optimizations.gameList,
         obj.optimizations.playerList,
         obj.optimizations.lineupType,
-        accountId
+        accountId,
       ],
       limits: {
         4: JSON_BLOB_MAX_CHARS,
@@ -439,20 +439,20 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
         7: JSON_BLOB_MAX_CHARS,
         10: JSON_LIST_MAX_CHARS,
         11: JSON_LIST_MAX_CHARS,
-        12: JSON_LIST_MAX_CHARS
+        12: JSON_LIST_MAX_CHARS,
       },
-      order: "INSERT"
+      order: 'INSERT',
     });
   }
   if (obj.teams) {
     result.push({
-      query: "INSERT INTO teams (id, name, account_id) VALUES($1, $2, $3)",
+      query: 'INSERT INTO teams (id, name, account_id) VALUES($1, $2, $3)',
       values: [
         idUtils.clientIdToServerId(obj.teams.id, accountId),
         obj.teams.name,
-        accountId
+        accountId,
       ],
-      order: "INSERT"
+      order: 'INSERT',
     });
     if (obj.teams.games) {
       let insertObject = {};
@@ -468,7 +468,7 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
   if (obj.games) {
     result.push({
       query:
-        "INSERT INTO games (id, date, opponent, park, score_us, score_them, team_id, lineup_type, account_id) VALUES($1, to_timestamp($2), $3, $4, $5, $6, $7, $8, $9)",
+        'INSERT INTO games (id, date, opponent, park, score_us, score_them, team_id, lineup_type, account_id) VALUES($1, to_timestamp($2), $3, $4, $5, $6, $7, $8, $9)',
       values: [
         idUtils.clientIdToServerId(obj.games.id, accountId),
         obj.games.date,
@@ -478,9 +478,9 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
         obj.games.scoreThem,
         idUtils.clientIdToServerId(parents.teamId, accountId),
         obj.games.lineupType,
-        accountId
+        accountId,
       ],
-      order: "INSERT"
+      order: 'INSERT',
     });
     if (obj.games.plateAppearances) {
       let insertObject = {};
@@ -503,24 +503,24 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
   if (obj.lineup) {
     result.push({
       query:
-        "UPDATE players_games SET lineup_index = lineup_index + 1 WHERE lineup_index >= $1 AND game_id = $2 AND account_id = $3",
+        'UPDATE players_games SET lineup_index = lineup_index + 1 WHERE lineup_index >= $1 AND game_id = $2 AND account_id = $3',
       values: [
         obj.position + 1, // lineup oredering starts at 1 not 0
         idUtils.clientIdToServerId(parents.gameId, accountId),
-        accountId
+        accountId,
       ],
-      order: "INSERT" // Run with the inserts, these two statements must be run one after the other
+      order: 'INSERT', // Run with the inserts, these two statements must be run one after the other
     });
     result.push({
       query:
-        "INSERT INTO players_games (player_id, game_id, lineup_index, account_id) VALUES($1, $2, $3, $4)",
+        'INSERT INTO players_games (player_id, game_id, lineup_index, account_id) VALUES($1, $2, $3, $4)',
       values: [
         idUtils.clientIdToServerId(obj.lineup, accountId),
         idUtils.clientIdToServerId(parents.gameId, accountId),
         obj.position + 1, // lineup oredering starts at 1 not 0
-        accountId
+        accountId,
       ],
-      order: "INSERT"
+      order: 'INSERT',
     });
   }
 
@@ -533,7 +533,7 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
     }
     result.push({
       query:
-        "INSERT INTO plate_appearances (id, result, player_id, game_id, team_id, hit_location_x, hit_location_y, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;",
+        'INSERT INTO plate_appearances (id, result, player_id, game_id, team_id, hit_location_x, hit_location_y, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;',
       values: [
         idUtils.clientIdToServerId(obj.plateAppearances.id, accountId),
         obj.plateAppearances.result,
@@ -542,9 +542,9 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
         idUtils.clientIdToServerId(parents.teamId, accountId),
         x,
         y,
-        accountId
+        accountId,
       ],
-      order: "INSERT"
+      order: 'INSERT',
     });
   }
 };
@@ -553,24 +553,24 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
   if (!accountId) {
     throw new HandledError(
       500,
-      "Internal Server Error",
-      "Tried to generate sql while accountId was undefined (no account loged in)"
+      'Internal Server Error',
+      'Tried to generate sql while accountId was undefined (no account loged in)'
     );
   }
   if (obj.players) {
     for (let i = 0; i < obj.players.length; i++) {
       result.push({
         query:
-          "INSERT INTO players (id, name, gender, song_link, song_start, account_id) VALUES($1, $2, $3, $4, $5, $6) RETURNING id;",
+          'INSERT INTO players (id, name, gender, song_link, song_start, account_id) VALUES($1, $2, $3, $4, $5, $6) RETURNING id;',
         values: [
           idUtils.clientIdToServerId(obj.players[i].id, accountId),
           obj.players[i].name,
           obj.players[i].gender,
           obj.players[i].song_link,
           obj.players[i].song_start,
-          accountId
+          accountId,
         ],
-        order: "INSERT"
+        order: 'INSERT',
       });
     }
   }
@@ -580,7 +580,7 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
     for (let i = 0; i < obj.players.length; i++) {
       result.push({
         query:
-          "INSERT INTO optimization (id, name, type, custom_data, override_data, status, result_data, status_message, send_email, team_list, game_list, player_list, lineup_type, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING id;",
+          'INSERT INTO optimization (id, name, type, custom_data, override_data, status, result_data, status_message, send_email, team_list, game_list, player_list, lineup_type, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING id;',
         values: [
           idUtils.clientIdToServerId(obj.optimizations[i].id, accountId),
           obj.optimizations[i].name,
@@ -595,7 +595,7 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
           obj.optimizations[i].gameList,
           obj.optimizations[i].playerList,
           obj.optimizations[i].lineupType,
-          accountId
+          accountId,
         ],
         limits: {
           4: JSON_BLOB_MAX_CHARS,
@@ -603,9 +603,9 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
           7: JSON_BLOB_MAX_CHARS,
           10: JSON_LIST_MAX_CHARS,
           11: JSON_LIST_MAX_CHARS,
-          12: JSON_LIST_MAX_CHARS
+          12: JSON_LIST_MAX_CHARS,
         },
-        order: "INSERT"
+        order: 'INSERT',
       });
     }
   }
@@ -614,13 +614,13 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
     for (let i = 0; i < obj.teams.length; i++) {
       result.push({
         query:
-          "INSERT INTO teams (id, name, account_id) VALUES($1, $2) RETURNING id;",
+          'INSERT INTO teams (id, name, account_id) VALUES($1, $2) RETURNING id;',
         values: [
           idUtils.clientIdToServerId(obj.teams[i].id, accountId),
           obj.teams[i].name,
-          accountId
+          accountId,
         ],
-        order: "INSERT"
+        order: 'INSERT',
       });
       if (obj.teams[i].games) {
         let insertObject = {};
@@ -637,7 +637,7 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
     for (let i = 0; i < obj.games.length; i++) {
       result.push({
         query:
-          "INSERT INTO games (id, date, opponent, park, score_us, score_them, team_id, lineup_type, account_id) VALUES($1, to_timestamp($2), $3, $4, $5, $6, $7, $8, $9) RETURNING id;",
+          'INSERT INTO games (id, date, opponent, park, score_us, score_them, team_id, lineup_type, account_id) VALUES($1, to_timestamp($2), $3, $4, $5, $6, $7, $8, $9) RETURNING id;',
         values: [
           idUtils.clientIdToServerId(obj.games[i].id, accountId),
           obj.games[i].date,
@@ -647,9 +647,9 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
           obj.games[i].scoreThem,
           idUtils.clientIdToServerId(parents.teamId, accountId),
           obj.games[i].lineupType,
-          accountId
+          accountId,
         ],
-        order: "INSERT"
+        order: 'INSERT',
       });
       if (obj.games[i].plateAppearances) {
         let insertObject = {};
@@ -674,14 +674,14 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
     for (let i = 0; i < obj.lineup.length; i++) {
       result.push({
         query:
-          "INSERT INTO players_games (player_id, game_id, lineup_index, account_id) VALUES($1, $2, $3, $4)",
+          'INSERT INTO players_games (player_id, game_id, lineup_index, account_id) VALUES($1, $2, $3, $4)',
         values: [
           idUtils.clientIdToServerId(obj.lineup[i], accountId),
           idUtils.clientIdToServerId(parents.gameId, accountId),
           i + 1,
-          accountId
+          accountId,
         ],
-        order: "INSERT"
+        order: 'INSERT',
       });
     }
   }
@@ -696,7 +696,7 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
       }
       result.push({
         query:
-          "INSERT INTO plate_appearances (id, result, player_id, game_id, team_id, hit_location_x, hit_location_y, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;",
+          'INSERT INTO plate_appearances (id, result, player_id, game_id, team_id, hit_location_x, hit_location_y, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;',
         values: [
           idUtils.clientIdToServerId(obj.plateAppearances[i].id, accountId),
           obj.plateAppearances[i].result,
@@ -708,9 +708,9 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
           idUtils.clientIdToServerId(parents.teamId, accountId),
           x,
           y,
-          accountId
+          accountId,
         ],
-        order: "INSERT"
+        order: 'INSERT',
       });
     }
   }
@@ -718,27 +718,27 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
 
 let getColNameFromJSONValue = function(value) {
   let map = {
-    x: "hit_location_x",
-    y: "hit_location_y",
-    lineupType: "lineup_type",
-    scoreUs: "score_us",
-    scoreThem: "score_them",
-    customData: "custom_data",
-    resultData: "result_data",
-    overrideData: "override_data",
-    playerList: "player_list",
-    teamList: "team_list",
-    gameList: "game_list",
-    sendEmail: "send_email"
+    x: 'hit_location_x',
+    y: 'hit_location_y',
+    lineupType: 'lineup_type',
+    scoreUs: 'score_us',
+    scoreThem: 'score_them',
+    customData: 'custom_data',
+    resultData: 'result_data',
+    overrideData: 'override_data',
+    playerList: 'player_list',
+    teamList: 'team_list',
+    gameList: 'game_list',
+    sendEmail: 'send_email',
   };
   if (map[value]) {
     return map[value];
   } else {
-    if (value === "account_id") {
+    if (value === 'account_id') {
       // TODO: are there casing workarounds here?
       throw new HandledError(
         500,
-        "Internal Server Error",
+        'Internal Server Error',
         `Security Issue. User attempted to modify row ownership.`
       );
     }
@@ -776,10 +776,10 @@ let getIdFromPath = function(path, type) {
     for (let i = path.length - 1; i >= 0; i--) {
       // TODO: sorting the keywords and binary searching through them would be better here
       if (!keywords.includes(path[i])) {
-        logger.log(null, "Approved", `'${path[i]}'`);
+        logger.log(null, 'Approved', `'${path[i]}'`);
         return path[i];
       } else {
-        logger.log(null, "Rejected", `'${path[i]}'`);
+        logger.log(null, 'Rejected', `'${path[i]}'`);
       }
     }
   }
@@ -799,7 +799,7 @@ let isRoot = function(obj) {
   let keys = Object.keys(obj);
   for (var i = 0; i < keys.length; i++) {
     let key = keys[i];
-    if (obj[key] !== null && typeof obj[key] === "object") {
+    if (obj[key] !== null && typeof obj[key] === 'object') {
       return false;
     }
   }
@@ -807,5 +807,5 @@ let isRoot = function(obj) {
 };
 
 module.exports = {
-  getSqlFromPatch: getSqlFromPatch
+  getSqlFromPatch: getSqlFromPatch,
 };

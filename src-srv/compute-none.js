@@ -1,6 +1,6 @@
-const ip = require("ip");
+const ip = require('ip');
 
-const logger = require("./logger.js");
+const logger = require('./logger.js');
 
 /**
  * This compute implementation does not start the optimization, instead it waits
@@ -13,7 +13,7 @@ module.exports = class ComputeNone {
   async start(accountId, optimizationId) {
     logger.warn(
       accountId,
-      "Start optimization Java on remote machine with args:",
+      'Start optimization Java on remote machine with args:',
       optimizationId,
       ip.address()
     );

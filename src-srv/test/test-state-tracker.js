@@ -1,5 +1,5 @@
-const utils = require("./test-utils.js");
-const objectMerge = require("../../object-merge.js");
+const utils = require('./test-utils.js');
+const objectMerge = require('../../object-merge.js');
 
 module.exports = class StateTester {
   constructor(sessionId) {
