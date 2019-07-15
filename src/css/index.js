@@ -18,5 +18,13 @@ const exp = {
     'fixed-table-header-height': '28px',
     'fixed-table-col-width': '80px',
   },
+  spacing: {
+    xxSmall: '0.5rem',
+    xSmall: '1rem',
+    small: '1.5rem',
+    medium: '2rem',
+    large: '5rem',
+    xLarge: '10rem',
+  },
 };
 module.exports = exp;

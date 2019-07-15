@@ -84,9 +84,8 @@ const rules = {
     _execute(cmd, cb);
   },
   clean: function(cb) {
-    const vendor_bundle = process.env.npm_package_config_bundles_vendor;
     const main_bundle = process.env.npm_package_config_bundles_main_out;
-    const cmd = `rm -f ${vendor_bundle} ${main_bundle}`;
+    const cmd = `rm -f ${main_bundle}`;
     _execute(cmd, cb);
   },
 };

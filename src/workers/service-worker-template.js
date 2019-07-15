@@ -37,7 +37,6 @@ self.addEventListener("install", function(event) {
         "/server/assets/remove.svg",
         "/server/assets/spinner.gif",
         "/server/build/main.js",
-        "/server/build/vendor.js",
         "/server/simulation-worker"
       ]);
     })

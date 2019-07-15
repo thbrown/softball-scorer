@@ -19,6 +19,7 @@ export default class LeftHeaderButton extends expose.Component {
       className: 'back-arrow',
       onClick: this.handleButtonPress,
       alt: 'back',
+      style: this.props.style
     });
   }
 };

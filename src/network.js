@@ -6,6 +6,8 @@ const exp = {};
 const FETCH_TIMEOUT =
   config.network && config.network.timeout ? config.network.timeout : 10000;
 
+let requestInternal;
+
 exp.request = async function(method, url, body) {
   url = exp.getServerUrl(url);
   try {
@@ -24,21 +26,14 @@ exp.request = async function(method, url, body) {
     return response;
   }
 };
+export const request = exp.request;
 
 exp.getServerUrl = function(path) {
   return window.location.origin + '/' + path;
 };
+export const getServerUrl = exp.getServerUrl;
 
-// TODO: Should we move this to the state?
-exp.updateNetworkStatus = async function() {
-  let resp = await exp.request('GET', 'server/current-account');
-  if (resp.status === 200) {
-    console.log(`Active User: ${resp.body.email}`);
-    state.setActiveUser(resp.body.email);
-  }
-};
-
-let requestInternal = async function(method, url, body) {
+requestInternal = async function(method, url, body) {
   const response = {};
   if ('fetch' in window) {
     const res = await new Promise(async function(resolve, reject) {

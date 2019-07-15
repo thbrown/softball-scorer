@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default ({ message, isCentered }) => {
+export default ({ message, isCentered, children }) => {
   return (
     <div
       className="card-textbox"
@@ -9,6 +9,7 @@ export default ({ message, isCentered }) => {
       }}
     >
       {message}
+      {children}
     </div>
   );
 };

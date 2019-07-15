@@ -25,10 +25,11 @@ export default class RightHeaderButton extends expose.Component {
       : '/server/assets/home.svg';
     let alt = this.props.showBlogLink ? 'blog' : 'home';
     return DOM.img({
-      src: src,
+      src,
       className: 'header-right',
       onClick: this.handleButtonPress,
-      alt: alt,
+      alt,
+      style: this.props.style,
     });
   }
 }

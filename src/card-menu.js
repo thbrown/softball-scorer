@@ -1,18 +1,15 @@
-import React from 'react';
-import DOM from 'react-dom-factories';
+import React, { Component } from 'react';
 import expose from './expose';
 import state from 'state';
 import dialog from 'dialog';
 import FileSaver from 'file-saver';
 import css from 'css';
 import network from 'network';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
+import Card from 'elements/card';
 
-export default class CardMenu extends expose.Component {
+export default class CardMenu extends Component {
   constructor(props) {
     super(props);
-    this.expose();
     this.state = {};
 
     this.handleTeamsClick = function() {
@@ -116,8 +113,8 @@ export default class CardMenu extends expose.Component {
     };
 
     this.handleSaveClick = function() {
-      var today = new Date().getTime();
-      var blob = new Blob([JSON.stringify(state.getLocalState(), null, 2)], {
+      const today = new Date().getTime();
+      const blob = new Blob([JSON.stringify(state.getLocalState(), null, 2)], {
         type: 'text/plain;charset=utf-8',
       });
       FileSaver.saveAs(blob, 'save' + today + '.json');
@@ -148,176 +145,105 @@ export default class CardMenu extends expose.Component {
     };
   }
 
-  renderMenuOptions() {
-    let elems = [];
-
-    elems.push(
-      DOM.div(
-        {
-          key: 'teams',
-          id: 'teams',
-          className: 'list-item',
-          onClick: this.handleTeamsClick.bind(this),
-          style: {
-            backgroundColor: css.colors.BG,
-          },
-        },
-        'Teams'
-      )
-    );
-
-    elems.push(
-      DOM.div(
-        {
-          key: 'players',
-          id: 'players',
-          className: 'list-item',
-          onClick: this.handlePlayersClick.bind(this),
-          style: {
-            backgroundColor: css.colors.BG,
-          },
-        },
-        'Players'
-      )
-    );
-
-    elems.push(
-      DOM.div(
-        {
-          key: 'optimizations',
-          id: 'optimizations',
-          className: 'list-item',
-          onClick: this.handleOptimizationsClick.bind(this),
-          style: {
-            backgroundColor: css.colors.BG,
-          },
-        },
-        'Optimizations'
-      )
-    );
-
-    if (state.getAddToHomescreenPrompt()) {
-      elems.push(
-        DOM.div(
-          {
-            key: 'addToHomescreen',
-            id: 'addToHomescreen',
-            className: 'list-item',
-            onClick: this.handleAddToHomeScreenClick.bind(this),
-            style: {
-              backgroundColor: css.colors.BG,
-            },
-          },
-          'Add App to Homescreen'
-        )
-      );
-    }
-
-    if (state.isSessionValid()) {
-      elems.push(
-        DOM.div(
-          {
-            key: 'logout',
-            id: 'logout',
-            className: 'list-item',
-            onClick: this.handleLogoutClick.bind(this),
-            style: {
-              backgroundColor: css.colors.BG,
-            },
-          },
-          'Logout'
-        )
-      );
-    } else {
-      elems.push(
-        DOM.div(
-          {
-            key: 'login',
-            id: 'login',
-            className: 'list-item',
-            onClick: this.handleLoginClick.bind(this),
-            style: {
-              backgroundColor: css.colors.BG,
-            },
-          },
-          'Login/Signup'
-        )
-      );
-    }
-
-    elems.push(
-      DOM.div(
-        {
-          key: 'sync',
-          id: 'sync',
-          className: 'list-item',
-          onClick: this.handleSyncClick.bind(this),
-          style: {
-            backgroundColor: css.colors.BG,
-          },
-        },
-        'Force Sync'
-      )
-    );
-
-    elems.push(
-      DOM.div(
-        {
-          key: 'save',
-          className: 'list-item',
-          onClick: this.handleSaveClick.bind(this),
-          style: {
-            backgroundColor: css.colors.BG,
-          },
-        },
-        'Save as File'
-      )
-    );
-
-    elems.push(
-      DOM.div(
-        {
-          key: 'load',
-          className: 'list-item',
-          onClick: this.handleLoadClick.bind(this),
-          style: {
-            backgroundColor: css.colors.BG,
-          },
-        },
-        'Load from File'
-      )
-    );
-
-    return DOM.div({}, elems);
-  }
-
   render() {
-    return DOM.div(
-      {
-        className: 'card',
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {}),
-        DOM.div(
-          {
-            className: 'prevent-overflow card-title-text-with-arrow',
-          },
-          'Menu'
-        ),
-        React.createElement(RightHeaderButton, {
-          showBlogLink: true,
-        })
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderMenuOptions()
-      )
+    return (
+      <Card title="Menu">
+        <div
+          id="teams"
+          className="list-item"
+          onClick={this.handleTeamsClick.bind(this)}
+          style={{
+            backgroundColor: css.colors.BG,
+          }}
+        >
+          Teams
+        </div>
+        <div
+          id="players"
+          className="list-item"
+          onClick={this.handlePlayersClick.bind(this)}
+          style={{
+            backgroundColor: css.colors.BG,
+          }}
+        >
+          Players
+        </div>
+        <div
+          id="optimizations"
+          className="list-item"
+          onClick={this.handleOptimizationsClick.bind(this)}
+          style={{
+            backgroundColor: css.colors.BG,
+          }}
+        >
+          Optimizations
+        </div>
+        {state.getAddToHomescreenPrompt() && (
+          <div
+            id="addToHomescreen"
+            className="list-item"
+            onClick={this.handleAddToHomeScreenClick.bind(this)}
+            style={{
+              backgroundColor: css.colors.BG,
+            }}
+          >
+            Add App to Homescreen
+          </div>
+        )}
+        {state.isSessionValid() ? (
+          <div
+            id="logout"
+            className="list-item"
+            onClick={this.handleLogoutClick.bind(this)}
+            style={{
+              backgroundColor: css.colors.BG,
+            }}
+          >
+            Logout
+          </div>
+        ) : (
+          <div
+            id="login"
+            className="list-item"
+            onClick={this.handleLoginClick.bind(this)}
+            style={{
+              backgroundColor: css.colors.BG,
+            }}
+          >
+            Login/Signup
+          </div>
+        )}
+        <div
+          id="sync"
+          className="list-item"
+          onClick={this.handleSyncClick.bind(this)}
+          style={{
+            backgroundColor: css.colors.BG,
+          }}
+        >
+          Force Sync
+        </div>
+        <div
+          id="save"
+          className="list-item"
+          onClick={this.handleSaveClick.bind(this)}
+          style={{
+            backgroundColor: css.colors.BG,
+          }}
+        >
+          Save as File
+        </div>
+        <div
+          id="load"
+          className="list-item"
+          onClick={this.handleLoadClick.bind(this)}
+          style={{
+            backgroundColor: css.colors.BG,
+          }}
+        >
+          Load from File
+        </div>
+      </Card>
     );
   }
-};
+}
