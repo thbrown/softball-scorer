@@ -555,7 +555,7 @@ module.exports = class DatabaseCalls {
     } else if (result.rowCount !== 0) {
       throw new HandledError(
         500,
-        `A strange number of results were returned: ${optimizationId} ${result}`
+        `A strange number of results were returned: accountId=${accountId} result=${result}`
       );
     }
     return undefined;

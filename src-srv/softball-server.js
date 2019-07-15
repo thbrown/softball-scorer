@@ -184,12 +184,13 @@ module.exports = class SoftballServer {
       );
       if (account) {
         logger.log(null, 'GOT AN ID', statsPageId, account);
-        res.send(
-          'This should be a stats page for ' +
-            account.account_id +
-            ' ' +
-            account.email
-        );
+        next();
+        // res.send(
+        //   'This should be a stats page for ' +
+        //     account.account_id +
+        //     ' ' +
+        //     account.email
+        // );
       } else {
         logger.warn(null, 'No account found with stat_page_id=' + statsPageId);
         next();
@@ -256,6 +257,33 @@ module.exports = class SoftballServer {
           await unlockAccount(accountId);
         }
         res.status(200).send(JSON.stringify(state, null, 2));
+      })
+    );
+
+    app.get(
+      '/server/state-stats/:id',
+      wrapForErrorProcessing(async (req, res) => {
+        const { id: statsPageId } = req.params;
+        const account = await this.databaseCalls.getAccountFromStatsPageId(
+          statsPageId
+        );
+        if (account) {
+          const { account_id:accountId } = account;
+          await lockAccount(accountId);
+          let state;
+          try {
+            state = await this.databaseCalls.getState(accountId);
+          } finally {
+            await unlockAccount(accountId);
+          }
+          res.status(200).send(state);
+        } else {
+          logger.warn(
+            null,
+            'No account found with stat_page_id=' + statsPageId
+          );
+          res.status(404).send();
+        }
       })
     );
 
@@ -649,7 +677,7 @@ module.exports = class SoftballServer {
                 accountId,
                 'performing full sync',
                 data.type,
-                new Boolean(serverAncestor)
+                !!serverAncestor
               );
               responseData.base =
                 state || (await this.databaseCalls.getState(accountId));
@@ -1108,10 +1136,6 @@ module.exports = class SoftballServer {
 
     async function logIn(account, req, res) {
       logger.log(account.account_id, 'Loggin in', account);
-      let sessionInfo = {
-        accountId: account.account_id,
-        email: account.email,
-      };
       try {
         await new Promise(function(resolve, reject) {
           req.logIn(account, function() {

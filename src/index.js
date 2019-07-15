@@ -1,49 +1,56 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import DataContainer from 'elements/data-container';
+import RouteContainer from 'elements/route-container';
 import MainContainer from 'main-container';
+import state from 'state';
+
+require('utils/polyfills');
 
 global.React = React;
-
-// Prepend polyfill
-// from: https://github.com/jserz/js_piece/blob/master/DOM/ParentNode/prepend()/prepend().md
-(function(arr) {
-  arr.forEach(function(item) {
-    if (item.hasOwnProperty('prepend')) {
-      return;
-    }
-    Object.defineProperty(item, 'prepend', {
-      configurable: true,
-      enumerable: true,
-      writable: true,
-      value: function prepend() {
-        let argArr = Array.prototype.slice.call(arguments),
-          docFrag = document.createDocumentFragment();
-
-        argArr.forEach(function(argItem) {
-          let isNode = argItem instanceof Node;
-          docFrag.appendChild(
-            isNode ? argItem : document.createTextNode(String(argItem))
-          );
-        });
-
-        this.insertBefore(docFrag, this.firstChild);
-      },
-    });
-  });
-})([Element.prototype, Document.prototype, DocumentFragment.prototype]);
 
 const container = document.createElement('div');
 document.body.prepend(container);
 
 let Main = (global.Main = {});
 
-let main_props = {
-  main: Main,
+const App = props => {
+  return (
+    <DataContainer
+      url="server/current-account"
+      onRequestComplete={async data => {
+        if (data.email) {
+          console.log(`[AUTH] Active User: ${data.email}`);
+          state.setActiveUser(data.email);
+          state.sync();
+        } else {
+          console.log(`[AUTH] Not logged in`);
+        }
+      }}
+    >
+      {({ data, loading }) => {
+        return (
+          <RouteContainer>
+            {routeProps => {
+              return (
+                <MainContainer
+                  main={Main}
+                  data={data}
+                  loading={loading}
+                  {...routeProps}
+                />
+              );
+            }}
+          </RouteContainer>
+        );
+      }}
+    </DataContainer>
+  );
 };
-Main.render = function() {
-  ReactDOM.render(React.createElement(MainContainer, main_props), container);
-};
-Main.render();
+
+(Main.render = function() {
+  ReactDOM.render(<App />, container);
+})();
 
 let _resize_timeout = null;
 window.addEventListener('resize', function() {

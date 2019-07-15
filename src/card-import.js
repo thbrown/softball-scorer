@@ -1,13 +1,11 @@
 import React from 'react';
 import expose from './expose';
-import DOM from 'react-dom-factories';
 import css from 'css';
 import dialog from 'dialog';
 import objectMerge from '../object-merge.js';
 import state from 'state';
-
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
+import Card from 'elements/card';
+import Textbox from 'elements/textbox';
 
 export default class CardImport extends expose.Component {
   constructor(props) {
@@ -73,111 +71,50 @@ export default class CardImport extends expose.Component {
     };
   }
 
-  renderLoadPage() {
-    if (!window.FileReader) {
-      return DOM.div(
-        {
-          key: 'login',
-          id: 'login',
-          className: 'list-item',
-          onClick: this.handleLoginClick.bind(this),
-          style: {
-            backgroundColor: css.colors.BG,
-          },
-        },
-        'Files can not be loaded because FileReader is not supported by this browser.'
-      ); // TODO: load copy and paste text area instead
-    }
-
-    return [
-      DOM.input({
-        type: 'file',
-        name: 'fileData',
-        key: 'fieldData',
-        id: 'fileData',
-        className: 'radio-button', // TODO: Different class name
-      }),
-      DOM.div(
-        {
-          key: 'loadTypeRadio',
-          className: 'radio-button',
-        },
-        DOM.div(
-          {
-            className: 'radio-button-option',
-          },
-          DOM.input({
-            type: 'radio',
-            name: 'loadType',
-            value: 'Merge',
-            id: 'mergeChoice',
-            onChange: this.handleRadioButtonChange,
-          }),
-          DOM.label(
-            {
-              htmlFor: 'mergeChoice',
-            },
-            'Merge'
-          )
-        ),
-        DOM.div(
-          {
-            className: 'radio-button-option',
-          },
-          DOM.input({
-            type: 'radio',
-            name: 'loadType',
-            value: 'Overwrite',
-            id: 'overwriteChoice',
-            onChange: this.handleRadioButtonChange,
-          }),
-          DOM.label(
-            {
-              htmlFor: 'overwriteChoice',
-            },
-            'Overwrite'
-          )
-        )
-      ),
-      DOM.div(
-        {
-          key: 'load',
-          id: 'load',
-          className: 'button confirm-button',
-          onClick: this.handleLoadClick.bind(this),
-          style: {
-            backgroundColor: css.colors.BG,
-          },
-        },
-        'Load'
-      ),
-    ];
-  }
-
   render() {
-    return DOM.div(
-      {
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {}),
-        DOM.div(
-          {
-            className: 'card-title-text-with-arrow',
-          },
-          'Load from File'
-        ),
-        React.createElement(RightHeaderButton, {})
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderLoadPage()
-      )
+    return (
+      <Card title="Load from File">
+        <Textbox>
+          <input
+            type="file"
+            name="fileData"
+            id="fileData"
+            className="radio-button"
+          />
+          <div className="radio-button">
+            <div className="radio-button-option">
+              <input
+                type="radio"
+                name="loadType"
+                value="Merge"
+                id="mergeChoice"
+                onChange={this.handleRadioButtonChange}
+              />
+              <label htmlFor="mergeChoice">Merge</label>
+            </div>
+            <div className="radio-button-option">
+              <input
+                type="radio"
+                name="loadType"
+                value="Overwrite"
+                id="overwriteChoice"
+                onChange={this.handleRadioButtonChange}
+              />
+              <label htmlFor="overwriteChoice">Overwrite</label>
+            </div>
+          </div>
+          <div
+            id="load"
+            className="button confirm-button"
+            onClick={this.handleLoadClick.bind(this)}
+            style={{
+              backgroundColor: css.colors.BG,
+            }}
+          >
+            Load
+          </div>
+        </Textbox>
+      </Card>
     );
   }
-};
+}

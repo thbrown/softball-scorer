@@ -1,6 +1,5 @@
 import React from 'react';
 import expose from './expose';
-import DOM from 'react-dom-factories';
 import config from 'config';
 import dialog from 'dialog';
 import network from 'network';
@@ -28,6 +27,8 @@ import CardTeam from 'card-team';
 import CardTeamEdit from 'card-team-edit';
 import CardTeamList from 'card-team-list';
 import CardVerifyEmail from 'card-verify-email';
+
+import routes from 'routes';
 const noSleep = new noSleepImport();
 
 // TODO
@@ -89,12 +90,6 @@ export default class MainContainer extends expose.Component {
         isNew: false,
       });
     };
-
-    // Check if we are logged in, online, and who we are logged in as
-    setTimeout(network.updateNetworkStatus, 1); // TODO: can this be moved to componentDidMount() ??
-
-    // Sync on first load
-    setTimeout(state.sync, 1); // TODO: can this be moved to componentDidMount() ??
 
     // Reload from local storage each time after the window regains focus
     window.addEventListener(
@@ -177,6 +172,13 @@ export default class MainContainer extends expose.Component {
     };
   }
 
+  componentDidMount() {
+    // // Check if we are logged in, online, and who we are logged in as
+    // setTimeout(network.updateNetworkStatus, 1); // TODO: can this be moved to componentDidMount() ??
+    // // Sync on first load
+    // setTimeout(state.sync, 1); // TODO: can this be moved to componentDidMount() ??
+  }
+
   /**
    * Checks if the given url matches the path. If it does match this method returns true otherwise it returns false.
    * This method also stores any path variables (marked with the ':' prefix) as properties in the passed in state object.
@@ -203,7 +205,6 @@ export default class MainContainer extends expose.Component {
     for (let i = 0; i < pathVarKeys.length; i++) {
       state[pathVarKeys[i]] = pathVariables[pathVarKeys[i]];
     }
-    state.urlArray = urlArray;
     return true;
   }
 
@@ -485,9 +486,11 @@ export default class MainContainer extends expose.Component {
           optimization: optimization,
           player: player,
         });
+      } else if (MainContainer.matches(url, '/stats/:statsId/', this.state)) {
       } else {
         return React.createElement(CardNotFound, {
-          message: 'Invalid page selected ' + url,
+          title: 'Not Found',
+          message: 'The content you were looking for could not be found.',
         });
       }
     } catch (err) {
@@ -500,11 +503,14 @@ export default class MainContainer extends expose.Component {
   }
 
   render() {
-    return DOM.div(
-      {
-        style: {},
-      },
-      this.renderCard(this.state.page)
-    );
+    console.log('PROPS', this.props);
+    const { renderRouteComponent, loading, ...props } = this.props;
+
+    if (loading) {
+      return <div>LOADING...</div>;
+    } else {
+      return renderRouteComponent(props);
+      //return <div>{this.renderCard(this.state.page)}</div>;
+    }
   }
 }
