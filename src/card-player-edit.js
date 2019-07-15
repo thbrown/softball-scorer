@@ -353,4 +353,4 @@ Clips can be played from the player's plate appearance page
       )
     );
   }
-};
+}

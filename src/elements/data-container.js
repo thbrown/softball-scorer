@@ -15,27 +15,26 @@ export default class DataContainer extends Component {
     }
 
     try {
-      const { body, status } = await request(
-        'GET',
-        this.props.url,
-        this.props.body
-      );
+      const res = await request('GET', this.props.url, this.props.body);
+      const { body, status } = res;
+      console.log('[DATA]', this.props.url, 'Got response', res);
 
-      if (status === -1) {
-        this.setState({
-          data: {},
-          loading: false,
-          ready: true,
-          error: body.message,
-        });
-        this.props.onRequestError(new Error(body.message));
-      } else {
+      if (status === 200) {
         this.setState({
           data: body || {},
           loading: false,
           ready: true,
         });
         this.props.onRequestComplete(body || {});
+      } else {
+        const error = body?.message || 'Bad status code: ' + status;
+        this.setState({
+          data: {},
+          loading: false,
+          ready: true,
+          error,
+        });
+        this.props.onRequestError(new Error(error));
       }
     } catch (e) {
       this.setState({
@@ -49,6 +48,7 @@ export default class DataContainer extends Component {
   }
 
   componentDidMount() {
+    console.log('[DATA]', 'request', this.props.url);
     this.requestData();
   }
 

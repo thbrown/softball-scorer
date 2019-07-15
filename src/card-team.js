@@ -6,6 +6,7 @@ import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import CardStats from 'card-stats';
 import CardGameList from 'card-game-list';
+import { setRoute } from 'actions/route';
 
 let defaultTab = 'games';
 
@@ -17,9 +18,7 @@ export default class CardTeam extends expose.Component {
 
     this.handleTabClick = function(t) {
       tab = t;
-      expose.set_state('main', {
-        page: `/teams/${this.props.team.id}/${tab}`,
-      });
+      setRoute(`/teams/${this.props.team.id}/${tab}`);
     }.bind(this);
   }
 

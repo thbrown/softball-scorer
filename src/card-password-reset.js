@@ -5,6 +5,7 @@ import dialog from 'dialog';
 import network from 'network';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
+import { setRoute } from 'actions/route';
 
 export default class CardPasswordReset extends expose.Component {
   constructor(props) {
@@ -52,18 +53,14 @@ export default class CardPasswordReset extends expose.Component {
         dialog.show_notification(
           `Success! Your password has been changed. Please login.`,
           function() {
-            expose.set_state('main', {
-              page: '/menu/login',
-            });
+            setRoute('/menu/login');
           }
         );
       } else if (response.status === 404) {
         dialog.show_notification(
           `Error! We were not able to change your password. The activation link may have expired. Please request another password reset.`,
           function() {
-            expose.set_state('main', {
-              page: '/menu/login',
-            });
+            setRoute('/menu/login');
           }
         );
       } else {
@@ -72,9 +69,7 @@ export default class CardPasswordReset extends expose.Component {
             response.body ? response.body.message : ''
           }`,
           function() {
-            expose.set_state('main', {
-              page: '/menu/login',
-            });
+            setRoute('/menu/login');
           }
         );
       }

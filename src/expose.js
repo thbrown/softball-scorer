@@ -37,6 +37,15 @@ export class Component extends React.Component {
     this._expose_id = null;
   }
 
+  exposeOverwrite(id) {
+    if (!id) {
+      this._expose_id = 'state' + expose_ctr;
+      expose_ctr++;
+    } else {
+      this._expose_id = id;
+    }
+  }
+
   expose(id) {
     if (!id) {
       this._expose_id = 'state' + expose_ctr;
@@ -47,7 +56,7 @@ export class Component extends React.Component {
     if (states[this._expose_id]) {
       console.error(
         'Error, expose component exposed an id that already exists',
-        this.expose_id,
+        this._expose_id,
         this.props
       );
     }

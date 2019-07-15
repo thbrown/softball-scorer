@@ -1,4 +1,6 @@
 import React from 'react';
+import expose from 'expose';
+import { setRoute } from 'actions/route';
 
 export function routeMatches(url, path, state) {
   const urlArray = url.split('/');
@@ -33,20 +35,51 @@ export function getRouteState(url, routes) {
       };
     }
   }
+
+  const notFound = routes['/not-found'];
+  if (notFound) {
+    console.warn('Route not found: ' + url);
+    return {
+      state: {},
+      renderRouteComponent: notFound,
+    };
+  }
   return {};
 }
 
-const RouterContainer = ({ children, routes, ...props }) => {
-  const { state, renderRouteComponent } = getRouteState(
-    window.location.pathname,
-    routes
-  );
-  const routeProps = {
-    page: window.location.pathname,
-    renderRouteComponent,
-    ...state,
-  };
-  return <>{children({ ...props, ...routeProps })}</>;
+// TODO: Move this out of an element container/rethink where to put isNew
+window.onpopstate = function() {
+  expose.set_state('main', {
+    isNew: false,
+  });
+  setRoute(window?.location?.pathname);
 };
 
-export default RouterContainer;
+export default class RouteContainer extends expose.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      path: window?.location?.pathname,
+    };
+    this.exposeOverwrite('router' + this.props.routeId);
+  }
+
+  render() {
+    const { routes, ...props } = this.props;
+    const { state, renderRouteComponent } = getRouteState(
+      this.state.path,
+      this.props.routes
+    );
+    const routeProps = {
+      page: this.state.path,
+      renderRouteComponent,
+      ...state,
+    };
+    return <>{this.props.children({ ...props, ...routeProps })}</>;
+  }
+}
+
+RouteContainer.defaultProps = {
+  routes: {},
+  routeId: '',
+};

@@ -1,7 +1,11 @@
 import React from 'react';
 import expose from './expose';
 import state from 'state';
+import Card from 'elements/card';
 import { StickyTable, Row, Cell } from 'react-sticky-table';
+import { setRoute } from 'actions/route';
+
+//7e9d0d34ee3c3a
 
 const DSC_CHAR = '▼'; //'\25bc';
 const ASC_CHAR = '▲'; //'\25be';
@@ -87,10 +91,18 @@ export default class CardStats extends expose.Component {
     }.bind(this);
 
     this.handlePlayerClick = function(playerId) {
-      expose.set_state('main', {
-        page: `/teams/${this.props.team.id}/stats/player/${playerId}`,
-      });
-    };
+      const {
+        team: { id: teamId },
+        routingMethod,
+      } = this.props;
+      if (routingMethod === 'app') {
+        setRoute(`/teams/${teamId}/stats/player/${playerId}`);
+      } else if (routingMethod === 'statsPage') {
+        setRoute(
+          `/stats/${this.state.statsId}/teams/${teamId}/player/${playerId}`
+        );
+      }
+    }.bind(this);
   }
 
   getHeaderText(statName) {
@@ -116,6 +128,14 @@ export default class CardStats extends expose.Component {
         }-stat-cell`;
     }
     return className;
+  }
+
+  buildStatsObject(teamId, playerId) {
+    const plateAppearances = state.getPlateAppearancesForPlayerOnTeam(
+      playerId,
+      teamId
+    );
+    return state.buildStatsObject(playerId, plateAppearances);
   }
 
   renderStatsHeader() {
@@ -176,22 +196,30 @@ export default class CardStats extends expose.Component {
   }
 
   render() {
-    const s = state.getLocalState();
+    const { team, state: stateProps } = this.props;
+
+    if (!team) {
+      throw new Error('No team given to CardStats.');
+    }
+
+    // TODO: Generate this once when the component mounts.  It's very redundant to do it
+    // on each render
+    const s = stateProps || state.getLocalState();
     const playerStatsList = s.players
       .filter(player => {
-        return this.props.team.games.reduce((result, game) => {
+        return team.games.reduce((result, game) => {
           return result || game.lineup.indexOf(player.id) > -1;
         }, false);
       })
       .map(player => {
-        return this.buildStatsObject(this.props.team.id, player.id);
+        return this.buildStatsObject(team.id, player.id);
       })
       .sort((a, b) => {
         return this.sortByState(a, b);
       });
 
     if (playerStatsList.length === 0) {
-      return <div />;
+      throw new Error('No playerStats could be generated.');
     }
 
     const tableElems = [this.renderStatsHeader()].concat(
@@ -200,24 +228,17 @@ export default class CardStats extends expose.Component {
       })
     );
 
-    const height = window.innerHeight - 80 + 'px';
+    //const height = window.innerHeight - 80 + 'px';
     return (
-      <div
-        className="card"
-        style={{ width: '100%', height: height, marginTop: '20px' }}
-      >
-        <div className="card-body">
-          <StickyTable>{tableElems}</StickyTable>
-        </div>
-      </div>
+      <Card title="Stats">
+        <StickyTable>{tableElems}</StickyTable>
+      </Card>
     );
   }
+}
 
-  buildStatsObject(teamId, playerId) {
-    const plateAppearances = state.getPlateAppearancesForPlayerOnTeam(
-      playerId,
-      teamId
-    );
-    return state.buildStatsObject(playerId, plateAppearances);
-  }
+CardStats.defaultProps = {
+  team: null,
+  state: null,
+  routingMethod: 'app',
 };

@@ -6,6 +6,7 @@ import CardLineup from 'card-lineup';
 import CardScorer from 'card-scorer';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
+import { setRoute } from 'actions/route';
 
 const defaultTab = 'lineup';
 
@@ -15,9 +16,9 @@ export default class CardGame extends expose.Component {
     this.expose();
 
     this.handleTabClick = function(newTab) {
-      expose.set_state('main', {
-        page: `/teams/${this.props.team.id}/games/${this.props.game.id}/${newTab}`,
-      });
+      setRoute(
+        `/teams/${this.props.team.id}/games/${this.props.game.id}/${newTab}`
+      );
     }.bind(this);
   }
 
@@ -83,4 +84,4 @@ export default class CardGame extends expose.Component {
       subcard
     );
   }
-};
+}

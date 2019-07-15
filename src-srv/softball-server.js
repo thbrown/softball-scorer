@@ -177,25 +177,6 @@ module.exports = class SoftballServer {
           .normalize()
       )
     );
-    app.use('/stats/:id', async (req, res, next) => {
-      const { id: statsPageId } = req.params;
-      const account = await this.databaseCalls.getAccountFromStatsPageId(
-        statsPageId
-      );
-      if (account) {
-        logger.log(null, 'GOT AN ID', statsPageId, account);
-        next();
-        // res.send(
-        //   'This should be a stats page for ' +
-        //     account.account_id +
-        //     ' ' +
-        //     account.email
-        // );
-      } else {
-        logger.warn(null, 'No account found with stat_page_id=' + statsPageId);
-        next();
-      }
-    });
     app.use(
       bodyParser.json({
         limit: '3mb',
@@ -261,18 +242,20 @@ module.exports = class SoftballServer {
     );
 
     app.get(
-      '/server/state-stats/:id',
+      '/server/stats/:statsId',
       wrapForErrorProcessing(async (req, res) => {
-        const { id: statsPageId } = req.params;
+        const { statsId: statsPageId } = req.params;
         const account = await this.databaseCalls.getAccountFromStatsPageId(
           statsPageId
         );
         if (account) {
-          const { account_id:accountId } = account;
+          const { account_id: accountId } = account;
           await lockAccount(accountId);
           let state;
           try {
             state = await this.databaseCalls.getState(accountId);
+            delete state.optimizations;
+            state.statsId = statsPageId;
           } finally {
             await unlockAccount(accountId);
           }
@@ -996,6 +979,8 @@ module.exports = class SoftballServer {
       }
       let responseData = {};
       responseData.email = extractSessionInfo(req, 'email');
+
+      console.log('GET CURRENT ACCOUNT', responseData);
       res.status(200).send(responseData);
     });
 
