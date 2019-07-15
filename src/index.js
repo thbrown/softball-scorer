@@ -4,6 +4,7 @@ import DataContainer from 'elements/data-container';
 import RouteContainer from 'elements/route-container';
 import MainContainer from 'main-container';
 import state from 'state';
+import routes from 'routes';
 
 require('utils/polyfills');
 
@@ -30,7 +31,7 @@ const App = props => {
     >
       {({ data, loading }) => {
         return (
-          <RouteContainer>
+          <RouteContainer routes={routes}>
             {routeProps => {
               return (
                 <MainContainer

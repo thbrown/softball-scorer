@@ -1,5 +1,6 @@
 import expose from 'expose';
 import DOM from 'react-dom-factories';
+import { setRoute } from 'actions/route';
 
 export default class RightHeaderButton extends expose.Component {
   constructor(props) {
@@ -12,9 +13,7 @@ export default class RightHeaderButton extends expose.Component {
       if (props.showBlogLink) {
         window.open('https://blog.softball.app', '_blank');
       } else {
-        expose.set_state('main', {
-          page: '/menu',
-        });
+        setRoute('/menu');
       }
     };
   }

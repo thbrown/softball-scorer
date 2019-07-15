@@ -4,6 +4,7 @@ import expose from './expose';
 import state from 'state';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
+import { setRoute } from 'actions/route';
 
 export default class CardOptimizationList extends expose.Component {
   constructor(props) {
@@ -12,16 +13,14 @@ export default class CardOptimizationList extends expose.Component {
     this.state = {};
 
     this.handleOptimizationClick = function(optimization) {
-      expose.set_state('main', {
-        page: `/optimizations/${optimization.id}`,
-      });
+      setRoute(`/optimizations/${optimization.id}`);
     };
 
     this.handleEditClick = function(optimization, ev) {
       expose.set_state('main', {
-        page: `/optimizations/${optimization.id}/edit`,
         isNew: false,
       });
+      setRoute(`/optimizations/${optimization.id}/edit`);
       ev.stopPropagation();
     };
 
@@ -31,9 +30,9 @@ export default class CardOptimizationList extends expose.Component {
         `${d.getMonth() + 1}/${d.getDate()} optimization`
       );
       expose.set_state('main', {
-        page: `/optimizations/${optimization.id}/edit`,
         isNew: true,
       });
+      setRoute(`/optimizations/${optimization.id}/edit`);
     };
   }
 
@@ -112,4 +111,4 @@ export default class CardOptimizationList extends expose.Component {
       )
     );
   }
-};
+}

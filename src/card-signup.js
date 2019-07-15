@@ -7,6 +7,7 @@ import network from 'network';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import config from 'config';
+import { setRoute } from 'actions/route';
 
 export default class CardSignup extends expose.Component {
   constructor(props) {
@@ -79,9 +80,7 @@ export default class CardSignup extends expose.Component {
         dialog.show_notification(
           `Thank you for creating an account on Softball.app! You have been logged in. To enable all softball.app features, please verify your email by clicking the activation link in the welcome email sent to ${email.value}. This link will expire after 24 hours.`,
           function() {
-            expose.set_state('main', {
-              page: '/menu',
-            });
+            setRoute('/menu');
           }
         );
       } else {

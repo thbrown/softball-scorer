@@ -4,6 +4,7 @@ import DOM from 'react-dom-factories';
 import network from 'network';
 import dialog from 'dialog';
 import state from 'state';
+import { setRoute } from 'actions/route';
 
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
@@ -17,13 +18,9 @@ export default class CardAuth extends expose.Component {
     this.handleSignupClick = function() {
       let emailValue = document.getElementById('email').value;
       if (emailValue) {
-        expose.set_state('main', {
-          page: `/menu/signup?email=${encodeURIComponent(emailValue)}`,
-        });
+        setRoute(`/menu/signup?email=${encodeURIComponent(emailValue)}`);
       } else {
-        expose.set_state('main', {
-          page: `/menu/signup`,
-        });
+        setRoute('/menu/signup');
       }
     };
 
@@ -131,10 +128,7 @@ export default class CardAuth extends expose.Component {
             let status = await state.sync();
             if (status === 200) {
               console.log('Done with sync');
-              expose.set_state('main', {
-                page: '/menu',
-                render: true,
-              });
+              setRoute('/main');
             } else {
               dialog.show_notification(
                 'An error occured while attempting sync: ' + status

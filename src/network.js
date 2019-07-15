@@ -60,11 +60,12 @@ requestInternal = async function(method, url, body) {
 
     response.status = res.status;
     if (response.status !== 204) {
+      let data;
       try {
-        let data = await res.text();
+        data = await res.text();
         response.body = data ? JSON.parse(data) : undefined;
       } catch (e) {
-        console.log(e);
+        console.log(e, data);
       }
     }
 

@@ -6,6 +6,7 @@ import dialog from 'dialog';
 import network from 'network';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
+import { setRoute } from 'actions/route';
 
 export default class CardVerifyEmail extends expose.Component {
   constructor(props) {
@@ -34,17 +35,13 @@ export default class CardVerifyEmail extends expose.Component {
           redirect = '/menu';
         }
         dialog.show_notification(message, function() {
-          expose.set_state('main', {
-            page: redirect,
-          });
+          setRoute(redirect);
         });
       } else if (response.status === 404) {
         dialog.show_notification(
           `We were unable to verify your email. The token may have expired.`, // TODO: resend
           function() {
-            expose.set_state('main', {
-              page: '/menu',
-            });
+            setRoute('/menu');
           }
         );
       } else {
@@ -53,9 +50,7 @@ export default class CardVerifyEmail extends expose.Component {
             response.body ? response.body.message : ''
           }`,
           function() {
-            expose.set_state('main', {
-              page: '/menu',
-            });
+            setRoute('/menu');
           }
         );
       }
@@ -110,4 +105,4 @@ export default class CardVerifyEmail extends expose.Component {
       )
     );
   }
-};
+}

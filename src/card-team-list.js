@@ -4,6 +4,7 @@ import expose from './expose';
 import state from 'state';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
+import { setRoute } from 'actions/route';
 
 export default class CardTeamList extends expose.Component {
   constructor(props) {
@@ -12,25 +13,23 @@ export default class CardTeamList extends expose.Component {
     this.state = {};
 
     this.handleTeamClick = function(team) {
-      expose.set_state('main', {
-        page: `/teams/${team.id}`,
-      });
+      setRoute(`/teams/${team.id}`);
     };
 
     this.handleEditClick = function(team, ev) {
       expose.set_state('main', {
-        page: `/teams/${team.id}/edit`,
         isNew: false,
       });
+      setRoute(`/teams/${team.id}/edit`);
       ev.stopPropagation();
     };
 
     this.handleCreateClick = function() {
-      let team = state.addTeam('');
+      const team = state.addTeam('');
       expose.set_state('main', {
-        page: `/teams/${team.id}/edit`,
         isNew: true,
       });
+      setRoute(`/teams/${team.id}/edit`);
     };
   }
 

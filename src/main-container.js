@@ -1,34 +1,14 @@
 import React from 'react';
-import expose from './expose';
+import expose from 'expose';
 import config from 'config';
 import dialog from 'dialog';
 import network from 'network';
 import noSleepImport from './lib/nosleep.js';
 import state from 'state';
-import CardAuth from 'card-auth';
 import CardNotFound from 'card-not-found';
-import CardGame from 'card-game';
-import CardGameEdit from 'card-game-edit';
-import CardImport from 'card-import';
-import CardMenu from 'card-menu';
-import CardOptimizationList from 'card-optimization-list';
-import CardOptimizationEdit from 'card-optimization-edit';
-import CardOptimization from 'card-optimization';
-import CardOptimizationStatsOverride from 'card-optimization-stats-override';
-import CardPasswordReset from 'card-password-reset';
-import CardPlateAppearance from 'card-plate-appearance';
-import CardPlayerList from 'card-player-list';
-import CardPlayerEdit from 'card-player-edit';
-import CardPlayerSelection from 'card-player-selection';
-import CardPlayerSelect from 'card-player-select';
-import CardSignup from 'card-signup';
-import CardSpray from 'card-spray';
-import CardTeam from 'card-team';
-import CardTeamEdit from 'card-team-edit';
-import CardTeamList from 'card-team-list';
-import CardVerifyEmail from 'card-verify-email';
-
-import routes from 'routes';
+import Textbox from 'elements/textbox';
+import Card from 'elements/card';
+import DataContainer from 'elements/data-container';
 const noSleep = new noSleepImport();
 
 // TODO
@@ -57,6 +37,12 @@ export default class MainContainer extends expose.Component {
     super(props);
     this.expose('main');
 
+    this.state = {
+      render: true,
+    };
+  }
+
+  componentDidMount() {
     // Register a service worker to support offline experience and quick subsequent page loads
     if ('serviceWorker' in navigator) {
       // When a new service worker is available, re-load the page
@@ -81,15 +67,6 @@ export default class MainContainer extends expose.Component {
 
     // Load data from localstorage synchronously
     state.loadStateFromLocalStorage();
-
-    // When the user pops the state (e.g. on back button press) make sure the react state matches the url.
-    window.onpopstate = function() {
-      let newPage = window.location.pathname;
-      expose.set_state('main', {
-        page: newPage,
-        isNew: false,
-      });
-    };
 
     // Reload from local storage each time after the window regains focus
     window.addEventListener(
@@ -164,353 +141,58 @@ export default class MainContainer extends expose.Component {
     });
     window.ga('send', 'pageview');
 
-    let startPage = window.location.pathname;
-
-    this.state = {
-      render: true,
-      page: startPage,
-    };
-  }
-
-  componentDidMount() {
-    // // Check if we are logged in, online, and who we are logged in as
-    // setTimeout(network.updateNetworkStatus, 1); // TODO: can this be moved to componentDidMount() ??
-    // // Sync on first load
-    // setTimeout(state.sync, 1); // TODO: can this be moved to componentDidMount() ??
-  }
-
-  /**
-   * Checks if the given url matches the path. If it does match this method returns true otherwise it returns false.
-   * This method also stores any path variables (marked with the ':' prefix) as properties in the passed in state object.
-   */
-  static matches(url, path, state) {
-    let urlArray = url.split('/');
-    let pathArray = path.split('/');
-    let pathVariables = {};
-    if (pathArray.length !== urlArray.length) {
-      return false;
-    }
-    for (let i = 1; i < pathArray.length; i++) {
-      if (pathArray[i].length > 0 && pathArray[i][0] === ':') {
-        pathVariables[pathArray[i].substring(1)] = urlArray[i];
-      } else if (urlArray[i] !== pathArray[i]) {
-        pathVariables = {};
-        return false;
-      }
-    }
-
-    // Copy path vars to state if this path matches the url
-    // TODO: It's bad that we are altering the state directly here, there is no reason why we can't write the data to a fresh object instead
-    let pathVarKeys = Object.keys(pathVariables);
-    for (let i = 0; i < pathVarKeys.length; i++) {
-      state[pathVarKeys[i]] = pathVariables[pathVarKeys[i]];
-    }
-    return true;
-  }
-
-  // Make sure these things are defined, if they aren't throw a 404
-  static validate(...args) {
-    args.forEach(val => {
-      if (!val) {
-        console.log(args);
-        throw new Error(
-          '404 - One of these fields was undefined' + JSON.stringify(args)
-        );
-      }
-    });
-  }
-
-  renderCard(url) {
-    // Update the base url if necessary
-    if (url !== window.location.pathname) {
-      window.history.pushState({}, '', url);
-    }
-
-    // Strip off params
-    url = url.split('?')[0].split('#')[0];
-
-    try {
-      if (MainContainer.matches(url, '/', this.state)) {
-        // TODO: maybe this should just redirect to /menu
-        return React.createElement(CardMenu);
-      } else if (MainContainer.matches(url, '/menu', this.state)) {
-        return React.createElement(CardMenu);
-      } else if (MainContainer.matches(url, '/menu/login', this.state)) {
-        return React.createElement(CardAuth);
-      } else if (MainContainer.matches(url, '/menu/signup', this.state)) {
-        return React.createElement(CardSignup);
-      } else if (MainContainer.matches(url, '/menu/import', this.state)) {
-        return React.createElement(CardImport);
-      } else if (
-        MainContainer.matches(url, '/account/verify-email/:token', this.state)
-      ) {
-        let token = this.state.token;
-        return React.createElement(CardVerifyEmail, {
-          token: token,
-        });
-      } else if (
-        MainContainer.matches(url, '/account/password-reset/:token', this.state)
-      ) {
-        let token = this.state.token;
-        return React.createElement(CardPasswordReset, {
-          token: token,
-        });
-      } else if (MainContainer.matches(url, '/teams', this.state)) {
-        return React.createElement(CardTeamList);
-      } else if (
-        MainContainer.matches(url, '/teams/:teamId', this.state) ||
-        MainContainer.matches(url, '/teams/:teamId/games', this.state)
-      ) {
-        let teamId = this.state.teamId;
-        let team = state.getTeam(teamId);
-        MainContainer.validate(team);
-        return React.createElement(CardTeam, {
-          team: team,
-          tab: 'games',
-        });
-      } else if (
-        MainContainer.matches(url, '/teams/:teamId/edit', this.state)
-      ) {
-        let teamId = this.state.teamId;
-        let team = state.getTeam(teamId);
-        let isNew = this.state.isNew; // TODO: revisit this, what happens if this pages is loaded via external link
-        MainContainer.validate(team);
-        return React.createElement(CardTeamEdit, {
-          team: team,
-          isNew: isNew,
-        });
-      } else if (
-        MainContainer.matches(url, '/teams/:teamId/stats', this.state)
-      ) {
-        let teamId = this.state.teamId;
-        let team = state.getTeam(teamId);
-        MainContainer.validate(team);
-        return React.createElement(CardTeam, {
-          team: team,
-          tab: 'stats',
-        });
-      } else if (
-        MainContainer.matches(
-          url,
-          '/teams/:teamId/stats/player/:playerId',
-          this.state
-        )
-      ) {
-        let team = state.getTeam(this.state.teamId);
-        let player = state.getPlayer(this.state.playerId);
-        MainContainer.validate(player);
-        return React.createElement(CardSpray, {
-          player: player,
-          team: team,
-          origin: 'stats',
-        });
-      } else if (
-        MainContainer.matches(
-          url,
-          '/teams/:teamId/games/:gameId',
-          this.state
-        ) ||
-        MainContainer.matches(
-          url,
-          '/teams/:teamId/games/:gameId/lineup',
-          this.state
-        )
-      ) {
-        let team = state.getTeam(this.state.teamId);
-        let game = state.getGame(this.state.gameId);
-        MainContainer.validate(team, game);
-        return React.createElement(CardGame, {
-          team: team,
-          game: game,
-          tab: 'lineup',
-        });
-      } else if (
-        MainContainer.matches(
-          url,
-          '/teams/:teamId/games/:gameId/scorer',
-          this.state
-        )
-      ) {
-        let team = state.getTeam(this.state.teamId);
-        let game = state.getGame(this.state.gameId);
-        MainContainer.validate(team, game);
-        return React.createElement(CardGame, {
-          team: team,
-          game: game,
-          tab: 'scorer',
-        });
-      } else if (
-        MainContainer.matches(
-          url,
-          '/teams/:teamId/games/:gameId/player-selection',
-          this.state
-        )
-      ) {
-        let team = state.getTeam(this.state.teamId);
-        let game = state.getGame(this.state.gameId);
-        MainContainer.validate(team, game);
-        return React.createElement(CardPlayerSelection, {
-          team: team,
-          game: game,
-        });
-      } else if (
-        MainContainer.matches(
-          url,
-          '/teams/:teamId/games/:gameId/edit',
-          this.state
-        )
-      ) {
-        let team = state.getTeam(this.state.teamId);
-        let game = state.getGame(this.state.gameId);
-        let isNew = this.state.isNew;
-        MainContainer.validate(team, game);
-        return React.createElement(CardGameEdit, {
-          team: team,
-          game: game,
-          isNew: isNew,
-        });
-      } else if (
-        MainContainer.matches(
-          url,
-          '/teams/:teamId/games/:gameId/lineup/plateAppearances/:plateAppearanceId',
-          this.state
-        ) ||
-        MainContainer.matches(
-          url,
-          '/teams/:teamId/games/:gameId/scorer/plateAppearances/:plateAppearanceId',
-          this.state
-        )
-      ) {
-        let team = state.getTeam(this.state.teamId);
-        let game = state.getGame(this.state.gameId);
-        let plateAppearance = state.getPlateAppearance(
-          this.state.plateAppearanceId
-        );
-        let player = state.getPlayer(plateAppearance.player_id);
-        let plateAppearances = state.getPlateAppearancesForPlayerInGame(
-          plateAppearance.player_id,
-          this.state.gameId
-        );
-        let isNew = this.state.isNew;
-        MainContainer.validate(team, game, plateAppearance, player);
-        return React.createElement(CardPlateAppearance, {
-          team: team,
-          game: game,
-          player: player,
-          plateAppearance: plateAppearance,
-          plateAppearances: plateAppearances,
-          isNew: isNew,
-        });
-      } else if (MainContainer.matches(url, '/players', this.state)) {
-        return React.createElement(CardPlayerList);
-      } else if (MainContainer.matches(url, '/players/:playerId', this.state)) {
-        let player = state.getPlayer(this.state.playerId);
-        MainContainer.validate(player);
-        return React.createElement(CardSpray, {
-          player: player,
-          origin: 'players',
-        });
-      } else if (
-        MainContainer.matches(url, '/players/:playerId/edit', this.state)
-      ) {
-        let player = state.getPlayer(this.state.playerId);
-        let isNew = this.state.isNew;
-        MainContainer.validate(player);
-        return React.createElement(CardPlayerEdit, {
-          player: player,
-          isNew: isNew,
-        });
-      } else if (MainContainer.matches(url, '/optimizations', this.state)) {
-        // Optimizations weren't a part of the original JSON state schema, so if somebody imports a file
-        // with the old schema the page will crash. This should be addressed properly by versioning for
-        // exported files. In the meantime, here is a band aid.
-        if (state.getAllOptimizations() === undefined) {
-          state.getLocalState().optimizations = [];
-          console.log('Populating optimizations!');
-        }
-        return React.createElement(CardOptimizationList);
-      } else if (
-        MainContainer.matches(
-          url,
-          '/optimizations/:optimizationId/edit',
-          this.state
-        )
-      ) {
-        let optimization = state.getOptimization(this.state.optimizationId);
-        let isNew = this.state.isNew;
-        MainContainer.validate(optimization);
-        return React.createElement(CardOptimizationEdit, {
-          optimization: optimization,
-          isNew: isNew,
-        });
-      } else if (
-        MainContainer.matches(url, '/optimizations/:optimizationId', this.state)
-      ) {
-        let optimization = state.getOptimization(this.state.optimizationId);
-        MainContainer.validate(optimization);
-        return React.createElement(CardOptimization, {
-          optimization: optimization,
-        });
-      } else if (
-        MainContainer.matches(
-          url,
-          '/optimizations/:optimizationId/overrides/player-select',
-          this.state
-        )
-      ) {
-        let optimization = state.getOptimization(this.state.optimizationId);
-        MainContainer.validate(optimization);
-        let onComplete = function(players) {
-          state.setOptimizationField(
-            optimization.id,
-            'playerList',
-            players,
-            true
-          );
-        };
-        return React.createElement(CardPlayerSelect, {
-          selected: JSON.parse(optimization.playerList),
-          onComplete: onComplete,
-        });
-      } else if (
-        MainContainer.matches(
-          url,
-          '/optimizations/:optimizationId/overrides/:playerId',
-          this.state
-        )
-      ) {
-        let player = state.getPlayer(this.state.playerId);
-        let optimization = state.getOptimization(this.state.optimizationId);
-        MainContainer.validate(optimization, player);
-        return React.createElement(CardOptimizationStatsOverride, {
-          optimization: optimization,
-          player: player,
-        });
-      } else if (MainContainer.matches(url, '/stats/:statsId/', this.state)) {
-      } else {
-        return React.createElement(CardNotFound, {
-          title: 'Not Found',
-          message: 'The content you were looking for could not be found.',
-        });
-      }
-    } catch (err) {
-      console.log(err);
-      return React.createElement(CardNotFound, {
-        message:
-          'This object either does not exist, has been deleted, or belongs to another account',
-      });
-    }
+    // Sync on first load
+    setTimeout(state.sync, 1);
   }
 
   render() {
-    console.log('PROPS', this.props);
     const { renderRouteComponent, loading, ...props } = this.props;
 
     if (loading) {
-      return <div>LOADING...</div>;
+      return (
+        <Card
+          title="Softball.app"
+          enableLeftHeader={false}
+          enableRightHeader={false}
+        >
+          <Textbox message="Softball.app is loading..." />;
+        </Card>
+      );
     } else {
-      return renderRouteComponent(props);
-      //return <div>{this.renderCard(this.state.page)}</div>;
+      try {
+        //TODO find a more elegant solution for routing/caching this data container
+        if (props.page.slice(0, 7) === '/stats/' && this.props.statsId) {
+          return (
+            <DataContainer url={`server/stats/${this.props.statsId}`}>
+              {({ data, loading, error }) => {
+                return renderRouteComponent({
+                  isNew: this.state.isNew,
+                  ...props,
+                  data,
+                  loading,
+                  error,
+                });
+              }}
+            </DataContainer>
+          );
+        } else {
+          return renderRouteComponent({ isNew: this.state.isNew, ...props });
+        }
+      } catch (err) {
+        // TODO fix multi-render that occurrs when pressing the back button on edit page
+        // with a new entity (new player, new team, new game etc.)  These cause this try
+        // catch to trip and render 2 frames of CardNotFound before the route is set
+        // correctly
+        if (window.ENABLE_VERBOSE_LOGGING) {
+          console.error(err);
+        }
+        return (
+          <CardNotFound
+            title={'Error'}
+            message="This object either does not exist, has been deleted, or belongs to another account."
+          />
+        );
+      }
     }
   }
 }

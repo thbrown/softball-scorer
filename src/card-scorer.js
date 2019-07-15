@@ -4,6 +4,7 @@ import expose from './expose';
 import state from 'state';
 import dialog from 'dialog';
 import order from 'batting-order';
+import { setRoute } from 'actions/route';
 
 export default class CardScorer extends expose.Component {
   constructor(props) {
@@ -21,29 +22,27 @@ export default class CardScorer extends expose.Component {
       ev.stopPropagation();
     };
 
-    this.handleCreateClick = function() {
-      expose.set_state('main', {
-        page: 'PlayerSelection',
-      });
-    };
-
     this.handleBoxClick = function(player, plateAppearanceId) {
       expose.set_state('main', {
-        page: `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearanceId}`,
         isNew: false,
       });
+      setRoute(
+        `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearanceId}`
+      );
     };
 
     this.handleNewPlateAppearanceClick = function(player, game_id, team_id) {
-      let plateAppearance = state.addPlateAppearance(
+      const plateAppearance = state.addPlateAppearance(
         player.id,
         game_id,
         team_id
       );
       expose.set_state('main', {
-        page: `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearance.id}`,
         isNew: true,
       });
+      setRoute(
+        `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearance.id}`
+      );
     }.bind(this);
 
     this.handleDragStart = function(player) {

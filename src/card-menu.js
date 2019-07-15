@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
-import expose from './expose';
 import state from 'state';
 import dialog from 'dialog';
 import FileSaver from 'file-saver';
 import css from 'css';
 import network from 'network';
 import Card from 'elements/card';
+import { setRoute } from 'actions/route';
 
 export default class CardMenu extends Component {
   constructor(props) {
@@ -13,21 +13,15 @@ export default class CardMenu extends Component {
     this.state = {};
 
     this.handleTeamsClick = function() {
-      expose.set_state('main', {
-        page: '/teams',
-      });
+      setRoute('/teams');
     };
 
     this.handlePlayersClick = function() {
-      expose.set_state('main', {
-        page: '/players',
-      });
+      setRoute('/players');
     };
 
     this.handleOptimizationsClick = function() {
-      expose.set_state('main', {
-        page: '/optimizations',
-      });
+      setRoute('/optimizations');
     };
 
     this.handleLogoutClick = async function() {
@@ -68,9 +62,7 @@ export default class CardMenu extends Component {
         if (response.status === 204) {
           state.resetState();
           dialog.show_notification('Logout successful', function() {
-            expose.set_state('main', {
-              page: '/menu/login',
-            });
+            setRoute('/menu/login');
           });
         } else {
           // We can't delete our sid cookie in javascript because is has the httpOnly header, it has to be done from the server.
@@ -78,9 +70,7 @@ export default class CardMenu extends Component {
           dialog.show_notification(
             `Logout failed. You must be online to logout (${response.status})`,
             function() {
-              expose.set_state('main', {
-                page: '/menu',
-              });
+              setRoute('/menu');
             }
           );
         }
@@ -88,9 +78,7 @@ export default class CardMenu extends Component {
     };
 
     this.handleLoginClick = function() {
-      expose.set_state('main', {
-        page: '/menu/login',
-      });
+      setRoute('/menu/login');
     };
 
     this.handleSyncClick = async function() {
@@ -121,9 +109,7 @@ export default class CardMenu extends Component {
     };
 
     this.handleLoadClick = function() {
-      expose.set_state('main', {
-        page: '/menu/import',
-      });
+      setRoute('/menu/import');
     };
 
     this.handleAddToHomeScreenClick = function() {

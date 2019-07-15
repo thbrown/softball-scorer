@@ -2,6 +2,7 @@ import React from 'react';
 import expose from './expose';
 import DOM from 'react-dom-factories';
 import state from 'state';
+import { setRoute } from 'actions/route';
 
 export default class CardGameList extends expose.Component {
   constructor(props) {
@@ -10,25 +11,23 @@ export default class CardGameList extends expose.Component {
     this.state = {};
 
     this.handleGameClick = function(game) {
-      expose.set_state('main', {
-        page: `/teams/${props.team.id}/games/${game.id}`, // TODO: always back to lineup?
-      });
+      setRoute(`/teams/${props.team.id}/games/${game.id}`); // TODO: always back to lineup?
     };
 
     this.handleEditClick = function(game, ev) {
       expose.set_state('main', {
-        page: `/teams/${props.team.id}/games/${game.id}/edit`,
         isNew: false,
       });
+      setRoute(`/teams/${props.team.id}/games/${game.id}/edit`);
       ev.stopPropagation();
     };
 
     this.handleCreateClick = function() {
       let game = state.addGame(this.props.team.id, '');
       expose.set_state('main', {
-        page: `/teams/${props.team.id}/games/${game.id}/edit`,
         isNew: true,
       });
+      setRoute(`/teams/${props.team.id}/games/${game.id}/edit`);
     }.bind(this);
   }
 

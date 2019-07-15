@@ -82,6 +82,7 @@
     "react-select": "^2.4.2",
     "react-sticky-table": "2.0.0",
     "reactify": "^1.1.1",
+    "recompose": "^0.30.0",
     "redis": "^2.8.0",
     "serve-favicon": "^2.5.0",
     "stable": "^0.1.8",

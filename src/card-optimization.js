@@ -8,6 +8,7 @@ import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import FloatingInput from 'component-floating-input';
 import FloatingPicklist from 'component-floating-picklist';
+import { setRoute } from 'actions/route';
 
 const ACCORDION_QUERYPARAM_PREFIX = 'acc';
 const SYNC_DELAY_MS = 5000; // This value also exists in the CSS
@@ -37,15 +38,13 @@ Clips can be played from the player's plate appearance page
     };
 
     this.handleOverrideClick = function(playerId) {
-      expose.set_state('main', {
-        page: `/optimizations/${this.optimization.id}/overrides/${playerId}`,
-      });
+      setRoute(`/optimizations/${this.optimization.id}/overrides/${playerId}`);
     }.bind(this);
 
     this.handleAddPlayerClick = function() {
-      expose.set_state('main', {
-        page: `/optimizations/${this.optimization.id}/overrides/player-select`,
-      });
+      setRoute(
+        `/optimizations/${this.optimization.id}/overrides/player-select`
+      );
     }.bind(this);
 
     this.doAutoSync = async function() {
@@ -808,7 +807,7 @@ Clips can be played from the player's plate appearance page
     if (
       this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
     ) {
-      resultsStyle = { display: "none" };
+      resultsStyle = { display: 'none' };
     }
     return (
       <div style={resultsStyle}>
@@ -946,4 +945,4 @@ Clips can be played from the player's plate appearance page
       )
     );
   }
-};
+}

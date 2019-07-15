@@ -6,6 +6,7 @@ import objectMerge from '../object-merge.js';
 import state from 'state';
 import Card from 'elements/card';
 import Textbox from 'elements/textbox';
+import { setRoute } from 'actions/route';
 
 export default class CardImport extends expose.Component {
   constructor(props) {
@@ -41,17 +42,13 @@ export default class CardImport extends expose.Component {
             dialog.show_notification(
               "This file's data has been merged into local data"
             );
-            expose.set_state('main', {
-              page: '/teams',
-            });
+            setRoute('/teams');
           } else if (self.state.loadType === 'Overwrite') {
             state.setLocalState(parsedData);
             dialog.show_notification(
               "This file's data has been copied to local data"
             );
-            expose.set_state('main', {
-              page: '/teams',
-            });
+            setRoute('/teams');
           } else {
             dialog.show_notification(
               'Please select load type option before clicking "Load"'

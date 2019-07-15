@@ -4,6 +4,7 @@ import expose from './expose';
 import state from 'state';
 import dialog from 'dialog';
 import Draggable from 'react-draggable';
+import { setRoute } from 'actions/route';
 
 // Enum for player tile render options
 const FULL_EDIT = 'fullEdit';
@@ -72,16 +73,18 @@ export default class CardLineup extends expose.Component {
     };
 
     this.handleCreateClick = function() {
-      expose.set_state('main', {
-        page: `/teams/${this.props.team.id}/games/${this.props.game.id}/player-selection`,
-      });
+      setRoute(
+        `/teams/${this.props.team.id}/games/${this.props.game.id}/player-selection`
+      );
     }.bind(this);
 
     this.handleBoxClick = function(plateAppearanceId) {
       expose.set_state('main', {
-        page: `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearanceId}`,
         isNew: false,
       });
+      setRoute(
+        `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearanceId}`
+      );
     }.bind(this);
 
     this.handleNewPlateAppearanceClick = function(player, game_id, team_id) {
@@ -91,9 +94,11 @@ export default class CardLineup extends expose.Component {
         team_id
       );
       expose.set_state('main', {
-        page: `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearance.id}`,
         isNew: true,
       });
+      setRoute(
+        `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearance.id}`
+      );
     }.bind(this);
 
     this.handleDragStart = function(player) {

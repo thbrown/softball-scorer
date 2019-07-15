@@ -5,6 +5,7 @@ import state from 'state';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import Autosuggest from 'react-autosuggest';
+import { setRoute } from 'actions/route';
 
 export default class CardPlayerSelection extends expose.Component {
   constructor(props) {
@@ -33,9 +34,7 @@ export default class CardPlayerSelection extends expose.Component {
         );
       }
       state.addPlayerToLineup(this.props.game.lineup, this.state.player.id);
-      expose.set_state('main', {
-        page: `/teams/${this.props.team.id}/games/${this.props.game.id}`,
-      });
+      setRoute(`/teams/${this.props.team.id}/games/${this.props.game.id}`);
     };
 
     this.onChange = (event, { newValue }) => {
