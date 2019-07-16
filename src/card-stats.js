@@ -5,8 +5,6 @@ import Card from 'elements/card';
 import { StickyTable, Row, Cell } from 'react-sticky-table';
 import { setRoute } from 'actions/route';
 
-//7e9d0d34ee3c3a
-
 const DSC_CHAR = '▼'; //'\25bc';
 const ASC_CHAR = '▲'; //'\25be';
 
@@ -98,9 +96,7 @@ export default class CardStats extends expose.Component {
       if (routingMethod === 'app') {
         setRoute(`/teams/${teamId}/stats/player/${playerId}`);
       } else if (routingMethod === 'statsPage') {
-        setRoute(
-          `/stats/${this.state.statsId}/teams/${teamId}/player/${playerId}`
-        );
+        setRoute(`/stats/${this.props.state.statsId}/player/${playerId}`);
       }
     }.bind(this);
   }
@@ -131,11 +127,13 @@ export default class CardStats extends expose.Component {
   }
 
   buildStatsObject(teamId, playerId) {
+    const { team, state: stateProps } = this.props;
     const plateAppearances = state.getPlateAppearancesForPlayerOnTeam(
       playerId,
-      teamId
+      team
     );
-    return state.buildStatsObject(playerId, plateAppearances);
+    const player = state.getPlayer(playerId, stateProps);
+    return state.buildStatsObject(player, plateAppearances);
   }
 
   renderStatsHeader() {

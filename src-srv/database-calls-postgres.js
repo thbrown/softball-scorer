@@ -103,6 +103,7 @@ module.exports = class DatabaseCalls {
           done();
           if (err) {
             logger.log(null, err.stack);
+            logger.log(null, 'GOT ERR', err.stack, queryString, values);
             reject(err);
           } else {
             resolve(result);
@@ -165,6 +166,8 @@ module.exports = class DatabaseCalls {
         SELECT
           teams.id as team_id, 
           teams.name as team_name,
+          teams.public_id as public_id,
+          teams.public_id_enabled as public_id_enabled,
           games.id as game_id,
           extract (epoch from games.date) as game_date, 
           games.opponent as game_opponent, 
@@ -268,10 +271,12 @@ module.exports = class DatabaseCalls {
             !teamIdSet.has(plateAppearance.team_id)
           ) {
             teamIdSet.add(plateAppearance.team_id);
-            var newTeam = {};
+            const newTeam = {};
             newTeam.games = [];
             newTeam.id = idUtils.serverIdToClientId(plateAppearance.team_id);
             newTeam.name = plateAppearance.team_name;
+            newTeam.publicId = plateAppearance.public_id;
+            newTeam.publicIdEnabled = plateAppearance.public_id_enabled;
             teams.push(newTeam);
           }
 
@@ -464,28 +469,6 @@ module.exports = class DatabaseCalls {
     return undefined;
   }
 
-  async getAccountFromStatsPageId(statsPageId) {
-    logger.log(null, 'Seraching statsIds for', statsPageId);
-    let results = await this.parameterizedQueryPromise(
-      `
-        SELECT account_id, email
-        FROM account 
-        WHERE stat_page_id = $1
-      `,
-      [statsPageId.trim()]
-    );
-    if (results.rowCount > 1) {
-      throw new HandledError(
-        500,
-        `A strange number of accounts were returned: statsid=${statsPageId} results=${results}`
-      );
-    } else if (results.rowCount === 1) {
-      return results.rows[0];
-    } else {
-      return undefined;
-    }
-  }
-
   async getAccountById(id) {
     let result = await this.parameterizedQueryPromise(
       'SELECT email, verified_email FROM account WHERE account_id = $1',
@@ -501,6 +484,26 @@ module.exports = class DatabaseCalls {
       throw new HandledError(
         500,
         `A strange number of accounts were returned: id=${id} result=${result}`
+      );
+    }
+    return undefined;
+  }
+
+  async getAccountAndTeamByTeamPublicId(publicId) {
+    const result = await this.parameterizedQueryPromise(
+      'SELECT account_id, id AS team_id FROM teams WHERE public_id = $1 AND public_id_enabled = true',
+      [publicId]
+    );
+    if (result.rowCount === 1) {
+      const { account_id, team_id } = result.rows[0];
+      return {
+        accountId: account_id,
+        teamId: team_id,
+      };
+    } else if (result.rowCount !== 0) {
+      throw new HandledError(
+        500,
+        `A strange number of accounts were returned: public_id=${publicId} result=${result}`
       );
     }
     return undefined;

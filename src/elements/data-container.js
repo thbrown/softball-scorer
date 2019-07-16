@@ -17,7 +17,6 @@ export default class DataContainer extends Component {
     try {
       const res = await request('GET', this.props.url, this.props.body);
       const { body, status } = res;
-      console.log('[DATA]', this.props.url, 'Got response', res);
 
       if (status === 200) {
         this.setState({
@@ -48,7 +47,6 @@ export default class DataContainer extends Component {
   }
 
   componentDidMount() {
-    console.log('[DATA]', 'request', this.props.url);
     this.requestData();
   }
 

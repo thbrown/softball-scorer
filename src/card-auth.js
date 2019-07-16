@@ -128,7 +128,8 @@ export default class CardAuth extends expose.Component {
             let status = await state.sync();
             if (status === 200) {
               console.log('Done with sync');
-              setRoute('/main');
+              setRoute('/menu');
+              window.location.reload();
             } else {
               dialog.show_notification(
                 'An error occured while attempting sync: ' + status
