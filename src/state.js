@@ -686,7 +686,7 @@ exp.getPlateAppearancesForPlayerInGame = function(player_id, game_id) {
 };
 
 exp.getPlateAppearancesForPlayerOnTeam = function(player_id, team_id) {
-  let team = exp.getTeam(team_id);
+  let team = typeof team_id === 'string' ? exp.getTeam(team_id) : team_id;
   let plateAppearances = [];
 
   if (team && team.games) {
@@ -966,7 +966,8 @@ exp.editQueryObject = function(fieldName, value) {
 };
 
 exp.buildStatsObject = function(playerId, plateAppearances) {
-  const player = state.getPlayer(playerId);
+  const player =
+    typeof playerId === 'string' ? state.getPlayer(playerId) : playerId;
 
   const stats = {};
   stats.id = player.id;

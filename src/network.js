@@ -101,7 +101,7 @@ requestInternal = async function(method, url, body) {
       response.body = request.response;
     }
   }
-  console.log('Request Complete', url, response.status);
+  console.log('[NET] Request Complete', url, response.status, response.body);
   return response;
 };
 

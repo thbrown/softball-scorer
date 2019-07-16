@@ -9,9 +9,10 @@ const Card = ({
   enableRightHeader,
   leftHeaderProps,
   rightHeaderProps,
+  noFade,
 }) => {
   return (
-    <div className="card">
+    <div className={noFade ? '' : 'card'}>
       <div className="card-title">
         <LeftHeaderButton
           style={{
@@ -36,6 +37,7 @@ Card.defaultProps = {
   title: 'title',
   enableLeftHeader: true,
   enableRightHeader: true,
+  noFade: false,
   leftHeaderProps: {},
   rightHeaderProps: {},
 };

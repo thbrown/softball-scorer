@@ -9,6 +9,7 @@ export function routeMatches(url, path, state) {
   if (pathArray.length !== urlArray.length) {
     return false;
   }
+
   for (let i = 1; i < pathArray.length; i++) {
     if (pathArray[i].length > 0 && pathArray[i][0] === ':') {
       pathVariables[pathArray[i].substring(1)] = urlArray[i];

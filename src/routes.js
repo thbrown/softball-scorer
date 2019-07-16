@@ -23,7 +23,6 @@ import CardTeam from 'card-team';
 import CardTeamEdit from 'card-team-edit';
 import CardTeamList from 'card-team-list';
 import CardVerifyEmail from 'card-verify-email';
-import CardTeamListStats from 'card-team-list-stats';
 import CardStats from 'card-stats';
 
 let routes;
@@ -234,38 +233,27 @@ routes = {
       />
     );
   },
-  '/stats/:statsId': ({ data, loading, error, statsId }) => {
-    return renderWhileLoading({ loading, error })(() => {
-      return <CardTeamListStats state={data} statsId={statsId} />;
-    });
-  },
-  '/stats/:statsId/teams': isSameRouteAs('/stats/:statsId'),
-  '/stats/:statsId/teams/:teamId': ({
-    data,
-    loading,
-    error,
-    statsId,
-    teamId,
-  }) => {
+  '/stats/:statsId': ({ data, loading, error, statsId, teamId }) => {
     return renderWhileLoading({ loading, error })(() => {
       return (
-        <CardStats
-          state={data}
-          team={data.teams[0]}
-          routingMethod="statsPage"
-        />
+        <CardStats state={data} team={data.team} routingMethod="statsPage" />
       );
     });
   },
-  '/stats/:statsId/teams/:teamId/players/:playerId': ({
+  '/stats/:statsId/player/:playerId': ({
     data,
     loading,
     error,
     statsId,
-    teamId,
     playerId,
   }) => {
-    return <div />;
+    const player = data.players.reduce((prev, player) => {
+      return player.id === playerId ? player : prev;
+    }, null);
+
+    return renderWhileLoading({ loading, error })(() => {
+      return <CardSpray team={data.team} player={player} origin="statsPage" />;
+    });
   },
 };
 

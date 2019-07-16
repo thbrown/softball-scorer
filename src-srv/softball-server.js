@@ -242,29 +242,32 @@ module.exports = class SoftballServer {
     );
 
     app.get(
-      '/server/stats/:statsId',
+      '/server/stats/:publicId',
       wrapForErrorProcessing(async (req, res) => {
-        const { statsId: statsPageId } = req.params;
-        const account = await this.databaseCalls.getAccountFromStatsPageId(
-          statsPageId
+        const { publicId } = req.params;
+        const account = await this.databaseCalls.getAccountAndTeamByTeamPublicId(
+          publicId
         );
         if (account) {
-          const { account_id: accountId } = account;
+          const { accountId } = account;
           await lockAccount(accountId);
           let state;
           try {
+            //TODO write a getPublicState db call that encompasses the public_id and
+            //removes redundant information (like extra players/optimizations)
             state = await this.databaseCalls.getState(accountId);
+            state.statsId = publicId;
+            state.team = state.teams.reduce((prev, team) => {
+              return team.publicId === publicId ? team : prev;
+            }, null);
             delete state.optimizations;
-            state.statsId = statsPageId;
+            delete state.teams;
           } finally {
             await unlockAccount(accountId);
           }
           res.status(200).send(state);
         } else {
-          logger.warn(
-            null,
-            'No account found with stat_page_id=' + statsPageId
-          );
+          logger.warn(null, 'No account found with stat_page_id=' + publicId);
           res.status(404).send();
         }
       })
@@ -980,7 +983,6 @@ module.exports = class SoftballServer {
       let responseData = {};
       responseData.email = extractSessionInfo(req, 'email');
 
-      console.log('GET CURRENT ACCOUNT', responseData);
       res.status(200).send(responseData);
     });
 
