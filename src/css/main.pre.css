@@ -162,6 +162,9 @@ body {
   border-right: 1px solid $css.colors.SECONDARY;
   border-bottom: 1px solid $css.colors.SECONDARY;
   padding: 7px;
+  min-width: 50px;
+  height:24px;
+  line-height: 1.7;
 }
 .table-cell-header {
   padding: 7px;
@@ -170,6 +173,7 @@ body {
 .name-stat-cell {
   width: 80px;
   text-align: left;
+  height:24px;
 }
 
 .number-stat-cell {
