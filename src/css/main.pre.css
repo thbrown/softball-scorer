@@ -176,6 +176,10 @@ body {
   text-align: center;
   width: 25px;
 }
+.number-stat-cell-small {
+  text-align: center;
+  width: 25px;
+}
 .number-stat-cell-header {
   text-align: center;
   width: 25px;
