@@ -4,6 +4,7 @@ import state from 'state';
 import Card from 'elements/card';
 import { StickyTable, Row, Cell } from 'react-sticky-table';
 import { setRoute } from 'actions/route';
+import css from 'css';
 
 const DSC_CHAR = '▼'; //'\25bc';
 const ASC_CHAR = '▲'; //'\25be';
@@ -122,7 +123,7 @@ export default class CardStats extends expose.Component {
           className +
           ` ${
             STATS_NAMES.slice(0, 2).includes(statName) ? 'percentage' : 'number'
-          }-stat-cell-small`;
+          }-stat-cell`;
       } else {
         className =
           className +
@@ -234,13 +235,13 @@ export default class CardStats extends expose.Component {
       })
     );
 
-    //const height = window.innerHeight - 80 + 'px';
     return (
       <Card title="Stats">
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-around',
+            marginTop: css.spacing.xSmall,
           }}
         >
           <StickyTable>{tableElems}</StickyTable>
