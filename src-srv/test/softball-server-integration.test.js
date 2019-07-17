@@ -1,19 +1,19 @@
 /*eslint no-process-exit:*/
-"use strict";
+'use strict';
 
-const objectHash = require("object-hash");
-const got = require("got");
+const objectHash = require('object-hash');
+const got = require('got');
 
-const CacheCallsLocal = require("../cache-calls-local");
-const ComputeLocal = require("../compute-local");
-const config = require("../config");
-const configAccessor = require("../config-accessor.js");
-const DatabaseCallsPostgres = require("../database-calls-postgres");
-const SoftballServer = require("../softball-server");
-const utils = require("./test-utils.js");
-const objectMerge = require("../../object-merge.js");
+const CacheCallsLocal = require('../cache-calls-local');
+const ComputeLocal = require('../compute-local');
+const config = require('../config');
+const configAccessor = require('../config-accessor.js');
+const DatabaseCallsPostgres = require('../database-calls-postgres');
+const SoftballServer = require('../softball-server');
+const utils = require('./test-utils.js');
+const objectMerge = require('../../object-merge.js');
 
-describe("sync", () => {
+describe('sync', () => {
   beforeAll(async () => {
     const port = configAccessor.getAppServerPort();
     const optPort = configAccessor.getOptimizationServerPort();
@@ -35,9 +35,9 @@ describe("sync", () => {
     this.databaseCalls.disconnect();
   });
 
-  test("Test account lifecycle", async () => {
+  test('Test account lifecycle', async () => {
     let email = `lifecycleTest${utils.randomId(10)}@softball.app`;
-    let password = "pizza";
+    let password = 'pizza';
 
     // Signup
     await utils.signup(email, password);
@@ -49,9 +49,9 @@ describe("sync", () => {
     await utils.deleteAccount(sessionId);
   });
 
-  test("Sync", async () => {
+  test('Sync', async () => {
     let email = `syncTest${utils.randomId(10)}@softball.app`;
-    let password = "pizza";
+    let password = 'pizza';
 
     await utils.signup(email, password);
     let sessionId = await utils.login(email, password);
@@ -62,12 +62,12 @@ describe("sync", () => {
       let clientLocalState = {
         teams: [
           {
-            id: "4MWewta24olLam",
-            name: "BigTeam",
-            games: []
-          }
+            id: '4MWewta24olLam',
+            name: 'BigTeam',
+            games: [],
+          },
         ],
-        players: []
+        players: [],
       };
       let clientPatch = objectMerge.diff(clientAncestorState, clientLocalState);
       let clientHash = utils.getMd5(clientLocalState);

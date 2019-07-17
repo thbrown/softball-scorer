@@ -715,7 +715,7 @@ module.exports = class SoftballServer {
           if (inProgressCount !== 0) {
             logger.log(accountId, 'Simulations running', inProgressCount);
             res
-              .status(404)
+              .status(400)
               .send({ message: `There is already an optimization running.` });
             return;
           }
@@ -784,18 +784,7 @@ module.exports = class SoftballServer {
 
         try {
           // Start the computer that will run the optimization
-          await this.compute.start(
-            accountId,
-            optimizationId,
-            function(accountId, optimizationId, message) {
-              this.databaseCalls.setOptimizationStatus(
-                accountId,
-                optimizationId,
-                5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
-                message
-              );
-            }.bind(this)
-          );
+          await this.compute.start(accountId, optimizationId);
         } catch (error) {
           // Transition status to ERROR
           logger.error(
@@ -813,14 +802,11 @@ module.exports = class SoftballServer {
           throw error;
           // TODO: Kill the compute instance? If it's not dead already. This should really happen inside the start command
         }
-
-        // TODO frontend: Don't allow deletion of running simulation. Why not? What about account deletions?
       })
     );
 
-    // TODO: some of this is duplicate from start-optimization
     app.post(
-      '/server/resume-optimization',
+      '/server/pause-optimization',
       wrapForErrorProcessing(async (req, res, next) => {
         if (!req.isAuthenticated()) {
           res.status(403).send();
@@ -828,152 +814,45 @@ module.exports = class SoftballServer {
         }
 
         let accountId = extractSessionInfo(req, 'accountId');
-        logger.log(accountId, `Starting optimization`);
-
-        let optimizationId = undefined;
-
-        // This lock is just to make sure we don't get two optimizations running at the same time
-        await lockAccount(accountId);
+        let serverOptimizationId = undefined;
         try {
-          // Is there another optimization state IN_PROGRESS (or in ALLOCATING_RESOURCES)
-          // If so, don't start another one
-          let inProgressCount = await this.databaseCalls.getNumberOfOptimizationsInProgress(
-            accountId
-          );
-          if (inProgressCount !== 0) {
-            logger.log(accountId, 'Simulations running', inProgressCount);
-            res
-              .status(400)
-              .send(
-                'There is already an optimization running, pause it or wait for it to complete before starting a new one'
-              );
-            return;
-          }
-
-          let data = req.body;
-
-          // TODO: Do some validation?
-          // minimum players (this should be on the client side too)
-          // must have id
-          // required fields?
-          // some size restriction?
-
           // Convert client optimization id to the server one
-          optimizationId = idUtils.clientIdToServerId(
-            data.optimizationId,
+          serverOptimizationId = idUtils.clientIdToServerId(
+            req.body.optimizationId,
             accountId
           );
 
-          // Retrieve execution data from db for validation purposes
-          logger.log(
-            accountId,
-            'retrieving execution data',
-            data.optimizationId
-          );
-          let executionData = await this.databaseCalls.getOptimizationExecutionData(
-            accountId,
-            optimizationId
-          );
-
-          if (!executionData) {
-            res.status(404).send({
-              message: `Optimization data was not found. Sync and try again.`,
-            });
-          }
-
-          // Transition status to ALLOCATION_RESOURCES
+          // Transition status to PAUSING, next time the app server hears from the compute client it will destroy the connection
+          // which will shut down the compute instance
           await this.databaseCalls.setOptimizationStatus(
             accountId,
-            optimizationId,
-            1 //state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES, TODO: make this a common server/client enum
+            serverOptimizationId,
+            6 //state.OPTIMIZATION_STATUS_ENUM.PAUSING
           );
 
-          // Now unlock the account
-        } catch (error) {
-          logger.log(accountId, 'Setting optimization status to error', error);
+          // Return success
+          res.status(204).send();
+
+          // We don't want to open up an opportinity for some user to quickly start and pause optimizations that
+          // can result in user having several active compute instances. Putting a buffer between the pause button
+          // press and actual pausing should give enough time for the paused compute instance to shut down
+          await sleep(30000);
+
+          // Transition status to PAUSED
           await this.databaseCalls.setOptimizationStatus(
             accountId,
-            optimizationId,
-            5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
-            error
-          );
-          throw error;
-        } finally {
-          await unlockAccount(accountId);
-        }
-
-        // Return success
-        res.status(204).send();
-
-        try {
-          // Start the computer that will run the optimization
-          logger.log(accountId, 'Starting optimization server');
-          await this.compute.start(
-            accountId,
-            optimizationId,
-            function(accountId, optimizationId, message) {
-              this.databaseCalls.setOptimizationStatus(
-                accountId,
-                optimizationId,
-                5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
-                message
-              );
-            }.bind(this)
+            serverOptimizationId,
+            4 //state.OPTIMIZATION_STATUS_ENUM.PAUSED
           );
         } catch (error) {
-          // Transition status to ERROR
           logger.log(
             accountId,
-            optimizationId,
-            'Setting optimization status to error in compute start',
-            error
-          );
-          await this.databaseCalls.setOptimizationStatus(
-            accountId,
-            optimizationId,
-            5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
-            error.message
+            'An error occured while pausing an optimization'
           );
           throw error;
-          // TODO: Kill the compute instance? If it's not dead already. This should really happen inside the start command
         }
-
-        // TODO frontend: Don't allow deletion of running simulation. Why not? What about account deletions?
       })
     );
-
-    /*
-    TODO
-    app.post("/server/pause-optimization", function(req, res) {
-      wrapForErrorProcessing(async (req, res, next) => {
-        if (!req.isAuthenticated()) {
-          res.status(403).send();
-          return;
-        }
-
-        let accountId = extractSessionInfo(req, "accountId");
-        logger.log(accountId, `Pausing optimization`);
-
-        await lockAccount(accountId);
-        try {
-          // Is there another simulation currently in progress?
-
-          // Pause any optimization
-
-          // Mark status as paused in db (will sync on the other end)
-
-          // Actually it is already paused... (or have an idempotent post?)
-
-          res.status(204).send();
-        } catch (error) {
-          logger.log(accountId, "An error occured while deleting the account");
-          throw error;
-        } finally {
-          await unlockAccount(accountId);
-        }
-      });
-    });
-    */
 
     app.get('/server/current-account', function(req, res) {
       if (!req.isAuthenticated()) {
@@ -982,7 +861,6 @@ module.exports = class SoftballServer {
       }
       let responseData = {};
       responseData.email = extractSessionInfo(req, 'email');
-
       res.status(200).send(responseData);
     });
 
@@ -1123,6 +1001,10 @@ module.exports = class SoftballServer {
 
     async function logIn(account, req, res) {
       logger.log(account.account_id, 'Loggin in', account);
+      let sessionInfo = {
+        accountId: account.account_id,
+        email: account.email,
+      };
       try {
         await new Promise(function(resolve, reject) {
           req.logIn(account, function() {

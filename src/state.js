@@ -26,6 +26,7 @@ exp.OPTIMIZATION_STATUS_ENUM = Object.freeze({
   COMPLETE: 3,
   PAUSED: 4,
   ERROR: 5,
+  PAUSING: 6,
 });
 const OPTIMIZATION_TYPE_ENUM = Object.freeze({
   MONTE_CARLO_EXAUSTIVE: 0,

@@ -26,5 +26,8 @@ const exp = {
     large: '5rem',
     xLarge: '10rem',
   },
+  config: {
+    SYNC_DELAY: '10s',
+  },
 };
 module.exports = exp;
