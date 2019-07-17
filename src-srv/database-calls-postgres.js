@@ -543,13 +543,14 @@ module.exports = class DatabaseCalls {
   }
 
   // TODO: tie the states that count as 'in progress' to the enum in state.java so we don't have two sources of truth
+  // The states ALLOCATING_RESOURCES, IN_PROGRESS, and PAUSING are considered in progress for this purpose
   async getNumberOfOptimizationsInProgress(accountId) {
     logger.log(accountId, 'getting optimization in progress count');
     let result = await this.parameterizedQueryPromise(
       `
       SELECT COUNT(*)
       FROM optimization
-      WHERE account_id = $1 AND status IN (1,2);
+      WHERE account_id = $1 AND status IN (1,2,6);
       `,
       [accountId]
     );
@@ -568,33 +569,55 @@ module.exports = class DatabaseCalls {
     accountId,
     optimizationId,
     newStatus,
-    optionalMessage
+    optionalMessage,
+    optionalPreviousStatus
   ) {
     logger.log(
       accountId,
       'changing optimization status to ',
       newStatus,
-      optionalMessage
+      optionalMessage,
+      optionalPreviousStatus
     );
-    // TODO: We might need to enforce what states can be updated to what other states here
-    if (optionalMessage === undefined) {
-      await this.parameterizedQueryPromise(
+
+    let result;
+    if (optionalPreviousStatus === undefined) {
+      result = await this.parameterizedQueryPromise(
         `
-          UPDATE optimization
-          SET status = $1, status_message = NULL
-          WHERE id = $2 AND account_id = $3
-        `,
-        [newStatus, optimizationId, accountId]
-      );
-    } else {
-      await this.parameterizedQueryPromise(
-        `
-          UPDATE optimization
-          SET status = $1, status_message = $4
-          WHERE id = $2 AND account_id = $3
+            UPDATE optimization
+            SET status = $1, status_message = $4
+            WHERE id = $2 AND account_id = $3
         `,
         [newStatus, optimizationId, accountId, optionalMessage]
       );
+    } else {
+      result = await this.parameterizedQueryPromise(
+        `
+            UPDATE optimization
+            SET status = $1, status_message = $4
+            WHERE id = $2 AND account_id = $3 AND status = $5
+        `,
+        [
+          newStatus,
+          optimizationId,
+          accountId,
+          optionalMessage,
+          optionalPreviousStatus,
+        ]
+      );
+    }
+    if (result.rowCount === 1) {
+      return true;
+    } else if (result.rowCount === 0) {
+      // The optimization may have been deleted by the user, paused by the user, or something weird is going on
+      logger.warn(accountId, `No optimization rows were updated`);
+      return false;
+    } else {
+      logger.error(
+        accountId,
+        `A strange number of rows were updated ${result.rowCount} ${optimizationId}`
+      );
+      return false;
     }
   }
 

@@ -1,4 +1,4 @@
-const configAccessor = require("./config-accessor");
+const configAccessor = require('./config-accessor');
 
 /**
  * This cache implementation just stores cached data in local memory. It will not scale past one process.
@@ -9,21 +9,21 @@ module.exports = class CacheCalls {
     this.timers = {};
   }
   async lockAccount(accountId) {
-    let lockStatus = this.getData(accountId, "locked");
+    let lockStatus = this.getData(accountId, 'locked');
     if (lockStatus) {
       return false;
     } else {
-      this.putData(accountId, "locked", true);
+      this.putData(accountId, 'locked', true);
       return true;
     }
   }
 
   async unlockAccount(accountId) {
-    this.deleteData(accountId, "locked");
+    this.deleteData(accountId, 'locked');
   }
 
   async lockOptimization(optimizationId, serverId, ttl) {
-    let key = "optlock:" + optimizationId;
+    let key = 'optlock:' + optimizationId;
     let value = this.cache[key];
     if (!value) {
       // Nobody currently holds the lock, lock it
@@ -41,11 +41,11 @@ module.exports = class CacheCalls {
   }
 
   async getAncestor(accountId, sessionId) {
-    this.getData(accountId, "ancestor" + sessionId);
+    this.getData(accountId, 'ancestor' + sessionId);
   }
 
   async setAncestor(accountId, sessionId, ancestor) {
-    this.putData(accountId, "ancestor" + sessionId, ancestor);
+    this.putData(accountId, 'ancestor' + sessionId, ancestor);
   }
 
   // Intended for these to be private methods
@@ -61,12 +61,12 @@ module.exports = class CacheCalls {
     this.cache[key] = value;
 
     if (this.timers[key]) {
-      console.log("clearign timeout", key, value);
+      console.log('clearign timeout', key, value);
       clearTimeout(this.timers[key]);
     }
     this.timers[key] = setTimeout(
       function() {
-        console.log("keyHasExpired", key, value);
+        console.log('keyHasExpired', key, value);
         delete this.cache[key];
       }.bind(this),
       ttl * 1000

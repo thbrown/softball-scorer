@@ -875,8 +875,8 @@ Scrolling is ~10-20x smoother.
   height: 25px; /* Height and width */
   position: relative;
   width: 25px; /* Height and width */
-  -webkit-animation: time 5s steps(200, start);
-  animation: time 5s steps(200, start);
+  -webkit-animation: time $css.config.SYNC_DELAY steps(200, start);
+  animation: time $css.config.SYNC_DELAY steps(200, start);
   margin-top: 8px;
   display: inline-flex;
 }
@@ -887,9 +887,9 @@ Scrolling is ~10-20x smoother.
   position: absolute;
   top: 0;
   width: 50%;
-  -webkit-animation: pie-mask 5s steps(100, start);
+  -webkit-animation: pie-mask $css.config.SYNC_DELAY steps(100, start);
   -webkit-transform-origin: 100% 50%;
-  animation: pie-mask 5s steps(100, start);
+  animation: pie-mask $css.config.SYNC_DELAY steps(100, start);
   transform-origin: 100% 50%;
 }
 .pie-wrapper {

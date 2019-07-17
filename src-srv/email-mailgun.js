@@ -1,5 +1,5 @@
-const mailgun = require("mailgun-js");
-const logger = require("./logger.js");
+const mailgun = require('mailgun-js');
+const logger = require('./logger.js');
 
 // This email service sends emails using a configured MailGun account (https://www.mailgun.com/)
 module.exports = class EmailMailGun {
@@ -26,17 +26,17 @@ module.exports = class EmailMailGun {
 
     // Send the email!
     const data = {
-      from: "Softball.app <support@softball.app>",
+      from: 'Softball.app <support@softball.app>',
       to: destinationEmail,
-      bcc: "notify@softball.app",
+      bcc: 'notify@softball.app',
       subject: subject,
-      text: message
+      text: message,
     };
     this.mg.messages().send(data, function(error, body) {
       if (error) {
-        logger.error(accountId, "Error while sending email", error);
+        logger.error(accountId, 'Error while sending email', error);
       }
-      logger.log(accountId, "Email sent");
+      logger.log(accountId, 'Email sent');
     });
   }
 };

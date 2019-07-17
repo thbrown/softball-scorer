@@ -1,13 +1,13 @@
-const logger = require("./logger.js");
-const { google } = require("googleapis");
-const compute = google.compute("v1");
-const ip = require("ip");
+const logger = require('./logger.js');
+const { google } = require('googleapis');
+const compute = google.compute('v1');
+const ip = require('ip');
 
 module.exports = class ComputeGCP {
   constructor(gcpParams) {
     // Google Cloud Platform Authentication for API calls requires an environmental
     // variable that points to the file containing auth credentials
-    process.env["GOOGLE_APPLICATION_CREDENTIALS"] = __dirname + "/../cred.json";
+    process.env['GOOGLE_APPLICATION_CREDENTIALS'] = __dirname + '/../cred.json';
 
     this.createInstance = function(
       accountId,
@@ -30,26 +30,26 @@ module.exports = class ComputeGCP {
                     optimizationId
                   )}/machineTypes/custom-${coreCount}-${memoryMb}`,
                   scheduling: {
-                    preemptible: true
+                    preemptible: true,
                   },
                   metadata: {
                     items: [
-                      { key: "remote-ip", value: remoteIp },
-                      { key: "optimization-id", value: optimizationId }
-                    ]
+                      { key: 'remote-ip', value: remoteIp },
+                      { key: 'optimization-id', value: optimizationId },
+                    ],
                   },
-                  networkInterfaces: [{ network: "global/networks/default" }],
+                  networkInterfaces: [{ network: 'global/networks/default' }],
                   disks: [
                     {
                       boot: true,
                       initializeParams: {
-                        sourceSnapshot: `global/snapshots/${gcpParams.snapshotName}`
+                        sourceSnapshot: `global/snapshots/${gcpParams.snapshotName}`,
                       },
-                      autoDelete: true
-                    }
-                  ]
+                      autoDelete: true,
+                    },
+                  ],
                 },
-                auth: authClient
+                auth: authClient,
               };
 
               compute.instances.insert(request, function(err) {
@@ -63,7 +63,7 @@ module.exports = class ComputeGCP {
                   return;
                 }
                 resolve();
-                logger.log(accountId, "Inserted new instance");
+                logger.log(accountId, 'Inserted new instance');
               });
             }.bind(this)
           );
@@ -84,9 +84,9 @@ module.exports = class ComputeGCP {
                 project: gcpParams.project,
                 zone: this.getZone(optimizationId),
                 instance: name,
-                auth: authClient
+                auth: authClient,
               };
-              let status = "UNKNOWN";
+              let status = 'UNKNOWN';
 
               const MAX_RETRY = 40;
               let counter = 0;
@@ -143,14 +143,14 @@ module.exports = class ComputeGCP {
     this.authorize = function(callback) {
       google.auth.getApplicationDefault(function(err, authClient) {
         if (err) {
-          console.error("authentication failed: ", err);
+          console.error('authentication failed: ', err);
           return;
         }
         if (
           authClient.createScopedRequired &&
           authClient.createScopedRequired()
         ) {
-          var scopes = ["https://www.googleapis.com/auth/cloud-platform"];
+          var scopes = ['https://www.googleapis.com/auth/cloud-platform'];
           authClient = authClient.createScoped(scopes);
         }
         callback(authClient);
@@ -179,7 +179,7 @@ module.exports = class ComputeGCP {
         this.zoneMap[optimizationId] = this.zoneMap[optimizationId] + 1;
         return true;
       } else {
-        logger.error(accountId, "Zones exhausted");
+        logger.error(accountId, 'Zones exhausted');
         return false;
         /*
         // We've exausted our list of zones, wait a couple minutes and try again
@@ -200,7 +200,7 @@ module.exports = class ComputeGCP {
   async start(accountId, optimizationId) {
     logger.log(
       accountId,
-      "Starting simulation on gcp",
+      'Starting simulation on gcp',
       this.getZone(optimizationId)
     );
     try {
@@ -230,7 +230,7 @@ module.exports = class ComputeGCP {
         if (error.code >= 500) {
           logger.warn(
             accountId,
-            "retrying because of",
+            'retrying because of',
             error.code,
             error.message
           );
@@ -238,7 +238,7 @@ module.exports = class ComputeGCP {
         } else {
           logger.error(
             accountId,
-            "not retrying because of",
+            'not retrying because of',
             error.code,
             error.message
           );
@@ -251,24 +251,24 @@ module.exports = class ComputeGCP {
   }
 
   async retry(accountId, optimizationId) {
-    logger.log(accountId, "attempting retry");
+    logger.log(accountId, 'attempting retry');
     let moreZonesToProcess = this.nextZone(accountId, optimizationId);
     if (moreZonesToProcess) {
       return await this.start(accountId, optimizationId);
     } else {
       return Promise.reject(
-        "Cloud resource shortage - compute zone options exhausted, please try again later"
+        'Cloud resource shortage - compute zone options exhausted, please try again later'
       );
     }
   }
 
   async cleanup(accountId, optimizationId) {
-    logger.log(accountId, "running optimization cleanup");
+    logger.log(accountId, 'running optimization cleanup');
     this.removeZoneCounter(optimizationId);
     // TODO: Delete instance??
   }
 
   async stop(accountId, name) {
-    logger.log(accountId, "Stoping simulation on gcp - NOT IMPLEMENTED");
+    logger.log(accountId, 'Stoping simulation on gcp - NOT IMPLEMENTED');
   }
 };

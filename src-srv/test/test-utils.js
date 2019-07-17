@@ -1,6 +1,6 @@
-const got = require("got");
-const hasher = require("object-hash");
-const configAccessor = require("../config-accessor");
+const got = require('got');
+const hasher = require('object-hash');
+const configAccessor = require('../config-accessor');
 
 let port = configAccessor.getAppServerPort();
 
@@ -12,9 +12,9 @@ exports.signup = async function(email, password, reCapcha) {
         body: {
           email: email,
           password: password,
-          reCAPCHA: reCapcha ? reCapcha : "0"
+          reCAPCHA: reCapcha ? reCapcha : '0',
         },
-        json: true
+        json: true,
       }
     );
     return response;
@@ -30,16 +30,16 @@ exports.login = async function(email, password) {
       {
         body: {
           email: email,
-          password: password
+          password: password,
         },
-        json: true
+        json: true,
       }
     );
   } catch (error) {
     throw error;
   }
   // Return the session id
-  return response.headers["set-cookie"][0].split(";")[0];
+  return response.headers['set-cookie'][0].split(';')[0];
 };
 
 exports.deleteAccount = async function(sessionId) {
@@ -48,9 +48,9 @@ exports.deleteAccount = async function(sessionId) {
       `http://localhost:${port}/server/account`,
       {
         headers: {
-          cookie: sessionId
+          cookie: sessionId,
         },
-        json: true
+        json: true,
       }
     );
     return response;
@@ -63,13 +63,13 @@ exports.sync = async function(sessionId, checksum, patch) {
   try {
     const response = await got.post(`http://localhost:${port}/server/sync`, {
       headers: {
-        cookie: sessionId
+        cookie: sessionId,
       },
       body: {
         md5: checksum,
-        patch: patch
+        patch: patch,
       },
-      json: true
+      json: true,
     });
     return response;
   } catch (error) {
@@ -78,8 +78,8 @@ exports.sync = async function(sessionId, checksum, patch) {
 };
 
 exports.randomId = function(length) {
-  var text = "";
-  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  var text = '';
+  var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   for (var i = 0; i < length; i++) {
     text += possible.charAt(Math.floor(Math.random() * possible.length));
   }
@@ -88,12 +88,12 @@ exports.randomId = function(length) {
 
 exports.getMd5 = function(data) {
   let checksum = hasher(data, {
-    algorithm: "md5",
+    algorithm: 'md5',
     excludeValues: false,
     respectFunctionProperties: false,
     respectFunctionNames: false,
     respectType: false,
-    encoding: "base64"
+    encoding: 'base64',
   });
   return checksum.slice(0, -2); // Remove trailing '=='
 };
