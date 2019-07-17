@@ -117,11 +117,19 @@ export default class CardStats extends expose.Component {
     if (statName === 'name') {
       className = className + ' name-stat-cell';
     } else {
-      className =
-        className +
-        ` ${
-          STATS_NAMES.slice(0, 2).includes(statName) ? 'percentage' : 'number'
-        }-stat-cell`;
+      if (STAT_ALIASES[statName].length > 2) {
+        className =
+          className +
+          ` ${
+            STATS_NAMES.slice(0, 2).includes(statName) ? 'percentage' : 'number'
+          }-stat-cell-small`;
+      } else {
+        className =
+          className +
+          ` ${
+            STATS_NAMES.slice(0, 2).includes(statName) ? 'percentage' : 'number'
+          }-stat-cell`;
+      }
     }
     return className;
   }
@@ -229,7 +237,14 @@ export default class CardStats extends expose.Component {
     //const height = window.innerHeight - 80 + 'px';
     return (
       <Card title="Stats">
-        <StickyTable>{tableElems}</StickyTable>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-around',
+          }}
+        >
+          <StickyTable>{tableElems}</StickyTable>
+        </div>
       </Card>
     );
   }
