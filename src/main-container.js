@@ -6,8 +6,7 @@ import network from 'network';
 import noSleepImport from './lib/nosleep.js';
 import state from 'state';
 import CardNotFound from 'card-not-found';
-import Textbox from 'elements/textbox';
-import Card from 'elements/card';
+import CardLoading from 'card-loading';
 import DataContainer from 'elements/data-container';
 const noSleep = new noSleepImport();
 
@@ -49,7 +48,7 @@ export default class MainContainer extends expose.Component {
       navigator.serviceWorker.oncontrollerchange = () => {
         if (document.hidden) {
           dialog.show_notification(
-            "Softball.app has been updated, this page will be automatically refreshed. You will not lose any data you've entered.",
+            'Softball.app has been updated, this page will be automatically refreshed. You will not lose any data you have entered.',
             () => {
               window.location.reload();
             }
@@ -150,13 +149,7 @@ export default class MainContainer extends expose.Component {
 
     if (loading) {
       return (
-        <Card
-          title="Softball.app"
-          enableLeftHeader={false}
-          enableRightHeader={false}
-        >
-          <Textbox message="Softball.app is loading..." />;
-        </Card>
+        <CardLoading />
       );
     } else {
       try {

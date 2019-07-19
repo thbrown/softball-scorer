@@ -78,7 +78,7 @@ exp.sync = async function(fullSync) {
     exp.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
   ) {
     // Simultaneous syncs might be okay, but we'll still limit it to one at a time for clarity
-    console.log('waiting for in progress sync to finish ' + exp.getSyncState());
+    console.log('[SYNC] waiting for in progress sync to finish ' + exp.getSyncState());
     await sleep(500);
   }
   // Kill any scheduled syncs
@@ -113,7 +113,6 @@ exp.sync = async function(fullSync) {
 
     if (response.status === 200) {
       let serverState = response.body;
-      console.log('Received', serverState);
 
       // First gather any changes that were made locally while the request was still working
       let localChangesDuringRequest = objectMerge.diff(
@@ -127,7 +126,7 @@ exp.sync = async function(fullSync) {
         state.setAncestorState(serverState.base);
       } else if (serverState.patches) {
         // Patches were sent, apply all patches to a copy of the local state
-        console.log(`Applying patches `);
+        console.log(`[SYNC] Applying patches `);
 
         serverState.patches.forEach(patch => {
           objectMerge.patch(localStateCopyPreRequest, patch);
@@ -135,18 +134,18 @@ exp.sync = async function(fullSync) {
         // The local state with the server updates is the new ancestor
         state.setAncestorState(localStateCopyPreRequest);
       } else {
-        console.log('No updates recieved from server');
+        console.log('[SYNC] No updates recieved from server');
         state.setAncestorState(localStateCopyPreRequest);
       }
 
       // Verify that the ancestor state (after updates) has the same hash as the server state
       let ancestorHash = state.getAncestorStateChecksum();
-      console.log('CLIENT: ', ancestorHash, ' SERVER: ', serverState.md5);
+      console.log('[SYNC] CLIENT: ', ancestorHash, ' SERVER: ', serverState.md5);
       if (ancestorHash !== serverState.md5) {
         if (fullSync) {
           // Something went wrong after trying a full sync, we probaly can't do anything about it!
           // serverState.base should have contained a verbatium copy of what the server has, so this is weird.
-          console.log('Yikes! Something went wrong while attempting full sync');
+          console.log('[SYNC] Yikes! Something went wrong while attempting full sync');
           console.log(
             getMd5(state.getAncestorState()),
             getMd5(serverState.base)
@@ -158,7 +157,7 @@ exp.sync = async function(fullSync) {
         } else {
           // Something went wrong with the patch based sync, perhaps the server's cached data was incorrect
           // We should be able to repeat the request with type "full" so we'll get the whole state back, not just the patches
-          console.log('Something went wrong while attempting patch sync');
+          console.log('[SYNC] Something went wrong while attempting patch sync');
           console.log(getMd5(state.getLocalState), serverState.md5);
 
           // Set the state back to what it was when we first did a sync
@@ -166,7 +165,7 @@ exp.sync = async function(fullSync) {
           throw new Error(-2);
         }
       } else {
-        console.log('Sync was successful! (client and server checksums match)');
+        console.log('[SYNC] Sync was successful! (client and server checksums match)');
       }
 
       // Copy
@@ -193,7 +192,7 @@ exp.sync = async function(fullSync) {
       setSyncState(SYNC_STATUS_ENUM.PENDING);
     } else {
       // Don't think this should be possible
-      console.log('Invalid state transition');
+      console.log('[SYNC] Invalid state transition');
       setSyncState(SYNC_STATUS_ENUM.UNKNOWN);
     }
 
@@ -211,22 +210,22 @@ exp.sync = async function(fullSync) {
       // 1) User is not signed in
       // 2) App is in offline mode
       console.log(
-        'Auth problem or offline mode is active: retrying sync later'
+        '[SYNC] Auth problem or offline mode is active: retrying sync later'
       );
       setSyncState(SYNC_STATUS_ENUM.ERROR);
     } else if (+err.message === 503 || +err.message === -1) {
       // Re-try later might work for
       // 1) Server rate limiting errors
       // 2) Weird network conditions
-      console.log('Network issues or server is busy: retrying sync later');
+      console.warn('[SYNC] Network issues or server is busy: retrying sync later');
       exp.scheduleSync();
     } else if (+err.message === -2) {
       // Issue with patch based sync, re-try with a full sync
-      console.log('Issue with patch sync: attemtping full sync');
+      console.warn('[SYNC] Issue with patch sync: attemtping full sync');
       return await exp.sync(true);
     } else {
       // Other 500s, 400s are probably bugs :(, tell the user something is wrong
-      console.log('Probable bug encountered');
+      console.warn('[SYNC] Probable bug encountered');
       alert(
         'Auto sync failed with status ' +
           err.message +

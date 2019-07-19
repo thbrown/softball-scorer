@@ -11,16 +11,25 @@ body {
 }
 
 .card {
-  -webkit-animation: fadein 0.3s; /* Safari, Chrome and Opera > 12.1 */
-  -moz-animation: fadein 0.3s; /* Firefox < 16 */
-  -ms-animation: fadein 0.3s; /* Internet Explorer */
-  -o-animation: fadein 0.3s; /* Opera < 12.1 */
-  animation: fadein 0.3s;
+
+}
+
+.fade-out {
+  -webkit-animation: fadeout 1.3s;
+  -moz-animation: fadeout 1.3s;
+  -ms-animation: fadeout 1.3s;
+  -o-animation: fadeout 1.3s;
+  animation: fadeout 1.3s;
 }
 
 .card-body {
-  max-width: 960px;
+  /* max-width: 960px;
   margin: 0 auto;
+  -webkit-animation: fadein 0.3s;
+  -moz-animation: fadein 0.3s
+  -ms-animation: fadein 0.3s
+  -o-animation: fadein 0.3s;
+  animation: fadein 0.3s; */
 }
 
 @keyframes fadein {
@@ -69,6 +78,55 @@ body {
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes fadein {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Firefox < 16 */
+@-moz-keyframes fadeout {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Safari, Chrome and Opera > 12.1 */
+@-webkit-keyframes fadeout {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Internet Explorer */
+@-ms-keyframes fadeout {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Opera < 12.1 */
+@-o-keyframes fadeout {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
   }
 }
 

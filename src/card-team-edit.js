@@ -1,34 +1,30 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 import expose from './expose';
+import css from 'css';
 import state from 'state';
 import dialog from 'dialog';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
+import Card from 'elements/card';
 import FloatingInput from 'component-floating-input';
+import Textbox from 'elements/Textbox';
 
 export default class CardTeamEdit extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
 
-    this.team = props.team;
-    this.isNew = props.isNew;
+    this.state = {
+      copiedNotificationVisible: false,
+    };
 
-    let teamCopy = JSON.parse(JSON.stringify(this.team));
+    const teamCopy = JSON.parse(JSON.stringify(props.team));
 
-    let goBack = function() {
+    const goBack = function() {
       window.history.back();
     };
 
     this.homeOrBack = function() {
-      if (
-        props.isNew &&
-        JSON.stringify(teamCopy) === JSON.stringify(props.team)
-      ) {
+      if (props.isNew) {
         state.removeTeam(props.team.id);
-      } else {
-        state.replaceTeam(props.team.id, teamCopy);
       }
     };
 
@@ -58,128 +54,140 @@ export default class CardTeamEdit extends expose.Component {
       let newValue = document.getElementById('teamName').value;
       teamCopy.name = newValue;
     };
-  }
 
-  renderSaveOptions() {
-    let buttons = [];
-
-    buttons.push(
-      DOM.div(
-        {
-          key: 'confirm',
-          className: 'edit-button button confirm-button',
-          onClick: this.handleConfirmClick,
-        },
-        DOM.img({
-          className: 'edit-button-icon',
-          src: '/server/assets/check.svg',
-          alt: 'back',
-        }),
-        DOM.span(
-          {
-            className: 'edit-button-icon',
-          },
-          'Save'
-        )
-      )
-    );
-
-    buttons.push(
-      DOM.div(
-        {
-          key: 'cancel',
-          className: 'edit-button button cancel-button',
-          onClick: this.handleCancelClick,
-        },
-        DOM.img({
-          className: 'edit-button-icon',
-          src: '/server/assets/cancel.svg',
-        }),
-        DOM.span(
-          {
-            className: 'edit-button-icon',
-          },
-          'Cancel'
-        )
-      )
-    );
-
-    if (!this.isNew) {
-      buttons.push(
-        DOM.div(
-          {
-            key: 'delete',
-            className: 'edit-button button cancel-button',
-            onClick: this.handleDeleteClick,
-          },
-          DOM.img({
-            className: 'edit-button-icon',
-            src: '/server/assets/delete.svg',
-          }),
-          DOM.span(
-            {
-              className: 'edit-button-icon',
-            },
-            'Delete'
-          )
-        )
-      );
-    }
-
-    return DOM.div(
-      {
-        key: 'saveOptions',
-      },
-      buttons
-    );
-  }
-
-  renderTeamEdit() {
-    return DOM.div(
-      {
-        className: 'auth-input-container',
-      },
-      React.createElement(FloatingInput, {
-        key: 'teamName',
-        id: 'teamName',
-        maxLength: '50',
-        label: 'Team Name',
-        onChange: this.handleNameChange,
-        defaultValue: this.team.name,
-      }),
-      this.renderSaveOptions()
-    );
+    this.handleCopyClick = function() {
+      const copyText = document.getElementById('publicLink');
+      copyText.select();
+      document.execCommand('copy');
+      this.setState({
+        copiedNotificationVisible: true,
+      });
+      setTimeout(() => {
+        this.setState({
+          copiedNotificationVisible: false,
+        });
+      }, 5000);
+    }.bind(this);
   }
 
   render() {
-    return DOM.div(
-      {
-        className: 'card',
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {
-          onPress: this.homeOrBack,
-        }),
-        DOM.div(
-          {
-            className: 'prevent-overflow card-title-text-with-arrow',
-          },
-          'Edit Team'
-        ),
-        React.createElement(RightHeaderButton, {
-          onPress: this.homeOrBack,
-        })
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderTeamEdit()
-      )
+    console.log('RENDER TEAM EDIT WITH PROPS', this.props);
+    const {
+      team: { publicId, publicIdEnabled },
+    } = this.props;
+    return (
+      <Card title="Edit Team">
+        <div className="auth-input-container">
+          <FloatingInput
+            id="teamName"
+            maxLength="50"
+            label="Team Name"
+            onChange={this.handleNameChange}
+            defaultValue={this.props.team.name}
+          />
+          {publicId && (
+            <>
+              <Textbox>
+                <div>
+                  <div
+                    style={{
+                      fontSize: css.typography.size.large,
+                    }}
+                  >
+                    Public Link:
+                  </div>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'flex-start',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: css.spacing.xxSmall,
+                    }}
+                  >
+                    <span>
+                      <img
+                        onClick={this.handleCopyClick}
+                        style={{
+                          width: css.sizes.ICON,
+                          cursor: 'pointer',
+                        }}
+                        src="/server/assets/copy.svg"
+                        alt="copy"
+                      />
+                    </span>
+                  </div>
+                  <input
+                    id="publicLink"
+                    readOnly
+                    style={{
+                      fontSize: css.typography.size.small,
+                      padding: css.spacing.xxSmall,
+                      backgroundColor: 'rgba(0, 0, 0, 0)',
+                      color: css.colors.TEXT_LIGHT,
+                      border: '0px',
+                      resize: 'none',
+                      whiteSpace: 'unset',
+                      overflowWrap: 'unset',
+                      minWidth: '50%',
+                    }}
+                    value={`softball.app/stats/${publicId}`}
+                  />
+                  <div
+                    style={{
+                      padding: css.spacing.xxSmall,
+                    }}
+                  >
+                    {this.state.copiedNotificationVisible && (
+                      <span className="fade-out"> Link copied </span>
+                    )}
+                  </div>
+                </div>
+              </Textbox>
+            </>
+          )}
+
+          <div
+            className="edit-button button confirm-button"
+            onClick={this.handleConfirmClick}
+          >
+            <img
+              className="edit-button-icon"
+              src="/server/assets/check.svg"
+              alt=""
+            />
+            <span className="edit-button-icon"> Save </span>
+          </div>
+          <div
+            className="edit-button button cancel-button"
+            onClick={this.handleCancelClick}
+          >
+            <img
+              className="edit-button-icon"
+              src="/server/assets/cancel.svg"
+              alt=""
+            />
+            <span className="edit-button-icon"> Cancel </span>
+          </div>
+          {!this.props.isNew && (
+            <div
+              className="edit-button button cancel-button"
+              onClick={this.handleDeleteClick}
+            >
+              <img
+                className="edit-button-icon"
+                src="/server/assets/delete.svg"
+                alt=""
+              />
+              <span className="edit-button-icon"> Delete </span>
+            </div>
+          )}
+        </div>
+      </Card>
     );
   }
-};
+}

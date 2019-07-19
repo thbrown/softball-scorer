@@ -18,6 +18,16 @@ const exp = {
     'fixed-table-header-height': '28px',
     'fixed-table-col-width': '80px',
   },
+  typography: {
+    size: {
+      xxSmall: '10px',
+      xSmall: '12px',
+      small: '14px',
+      medium: '16px',
+      large: '20px',
+      xLarge: '32px',
+    }
+  },
   spacing: {
     xxSmall: '0.5rem',
     xSmall: '1rem',

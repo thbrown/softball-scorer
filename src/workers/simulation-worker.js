@@ -90,7 +90,6 @@ self.addEventListener("message", e => {
     }
     totalScore += gameScore;
   }
-  console.log("Lineup avg runs", totalScore / numberOfGamesToSimulate);
   let response = {};
   response.score = totalScore / numberOfGamesToSimulate;
   if (response.score > MAX_RUNS) {
