@@ -300,6 +300,11 @@ let databaseCalls = class DatabaseCalls {
     return undefined;
   }
 
+  async getAccountAndTeamByTeamPublicId(publicId) {
+    //TODO implement this for testing purposes
+    return undefined;
+  }
+
   getState(accountId) {
     // Return a copy of the state
     return JSON.parse(JSON.stringify(this.STATES[accountId]));
