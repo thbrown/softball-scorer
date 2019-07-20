@@ -15,21 +15,16 @@ body {
 }
 
 .fade-out {
-  -webkit-animation: fadeout 1.3s;
-  -moz-animation: fadeout 1.3s;
-  -ms-animation: fadeout 1.3s;
-  -o-animation: fadeout 1.3s;
-  animation: fadeout 1.3s;
+  -webkit-animation: fadeout 3.0s;
+  -moz-animation: fadeout 3.0s;
+  -ms-animation: fadeout 3.0s;
+  -o-animation: fadeout 3.0s;
+  animation: fadeout 3.0s;
 }
 
 .card-body {
-  /* max-width: 960px;
+  max-width: 960px;
   margin: 0 auto;
-  -webkit-animation: fadein 0.3s;
-  -moz-animation: fadein 0.3s
-  -ms-animation: fadein 0.3s
-  -o-animation: fadein 0.3s;
-  animation: fadein 0.3s; */
 }
 
 @keyframes fadein {
@@ -184,7 +179,7 @@ body {
 }
 
 .card-textbox {
-  padding: 20px;
+  padding: .75rem;
   color: $css.colors.TEXT_LIGHT;
 }
 

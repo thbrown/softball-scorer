@@ -1,22 +1,20 @@
 import React from 'react';
-import expose from './expose';
-import css from 'css';
+import injectSheet from 'react-jss';
 import state from 'state';
 import dialog from 'dialog';
 import Card from 'elements/card';
 import FloatingInput from 'component-floating-input';
-import Textbox from 'elements/Textbox';
+import CardSection from 'elements/card-section';
 
-export default class CardTeamEdit extends expose.Component {
+class CardTeamEdit extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
 
     this.state = {
       copiedNotificationVisible: false,
+      // Doesn't deep copy "games" however those are not edited here (as of right now)
+      teamEditing: { ...props.team },
     };
-
-    const teamCopy = JSON.parse(JSON.stringify(props.team));
 
     const goBack = function() {
       window.history.back();
@@ -29,9 +27,9 @@ export default class CardTeamEdit extends expose.Component {
     };
 
     this.handleConfirmClick = function() {
-      state.replaceTeam(props.team.id, teamCopy);
+      state.replaceTeam(props.team.id, this.state.teamEditing);
       goBack();
-    };
+    }.bind(this);
 
     this.handleCancelClick = function() {
       if (props.isNew) {
@@ -50,10 +48,22 @@ export default class CardTeamEdit extends expose.Component {
       );
     };
 
-    this.handleNameChange = function() {
-      let newValue = document.getElementById('teamName').value;
-      teamCopy.name = newValue;
-    };
+    this.handleNameChange = function(value) {
+      const newTeam = { ...this.state.teamEditing, name: value };
+      this.setState({
+        teamEditing: newTeam,
+      });
+    }.bind(this);
+
+    this.handlePublicLinkEnabledClicked = function(ev) {
+      const newTeam = {
+        ...this.state.teamEditing,
+        publicIdEnabled: !!ev.target.checked,
+      };
+      this.setState({
+        teamEditing: newTeam,
+      });
+    }.bind(this);
 
     this.handleCopyClick = function() {
       const copyText = document.getElementById('publicLink');
@@ -66,18 +76,23 @@ export default class CardTeamEdit extends expose.Component {
         this.setState({
           copiedNotificationVisible: false,
         });
-      }, 5000);
+      }, 2999);
+      window.getSelection().removeAllRanges();
+      copyText.blur();
     }.bind(this);
   }
 
   render() {
-    console.log('RENDER TEAM EDIT WITH PROPS', this.props);
+    //console.log('TEAM', this.state.teamEditing);
+    const { classes } = this.props;
     const {
-      team: { publicId, publicIdEnabled },
-    } = this.props;
+      teamEditing: { publicId, publicIdEnabled },
+    } = this.state;
+    const publicLink = `${window.location.host}/stats/${publicId}`;
+
     return (
       <Card title="Edit Team">
-        <div className="auth-input-container">
+        <CardSection>
           <FloatingInput
             id="teamName"
             maxLength="50"
@@ -85,37 +100,37 @@ export default class CardTeamEdit extends expose.Component {
             onChange={this.handleNameChange}
             defaultValue={this.props.team.name}
           />
-          {publicId && (
-            <>
-              <Textbox>
-                <div>
-                  <div
-                    style={{
-                      fontSize: css.typography.size.large,
-                    }}
-                  >
-                    Public Link:
-                  </div>
-                </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'flex-start',
-                    alignItems: 'center',
-                  }}
+        </CardSection>
+        {publicId && (
+          <>
+            <CardSection>
+              <div className={classes.publicLinkLabelBox}>
+                <label
+                  htmlFor="publicIdEnabled"
+                  className={classes.publicLinkLabel}
                 >
-                  <div
-                    style={{
-                      padding: css.spacing.xxSmall,
-                    }}
-                  >
+                  Public Link
+                </label>
+                <input
+                  id="publicIdEnabled"
+                  type="checkbox"
+                  checked={!!publicIdEnabled}
+                  className={classes.publicLinkCheckbox}
+                  onChange={this.handlePublicLinkEnabledClicked}
+                />
+                {this.state.copiedNotificationVisible && (
+                  <span className={'fade-out ' + classes.publicLinkCopiedText}>
+                    Link copied
+                  </span>
+                )}
+              </div>
+              {publicIdEnabled && (
+                <div className={classes.publicLinkContainer}>
+                  <div className={classes.publicLinkLineItem}>
                     <span>
                       <img
                         onClick={this.handleCopyClick}
-                        style={{
-                          width: css.sizes.ICON,
-                          cursor: 'pointer',
-                        }}
+                        className={classes.publicLinkCopyButton}
                         src="/server/assets/copy.svg"
                         alt="copy"
                       />
@@ -124,33 +139,16 @@ export default class CardTeamEdit extends expose.Component {
                   <input
                     id="publicLink"
                     readOnly
-                    style={{
-                      fontSize: css.typography.size.small,
-                      padding: css.spacing.xxSmall,
-                      backgroundColor: 'rgba(0, 0, 0, 0)',
-                      color: css.colors.TEXT_LIGHT,
-                      border: '0px',
-                      resize: 'none',
-                      whiteSpace: 'unset',
-                      overflowWrap: 'unset',
-                      minWidth: '50%',
-                    }}
-                    value={`softball.app/stats/${publicId}`}
+                    size={publicLink.length}
+                    value={publicLink}
+                    className={classes.publicLink}
                   />
-                  <div
-                    style={{
-                      padding: css.spacing.xxSmall,
-                    }}
-                  >
-                    {this.state.copiedNotificationVisible && (
-                      <span className="fade-out"> Link copied </span>
-                    )}
-                  </div>
                 </div>
-              </Textbox>
-            </>
-          )}
-
+              )}
+            </CardSection>
+          </>
+        )}
+        <CardSection>
           <div
             className="edit-button button confirm-button"
             onClick={this.handleConfirmClick}
@@ -186,8 +184,56 @@ export default class CardTeamEdit extends expose.Component {
               <span className="edit-button-icon"> Delete </span>
             </div>
           )}
-        </div>
+        </CardSection>
       </Card>
     );
   }
 }
+
+const styles = css => ({
+  publicLink: {
+    fontSize: css.typography.size.xSmall,
+    padding: css.spacing.xxSmall,
+    backgroundColor: css.colors.INVISIBLE,
+    color: css.colors.TEXT_LIGHT,
+    border: '0px',
+    resize: 'none',
+    whiteSpace: 'unset',
+    overflowWrap: 'unset',
+  },
+  publicLinkLabelBox: {
+    fontSize: css.typography.size.large,
+    display: 'flex',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
+  publicLinkLabel: {
+    paddingRight: css.spacing.xxSmall,
+  },
+  publicLinkLineItem: {
+    padding: css.spacing.xxSmall,
+  },
+  publicLinkCopyButton: {
+    width: css.sizes.ICON,
+    cursor: 'pointer',
+  },
+  publicLinkCopiedText: {
+    opacity: 0,
+  },
+  publicLinkContainer: {
+    backgroundColor: css.colors.PRIMARY_DARK,
+    borderRadius: css.spacing.xSmall,
+    display: 'flex',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    marginTop: css.spacing.xxSmall,
+    overflow: 'hidden',
+  },
+  publicLinkCheckbox: {
+    width: '1rem',
+    height: '1rem',
+    marginRight: css.spacing.xSmall,
+  },
+});
+
+export default injectSheet(styles)(CardTeamEdit);

@@ -332,6 +332,12 @@ exp.removeTeam = function(team_id) {
   onEdit();
 };
 
+exp.setTeamPublicIdEnabled = function(teamId, isEnabled) {
+  const team = exp.getTeam(teamId);
+  team.publicIdEnabled = isEnabled;
+  onEdit();
+};
+
 // PLAYER
 
 exp.getPlayer = function(player_id, state) {

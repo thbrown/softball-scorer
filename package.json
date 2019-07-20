@@ -79,6 +79,7 @@
     "react-dom": "^16.2.0",
     "react-dom-factories": "^1.0.2",
     "react-draggable": "^3.0.5",
+    "react-jss": "^8.6.1",
     "react-select": "^2.4.2",
     "react-sticky-table": "2.0.0",
     "reactify": "^1.1.1",

@@ -12,6 +12,7 @@ const exp = {
     TEXT_GREY: 'rgba(0,0,0,.87)',
     TEXT_DARK: '#000000',
     WHITE: '#FFFFFF',
+    INVISIBLE: 'rgba(0, 0, 0, 0)'
   },
   sizes: {
     ICON: '24px',
