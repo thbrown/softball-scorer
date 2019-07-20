@@ -5,7 +5,7 @@ import dialog from 'dialog';
 import objectMerge from '../object-merge.js';
 import state from 'state';
 import Card from 'elements/card';
-import Textbox from 'elements/textbox';
+import CardSection from 'elements/card-section';
 import { setRoute } from 'actions/route';
 
 export default class CardImport extends expose.Component {
@@ -71,7 +71,7 @@ export default class CardImport extends expose.Component {
   render() {
     return (
       <Card title="Load from File">
-        <Textbox>
+        <CardSection>
           <input
             type="file"
             name="fileData"
@@ -110,7 +110,7 @@ export default class CardImport extends expose.Component {
           >
             Load
           </div>
-        </Textbox>
+        </CardSection>
       </Card>
     );
   }
