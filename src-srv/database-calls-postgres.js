@@ -275,7 +275,7 @@ module.exports = class DatabaseCalls {
             newTeam.games = [];
             newTeam.id = idUtils.serverIdToClientId(plateAppearance.team_id);
             newTeam.name = plateAppearance.team_name;
-            newTeam.publicId = plateAppearance.public_id;
+            newTeam.publicId = idUtils.hexToBase62(plateAppearance.public_id);
             newTeam.publicIdEnabled = plateAppearance.public_id_enabled;
             teams.push(newTeam);
           }
@@ -490,6 +490,7 @@ module.exports = class DatabaseCalls {
   }
 
   async getAccountAndTeamByTeamPublicId(publicId) {
+    publicId = idUtils.base62ToHex(publicId);
     const result = await this.parameterizedQueryPromise(
       'SELECT account_id, id AS team_id FROM teams WHERE public_id = $1 AND public_id_enabled = true',
       [publicId]
