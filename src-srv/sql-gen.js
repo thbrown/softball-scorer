@@ -78,7 +78,7 @@ const keywords = tableReferences
   ]) // game columns
   .concat(['result', 'location', 'x', 'y']) // plate_appearance columns
   .concat(['name', 'gender', 'picture', 'song_link', 'song_start']) // player columns
-  .concat(['date', 'opponent', 'park']) // team columns
+  .concat(['date', 'opponent', 'park', 'publicId', 'publicIdEnabled']) // team columns
   .concat([
     /* name already present */
   ]); // teams columns
@@ -730,11 +730,14 @@ let getColNameFromJSONValue = function(value) {
     teamList: 'team_list',
     gameList: 'game_list',
     sendEmail: 'send_email',
+    public_id: 'public_id',
+    publicIdEnabled: 'public_id_enabled',
   };
   if (map[value]) {
     return map[value];
   } else {
-    if (value === 'account_id') {
+    // READ ONLY FIELDS
+    if (value === 'account_id' || value === 'status' || value === 'public_id') {
       // TODO: are there casing workarounds here?
       throw new HandledError(
         500,

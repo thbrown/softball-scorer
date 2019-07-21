@@ -12,7 +12,7 @@ exports.clientIdToServerId = function(clientId, accountId) {
   return hexAccountId + sizedHexId;
 };
 
-// Server ids are 32 char base 16 and are uuids, teh first 8 characters represent the
+// Server ids are 32 char base 16 and are uuids, the first 8 characters represent the
 // account id of the account this eneity belongs to (e.g. 000000010000d3d7203977664fdb23cf)
 exports.serverIdToClientId = function(serverId) {
   return bs62
@@ -26,5 +26,10 @@ exports.getAccountIdFromServerId = function(serverId) {
 };
 
 exports.hexToBase62 = function(hex) {
-  return bs62.encode(new Buffer(hex, 'hex'));
+  // Filter out any dashes from uuids as well
+  return bs62.encode(new Buffer(hex.replace(/-/g, ''), 'hex'));
+};
+
+exports.base62ToHex = function(hex) {
+  return bs62.decode(hex).toString('hex');
 };
