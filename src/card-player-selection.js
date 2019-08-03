@@ -34,7 +34,7 @@ export default class CardPlayerSelection extends expose.Component {
         );
       }
       state.addPlayerToLineup(this.props.game.lineup, this.state.player.id);
-      setRoute(`/teams/${this.props.team.id}/games/${this.props.game.id}`);
+      window.history.back();
     };
 
     this.onChange = (event, { newValue }) => {

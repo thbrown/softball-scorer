@@ -114,6 +114,9 @@ export default class CardPlayerSelect extends expose.Component {
     };
 
     this.noOptionsMessage = function() {
+      if (!this.state.typed) {
+        return <div>Type a name to add a new player</div>;
+      }
       return (
         <div>
           Add a new player: <br />
@@ -130,7 +133,7 @@ export default class CardPlayerSelect extends expose.Component {
             type="radio"
             onClick={this.handleRadioButtonChange.bind(this)}
             name="gender"
-            value="female"
+            value="F"
           />{' '}
           Female <br />
           <button type="button" onClick={this.onCreatePlayerClick.bind(this)}>
@@ -243,4 +246,4 @@ export default class CardPlayerSelect extends expose.Component {
       </div>
     );
   }
-};
+}
