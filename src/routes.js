@@ -252,7 +252,14 @@ routes = {
     }, null);
 
     return renderWhileLoading({ loading, error })(() => {
-      return <CardSpray team={data.team} player={player} origin="statsPage" />;
+      return (
+        <CardSpray
+          state={data}
+          team={data.team}
+          player={player}
+          origin="statsPage"
+        />
+      );
     });
   },
 };
