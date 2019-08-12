@@ -3,6 +3,9 @@ const { google } = require('googleapis');
 const compute = google.compute('v1');
 const ip = require('ip');
 
+const CPU_CORES = 4;
+const MEM_MB = 4096;
+
 module.exports = class ComputeGCP {
   constructor(gcpParams) {
     // Google Cloud Platform Authentication for API calls requires an environmental
@@ -208,8 +211,8 @@ module.exports = class ComputeGCP {
       await this.createInstance(
         accountId,
         instanceName,
-        4, // CPU count
-        4096, // Memory MB
+        CPU_CORES, // CPU count
+        MEM_MB, // Memory MB
         ip.address(),
         optimizationId
       );

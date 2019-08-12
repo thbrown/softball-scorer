@@ -9,6 +9,8 @@ import RightHeaderButton from 'component-right-header-button';
 import FloatingInput from 'component-floating-input';
 import FloatingPicklist from 'component-floating-picklist';
 import { setRoute } from 'actions/route';
+import SimulationTimeEstimator from '../simulation-time-estimator';
+import CommonUtils from '../common-utils';
 
 const ACCORDION_QUERYPARAM_PREFIX = 'acc';
 const SYNC_DELAY_MS = 10000; // This value also exists in the CSS
@@ -63,16 +65,18 @@ Clips can be played from the player's plate appearance page
 
     this.startCssAnimation = function() {
       let element = document.getElementById('pie-timer');
-      element.classList.remove('hidden');
+      if (element) {
+        element.classList.remove('hidden');
 
-      // Removing an element from the dom then reinserting it restarts the animation
-      element.classList.add('gone');
-      element.getClientRects(); /* trigger reflow https://gist.github.com/paulirish/5d52fb081b3570c81e3a */
-      element.classList.remove('gone');
+        // Removing an element from the dom then reinserting it restarts the animation
+        element.classList.add('gone');
+        element.getClientRects(); /* trigger reflow https://gist.github.com/paulirish/5d52fb081b3570c81e3a */
+        element.classList.remove('gone');
 
-      setTimeout(function() {
-        element.classList.add('hidden');
-      }, SYNC_DELAY_MS);
+        setTimeout(function() {
+          element.classList.add('hidden');
+        }, SYNC_DELAY_MS);
+      }
     };
 
     this.onRenderUpdateOrMount = function() {
@@ -225,48 +229,32 @@ Clips can be played from the player's plate appearance page
       gameIds = JSON.parse(this.optimization.gameList);
       overrideData = JSON.parse(this.optimization.overrideData);
 
-      // Gather player data (TODO: a lot of this is duplicated from render)
+      // Gather player data
       let executionPlayers = [];
 
-      for (let i = 0; i < playerIds.length; i++) {
-        let executionPlayer = {};
-
-        let player = state.getPlayer(playerIds[i]);
-        if (!player) {
-          continue; // Player may have been deleted
-        }
-
-        let plateAppearances = state.getPlateAppearancesForPlayerInGameOrOnTeam(
-          player.id,
-          teamIds,
-          null // TODO: gameIds
+      let stats = this.getActiveStatsForAllPlayers(
+        overrideData,
+        playerIds,
+        teamIds
+      );
+      let statsPlayerIds = Object.keys(stats);
+      for (let i = 0; i < statsPlayerIds.length; i++) {
+        // Add overrides for all players (snapshot of their stats at the optimization's run time)
+        // TODO: can we just set overrideData to stats once instead of going through the loop?
+        overrideData[playerIds[i]] = stats[statsPlayerIds[i]];
+        state.setOptimizationField(
+          this.optimization.id,
+          'overrideData',
+          overrideData,
+          true
         );
 
+        // Builds the object about player stats to pass to the optimization server
+        let player = state.getPlayer(playerIds[i]);
+        let executionPlayer = {};
+        Object.assign(executionPlayer, stats[player.id]);
         executionPlayer.id = player.id;
         executionPlayer.gender = player.gender;
-
-        // Check to see if there are manual overrides of the stats for this player
-        let existingOverride = overrideData[player.id];
-        if (existingOverride) {
-          Object.assign(executionPlayer, existingOverride);
-        } else {
-          // Gather the stats required for the optimization
-          let fullStats = state.buildStatsObject(player.id, plateAppearances);
-          let compressedStats = this.getCompressedStats(fullStats);
-
-          // There isn't an override for this player, create one so stats on the
-          // optimization page stay consistent with the moment this optimization was run
-          overrideData[player.id] = compressedStats;
-          state.setOptimizationField(
-            this.optimization.id,
-            'overrideData',
-            overrideData,
-            true
-          );
-
-          Object.assign(executionPlayer, compressedStats);
-        }
-
         executionPlayers.push(executionPlayer);
       }
 
@@ -318,7 +306,8 @@ Clips can be played from the player's plate appearance page
       buttonDiv.innerHTML = 'Start Simulation';
     }.bind(this);
 
-    this.getCompressedStats = function(fullStats) {
+    // TODO: should these stats methods go into some stats util?
+    this.getSummaryStats = function(fullStats) {
       let result = {};
       result.outs = fullStats.atBats - fullStats.hits;
       result.singles = fullStats.singles + fullStats.walks;
@@ -326,6 +315,63 @@ Clips can be played from the player's plate appearance page
       result.triples = fullStats.triples;
       result.homeruns = fullStats.insideTheParkHR + fullStats.outsideTheParkHR;
       return result;
+    };
+
+    // TODO: should these stats methods go into some stats util?
+    this.getTeamAverage = function(playerStats) {
+      let validPlayerIds = Object.keys(playerStats);
+      let teamHits = 0;
+      let teamOuts = 0;
+      for (let i = 0; i < validPlayerIds.length; i++) {
+        let playerId = validPlayerIds[i];
+        let stats = playerStats[playerId];
+        teamOuts += stats.outs;
+        teamHits =
+          teamHits +
+          stats.singles +
+          stats.doubles +
+          stats.triples +
+          stats.homeruns;
+      }
+      return teamHits / (teamHits + teamOuts);
+    };
+
+    /**
+     * Gets stats to be used in the optimization for each playerId passed in.
+     * Respects any stats overrides.
+     * The result is a map of playerId to stats object and there will be
+     * no entrys for players that have been deleted.
+     */
+    this.getActiveStatsForAllPlayers = function(
+      overrideData,
+      playerIds,
+      teamIds
+    ) {
+      let activeStats = {};
+      for (let i = 0; i < playerIds.length; i++) {
+        let player = state.getPlayer(playerIds[i]);
+        if (!player) {
+          continue; // Player may have been deleted
+        }
+
+        let plateAppearances = state.getPlateAppearancesForPlayerInGameOrOnTeam(
+          player.id,
+          teamIds,
+          null // TODO: gameIds
+        );
+
+        // Check to see if there are manual overrides of the stats for this player
+        let existingOverride = overrideData[player.id];
+        if (existingOverride) {
+          activeStats[player.id] = existingOverride;
+        } else {
+          // Gather the stats required for the optimization
+          let fullStats = state.buildStatsObject(player.id, plateAppearances);
+          let summaryStats = this.getSummaryStats(fullStats);
+          activeStats[player.id] = summaryStats;
+        }
+      }
+      return activeStats;
     };
   }
 
@@ -439,36 +485,31 @@ Clips can be played from the player's plate appearance page
 
     let displayPlayers = [];
     let playerIds = JSON.parse(this.optimization.playerList);
+    let teamIds = JSON.parse(this.optimization.teamList);
+    let overrideData = JSON.parse(this.optimization.overrideData);
+
+    let stats = this.getActiveStatsForAllPlayers(
+      overrideData,
+      playerIds,
+      teamIds
+    );
     for (let i = 0; i < playerIds.length; i++) {
       let displayPlayer = {};
+      Object.assign(displayPlayer, stats[playerIds[i]]);
 
-      // Check to see if there are manual overrides of the stats for this player
-      let overrides = JSON.parse(this.optimization.overrideData);
-      let existingOverride = overrides[playerIds[i]];
-
-      let player = state.getPlayer(playerIds[i]);
+      let existingOverride = overrideData[playerIds[i]];
       if (existingOverride) {
-        Object.assign(displayPlayer, existingOverride);
         displayPlayer.isOverride = true;
       } else {
-        if (!player) {
-          // Player doesn't exist (may have been deleted) and there are no
-          // overrides, just skip em!
-          continue;
-        }
-
-        let plateAppearances = state.getPlateAppearancesForPlayerInGameOrOnTeam(
-          player.id,
-          JSON.parse(this.optimization.teamList),
-          null
-        );
-
-        let fullStats = state.buildStatsObject(player.id, plateAppearances);
-        let compressedStats = this.getCompressedStats(fullStats);
-        Object.assign(displayPlayer, compressedStats);
         displayPlayer.isOverride = false;
       }
-      displayPlayer.name = player ? player.name : '<Player was deleted>';
+
+      let player = state.getPlayer(playerIds[i]);
+      if (player) {
+        displayPlayer.name = player.name;
+      } else {
+        displayPlayer.name = '<Player was deleted>';
+      }
       displayPlayer.playerId = playerIds[i];
       displayPlayers.push(displayPlayer);
     }
@@ -563,6 +604,21 @@ Clips can be played from the player's plate appearance page
       }
     }
 
+    // Remaining time (if necessary)
+    let remainingTime = false;
+    if (
+      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS
+    ) {
+      // TODO: can we avoid parsing this each time we need it?
+      let resultData = JSON.parse(this.optimization.resultData);
+      if (resultData && resultData.remainingTimeSec) {
+        let timeInfo = `Approximately ${CommonUtils.secondsToString(
+          resultData.remainingTimeSec
+        )} remaining`;
+        remainingTime = <div id="remainingTime">{timeInfo}</div>;
+      }
+    }
+
     // Spinner (if necessary)
     let spinner = false;
     if (
@@ -590,6 +646,7 @@ Clips can be played from the player's plate appearance page
           {state.OPTIMIZATION_STATUS_ENUM_INVERSE[this.optimization.status]}
           <br />
           {this.optimization.statusMessage}
+          {remainingTime}
           {spinner}
         </div>
         <div className="accordion">
@@ -721,17 +778,35 @@ Clips can be played from the player's plate appearance page
     let bestScore;
     let bestPlayers = [];
     let progress;
+    let elapsedTime;
     if (resultData && resultData.lineup) {
+      elapsedTime = `Elapsed Time: ${
+        resultData.elapsedTimeMs
+      }ms ~${CommonUtils.secondsToString(
+        Math.round(resultData.elapsedTimeMs / 1000)
+      )}`;
+
       bestScore = resultData.score;
       let completed = resultData.complete;
       let total = resultData.total;
       if (total === 0) {
         progress = <div>0%</div>;
       } else if (completed === total) {
-        progress = <div>100% Complete</div>;
+        progress = (
+          <div>
+            100% Complete<br></br>
+            {elapsedTime}
+          </div>
+        );
       } else {
-        progress = <div>{((completed / total) * 100).toFixed(1)}%</div>;
+        progress = (
+          <div>
+            {((completed / total) * 100).toFixed(1)}%<br></br>
+            {elapsedTime}
+          </div>
+        );
       }
+
       if (
         this.optimization.lineupType === state.LINEUP_TYPE_ENUM.NORMAL ||
         this.optimization.lineupType ===
@@ -878,6 +953,7 @@ Clips can be played from the player's plate appearance page
     let toggleButtonText;
     let toggleButtonHandler;
     let showToggleButton = true;
+    let estimatedTime = false;
 
     if (
       this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
@@ -885,6 +961,49 @@ Clips can be played from the player's plate appearance page
       toggleButtonText = 'Start Simulation';
       emailCheckboxDisabled = false;
       toggleButtonHandler = this.handleStartClick.bind(this);
+
+      let playerIds = JSON.parse(this.optimization.playerList);
+      let teamIds = JSON.parse(this.optimization.teamList);
+      let overrideData = JSON.parse(this.optimization.overrideData);
+
+      let playerStats = this.getActiveStatsForAllPlayers(
+        overrideData,
+        playerIds,
+        teamIds
+      );
+      let teamAverage = this.getTeamAverage(playerStats);
+
+      // Get male and female counts for optimization time estimation
+      let malePlayers = 0;
+      let femalePlayers = 0;
+      let validatedPlayerIds = Object.keys(playerStats);
+      for (let i = 0; i < validatedPlayerIds.length; i++) {
+        let player = state.getPlayer(validatedPlayerIds[i]);
+        if (player.gender === 'M') {
+          malePlayers++;
+        } else if (player.gender === 'F') {
+          femalePlayers++;
+        }
+      }
+
+      let possibleLineups = SimulationTimeEstimator.getNumberOfPossibleLineups(
+        this.optimization.lineupType,
+        malePlayers,
+        femalePlayers
+      );
+
+      let parsedCustomData = JSON.parse(this.optimization.customData);
+
+      let estimatedTimeInSeconds = SimulationTimeEstimator.estimateOptimizationTime(
+        possibleLineups,
+        SimulationTimeEstimator.getCoreCount(),
+        parsedCustomData.iterations,
+        parsedCustomData.innings,
+        teamAverage
+      );
+      estimatedTime = `(Estimated Completion Time: ${CommonUtils.secondsToString(
+        estimatedTimeInSeconds
+      )})`;
     } else if (
       this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
       this.optimization.status ===
@@ -908,12 +1027,15 @@ Clips can be played from the player's plate appearance page
     }
 
     let toggleButton = showToggleButton ? (
-      <div
-        id="toggle-optimization-button"
-        className="edit-button button cancel-button"
-        onClick={toggleButtonHandler}
-      >
-        {toggleButtonText}
+      <div>
+        <div>{estimatedTime}</div>
+        <div
+          id="toggle-optimization-button"
+          className="edit-button button cancel-button"
+          onClick={toggleButtonHandler}
+        >
+          {toggleButtonText}
+        </div>
       </div>
     ) : (
       false

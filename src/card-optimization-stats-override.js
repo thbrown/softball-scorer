@@ -20,11 +20,11 @@ export default class CardOptimizationStatsOverride extends expose.Component {
 
     let buildOverride = function() {
       return {
-        outs: document.getElementById('outs').value,
-        singles: document.getElementById('1b').value,
-        doubles: document.getElementById('2b').value,
-        triples: document.getElementById('3b').value,
-        homeruns: document.getElementById('hr').value,
+        outs: parseInt(document.getElementById('outs').value),
+        singles: parseInt(document.getElementById('1b').value),
+        doubles: parseInt(document.getElementById('2b').value),
+        triples: parseInt(document.getElementById('3b').value),
+        homeruns: parseInt(document.getElementById('hr').value),
       };
     };
 
@@ -275,4 +275,4 @@ export default class CardOptimizationStatsOverride extends expose.Component {
       )
     );
   }
-};
+}
