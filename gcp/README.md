@@ -14,7 +14,7 @@ From the GCP web UI:
 1. Create a micro instance on gcp. Debian GNU/Linux 9 (stretch), 10GB persistent disk.
 2. Ssh into that instance
 3. Update the instance (`sudo apt-get update`)
-4. Install jdk (`sudo apt-get install -y default-jre-headless`)
+4. Install the jre (`sudo apt-get install -y default-jre-headless`)
 5. Download SoftballSim.jar (`wget https://github.com/thbrown/softball-sim/releases/download/v0.4/softball-sim.jar`)
 6. Add startup script
 
@@ -57,7 +57,7 @@ Create auth key for external applications.
 
 ### Configuration
 
-Add/Modify the compute node to/in the src-srv config.js. Make sure you are mofifying your config, not the template config. If you don't see a local config file, do a build, it will be auto-generated for you based on the template. Alternativly you may copy the template file manually and rename it config.js. The config file fragment should look something like this:
+Add/Modify the compute node to/in the src-srv config.js. Make sure you are mofifying your config, not the template config. If you don't see a local config file, do a build, it will be auto-generated for you based on the template. Alternativly, you may copy the template file manually and rename it config.js. The config file fragment should look something like this:
 
 ```
 ...

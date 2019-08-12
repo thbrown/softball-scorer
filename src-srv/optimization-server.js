@@ -40,7 +40,6 @@ module.exports = class OptimizationServer {
               sock.accountId,
               sock.optimizationId
             );
-            logger.log(sock.accountId, JSON.stringify(executionData, null, 2));
 
             let optimizationData = executionData;
 
@@ -134,6 +133,7 @@ module.exports = class OptimizationServer {
             );
             if (!success) {
               // Hopefully the user just deleted this optimization while it was running or paused it
+              // TODO: pauses shouldn't warn
               logger.warn(
                 sock.accountId,
                 sock.optimizationId,
@@ -225,7 +225,7 @@ module.exports = class OptimizationServer {
           if (!sock.errorRecorded) {
             if (err.code === 'ECONNRESET') {
               // The compute client was closed unexpectedly, this is a retryable condition.
-              // Deligate to each compute implementation to decide how to handle it
+              // Delegate to each compute implementation to decide how to handle it
               logger.log(sock.accountId, 'attempting retry');
               try {
                 return await retry(accountId, optimizationId);

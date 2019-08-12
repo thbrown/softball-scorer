@@ -20,6 +20,7 @@ const idUtils = require('../id-utils');
 const logger = require('./logger');
 const objectMerge = require('../object-merge');
 const OptimizationServer = require('./optimization-server');
+const SimulationTimeEstimator = require('../simulation-time-estimator');
 
 module.exports = class SoftballServer {
   constructor(appPort, optimizationPort, databaseCalls, cacheCalls, compute) {
@@ -734,6 +735,49 @@ module.exports = class SoftballServer {
           // required fields?
           // some size restriction?
           // Make sure optimization exists!
+
+          let teamHits = 0;
+          let teamOuts = 0;
+          let maleCount = 0;
+          let femaleCount = 0;
+          for (let i = 0; i < data.executionData.players.length; i++) {
+            teamOuts += data.executionData.players[i].outs;
+            teamHits =
+              teamHits +
+              data.executionData.players[i].singles +
+              data.executionData.players[i].doubles +
+              data.executionData.players[i].triples +
+              data.executionData.players[i].homeruns;
+            if (data.executionData.players[i].gender === 'F') {
+              femaleCount++;
+            } else {
+              maleCount++;
+            }
+          }
+          let teamAverage = teamHits / (teamHits + teamOuts);
+
+          let numLineups = SimulationTimeEstimator.getNumberOfPossibleLineups(
+            data.executionData.lineupType,
+            maleCount,
+            femaleCount
+          );
+
+          let estimatedTime = SimulationTimeEstimator.estimateOptimizationTime(
+            numLineups,
+            SimulationTimeEstimator.getCoreCount(),
+            data.executionData.iterations,
+            data.executionData.innings,
+            teamAverage
+          );
+
+          // Don't run optimizations with estimated completion time greater than 12 hours
+          if (estimatedTime > 43200) {
+            res.status(400).send({
+              message:
+                'Could not start the simulation because the estimated completion time for this lineup is greater then 12 hours. Reduce the estimated runtime and try again.',
+            });
+            return;
+          }
 
           // If the send email checkbox is checked but the email address has not been validated, complain
           // This is also checked by the optimization server after the optimization completes
