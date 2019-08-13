@@ -7,6 +7,8 @@ const zlib = require('zlib');
 const configAccessor = require('./config-accessor');
 const logger = require('./logger');
 
+const LOCK_EXPIRATION_SEC = 20;
+
 /**
  * This cache implementation uses redis to store sessions and data that must be shared between different sessions of the same account (e.g. account locking data).
  * It's used primarally to keep sessions alive between server restarts and to enable future horizontal app server scaling.
@@ -77,6 +79,8 @@ module.exports = class CacheCalls {
     this.hdelAsync = promisify(this.client.hdel).bind(this.client);
     this.setAsync = promisify(this.client.set).bind(this.client);
     this.evalAsync = promisify(this.client.eval).bind(this.client);
+    this.setexAsync = promisify(this.client.setex).bind(this.client);
+    this.delAsync = promisify(this.client.del).bind(this.client);
   }
 
   async init() {
@@ -84,12 +88,26 @@ module.exports = class CacheCalls {
     await this.hsetnxAsync('0', '0', '0');
   }
 
+  /**
+   * We want an account lock that expires after some period of time just in case some event
+   * (unaccounted for error condition, app server shutdown, etc..) doesn't leave the accoutn
+   *  in a perminantly locked state.
+   */
   async lockAccount(accountId) {
-    return await this.hsetnxAsync(accountId, 'locked', true);
+    // This redis function (lua)
+    // 1) Returns true if the key corresponding to the accoutn id doesn't exist and puts the key in the cache
+    // 2) Returns false if the key corresponding to the accoutn id exists
+    let result = await this.evalAsync(
+      "local value = redis.call('get', KEYS[1]); if not value then redis.call('set', KEYS[1], 1, 'EX', ARGV[1]) return true else return false end",
+      '1', // # of keys
+      'lock:account:' + accountId, // KEYS[1]
+      LOCK_EXPIRATION_SEC // ARGS[1]
+    );
+    return result ? true : false;
   }
 
   async unlockAccount(accountId) {
-    await this.hdelAsync(accountId, 'locked');
+    await this.delAsync('lock:account:' + accountId);
   }
 
   async lockOptimization(optimizationId, serverId, ttl) {
@@ -99,10 +117,10 @@ module.exports = class CacheCalls {
     // 3) Returns false if the lock is owned by another server
     let result = await this.evalAsync(
       "local value = redis.call('get', KEYS[1]); if not value then redis.call('set', KEYS[1], ARGV[1], 'EX', ARGV[2]) return true elseif (value == ARGV[1]) then redis.call('expire', KEYS[1], ARGV[2]) return true else return false end",
-      '1',
-      'optlock:' + optimizationId,
-      serverId,
-      ttl
+      '1', // # of keys
+      'lock:optimization' + optimizationId, // KEYS[1]
+      serverId, // ARGS[1]
+      ttl // ARGS[2]
     );
     return result ? true : false;
   }
