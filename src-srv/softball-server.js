@@ -1093,7 +1093,7 @@ module.exports = class SoftballServer {
     };
 
     // Lock the account. Only one session for a single account can access the database at a time, otherwise there will be lots of race conditions.
-    // Depending on the server configuration, locking info is may be stored in a cache to allow multiple app servers to access and update the same locks.
+    // Depending on the server configuration, locking info may be stored in a cache to allow multiple app servers to access and update the same locks.
     const lockAccount = async function(accountId) {
       let success = false;
       let counter = 0;
