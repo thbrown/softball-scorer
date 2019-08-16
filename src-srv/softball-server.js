@@ -250,19 +250,11 @@ module.exports = class SoftballServer {
           publicId
         );
         if (account) {
-          const { accountId } = account;
+          const { accountId, teamId } = account;
           await lockAccount(accountId);
           let state;
           try {
-            //TODO write a getPublicState db call that encompasses the public_id and
-            //removes redundant information (like extra players/optimizations)
-            state = await this.databaseCalls.getState(accountId);
-            state.statsId = publicId;
-            state.team = state.teams.reduce((prev, team) => {
-              return team.publicId === publicId ? team : prev;
-            }, null);
-            delete state.optimizations;
-            delete state.teams;
+            state = await this.databaseCalls.getStateForTeam(accountId, teamId);
           } finally {
             await unlockAccount(accountId);
           }

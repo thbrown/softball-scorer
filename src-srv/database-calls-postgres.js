@@ -52,6 +52,131 @@ module.exports = class DatabaseCalls {
     this.pool.on('error', error => {
       logger.error(null, `Postgres error: ${error}`);
     });
+
+    this.processPlayers = function(players) {
+      for (let i = 0; i < players.length; i++) {
+        players[i].id = idUtils.serverIdToClientId(players[i].id);
+        players[i].song_link = players[i].song_link
+          ? players[i].song_link
+          : null;
+        players[i].song_start = players[i].song_start
+          ? players[i].song_start
+          : null;
+      }
+      return players;
+    };
+
+    this.processOptimizations = function(optimizations) {
+      let outputOptimizations = [];
+      for (let i = 0; i < optimizations.length; i++) {
+        outputOptimizations.push({});
+        outputOptimizations[i].id = idUtils.serverIdToClientId(
+          optimizations[i].id
+        );
+
+        outputOptimizations[i].name = optimizations[i].name;
+        outputOptimizations[i].type = optimizations[i].type;
+
+        outputOptimizations[i].customData = optimizations[i].custom_data
+          ? JSON.stringify(optimizations[i].custom_data)
+          : '{}';
+        outputOptimizations[i].overrideData = optimizations[i].override_data
+          ? JSON.stringify(optimizations[i].override_data)
+          : '{}';
+        outputOptimizations[i].status = optimizations[i].status;
+        outputOptimizations[i].resultData = optimizations[i].result_data
+          ? JSON.stringify(optimizations[i].result_data)
+          : '{}';
+        outputOptimizations[i].statusMessage = optimizations[i].status_message;
+        outputOptimizations[i].sendEmail = optimizations[i].send_email;
+        outputOptimizations[i].teamList = optimizations[i].team_list
+          ? JSON.stringify(optimizations[i].team_list)
+          : '[]';
+        outputOptimizations[i].gameList = optimizations[i].game_list
+          ? JSON.stringify(optimizations[i].game_list)
+          : '[]';
+        outputOptimizations[i].playerList = optimizations[i].player_list
+          ? JSON.stringify(optimizations[i].player_list)
+          : '[]';
+        outputOptimizations[i].lineupType = optimizations[i].lineup_type;
+      }
+      return outputOptimizations;
+    };
+
+    this.processTeams = function(plateAppearances) {
+      let teamIdSet = new Set();
+      let gameIdSet = new Set();
+      let outputTeams = [];
+
+      for (let i = 0; i < plateAppearances.length; i++) {
+        let plateAppearance = plateAppearances[i];
+
+        if (
+          plateAppearance.team_id &&
+          !teamIdSet.has(plateAppearance.team_id)
+        ) {
+          teamIdSet.add(plateAppearance.team_id);
+          const newTeam = {};
+          newTeam.games = [];
+          newTeam.id = idUtils.serverIdToClientId(plateAppearance.team_id);
+          newTeam.name = plateAppearance.team_name;
+          newTeam.publicId = idUtils.hexToBase62(plateAppearance.public_id);
+          newTeam.publicIdEnabled = plateAppearance.public_id_enabled;
+          outputTeams.push(newTeam);
+        }
+
+        if (
+          plateAppearance.game_id &&
+          !gameIdSet.has(plateAppearance.game_id)
+        ) {
+          gameIdSet.add(plateAppearance.game_id);
+          var newGame = {};
+          newGame.plateAppearances = [];
+          newGame.id = idUtils.serverIdToClientId(plateAppearance.game_id);
+          newGame.opponent = plateAppearance.game_opponent;
+          newGame.date = plateAppearance.game_date;
+          newGame.park = plateAppearance.game_park;
+          newGame.lineupType = plateAppearance.lineup_type;
+          if (plateAppearance.lineup) {
+            newGame.lineup = plateAppearance.lineup
+              .split(',')
+              .map(v => idUtils.serverIdToClientId(v.trim()));
+          } else {
+            newGame.lineup = [];
+          }
+          let team = outputTeams.find(
+            element =>
+              element.id === idUtils.serverIdToClientId(plateAppearance.team_id)
+          );
+          team.games.push(newGame);
+        }
+
+        if (plateAppearance.plate_appearance_id) {
+          var newPlateAppearance = {};
+          newPlateAppearance.id = idUtils.serverIdToClientId(
+            plateAppearance.plate_appearance_id
+          );
+          newPlateAppearance.player_id = idUtils.serverIdToClientId(
+            plateAppearance.player_id
+          );
+          newPlateAppearance.result = plateAppearance.result;
+          newPlateAppearance.location = {
+            x: plateAppearance.x,
+            y: plateAppearance.y,
+          };
+          let team = outputTeams.find(
+            element =>
+              element.id === idUtils.serverIdToClientId(plateAppearance.team_id)
+          );
+          let game = team.games.find(
+            element =>
+              element.id === idUtils.serverIdToClientId(plateAppearance.game_id)
+          );
+          game.plateAppearances.push(newPlateAppearance);
+        }
+      }
+      return outputTeams;
+    };
   }
 
   disconnect() {
@@ -208,140 +333,109 @@ module.exports = class DatabaseCalls {
         var state = {};
 
         // Players
-        state.players = [];
-        state.players = values[0].rows;
-        for (let i = 0; i < state.players.length; i++) {
-          state.players[i].id = idUtils.serverIdToClientId(state.players[i].id);
-          state.players[i].song_link = state.players[i].song_link
-            ? state.players[i].song_link
-            : null;
-          state.players[i].song_start = state.players[i].song_start
-            ? state.players[i].song_start
-            : null;
-        }
+        state.players = self.processPlayers(values[0].rows);
 
         // Optimizations
-        state.optimizations = [];
-        let optimizations = values[1].rows;
-        for (let i = 0; i < optimizations.length; i++) {
-          state.optimizations.push({});
-          state.optimizations[i].id = idUtils.serverIdToClientId(
-            optimizations[i].id
-          );
-
-          state.optimizations[i].name = optimizations[i].name;
-          state.optimizations[i].type = optimizations[i].type;
-
-          state.optimizations[i].customData = optimizations[i].custom_data
-            ? JSON.stringify(optimizations[i].custom_data)
-            : '{}';
-          state.optimizations[i].overrideData = optimizations[i].override_data
-            ? JSON.stringify(optimizations[i].override_data)
-            : '{}';
-          state.optimizations[i].status = optimizations[i].status;
-          state.optimizations[i].resultData = optimizations[i].result_data
-            ? JSON.stringify(optimizations[i].result_data)
-            : '{}';
-          state.optimizations[i].statusMessage =
-            optimizations[i].status_message;
-          state.optimizations[i].sendEmail = optimizations[i].send_email;
-          state.optimizations[i].teamList = optimizations[i].team_list
-            ? JSON.stringify(optimizations[i].team_list)
-            : '[]';
-          state.optimizations[i].gameList = optimizations[i].game_list
-            ? JSON.stringify(optimizations[i].game_list)
-            : '[]';
-          state.optimizations[i].playerList = optimizations[i].player_list
-            ? JSON.stringify(optimizations[i].player_list)
-            : '[]';
-          state.optimizations[i].lineupType = optimizations[i].lineup_type;
-        }
+        state.optimizations = self.processOptimizations(values[1].rows);
 
         // Teams
-        let plateAppearances = values[2].rows;
-        let teamIdSet = new Set();
-        let gameIdSet = new Set();
-        let teams = [];
-
-        for (let i = 0; i < plateAppearances.length; i++) {
-          let plateAppearance = plateAppearances[i];
-
-          if (
-            plateAppearance.team_id &&
-            !teamIdSet.has(plateAppearance.team_id)
-          ) {
-            teamIdSet.add(plateAppearance.team_id);
-            const newTeam = {};
-            newTeam.games = [];
-            newTeam.id = idUtils.serverIdToClientId(plateAppearance.team_id);
-            newTeam.name = plateAppearance.team_name;
-            newTeam.publicId = idUtils.hexToBase62(plateAppearance.public_id);
-            newTeam.publicIdEnabled = plateAppearance.public_id_enabled;
-            teams.push(newTeam);
-          }
-
-          if (
-            plateAppearance.game_id &&
-            !gameIdSet.has(plateAppearance.game_id)
-          ) {
-            gameIdSet.add(plateAppearance.game_id);
-            var newGame = {};
-            newGame.plateAppearances = [];
-            newGame.id = idUtils.serverIdToClientId(plateAppearance.game_id);
-            newGame.opponent = plateAppearance.game_opponent;
-            newGame.date = plateAppearance.game_date;
-            newGame.park = plateAppearance.game_park;
-            newGame.lineupType = plateAppearance.lineup_type;
-            if (plateAppearance.lineup) {
-              newGame.lineup = plateAppearance.lineup
-                .split(',')
-                .map(v => idUtils.serverIdToClientId(v.trim()));
-            } else {
-              newGame.lineup = [];
-            }
-            let team = teams.find(
-              element =>
-                element.id ===
-                idUtils.serverIdToClientId(plateAppearance.team_id)
-            );
-            team.games.push(newGame);
-          }
-
-          if (plateAppearance.plate_appearance_id) {
-            var newPlateAppearance = {};
-            newPlateAppearance.id = idUtils.serverIdToClientId(
-              plateAppearance.plate_appearance_id
-            );
-            newPlateAppearance.player_id = idUtils.serverIdToClientId(
-              plateAppearance.player_id
-            );
-            newPlateAppearance.result = plateAppearance.result;
-            newPlateAppearance.location = {
-              x: plateAppearance.x,
-              y: plateAppearance.y,
-            };
-            let team = teams.find(
-              element =>
-                element.id ===
-                idUtils.serverIdToClientId(plateAppearance.team_id)
-            );
-            let game = team.games.find(
-              element =>
-                element.id ===
-                idUtils.serverIdToClientId(plateAppearance.game_id)
-            );
-            game.plateAppearances.push(newPlateAppearance);
-          }
-        }
-        state.teams = teams;
+        state.teams = self.processTeams(values[2].rows);
 
         // For some reason the object hash changes before and after stringification. I couldn't quite figure out why this was happening
-        // the objects with different hashes appear to be identical. So, I'll add this deep copy here for now so we are always hashing the post-stringified object.
+        // the objects with different hashes appear to be identical. So, I'll add this deep copy here for now so we are always hashing
+        // the post-stringified object. This fixes the hash mismatching problem.
         state = JSON.parse(JSON.stringify(state));
 
         logger.log(
           accountId,
           `SYNC_PULL took ${new Date().getTime() - milliseconds}ms`
+        );
+
+        resolve(state);
+      });
+    });
+  }
+
+  getStateForTeam(accountId, teamId) {
+    if (accountId === undefined) {
+      return { players: [], teams: [] };
+    }
+    let self = this;
+    return new Promise(function(resolve, reject) {
+      var players = self.parameterizedQueryPromise(
+        `
+        SELECT   
+        id as id,
+        name as name,
+        gender as gender,
+        song_link as song_link,
+        song_start as song_start FROM players WHERE id IN 
+        (SELECT DISTINCT player_id FROM players_games WHERE game_id IN 
+          (SELECT id FROM games WHERE team_id = $2)
+          )
+        AND account_id = $1
+        ORDER BY 
+        players.created_at ASC,
+        players.counter ASC
+        `,
+        [accountId, teamId]
+      );
+
+      var teams = self.parameterizedQueryPromise(
+        `
+        SELECT
+          teams.id as team_id, 
+          teams.name as team_name,
+          teams.public_id as public_id,
+          teams.public_id_enabled as public_id_enabled,
+          games.id as game_id,
+          extract (epoch from games.date) as game_date, 
+          games.opponent as game_opponent, 
+          games.park as game_park, 
+          games.score_us as score_us, 
+          games.score_them as score_them,
+          games.lineup_type as lineup_type,
+          plate_appearances.id as plate_appearance_id, 
+          plate_appearances.result as result,
+          plate_appearances.hit_location_x as x,
+          plate_appearances.hit_location_y as y,
+          plate_appearances.player_id as player_id,
+          sub_lineup.lineup as lineup
+        FROM 
+          plate_appearances
+        FULL JOIN games ON games.id=plate_appearances.game_id
+        FULL JOIN (SELECT players_games.game_id as game_id, string_agg(players_games.player_id::text, ', ' order by players_games.lineup_index) as lineup
+          FROM players_games
+          WHERE players_games.account_id = $1
+          GROUP BY players_games.game_id) as sub_lineup ON sub_lineup.game_id=games.id
+        FULL JOIN teams ON games.team_id=teams.id
+        WHERE 
+          teams.account_id = $1 AND 
+          teams.id = $2
+        ORDER BY
+          teams.created_at ASC,
+          teams.counter ASC,
+          games.created_at ASC,
+          games.counter ASC,
+          plate_appearances.created_at ASC,
+          plate_appearances.counter ASC;
+      `,
+        [accountId, teamId]
+      );
+
+      Promise.all([players, teams]).then(function(values) {
+        var milliseconds = new Date().getTime();
+        var state = {};
+
+        // Players
+        state.players = self.processPlayers(values[0].rows);
+
+        // Teams
+        state.teams = self.processTeams(values[1].rows);
+
+        logger.log(
+          accountId,
+          `SYNC_PULL_TEAM took ${new Date().getTime() - milliseconds}ms`
         );
 
         resolve(state);

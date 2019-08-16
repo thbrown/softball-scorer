@@ -19,18 +19,10 @@ export default class CardAtBat extends expose.Component {
   }
 
   renderField() {
-    let playerPlateAppearances = [];
-    if (this.props.origin === 'stats') {
-      playerPlateAppearances = state.getPlateAppearancesForPlayerOnTeam(
-        this.props.player.id,
-        this.props.team.id
-      );
-    } else {
-      playerPlateAppearances = state.getPlateAppearancesForPlayer(
-        this.props.player.id
-      );
-    }
+    let playerPlateAppearances = this.props.plateAppearances;
     let indicators = [];
+
+    console.log(`In stats ${JSON.stringify(playerPlateAppearances)}`);
 
     playerPlateAppearances.forEach(value => {
       let x = -1;
