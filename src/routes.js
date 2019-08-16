@@ -108,8 +108,18 @@ routes = {
   '/teams/:teamId/stats/player/:playerId': ({ teamId, playerId }) => {
     const team = state.getTeam(teamId);
     const player = state.getPlayer(playerId);
-    asserStateObjects(team, player);
-    return <CardSpray team={team} player={player} origin="stats" />;
+    const playerPlateAppearances = state.getPlateAppearancesForPlayerOnTeam(
+      this.props.player.id,
+      this.props.team.id
+    );
+    asserStateObjects(team, player, playerPlateAppearances);
+    return (
+      <CardSpray
+        team={team}
+        player={player}
+        plateAppearances={playerPlateAppearances}
+      />
+    );
   },
   '/teams/:teamId/games/:gameId': ({ teamId, gameId }) => {
     const team = state.getTeam(teamId);
@@ -172,8 +182,13 @@ routes = {
   },
   '/players/:playerId': ({ playerId }) => {
     const player = state.getPlayer(playerId);
-    asserStateObjects(player);
-    return <CardSpray player={player} origin="players" />;
+    const playerPlateAppearances = state.getPlateAppearancesForPlayer(
+      this.props.player.id
+    );
+    asserStateObjects(player, playerPlateAppearances);
+    return (
+      <CardSpray player={player} plateAppearances={playerPlateAppearances} />
+    );
   },
   '/players/:playerId/edit': ({ playerId, isNew }) => {
     const player = state.getPlayer(playerId);
@@ -236,7 +251,11 @@ routes = {
   '/stats/:statsId': ({ data, loading, error, statsId, teamId }) => {
     return renderWhileLoading({ loading, error })(() => {
       return (
-        <CardStats state={data} team={data.team} routingMethod="statsPage" />
+        <CardStats
+          state={data}
+          team={data.teams[0]}
+          routingMethod="statsPage"
+        />
       );
     });
   },
@@ -251,8 +270,29 @@ routes = {
       return player.id === playerId ? player : prev;
     }, null);
 
+    let team = data.teams[0];
+
+    // TODO: This is duplicated logic from the state class, figure out how we can re-use that code
+    let plateAppearances = [];
+    if (team && team.games) {
+      team.games.forEach(game => {
+        if (game.plateAppearances) {
+          const plateAppearancesThisGame = game.plateAppearances.filter(
+            pa => player.id === pa.player_id
+          );
+          plateAppearances = plateAppearances.concat(plateAppearancesThisGame);
+        }
+      });
+    }
+
     return renderWhileLoading({ loading, error })(() => {
-      return <CardSpray team={data.team} player={player} origin="statsPage" />;
+      return (
+        <CardSpray
+          team={team}
+          player={player}
+          plateAppearances={plateAppearances}
+        />
+      );
     });
   },
 };
