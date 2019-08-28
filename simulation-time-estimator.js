@@ -15,43 +15,10 @@ const commonUtils = require('./common-utils.js');
  * some error. Since every machine is different (core count, hyperthreading, etc..)
  * We generate average error values for running the optimization with differnt
  * core counts on applicable hardware and apply the error to the calculated result.
- * These values can also be determined by running a test in the softball-sim repository.
+ * These values can be determined for a particular instance by running TimeEstimateConstantsTest
+ * in the softball-sim repository (https://github.com/thbrown/softball-sim).
  */
-let config = {
-  iterations: 100,
-  innings: 7,
-  threads: 1,
-  lineupType: 1,
-  lineupCount: 40320,
-  coefficients: [
-    642.1831059773589,
-    1764.0244987370788,
-    54033.74469586498,
-    -995890.536678744,
-    8192458.368238615,
-    -3.731949262576924e7,
-    1.0277562517449364e8,
-    -1.752081763647162e8,
-    1.8073143058462426e8,
-    -1.0328391915384695e8,
-    2.508880476785901e7,
-  ],
-  errorAdjustments: [
-    0.0,
-    1.0,
-    1.0101888330389892,
-    1.018748726309354,
-    1.0700991713082462,
-    1.2158627717391304,
-    1.2531078051762787,
-    1.3074179743223966,
-    1.4195652173913043,
-    1.5331702843167228,
-    1.698029891304348,
-    1.9413303437967115,
-    2.0619649408887075,
-  ],
-};
+let config = require('./time-estimation-configs/local-7600k-8.js').config;
 
 exports.estimateOptimizationTime = function(
   numLineups,

@@ -27,7 +27,7 @@ import CardStats from 'card-stats';
 
 let routes;
 
-const asserStateObjects = function(...args) {
+const assertStateObjects = function(...args) {
   let valid = true;
   args.forEach(val => {
     if (!val) {
@@ -63,7 +63,7 @@ routes = {
     return (
       <CardNotFound
         title="Not Found"
-        message="The content  you were looking for could not be found."
+        message="The content you were looking for could not be found."
       />
     );
   },
@@ -91,28 +91,30 @@ routes = {
   },
   '/teams/:teamId': ({ teamId }) => {
     const team = state.getTeam(teamId);
-    asserStateObjects(team);
+    assertStateObjects(team);
     return <CardTeam team={team} tab="games" />;
   },
   '/teams/:teamId/games': isSameRouteAs('/teams/:teamId'),
   '/teams/:teamId/edit': ({ teamId, isNew }) => {
     const team = state.getTeam(teamId); // TODO: revisit this, what happens if this page is loaded via external link
-    asserStateObjects(team);
+    assertStateObjects(team);
     return <CardTeamEdit team={team} isNew={isNew} />;
   },
   '/teams/:teamId/stats': ({ teamId }) => {
     const team = state.getTeam(teamId);
-    asserStateObjects(team);
+    assertStateObjects(team);
     return <CardTeam team={team} tab="stats" />;
   },
   '/teams/:teamId/stats/player/:playerId': ({ teamId, playerId }) => {
     const team = state.getTeam(teamId);
     const player = state.getPlayer(playerId);
     const playerPlateAppearances = state.getPlateAppearancesForPlayerOnTeam(
-      this.props.player.id,
-      this.props.team.id
+      playerId,
+      teamId
     );
-    asserStateObjects(team, player, playerPlateAppearances);
+    console.log('HERE2', playerPlateAppearances);
+
+    assertStateObjects(team, player, playerPlateAppearances);
     return (
       <CardSpray
         team={team}
@@ -124,7 +126,7 @@ routes = {
   '/teams/:teamId/games/:gameId': ({ teamId, gameId }) => {
     const team = state.getTeam(teamId);
     const game = state.getGame(gameId);
-    asserStateObjects(team, game);
+    assertStateObjects(team, game);
     return <CardGame team={team} game={game} tab="lineup" />;
   },
   '/teams/:teamId/games/:gameId/lineup': isSameRouteAs(
@@ -133,19 +135,19 @@ routes = {
   '/teams/:teamId/games/:gameId/scorer': ({ teamId, gameId }) => {
     const team = state.getTeam(teamId);
     const game = state.getGame(gameId);
-    asserStateObjects(team, game);
+    assertStateObjects(team, game);
     return <CardGame team={team} game={game} tab="scorer" />;
   },
   '/teams/:teamId/games/:gameId/player-selection': ({ teamId, gameId }) => {
     const team = state.getTeam(teamId);
     const game = state.getGame(gameId);
-    asserStateObjects(team, game);
+    assertStateObjects(team, game);
     return <CardPlayerSelection team={team} game={game} />;
   },
   '/teams/:teamId/games/:gameId/edit': ({ teamId, gameId, isNew }) => {
     const team = state.getTeam(teamId);
     const game = state.getGame(gameId);
-    asserStateObjects(team, game);
+    assertStateObjects(team, game);
     return <CardGameEdit team={team} game={game} isNew={isNew} />;
   },
   '/teams/:teamId/games/:gameId/lineup/plateAppearances/:plateAppearanceId': ({
@@ -162,7 +164,7 @@ routes = {
       gameId
     );
     const player = state.getPlayer(plateAppearance.player_id);
-    asserStateObjects(team, game, plateAppearance, player);
+    assertStateObjects(team, game, plateAppearance, player);
     return (
       <CardPlateAppearance
         team={team}
@@ -182,17 +184,15 @@ routes = {
   },
   '/players/:playerId': ({ playerId }) => {
     const player = state.getPlayer(playerId);
-    const playerPlateAppearances = state.getPlateAppearancesForPlayer(
-      this.props.player.id
-    );
-    asserStateObjects(player, playerPlateAppearances);
+    const playerPlateAppearances = state.getPlateAppearancesForPlayer(playerId);
+    assertStateObjects(player, playerPlateAppearances);
     return (
       <CardSpray player={player} plateAppearances={playerPlateAppearances} />
     );
   },
   '/players/:playerId/edit': ({ playerId, isNew }) => {
     const player = state.getPlayer(playerId);
-    asserStateObjects(player);
+    assertStateObjects(player);
 
     return <CardPlayerEdit player={player} isNew={isNew} />;
   },
@@ -207,19 +207,19 @@ routes = {
   },
   '/optimizations/:optimizationId/edit': ({ optimizationId, isNew }) => {
     const optimization = state.getOptimization(optimizationId);
-    asserStateObjects(optimization);
+    assertStateObjects(optimization);
     return <CardOptimizationEdit optimization={optimization} isNew={isNew} />;
   },
   '/optimizations/:optimizationId': ({ optimizationId }) => {
     const optimization = state.getOptimization(optimizationId);
-    asserStateObjects(optimization);
+    assertStateObjects(optimization);
     return <CardOptimization optimization={optimization} />;
   },
   '/optimizations/:optimizationId/overrides/player-select': ({
     optimizationId,
   }) => {
     const optimization = state.getOptimization(optimizationId);
-    asserStateObjects(optimization);
+    assertStateObjects(optimization);
     return (
       <CardPlayerSelect
         selected={JSON.parse(optimization.playerList)}
@@ -240,7 +240,7 @@ routes = {
   }) => {
     const optimization = state.getOptimization(optimizationId);
     const player = state.getPlayer(playerId);
-    asserStateObjects(optimization, player);
+    assertStateObjects(optimization, player);
     return (
       <CardOptimizationStatsOverride
         player={player}
@@ -248,24 +248,32 @@ routes = {
       />
     );
   },
-  '/stats/:statsId': ({ data, loading, error, statsId, teamId }) => {
+  '/public-teams/:publicTeamId/stats': ({
+    data,
+    loading,
+    error,
+    publicTeamId,
+    teamId,
+  }) => {
     return renderWhileLoading({ loading, error })(() => {
       return (
         <CardStats
           state={data}
           team={data.teams[0]}
           routingMethod="statsPage"
+          publicTeamId={publicTeamId}
         />
       );
     });
   },
-  '/stats/:statsId/player/:playerId': ({
+  '/public-teams/:publicTeamId/stats/player/:playerId': ({
     data,
     loading,
     error,
-    statsId,
+    publicTeamId,
     playerId,
   }) => {
+    console.log('data', data);
     const player = data.players.reduce((prev, player) => {
       return player.id === playerId ? player : prev;
     }, null);

@@ -22,8 +22,6 @@ export default class CardAtBat extends expose.Component {
     let playerPlateAppearances = this.props.plateAppearances;
     let indicators = [];
 
-    console.log(`In stats ${JSON.stringify(playerPlateAppearances)}`);
-
     playerPlateAppearances.forEach(value => {
       let x = -1;
       let y = -1;

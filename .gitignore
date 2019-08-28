@@ -7,6 +7,7 @@ src/workers/service-worker.js
 package-lock.json
 src-srv/config.js
 src/config.js
+config-common.js
 *.sublime-project
 *.sublime-workspace
 src-srv/logs

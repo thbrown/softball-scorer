@@ -1,3 +1,4 @@
 User-agent: *
 Disallow: /server/stats
+Disallow: /server/stats/
 Disallow: /server/stats-pretty
