@@ -112,7 +112,6 @@ routes = {
       playerId,
       teamId
     );
-    console.log('HERE2', playerPlateAppearances);
 
     assertStateObjects(team, player, playerPlateAppearances);
     return (
@@ -202,6 +201,7 @@ routes = {
     // exported files. In the meantime, here is a band aid.
     if (state.getAllOptimizations() === undefined) {
       state.getLocalState().optimizations = [];
+      state.getAncestorState().optimizations = [];
     }
     return <CardOptimizationList />;
   },

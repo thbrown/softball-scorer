@@ -108,6 +108,9 @@ from softball-sim on the instance you'lll be running the optimization on.
 `sudo apt-get install screen`
 `screen`
 Press enter
-`./gradlew clean test --info` (you can ignore the two failed tests)
+`./gradlew clean test --info`
 `ctrl A` then `d`
 Wait a long time
+Rename the `estimated-time-config.js` to someting that identifies it as having been run on your machine
+Move that file to the `time-estimation-configs` directory in this project
+Modify `simulation-time-estimator.js` to point to your new config

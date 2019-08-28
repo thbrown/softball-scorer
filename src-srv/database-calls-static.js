@@ -319,7 +319,7 @@ let databaseCalls = class DatabaseCalls {
   }
 
   async signup(email, passwordHash, passwordTokenHash) {
-    this.STATES[this.idCounter] = { teams: [], players: [] };
+    this.STATES[this.idCounter] = { teams: [], players: [], optimizations: [] };
     let newAccount = {
       account_id: this.idCounter,
       email: email,
@@ -414,7 +414,8 @@ let databaseCalls = class DatabaseCalls {
     accountId,
     optimizationId,
     newStatus,
-    optionalMessage
+    optionalMessage,
+    optionalPreviousStatus
   ) {
     optimizationId = idUtils.serverIdToClientId(optimizationId);
     logger.log(
