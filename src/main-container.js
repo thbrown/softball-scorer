@@ -16,11 +16,9 @@ const noSleep = new noSleepImport();
 
 // Smoother click and drag
 // Use svgs
-// Scroll bars on desktop
 
 // Long names overlap back button on AP page
 
-// Max width for desktop
 // Import file versioning (fix that page's css)
 
 // Delete account/data
@@ -148,15 +146,16 @@ export default class MainContainer extends expose.Component {
     const { renderRouteComponent, loading, ...props } = this.props;
 
     if (loading) {
-      return (
-        <CardLoading />
-      );
+      return <CardLoading />;
     } else {
       try {
         //TODO find a more elegant solution for routing/caching this data container
-        if (props.page.slice(0, 7) === '/stats/' && this.props.statsId) {
+        if (
+          props.page.slice(0, 14) === '/public-teams/' &&
+          this.props.publicTeamId
+        ) {
           return (
-            <DataContainer url={`server/stats/${this.props.statsId}`}>
+            <DataContainer url={`server/team-stats/${this.props.publicTeamId}`}>
               {({ data, loading, error }) => {
                 return renderRouteComponent({
                   isNew: this.state.isNew,
@@ -176,13 +175,13 @@ export default class MainContainer extends expose.Component {
         // with a new entity (new player, new team, new game etc.)  These cause this try
         // catch to trip and render 2 frames of CardNotFound before the route is set
         // correctly
-        if (window.ENABLE_VERBOSE_LOGGING) {
+        if (true || window.ENABLE_VERBOSE_LOGGING) {
           console.error(err);
         }
         return (
           <CardNotFound
             title={'Error'}
-            message="This object either does not exist, has been deleted, or belongs to another account."
+            message="This another  object either does not exist, has been deleted, or belongs to another account."
           />
         );
       }

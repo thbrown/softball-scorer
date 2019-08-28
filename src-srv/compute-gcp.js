@@ -39,6 +39,7 @@ module.exports = class ComputeGCP {
                     items: [
                       { key: 'remote-ip', value: remoteIp },
                       { key: 'optimization-id', value: optimizationId },
+                      { key: 'delete-on-shutdown', value: 'true' },
                     ],
                   },
                   networkInterfaces: [{ network: 'global/networks/default' }],

@@ -37,9 +37,27 @@ echo $REMOTE_IP
 java -jar /home/<your_home_directory>/softball-sim.jar NETWORK $REMOTE_IP $OPTIMIZATION_ID true
 ```
 
-7. Shutdown the instance.
-8. In the gcp ui. Click snapshots, then Create Snapshot. Give it the name 'optimization-base'. Select the disk you attached to the instance you created above. Select regional, then the same region the source disk is under (this should be the default). Click 'Create' and wait for it to complete.
-9. After snapshot completes, delete the micro instance you just made.
+7. Add cleanup.sh script to the root of softball-sim project (this ensures that the instance is deleted after an optimization completes or is terminated)
+
+cleanup.sh should contain the following content:
+
+```
+#!/bin/sh
+NAME=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/name -H 'Metadata-Flavor: Google')
+ZONE=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/zone -H 'Metadata-Flavor: Google')
+DELETE_ON_SHUTDOWN=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/delete-on-shutdown -H "Metadata-Flavor: Google")
+if [ DELETE_ON_SHUTDOWN = "true" ]
+  gcloud --quiet compute instances delete $NAME --zone=$ZONE
+else
+  echo "delete skiped because metadata value DELETE_ON_SHUTDOWN was not set to true
+end
+```
+
+This content also exists in a file named cleanup-gcp.sh softball-sim repository. Instaed of creating a new cleanup.sh you may rename cleanup-gcp.sh to cleanup.sh. The cleanup.sh that is checked into to softball-sim repository is just for testing.
+
+8. Shutdown the instance.
+9. In the gcp ui. Click snapshots, then Create Snapshot. Give it the name 'optimization-base'. Select the disk you attached to the instance you created above. Select regional, then the same region the source disk is under (this should be the default). Click 'Create' and wait for it to complete.
+10. After snapshot completes, delete the micro instance you just made.
 
 ### Authentication
 
@@ -53,7 +71,7 @@ Create auth key for external applications.
 4. Name it anything
 5. Choose JSON
 6. Click create. This will download a file.
-7. Rename it to cred.json. Put cred.json in this project's root directory. This is a secret! Keep it out of soruce control.
+7. Rename it to cred.json. Put cred.json in this project's root directory. This is a secret! Keep it out of source control.
 
 ### Configuration
 
@@ -77,3 +95,19 @@ Note: zones are listed in priority order, put the zones closest to your app serv
 ### Other notes
 
 Startup script logs can be seen using `cat /var/log/daemon.log`
+
+For accurate compute time estimation you'll need to generate timing constants by running a junit test
+from softball-sim on the instance you'lll be running the optimization on.
+
+`sudo apt-get update`
+`sudo apt-get upgrade`
+`sudo apt-get install -y git-core`
+`sudo apt-get install -y default-jdk`
+`git clone https://github.com/thbrown/softball-sim.git`
+`cd softball-sim`
+`sudo apt-get install screen`
+`screen`
+Press enter
+`./gradlew clean test --info` (you can ignore the two failed tests)
+`ctrl A` then `d`
+Wait a long time

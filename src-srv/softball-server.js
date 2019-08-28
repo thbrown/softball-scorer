@@ -243,11 +243,11 @@ module.exports = class SoftballServer {
     );
 
     app.get(
-      '/server/stats/:publicId',
+      '/server/team-stats/:publicTeamId',
       wrapForErrorProcessing(async (req, res) => {
-        const { publicId } = req.params;
+        const { publicTeamId } = req.params;
         const account = await this.databaseCalls.getAccountAndTeamByTeamPublicId(
-          publicId
+          publicTeamId
         );
         if (account) {
           const { accountId, teamId } = account;
