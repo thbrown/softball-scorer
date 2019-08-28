@@ -78,7 +78,9 @@ exp.sync = async function(fullSync) {
     exp.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
   ) {
     // Simultaneous syncs might be okay, but we'll still limit it to one at a time for clarity
-    console.log('[SYNC] waiting for in progress sync to finish ' + exp.getSyncState());
+    console.log(
+      '[SYNC] waiting for in progress sync to finish ' + exp.getSyncState()
+    );
     await sleep(500);
   }
   // Kill any scheduled syncs
@@ -140,12 +142,19 @@ exp.sync = async function(fullSync) {
 
       // Verify that the ancestor state (after updates) has the same hash as the server state
       let ancestorHash = state.getAncestorStateChecksum();
-      console.log('[SYNC] CLIENT: ', ancestorHash, ' SERVER: ', serverState.md5);
+      console.log(
+        '[SYNC] CLIENT: ',
+        ancestorHash,
+        ' SERVER: ',
+        serverState.md5
+      );
       if (ancestorHash !== serverState.md5) {
         if (fullSync) {
           // Something went wrong after trying a full sync, we probaly can't do anything about it!
           // serverState.base should have contained a verbatium copy of what the server has, so this is weird.
-          console.log('[SYNC] Yikes! Something went wrong while attempting full sync');
+          console.log(
+            '[SYNC] Yikes! Something went wrong while attempting full sync'
+          );
           console.log(
             getMd5(state.getAncestorState()),
             getMd5(serverState.base)
@@ -157,7 +166,9 @@ exp.sync = async function(fullSync) {
         } else {
           // Something went wrong with the patch based sync, perhaps the server's cached data was incorrect
           // We should be able to repeat the request with type "full" so we'll get the whole state back, not just the patches
-          console.log('[SYNC] Something went wrong while attempting patch sync');
+          console.log(
+            '[SYNC] Something went wrong while attempting patch sync'
+          );
           console.log(getMd5(state.getLocalState), serverState.md5);
 
           // Set the state back to what it was when we first did a sync
@@ -165,7 +176,9 @@ exp.sync = async function(fullSync) {
           throw new Error(-2);
         }
       } else {
-        console.log('[SYNC] Sync was successful! (client and server checksums match)');
+        console.log(
+          '[SYNC] Sync was successful! (client and server checksums match)'
+        );
       }
 
       // Copy
@@ -217,7 +230,9 @@ exp.sync = async function(fullSync) {
       // Re-try later might work for
       // 1) Server rate limiting errors
       // 2) Weird network conditions
-      console.warn('[SYNC] Network issues or server is busy: retrying sync later');
+      console.warn(
+        '[SYNC] Network issues or server is busy: retrying sync later'
+      );
       exp.scheduleSync();
     } else if (+err.message === -2) {
       // Issue with patch based sync, re-try with a full sync
@@ -821,6 +836,7 @@ exp.saveApplicationStateToLocalStorage = function() {
 exp.loadStateFromLocalStorage = function() {
   if (typeof Storage !== 'undefined') {
     // These statements define local storage schema migrations
+    // TODO: this logic also needs to be executed when importing a file
     if (localStorage.getItem('SCHEMA_VERSION') === '5') {
       // Added optimizations
       console.log('Upgrading localstorage from version 5 to version 6');
