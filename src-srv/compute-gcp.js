@@ -3,8 +3,8 @@ const { google } = require('googleapis');
 const compute = google.compute('v1');
 const ip = require('ip');
 
-const CPU_CORES = 4;
-const MEM_MB = 4096;
+const CPU_CORES = 4; // Must be a power of 2 between 2 and 64 inclusive OR 96
+const MEM_MB = 4096; // unused
 
 module.exports = class ComputeGCP {
   constructor(gcpParams) {
@@ -24,6 +24,7 @@ module.exports = class ComputeGCP {
         function(resolve, reject) {
           this.authorize(
             function(authClient) {
+              // For custom machine type use this: custom-${coreCount}-${memoryMb}
               var request = {
                 project: gcpParams.project,
                 zone: this.getZone(optimizationId),
@@ -31,7 +32,7 @@ module.exports = class ComputeGCP {
                   name: name,
                   machineType: `zones/${this.getZone(
                     optimizationId
-                  )}/machineTypes/custom-${coreCount}-${memoryMb}`,
+                  )}/machineTypes/n1-highcpu-${coreCount}`,
                   scheduling: {
                     preemptible: true,
                   },
