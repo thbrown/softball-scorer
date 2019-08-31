@@ -1,4 +1,4 @@
-# Web app for recording batting data and optimizing lineps.
+# Web app for recording batting data and optimizing lineups.
 
 Live at https://softball.app/
 

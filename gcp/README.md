@@ -11,12 +11,13 @@ Prerequisite: you must have a Google Cloud Platform (GCP) account.
 
 From the GCP web UI:
 
-1. Create a micro instance on gcp. Debian GNU/Linux 9 (stretch), 10GB persistent disk.
+1. Create a micro instance on gcp. Debian GNU/Linux 10 (buster), 10GB persistent disk.
 2. Ssh into that instance
 3. Update the instance (`sudo apt-get update`)
 4. Install the jre (`sudo apt-get install -y default-jre-headless`)
-5. Download SoftballSim.jar (`wget https://github.com/thbrown/softball-sim/releases/download/v0.5/softball-sim.jar`)
-6. Add startup script
+5. Install wget if it's not already (`sudo apt-get install wget`)
+6. Download SoftballSim.jar (`wget https://github.com/thbrown/softball-sim/releases/download/v0.5/softball-sim.jar`)
+7. Add startup script
 
 ```
 cd /etc/init.d
@@ -53,10 +54,10 @@ else
 end
 ```
 
-This content also exists in a file named cleanup-gcp.sh softball-sim repository. Instaed of creating a new cleanup.sh you may rename cleanup-gcp.sh to cleanup.sh. The cleanup.sh that is checked into to softball-sim repository is just for testing.
+Make cleanup.sh executable `sudo chmod +x ./cleanup.sh`
 
 8. Shutdown the instance.
-9. In the gcp ui. Click snapshots, then Create Snapshot. Give it the name 'optimization-base'. Select the disk you attached to the instance you created above. Select regional, then the same region the source disk is under (this should be the default). Click 'Create' and wait for it to complete.
+9. In the gcp ui. Click snapshots, then Create Snapshot. Give it the name 'optimization-base'. Select the disk you attached to the instance you created above. Select multi-regional, then the same region the source disk is under (this should be the default). Click 'Create' and wait for it to complete.
 10. After snapshot completes, delete the micro instance you just made.
 
 ### Authentication
@@ -69,9 +70,10 @@ Create auth key for external applications.
 2. Click Credentails
 3. Create new service account key
 4. Name it anything
-5. Choose JSON
-6. Click create. This will download a file.
-7. Rename it to cred.json. Put cred.json in this project's root directory. This is a secret! Keep it out of source control.
+5. Choose 'Compute Admin' as the Role
+6. Choose JSON
+7. Click create. This will download a file.
+8. Rename it to cred.json. Put cred.json in this project's root directory on teh app server. This is a secret! Keep it out of source control.
 
 ### Configuration
 
@@ -79,11 +81,16 @@ Add/Modify the compute node to/in the src-srv config.js. Make sure you are mofif
 
 ```
 ...
-  compute: {
-    type: "gcp",
+compute: {
+    mode: "gcp",
     params: {
-      project: "some-project-123456",
-      zones: ["us-central1-b", "us-central1-c", "us-central1-a", "us-central1-f"],
+      project: "some-project-185223",
+      zones: [
+        "us-central1-c",
+        "us-central1-b",
+        "us-central1-a",
+        "us-central1-f"
+      ],
       snapshotName: "optimization-base"
     }
   }
