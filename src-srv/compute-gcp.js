@@ -25,6 +25,7 @@ module.exports = class ComputeGCP {
           this.authorize(
             function(authClient) {
               // For custom machine type use this: custom-${coreCount}-${memoryMb}
+              // More doc: https://cloud.google.com/compute/docs/reference/rest/v1/instances/insert
               var request = {
                 project: gcpParams.project,
                 zone: this.getZone(optimizationId),
@@ -53,6 +54,10 @@ module.exports = class ComputeGCP {
                       autoDelete: true,
                     },
                   ],
+                  serviceAccount: {
+                    email: `${gcpParams.projectNumber}-compute@developer.gserviceaccount.com`,
+                    scopes: ['compute-rw'],
+                  },
                 },
                 auth: authClient,
               };

@@ -20,8 +20,7 @@ From the GCP web UI:
 7. Add startup script
 
 ```
-cd /etc/init.d
-sudo nano mystartup.sh # Paste in the script below (make substitutions for <your_home_directory>)
+sudo nano /etc/init.d/mystartup.sh # Paste in the script below (make substitutions for both references to <your_home_directory>!)
 sudo chmod +x /etc/init.d/mystartup.sh
 sudo ln -s /etc/init.d/mystartup.sh /etc/rc3.d/S99mystartup
 ```
@@ -30,8 +29,8 @@ Startup Script:
 
 ```
 #! /bin/bash
-REMOTE_IP=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/remote-ip -H "Metadata-Flavor: Google")
-OPTIMIZATION_ID=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/optimization-id -H "Metadata-Flavor: Google")
+REMOTE_IP=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/remote-ip -H "Metadata-Flavor: Google" --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 60)
+OPTIMIZATION_ID=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/optimization-id -H "Metadata-Flavor: Google" --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 60)
 cd '/home/<your_home_directory>'
 echo $OPTIMIZATION_ID
 echo $REMOTE_IP
@@ -47,11 +46,11 @@ cleanup.sh should contain the following content:
 NAME=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/name -H 'Metadata-Flavor: Google')
 ZONE=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/zone -H 'Metadata-Flavor: Google')
 DELETE_ON_SHUTDOWN=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/delete-on-shutdown -H "Metadata-Flavor: Google")
-if [ DELETE_ON_SHUTDOWN = "true" ]
+if [ $DELETE_ON_SHUTDOWN = "true" ]; then
   gcloud --quiet compute instances delete $NAME --zone=$ZONE
 else
-  echo "delete skiped because metadata value DELETE_ON_SHUTDOWN was not set to true
-end
+  echo "delete skiped because metadata value DELETE_ON_SHUTDOWN was not set to true"
+fi
 ```
 
 Make cleanup.sh executable `sudo chmod +x ./cleanup.sh`
@@ -85,6 +84,7 @@ compute: {
     mode: "gcp",
     params: {
       project: "some-project-185223",
+      projectNumber: "012345678910"
       zones: [
         "us-central1-c",
         "us-central1-b",
@@ -97,11 +97,13 @@ compute: {
 ...
 ```
 
-Note: zones are listed in priority order, put the zones closest to your app server location first
+Note1: Zones are listed in priority order, put the zones closest to your app server location first
+Note2: You can find project and projectNumber at `https://console.cloud.google.com/home/dashboard`
 
 ### Other notes
 
-Startup script logs can be seen using `cat /var/log/daemon.log`
+Run startup script w/ `sudo google_metadata_script_runner --script-type startup --debug` on debian linux
+Startup script logs can be seen using `cat /var/log/daemon.log | grep "mystartup.sh"` on debian linux
 
 For accurate compute time estimation you'll need to generate timing constants by running a junit test
 from softball-sim on the instance you'lll be running the optimization on.
