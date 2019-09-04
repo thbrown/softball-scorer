@@ -43,7 +43,7 @@ Windows requires the use of Windows Subsystem for Linux (WSL)
 1. `sudo apt-get upgrade`
 1. `screen`
 1. `sudo apt-get install redis-server`
-1. `sudo systemctl stop redis` Redis runs automatically. We we'll need to stop and restart to use our own config file.
+1. `sudo systemctl stop redis` Redis runs automatically. We will need to stop and restart to use our own config file.
 1. `sudo redis-server` optionally supply `./redis.conf`
 1. Press `Ctrl + A` then `d` to detach screen
 1. Update/Create ./src-svr/config.js with Redis server info (see ./src-svr/config-template.js)
