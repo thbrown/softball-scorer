@@ -181,7 +181,7 @@ export default class MainContainer extends expose.Component {
         return (
           <CardNotFound
             title={'Error'}
-            message="This another  object either does not exist, has been deleted, or belongs to another account."
+            message="This object either does not exist, has been deleted, or belongs to another account."
           />
         );
       }
