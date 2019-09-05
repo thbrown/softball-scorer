@@ -22,7 +22,7 @@ module.exports = class OptimizationServer {
 
         sock.on('data', async function(data) {
           let parsedData = JSON.parse(data);
-          console.log('RECEIVED:', parsedData);
+          //console.log('RECEIVED:', parsedData);
 
           if (parsedData.command === 'READY') {
             sock.optimizationId = parsedData.optimizationId;
@@ -137,7 +137,7 @@ module.exports = class OptimizationServer {
               logger.warn(
                 sock.accountId,
                 sock.optimizationId,
-                `Unexpected state transition to IN_PROGRESS. Expected status to be IN_PROGRESS`
+                `Unexpected state transition to IN_PROGRESS. Expected status to be IN_PROGRESS before transition`
               );
               sock.destroy();
               return;
@@ -244,6 +244,12 @@ module.exports = class OptimizationServer {
               }
             } else {
               // Otherwise set the status to error
+              logger.log(
+                sock.accountId,
+                'not attempting retry',
+                err.code,
+                JSON.stringify(err, null, 2)
+              );
               computeService.cleanup(sock.accountId, sock.optimizationId);
               await databaseCalls.setOptimizationStatus(
                 sock.accountId,

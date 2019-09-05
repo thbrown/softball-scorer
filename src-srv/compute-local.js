@@ -109,9 +109,9 @@ module.exports = class ComputeLocal {
         // Specify mem usage
         //"-Xms2048m",
         //"-Xmx2048m",
-        // For remote debug
-        '-Xdebug',
-        '-Xrunjdwp:transport=dt_socket,address=8889,server=y,suspend=n',
+        // For remote debug (prevents running more than 1 optimization at a time because of conflicts on debug port)
+        //'-Xdebug',
+        //'-Xrunjdwp:transport=dt_socket,address=8889,server=y,suspend=n',
         '-jar',
         FILE_NAME,
         'NETWORK',
@@ -126,7 +126,7 @@ module.exports = class ComputeLocal {
       }
     );
     spawn.on('error', function(err) {
-      logger.log(accountId, 'Error encountered');
+      logger.warn(accountId, 'Error encountered');
       return Promise.reject(err);
     });
     spawn.stderr.on('data', function(data) {
