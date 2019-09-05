@@ -14,8 +14,8 @@ module.exports = class ComputeNone {
     logger.warn(
       accountId,
       'Start optimization Java on remote machine with args:',
-      optimizationId,
-      ip.address()
+      ip.address(),
+      optimizationId
     );
   }
 

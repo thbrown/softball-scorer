@@ -4,7 +4,6 @@ const compute = google.compute('v1');
 const ip = require('ip');
 
 const CPU_CORES = 4; // Must be a power of 2 between 2 and 64 inclusive OR 96
-const MEM_MB = 4096; // unused
 
 module.exports = class ComputeGCP {
   constructor(gcpParams) {
@@ -29,7 +28,7 @@ module.exports = class ComputeGCP {
                 project: gcpParams.project,
                 zone: this.getZone(optimizationId),
                 resource: {
-                  name: name + this.getZone(optimizationId),
+                  name: name,
                   machineType: `zones/${this.getZone(
                     optimizationId
                   )}/machineTypes/n1-highcpu-${coreCount}`,
@@ -209,6 +208,14 @@ module.exports = class ComputeGCP {
       return gcpParams.zones[zoneIndex];
     };
 
+    this.getZoneIndex = function(optimizationId) {
+      let zoneIndex = this.zoneMap[optimizationId];
+      if (!zoneIndex) {
+        zoneIndex = 0;
+      }
+      return zoneIndex;
+    };
+
     this.nextZone = function(accountId, optimizationId) {
       this.getZone(optimizationId); // Make sure the zone map is populated
       let zoneIndex = this.zoneMap[optimizationId];
@@ -241,8 +248,9 @@ module.exports = class ComputeGCP {
       this.getZone(optimizationId)
     );
     try {
-      let instanceName = `optimization-${optimizationId}`;
-      logger.log(accountId, 'Calling insertion method', instanceName);
+      let instanceName = `optimization-${optimizationId}-${this.getZoneIndex(
+        optimizationId
+      )}`;
 
       await this.createInstance(
         accountId,
