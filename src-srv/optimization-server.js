@@ -1,14 +1,15 @@
-const net = require('net');
 const configAccessor = require('./config-accessor');
-const logger = require('./logger.js');
 const idUtils = require('../id-utils.js');
+const logger = require('./logger.js');
+const TimeoutUtil = require('./timeout-util');
 
+const net = require('net');
 const ip = require('ip');
 
 const HOST = ip.address();
 const PORT = configAccessor.getOptimizationServerPort();
 
-const SOCKET_TIMEOUT = 15000;
+const SOCKET_TIMEOUT = 3000;
 
 /*
 TODO: we have a lot of numbers in this file that refere to optimization states, 
@@ -37,9 +38,13 @@ module.exports = class OptimizationServer {
           'COMPUTER CONNECTED: ' + sock.remoteAddress + ':' + sock.remotePort
         );
 
-        sock.setTimeout(SOCKET_TIMEOUT);
+        const timer = new TimeoutUtil(SOCKET_TIMEOUT, function() {
+          logger.warn(sock.accountId, 'TCP socket timeout');
+          sock.destroy();
+        });
 
         sock.on('data', async function(data) {
+          timer.reset();
           let parsedData = JSON.parse(data);
 
           if (parsedData.command === 'READY') {
@@ -349,11 +354,6 @@ module.exports = class OptimizationServer {
               );
             }
           }
-        });
-
-        sock.on('timeout', async function() {
-          logger.warn(sock.accountId, 'TCP socket timeout');
-          sock.destroy();
         });
       })
       .listen(PORT, HOST);
