@@ -138,10 +138,12 @@ module.exports = class ComputeLocal {
   }
 
   async retry(accountId, optimizationId) {
-    return this.start(accountId, optimizationId);
+    throw new Error('Restarts not supported locally');
+    // We could just restart the java like this, but then if there was some real problem we would be retrying indefinitely
+    // return this.start(accountId, optimizationId);
   }
 
   async cleanup(accountId, optimizationId) {
-    // no cleanup necessary
+    // no cleanup necessary for local compute
   }
 };

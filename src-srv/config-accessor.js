@@ -117,7 +117,7 @@ module.exports.getComputeService = function() {
     logger.warn(null, 'Warning: running with local compute');
     compute = new ComputeLocal();
   } else if (computeMode === 'none') {
-    logger.warn(null, 'Warning: running with noop compute');
+    logger.warn(null, 'Warning: running with no-op compute');
     compute = new ComputeNone();
   } else if (computeMode === 'gcp') {
     const gcpParams = config.compute.params;
