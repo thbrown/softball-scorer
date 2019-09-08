@@ -9,7 +9,7 @@ const ip = require('ip');
 const HOST = ip.address();
 const PORT = configAccessor.getOptimizationServerPort();
 
-const SOCKET_TIMEOUT = 3000;
+const SOCKET_TIMEOUT = 30000;
 
 /*
 TODO: we have a lot of numbers in this file that refere to optimization states, 
