@@ -8,6 +8,8 @@ const ip = require('ip');
 const HOST = ip.address();
 const PORT = configAccessor.getOptimizationServerPort();
 
+const SOCKET_TIMEOUT = 15000;
+
 /*
 TODO: we have a lot of numbers in this file that refere to optimization states, 
 it would be a lot clearer if we could reference them by their enum value instead of number
@@ -34,6 +36,8 @@ module.exports = class OptimizationServer {
           null,
           'COMPUTER CONNECTED: ' + sock.remoteAddress + ':' + sock.remotePort
         );
+
+        sock.setTimeout(SOCKET_TIMEOUT);
 
         sock.on('data', async function(data) {
           let parsedData = JSON.parse(data);
@@ -347,12 +351,9 @@ module.exports = class OptimizationServer {
           }
         });
 
-        sock.on('close', async function() {
-          logger.warn(sock.accountId, 'close command received');
-        });
-
         sock.on('timeout', async function() {
-          logger.warn(sock.accountId, 'timeout recieved');
+          logger.warn(sock.accountId, 'TCP socket timeout');
+          sock.destroy();
         });
       })
       .listen(PORT, HOST);

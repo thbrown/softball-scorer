@@ -9,6 +9,9 @@ export default class FloatingInput extends expose.Component {
 
     this.onChangeWraper = function() {
       let value = document.getElementById(this.props.id).value;
+      if (this.props.type === 'number') {
+        value = Number(value);
+      }
       this.props.onChange(value);
     };
   }
