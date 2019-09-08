@@ -39,9 +39,10 @@ module.exports = class ComputeGCP {
                     items: [
                       { key: 'remote-ip', value: remoteIp },
                       { key: 'optimization-id', value: optimizationId },
-                      { key: 'delete-on-shutdown', value: 'yes' }, // Any value will work here, as long as something is set delete will occure
+                      { key: 'delete-on-shutdown', value: 'yes' }, // Any value will work here, as long as something is set delete will occur
                     ],
                   },
+
                   networkInterfaces: [
                     {
                       network: 'global/networks/default',
@@ -51,6 +52,7 @@ module.exports = class ComputeGCP {
                       ],
                     },
                   ],
+
                   disks: [
                     {
                       boot: true,
@@ -62,19 +64,26 @@ module.exports = class ComputeGCP {
                   ],
                   // This SHOULD make it so that we don't have to include cred.json in the snapshot and
                   // auth it in the cleanup script. It auths gcp api calls automatically after the instaces
-                  // is created; however, it's not working as I think it should. If this code is included
-                  // in the create instance request it causes the instance to delete itself immidiatly after
-                  // it's created. I'm not sure why.
+                  // is created; however, it's not working as I think it should.
                   //
-                  //serviceAccounts: [
-                  //  {
-                  //    email:
-                  //      '${gcpParams.projectNumber}-compute@developer.gserviceaccount.com',
-                  //    scopes: [
-                  //      'https://www.googleapis.com/auth/cloud-platform',
-                  //    ],
-                  //  },
-                  //],
+                  // Error message when attempting to run the delete command:
+                  // There was a problem refreshing your current auth tokens: Failed to retrieve
+                  // http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/[SERVICE ACCOUTNT EMAIL]/token
+                  // from the Google Compute Enginemetadata service (404)
+                  //
+                  // The other benifit of this (I'm hoping) is that it will prevent us from havint toi have internet access for
+                  // these machines. That will keep us from using up our ip address quota or having to mess with NATs. Although, I'm
+                  // not sure that the delete instance command will work without an interconnect connection.
+                  /*
+                  serviceAccounts: [
+                    {
+                      email: `optimization@optimum-library-250223.iam.gserviceaccount.com`,
+                      //scopes: [
+                      //  'https://www.googleapis.com/auth/cloud-platform',
+                      //],
+                    },
+                  ],
+                  */
                 },
                 auth: authClient,
               };
@@ -311,7 +320,6 @@ module.exports = class ComputeGCP {
   async cleanup(accountId, optimizationId) {
     logger.log(accountId, 'running optimization cleanup');
     this.removeZoneCounter(optimizationId);
-    // TODO: Delete instance??
   }
 
   async stop(accountId, name) {

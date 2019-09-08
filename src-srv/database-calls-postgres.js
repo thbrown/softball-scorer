@@ -728,6 +728,27 @@ module.exports = class DatabaseCalls {
     );
   }
 
+  async getOptimizationStatus(accountId, optimizationId) {
+    logger.log(accountId, 'getting optimization status', optimizationId);
+    let result = await this.parameterizedQueryPromise(
+      `
+        SELECT status
+        FROM optimization
+        WHERE id = $1 AND account_id = $2
+      `,
+      [optimizationId, accountId]
+    );
+    if (result.rowCount === 1) {
+      return result.rows[0].result_data;
+    } else if (result.rowCount !== 0) {
+      throw new HandledError(
+        500,
+        `A strange number of optimization result datas were returned: ${optimizationId} ${result}`
+      );
+    }
+    return undefined;
+  }
+
   async getOptimizationResultData(accountId, optimizationId) {
     logger.log(accountId, 'getting optimization results data', optimizationId);
     let result = await this.parameterizedQueryPromise(

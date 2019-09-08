@@ -18,8 +18,8 @@ Create auth key for external applications.
 1. Search for API,
 2. Click Credentails
 3. Create new service account key
-4. Name it anything
-5. Choose 'Compute Admin' as the Role
+4. Name it `optimization`
+5. Add two roles 'Compute Admin' (allows turning on and off instances and 'Service Account User' (allows it to be attached to an instance on create)
 6. Choose JSON
 7. Click create. This will download a file.
 8. Rename it to cred.json. Put cred.json in this project's root directory on the app server. This is a secret! Keep it out of source control.
@@ -120,8 +120,15 @@ Note2: You can find project and projectNumber at `https://console.cloud.google.c
 
 ### Other notes
 
-For debuging, startup script logs can be seen using `cat /var/log/daemon.log | grep "mystartup.sh"` on debian linux
-`sudo google_metadata_script_runner --script-type startup --debug` <- Supposed to run startup scripts but I think it only works if the script is provided via a metadata value
+#### Debuging
+
+Startup script logs can be seen using `cat /var/log/daemon.log | grep "mystartup.sh"` on debian linux
+
+If a gcp instance insertion command succeeds but then the instance immidiatly shuts off. Take a look at the stack
+driver logging to see more information `https://console.cloud.google.com/logs/viewer`. Quota limits are a possible
+cause `https://console.cloud.google.com/iam-admin/quotas` (you may have to request an increase in core count, both global and per region)
+
+#### Simulation estimation times accuracy
 
 For accurate compute time estimation you'll need to generate timing constants by running a junit test
 from softball-sim on the instance you'lll be running the optimization on.
@@ -137,7 +144,7 @@ from softball-sim on the instance you'lll be running the optimization on.
 Press enter
 `./gradlew clean test --info`
 `ctrl A` then `d`
-Wait a long time
-Rename the `estimated-time-config.js` to someting that identifies it as having been run on your machine
+Wait a long time (several hours probably, unless you have a server with a ton of cores)
+Rename the `estimated-time-config.js` to someting that identifies it as having been run on your machine (e.g. `xenon-skylake-8.js`)
 Move that file to the `time-estimation-configs` directory in this project
 Modify `simulation-time-estimator.js` to point to your new config

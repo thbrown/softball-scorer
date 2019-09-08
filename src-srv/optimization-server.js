@@ -8,6 +8,21 @@ const ip = require('ip');
 const HOST = ip.address();
 const PORT = configAccessor.getOptimizationServerPort();
 
+/*
+TODO: we have a lot of numbers in this file that refere to optimization states, 
+it would be a lot clearer if we could reference them by their enum value instead of number
+
+exp.OPTIMIZATION_STATUS_ENUM = Object.freeze({
+  NOT_STARTED: 0,
+  ALLOCATING_RESOURCES: 1,
+  IN_PROGRESS: 2,
+  COMPLETE: 3,
+  PAUSED: 4,
+  ERROR: 5,
+  PAUSING: 6,
+});
+*/
+
 module.exports = class OptimizationServer {
   constructor(databaseCalls, computeService) {
     logger.log(null, 'Starting Optimization TCP server');
@@ -22,7 +37,6 @@ module.exports = class OptimizationServer {
 
         sock.on('data', async function(data) {
           let parsedData = JSON.parse(data);
-          //console.log('RECEIVED:', parsedData);
 
           if (parsedData.command === 'READY') {
             sock.optimizationId = parsedData.optimizationId;
@@ -48,17 +62,11 @@ module.exports = class OptimizationServer {
               sock.accountId,
               sock.optimizationId
             );
-            logger.log(
-              sock.accountId,
-              'Partial Result',
-              sock.accountId,
-              sock.optimizationId,
-              existingResult
-            );
             if (existingResult) {
               logger.log(
                 sock.accountId,
                 'This optimization has partial results',
+                sock.optimizationId,
                 existingResult,
                 JSON.stringify(existingResult, null, 2)
               );
@@ -70,12 +78,11 @@ module.exports = class OptimizationServer {
               logger.log(
                 sock.accountId,
                 'No partial results were found, starting from the begining',
-                sock.accountId,
                 sock.optimizationId
               );
             }
 
-            // Don't edit this object property's names unless you also update the constants in the java optimization code
+            // Don't edit this object's property names unless you also update the constants in the java optimization code
             let job = {
               optimizationType: 0,
               optimizationData: optimizationData,
@@ -86,26 +93,40 @@ module.exports = class OptimizationServer {
             sock.write(JSON.stringify(job));
             sock.write('\n');
 
-            let success = await databaseCalls.setOptimizationStatus(
-              sock.accountId,
-              sock.optimizationId,
-              2, // TODO: state.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS
+            let success = await setOptimizationStatus(
+              sock,
+              2, // IN_PROGRESS
               null,
-              1 // TODO: state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
+              1 // ALLOCATING_RESOURCES
             );
             if (!success) {
-              // Hopefully the user just deleted this optimization while it was running or paused it
-              logger.warn(
+              let status = await databaseCalls.getOptimizationStatus(
                 sock.accountId,
-                sock.optimizationId,
-                `Unexpected state transition to IN_PROGRESS, expected status to be ALLOCATING_RESOURCES`
+                sock.optimizationId
               );
-              // TODO: can we just send the server a terminate command instead?
+
+              if (status === undefined) {
+                // If the user deleted this optimization while it was allocating resources, that's fine
+                logger.log(
+                  sock.accountId,
+                  sock.optimizationId,
+                  `Optimization was deleted while status was ALLOCATING_RESOURCES.`
+                );
+              } else {
+                // Perhaps we started another optimization instance for an optimization that was already running?
+                // This should kill the duplicate instance
+                logger.warn(
+                  sock.accountId,
+                  sock.optimizationId,
+                  `Unexpected state transition to from ${status} to IN_PROGRESS. Expected status to be ALLOCATING_RESOURCES before transition.`
+                );
+              }
+
               sock.destroy();
-              return;
+              sock.preventRetry = true;
             }
 
-            logger.log('?', 'SENT:', JSON.stringify(job));
+            logger.log(sock.accountId, 'SENT:', JSON.stringify(job));
           } else if (parsedData.command === 'IN_PROGRESS') {
             // We've got an update!
             logger.log(
@@ -121,25 +142,47 @@ module.exports = class OptimizationServer {
               sock.optimizationId,
               parsedData
             );
-            let success = await databaseCalls.setOptimizationStatus(
-              sock.accountId,
-              sock.optimizationId,
-              2, // TODO: state.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS
+            let success = await setOptimizationStatus(
+              sock,
+              2, // IN_PROGRESS
               `${parsedData.complete} of ${parsedData.total} (${(
                 (parsedData.complete / parsedData.total) *
                 100
               ).toFixed(1)}%)`,
-              2 // TODO: state.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS
+              2 // IN_PROGRESS
             );
+
             if (!success) {
-              // Hopefully the user just deleted this optimization while it was running or paused it
-              // TODO: pauses shouldn't warn
-              logger.warn(
+              let status = await databaseCalls.getOptimizationStatus(
                 sock.accountId,
-                sock.optimizationId,
-                `Unexpected state transition to IN_PROGRESS. Expected status to be IN_PROGRESS before transition`
+                sock.optimizationId
               );
+
+              if (status === undefined) {
+                // User deleted this optimization while it was running OR
+                logger.log(
+                  sock.accountId,
+                  sock.optimizationId,
+                  `Optimization was deleted or while status was IN_PROGRESS`
+                );
+              } else if (status === 4) {
+                // User paused the optimization
+                logger.log(
+                  sock.accountId,
+                  sock.optimizationId,
+                  `Optimization was paused by the user`
+                );
+              } else {
+                // Perhaps we started another optimization instance for an optimization that was already running?
+                // This should kill the duplicate instance
+                logger.warn(
+                  sock.accountId,
+                  sock.optimizationId,
+                  `Unexpected state transition to from ${status} to IN_PROGRESS. Expected status to be IN_PROGRESS before transition.`
+                );
+              }
               sock.destroy();
+              sock.preventRetry = true;
               return;
             }
           } else if (parsedData.command === 'COMPLETE') {
@@ -152,12 +195,10 @@ module.exports = class OptimizationServer {
               sock.optimizationId,
               parsedData
             );
-            await databaseCalls.setOptimizationStatus(
-              sock.accountId,
-              sock.optimizationId,
+            await setOptimizationStatus(
+              sock,
               3 // TODO: state.OPTIMIZATION_STATUS_ENUM.COMPLETE
             );
-            sock.isComplete = true;
 
             // Send Completion Email
             let optimization = await databaseCalls.getOptimizationDetails(
@@ -195,65 +236,109 @@ module.exports = class OptimizationServer {
             logger.log(sock.accountId, 'ERROR');
             logger.log(sock.accountId, parsedData.message);
             logger.log(sock.accountId, parsedData.trace);
-            await databaseCalls.setOptimizationStatus(
-              sock.accountId,
-              sock.optimizationId,
+            await setOptimizationStatus(
+              sock,
               5, // TODO: state.OPTIMIZATION_STATUS_ENUM.ERROR
               parsedData.message
               // Any status can transition to ERROR
             );
-            sock.errorRecorded = true;
+            computeService.cleanup(sock.accountId, sock.optimizationId);
           } else {
             console.log('Unrecognized command', parsedData);
           }
         });
 
         sock.on('close', async function(hadError) {
-          // Closed connection
-          logger.log(
-            sock.accountId,
-            'CLOSED: ' + sock.remoteAddress + ' ' + sock.remotePort,
-            sock.isComplete,
-            sock.errorRecorded,
-            hadError
-          );
+          // The compute client was closed, this could be for any reason: complete optimization,
+          // network connectivity loss, instance preemption, whatever. We'll ether do nothing
+          // or attempt a retry depending on the optimization's status or if we explicitly diallow
+          // retrys (like if the user pasued the optimization or deleted it while it was running)
+          if (
+            sock.preventRetry === true ||
+            sock.optStatus === undefined ||
+            sock.optStatus === 0 || // NOT_STARTED
+            sock.optStatus === 3 || // COMPLETE
+            sock.optStatus === 4 || // PAUSED
+            sock.optStatus === 5 || // ERROR
+            sock.optStatus === 6 || // PAUSING
+            sock.optStatus === 1 // ALLOCATING_RESOURCES
+          ) {
+            // Do nothing, we expected the socket to close in these cases
+            logger.log(
+              sock.accountId,
+              'Expected socket CLOSED: ' +
+                sock.remoteAddress +
+                ' ' +
+                sock.remotePort,
+              hadError
+            );
+          } else if (
+            sock.optStatus == 2 // IN_PROGRESS
+          ) {
+            // Unexpected socket close, initiate a retry
+            logger.warn(
+              sock.accountId,
+              'Unexpected socket CLOSED: ' +
+                sock.remoteAddress +
+                ' ' +
+                sock.remotePort,
+              hadError
+            );
+
+            try {
+              // Set status back to allocating resources
+              await setOptimizationStatus(
+                sock,
+                1, // ALLOCATING_RESOURCES
+                null,
+                2 // IN_PROGRESS
+              );
+              await computeService.retry(sock.accountId, sock.optimizationId);
+            } catch (error) {
+              computeService.cleanup(sock.accountId, sock.optimizationId);
+              await setOptimizationStatus(
+                sock,
+                5, // TODO: state.OPTIMIZATION_STATUS_ENUM.ERROR
+                `Insufficient resources, try again later`
+              );
+              logger.log(
+                sock.accountId,
+                `Insufficient resources. Error occured during retry attempt: ${JSON.stringify(
+                  error
+                )}`
+              );
+            }
+          } else {
+            logger.warn(
+              sock.accountId,
+              'unrecognized optimization status',
+              sock.optStatus
+            );
+          }
         });
 
         sock.on('error', async function(err) {
           logger.warn(sock.accountId, 'SOCKET ERROR: ', err);
-          // Transition the optimization to error state if we haven't already(TODO: is the errorRecorded check necessary?)
-          if (!sock.errorRecorded) {
+          // Transition the optimization to error state if we haven't already (5 === ERROR state)
+          if (sock.optStatus !== 5) {
             if (err.code === 'ECONNRESET') {
-              // The compute client was closed unexpectedly, this is a retryable condition.
-              // Delegate to each compute implementation to decide how to handle it
-              logger.log(sock.accountId, 'attempting retry');
-              try {
-                return await retry(accountId, optimizationId);
-              } catch (error) {
-                computeService.cleanup(sock.accountId, sock.optimizationId);
-                await databaseCalls.setOptimizationStatus(
-                  sock.accountId,
-                  sock.optimizationId,
-                  5, // TODO: state.OPTIMIZATION_STATUS_ENUM.ERROR
-                  `Insufficient cloud resources, try again later`
-                );
-                logger.log(
-                  sock.accountId,
-                  `Error: ${JSON.stringify(error)} caused by ${err}`
-                );
-              }
+              // The compute client was closed unexpectedly, this is a retryable condition
+              // so we wont transition to error yet
+              logger.log(
+                sock.accountId,
+                'retryable error, not transitioning to error'
+              );
             } else {
               // Otherwise set the status to error
               logger.log(
                 sock.accountId,
-                'not attempting retry',
+                'not retryable error, transitioning to error',
                 err.code,
                 JSON.stringify(err, null, 2)
               );
               computeService.cleanup(sock.accountId, sock.optimizationId);
-              await databaseCalls.setOptimizationStatus(
-                sock.accountId,
-                sock.optimizationId,
+              await setOptimizationStatus(
+                sock,
                 5, // TODO: state.OPTIMIZATION_STATUS_ENUM.ERROR
                 JSON.stringify(err)
                 // Any status can transition to ERROR
@@ -263,6 +348,28 @@ module.exports = class OptimizationServer {
         });
       })
       .listen(PORT, HOST);
+
+    // Helper method that sets the optimization's status in the db and
+    // sets the status in the socket itself (so we can use it locally
+    // without going back to the db)
+    let setOptimizationStatus = async function(
+      socket,
+      newStatus,
+      message,
+      oldStatus
+    ) {
+      let success = await databaseCalls.setOptimizationStatus(
+        socket.accountId,
+        socket.optimizationId,
+        newStatus,
+        message,
+        oldStatus
+      );
+      if (success) {
+        socket.optStatus = newStatus;
+      }
+      return success;
+    };
   }
 };
 logger.log(null, 'Optimization server listening on ' + PORT);
