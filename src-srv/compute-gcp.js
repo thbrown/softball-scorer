@@ -282,7 +282,8 @@ module.exports = class ComputeGCP {
       return Promise.resolve();
     } catch (error) {
       try {
-        if (error.code >= 500) {
+        // Server errors OR instance by that name already exists
+        if (error.code >= 500 || error.code === 409) {
           logger.warn(
             accountId,
             'retrying because of',

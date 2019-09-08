@@ -163,7 +163,7 @@ module.exports = class OptimizationServer {
                 logger.log(
                   sock.accountId,
                   sock.optimizationId,
-                  `Optimization was deleted or while status was IN_PROGRESS`
+                  `Optimization was deleted while status was IN_PROGRESS`
                 );
               } else if (status === 4) {
                 // User paused the optimization
@@ -345,6 +345,14 @@ module.exports = class OptimizationServer {
               );
             }
           }
+        });
+
+        sock.on('close', async function() {
+          logger.warn(sock.accountId, 'close command received');
+        });
+
+        sock.on('timeout', async function() {
+          logger.warn(sock.accountId, 'timeout recieved');
         });
       })
       .listen(PORT, HOST);

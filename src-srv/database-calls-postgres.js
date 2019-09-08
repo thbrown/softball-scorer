@@ -717,7 +717,6 @@ module.exports = class DatabaseCalls {
   }
 
   async setOptimizationResultData(accountId, optimizationId, newResults) {
-    logger.log(accountId, 'setting optimization results');
     await this.parameterizedQueryPromise(
       `
         UPDATE optimization
@@ -750,7 +749,6 @@ module.exports = class DatabaseCalls {
   }
 
   async getOptimizationResultData(accountId, optimizationId) {
-    logger.log(accountId, 'getting optimization results data', optimizationId);
     let result = await this.parameterizedQueryPromise(
       `
         SELECT result_data
@@ -771,7 +769,6 @@ module.exports = class DatabaseCalls {
   }
 
   async getOptimizationDetails(accountId, optimizationId) {
-    logger.log(accountId, 'getting optimization results data', optimizationId);
     let result = await this.parameterizedQueryPromise(
       `
         SELECT name, send_email
@@ -800,11 +797,6 @@ module.exports = class DatabaseCalls {
     optimizationId,
     newExecutionData
   ) {
-    logger.log(
-      accountId,
-      'setting optimization execution data ',
-      optimizationId
-    );
     await this.parameterizedQueryPromise(
       `
         UPDATE optimization
@@ -816,7 +808,6 @@ module.exports = class DatabaseCalls {
   }
 
   async getOptimizationExecutionData(accountId, optimizationId) {
-    logger.log(accountId, 'getting optimization execution data');
     let result = await this.parameterizedQueryPromise(
       `
         SELECT execution_data
