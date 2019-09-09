@@ -738,7 +738,7 @@ module.exports = class DatabaseCalls {
       [optimizationId, accountId]
     );
     if (result.rowCount === 1) {
-      return result.rows[0].result_data;
+      return result.rows[0].status;
     } else if (result.rowCount !== 0) {
       throw new HandledError(
         500,

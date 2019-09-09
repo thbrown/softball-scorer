@@ -1,5 +1,6 @@
 import React from 'react';
 import state from 'state';
+import CardAccount from 'card-account';
 import CardAuth from 'card-auth';
 import CardLoading from 'card-loading';
 import CardNotFound from 'card-not-found';
@@ -247,6 +248,9 @@ routes = {
         optimization={optimization}
       />
     );
+  },
+  '/account': ({}) => {
+    return <CardAccount />;
   },
   '/public-teams/:publicTeamId/stats': ({
     data,

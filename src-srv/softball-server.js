@@ -335,27 +335,17 @@ module.exports = class SoftballServer {
           }
         }
 
-        let token = await generateToken();
-        let tokenHash = crypto
-          .createHash('sha256')
-          .update(token)
-          .digest('base64');
-
         let hashedPassword = await bcrypt.hash(req.body.password, 12);
         let account = await this.databaseCalls.signup(
           req.body.email,
-          hashedPassword,
-          tokenHash
+          hashedPassword
         );
 
-        configAccessor
-          .getEmailService()
-          .sendMessage(
-            account.account_id,
-            req.body.email,
-            'Welcome to Softball.app!',
-            `Thank you for signing up for an account on https://softball.app. Please click this activation link to verify your email address: https://softball.app/account/verify-email/${token}`
-          );
+        let tokenHash = await sendEmailValidationEmail(
+          account.account_id,
+          req.body.email
+        );
+        this.databaseCalls.setPasswordTokenHash(account.account_id, tokenHash);
 
         logger.log(
           account.account_id,
@@ -491,6 +481,39 @@ module.exports = class SoftballServer {
       })
     );
 
+    app.post(
+      '/server/account/send-verification-email',
+      wrapForErrorProcessing(async (req, res, next) => {
+        if (!req.isAuthenticated()) {
+          res.status(403).send();
+          return;
+        }
+
+        let accountId = extractSessionInfo(req, 'accountId');
+        let accountInfo = await this.databaseCalls.getAccountById(accountId);
+        let emailHasBeenValidated = accountInfo.verifiedEmail;
+
+        if (emailHasBeenValidated) {
+          logger.log(
+            accountId,
+            `Not sending account verification email because email has already been verified`
+          );
+          res.status(400).send();
+        } else {
+          logger.log(
+            accountId,
+            `Sending account verification email per user request`
+          );
+          let tokenHash = await sendEmailValidationEmail(
+            accountId,
+            accountInfo.email
+          );
+          this.databaseCalls.setPasswordTokenHash(accountId, tokenHash);
+          res.status(204).send();
+        }
+      })
+    );
+
     app.delete(
       '/server/account',
       wrapForErrorProcessing(async (req, res, next) => {
@@ -615,8 +638,6 @@ module.exports = class SoftballServer {
           state = state || (await this.databaseCalls.getState(accountId));
           let checksum = getMd5(state);
 
-          logger.log(accountId, 'Server CHECKSUM: ', checksum);
-
           // Compare the calculated checksum with the checksum provided by the client to determine if the server has updates for the client.
           if (data.md5 !== checksum) {
             logger.log(
@@ -655,7 +676,9 @@ module.exports = class SoftballServer {
               logger.warn(
                 accountId,
                 'performing full sync',
+                'Requested Sync Type:',
                 data.type,
+                'Ansestor present:',
                 !!serverAncestor
               );
               responseData.base =
@@ -781,7 +804,7 @@ module.exports = class SoftballServer {
           if (optimization.sendEmail && !account.verifiedEmail) {
             res.status(400).send({
               message:
-                "The 'send me an email...' checkbox was checked but the email address associated with this account has not been verified. Please verify your email or uncheck the box.",
+                "The 'send me an email...' checkbox was checked but the email address associated with this account has not been verified. Please [verify your email](/account) or uncheck the box.",
             });
             return;
           }
@@ -880,6 +903,9 @@ module.exports = class SoftballServer {
             serverOptimizationId,
             4 //state.OPTIMIZATION_STATUS_ENUM.PAUSED
           );
+
+          // Call compute service spicific cleanup
+          computeService.cleanup(accountId, serverOptimizationId);
         } catch (error) {
           logger.log(
             accountId,
@@ -1105,12 +1131,29 @@ module.exports = class SoftballServer {
           );
         }
       } while (!success);
-      logger.log(accountId, 'Account Locked');
     };
 
     const unlockAccount = async function(accountId) {
       await self.cacheCalls.unlockAccount(accountId);
-      logger.log(accountId, 'Account Unlocked');
+    };
+
+    const sendEmailValidationEmail = async function(accountId, email) {
+      let token = await generateToken();
+      let tokenHash = crypto
+        .createHash('sha256')
+        .update(token)
+        .digest('base64');
+
+      configAccessor
+        .getEmailService()
+        .sendMessage(
+          accountId,
+          email,
+          'Welcome to Softball.app!',
+          `Thank you for signing up for an account on https://softball.app. Please click this activation link to verify your email address: https://softball.app/account/verify-email/${token}`
+        );
+
+      return tokenHash;
     };
   }
 
