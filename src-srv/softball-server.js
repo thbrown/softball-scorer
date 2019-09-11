@@ -905,11 +905,12 @@ module.exports = class SoftballServer {
           );
 
           // Call compute service spicific cleanup
-          computeService.cleanup(accountId, serverOptimizationId);
+          this.compute.cleanup(accountId, serverOptimizationId);
         } catch (error) {
           logger.log(
             accountId,
-            'An error occured while pausing an optimization'
+            'An error occured while pausing an optimization',
+            error
           );
           throw error;
         }
