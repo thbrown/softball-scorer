@@ -174,12 +174,12 @@ module.exports = class OptimizationServer {
                   sock.optimizationId,
                   `Optimization was deleted while status was IN_PROGRESS`
                 );
-              } else if (status === 4) {
+              } else if (status === 4 || status === 6) {
                 // User paused the optimization
                 logger.log(
                   sock.accountId,
-                  sock.optimizationId,
-                  `Optimization was paused by the user`
+                  `Optimization was paused by the user`,
+                  sock.optimizationId
                 );
               } else {
                 // Perhaps we started another optimization instance for an optimization that was already running?

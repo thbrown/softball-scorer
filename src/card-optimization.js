@@ -63,6 +63,10 @@ Clips can be played from the player's plate appearance page
       );
     }.bind(this);
 
+    this.disableAutoSync = async function() {
+      clearTimeout(this.activeTime);
+    };
+
     this.startCssAnimation = function() {
       let element = document.getElementById('pie-timer');
       if (element) {
@@ -92,6 +96,8 @@ Clips can be played from the player's plate appearance page
         this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.PAUSING
       ) {
         this.enableAutoSync();
+      } else {
+        this.disableAutoSync();
       }
     };
 
@@ -376,7 +382,7 @@ Clips can be played from the player's plate appearance page
   }
 
   componentWillUnmount() {
-    clearTimeout(this.activeTime);
+    this.disableAutoSync();
   }
 
   componentDidUpdate() {

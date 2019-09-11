@@ -728,7 +728,6 @@ module.exports = class DatabaseCalls {
   }
 
   async getOptimizationStatus(accountId, optimizationId) {
-    logger.log(accountId, 'getting optimization status', optimizationId);
     let result = await this.parameterizedQueryPromise(
       `
         SELECT status
