@@ -27,7 +27,7 @@ import CardStats from 'card-stats';
 
 let routes;
 
-const asserStateObjects = function(...args) {
+const assertStateObjects = function(...args) {
   let valid = true;
   args.forEach(val => {
     if (!val) {
@@ -91,30 +91,30 @@ routes = {
   },
   '/teams/:teamId': ({ teamId }) => {
     const team = state.getTeam(teamId);
-    asserStateObjects(team);
+    assertStateObjects(team);
     return <CardTeam team={team} tab="games" />;
   },
   '/teams/:teamId/games': isSameRouteAs('/teams/:teamId'),
   '/teams/:teamId/edit': ({ teamId, isNew }) => {
     const team = state.getTeam(teamId); // TODO: revisit this, what happens if this page is loaded via external link
-    asserStateObjects(team);
+    assertStateObjects(team);
     return <CardTeamEdit team={team} isNew={isNew} />;
   },
   '/teams/:teamId/stats': ({ teamId }) => {
     const team = state.getTeam(teamId);
-    asserStateObjects(team);
+    assertStateObjects(team);
     return <CardTeam team={team} tab="stats" />;
   },
   '/teams/:teamId/stats/player/:playerId': ({ teamId, playerId }) => {
     const team = state.getTeam(teamId);
     const player = state.getPlayer(playerId);
-    asserStateObjects(team, player);
+    assertStateObjects(team, player);
     return <CardSpray team={team} player={player} origin="stats" />;
   },
   '/teams/:teamId/games/:gameId': ({ teamId, gameId }) => {
     const team = state.getTeam(teamId);
     const game = state.getGame(gameId);
-    asserStateObjects(team, game);
+    assertStateObjects(team, game);
     return <CardGame team={team} game={game} tab="lineup" />;
   },
   '/teams/:teamId/games/:gameId/lineup': isSameRouteAs(
@@ -123,19 +123,19 @@ routes = {
   '/teams/:teamId/games/:gameId/scorer': ({ teamId, gameId }) => {
     const team = state.getTeam(teamId);
     const game = state.getGame(gameId);
-    asserStateObjects(team, game);
+    assertStateObjects(team, game);
     return <CardGame team={team} game={game} tab="scorer" />;
   },
   '/teams/:teamId/games/:gameId/player-selection': ({ teamId, gameId }) => {
     const team = state.getTeam(teamId);
     const game = state.getGame(gameId);
-    asserStateObjects(team, game);
+    assertStateObjects(team, game);
     return <CardPlayerSelection team={team} game={game} />;
   },
   '/teams/:teamId/games/:gameId/edit': ({ teamId, gameId, isNew }) => {
     const team = state.getTeam(teamId);
     const game = state.getGame(gameId);
-    asserStateObjects(team, game);
+    assertStateObjects(team, game);
     return <CardGameEdit team={team} game={game} isNew={isNew} />;
   },
   '/teams/:teamId/games/:gameId/lineup/plateAppearances/:plateAppearanceId': ({
@@ -152,7 +152,7 @@ routes = {
       gameId
     );
     const player = state.getPlayer(plateAppearance.player_id);
-    asserStateObjects(team, game, plateAppearance, player);
+    assertStateObjects(team, game, plateAppearance, player);
     return (
       <CardPlateAppearance
         team={team}
@@ -172,12 +172,12 @@ routes = {
   },
   '/players/:playerId': ({ playerId }) => {
     const player = state.getPlayer(playerId);
-    asserStateObjects(player);
+    assertStateObjects(player);
     return <CardSpray player={player} origin="players" />;
   },
   '/players/:playerId/edit': ({ playerId, isNew }) => {
     const player = state.getPlayer(playerId);
-    asserStateObjects(player);
+    assertStateObjects(player);
 
     return <CardPlayerEdit player={player} isNew={isNew} />;
   },
@@ -192,19 +192,19 @@ routes = {
   },
   '/optimizations/:optimizationId/edit': ({ optimizationId, isNew }) => {
     const optimization = state.getOptimization(optimizationId);
-    asserStateObjects(optimization);
+    assertStateObjects(optimization);
     return <CardOptimizationEdit optimization={optimization} isNew={isNew} />;
   },
   '/optimizations/:optimizationId': ({ optimizationId }) => {
     const optimization = state.getOptimization(optimizationId);
-    asserStateObjects(optimization);
+    assertStateObjects(optimization);
     return <CardOptimization optimization={optimization} />;
   },
   '/optimizations/:optimizationId/overrides/player-select': ({
     optimizationId,
   }) => {
     const optimization = state.getOptimization(optimizationId);
-    asserStateObjects(optimization);
+    assertStateObjects(optimization);
     return (
       <CardPlayerSelect
         selected={JSON.parse(optimization.playerList)}
@@ -225,7 +225,7 @@ routes = {
   }) => {
     const optimization = state.getOptimization(optimizationId);
     const player = state.getPlayer(playerId);
-    asserStateObjects(optimization, player);
+    assertStateObjects(optimization, player);
     return (
       <CardOptimizationStatsOverride
         player={player}
