@@ -3,6 +3,8 @@ const { google } = require('googleapis');
 const compute = google.compute('v1');
 const ip = require('ip');
 
+const CPU_CORES = 4; // Must be a power of 2 between 2 and 64 inclusive OR 96
+
 module.exports = class ComputeGCP {
   constructor(gcpParams) {
     // Google Cloud Platform Authentication for API calls requires an environmental
@@ -13,7 +15,6 @@ module.exports = class ComputeGCP {
       accountId,
       name,
       coreCount,
-      memoryMb, // Muiltiple of 256, must be between 1024 and 6656
       remoteIp,
       optimizationId
     ) {
@@ -21,6 +22,8 @@ module.exports = class ComputeGCP {
         function(resolve, reject) {
           this.authorize(
             function(authClient) {
+              // For custom machine type use this: custom-${coreCount}-${memoryMb}
+              // More doc: https://cloud.google.com/compute/docs/reference/rest/v1/instances/insert
               var request = {
                 project: gcpParams.project,
                 zone: this.getZone(optimizationId),
@@ -28,7 +31,7 @@ module.exports = class ComputeGCP {
                   name: name,
                   machineType: `zones/${this.getZone(
                     optimizationId
-                  )}/machineTypes/custom-${coreCount}-${memoryMb}`,
+                  )}/machineTypes/n1-highcpu-${coreCount}`,
                   scheduling: {
                     preemptible: true,
                   },
@@ -36,9 +39,20 @@ module.exports = class ComputeGCP {
                     items: [
                       { key: 'remote-ip', value: remoteIp },
                       { key: 'optimization-id', value: optimizationId },
+                      { key: 'delete-on-shutdown', value: 'yes' }, // Any value will work here, as long as something is set delete will occur
                     ],
                   },
-                  networkInterfaces: [{ network: 'global/networks/default' }],
+
+                  networkInterfaces: [
+                    {
+                      network: 'global/networks/default',
+                      // Required if we want internet access, which is not needed for gcp api calls
+                      accessConfigs: [
+                        { type: 'ONE_TO_ONE_NAT', name: 'External NAT' },
+                      ],
+                    },
+                  ],
+
                   disks: [
                     {
                       boot: true,
@@ -48,22 +62,53 @@ module.exports = class ComputeGCP {
                       autoDelete: true,
                     },
                   ],
+                  // This SHOULD make it so that we don't have to include cred.json in the snapshot and
+                  // auth it in the cleanup script. It auths gcp api calls automatically after the instaces
+                  // is created; however, it's not working as I think it should.
+                  //
+                  // Error message when attempting to run the delete command:
+                  // There was a problem refreshing your current auth tokens: Failed to retrieve
+                  // http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/[SERVICE ACCOUTNT EMAIL]/token
+                  // from the Google Compute Enginemetadata service (404)
+                  //
+                  // The other benifit of this (I'm hoping) is that it will prevent us from havint toi have internet access for
+                  // these machines. That will keep us from using up our ip address quota or having to mess with NATs. Although, I'm
+                  // not sure that the delete instance command will work without an interconnect connection.
+                  /*
+                  serviceAccounts: [
+                    {
+                      email: `optimization@optimum-library-250223.iam.gserviceaccount.com`,
+                      //scopes: [
+                      //  'https://www.googleapis.com/auth/cloud-platform',
+                      //],
+                    },
+                  ],
+                  */
                 },
                 auth: authClient,
               };
 
+              logger.log(
+                accountId,
+                `Attempting to insert new gcp compute instance ${name}`
+              );
               compute.instances.insert(request, function(err) {
                 if (err) {
                   logger.error(
                     accountId,
+                    `Failed to insert gcp compute instance`,
                     err.code, // 400
                     err.message
                   );
+
                   reject(err);
                   return;
                 }
+                logger.log(
+                  accountId,
+                  `Inserted new gcp compute instance ${name}`
+                );
                 resolve();
-                logger.log(accountId, 'Inserted new instance');
               });
             }.bind(this)
           );
@@ -143,7 +188,7 @@ module.exports = class ComputeGCP {
     this.authorize = function(callback) {
       google.auth.getApplicationDefault(function(err, authClient) {
         if (err) {
-          console.error('authentication failed: ', err);
+          logger.error(null, 'authentication failed: ', err);
           return;
         }
         if (
@@ -170,6 +215,14 @@ module.exports = class ComputeGCP {
         this.zoneMap[optimizationId] = zoneIndex;
       }
       return gcpParams.zones[zoneIndex];
+    };
+
+    this.getZoneIndex = function(optimizationId) {
+      let zoneIndex = this.zoneMap[optimizationId];
+      if (!zoneIndex) {
+        zoneIndex = 0;
+      }
+      return zoneIndex;
     };
 
     this.nextZone = function(accountId, optimizationId) {
@@ -204,18 +257,20 @@ module.exports = class ComputeGCP {
       this.getZone(optimizationId)
     );
     try {
-      let instanceName = `optimization-${optimizationId}`;
+      let instanceName = `optimization-${optimizationId}-${this.getZoneIndex(
+        optimizationId
+      )}`;
+
       await this.createInstance(
         accountId,
         instanceName,
-        4, // CPU count
-        4096, // Memory MB
+        CPU_CORES, // CPU count
         ip.address(),
         optimizationId
       );
 
-      // Don't even bother to wait for the status to be ready, assume that the instance will connect with the optimization server once it starts up
-      // TODO: There is a bug here for really short optimizations that complete their whole cycle and transition the instance to TERMINATED before
+      // Don't even bother to wait for the status to be ready, assume that the instance will connect with the optimization server once it starts up.
+      // Relying on code like this introduces a bug here for really short optimizations that complete their whole cycle and transition the instance to TERMINATED before
       /*
       await this.waitForInstanceToBeInStatus(
         accountId,
@@ -227,7 +282,8 @@ module.exports = class ComputeGCP {
       return Promise.resolve();
     } catch (error) {
       try {
-        if (error.code >= 500) {
+        // Server errors OR instance by that name already exists
+        if (error.code >= 500 || error.code === 409) {
           logger.warn(
             accountId,
             'retrying because of',
@@ -265,7 +321,6 @@ module.exports = class ComputeGCP {
   async cleanup(accountId, optimizationId) {
     logger.log(accountId, 'running optimization cleanup');
     this.removeZoneCounter(optimizationId);
-    // TODO: Delete instance??
   }
 
   async stop(accountId, name) {

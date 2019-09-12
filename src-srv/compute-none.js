@@ -14,16 +14,17 @@ module.exports = class ComputeNone {
     logger.warn(
       accountId,
       'Start optimization Java on remote machine with args:',
-      optimizationId,
-      ip.address()
+      ip.address(),
+      optimizationId
     );
   }
 
   async retry(accountId, optimizationId) {
+    logger.warn(accountId, 'Attempting retry');
     return this.start(accountId, optimizationId);
   }
 
   async cleanup(accountId, optimizationId) {
-    // no cleanup necessary
+    // no cleanup necessary for none compute
   }
 };

@@ -317,11 +317,27 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
           applicableTable === 'games' &&
           getColNameFromJSONValue(value.key) === 'date'
         ) {
+          // Special case: date field must be converted to a time before updateing
           result.push({
             query:
               'UPDATE games SET date = to_timestamp($1) WHERE id IN ($2) AND account_id IN ($3);',
             values: [
               value.param2,
+              idUtils.clientIdToServerId(getIdFromPath(path), accountId),
+              accountId,
+            ],
+            order: 'UPDATE',
+          });
+        } else if (
+          applicableTable === 'teams' &&
+          getColNameFromJSONValue(value.key) === 'public_id'
+        ) {
+          // Special case: public_id field must be converted to hex before updateing
+          result.push({
+            query:
+              'UPDATE teams SET public_id = $1 WHERE id IN ($2) AND account_id IN ($3);',
+            values: [
+              idUtils.base62ToHex(value.param2),
               idUtils.clientIdToServerId(getIdFromPath(path), accountId),
               accountId,
             ],
@@ -730,7 +746,7 @@ let getColNameFromJSONValue = function(value) {
     teamList: 'team_list',
     gameList: 'game_list',
     sendEmail: 'send_email',
-    public_id: 'public_id',
+    publicId: 'public_id',
     publicIdEnabled: 'public_id_enabled',
   };
   if (map[value]) {
@@ -742,7 +758,7 @@ let getColNameFromJSONValue = function(value) {
       throw new HandledError(
         500,
         'Internal Server Error',
-        `Security Issue. User attempted to modify row ownership.`
+        `Security Issue. User attempted to modify read-only column: ${value}`
       );
     }
     return value;

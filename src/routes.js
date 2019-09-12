@@ -1,5 +1,6 @@
 import React from 'react';
 import state from 'state';
+import CardAccount from 'card-account';
 import CardAuth from 'card-auth';
 import CardLoading from 'card-loading';
 import CardNotFound from 'card-not-found';
@@ -63,7 +64,7 @@ routes = {
     return (
       <CardNotFound
         title="Not Found"
-        message="The content  you were looking for could not be found."
+        message="The content you were looking for could not be found."
       />
     );
   },
@@ -108,8 +109,19 @@ routes = {
   '/teams/:teamId/stats/player/:playerId': ({ teamId, playerId }) => {
     const team = state.getTeam(teamId);
     const player = state.getPlayer(playerId);
-    assertStateObjects(team, player);
-    return <CardSpray team={team} player={player} origin="stats" />;
+    const playerPlateAppearances = state.getPlateAppearancesForPlayerOnTeam(
+      playerId,
+      teamId
+    );
+
+    assertStateObjects(team, player, playerPlateAppearances);
+    return (
+      <CardSpray
+        team={team}
+        player={player}
+        plateAppearances={playerPlateAppearances}
+      />
+    );
   },
   '/teams/:teamId/games/:gameId': ({ teamId, gameId }) => {
     const team = state.getTeam(teamId);
@@ -172,8 +184,11 @@ routes = {
   },
   '/players/:playerId': ({ playerId }) => {
     const player = state.getPlayer(playerId);
-    assertStateObjects(player);
-    return <CardSpray player={player} origin="players" />;
+    const playerPlateAppearances = state.getPlateAppearancesForPlayer(playerId);
+    assertStateObjects(player, playerPlateAppearances);
+    return (
+      <CardSpray player={player} plateAppearances={playerPlateAppearances} />
+    );
   },
   '/players/:playerId/edit': ({ playerId, isNew }) => {
     const player = state.getPlayer(playerId);
@@ -187,6 +202,7 @@ routes = {
     // exported files. In the meantime, here is a band aid.
     if (state.getAllOptimizations() === undefined) {
       state.getLocalState().optimizations = [];
+      state.getAncestorState().optimizations = [];
     }
     return <CardOptimizationList />;
   },
@@ -233,31 +249,60 @@ routes = {
       />
     );
   },
-  '/stats/:statsId': ({ data, loading, error, statsId, teamId }) => {
-    return renderWhileLoading({ loading, error })(() => {
-      return (
-        <CardStats state={data} team={data.team} routingMethod="statsPage" />
-      );
-    });
+  '/account': ({}) => {
+    return <CardAccount />;
   },
-  '/stats/:statsId/player/:playerId': ({
+  '/public-teams/:publicTeamId/stats': ({
     data,
     loading,
     error,
-    statsId,
+    publicTeamId,
+    teamId,
+  }) => {
+    return renderWhileLoading({ loading, error })(() => {
+      return (
+        <CardStats
+          state={data}
+          team={data.teams[0]}
+          routingMethod="statsPage"
+          publicTeamId={publicTeamId}
+        />
+      );
+    });
+  },
+  '/public-teams/:publicTeamId/stats/player/:playerId': ({
+    data,
+    loading,
+    error,
+    publicTeamId,
     playerId,
   }) => {
+    console.log('data', data);
     const player = data.players.reduce((prev, player) => {
       return player.id === playerId ? player : prev;
     }, null);
 
+    let team = data.teams[0];
+
+    // TODO: This is duplicated logic from the state class, figure out how we can re-use that code
+    let plateAppearances = [];
+    if (team && team.games) {
+      team.games.forEach(game => {
+        if (game.plateAppearances) {
+          const plateAppearancesThisGame = game.plateAppearances.filter(
+            pa => player.id === pa.player_id
+          );
+          plateAppearances = plateAppearances.concat(plateAppearancesThisGame);
+        }
+      });
+    }
+
     return renderWhileLoading({ loading, error })(() => {
       return (
         <CardSpray
-          state={data}
-          team={data.team}
+          team={team}
           player={player}
-          origin="statsPage"
+          plateAppearances={plateAppearances}
         />
       );
     });
