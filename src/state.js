@@ -838,6 +838,7 @@ exp.saveApplicationStateToLocalStorage = function() {
 exp.loadStateFromLocalStorage = function() {
   if (typeof Storage !== 'undefined') {
     // These statements define local storage schema migrations
+    // TODO: this logic also needs to be executed when importing a file
     if (localStorage.getItem('SCHEMA_VERSION') === '5') {
       // Added optimizations
       console.log('Upgrading localstorage from version 5 to version 6');

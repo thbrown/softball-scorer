@@ -88,7 +88,7 @@ class CardTeamEdit extends React.Component {
     const {
       teamEditing: { publicId, publicIdEnabled },
     } = this.state;
-    const publicLink = `${window.location.host}/stats/${publicId}`;
+    const publicLink = `${window.location.host}/public-teams/${publicId}/stats`;
 
     return (
       <Card title="Edit Team">
@@ -200,6 +200,7 @@ const styles = css => ({
     resize: 'none',
     whiteSpace: 'unset',
     overflowWrap: 'unset',
+    overflow: 'hidden',
   },
   publicLinkLabelBox: {
     fontSize: css.typography.size.large,

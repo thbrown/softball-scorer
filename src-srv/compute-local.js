@@ -83,7 +83,7 @@ module.exports = class ComputeLocal {
 
     // Get the optimization jar if necessary
     await this.download(
-      'https://github.com/thbrown/softball-sim/releases/download/v0.4/softball-sim.jar',
+      'https://github.com/thbrown/softball-sim/releases/download/v0.5/softball-sim.jar',
       FILE_NAME
     );
 
@@ -109,9 +109,9 @@ module.exports = class ComputeLocal {
         // Specify mem usage
         //"-Xms2048m",
         //"-Xmx2048m",
-        // For remote debug
-        '-Xdebug',
-        '-Xrunjdwp:transport=dt_socket,address=8889,server=y,suspend=n',
+        // For remote debug (prevents running more than 1 optimization at a time because of conflicts on debug port)
+        //'-Xdebug',
+        //'-Xrunjdwp:transport=dt_socket,address=8889,server=y,suspend=n',
         '-jar',
         FILE_NAME,
         'NETWORK',
@@ -126,7 +126,7 @@ module.exports = class ComputeLocal {
       }
     );
     spawn.on('error', function(err) {
-      logger.log(accountId, 'Error encountered');
+      logger.warn(accountId, 'Error encountered');
       return Promise.reject(err);
     });
     spawn.stderr.on('data', function(data) {
@@ -138,10 +138,12 @@ module.exports = class ComputeLocal {
   }
 
   async retry(accountId, optimizationId) {
-    return this.start(accountId, optimizationId);
+    throw new Error('Restarts not supported locally');
+    // We could just restart the java like this, but then if there was some real problem we would be retrying indefinitely
+    // return this.start(accountId, optimizationId);
   }
 
   async cleanup(accountId, optimizationId) {
-    // no cleanup necessary
+    // no cleanup necessary for local compute
   }
 };

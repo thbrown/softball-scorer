@@ -39,7 +39,7 @@ export default class CardVerifyEmail extends expose.Component {
         });
       } else if (response.status === 404) {
         dialog.show_notification(
-          `We were unable to verify your email. The token may have expired.`, // TODO: resend
+          `We were unable to verify your email. The token may have expired. Try [resending the validation email](/account).`,
           function() {
             setRoute('/menu');
           }

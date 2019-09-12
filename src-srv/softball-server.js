@@ -20,6 +20,7 @@ const idUtils = require('../id-utils');
 const logger = require('./logger');
 const objectMerge = require('../object-merge');
 const OptimizationServer = require('./optimization-server');
+const SimulationTimeEstimator = require('../simulation-time-estimator');
 
 module.exports = class SoftballServer {
   constructor(appPort, optimizationPort, databaseCalls, cacheCalls, compute) {
@@ -242,26 +243,18 @@ module.exports = class SoftballServer {
     );
 
     app.get(
-      '/server/stats/:publicId',
+      '/server/team-stats/:publicTeamId',
       wrapForErrorProcessing(async (req, res) => {
-        const { publicId } = req.params;
+        const { publicTeamId } = req.params;
         const account = await this.databaseCalls.getAccountAndTeamByTeamPublicId(
-          publicId
+          publicTeamId
         );
         if (account) {
-          const { accountId } = account;
+          const { accountId, teamId } = account;
           await lockAccount(accountId);
           let state;
           try {
-            //TODO write a getPublicState db call that encompasses the public_id and
-            //removes redundant information (like extra players/optimizations)
-            state = await this.databaseCalls.getState(accountId);
-            state.statsId = publicId;
-            state.team = state.teams.reduce((prev, team) => {
-              return team.publicId === publicId ? team : prev;
-            }, null);
-            delete state.optimizations;
-            delete state.teams;
+            state = await this.databaseCalls.getStateForTeam(accountId, teamId);
           } finally {
             await unlockAccount(accountId);
           }
@@ -342,27 +335,17 @@ module.exports = class SoftballServer {
           }
         }
 
-        let token = await generateToken();
-        let tokenHash = crypto
-          .createHash('sha256')
-          .update(token)
-          .digest('base64');
-
         let hashedPassword = await bcrypt.hash(req.body.password, 12);
         let account = await this.databaseCalls.signup(
           req.body.email,
-          hashedPassword,
-          tokenHash
+          hashedPassword
         );
 
-        configAccessor
-          .getEmailService()
-          .sendMessage(
-            account.account_id,
-            req.body.email,
-            'Welcome to Softball.app!',
-            `Thank you for signing up for an account on https://softball.app. Please click this activation link to verify your email address: https://softball.app/account/verify-email/${token}`
-          );
+        let tokenHash = await sendEmailValidationEmail(
+          account.account_id,
+          req.body.email
+        );
+        this.databaseCalls.setPasswordTokenHash(account.account_id, tokenHash);
 
         logger.log(
           account.account_id,
@@ -498,6 +481,39 @@ module.exports = class SoftballServer {
       })
     );
 
+    app.post(
+      '/server/account/send-verification-email',
+      wrapForErrorProcessing(async (req, res, next) => {
+        if (!req.isAuthenticated()) {
+          res.status(403).send();
+          return;
+        }
+
+        let accountId = extractSessionInfo(req, 'accountId');
+        let accountInfo = await this.databaseCalls.getAccountById(accountId);
+        let emailHasBeenValidated = accountInfo.verifiedEmail;
+
+        if (emailHasBeenValidated) {
+          logger.log(
+            accountId,
+            `Not sending account verification email because email has already been verified`
+          );
+          res.status(400).send();
+        } else {
+          logger.log(
+            accountId,
+            `Sending account verification email per user request`
+          );
+          let tokenHash = await sendEmailValidationEmail(
+            accountId,
+            accountInfo.email
+          );
+          this.databaseCalls.setPasswordTokenHash(accountId, tokenHash);
+          res.status(204).send();
+        }
+      })
+    );
+
     app.delete(
       '/server/account',
       wrapForErrorProcessing(async (req, res, next) => {
@@ -622,8 +638,6 @@ module.exports = class SoftballServer {
           state = state || (await this.databaseCalls.getState(accountId));
           let checksum = getMd5(state);
 
-          logger.log(accountId, 'Server CHECKSUM: ', checksum);
-
           // Compare the calculated checksum with the checksum provided by the client to determine if the server has updates for the client.
           if (data.md5 !== checksum) {
             logger.log(
@@ -662,7 +676,9 @@ module.exports = class SoftballServer {
               logger.warn(
                 accountId,
                 'performing full sync',
+                'Requested Sync Type:',
                 data.type,
+                'Ansestor present:',
                 !!serverAncestor
               );
               responseData.base =
@@ -735,6 +751,49 @@ module.exports = class SoftballServer {
           // some size restriction?
           // Make sure optimization exists!
 
+          let teamHits = 0;
+          let teamOuts = 0;
+          let maleCount = 0;
+          let femaleCount = 0;
+          for (let i = 0; i < data.executionData.players.length; i++) {
+            teamOuts += data.executionData.players[i].outs;
+            teamHits =
+              teamHits +
+              data.executionData.players[i].singles +
+              data.executionData.players[i].doubles +
+              data.executionData.players[i].triples +
+              data.executionData.players[i].homeruns;
+            if (data.executionData.players[i].gender === 'F') {
+              femaleCount++;
+            } else {
+              maleCount++;
+            }
+          }
+          let teamAverage = teamHits / (teamHits + teamOuts);
+
+          let numLineups = SimulationTimeEstimator.getNumberOfPossibleLineups(
+            data.executionData.lineupType,
+            maleCount,
+            femaleCount
+          );
+
+          let estimatedTime = SimulationTimeEstimator.estimateOptimizationTime(
+            numLineups,
+            SimulationTimeEstimator.getCoreCount(),
+            data.executionData.iterations,
+            data.executionData.innings,
+            teamAverage
+          );
+
+          // Don't run optimizations with estimated completion time greater than 12 hours
+          if (estimatedTime > 43200) {
+            res.status(400).send({
+              message:
+                'Could not start the simulation because the estimated completion time for this lineup is greater then 12 hours. Reduce the estimated runtime and try again.',
+            });
+            return;
+          }
+
           // If the send email checkbox is checked but the email address has not been validated, complain
           // This is also checked by the optimization server after the optimization completes
           let account = await this.databaseCalls.getAccountById(accountId);
@@ -745,7 +804,7 @@ module.exports = class SoftballServer {
           if (optimization.sendEmail && !account.verifiedEmail) {
             res.status(400).send({
               message:
-                "The 'send me an email...' checkbox was checked but the email address associated with this account has not been verified. Please verify your email or uncheck the box.",
+                "The 'send me an email...' checkbox was checked but the email address associated with this account has not been verified. Please [verify your email](/account) or uncheck the box.",
             });
             return;
           }
@@ -844,10 +903,14 @@ module.exports = class SoftballServer {
             serverOptimizationId,
             4 //state.OPTIMIZATION_STATUS_ENUM.PAUSED
           );
+
+          // Call compute service spicific cleanup
+          this.compute.cleanup(accountId, serverOptimizationId);
         } catch (error) {
           logger.log(
             accountId,
-            'An error occured while pausing an optimization'
+            'An error occured while pausing an optimization',
+            error
           );
           throw error;
         }
@@ -1049,7 +1112,7 @@ module.exports = class SoftballServer {
     };
 
     // Lock the account. Only one session for a single account can access the database at a time, otherwise there will be lots of race conditions.
-    // Depending on the server configuration, locking info is may be stored in a cache to allow multiple app servers to access and update the same locks.
+    // Depending on the server configuration, locking info may be stored in a cache to allow multiple app servers to access and update the same locks.
     const lockAccount = async function(accountId) {
       let success = false;
       let counter = 0;
@@ -1069,12 +1132,29 @@ module.exports = class SoftballServer {
           );
         }
       } while (!success);
-      logger.log(accountId, 'Account Locked');
     };
 
     const unlockAccount = async function(accountId) {
       await self.cacheCalls.unlockAccount(accountId);
-      logger.log(accountId, 'Account Unlocked');
+    };
+
+    const sendEmailValidationEmail = async function(accountId, email) {
+      let token = await generateToken();
+      let tokenHash = crypto
+        .createHash('sha256')
+        .update(token)
+        .digest('base64');
+
+      configAccessor
+        .getEmailService()
+        .sendMessage(
+          accountId,
+          email,
+          'Welcome to Softball.app!',
+          `Thank you for signing up for an account on https://softball.app. Please click this activation link to verify your email address: https://softball.app/account/verify-email/${token}`
+        );
+
+      return tokenHash;
     };
   }
 

@@ -319,7 +319,7 @@ let databaseCalls = class DatabaseCalls {
   }
 
   async signup(email, passwordHash, passwordTokenHash) {
-    this.STATES[this.idCounter] = { teams: [], players: [] };
+    this.STATES[this.idCounter] = { teams: [], players: [], optimizations: [] };
     let newAccount = {
       account_id: this.idCounter,
       email: email,
@@ -414,7 +414,8 @@ let databaseCalls = class DatabaseCalls {
     accountId,
     optimizationId,
     newStatus,
-    optionalMessage
+    optionalMessage,
+    optionalPreviousStatus
   ) {
     optimizationId = idUtils.serverIdToClientId(optimizationId);
     logger.log(
@@ -469,6 +470,19 @@ let databaseCalls = class DatabaseCalls {
     );
   }
 
+  async getOptimizationStatus(accountId, optimizationId) {
+    optimizationId = idUtils.serverIdToClientId(optimizationId);
+    logger.log(accountId, 'getting optimization status');
+    let state = this.STATES[accountId];
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
+        return state.optimizations[i].status;
+      }
+    }
+    logger.warn(accountId, 'no optimization found - getOptimizationStatus');
+    return undefined;
+  }
+
   async getOptimizationResultData(accountId, optimizationId) {
     optimizationId = idUtils.serverIdToClientId(optimizationId);
     logger.log(accountId, 'getting optimization result data');
@@ -478,12 +492,8 @@ let databaseCalls = class DatabaseCalls {
         return state.optimizations[i].resultData;
       }
     }
-    throw new Error(
-      'Optimization not found 3 ' +
-        optimizationId +
-        ' ' +
-        JSON.stringify(state.optimizations)
-    );
+    logger.warn(accountId, 'no optimization found - getOptimizationResultData');
+    return undefined;
   }
 
   async getOptimizationDetails(accountId, optimizationId) {
@@ -495,12 +505,8 @@ let databaseCalls = class DatabaseCalls {
         return state.optimizations[i];
       }
     }
-    throw new Error(
-      'Optimization not found 3 ' +
-        optimizationId +
-        ' ' +
-        JSON.stringify(state.optimizations)
-    );
+    logger.warn(accountId, 'no optimization found - getOptimizationDetails');
+    return undefined;
   }
 
   async setOptimizationExecutionData(
@@ -521,12 +527,11 @@ let databaseCalls = class DatabaseCalls {
         return;
       }
     }
-    throw new Error(
-      'Optimization not found 2 ' +
-        optimizationId +
-        ' ' +
-        JSON.stringify(state.optimizations)
+    logger.warn(
+      accountId,
+      'no optimization found - setOptimizationExecutionData'
     );
+    return undefined;
   }
 
   async getOptimizationExecutionData(accountId, optimizationId) {
@@ -543,12 +548,11 @@ let databaseCalls = class DatabaseCalls {
         return state.optimizations[i].executionData;
       }
     }
-    throw new Error(
-      'Optimization not found 1 ' +
-        optimizationId +
-        ' ' +
-        JSON.stringify(state.optimizations)
+    logger.warn(
+      accountId,
+      'no optimization found - getOptimizationExecutionData'
     );
+    return undefined;
   }
 };
 

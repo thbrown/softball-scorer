@@ -77,6 +77,7 @@ export default class CardStats extends expose.Component {
         }
       }
     };
+
     this.handleStatsClick = function(sortField) {
       const newState = Object.assign({}, this.state);
       if (newState.sortField === sortField) {
@@ -97,7 +98,10 @@ export default class CardStats extends expose.Component {
       if (routingMethod === 'app') {
         setRoute(`/teams/${teamId}/stats/player/${playerId}`);
       } else if (routingMethod === 'statsPage') {
-        setRoute(`/stats/${this.props.state.statsId}/player/${playerId}`);
+        console.log();
+        setRoute(
+          `/public-teams/${this.props.publicTeamId}/stats/player/${playerId}`
+        );
       }
     }.bind(this);
   }
