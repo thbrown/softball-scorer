@@ -1,7 +1,6 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
 import expose from './expose';
-import state from 'state';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import results from 'plate-appearance-results';
@@ -55,7 +54,7 @@ export default class CardAtBat extends expose.Component {
           : '/server/assets/baseball-hit.svg';
         let alt = results.getNoHitResults().includes(value.result)
           ? 'out'
-          : 'hitg';
+          : 'hit';
         indicators.push(
           DOM.img({
             key: value.id,
