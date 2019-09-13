@@ -98,7 +98,6 @@ export default class CardStats extends expose.Component {
       if (routingMethod === 'app') {
         setRoute(`/teams/${teamId}/stats/player/${playerId}`);
       } else if (routingMethod === 'statsPage') {
-        console.log();
         setRoute(
           `/public-teams/${this.props.publicTeamId}/stats/player/${playerId}`
         );
@@ -240,7 +239,7 @@ export default class CardStats extends expose.Component {
     );
 
     return (
-      <Card title="Stats">
+      <Card title={team?.name || 'Stats'}>
         <div
           style={{
             display: 'flex',

@@ -37,6 +37,14 @@ const exp = {
     large: '5rem',
     xLarge: '10rem',
   },
+  sizing: {
+    xxSmall: '1rem',
+    xSmall: '2rem',
+    small: '5rem',
+    medium: '10rem',
+    large: '20rem',
+    xLarge: '30rem',
+  },
   config: {
     SYNC_DELAY: '10s',
   },

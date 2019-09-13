@@ -1,25 +1,30 @@
-import expose from 'expose';
-import DOM from 'react-dom-factories';
+import React from 'react';
 
-export default class LeftHeaderButton extends expose.Component {
-  constructor(props) {
-    super(props);
-    this.expose();
-    this.handleButtonPress = function() {
-      if (props.onPress) {
-        props.onPress();
-      }
-      window.history.back();
-    };
-  }
+const LeftHeaderButton = props =>
+  window?.history?.length > 1 || props.onClick ? (
+    <img
+      src="/server/assets/back.svg"
+      className="back-arrow"
+      alt="back"
+      style={props.style}
+      onClick={() => {
+        if (props.onClick) {
+          if (props.onClick()) {
+            return;
+          }
+        }
+        if (window?.history?.length > 1) {
+          window.history.back();
+        }
+      }}
+    />
+  ) : (
+    <></>
+  );
 
-  render() {
-    return DOM.img({
-      src: '/server/assets/back.svg',
-      className: 'back-arrow',
-      onClick: this.handleButtonPress,
-      alt: 'back',
-      style: this.props.style,
-    });
-  }
-}
+LeftHeaderButton.defaultProps = {
+  style: {},
+  onClick: null,
+};
+
+export default LeftHeaderButton;

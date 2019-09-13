@@ -249,7 +249,7 @@ routes = {
       />
     );
   },
-  '/account': ({}) => {
+  '/account': () => {
     return <CardAccount />;
   },
   '/public-teams/:publicTeamId/stats': ({
@@ -277,32 +277,33 @@ routes = {
     publicTeamId,
     playerId,
   }) => {
-    console.log('data', data);
-    const player = data.players.reduce((prev, player) => {
-      return player.id === playerId ? player : prev;
-    }, null);
-
-    let team = data.teams[0];
-
-    // TODO: This is duplicated logic from the state class, figure out how we can re-use that code
-    let plateAppearances = [];
-    if (team && team.games) {
-      team.games.forEach(game => {
-        if (game.plateAppearances) {
-          const plateAppearancesThisGame = game.plateAppearances.filter(
-            pa => player.id === pa.player_id
-          );
-          plateAppearances = plateAppearances.concat(plateAppearancesThisGame);
-        }
-      });
-    }
-
     return renderWhileLoading({ loading, error })(() => {
+      const player = data.players.reduce((prev, player) => {
+        return player.id === playerId ? player : prev;
+      }, null);
+
+      let team = data.teams[0];
+
+      // TODO: This is duplicated logic from the state class, figure out how we can re-use that code
+      let plateAppearances = [];
+      if (team && team.games) {
+        team.games.forEach(game => {
+          if (game.plateAppearances) {
+            const plateAppearancesThisGame = game.plateAppearances.filter(
+              pa => player.id === pa.player_id
+            );
+            plateAppearances = plateAppearances.concat(
+              plateAppearancesThisGame
+            );
+          }
+        });
+      }
       return (
         <CardSpray
           team={team}
           player={player}
           plateAppearances={plateAppearances}
+          backNavUrl={`/public-teams/${publicTeamId}/stats`}
         />
       );
     });
