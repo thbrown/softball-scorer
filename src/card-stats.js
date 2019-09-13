@@ -240,7 +240,7 @@ export default class CardStats extends expose.Component {
     );
 
     return (
-      <Card title="Stats">
+      <Card title={`${this.props.team.name} stats`}>
         <div
           style={{
             display: 'flex',

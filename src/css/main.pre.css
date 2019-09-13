@@ -170,6 +170,7 @@ body {
   cursor: default;
   display: flex;
   justify-content: space-between;
+  overflow: hidden;
 }
 
 .card-title-tab-container {
