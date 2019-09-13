@@ -5,6 +5,7 @@ import dialog from 'dialog';
 import Card from 'elements/card';
 import FloatingInput from 'component-floating-input';
 import CardSection from 'elements/card-section';
+import { setRoute } from 'actions/route';
 
 class CardTeamEdit extends React.Component {
   constructor(props) {
@@ -17,7 +18,7 @@ class CardTeamEdit extends React.Component {
     };
 
     const goBack = function() {
-      window.history.back();
+      setRoute('/teams');
     };
 
     this.homeOrBack = function() {
@@ -83,7 +84,6 @@ class CardTeamEdit extends React.Component {
   }
 
   render() {
-    //console.log('TEAM', this.state.teamEditing);
     const { classes } = this.props;
     const {
       teamEditing: { publicId, publicIdEnabled },
@@ -119,7 +119,7 @@ class CardTeamEdit extends React.Component {
                   onChange={this.handlePublicLinkEnabledClicked}
                 />
                 {this.state.copiedNotificationVisible && (
-                  <span className={'fade-out ' + classes.publicLinkCopiedText}>
+                  <span className={classes.publicLinkCopiedText + ' fade-out'}>
                     Link copied
                   </span>
                 )}
@@ -219,7 +219,8 @@ const styles = css => ({
     cursor: 'pointer',
   },
   publicLinkCopiedText: {
-    opacity: 0,
+    opacity: 1,
+    transition: 'transition: all 0.5s ease-out',
   },
   publicLinkContainer: {
     backgroundColor: css.colors.PRIMARY_DARK,

@@ -3,33 +3,6 @@ import React from 'react';
 let expose_ctr = 0;
 
 export const states = {};
-export function mixin(id) {
-  return {
-    componentWillMount: function() {
-      if (id) {
-        states[id] = {
-          setState: function(state) {
-            this.setState(state);
-          }.bind(this),
-          getState: function() {
-            return this.state;
-          }.bind(this),
-        };
-      } else {
-        console.error(
-          'Exposed states must have a valid id.',
-          this.props,
-          this.state
-        );
-      }
-    },
-    componentWillUnmount: function() {
-      if (id) {
-        delete states[id];
-      }
-    },
-  };
-}
 
 export class Component extends React.Component {
   constructor(props) {
@@ -62,7 +35,7 @@ export class Component extends React.Component {
     }
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     if (this._expose_id) {
       states[this._expose_id] = {
         setState: state => {
@@ -105,7 +78,6 @@ const exp = {
   set_state,
   get_state,
   Component,
-  mixin,
   states,
 };
 

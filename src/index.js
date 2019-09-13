@@ -43,7 +43,7 @@ const App = props => {
                     loading={loading}
                     {...routeProps}
                   />
-                </ ThemeProvider>
+                </ThemeProvider>
               );
             }}
           </RouteContainer>
