@@ -239,7 +239,7 @@ export default class CardStats extends expose.Component {
     );
 
     return (
-      <Card title={team?.name || 'Stats'}>
+      <Card title={`${this.props?.team?.name} Stats`}>
         <div
           style={{
             display: 'flex',
