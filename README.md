@@ -6,11 +6,12 @@ Live at https://softball.app/
 
 1. Clone this repo `git clone https://github.com/thbrown/softball-scorer.git`.
 2. Install node.js (8.10.0+) and npm (5.6.0+). Older versions _wont_ work.
-3. From this repo's root directory, run `npm install`.
-4. Setup any optional features using the sections below if desired.
-5. Run this command from the root directory:  
-   `npm run build && node src-srv`.
-6. Visit http://localhost:8888 in your browser.
+3. Install yarn `npm install -g yarn`
+4. From this repo's root directory, run `yarn`.
+5. Setup any optional features using the sections below if desired.
+6. Run this command from the root directory:  
+   `yarn build && node src-srv`.
+7. Visit http://localhost:8888 in your browser.
 
 ## Optional features
 
