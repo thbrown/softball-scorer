@@ -247,13 +247,14 @@ export default class CardLineup extends expose.Component {
   renderPlateAppearanceBoxes(player, plateAppearances, editable) {
     let pas = plateAppearances.map((pa, i) => {
       pa = pa || {};
-      return DOM.div(
-        {
-          key: 'box' + i,
-          onClick: this.handleBoxClick.bind(this, pa.id),
-          className: 'lineup-box',
-        },
-        DOM.div({}, pa.result || '')
+      return (
+        <div
+          key={`box${i}`}
+          onClick={this.handleBoxClick.bind(this, pa.id)}
+          className="lineup-box"
+        >
+          <span className="no-select">{pa.result || ''}</span>
+        </div>
       );
     });
 
@@ -276,7 +277,7 @@ export default class CardLineup extends expose.Component {
                 backgroundColor: '#DDD',
               },
             },
-            '+'
+            <span className="no-select">+</span>
           )
         ),
       ]);
