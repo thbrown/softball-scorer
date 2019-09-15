@@ -348,7 +348,7 @@ module.exports = class DatabaseCalls {
 
         logger.log(
           accountId,
-          `SYNC_PULL took ${new Date().getTime() - milliseconds}ms`
+          `SYNC parse took ${new Date().getTime() - milliseconds}ms`
         );
 
         resolve(state);
