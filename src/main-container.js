@@ -63,83 +63,85 @@ export default class MainContainer extends expose.Component {
     }
 
     // Load data from localstorage synchronously
-    state.loadStateFromLocalStorage();
+    if (!this.props.test) {
+      state.loadStateFromLocalStorage();
 
-    // Reload from local storage each time after the window regains focus
-    window.addEventListener(
-      'focus',
-      () => {
-        state.loadStateFromLocalStorage();
-      },
-      false
-    );
+      // Reload from local storage each time after the window regains focus
+      window.addEventListener(
+        'focus',
+        () => {
+          state.loadStateFromLocalStorage();
+        },
+        false
+      );
 
-    // Enable wake lock. (must be wrapped in a user input event handler)
-    document.addEventListener('click', enableNoSleep, false);
-    function enableNoSleep() {
-      noSleep.enable();
-      document.removeEventListener('click', enableNoSleep, false);
+      // Enable wake lock. (must be wrapped in a user input event handler)
+      document.addEventListener('click', enableNoSleep, false);
+      function enableNoSleep() {
+        noSleep.enable();
+        document.removeEventListener('click', enableNoSleep, false);
+      }
+
+      // Update the network status whenever we receive an 'online' or 'offline' event
+      window.addEventListener(
+        'online',
+        () => {
+          // This event really just tells us if we are connected to a network, we need to ping the server to know if we are online and authenticated
+          network.updateNetworkStatus();
+        },
+        false
+      );
+
+      window.addEventListener(
+        'offline',
+        () => {
+          state.setOffline();
+        },
+        false
+      );
+
+      window.addEventListener('beforeinstallprompt', e => {
+        // Prevent Chrome 67 and earlier from automatically showing the prompt
+        e.preventDefault();
+        // Stash the event so it can be triggered later.
+        state.setAddToHomescreenPrompt(e);
+      });
+
+      // Analytics
+      let trackingId =
+        config.analytics && config.analytics.trackingId
+          ? config.analytics.trackingId
+          : undefined;
+      window.ga =
+        window.ga ||
+        function() {
+          (window.ga.q = window.ga.q || []).push(arguments);
+        };
+      window.ga.l = +new Date();
+      window.ga('create', trackingId, 'auto');
+      window.ga('require', 'urlChangeTracker');
+      window.ga('require', 'cleanUrlTracker', {
+        stripQuery: true,
+        indexFilename: 'index.html',
+        trailingSlash: 'remove',
+        urlFieldsFilter: function(fieldsObj, parseUrl) {
+          fieldsObj.page = parseUrl(fieldsObj.page)
+            .pathname.replace(/teams\/[a-zA-Z0-9]{14}/, 'teams/<team-id>')
+            .replace(/player\/[a-zA-Z0-9]{14}/, 'player/<player-id>')
+            .replace(/games\/[a-zA-Z0-9]{14}/, 'games/<game-id>')
+            .replace(
+              /plateAppearances\/[a-zA-Z0-9]{14}/,
+              'plateAppearances/<pa-id>'
+            )
+            .replace(/players\/[a-zA-Z0-9]{14}/, 'players/<player-id>');
+          return fieldsObj;
+        },
+      });
+      window.ga('send', 'pageview');
+
+      // Sync on first load
+      setTimeout(state.sync, 1);
     }
-
-    // Update the network status whenever we receive an 'online' or 'offline' event
-    window.addEventListener(
-      'online',
-      () => {
-        // This event really just tells us if we are connected to a network, we need to ping the server to know if we are online and authenticated
-        network.updateNetworkStatus();
-      },
-      false
-    );
-
-    window.addEventListener(
-      'offline',
-      () => {
-        state.setOffline();
-      },
-      false
-    );
-
-    window.addEventListener('beforeinstallprompt', e => {
-      // Prevent Chrome 67 and earlier from automatically showing the prompt
-      e.preventDefault();
-      // Stash the event so it can be triggered later.
-      state.setAddToHomescreenPrompt(e);
-    });
-
-    // Analytics
-    let trackingId =
-      config.analytics && config.analytics.trackingId
-        ? config.analytics.trackingId
-        : undefined;
-    window.ga =
-      window.ga ||
-      function() {
-        (window.ga.q = window.ga.q || []).push(arguments);
-      };
-    window.ga.l = +new Date();
-    window.ga('create', trackingId, 'auto');
-    window.ga('require', 'urlChangeTracker');
-    window.ga('require', 'cleanUrlTracker', {
-      stripQuery: true,
-      indexFilename: 'index.html',
-      trailingSlash: 'remove',
-      urlFieldsFilter: function(fieldsObj, parseUrl) {
-        fieldsObj.page = parseUrl(fieldsObj.page)
-          .pathname.replace(/teams\/[a-zA-Z0-9]{14}/, 'teams/<team-id>')
-          .replace(/player\/[a-zA-Z0-9]{14}/, 'player/<player-id>')
-          .replace(/games\/[a-zA-Z0-9]{14}/, 'games/<game-id>')
-          .replace(
-            /plateAppearances\/[a-zA-Z0-9]{14}/,
-            'plateAppearances/<pa-id>'
-          )
-          .replace(/players\/[a-zA-Z0-9]{14}/, 'players/<player-id>');
-        return fieldsObj;
-      },
-    });
-    window.ga('send', 'pageview');
-
-    // Sync on first load
-    setTimeout(state.sync, 1);
   }
 
   render() {
@@ -151,8 +153,8 @@ export default class MainContainer extends expose.Component {
       try {
         //TODO find a more elegant solution for routing/caching this data container
         if (
-          props.page.slice(0, 14) === '/public-teams/' &&
-          this.props.publicTeamId
+          props?.page?.slice(0, 14) === '/public-teams/' &&
+          props.publicTeamId
         ) {
           return (
             <DataContainer url={`server/team-stats/${this.props.publicTeamId}`}>

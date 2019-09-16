@@ -5,7 +5,7 @@ import dialog from 'dialog';
 import state from 'state';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
-import FloatingInput from 'component-floating-input';
+import FloatingInput from 'elements/floating-input';
 import WalkupSong from 'component-walkup-song';
 
 export default class CardPlayerEdit extends expose.Component {

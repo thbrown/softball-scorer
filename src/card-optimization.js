@@ -6,7 +6,7 @@ import dialog from 'dialog';
 import network from 'network';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
-import FloatingInput from 'component-floating-input';
+import FloatingInput from 'elements/floating-input';
 import FloatingPicklist from 'component-floating-picklist';
 import { setRoute } from 'actions/route';
 import SimulationTimeEstimator from '../simulation-time-estimator';

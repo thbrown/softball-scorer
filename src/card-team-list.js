@@ -1,17 +1,14 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import expose from './expose';
 import state from 'state';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
 import { setRoute } from 'actions/route';
+import Card from 'elements/card';
+import expose from 'expose';
 
-export default class CardTeamList extends expose.Component {
+export default class CardTeamList extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
     this.state = {};
-
     this.handleTeamClick = function(team) {
       setRoute(`/teams/${team.id}`);
     };
@@ -70,6 +67,7 @@ export default class CardTeamList extends expose.Component {
     elems.push(
       DOM.div(
         {
+          id: 'newteam',
           key: 'newteam',
           className: 'list-item add-list-item',
           onClick: this.handleCreateClick,
@@ -78,34 +76,15 @@ export default class CardTeamList extends expose.Component {
       )
     );
 
-    return DOM.div({}, elems);
+    return DOM.div(
+      {
+        id: 'teamlist',
+      },
+      elems
+    );
   }
 
   render() {
-    return DOM.div(
-      {
-        className: 'card',
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {}),
-        DOM.div(
-          {
-            className: 'prevent-overflow card-title-text-with-arrow',
-          },
-          'Teams'
-        ),
-        React.createElement(RightHeaderButton, {})
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderTeamList()
-      )
-    );
+    return <Card title="Teams">{this.renderTeamList()}</Card>;
   }
 }

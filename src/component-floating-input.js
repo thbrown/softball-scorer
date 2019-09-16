@@ -1,14 +1,14 @@
-import expose from 'expose';
-import DOM from 'react-dom-factories';
+import React, { createRef } from 'react';
 
-export default class FloatingInput extends expose.Component {
+export default class FloatingInput extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
     this.state = {};
+    this.floatContainerRef = createRef();
+    this.inputRef = createRef();
 
-    this.onChangeWraper = function() {
-      let value = document.getElementById(this.props.id).value;
+    this.onChangeWrapper = function() {
+      let value = this.inputRef?.current?.value;
       if (this.props.type === 'number') {
         value = Number(value);
       }
@@ -17,9 +17,9 @@ export default class FloatingInput extends expose.Component {
   }
 
   componentDidMount() {
-    const floatContainer = document.getElementById(this.props.id + 'container');
+    const floatContainer = this.floatContainerRef.current;
 
-    if (floatContainer.querySelector('input').value) {
+    if (floatContainer?.querySelector('input')?.value) {
       floatContainer.classList.add('active');
     }
 
@@ -42,23 +42,25 @@ export default class FloatingInput extends expose.Component {
   }
 
   render() {
-    return DOM.div(
-      {
-        key: this.props.id + 'container',
-        id: this.props.id + 'container',
-        className: 'float-container',
-      },
-      DOM.label({}, this.props.label),
-      DOM.input({
-        id: this.props.id,
-        type: this.props.type ? this.props.type : 'text',
-        min: this.props.min,
-        step: this.props.step,
-        maxLength: this.props.maxLength ? this.props.maxLength : '50',
-        onChange: this.onChangeWraper.bind(this),
-        defaultValue: this.props.defaultValue,
-        disabled: this.props.disabled,
-      })
+    return (
+      <div
+        key={this.props.id + 'container'}
+        className="float-container"
+        ref={this.floatContainerRef}
+      >
+        <label>{this.props.label}</label>
+        <input
+          id={this.props.id}
+          type={this.props.type ? this.props.type : 'text'}
+          min={this.props.min}
+          step={this.props.step}
+          maxLength={this.props.maxLength ? this.props.maxLength : '50'}
+          onChange={this.onChangeWrapper.bind(this)}
+          defaultValue={this.props.defaultValue}
+          disabled={this.props.disabled}
+          ref={this.inputRef}
+        ></input>
+      </div>
     );
   }
 }

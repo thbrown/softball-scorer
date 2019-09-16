@@ -71,6 +71,10 @@ exp.getServerUrl = function(path) {
 // -2 failed on fullSync = false
 // -3 failed on fullSync = true
 exp.sync = async function(fullSync) {
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+
   console.log('[SYNC] Sync requested', fullSync ? 'full' : 'patchOnly');
 
   while (
@@ -1126,6 +1130,10 @@ exp.getAddToHomescreenPrompt = function() {
 };
 
 exp.scheduleSync = function(time = SYNC_DELAY_MS) {
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+
   let currentState = exp.getSyncState();
   if (currentState === SYNC_STATUS_ENUM.ERROR) {
     console.warn('[SYNC] Sync skipped, in error state');
@@ -1156,6 +1164,10 @@ exp.scheduleSync = function(time = SYNC_DELAY_MS) {
 };
 
 let setSyncState = function(newState, skipRender) {
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+
   // Skip unnecessary renders
   if (syncState !== newState) {
     const origStateName = exp.syncStateToSyncStateName(syncState);

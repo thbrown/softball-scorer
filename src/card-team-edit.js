@@ -3,7 +3,7 @@ import injectSheet from 'react-jss';
 import state from 'state';
 import dialog from 'dialog';
 import Card from 'elements/card';
-import FloatingInput from 'component-floating-input';
+import FloatingInput from 'elements/floating-input';
 import CardSection from 'elements/card-section';
 import { setRoute } from 'actions/route';
 
@@ -17,9 +17,9 @@ class CardTeamEdit extends React.Component {
       teamEditing: { ...props.team },
     };
 
-    const goBack = function() {
+    const goBack = (this.goBack = function() {
       setRoute('/teams');
-    };
+    });
 
     this.homeOrBack = function() {
       if (props.isNew) {
@@ -47,6 +47,7 @@ class CardTeamEdit extends React.Component {
           goBack();
         }
       );
+      return true;
     };
 
     this.handleNameChange = function(value) {
@@ -91,10 +92,21 @@ class CardTeamEdit extends React.Component {
     const publicLink = `${window.location.host}/public-teams/${publicId}/stats`;
 
     return (
-      <Card title="Edit Team">
+      <Card
+        title="Edit Team"
+        leftHeaderProps={{
+          onClick: () => {
+            if (this.props.isNew) {
+              this.handleDeleteClick();
+            } else {
+              this.goBack();
+            }
+            return false;
+          },
+        }}
+      >
         <CardSection>
           <FloatingInput
-            id="teamName"
             maxLength="50"
             label="Team Name"
             onChange={this.handleNameChange}

@@ -57,14 +57,16 @@ window.onpopstate = function() {
   expose.set_state('main', {
     isNew: false,
   });
-  setRoute(window?.location?.pathname);
+  setTimeout(() => {
+    setRoute(window?.location?.pathname);
+  }, 1);
 };
 
 export default class RouteContainer extends expose.Component {
   constructor(props) {
     super(props);
     this.state = {
-      path: window?.location?.pathname,
+      path: window?.location?.pathname || '/',
     };
     this.exposeOverwrite('router' + this.props.routeId);
   }

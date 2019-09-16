@@ -10,6 +10,7 @@
     "build-css": "node build.js build-css",
     "clean": "node build.js clean",
     "start": "node src-srv",
+    "test-watch": "jest --watch src/tests/*.test.js",
     "test": "jest --runInBand --detectOpenHandles --bail --verbose=false --forceExit"
   },
   "repository": {
@@ -17,7 +18,7 @@
     "url": "git+https://github.com/thbrown/softball-scorer.git"
   },
   "author": "Browns and Co.",
-  "license": "",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/thbrown/softball-scorer/issues"
   },
@@ -47,8 +48,13 @@
     ]
   },
   "jest": {
+    "testEnvironment": "enzyme",
+    "testEnvironmentOptions": {
+      "enzymeAdapter": "react16"
+    },
     "setupFilesAfterEnv": [
-      "<rootDir>/src-srv/test/jest-setup.js"
+      "<rootDir>/src-srv/test/jest-setup.js",
+      "./node_modules/jest-enzyme/lib/index.js"
     ]
   },
   "homepage": "https://github.com/thbrown/softball-scorer#readme",
@@ -93,8 +99,8 @@
     "@babel/cli": "^7.4.4",
     "@babel/core": "^7.4.5",
     "@babel/node": "^7.4.5",
-    "@babel/plugin-proposal-optional-chaining": "^7.2.0",
     "@babel/plugin-proposal-class-properties": "^7.5.0",
+    "@babel/plugin-proposal-optional-chaining": "^7.2.0",
     "@babel/preset-env": "^7.4.5",
     "@babel/preset-react": "^7.0.0",
     "@babel/register": "^7.4.4",
@@ -102,6 +108,9 @@
     "babel-loader": "^8.0.6",
     "babel-plugin-module-resolver": "^3.2.0",
     "cross-env": "^5.2.0",
+    "enzyme": "^3.10.0",
+    "jest-enzyme": "^7.1.1",
+    "enzyme-adapter-react-16": "latest",
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^6.0.0",
     "eslint-config-react-app": "^4.0.1",
@@ -112,7 +121,7 @@
     "eslint-plugin-prettier": "^3.1.0",
     "eslint-plugin-react": "^7.13.0",
     "eslint-plugin-react-hooks": "^1.6.0",
-    "jest": "^24.7.1",
+    "jest": "^24.9.0",
     "node-fetch": "^2.6.0",
     "prettier": "^1.18.2",
     "terser": "^4.0.0",
