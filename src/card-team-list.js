@@ -14,19 +14,13 @@ export default class CardTeamList extends React.Component {
     };
 
     this.handleEditClick = function(team, ev) {
-      expose.set_state('main', {
-        isNew: false,
-      });
       setRoute(`/teams/${team.id}/edit`);
       ev.stopPropagation();
     };
 
     this.handleCreateClick = function() {
       const team = state.addTeam('');
-      expose.set_state('main', {
-        isNew: true,
-      });
-      setRoute(`/teams/${team.id}/edit`);
+      setRoute(`/teams/${team.id}/edit?isNew=true`);
     };
   }
 
@@ -35,6 +29,7 @@ export default class CardTeamList extends React.Component {
     let elems = s.teams.map(team => {
       return DOM.div(
         {
+          id: 'team-' + team.id,
           team_id: team.id,
           key: 'team' + team.id,
           className: 'list-item',
@@ -55,6 +50,7 @@ export default class CardTeamList extends React.Component {
             style: {},
           },
           DOM.img({
+            id: 'team-' + team.id + '-edit',
             src: '/server/assets/edit.svg',
             alt: 'edit',
             className: 'list-button',

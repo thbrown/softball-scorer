@@ -1,25 +1,18 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import expose from './expose';
 import state from 'state';
 import dialog from 'dialog';
 import FloatingInput from 'elements/floating-input';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
+import { goBack } from 'actions/route';
 
-export default class CardOptimizationEdit extends expose.Component {
+export default class CardOptimizationEdit extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
-
-    this.isNew = props.isNew;
 
     this.state = {
       optimizationName: props.optimization.name,
-    };
-
-    let goBack = function() {
-      window.history.back();
     };
 
     let buildOptimization = function() {
@@ -134,7 +127,7 @@ export default class CardOptimizationEdit extends expose.Component {
       )
     );
 
-    if (!this.isNew) {
+    if (!this.props.isNew) {
       buttons.push(
         DOM.div(
           {
@@ -195,4 +188,4 @@ export default class CardOptimizationEdit extends expose.Component {
       )
     );
   }
-};
+}
