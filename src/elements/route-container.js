@@ -52,16 +52,6 @@ export function getRouteState(url, routes) {
   return {};
 }
 
-// TODO: Move this out of an element container/rethink where to put isNew
-window.onpopstate = function() {
-  expose.set_state('main', {
-    isNew: false,
-  });
-  setTimeout(() => {
-    setRoute(window?.location?.pathname);
-  }, 1);
-};
-
 export default class RouteContainer extends expose.Component {
   constructor(props) {
     super(props);
@@ -77,10 +67,23 @@ export default class RouteContainer extends expose.Component {
       this.state.path,
       this.props.routes
     );
+    const search = window?.location?.search?.slice(1);
     const routeProps = {
       page: this.state.path,
       renderRouteComponent,
       ...state,
+      search: search
+        ? search.split('&').reduce((ret, keyValPair) => {
+            let [key, value] = keyValPair.split('=');
+            if (value === 'true') {
+              value = true;
+            } else if (value === 'false') {
+              value = false;
+            }
+            ret[key] = value;
+            return ret;
+          }, {})
+        : {},
     };
     return <>{this.props.children({ ...props, ...routeProps })}</>;
   }

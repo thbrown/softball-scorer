@@ -1,4 +1,5 @@
 import React from 'react';
+import { goBack } from 'actions/route';
 
 const LeftHeaderButton = props =>
   window?.history?.length > 1 || props.onClick ? (
@@ -14,7 +15,7 @@ const LeftHeaderButton = props =>
           }
         }
         if (window?.history?.length > 1) {
-          window.history.back();
+          goBack();
         }
       }}
     />

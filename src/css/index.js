@@ -1,5 +1,6 @@
 // Color Theme
 // https://material.io/tools/color/#!/?view.left=0&view.right=0&primary.color=4caf50&secondary.color=775447
+
 const exp = {
   colors: {
     PRIMARY: '#4caf50',
@@ -12,7 +13,7 @@ const exp = {
     TEXT_GREY: 'rgba(0,0,0,.87)',
     TEXT_DARK: '#000000',
     WHITE: '#FFFFFF',
-    INVISIBLE: 'rgba(0, 0, 0, 0)'
+    INVISIBLE: 'rgba(0, 0, 0, 0)',
   },
   sizes: {
     ICON: '24px',
@@ -27,7 +28,7 @@ const exp = {
       medium: '16px',
       large: '20px',
       xLarge: '32px',
-    }
+    },
   },
   spacing: {
     xxSmall: '0.5rem',

@@ -79,9 +79,6 @@ export default class CardLineup extends expose.Component {
     }.bind(this);
 
     this.handleBoxClick = function(plateAppearanceId) {
-      expose.set_state('main', {
-        isNew: false,
-      });
       setRoute(
         `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearanceId}`
       );
@@ -93,11 +90,8 @@ export default class CardLineup extends expose.Component {
         game_id,
         team_id
       );
-      expose.set_state('main', {
-        isNew: true,
-      });
       setRoute(
-        `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearance.id}`
+        `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearance.id}/?isNew=true`
       );
     }.bind(this);
 

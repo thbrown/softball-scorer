@@ -7,6 +7,7 @@ import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import FloatingInput from 'elements/floating-input';
 import WalkupSong from 'component-walkup-song';
+import { goBack } from 'actions/route';
 
 export default class CardPlayerEdit extends expose.Component {
   constructor(props) {
@@ -20,10 +21,6 @@ export default class CardPlayerEdit extends expose.Component {
       playerName: props.player.name,
       playerSongLink: props.player.song_link,
       playerSongStart: props.player.song_start,
-    };
-
-    let goBack = function() {
-      window.history.back();
     };
 
     let buildPlayer = function() {

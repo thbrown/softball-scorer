@@ -6,6 +6,7 @@ import dialog from 'dialog';
 import FloatingInput from 'elements/floating-input';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
+import { goBack } from 'actions/route';
 
 export default class CardOptimizationStatsOverride extends expose.Component {
   constructor(props) {
@@ -13,10 +14,6 @@ export default class CardOptimizationStatsOverride extends expose.Component {
     this.expose();
 
     this.state = {};
-
-    let goBack = function() {
-      window.history.back();
-    };
 
     let buildOverride = function() {
       return {

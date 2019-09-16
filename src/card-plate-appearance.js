@@ -10,6 +10,7 @@ import results from 'plate-appearance-results';
 import state from 'state';
 import WalkupSong from 'component-walkup-song';
 import { normalize } from 'utils/functions';
+import { goBack } from 'actions/route';
 
 const LOCATION_DENOMINATOR = 32767;
 
@@ -66,14 +67,14 @@ export default class CardPlateAppearance extends expose.Component {
         props.team.id,
         buildPlateAppearance()
       );
-      window.history.back();
+      goBack();
     };
 
     this.handleCancelClick = function() {
       if (props.isNew) {
         state.removePlateAppearance(props.plateAppearance.id, props.game.id);
       }
-      window.history.back();
+      goBack();
     };
 
     this.handleDeleteClick = function() {
@@ -81,7 +82,7 @@ export default class CardPlateAppearance extends expose.Component {
         'Are you sure you want to delete this plate appearance?',
         () => {
           state.removePlateAppearance(props.plateAppearance.id, props.game.id);
-          window.history.back();
+          goBack();
         }
       );
     };

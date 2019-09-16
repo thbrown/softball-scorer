@@ -71,10 +71,6 @@ exp.getServerUrl = function(path) {
 // -2 failed on fullSync = false
 // -3 failed on fullSync = true
 exp.sync = async function(fullSync) {
-  if (process.env.NODE_ENV === 'test') {
-    return;
-  }
-
   console.log('[SYNC] Sync requested', fullSync ? 'full' : 'patchOnly');
 
   while (

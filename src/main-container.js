@@ -160,7 +160,6 @@ export default class MainContainer extends expose.Component {
             <DataContainer url={`server/team-stats/${this.props.publicTeamId}`}>
               {({ data, loading, error }) => {
                 return renderRouteComponent({
-                  isNew: this.state.isNew,
                   ...props,
                   data,
                   loading,
@@ -170,10 +169,10 @@ export default class MainContainer extends expose.Component {
             </DataContainer>
           );
         } else {
-          return renderRouteComponent({ isNew: this.state.isNew, ...props });
+          return renderRouteComponent(props);
         }
       } catch (err) {
-        // TODO fix multi-render that occurrs when pressing the back button on edit page
+        // TODO fix multi-render that occurs when pressing the back button on edit page
         // with a new entity (new player, new team, new game etc.)  These cause this try
         // catch to trip and render 2 frames of CardNotFound before the route is set
         // correctly
