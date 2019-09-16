@@ -3,7 +3,7 @@ import DOM from 'react-dom-factories';
 import expose from './expose';
 import state from 'state';
 import dialog from 'dialog';
-import FloatingInput from 'component-floating-input';
+import FloatingInput from 'elements/floating-input';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 

@@ -1,6 +1,7 @@
 import expose from 'expose';
 
 export function setRoute(path, routeId) {
+  console.trace('SET ROUTE', path);
   if (path !== window?.location?.pathname) {
     window.history.pushState({}, '', path);
   }
