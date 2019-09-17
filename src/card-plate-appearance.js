@@ -11,12 +11,27 @@ import state from 'state';
 import WalkupSong from 'component-walkup-song';
 import { normalize } from 'utils/functions';
 import { goBack } from 'actions/route';
+import injectSheet from 'react-jss';
 
 const LOCATION_DENOMINATOR = 32767;
 
 const BALLFIELD_MAX_WIDTH = 500;
 
-export default class CardPlateAppearance extends expose.Component {
+const styles = theme => ({
+  buttonRow: {
+    display: 'flex',
+    justifyContent: 'space-around',
+    margin: '4px',
+  },
+  button: {
+    cursor: 'pointer',
+  },
+  buttonSelected: {
+    backgroundColor: theme.colors.SECONDARY,
+  },
+});
+
+class CardPlateAppearance extends expose.Component {
   constructor(props) {
     super(props);
     this.expose();
@@ -32,8 +47,8 @@ export default class CardPlateAppearance extends expose.Component {
 
     this.isNew = props.isNew;
 
-    let buildPlateAppearance = function() {
-      let pa = JSON.parse(JSON.stringify(props.plateAppearance));
+    const buildPlateAppearance = function() {
+      const pa = JSON.parse(JSON.stringify(props.plateAppearance));
       pa.result = this.state.paResult;
       pa.location = {};
       pa.location.x = this.state.paLocationX;
@@ -42,13 +57,15 @@ export default class CardPlateAppearance extends expose.Component {
     }.bind(this);
 
     this.homeOrBack = function() {
-      let newPa = buildPlateAppearance();
+      const newPa = buildPlateAppearance();
       if (
         props.isNew &&
         JSON.stringify(newPa) === JSON.stringify(props.plateAppearance)
       ) {
-        // TODO: this re-renders the page (since it no longer exists an error gets logged) then goes back immidataly. This should be cleaned up after we figure out out back button phylsophy
-        // This problem also exists on other pages (teams, games, players) but it happens silently so we don't notice
+        // TODO: this re-renders the page (since it no longer exists an error gets logged)
+        // then goes back immidataly. This should be cleaned up after we figure out out
+        // back button phylsophy. This problem also exists on other pages
+        // (teams, games, players) but it happens silently so we don't notice
         state.removePlateAppearance(props.plateAppearance.id, props.game.id);
       } else {
         state.replacePlateAppearance(
@@ -207,42 +224,31 @@ export default class CardPlateAppearance extends expose.Component {
     }
 
     let elems = results.getAllResults().map((result, i) => {
-      return DOM.div(
-        {
-          key: i + ' ' + result,
-          className: 'result-button',
-          onClick: this.handleButtonClick.bind(this, result),
-          style: {
-            backgroundColor:
-              this.state.paResult === result ? css.colors.SECONDARY : null,
-          },
-        },
-        result
+      return (
+        <div
+          key={`${i} ${result}`}
+          className={
+            'button result-button' +
+            (this.state.paResult === result
+              ? ' ' + this.props.classes.buttonSelected
+              : '')
+          }
+          onClick={this.handleButtonClick.bind(this, result)}
+        >
+          <span className="no-select">{result}</span>
+        </div>
       );
     });
 
-    return DOM.div(
-      {},
-      DOM.div(
-        {
-          style: {
-            display: 'flex',
-            justifyContent: 'space-around',
-            margin: '4px',
-          },
-        },
-        elems.slice(0, elems.length / 2)
-      ),
-      DOM.div(
-        {
-          style: {
-            display: 'flex',
-            justifyContent: 'space-around',
-            margin: '4px',
-          },
-        },
-        elems.slice(elems.length / 2, elems.length)
-      )
+    return (
+      <div>
+        <div className={this.props.classes.buttonRow}>
+          {elems.slice(0, elems.length / 2)}
+        </div>
+        <div className={this.props.classes.buttonRow}>
+          {elems.slice(elems.length / 2, elems.length)}
+        </div>
+      </div>
     );
   }
 
@@ -422,7 +428,7 @@ export default class CardPlateAppearance extends expose.Component {
           style: {},
         },
         React.createElement(LeftHeaderButton, {
-          onPress: this.homeOrBack,
+          onClick: this.homeOrBack,
         }),
         DOM.div(
           {
@@ -431,7 +437,7 @@ export default class CardPlateAppearance extends expose.Component {
           this.props.player.name
         ),
         React.createElement(RightHeaderButton, {
-          onPress: this.homeOrBack,
+          onClick: this.homeOrBack,
         })
       ),
       DOM.div(
@@ -472,4 +478,6 @@ export default class CardPlateAppearance extends expose.Component {
       )
     );
   }
-};
+}
+
+export default injectSheet(styles)(CardPlateAppearance);
