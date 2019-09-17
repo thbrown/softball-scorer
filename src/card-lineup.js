@@ -14,10 +14,9 @@ const NO_EDIT = 'noEdit';
 const SIMULATION_TEXT = 'Estimating Lineup Score...';
 const PLAYER_TILE_HEIGHT = 43;
 
-export default class CardLineup extends expose.Component {
+export default class CardLineup extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
     this.state = {};
 
     this.locked =
@@ -91,7 +90,7 @@ export default class CardLineup extends expose.Component {
         team_id
       );
       setRoute(
-        `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearance.id}/?isNew=true`
+        `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearance.id}?isNew=true`
       );
     }.bind(this);
 
@@ -145,6 +144,11 @@ export default class CardLineup extends expose.Component {
   }
 
   simulateLineup() {
+    // web workers don't work in tests
+    if (process.env.NODE_ENV === 'test') {
+      return;
+    }
+
     // Stop existing web workers
     if (this.simWorker) {
       this.simWorker.terminate();
@@ -228,7 +232,10 @@ export default class CardLineup extends expose.Component {
   }
 
   componentWillUnmount() {
-    this.simWorker.terminate();
+    // web workers don't work in tests
+    if (process.env.NODE_ENV !== 'test') {
+      this.simWorker.terminate();
+    }
     window.document.body.removeEventListener(
       'touchmove',
       this.handlePreventTouchmoveWhenDragging.bind(this),
@@ -370,6 +377,7 @@ export default class CardLineup extends expose.Component {
     pageElems.push(
       DOM.div(
         {
+          id: 'newPlayer',
           key: 'newplayer',
           className: 'list-item add-list-item',
           onClick: this.handleCreateClick,
@@ -502,6 +510,7 @@ export default class CardLineup extends expose.Component {
     if (editable === FULL_EDIT) {
       elems.push(
         DOM.img({
+          id: 'remove-' + playerId,
           key: 'del',
           src: '/server/assets/remove.svg',
           className: 'lineup-row-button',

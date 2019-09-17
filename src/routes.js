@@ -143,7 +143,9 @@ routes = {
     const team = state.getTeam(teamId);
     const game = state.getGame(gameId);
     assertStateObjects(team, game);
-    return <CardPlayerSelection team={team} game={game} />;
+    return (
+      <CardPlayerSelection id="player-selection" team={team} game={game} />
+    );
   },
   '/teams/:teamId/games/:gameId/edit': ({
     teamId,

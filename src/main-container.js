@@ -8,6 +8,7 @@ import state from 'state';
 import CardNotFound from 'card-not-found';
 import CardLoading from 'card-loading';
 import DataContainer from 'elements/data-container';
+import { Dialog } from 'dialog';
 const noSleep = new noSleepImport();
 
 // TODO
@@ -36,6 +37,7 @@ export default class MainContainer extends expose.Component {
 
     this.state = {
       render: true,
+      dialog: {},
     };
   }
 
@@ -146,9 +148,10 @@ export default class MainContainer extends expose.Component {
 
   render() {
     const { renderRouteComponent, loading, ...props } = this.props;
+    let CardComponent = null;
 
     if (loading) {
-      return <CardLoading />;
+      CardComponent = <CardLoading />;
     } else {
       try {
         //TODO find a more elegant solution for routing/caching this data container
@@ -156,7 +159,7 @@ export default class MainContainer extends expose.Component {
           props?.page?.slice(0, 14) === '/public-teams/' &&
           props.publicTeamId
         ) {
-          return (
+          CardComponent = (
             <DataContainer url={`server/team-stats/${this.props.publicTeamId}`}>
               {({ data, loading, error }) => {
                 return renderRouteComponent({
@@ -169,7 +172,7 @@ export default class MainContainer extends expose.Component {
             </DataContainer>
           );
         } else {
-          return renderRouteComponent(props);
+          CardComponent = renderRouteComponent(props);
         }
       } catch (err) {
         // TODO fix multi-render that occurs when pressing the back button on edit page
@@ -179,7 +182,7 @@ export default class MainContainer extends expose.Component {
         if (true || window.ENABLE_VERBOSE_LOGGING) {
           console.error(err);
         }
-        return (
+        CardComponent = (
           <CardNotFound
             title={'Error'}
             message="This object either does not exist, has been deleted, or belongs to another account."
@@ -187,5 +190,12 @@ export default class MainContainer extends expose.Component {
         );
       }
     }
+
+    return (
+      <>
+        {CardComponent}
+        <Dialog {...this.state.dialog} />
+      </>
+    );
   }
 }
