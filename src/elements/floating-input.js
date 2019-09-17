@@ -14,7 +14,7 @@ export default class FloatingInput extends React.Component {
       <div className={'float-container' + (this.state.active ? ' active' : '')}>
         <label>{this.props.label}</label>
         <input
-          id={this.props.id}
+          id={this.props.inputId}
           type={this.props.type ? this.props.type : 'text'}
           min={this.props.min}
           step={this.props.step}
@@ -46,7 +46,7 @@ export default class FloatingInput extends React.Component {
 }
 
 FloatingInput.defaultProps = {
-  id: null,
+  inputId: null,
   defaultValue: '',
   label: '',
   type: 'text',

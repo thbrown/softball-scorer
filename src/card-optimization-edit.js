@@ -74,7 +74,7 @@ export default class CardOptimizationEdit extends React.Component {
       [
         React.createElement(FloatingInput, {
           key: 'optimizationName',
-          id: 'optimizationName',
+          inputId: 'optimizationName',
           label: 'Optimization name',
           onChange: this.handleOptimizationNameChange.bind(this),
           defaultValue: this.state.optimizationName,

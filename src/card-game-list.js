@@ -28,6 +28,7 @@ export default class CardGameList extends React.Component {
       return DOM.div(
         {
           game_id: game.id,
+          id: 'game-' + game.id,
           key: 'game' + game.id,
           className: 'list-item',
           onClick: this.handleGameClick.bind(this, game),
@@ -50,6 +51,7 @@ export default class CardGameList extends React.Component {
             src: '/server/assets/edit.svg',
             alt: 'edit',
             className: 'list-button',
+            id: 'game-' + game.id + '-edit',
             onClick: this.handleEditClick.bind(this, game),
           })
         )
@@ -59,6 +61,7 @@ export default class CardGameList extends React.Component {
     elems.push(
       DOM.div(
         {
+          id: 'newGame',
           key: 'newGame',
           className: 'list-item add-list-item',
           onClick: this.handleCreateClick,

@@ -62,8 +62,8 @@ export default class CardTeamList extends React.Component {
     elems.push(
       DOM.div(
         {
-          id: 'newteam',
-          key: 'newteam',
+          key: 'newTeam',
+          id: 'newTeam',
           className: 'list-item add-list-item',
           onClick: this.handleCreateClick,
         },
@@ -73,7 +73,7 @@ export default class CardTeamList extends React.Component {
 
     return DOM.div(
       {
-        id: 'teamlist',
+        id: 'teamList',
       },
       elems
     );

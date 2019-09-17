@@ -79,7 +79,7 @@ export default class CardGameEdit extends React.Component {
     return (
       <div className="auth-input-container">
         <FloatingInput
-          id="opponentName"
+          inputId="opponentName"
           maxLength="50"
           label="Opponent"
           onChange={this.handleOpponentNameChange}
@@ -87,7 +87,7 @@ export default class CardGameEdit extends React.Component {
         />
         <div className="help-parent">
           <FloatingSelect
-            id="lineupType"
+            selectId="lineupType"
             label="Lineup Type"
             initialValue={this.props.game.lineupType || 2}
             onChange={this.handleLineupTypeChange}
@@ -118,6 +118,7 @@ export default class CardGameEdit extends React.Component {
       DOM.div(
         {
           key: 'confirm',
+          id: 'save',
           className: 'edit-button button confirm-button',
           onClick: this.handleConfirmClick,
         },
@@ -139,6 +140,7 @@ export default class CardGameEdit extends React.Component {
       DOM.div(
         {
           key: 'cancel',
+          id: 'cancel',
           className: 'edit-button button cancel-button',
           onClick: this.handleCancelClick,
         },
@@ -160,6 +162,7 @@ export default class CardGameEdit extends React.Component {
         DOM.div(
           {
             key: 'delete',
+            id: 'delete',
             className: 'edit-button button cancel-button',
             onClick: this.handleDeleteClick,
           },

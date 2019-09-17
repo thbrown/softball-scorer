@@ -1,16 +1,14 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import expose from './expose';
 import state from 'state';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import Autosuggest from 'react-autosuggest';
 import { goBack } from 'actions/route';
 
-export default class CardPlayerSelection extends expose.Component {
+export default class CardPlayerSelection extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
 
     this.state = {
       playerNameValue: '',
@@ -76,6 +74,7 @@ export default class CardPlayerSelection extends expose.Component {
   renderSubmitButton() {
     return DOM.div(
       {
+        id: 'submit',
         className: 'button confirm-button',
         style: {
           marginLeft: '16px',

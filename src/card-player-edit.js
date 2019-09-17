@@ -133,7 +133,7 @@ Clips can be played from the player's plate appearance page
       [
         React.createElement(FloatingInput, {
           key: 'playerName',
-          id: 'playerName',
+          inputId: 'playerName',
           label: 'Player name',
           onChange: this.handlePlayerNameChange.bind(this),
           defaultValue: this.state.playerName,
@@ -193,7 +193,7 @@ Clips can be played from the player's plate appearance page
         ),
         React.createElement(FloatingInput, {
           key: 'songLink',
-          id: 'songLink',
+          inputId: 'songLink',
           label: 'Walk up song YouTube link (Optional)',
           onChange: this.handleSongLinkChange.bind(this),
           defaultValue: this.state.playerSongLink
@@ -202,7 +202,7 @@ Clips can be played from the player's plate appearance page
         }),
         React.createElement(FloatingInput, {
           key: 'songStart',
-          id: 'songStart',
+          inputId: 'songStart',
           label: 'Song start time in seconds (Optional)',
           type: 'number',
           min: '0',

@@ -1,5 +1,4 @@
 import React from 'react';
-import expose from './expose';
 import css from 'css';
 import dialog from 'dialog';
 import objectMerge from '../object-merge.js';
@@ -8,10 +7,9 @@ import Card from 'elements/card';
 import CardSection from 'elements/card-section';
 import { setRoute } from 'actions/route';
 
-export default class CardImport extends expose.Component {
+export default class CardImport extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
 
     this.state = {
       loadType: undefined,

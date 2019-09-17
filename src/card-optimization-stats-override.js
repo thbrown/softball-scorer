@@ -98,7 +98,7 @@ export default class CardOptimizationStatsOverride extends expose.Component {
         [
           React.createElement(FloatingInput, {
             key: 'outs',
-            id: 'outs',
+            inputId: 'outs',
             label: 'Outs',
             type: 'number',
             maxLength: '50',
@@ -109,7 +109,7 @@ export default class CardOptimizationStatsOverride extends expose.Component {
         [
           React.createElement(FloatingInput, {
             key: '1b',
-            id: '1b',
+            inputId: '1b',
             label: '1B',
             type: 'number',
             maxLength: '50',
@@ -120,7 +120,7 @@ export default class CardOptimizationStatsOverride extends expose.Component {
         [
           React.createElement(FloatingInput, {
             key: '2b',
-            id: '2b',
+            inputId: '2b',
             label: '2B',
             type: 'number',
             maxLength: '50',
@@ -131,7 +131,7 @@ export default class CardOptimizationStatsOverride extends expose.Component {
         [
           React.createElement(FloatingInput, {
             key: '3b',
-            id: '3b',
+            inputId: '3b',
             label: '3B',
             type: 'number',
             maxLength: '50',
@@ -142,7 +142,7 @@ export default class CardOptimizationStatsOverride extends expose.Component {
         [
           React.createElement(FloatingInput, {
             key: 'hr',
-            id: 'hr',
+            inputId: 'hr',
             label: 'HR',
             type: 'number',
             maxLength: '50',

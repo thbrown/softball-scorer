@@ -14,7 +14,7 @@ export default class FloatingSelect extends React.Component {
       <div className={'float-container active'}>
         <label>{this.props.label}</label>
         <select
-          id={this.props.id}
+          id={this.props.selectId}
           className="select"
           disabled={this.props.disabled}
           value={this.state.value}
@@ -38,7 +38,7 @@ export default class FloatingSelect extends React.Component {
 }
 
 FloatingSelect.defaultProps = {
-  id: null,
+  selectId: null,
   initialValue: '',
   label: '',
   disabled: false,
