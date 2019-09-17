@@ -318,16 +318,16 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
       } else if (op === 'ArrayAdd') {
         // We need to add the key back to the object
         let insertObject = {};
-        insertObject[applicableTableReference] = JSON.parse(value.param1);
+        insertObject[applicableTable] = JSON.parse(value.param1);
 
         // Get the parent ids from the path
         let parents = {};
-        if (applicableTableReference == 'games') {
+        if (applicableTable === 'games') {
           parents.teamId = path[1];
-        } else if (applicableTableReference == 'plateAppearances') {
+        } else if (applicableTable === 'plateAppearances') {
           parents.teamId = path[1];
           parents.gameId = path[3];
-        } else if (applicableTableReference == 'lineup') {
+        } else if (applicableTable === 'lineup') {
           parents.gameId = path[3];
           insertObject.position = value.param2; // lineup is not based on primary key ordering so we need to specify a position
         }
