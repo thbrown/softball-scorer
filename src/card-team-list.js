@@ -3,7 +3,6 @@ import DOM from 'react-dom-factories';
 import state from 'state';
 import { setRoute } from 'actions/route';
 import Card from 'elements/card';
-import expose from 'expose';
 
 export default class CardTeamList extends React.Component {
   constructor(props) {
