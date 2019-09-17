@@ -5,12 +5,17 @@ Live at https://softball.app/
 ## Usage:
 
 1. Clone this repo `git clone https://github.com/thbrown/softball-scorer.git`.
-2. Install node.js (8.10.0+) and npm (5.6.0+). Older versions _wont_ work.
-3. Install yarn `npm install -g yarn`
+2. Install node.js (12.0.0+) and npm (5.6.0+). Older versions _wont_ work.
+Ubuntu:
+```
+sudo apt-get install curl
+curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+```
+3. Install yarn `[sudo] npm install -g yarn`
 4. From this repo's root directory, run `yarn`.
 5. Setup any optional features using the sections below if desired.
 6. Run this command from the root directory:  
-   `yarn build && node src-srv`.
+   `yarn build && yarn start`
 7. Visit http://localhost:8888 in your browser.
 
 ## Optional features
@@ -39,15 +44,18 @@ Windows requires the use of Windows Subsystem for Linux (WSL)
 
 #### Linux
 
+2. `sudo apt-get update`
+3. `sudo apt-get upgrade`
+4. `sudo systemctl enable redis-server.service`
+5. `sudo service redis-server restart`
+
+To run redis with own config:
+
 1. Make sure you are in the project root
-1. `sudo apt-get update`
-1. `sudo apt-get upgrade`
-1. `screen`
-1. `sudo apt-get install redis-server`
-1. `sudo systemctl stop redis` Redis runs automatically. We will need to stop and restart to use our own config file.
-1. `sudo redis-server` optionally supply `./redis.conf`
-1. Press `Ctrl + A` then `d` to detach screen
-1. Update/Create ./src-svr/config.js with Redis server info (see ./src-svr/config-template.js)
+2. `sudo systemctl stop redis` Redis runs automatically. We will need to stop and restart to use our own config file.
+3. `sudo redis-server` optionally supply `./redis.conf`
+4. Press `Ctrl + A` then `d` to detach screen
+5. Update/Create ./src-svr/config.js with Redis server info (see ./src-svr/config-template.js)
 
 Example redis.conf
 
@@ -70,20 +78,35 @@ After doing these steps you'll have to import the schema which isn't yet public
 
 #### Linux
 
+Dev:
 1. `sudo apt-get -y install postgresql postgresql-client postgresql-contrib`
-1. `sudo -s`
-1. `sudo -u postgres psql postgres`
-1. `\password postgres` then follow the prompts to set some password
-1. `\q`
-1. `exit`
-1. `sudo nano $(ls /etc/postgresql/*/main/pg_hba.conf)`
+2. `sudo service postgresql restart`
+3. `sudo su postgres`
+4. `psql`
+5. You are now connected to postgres.  Run the following sql commands to create a database.
+6. `CREATE DATABASE softball;`
+7. `CREATE USER softball WITH password 'softball';`
+8. `ALTER USER softball WITH SUPERUSER;`
+9. `\q`
+10. Now you need to import the schema with pg_restore.
+11. `pg_restore -d 'postgresql://softball:softball@localhost/softball' schema/schema.backup`
+12. Create a config.js file from src-srv/config-template.js.  Replace relevant fields with 'softball'.
+
+Live:
+1. `sudo apt-get -y install postgresql postgresql-client postgresql-contrib`
+2. `sudo -s`
+3. `sudo -u postgres psql postgres`
+4. `\password postgres` then follow the prompts to set some password
+5. `\q`
+6. `exit`
+7. `sudo nano $(ls /etc/postgresql/*/main/pg_hba.conf)`
    Add this to the end of that file
    `host all all 0.0.0.0/0 md5`
-1. `sudo nano $(ls /etc/postgresql/*/main/postgresql.conf)`
+8. `sudo nano $(ls /etc/postgresql/*/main/postgresql.conf)`
    Under `CONNECTIONS AND AUTHENTICATION` Uncomment and change `listen_addresses = 'localhost'` to `listen_addresses = '*'`
-1. `sudo service postgresql restart`
-1. Update/Create ./src-svr/config.js with Postgres server info (see ./src-svr/config-template.js)
-1. Update your firewall rules to allow traffic on 5432 (or whatever port) if you'd like to connect remotely `1.2.3.4/32` `tcp:5432`
+9. `sudo service postgresql restart`
+10. Update/Create ./src-svr/config.js with Postgres server info (see ./src-svr/config-template.js)
+11. Update your firewall rules to allow traffic on 5432 (or whatever port) if you'd like to connect remotely `1.2.3.4/32` `tcp:5432`
 
 #### Windows
 
