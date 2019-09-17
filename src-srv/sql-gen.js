@@ -181,7 +181,9 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
     let key = keys[i];
     let value = patch[key];
     if (isRoot(value)) {
-      let applicableTable = getTableNameFromPath(path, value.key);
+      let applicableObject = getTableNameFromPath(path, value.key);
+      let applicableTable = applicableObject.tableName;
+      let applicableJsonValue = applicableObject.jsonValue;
       let op = value.op;
 
       if (op === 'Delete') {
@@ -318,16 +320,16 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
       } else if (op === 'ArrayAdd') {
         // We need to add the key back to the object
         let insertObject = {};
-        insertObject[applicableTable] = JSON.parse(value.param1);
+        insertObject[applicableJsonValue] = JSON.parse(value.param1);
 
         // Get the parent ids from the path
         let parents = {};
-        if (applicableTable === 'games') {
+        if (applicableJsonValue === 'games') {
           parents.teamId = path[1];
-        } else if (applicableTable === 'plateAppearances') {
+        } else if (applicableJsonValue === 'plateAppearances') {
           parents.teamId = path[1];
           parents.gameId = path[3];
-        } else if (applicableTable === 'lineup') {
+        } else if (applicableJsonValue === 'lineup') {
           parents.gameId = path[3];
           insertObject.position = value.param2; // lineup is not based on primary key ordering so we need to specify a position
         }
@@ -881,12 +883,18 @@ let getColNameFromJSONValue = function(value) {
 let getTableNameFromPath = function(path, key) {
   let sqlTableName = jsonValueToSqlTableName[key];
   if (sqlTableName) {
-    return sqlTableName;
+    return {
+      jsonValue: key,
+      tableName: sqlTableName,
+    };
   }
   for (let i = path.length - 1; i >= 0; i--) {
     sqlTableName = jsonValueToSqlTableName[path[i]];
     if (sqlTableName) {
-      return sqlTableName;
+      return {
+        jsonValue: path[i],
+        tableName: sqlTableName,
+      };
     }
   }
   return null;
