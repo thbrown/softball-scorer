@@ -6,7 +6,7 @@ import Card from 'elements/card';
 import CardSection from 'elements/card-section';
 import { goBack } from 'actions/route';
 import FloatingInput from 'elements/floating-input';
-import FloatingSelect from 'elements/floating-Select';
+import FloatingSelect from 'elements/floating-select';
 
 export default class CardGameEdit extends React.Component {
   constructor(props) {

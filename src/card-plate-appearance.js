@@ -1,11 +1,9 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import expose from './expose';
 import dialog from 'dialog';
 import Draggable from 'react-draggable';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
-import css from 'css';
 import results from 'plate-appearance-results';
 import state from 'state';
 import WalkupSong from 'component-walkup-song';
@@ -31,10 +29,9 @@ const styles = theme => ({
   },
 });
 
-class CardPlateAppearance extends expose.Component {
+class CardPlateAppearance extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
     this.state = {
       paResult: props.plateAppearance.result,
       paLocationX: props.plateAppearance.location
@@ -63,8 +60,8 @@ class CardPlateAppearance extends expose.Component {
         JSON.stringify(newPa) === JSON.stringify(props.plateAppearance)
       ) {
         // TODO: this re-renders the page (since it no longer exists an error gets logged)
-        // then goes back immidataly. This should be cleaned up after we figure out out
-        // back button phylsophy. This problem also exists on other pages
+        // then goes back immediately. This should be cleaned up after we figure out out
+        // back button philosophy. This problem also exists on other pages
         // (teams, games, players) but it happens silently so we don't notice
         state.removePlateAppearance(props.plateAppearance.id, props.game.id);
       } else {
