@@ -129,7 +129,7 @@ module.exports = class CacheCalls {
     let stringData = await this.hgetAsync(accountId, 'ancestor:' + sessionId);
     if (stringData) {
       var inflated = zlib
-        .inflateSync(new Buffer(stringData, 'base64'))
+        .inflateSync(Buffer.from(stringData, 'base64'))
         .toString();
       return JSON.parse(inflated);
     }

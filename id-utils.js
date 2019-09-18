@@ -16,7 +16,7 @@ exports.clientIdToServerId = function(clientId, accountId) {
 // account id of the account this eneity belongs to (e.g. 000000010000d3d7203977664fdb23cf)
 exports.serverIdToClientId = function(serverId) {
   return bs62
-    .encode(new Buffer(serverId.replace(/-/g, '').substr(12), 'hex'))
+    .encode(Buffer.from(serverId.replace(/-/g, '').substr(12), 'hex'))
     .padStart(14, '0');
 };
 
@@ -27,7 +27,7 @@ exports.getAccountIdFromServerId = function(serverId) {
 
 exports.hexToBase62 = function(hex) {
   // Filter out any dashes from uuids as well
-  return bs62.encode(new Buffer(hex.replace(/-/g, ''), 'hex'));
+  return bs62.encode(Buffer.from(hex.replace(/-/g, ''), 'hex'));
 };
 
 exports.base62ToHex = function(hex) {
