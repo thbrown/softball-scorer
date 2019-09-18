@@ -28,6 +28,7 @@ export default class RightHeaderButton extends React.Component {
       : '/server/assets/home.svg';
     const alt = this.props.showBlogLink ? 'blog' : 'home';
     return DOM.img({
+      id: 'home-button',
       src,
       className: 'header-right',
       onClick: this.handleButtonPress,

@@ -173,7 +173,7 @@ class CardPlateAppearance extends React.Component {
         this.my = 0;
       }
 
-      // Draging the ball 20px below cancels the location
+      // Dragging the ball 20px below cancels the location
       if (this.my > parseInt(ballfield.style.height) + 20) {
         this.my = undefined;
         this.mx = undefined;
@@ -190,8 +190,10 @@ class CardPlateAppearance extends React.Component {
     window.addEventListener('touchend', this.onmouseup);
 
     // TODO: only apply this if there is no hit
-    var element = document.getElementById('baseball');
-    element.classList.add('pulse-animation');
+    const elem = document.getElementById('baseball');
+    if (elem) {
+      elem.classList.add('pulse-animation');
+    }
   }
 
   componentWillUnmount() {
@@ -223,6 +225,7 @@ class CardPlateAppearance extends React.Component {
     let elems = results.getAllResults().map((result, i) => {
       return (
         <div
+          id={'result-' + result}
           key={`${i} ${result}`}
           className={
             'button result-button' +
@@ -356,6 +359,7 @@ class CardPlateAppearance extends React.Component {
   renderActionsButtons() {
     let buttons = [];
     let confirm = DOM.img({
+      id: 'pa-confirm',
       key: 'confirm',
       src: '/server/assets/check.svg',
       onClick: this.handleConfirmClick,
@@ -365,6 +369,7 @@ class CardPlateAppearance extends React.Component {
     buttons.push(confirm);
 
     let cancel = DOM.img({
+      id: 'pa-cancel',
       key: 'cancel',
       src: '/server/assets/cancel.svg',
       onClick: this.handleCancelClick,
@@ -375,6 +380,7 @@ class CardPlateAppearance extends React.Component {
 
     if (!this.props.isNew) {
       let trash = DOM.img({
+        id: 'pa-delete',
         key: 'delete',
         src: '/server/assets/delete.svg',
         onClick: this.handleDeleteClick,

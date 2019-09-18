@@ -179,7 +179,11 @@ export default class MainContainer extends expose.Component {
         // with a new entity (new player, new team, new game etc.)  These cause this try
         // catch to trip and render 2 frames of CardNotFound before the route is set
         // correctly
-        if (true || window.ENABLE_VERBOSE_LOGGING) {
+        // TODO tests that trip this with 404 errors when deleting content
+        if (
+          process.env.NODE_ENV !== 'test' &&
+          (true || window.ENABLE_VERBOSE_LOGGING)
+        ) {
           console.error(err);
         }
         CardComponent = (
