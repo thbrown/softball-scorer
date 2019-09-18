@@ -20,7 +20,7 @@ const Card = ({
           }}
           {...leftHeaderProps}
         />
-        <div>{title}</div>
+        {title}
         <RightHeaderButton
           style={{
             visibility: enableRightHeader ? 'visible' : 'hidden',

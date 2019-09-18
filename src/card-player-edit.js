@@ -5,8 +5,9 @@ import dialog from 'dialog';
 import state from 'state';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
-import FloatingInput from 'component-floating-input';
+import FloatingInput from 'elements/floating-input';
 import WalkupSong from 'component-walkup-song';
+import { goBack } from 'actions/route';
 
 export default class CardPlayerEdit extends expose.Component {
   constructor(props) {
@@ -20,10 +21,6 @@ export default class CardPlayerEdit extends expose.Component {
       playerName: props.player.name,
       playerSongLink: props.player.song_link,
       playerSongStart: props.player.song_start,
-    };
-
-    let goBack = function() {
-      window.history.back();
     };
 
     let buildPlayer = function() {
@@ -136,7 +133,7 @@ Clips can be played from the player's plate appearance page
       [
         React.createElement(FloatingInput, {
           key: 'playerName',
-          id: 'playerName',
+          inputId: 'playerName',
           label: 'Player name',
           onChange: this.handlePlayerNameChange.bind(this),
           defaultValue: this.state.playerName,
@@ -196,7 +193,7 @@ Clips can be played from the player's plate appearance page
         ),
         React.createElement(FloatingInput, {
           key: 'songLink',
-          id: 'songLink',
+          inputId: 'songLink',
           label: 'Walk up song YouTube link (Optional)',
           onChange: this.handleSongLinkChange.bind(this),
           defaultValue: this.state.playerSongLink
@@ -205,7 +202,7 @@ Clips can be played from the player's plate appearance page
         }),
         React.createElement(FloatingInput, {
           key: 'songStart',
-          id: 'songStart',
+          inputId: 'songStart',
           label: 'Song start time in seconds (Optional)',
           type: 'number',
           min: '0',

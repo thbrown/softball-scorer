@@ -1,14 +1,18 @@
-import expose from 'expose';
+import React from 'react';
 import DOM from 'react-dom-factories';
 import { setRoute } from 'actions/route';
 
-export default class RightHeaderButton extends expose.Component {
+export default class RightHeaderButton extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
     this.handleButtonPress = function() {
       if (props.onPress) {
         props.onPress();
+      }
+      if (props.onClick) {
+        if (props.onClick()) {
+          return;
+        }
       }
       if (props.showBlogLink) {
         window.open('https://blog.softball.app', '_blank');
@@ -19,10 +23,10 @@ export default class RightHeaderButton extends expose.Component {
   }
 
   render() {
-    let src = this.props.showBlogLink
+    const src = this.props.showBlogLink
       ? '/server/assets/logo192.png'
       : '/server/assets/home.svg';
-    let alt = this.props.showBlogLink ? 'blog' : 'home';
+    const alt = this.props.showBlogLink ? 'blog' : 'home';
     return DOM.img({
       src,
       className: 'header-right',

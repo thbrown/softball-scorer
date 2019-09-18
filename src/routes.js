@@ -90,13 +90,14 @@ routes = {
   '/teams': () => {
     return <CardTeamList />;
   },
-  '/teams/:teamId': ({ teamId }) => {
+  '/teams/:teamId': ({ teamId, search }) => {
+    const tab = search.tab;
     const team = state.getTeam(teamId);
     assertStateObjects(team);
-    return <CardTeam team={team} tab="games" />;
+    return <CardTeam team={team} tab={tab || 'games'} />;
   },
   '/teams/:teamId/games': isSameRouteAs('/teams/:teamId'),
-  '/teams/:teamId/edit': ({ teamId, isNew }) => {
+  '/teams/:teamId/edit': ({ teamId, search: { isNew } }) => {
     const team = state.getTeam(teamId); // TODO: revisit this, what happens if this page is loaded via external link
     assertStateObjects(team);
     return <CardTeamEdit team={team} isNew={isNew} />;
@@ -142,9 +143,15 @@ routes = {
     const team = state.getTeam(teamId);
     const game = state.getGame(gameId);
     assertStateObjects(team, game);
-    return <CardPlayerSelection team={team} game={game} />;
+    return (
+      <CardPlayerSelection id="player-selection" team={team} game={game} />
+    );
   },
-  '/teams/:teamId/games/:gameId/edit': ({ teamId, gameId, isNew }) => {
+  '/teams/:teamId/games/:gameId/edit': ({
+    teamId,
+    gameId,
+    search: { isNew },
+  }) => {
     const team = state.getTeam(teamId);
     const game = state.getGame(gameId);
     assertStateObjects(team, game);
@@ -154,7 +161,7 @@ routes = {
     teamId,
     gameId,
     plateAppearanceId,
-    isNew,
+    search: { isNew },
   }) => {
     const team = state.getTeam(teamId);
     const game = state.getGame(gameId);
@@ -190,7 +197,7 @@ routes = {
       <CardSpray player={player} plateAppearances={playerPlateAppearances} />
     );
   },
-  '/players/:playerId/edit': ({ playerId, isNew }) => {
+  '/players/:playerId/edit': ({ playerId, search: { isNew } }) => {
     const player = state.getPlayer(playerId);
     assertStateObjects(player);
 
@@ -206,7 +213,10 @@ routes = {
     }
     return <CardOptimizationList />;
   },
-  '/optimizations/:optimizationId/edit': ({ optimizationId, isNew }) => {
+  '/optimizations/:optimizationId/edit': ({
+    optimizationId,
+    search: { isNew },
+  }) => {
     const optimization = state.getOptimization(optimizationId);
     assertStateObjects(optimization);
     return <CardOptimizationEdit optimization={optimization} isNew={isNew} />;

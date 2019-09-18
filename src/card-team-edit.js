@@ -1,73 +1,82 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import injectSheet from 'react-jss';
 import state from 'state';
 import dialog from 'dialog';
 import Card from 'elements/card';
-import FloatingInput from 'component-floating-input';
+import FloatingInput from 'elements/floating-input';
 import CardSection from 'elements/card-section';
-import { setRoute } from 'actions/route';
+import { goBack } from 'actions/route';
 
 class CardTeamEdit extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
+      ...props.team,
       copiedNotificationVisible: false,
-      // Doesn't deep copy "games" however those are not edited here (as of right now)
-      teamEditing: { ...props.team },
     };
 
-    const goBack = function() {
-      setRoute('/teams');
-    };
+    this.publicLinkRef = createRef();
 
-    this.homeOrBack = function() {
-      if (props.isNew) {
-        state.removeTeam(props.team.id);
-      }
-    };
-
-    this.handleConfirmClick = function() {
-      state.replaceTeam(props.team.id, this.state.teamEditing);
-      goBack();
-    }.bind(this);
-
-    this.handleCancelClick = function() {
-      if (props.isNew) {
-        state.removeTeam(props.team.id);
-      }
+    this.goBack = () => {
       goBack();
     };
 
-    this.handleDeleteClick = function() {
+    this.homeOrBack = () => {
+      dialog.show_confirm(
+        props.isNew
+          ? 'Are you sure you wish to discard this team?'
+          : 'Are you sure you wish to discard changes to this team?',
+        () => {
+          if (props.isNew) {
+            state.removeTeam(props.team.id);
+          } else {
+            const newTeam = { ...this.state };
+            delete newTeam.copiedNotificationVisible;
+            state.replaceTeam(props.team.id, newTeam);
+          }
+          this.goBack();
+        }
+      );
+      return true;
+    };
+
+    this.handleConfirmClick = () => {
+      const newTeam = { ...this.state };
+      delete newTeam.copiedNotificationVisible;
+      state.replaceTeam(props.team.id, newTeam);
+      this.goBack();
+    };
+
+    this.handleCancelClick = () => {
+      this.homeOrBack();
+    };
+
+    this.handleDeleteClick = () => {
       dialog.show_confirm(
         `Are you sure you want to delete the team ${props.team.name}?`,
         () => {
           state.removeTeam(props.team.id);
-          goBack();
+          this.goBack();
         }
       );
+      return true;
     };
 
-    this.handleNameChange = function(value) {
-      const newTeam = { ...this.state.teamEditing, name: value };
+    this.handleNameChange = value => {
       this.setState({
-        teamEditing: newTeam,
+        name: value,
       });
-    }.bind(this);
+    };
 
-    this.handlePublicLinkEnabledClicked = function(ev) {
-      const newTeam = {
-        ...this.state.teamEditing,
+    this.handlePublicLinkEnabledClicked = ev => {
+      this.setState({
         publicIdEnabled: !!ev.target.checked,
-      };
-      this.setState({
-        teamEditing: newTeam,
       });
-    }.bind(this);
+    };
 
-    this.handleCopyClick = function() {
-      const copyText = document.getElementById('publicLink');
+    this.handleCopyClick = () => {
+      const copyText = this.publicLinkRef.current;
       copyText.select();
       document.execCommand('copy');
       this.setState({
@@ -80,21 +89,26 @@ class CardTeamEdit extends React.Component {
       }, 2999);
       window.getSelection().removeAllRanges();
       copyText.blur();
-    }.bind(this);
+    };
   }
 
   render() {
     const { classes } = this.props;
-    const {
-      teamEditing: { publicId, publicIdEnabled },
-    } = this.state;
+    const { publicId, publicIdEnabled } = this.state;
     const publicLink = `${window.location.host}/public-teams/${publicId}/stats`;
 
     return (
-      <Card title="Edit Team">
+      <Card
+        title="Edit Team"
+        leftHeaderProps={{
+          onClick: this.homeOrBack,
+        }}
+        rightHeaderProps={{
+          onClick: this.homeOrBack,
+        }}
+      >
         <CardSection>
           <FloatingInput
-            id="teamName"
             maxLength="50"
             label="Team Name"
             onChange={this.handleNameChange}
@@ -138,6 +152,7 @@ class CardTeamEdit extends React.Component {
                   </div>
                   <input
                     id="publicLink"
+                    ref={this.publicLinkRef}
                     readOnly
                     size={publicLink.length}
                     value={publicLink}
@@ -150,6 +165,7 @@ class CardTeamEdit extends React.Component {
         )}
         <CardSection>
           <div
+            id="save"
             className="edit-button button confirm-button"
             onClick={this.handleConfirmClick}
           >
@@ -161,6 +177,7 @@ class CardTeamEdit extends React.Component {
             <span className="edit-button-icon"> Save </span>
           </div>
           <div
+            id="cancel"
             className="edit-button button cancel-button"
             onClick={this.handleCancelClick}
           >
@@ -173,6 +190,7 @@ class CardTeamEdit extends React.Component {
           </div>
           {!this.props.isNew && (
             <div
+              id="delete"
               className="edit-button button cancel-button"
               onClick={this.handleDeleteClick}
             >

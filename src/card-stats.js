@@ -1,7 +1,7 @@
 import React from 'react';
-import expose from './expose';
 import state from 'state';
 import Card from 'elements/card';
+import CardSection from 'elements/card-section';
 import { StickyTable, Row, Cell } from 'react-sticky-table';
 import { setRoute } from 'actions/route';
 import css from 'css';
@@ -34,10 +34,9 @@ const STAT_ALIASES = {
   reachedOnError: 'ROE',
 };
 
-export default class CardStats extends expose.Component {
+export default class CardStats extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
 
     this.state = {
       sortField: 'atBats',
@@ -206,7 +205,7 @@ export default class CardStats extends expose.Component {
   }
 
   render() {
-    const { team, state: stateProps } = this.props;
+    const { team, routingMethod, state: stateProps } = this.props;
 
     if (!team) {
       throw new Error('No team given to CardStats.');
@@ -238,19 +237,27 @@ export default class CardStats extends expose.Component {
       })
     );
 
-    return (
-      <Card title={`${this.props?.team?.name} Stats`}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-around',
-            marginTop: css.spacing.xSmall,
-          }}
-        >
+    if (routingMethod === 'app') {
+      return (
+        <CardSection>
           <StickyTable>{tableElems}</StickyTable>
-        </div>
-      </Card>
-    );
+        </CardSection>
+      );
+    } else {
+      return (
+        <Card title={`${this.props?.team?.name} Stats`}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-around',
+              marginTop: css.spacing.xSmall,
+            }}
+          >
+            <StickyTable>{tableElems}</StickyTable>
+          </div>
+        </Card>
+      );
+    }
   }
 }
 

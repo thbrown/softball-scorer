@@ -1,13 +1,11 @@
 import React from 'react';
-import expose from './expose';
 import DOM from 'react-dom-factories';
 import state from 'state';
 import { setRoute } from 'actions/route';
 
-export default class CardGameList extends expose.Component {
+export default class CardGameList extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
     this.state = {};
 
     this.handleGameClick = function(game) {
@@ -15,27 +13,22 @@ export default class CardGameList extends expose.Component {
     };
 
     this.handleEditClick = function(game, ev) {
-      expose.set_state('main', {
-        isNew: false,
-      });
       setRoute(`/teams/${props.team.id}/games/${game.id}/edit`);
       ev.stopPropagation();
     };
 
     this.handleCreateClick = function() {
-      let game = state.addGame(this.props.team.id, '');
-      expose.set_state('main', {
-        isNew: true,
-      });
-      setRoute(`/teams/${props.team.id}/games/${game.id}/edit`);
-    }.bind(this);
+      const game = state.addGame(props.team.id, '');
+      setRoute(`/teams/${props.team.id}/games/${game.id}/edit?isNew=true`);
+    };
   }
 
   renderGameList() {
-    let elems = this.props.team.games.map(game => {
+    const elems = this.props.team.games.map(game => {
       return DOM.div(
         {
           game_id: game.id,
+          id: 'game-' + game.id,
           key: 'game' + game.id,
           className: 'list-item',
           onClick: this.handleGameClick.bind(this, game),
@@ -58,6 +51,7 @@ export default class CardGameList extends expose.Component {
             src: '/server/assets/edit.svg',
             alt: 'edit',
             className: 'list-button',
+            id: 'game-' + game.id + '-edit',
             onClick: this.handleEditClick.bind(this, game),
           })
         )
@@ -67,7 +61,8 @@ export default class CardGameList extends expose.Component {
     elems.push(
       DOM.div(
         {
-          key: 'newgame',
+          id: 'newGame',
+          key: 'newGame',
           className: 'list-item add-list-item',
           onClick: this.handleCreateClick,
         },

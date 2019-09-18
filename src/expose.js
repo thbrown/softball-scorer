@@ -26,7 +26,7 @@ export class Component extends React.Component {
     } else {
       this._expose_id = id;
     }
-    if (states[this._expose_id]) {
+    if (states[this._expose_id] && process.env.NODE_ENV !== 'test') {
       console.error(
         'Error, expose component exposed an id that already exists',
         this._expose_id,

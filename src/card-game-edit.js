@@ -1,56 +1,50 @@
 import React from 'react';
-import expose from './expose';
 import DOM from 'react-dom-factories';
 import dialog from 'dialog';
 import state from 'state';
+import Card from 'elements/card';
+import CardSection from 'elements/card-section';
+import { goBack } from 'actions/route';
+import FloatingInput from 'elements/floating-input';
+import FloatingSelect from 'elements/floating-select';
 
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
-
-import FloatingInput from 'component-floating-input';
-import FloatingPicklist from 'component-floating-picklist';
-
-export default class CardGameEdit extends expose.Component {
+export default class CardGameEdit extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
 
-    this.game = props.game;
-    this.isNew = props.isNew;
-
-    let gameCopy = JSON.parse(JSON.stringify(this.game));
-
-    let goBack = function() {
-      window.history.back();
+    this.state = {
+      ...this.props.game,
     };
 
-    this.homeOrBack = function() {
-      if (
-        props.isNew &&
-        JSON.stringify(gameCopy) === JSON.stringify(props.game)
-      ) {
-        // No changes, don't save a blank game
-        state.removeGame(props.game.id, props.team.id);
-      } else {
-        state.replaceGame(props.game.id, props.team.id, gameCopy);
-      }
-    };
-
-    this.handleConfirmClick = function() {
-      state.replaceGame(props.game.id, props.team.id, gameCopy);
-      goBack();
-    };
-
-    this.handleCancelClick = function() {
-      if (props.isNew) {
-        state.removeGame(props.game.id, props.team.id);
-      }
-      goBack();
-    };
-
-    this.handleDeleteClick = function() {
+    this.homeOrBack = () => {
       dialog.show_confirm(
-        `Are you sure you want to delete the game vs ${props.game.opponent}?`,
+        props.isNew
+          ? 'Are you sure you wish to discard this game?'
+          : 'Are you sure you wish to discard changes to this game?',
+        () => {
+          if (props.isNew) {
+            state.removeGame(props.game.id, props.team.id);
+          } else {
+            state.replaceGame(props.game.id, props.team.id, { ...this.state });
+          }
+          goBack();
+        }
+      );
+      return true;
+    };
+
+    this.handleConfirmClick = () => {
+      state.replaceGame(props.game.id, props.team.id, { ...this.state });
+      goBack();
+    };
+
+    this.handleCancelClick = () => {
+      this.homeOrBack();
+    };
+
+    this.handleDeleteClick = () => {
+      dialog.show_confirm(
+        `Are you sure you want to delete the game against ${props.game.opponent}?`,
         () => {
           state.removeGame(props.game.id, props.team.id);
           goBack();
@@ -58,17 +52,19 @@ export default class CardGameEdit extends expose.Component {
       );
     };
 
-    this.handleOpponentNameChange = function() {
-      let newValue = document.getElementById('opponentName').value;
-      gameCopy.opponent = newValue;
+    this.handleOpponentNameChange = value => {
+      this.setState({
+        opponent: value,
+      });
     };
 
-    this.handleLineupTypeChange = function() {
-      let newValue = document.getElementById('lineupType').value;
-      gameCopy.lineupType = parseInt(newValue);
+    this.handleLineupTypeChange = newValue => {
+      this.setState({
+        lineupType: parseInt(newValue),
+      });
     };
 
-    this.handleLineupTypeHelpClick = function() {
+    this.handleLineupTypeHelpClick = () => {
       dialog.show_notification(
         `**Lineup Type** is used by the lineup simulator to determine what lineups are valid. Some leagues have restrictions on which players can bat in which slots. Softball.app supports three types of lineups:
 * **Normal** Any batter is allowed to bat anywhere in the lineup
@@ -80,41 +76,38 @@ export default class CardGameEdit extends expose.Component {
   }
 
   renderGameEdit() {
-    return DOM.div(
-      {
-        className: 'auth-input-container',
-      },
-      [
-        React.createElement(FloatingInput, {
-          key: 'opponentName',
-          id: 'opponentName',
-          maxLength: '50',
-          label: 'Opponent',
-          onChange: this.handleOpponentNameChange,
-          defaultValue: this.game.opponent,
-        }),
-        DOM.div(
-          {
-            key: 'helpParent',
-            className: 'help-parent',
-          },
-          React.createElement(FloatingPicklist, {
-            id: 'lineupType',
-            label: 'Lineup Type',
-            defaultValue: this.game.lineupType,
-            onChange: this.handleLineupTypeChange,
-          }),
-          DOM.div(
-            { className: 'help-container' },
-            DOM.img({
-              className: 'help-icon',
-              src: '/server/assets/help.svg',
-              onClick: this.handleLineupTypeHelpClick,
-            })
-          )
-        ),
-      ],
-      this.renderSaveOptions()
+    return (
+      <div className="auth-input-container">
+        <FloatingInput
+          inputId="opponentName"
+          maxLength="50"
+          label="Opponent"
+          onChange={this.handleOpponentNameChange}
+          defaultValue={this.props.game.opponent}
+        />
+        <div className="help-parent">
+          <FloatingSelect
+            selectId="lineupType"
+            label="Lineup Type"
+            initialValue={this.props.game.lineupType || 2}
+            onChange={this.handleLineupTypeChange}
+            values={{
+              1: 'Normal',
+              2: 'Alternating Gender',
+              3: 'No Consecutive Females',
+            }}
+          />
+          <div className="help-container">
+            <img
+              className="help-icon"
+              src="/server/assets/help.svg"
+              alt="help"
+              onClick={this.handleLineupTypeHelpClick}
+            />
+          </div>
+        </div>
+        {this.renderSaveOptions()}
+      </div>
     );
   }
 
@@ -125,6 +118,7 @@ export default class CardGameEdit extends expose.Component {
       DOM.div(
         {
           key: 'confirm',
+          id: 'save',
           className: 'edit-button button confirm-button',
           onClick: this.handleConfirmClick,
         },
@@ -146,6 +140,7 @@ export default class CardGameEdit extends expose.Component {
       DOM.div(
         {
           key: 'cancel',
+          id: 'cancel',
           className: 'edit-button button cancel-button',
           onClick: this.handleCancelClick,
         },
@@ -162,11 +157,12 @@ export default class CardGameEdit extends expose.Component {
       )
     );
 
-    if (!this.isNew) {
+    if (!this.props.isNew) {
       buttons.push(
         DOM.div(
           {
             key: 'delete',
+            id: 'delete',
             className: 'edit-button button cancel-button',
             onClick: this.handleDeleteClick,
           },
@@ -193,34 +189,14 @@ export default class CardGameEdit extends expose.Component {
   }
 
   render() {
-    return DOM.div(
-      {
-        className: 'card',
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {
-          onPress: this.homeOrBack,
-        }),
-        DOM.div(
-          {
-            className: 'card-title-text-with-arrow',
-          },
-          'Edit Game'
-        ),
-        React.createElement(RightHeaderButton, {
-          onPress: this.homeOrBack,
-        })
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderGameEdit()
-      )
+    return (
+      <Card
+        title="Edit Game"
+        leftHeaderProps={{ onClick: this.homeOrBack }}
+        rightHeaderProps={{ onClick: this.homeOrBack }}
+      >
+        <CardSection>{this.renderGameEdit()}</CardSection>
+      </Card>
     );
   }
 }
