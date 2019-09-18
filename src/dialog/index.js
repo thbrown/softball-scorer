@@ -1,9 +1,9 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import ConfirmDialog from './confirm-dialog';
 import InputDialog from './input-dialog';
 import NotificationDialog from './notification-dialog';
 import YesNoCancelDialog from './yes-no-cancel-dialog';
+import expose from 'expose';
 
 const exp = {};
 
@@ -33,29 +33,27 @@ const show = function() {
 
 exp.show_confirm = function(text, on_confirm, on_cancel) {
   show();
-  ReactDOM.render(
-    React.createElement(ConfirmDialog, {
-      text: text,
-      on_confirm: on_confirm || function() {},
+  expose.set_state('main', {
+    dialog: {
+      type: 'confirm',
+      text,
+      on_confirm,
       on_cancel: on_cancel || function() {},
       hide: exp.hide,
-    }),
-    document.getElementById('dialog')
-  );
+    },
+  });
 };
 
 exp.show_yes_no_cancel = function(text, on_yes, on_no, on_cancel) {
   show();
-  ReactDOM.render(
-    React.createElement(YesNoCancelDialog, {
-      text: text,
-      on_yes: on_yes || function() {},
-      on_no: on_no || function() {},
-      on_cancel: on_cancel || function() {},
-      hide: exp.hide,
-    }),
-    document.getElementById('dialog')
-  );
+  expose.set_state('main', {
+    type: 'yesNoCancel',
+    text: text,
+    on_yes: on_yes || function() {},
+    on_no: on_no || function() {},
+    on_cancel: on_cancel || function() {},
+    hide: exp.hide,
+  });
 };
 
 exp.set_shift_req = function(v) {
@@ -76,40 +74,58 @@ exp.show_input = function(
   } else {
     default_text = node_or_default_text;
   }
-  ReactDOM.render(
-    React.createElement(InputDialog, {
-      node: node,
-      default_text: default_text,
+  expose.set_state('main', {
+    dialog: {
+      type: 'input',
+      node,
+      default_text,
       on_confirm: on_confirm || function() {},
       on_cancel: on_cancel || function() {},
       whiteSpace: require_shift,
       hide: exp.hide,
-      startingValue: startingValue,
-    }),
-    document.getElementById('dialog')
-  );
+      startingValue,
+    },
+  });
 };
 
 exp.show_notification = function(text, on_confirm) {
   show();
-  ReactDOM.render(
-    React.createElement(NotificationDialog, {
+  expose.set_state('main', {
+    dialog: {
+      type: 'notification',
       text: text,
       on_confirm: on_confirm || function() {},
       hide: exp.hide,
-    }),
-    document.getElementById('dialog')
-  );
+    },
+  });
 };
 
 exp.hide = function() {
-  is_visible = false;
-  window.removeEventListener('keydown', on_key_down);
-  ReactDOM.unmountComponentAtNode(document.getElementById('dialog'));
+  if (is_visible) {
+    is_visible = false;
+    window.removeEventListener('keydown', on_key_down);
+    expose.set_state('main', {
+      dialog: {},
+    });
+  }
 };
 
 exp.is_visible = function() {
   return is_visible;
+};
+
+export const Dialog = ({ type, ...props }) => {
+  if (type === 'confirm') {
+    return <ConfirmDialog {...props} />;
+  } else if (type === 'yesNoCancel') {
+    return <YesNoCancelDialog {...props} />;
+  } else if (type === 'input') {
+    return <InputDialog {...props} />;
+  } else if (type === 'notification') {
+    return <NotificationDialog {...props} />;
+  } else {
+    return <div id="dialog" />;
+  }
 };
 
 export default exp;

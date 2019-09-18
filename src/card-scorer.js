@@ -23,9 +23,6 @@ export default class CardScorer extends expose.Component {
     };
 
     this.handleBoxClick = function(player, plateAppearanceId) {
-      expose.set_state('main', {
-        isNew: false,
-      });
       setRoute(
         `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearanceId}`
       );
@@ -37,11 +34,8 @@ export default class CardScorer extends expose.Component {
         game_id,
         team_id
       );
-      expose.set_state('main', {
-        isNew: true,
-      });
       setRoute(
-        `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearance.id}`
+        `/teams/${this.props.team.id}/games/${this.props.game.id}/scorer/plateAppearances/${plateAppearance.id}/?isNew=true`
       );
     }.bind(this);
 

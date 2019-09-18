@@ -1,35 +1,25 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import expose from './expose';
 import state from 'state';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
 import { setRoute } from 'actions/route';
+import Card from 'elements/card';
 
-export default class CardTeamList extends expose.Component {
+export default class CardTeamList extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
     this.state = {};
-
     this.handleTeamClick = function(team) {
       setRoute(`/teams/${team.id}`);
     };
 
     this.handleEditClick = function(team, ev) {
-      expose.set_state('main', {
-        isNew: false,
-      });
       setRoute(`/teams/${team.id}/edit`);
       ev.stopPropagation();
     };
 
     this.handleCreateClick = function() {
       const team = state.addTeam('');
-      expose.set_state('main', {
-        isNew: true,
-      });
-      setRoute(`/teams/${team.id}/edit`);
+      setRoute(`/teams/${team.id}/edit?isNew=true`);
     };
   }
 
@@ -38,6 +28,7 @@ export default class CardTeamList extends expose.Component {
     let elems = s.teams.map(team => {
       return DOM.div(
         {
+          id: 'team-' + team.id,
           team_id: team.id,
           key: 'team' + team.id,
           className: 'list-item',
@@ -58,6 +49,7 @@ export default class CardTeamList extends expose.Component {
             style: {},
           },
           DOM.img({
+            id: 'team-' + team.id + '-edit',
             src: '/server/assets/edit.svg',
             alt: 'edit',
             className: 'list-button',
@@ -70,7 +62,8 @@ export default class CardTeamList extends expose.Component {
     elems.push(
       DOM.div(
         {
-          key: 'newteam',
+          key: 'newTeam',
+          id: 'newTeam',
           className: 'list-item add-list-item',
           onClick: this.handleCreateClick,
         },
@@ -78,34 +71,15 @@ export default class CardTeamList extends expose.Component {
       )
     );
 
-    return DOM.div({}, elems);
+    return DOM.div(
+      {
+        id: 'teamList',
+      },
+      elems
+    );
   }
 
   render() {
-    return DOM.div(
-      {
-        className: 'card',
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {}),
-        DOM.div(
-          {
-            className: 'prevent-overflow card-title-text-with-arrow',
-          },
-          'Teams'
-        ),
-        React.createElement(RightHeaderButton, {})
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderTeamList()
-      )
-    );
+    return <Card title="Teams">{this.renderTeamList()}</Card>;
   }
 }

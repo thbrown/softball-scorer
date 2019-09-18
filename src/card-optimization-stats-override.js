@@ -3,9 +3,10 @@ import DOM from 'react-dom-factories';
 import expose from './expose';
 import state from 'state';
 import dialog from 'dialog';
-import FloatingInput from 'component-floating-input';
+import FloatingInput from 'elements/floating-input';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
+import { goBack } from 'actions/route';
 
 export default class CardOptimizationStatsOverride extends expose.Component {
   constructor(props) {
@@ -13,10 +14,6 @@ export default class CardOptimizationStatsOverride extends expose.Component {
     this.expose();
 
     this.state = {};
-
-    let goBack = function() {
-      window.history.back();
-    };
 
     let buildOverride = function() {
       return {
@@ -101,7 +98,7 @@ export default class CardOptimizationStatsOverride extends expose.Component {
         [
           React.createElement(FloatingInput, {
             key: 'outs',
-            id: 'outs',
+            inputId: 'outs',
             label: 'Outs',
             type: 'number',
             maxLength: '50',
@@ -112,7 +109,7 @@ export default class CardOptimizationStatsOverride extends expose.Component {
         [
           React.createElement(FloatingInput, {
             key: '1b',
-            id: '1b',
+            inputId: '1b',
             label: '1B',
             type: 'number',
             maxLength: '50',
@@ -123,7 +120,7 @@ export default class CardOptimizationStatsOverride extends expose.Component {
         [
           React.createElement(FloatingInput, {
             key: '2b',
-            id: '2b',
+            inputId: '2b',
             label: '2B',
             type: 'number',
             maxLength: '50',
@@ -134,7 +131,7 @@ export default class CardOptimizationStatsOverride extends expose.Component {
         [
           React.createElement(FloatingInput, {
             key: '3b',
-            id: '3b',
+            inputId: '3b',
             label: '3B',
             type: 'number',
             maxLength: '50',
@@ -145,7 +142,7 @@ export default class CardOptimizationStatsOverride extends expose.Component {
         [
           React.createElement(FloatingInput, {
             key: 'hr',
-            id: 'hr',
+            inputId: 'hr',
             label: 'HR',
             type: 'number',
             maxLength: '50',

@@ -17,19 +17,13 @@ export default class CardPlayerList extends expose.Component {
     };
 
     this.handleEditClick = function(player, ev) {
-      expose.set_state('main', {
-        isNew: false,
-      });
       setRoute(`/players/${player.id}/edit`);
       ev.stopPropagation();
     };
 
     this.handleCreateClick = function() {
-      let player = state.addPlayer('', 'M');
-      expose.set_state('main', {
-        isNew: true,
-      });
-      setRoute(`/players/${player.id}/edit`);
+      const player = state.addPlayer('', 'M');
+      setRoute(`/players/${player.id}/edit?isNew=true`);
     };
   }
 

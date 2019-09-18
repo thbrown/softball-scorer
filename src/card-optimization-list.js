@@ -17,9 +17,6 @@ export default class CardOptimizationList extends expose.Component {
     };
 
     this.handleEditClick = function(optimization, ev) {
-      expose.set_state('main', {
-        isNew: false,
-      });
       setRoute(`/optimizations/${optimization.id}/edit`);
       ev.stopPropagation();
     };
@@ -29,10 +26,7 @@ export default class CardOptimizationList extends expose.Component {
       let optimization = state.addOptimization(
         `${d.getMonth() + 1}/${d.getDate()} optimization`
       );
-      expose.set_state('main', {
-        isNew: true,
-      });
-      setRoute(`/optimizations/${optimization.id}/edit`);
+      setRoute(`/optimizations/${optimization.id}/edit?isNew=true`);
     };
   }
 

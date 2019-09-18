@@ -6,8 +6,8 @@ import dialog from 'dialog';
 import network from 'network';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
-import FloatingInput from 'component-floating-input';
-import FloatingPicklist from 'component-floating-picklist';
+import FloatingInput from 'elements/floating-input';
+import FloatingSelect from 'elements/floating-select';
 import { setRoute } from 'actions/route';
 import SimulationTimeEstimator from '../simulation-time-estimator';
 import CommonUtils from '../common-utils';
@@ -733,7 +733,7 @@ Clips can be played from the player's plate appearance page
               <div id="simulationOptionsMenu">
                 {React.createElement(FloatingInput, {
                   key: 'iterations',
-                  id: 'iterations',
+                  inputId: 'iterations',
                   maxLength: '12',
                   label: 'Iterations',
                   onChange: this.onOptionsChange.bind(this, 'iterations'),
@@ -745,8 +745,7 @@ Clips can be played from the player's plate appearance page
                 })}
                 {React.createElement(FloatingInput, {
                   key: 'innings',
-                  id: 'innings',
-                  maxLength: '12',
+                  inputId: 'innings',
                   label: 'Innings to Simulate',
                   onChange: this.onOptionsChange.bind(this, 'innings'),
                   maxLength: '2',
@@ -756,15 +755,21 @@ Clips can be played from the player's plate appearance page
                     this.optimization.status !==
                     state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
                 })}
-                {React.createElement(FloatingPicklist, {
-                  id: 'lineupType',
-                  label: 'Lineup Type',
-                  defaultValue: this.optimization.lineupType,
-                  onChange: this.onOptionsChange.bind(this, 'lineupType'),
-                  disabled:
+                <FloatingSelect
+                  selectId="lineupType"
+                  label="Lineup Type"
+                  initialValue={this.optimization.lineupType}
+                  onChange={this.onOptionsChange.bind(this, 'lineupType')}
+                  values={{
+                    1: 'Normal',
+                    2: 'Alternating Gender',
+                    3: 'No Consecutive Females',
+                  }}
+                  disabled={
                     this.optimization.status !==
-                    state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
-                })}
+                    state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+                  }
+                />
               </div>
             </dd>
             {this.renderResultsAccordion()}

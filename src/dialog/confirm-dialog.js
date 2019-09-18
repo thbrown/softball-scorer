@@ -43,6 +43,7 @@ export default class ConfirmDialog extends React.Component {
             },
             DOM.div(
               {
+                id: 'dialog-confirm',
                 className: 'button confirm-button',
                 onClick: this.handleConfirmClick,
               },
@@ -55,6 +56,7 @@ export default class ConfirmDialog extends React.Component {
             ),
             DOM.div(
               {
+                id: 'dialog-cancel',
                 className: 'button cancel-button',
                 onClick: this.handleCancelClick,
               },
@@ -73,4 +75,4 @@ export default class ConfirmDialog extends React.Component {
       })
     );
   }
-};
+}

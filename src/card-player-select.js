@@ -5,6 +5,7 @@ import state from 'state';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import Select from 'react-select';
+import { goBack } from 'actions/route';
 
 // This is a more generic player selection card to replace card-player-selection
 export default class CardPlayerSelect extends expose.Component {
@@ -58,11 +59,11 @@ export default class CardPlayerSelect extends expose.Component {
 
     this.handleSubmitClick = function() {
       props.onComplete(this.state.players);
-      window.history.back();
+      goBack();
     };
 
     this.handleCancelClick = function() {
-      window.history.back();
+      goBack();
     };
 
     this.handleBackOrHome = function() {

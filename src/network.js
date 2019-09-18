@@ -35,6 +35,11 @@ export const getServerUrl = exp.getServerUrl;
 
 requestInternal = async function(method, url, body) {
   const response = {};
+
+  if (process.env.NODE_ENV === 'test') {
+    return response;
+  }
+
   if ('fetch' in window) {
     const res = await new Promise(async function(resolve, reject) {
       const timeout = setTimeout(function() {
