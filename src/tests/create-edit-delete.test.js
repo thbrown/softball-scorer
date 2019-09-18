@@ -1,8 +1,6 @@
-import React from 'react';
 import Enzyme from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import state from 'state';
-import { JestEnvironment } from '@jest/environment';
 import { setRoute, setOnGoBack } from 'actions/route';
 import { getPageWrapper } from './test-helpers';
 

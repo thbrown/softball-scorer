@@ -250,6 +250,7 @@ export default class CardLineup extends React.Component {
       pa = pa || {};
       return (
         <div
+          id={'pa-' + pa.id}
           key={`box${i}`}
           onClick={this.handleBoxClick.bind(this, pa.id)}
           className="lineup-box"
@@ -263,6 +264,7 @@ export default class CardLineup extends React.Component {
       pas = pas.concat([
         DOM.div(
           {
+            id: 'newPa-' + player.id,
             key: 'newPa' + player.id,
             onClick: this.handleNewPlateAppearanceClick.bind(
               this,
