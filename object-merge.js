@@ -9,18 +9,44 @@ let diff = function(mine, theirs) {
 
 let diffInternal = function(mine, theirs, path, result) {
   if (Array.isArray(mine) && Array.isArray(theirs)) {
+    // Determine what elements the arrays have in common (commonElementsA, commonElementsB)
+    // what elements are in mine but not in theirs (deletes)
+    // what elements are in theirs but not in mine (adds)
+    let myIds = mine.map(v => getUniqueId(v));
+    let theirIds = theirs.map(v => getUniqueId(v));
+
+    let theirIdsSet = new Set(theirIds);
+    let commonElementsAIds = [];
+    let commonElementsObjectA = {};
+    let deletes = [];
+    for (var i = 0; i < myIds.length; i++) {
+      if (theirIdsSet.has(myIds[i])) {
+        commonElementsAIds.push(myIds[i]);
+        commonElementsObjectA[myIds[i]] = mine[i];
+      } else {
+        deletes.push(mine[i]);
+      }
+    }
+
+    let myIdsSet = new Set(myIds);
+    let commonElementsBIds = [];
+    let commonElementsObjectB = {};
+    let adds = [];
+    for (var i = 0; i < theirIds.length; i++) {
+      if (myIdsSet.has(theirIds[i])) {
+        commonElementsBIds.push(theirIds[i]);
+        commonElementsObjectB[theirIds[i]] = theirs[i];
+      } else {
+        adds.push(theirs[i]);
+      }
+    }
+
     // Delete everything in mine that isn't in theirs
-    let deletes = mine.filter(
-      x => !theirs.find(v => getUniqueId(v) === getUniqueId(x))
-    );
     deletes.forEach(del => {
       addToResult(result, path, getUniqueId(del), 'Delete');
     });
 
     // Add everything to mine that is in theirs
-    let adds = theirs.filter(
-      x => !mine.find(v => getUniqueId(v) === getUniqueId(x))
-    );
     adds.forEach(add => {
       // We just need the key to be unique, so we'll use whatever is shorter.
       let md5 = getMd5(add);
@@ -36,17 +62,7 @@ let diffInternal = function(mine, theirs, path, result) {
       );
     });
 
-    // Determine which the intersection of the elements in each list so we can compare order
-    let commonElementsA = mine.filter(x =>
-      theirs.find(v => getUniqueId(v) === getUniqueId(x))
-    );
-    let commonElementsB = theirs.filter(x =>
-      mine.find(v => getUniqueId(v) === getUniqueId(x))
-    );
-
     // If they are not in the same order, re-order them
-    let commonElementsAIds = commonElementsA.map(v => getUniqueId(v));
-    let commonElementsBIds = commonElementsB.map(v => getUniqueId(v));
     if (!arraysEqual(commonElementsAIds, commonElementsBIds)) {
       let key = 'ReOrder';
       addToResult(
@@ -58,15 +74,14 @@ let diffInternal = function(mine, theirs, path, result) {
         JSON.stringify(commonElementsBIds)
       );
     }
+
     // Now diff each corresponding element in the array
-    for (let i = 0; i < commonElementsA.length; i++) {
-      let bIndex = commonElementsB.findIndex(
-        el => getUniqueId(el) === getUniqueId(commonElementsA[i])
-      );
+    for (let i = 0; i < commonElementsAIds.length; i++) {
+      let id = commonElementsAIds[i];
       diffInternal(
-        commonElementsA[i],
-        commonElementsB[bIndex],
-        path.concat(getUniqueId(commonElementsA[i])),
+        commonElementsObjectA[id],
+        commonElementsObjectB[id],
+        path.concat(getUniqueId(commonElementsObjectA[id])),
         result
       );
     }
@@ -75,25 +90,37 @@ let diffInternal = function(mine, theirs, path, result) {
     typeof mine === 'object' &&
     (theirs !== null && typeof theirs === 'object')
   ) {
-    let deletes = Object.keys(mine).filter(
-      x =>
-        !Object.keys(theirs).find(
-          v => getUniqueId(mine[v]) === getUniqueId(mine[x])
-        )
-    );
+    let myIds = Object.keys(mine);
+    let theirIds = Object.keys(theirs);
+
+    let theirIdsSet = new Set(theirIds);
+    let commonElementsObjectA = {};
+    let deletes = [];
+    for (var i = 0; i < myIds.length; i++) {
+      if (theirIdsSet.has(myIds[i])) {
+        commonElementsObjectA[myIds[i]] = mine[i];
+      } else {
+        deletes.push(myIds[i]);
+      }
+    }
+
+    let myIdsSet = new Set(myIds);
+    let adds = [];
+    for (var i = 0; i < theirIds.length; i++) {
+      if (!myIdsSet.has(theirIds[i])) {
+        adds.push(theirIds[i]);
+      }
+    }
+
     deletes.forEach(del => {
-      addToResult(result, path, getUniqueId(del), 'Delete');
+      addToResult(result, path, del, 'Delete');
     });
-    let adds = Object.keys(theirs).filter(
-      x => !Object.keys(mine).find(v => getUniqueId(v) === getUniqueId(x))
-    );
+
     adds.forEach(add => {
-      return addToResult(result, path, getUniqueId(add), 'Add', theirs[add]);
+      return addToResult(result, path, add, 'Add', theirs[add]);
     });
-    let commonProps = Object.keys(theirs).filter(x =>
-      Object.keys(mine).find(v => getUniqueId(v) === getUniqueId(x))
-    );
-    commonProps.forEach(prop => {
+
+    Object.keys(commonElementsObjectA).forEach(prop => {
       diffInternal(mine[prop], theirs[prop], path.concat(prop), result);
     });
   } else if (mine !== Object(mine) && theirs !== Object(theirs)) {
