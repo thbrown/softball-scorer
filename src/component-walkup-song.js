@@ -35,7 +35,7 @@ export default class WalkupSong extends expose.Component {
       });
       document.getElementById('songOverlay').classList.add('gone');
       this.startIframeClickDetect();
-    };
+    }.bind(this);
 
     this.buildUrl = function(songLink, songStart) {
       return `https://thbrown.github.io/iframe-proxy/index.html?id=${songLink}&start=${
