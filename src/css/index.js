@@ -14,6 +14,7 @@ const exp = {
     TEXT_DARK: '#000000',
     WHITE: '#FFFFFF',
     INVISIBLE: 'rgba(0, 0, 0, 0)',
+    DISABLED: '#aaa',
   },
   sizes: {
     ICON: '24px',

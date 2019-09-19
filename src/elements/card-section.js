@@ -6,6 +6,8 @@ export default ({ message, isCentered, children }) => {
       className="card-textbox"
       style={{
         textAlign: isCentered ? 'center' : null,
+        display: isCentered ? 'flex' : null,
+        justifyContent: isCentered ? 'center' : null,
       }}
     >
       {message}

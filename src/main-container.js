@@ -1,6 +1,5 @@
 import React from 'react';
 import expose from 'expose';
-import config from 'config';
 import dialog from 'dialog';
 import network from 'network';
 import noSleepImport from './lib/nosleep.js';
@@ -9,6 +8,7 @@ import CardNotFound from 'card-not-found';
 import CardLoading from 'card-loading';
 import DataContainer from 'elements/data-container';
 import { Dialog } from 'dialog';
+import config from './config';
 const noSleep = new noSleepImport();
 
 // TODO
