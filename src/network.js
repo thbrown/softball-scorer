@@ -1,5 +1,5 @@
-import config from 'config';
 import state from 'state';
+import config from './config';
 
 const exp = {};
 
