@@ -492,24 +492,19 @@ body {
   width: 80px;
 }
 
+.button:active, 
+.button:hover {
+  filter: brightness(85%);
+}
+
 .confirm-button {
   background-color: $css.colors.SECONDARY;
   color: $css.colors.TEXT_LIGHT;
 }
 
-.confirm-button:hover,
-.confirm-button:active {
-  background-color: $css.colors.SECONDARY_DARK;
-}
-
 .cancel-button {
   background-color: $css.colors.SECONDARY_LIGHT;
   color: $css.colors.TEXT_LIGHT;
-}
-
-.cancel-button:hover,
-.cancel-button:active {
-  background-color: $css.colors.SECONDARY_DARK;
 }
 
 .edit-button {
