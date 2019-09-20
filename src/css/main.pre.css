@@ -454,13 +454,13 @@ body {
 
 .dialog {
   position: fixed;
-  width: calc(100% - 40px);
+  width: calc(100% - 50px);
   top: 50px;
   left: 50%;
   transform: translateX(-50%);
   max-width: 960px;
   background-color: $css.colors.PRIMARY_LIGHT;
-  border: 4px solid $css.colors.SECONDARY_DARK;
+  border: 4px solid $css.colors.PRIMARY;
   border-radius: 8px;
   color: $css.colors.TEXT_DARK;
   padding: 16px;
