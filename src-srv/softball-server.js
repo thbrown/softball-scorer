@@ -11,9 +11,9 @@ const bodyParser = require('body-parser');
 const favicon = require('serve-favicon');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const hasher = require('object-hash');
 const got = require('got');
 
+const commonUtils = require('../common-utils');
 const configAccessor = require('./config-accessor');
 const HandledError = require('./handled-error');
 const idUtils = require('../id-utils');
@@ -626,7 +626,7 @@ module.exports = class SoftballServer {
               accountId,
               "updatedState",
               JSON.stringify(state, null, 2),
-              getMd5(state)
+              commonUtils.getHash(state)
             );
             */
             anyChangesMade = true;
@@ -636,7 +636,7 @@ module.exports = class SoftballServer {
 
           // Calculate the checksum current state
           state = state || (await this.databaseCalls.getState(accountId));
-          let checksum = getMd5(state);
+          let checksum = commonUtils.getHash(state);
 
           // Compare the calculated checksum with the checksum provided by the client to determine if the server has updates for the client.
           if (data.md5 !== checksum) {
@@ -1011,19 +1011,6 @@ module.exports = class SoftballServer {
           resolve(ms);
         }, ms);
       });
-    }
-
-    // Calculate the md5 checksum of the data and return the result as a base64 string
-    function getMd5(data) {
-      let checksum = hasher(data, {
-        algorithm: 'md5',
-        excludeValues: false,
-        respectFunctionProperties: false,
-        respectFunctionNames: false,
-        respectType: false,
-        encoding: 'base64',
-      });
-      return checksum.slice(0, -2); // Remove trailing '=='
     }
 
     async function generateToken(length = 30) {
