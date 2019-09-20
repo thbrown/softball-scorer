@@ -1,60 +1,99 @@
 import React from 'react';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
+import injectSheet from 'react-jss';
+import Card from 'elements/card';
+import CardSection from 'elements/card-section';
 import results from 'plate-appearance-results';
 import { normalize } from 'utils/functions';
 import { setRoute } from 'actions/route';
+import { compose, withState, withHandlers } from 'recompose';
 
 const LOCATION_DENOMINATOR = 32767;
 const BALL_FIELD_MAX_WIDTH = 500;
 
-const Field = props => {
+const getHitPosition = pa => {
+  const x = pa?.location?.x || 0;
+  const y = pa?.location?.y || 0;
+  const newX = Math.floor(
+    normalize(
+      x,
+      0,
+      LOCATION_DENOMINATOR,
+      0,
+      Math.min(window.innerWidth, BALL_FIELD_MAX_WIDTH)
+    )
+  );
+  const newY = Math.floor(
+    normalize(
+      y,
+      0,
+      LOCATION_DENOMINATOR,
+      0,
+      Math.min(window.innerWidth, BALL_FIELD_MAX_WIDTH)
+    )
+  );
+
+  return { x: newX, y: newY };
+};
+
+const SprayTooltip = injectSheet(theme => ({
+  tooltip: {
+    padding: theme.spacing.small,
+    width: theme.sizing.small,
+  },
+}))(({ classes, theme, plateAppearance, game }) => {
+  const { x, y } = getHitPosition(plateAppearance);
+  return (
+    <div
+      id="spray-tooltip"
+      className={classes.tooltip}
+      style={{
+        color: 'black',
+        position: 'absolute',
+        backgroundColor: 'white',
+        width: '100px',
+        left: x + 'px',
+        top: `calc(${y}px - 75px)`,
+      }}
+    >
+      Result: {plateAppearance.result}
+    </div>
+  );
+});
+const enhance = compose(
+  withState('paTooltip', 'setTooltip', null),
+  withHandlers({
+    handlePAClick: props => pa => () => {
+      props.setTooltip(pa);
+    },
+    turnOffTooltip: props => () => {
+      props.setTooltip(null);
+    },
+  })
+);
+
+const Field = enhance(props => {
   const indicators = props.plateAppearances
     .map(value => {
-      let x = -1;
-      let y = -1;
-      if (value.location) {
-        x = value.location.x;
-        y = value.location.y;
-      }
-
-      let new_x = Math.floor(
-        normalize(
-          x,
-          0,
-          LOCATION_DENOMINATOR,
-          0,
-          Math.min(window.innerWidth, BALL_FIELD_MAX_WIDTH)
-        )
-      );
-      let new_y = Math.floor(
-        normalize(
-          y,
-          0,
-          LOCATION_DENOMINATOR,
-          0,
-          Math.min(window.innerWidth, BALL_FIELD_MAX_WIDTH)
-        )
-      );
-
+      const { x, y } = getHitPosition(value);
       if (value.location && x && y) {
-        let image = results.getNoHitResults().includes(value.result)
+        const image = results.getNoHitResults().includes(value.result)
           ? '/server/assets/baseball-out.svg'
           : '/server/assets/baseball-hit.svg';
-        let alt = results.getNoHitResults().includes(value.result)
+        const alt = results.getNoHitResults().includes(value.result)
           ? 'out'
           : 'hit';
 
         return (
           <img
+            onClick={props.handlePAClick(value)}
             key={value.id}
             src={image}
             alt={alt}
             style={{
               position: 'absolute',
               width: '20px',
-              left: new_x + 'px',
-              top: new_y + 'px',
+              left: x + 'px',
+              top: y + 'px',
             }}
           />
         );
@@ -83,39 +122,41 @@ const Field = props => {
         alt=""
       />
       {indicators}
+      {props.paTooltip ? (
+        <SprayTooltip plateAppearance={props.paTooltip} />
+      ) : null}
     </div>
   );
-};
+});
 
 const CardSpray = props => (
-  <div className="card" style={{ position: 'relative' }}>
-    <div className="card-title">
-      <LeftHeaderButton
-        onClick={() => {
-          if (props.backNavUrl) {
-            setRoute(props.backNavUrl);
-            return true;
-          }
-        }}
-      />
-      <div className="prevent-overflow card-title-text-with-arrow">
-        {props.player.name}
+  <Card
+    title={props.player.name}
+    leftHeaderProps={{
+      onClick: () => {
+        if (props.backNavUrl) {
+          setRoute(props.backNavUrl);
+          return true;
+        }
+      },
+    }}
+  >
+    <CardSection>
+      <div
+        className="card-body"
+        style={{ maxWidth: BALL_FIELD_MAX_WIDTH + 'px' }}
+      >
+        <Field plateAppearances={props.plateAppearances} />
       </div>
-      <RightHeaderButton />
-    </div>
-    <div
-      className="card-body"
-      style={{ maxWidth: BALL_FIELD_MAX_WIDTH + 'px' }}
-    >
-      <Field plateAppearances={props.plateAppearances} />
-    </div>
-  </div>
+    </CardSection>
+  </Card>
 );
 
 CardSpray.defaultProps = {
+  game: null,
   plateAppearances: [],
   player: {},
   backNavUrl: '',
 };
 
-export default CardSpray;
+export default enhance(CardSpray);
