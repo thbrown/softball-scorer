@@ -707,16 +707,21 @@ exp.getPlateAppearancesForPlayerInGame = function(player_id, game_id, state) {
 };
 
 exp.getPlateAppearancesForPlayerOnTeam = function(player_id, team_id, state) {
-  let team =
+  const team =
     typeof team_id === 'string' ? exp.getTeam(team_id, state) : team_id;
   let plateAppearances = [];
 
   if (team && team.games) {
     team.games.forEach(game => {
       if (game.plateAppearances) {
-        const plateAppearancesThisGame = game.plateAppearances.filter(
-          pa => player_id === pa.player_id
-        );
+        const plateAppearancesThisGame = game.plateAppearances
+          .filter(pa => player_id === pa.player_id)
+          .map(pa => {
+            return {
+              ...pa,
+              game,
+            };
+          });
         plateAppearances = plateAppearances.concat(plateAppearancesThisGame);
       }
     });
@@ -760,9 +765,14 @@ exp.getPlateAppearancesForPlayer = function(player_id, state) {
       if (team.games) {
         team.games.forEach(game => {
           if (game.plateAppearances) {
-            const plateAppearancesThisGame = game.plateAppearances.filter(
-              pa => player_id === pa.player_id
-            );
+            const plateAppearancesThisGame = game.plateAppearances
+              .filter(pa => player_id === pa.player_id)
+              .map(pa => {
+                return {
+                  ...pa,
+                  game,
+                };
+              });
             plateAppearances = plateAppearances.concat(
               plateAppearancesThisGame
             );
