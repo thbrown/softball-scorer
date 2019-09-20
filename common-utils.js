@@ -1,3 +1,5 @@
+const hasher = require('node-object-hash');
+
 exports.factorial = function(n) {
   if (n < 0 || n > 20) {
     throw Error('Factorial out of range' + n);
@@ -67,4 +69,16 @@ exports.secondsToString = function(seconds) {
     return seconds + ' second' + numberEnding(seconds);
   }
   return 'less than a second';
+};
+
+// Calculate the md5 checksum of the data and return the result as a base64 string
+exports.getHash = function(data) {
+  var md5Hash = hasher({
+    alg: 'md5',
+    sort: false,
+    coerce: false,
+    enc: 'base64',
+  });
+  let checksum = md5Hash.hash(data);
+  return checksum.slice(0, -2); // Remove trailing '=='
 };
