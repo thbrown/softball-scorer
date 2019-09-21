@@ -6,12 +6,18 @@ import { normalize } from 'utils/functions';
 import { setRoute } from 'actions/route';
 import { compose, withState, withHandlers } from 'recompose';
 import css from 'css';
+import NoSelect from 'elements/no-select';
+import {
+  HIT_TYPE_FILTERS,
+  filterByHitType,
+  filterByLastGames,
+} from 'utils/plateAppearanceFilters';
 
 const LOCATION_DENOMINATOR = 32767;
 const BALL_FIELD_MAX_WIDTH = 500;
 const BALL_SIZE = 20;
 // TODO responsively size this so it is affected when resizing screen
-const TOOLTIP_WIDTH = window.innerWidth < 400 ? 125 : 200;
+const TOOLTIP_WIDTH = window.innerWidth < 400 ? 125 : 175;
 const TOOLTIP_ROW_HEIGHT = 30;
 const TOOLTIP_PADDING = 10;
 
@@ -44,7 +50,7 @@ const getTooltipPosition = ({ x, y }, tooltipRows) => {
   const tooltipHeight = tooltipRows * TOOLTIP_ROW_HEIGHT + TOOLTIP_PADDING * 2;
   let positionX = 'Left';
   let positionY = 'Bottom';
-  if (x > window.innerWidth / 2) {
+  if (x + BALL_SIZE > window.innerWidth / 2) {
     positionX = 'Right';
     x -= TOOLTIP_WIDTH + TOOLTIP_PADDING * 2;
   } else {
@@ -124,15 +130,13 @@ const SprayTooltip = injectSheet(theme => ({
   }
 
   return (
-    <>
-      <div
-        id="spray-tooltip"
-        className={classes.tooltip}
-        style={getTooltipPosition(getHitPosition(plateAppearance), rows.length)}
-      >
-        {rows}
-      </div>
-    </>
+    <div
+      id="spray-tooltip"
+      className={classes.tooltip}
+      style={getTooltipPosition(getHitPosition(plateAppearance), rows.length)}
+    >
+      {rows}
+    </div>
   );
 });
 const enhanceField = compose(
@@ -157,20 +161,20 @@ const enhanceField = compose(
 
 const Field = enhanceField(props => {
   const indicators = props.plateAppearances
-    .map(value => {
-      const { x, y } = getHitPosition(value);
-      if (value.location && x && y) {
-        const image = results.getNoHitResults().includes(value.result)
+    .map(plateAppearance => {
+      const { x, y } = getHitPosition(plateAppearance);
+      if (plateAppearance.location && x && y) {
+        const image = results.getNoHitResults().includes(plateAppearance.result)
           ? '/server/assets/baseball-out.svg'
           : '/server/assets/baseball-hit.svg';
-        const alt = results.getNoHitResults().includes(value.result)
+        const alt = results.getNoHitResults().includes(plateAppearance.result)
           ? 'out'
           : 'hit';
 
         return (
           <img
-            onClick={props.showTooltip(value)}
-            key={value.id}
+            onClick={props.showTooltip(plateAppearance)}
+            key={plateAppearance.id}
             src={image}
             alt={alt}
             className={props.classes.ball}
@@ -178,7 +182,7 @@ const Field = enhanceField(props => {
               left: x + 'px',
               top: y + 'px',
               border:
-                value === props.paTooltip
+                plateAppearance === props.paTooltip
                   ? `1px solid ${css.colors.TEXT_LIGHT}`
                   : null,
             }}
@@ -204,7 +208,6 @@ const Field = enhanceField(props => {
         position: 'relative',
         width: Math.min(window.innerWidth, BALL_FIELD_MAX_WIDTH) + 'px',
         height: Math.min(window.innerWidth, BALL_FIELD_MAX_WIDTH) + 'px',
-        overflow: 'hidden',
       }}
     >
       <img
@@ -222,41 +225,188 @@ const Field = enhanceField(props => {
 });
 
 const enhance = compose(
+  withState('filter', 'setFilter', {
+    pastGames: null,
+    plateAppearanceType: null,
+  }),
+  withHandlers({
+    setPastGamesFilter: props => value => ev => {
+      props.setFilter({
+        plateAppearanceType: props.filter.plateAppearanceType,
+        pastGames: value === props.filter.pastGames ? null : value,
+      });
+      ev.preventDefault();
+    },
+    setPlateAppearanceTypeFilter: props => value => ev => {
+      props.setFilter({
+        plateAppearanceType:
+          value === props.filter.plateAppearanceType ? null : value,
+        pastGames: props.filter.pastGames,
+      });
+      ev.preventDefault();
+    },
+  }),
   injectSheet(theme => ({
-    title: {
-      fontSize: theme.typography.size.large,
+    card: {
+      marginTop: css.spacing.xSmall,
+      maxWidth: BALL_FIELD_MAX_WIDTH + 'px',
     },
     filterArea: {
-      backgroundColor: theme.colors.SECONDARY,
+      backgroundColor: theme.colors.PRIMARY_DARK,
       color: theme.colors.TEXT_LIGHT,
+      padding: theme.spacing.xSmall,
+      marginTop: theme.spacing.xxSmall,
+      borderRadius: theme.spacing.small,
+    },
+    title: {
+      textAlign: 'center',
+      fontSize: theme.typography.size.xLarge,
+      marginBottom: theme.spacing.small,
+    },
+    subtitle: {
+      fontSize: theme.typography.size.medium,
+    },
+    filterGroup: {
+      marginTop: theme.spacing.xSmall,
+      marginBottom: theme.spacing.xSmall,
+      display: 'flex',
+      justifyContent: 'space-around',
+    },
+    filterButton: {
+      '-webkitTapHighlightColor': 'rgba(0,0,0,0)',
+      cursor: 'pointer',
+      backgroundColor: theme.colors.SECONDARY,
+      padding: theme.spacing.xSmall,
+      fontSize: theme.typography.size.small,
+      borderRadius: theme.spacing.small,
+      margin: '2px',
+      '&:hover': {
+        filter: 'brightness(80%)',
+      },
+    },
+    filterButtonActive: {
+      '-webkitTapHighlightColor': 'rgba(0,0,0,0)',
+      cursor: 'pointer',
+      backgroundColor: theme.colors.SECONDARY_LIGHT,
+      padding: theme.spacing.xSmall,
+      fontSize: theme.typography.size.small,
+      borderRadius: theme.spacing.small,
+      margin: '2px',
+      '&:hover': {
+        filter: 'brightness(100%)',
+      },
     },
   }))
 );
 
-const CardSpray = props => (
-  <Card
-    log={console.log('WHAT', props)}
-    title={props.player.name}
-    leftHeaderProps={{
-      onClick: () => {
-        if (props.backNavUrl) {
-          setRoute(props.backNavUrl);
-          return true;
-        }
-      },
-    }}
-  >
-    <div style={{ maxWidth: BALL_FIELD_MAX_WIDTH + 'px' }}>
-      <Field plateAppearances={props.plateAppearances} />
-    </div>
-    <div className={props.classes.filterArea}>
-      <span className={props.classes.title}>Filter</span>
-    </div>
-  </Card>
-);
+const CardSpray = ({
+  classes,
+  setPastGamesFilter,
+  setPlateAppearanceTypeFilter,
+  filter,
+  plateAppearances,
+  player,
+  backNavUrl,
+}) => {
+  if (filter.plateAppearanceType) {
+    plateAppearances = filterByHitType(
+      plateAppearances,
+      filter.plateAppearanceType
+    );
+  }
+  if (filter.pastGames) {
+    plateAppearances = filterByLastGames(plateAppearances, filter.pastGames);
+  }
+  return (
+    <Card
+      title={player.name}
+      leftHeaderProps={{
+        onClick: () => {
+          if (backNavUrl) {
+            setRoute(backNavUrl);
+            return true;
+          }
+        },
+      }}
+    >
+      <div className={'card-body ' + classes.card}>
+        <Field plateAppearances={plateAppearances} />
+        <div className={classes.filterArea}>
+          <div className={classes.subtitle}>Hits</div>
+          <div className={classes.filterGroup}>
+            <div
+              className={
+                filter.plateAppearanceType === HIT_TYPE_FILTERS.HITS
+                  ? classes.filterButtonActive
+                  : classes.filterButton
+              }
+              onClick={setPlateAppearanceTypeFilter(HIT_TYPE_FILTERS.HITS)}
+            >
+              <NoSelect> Only Hits </NoSelect>
+            </div>
+            <div
+              className={
+                filter.plateAppearanceType === HIT_TYPE_FILTERS.EXTRA_BASE_HITS
+                  ? classes.filterButtonActive
+                  : classes.filterButton
+              }
+              onClick={setPlateAppearanceTypeFilter(
+                HIT_TYPE_FILTERS.EXTRA_BASE_HITS
+              )}
+            >
+              <NoSelect> Only Extra Base Hits </NoSelect>
+            </div>
+            <div
+              className={
+                filter.plateAppearanceType === HIT_TYPE_FILTERS.OUTS
+                  ? classes.filterButtonActive
+                  : classes.filterButton
+              }
+              onClick={setPlateAppearanceTypeFilter(HIT_TYPE_FILTERS.OUTS)}
+            >
+              <NoSelect> Only Outs </NoSelect>
+            </div>
+          </div>
+          <div className={classes.subtitle}>Games</div>
+          <div className={classes.filterGroup}>
+            <div
+              className={
+                filter.pastGames === 3
+                  ? classes.filterButtonActive
+                  : classes.filterButton
+              }
+              onClick={setPastGamesFilter(3)}
+            >
+              <NoSelect> Past 3 Games </NoSelect>
+            </div>
+            <div
+              className={
+                filter.pastGames === 5
+                  ? classes.filterButtonActive
+                  : classes.filterButton
+              }
+              onClick={setPastGamesFilter(5)}
+            >
+              <NoSelect> Past 5 Games </NoSelect>
+            </div>
+            <div
+              className={
+                filter.pastGames === 10
+                  ? classes.filterButtonActive
+                  : classes.filterButton
+              }
+              onClick={setPastGamesFilter(10)}
+            >
+              <NoSelect> Past 10 Games </NoSelect>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+};
 
 CardSpray.defaultProps = {
-  game: null,
   plateAppearances: [],
   player: {},
   backNavUrl: '',
