@@ -49,9 +49,9 @@ let diffInternal = function(mine, theirs, path, result) {
     // Add everything to mine that is in theirs
     adds.forEach(add => {
       // We just need the key to be unique, so we'll use whatever is shorter.
-      let md5 = commonUtils.getHash(add);
+      let checksum = commonUtils.getHash(add);
       let value = JSON.stringify(add);
-      let key = value.length <= md5.length ? value : md5;
+      let key = value.length <= checksum.length ? value : checksum;
       addToResult(
         result,
         path,

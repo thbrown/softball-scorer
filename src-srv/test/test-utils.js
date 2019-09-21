@@ -66,7 +66,7 @@ exports.sync = async function(sessionId, checksum, patch) {
         cookie: sessionId,
       },
       body: {
-        md5: checksum,
+        checksum: checksum,
         patch: patch,
       },
       json: true,
@@ -84,18 +84,6 @@ exports.randomId = function(length) {
     text += possible.charAt(Math.floor(Math.random() * possible.length));
   }
   return text;
-};
-
-exports.getMd5 = function(data) {
-  let checksum = hasher(data, {
-    algorithm: 'md5',
-    excludeValues: false,
-    respectFunctionProperties: false,
-    respectFunctionNames: false,
-    respectType: false,
-    encoding: 'base64',
-  });
-  return checksum.slice(0, -2); // Remove trailing '=='
 };
 
 exports.getInitialState = function() {

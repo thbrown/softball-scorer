@@ -9,6 +9,7 @@ const CacheCallsLocal = require('../cache-calls-local');
 const ComputeLocal = require('./compute-local');
 const SoftballServer = require('../softball-server');
 const MockDb = require('./database-calls-mock');
+const commonUtils = require('../common-utils.js');
 const utils = require('./test-utils.js');
 
 describe('sync', () => {
@@ -57,15 +58,15 @@ describe('sync', () => {
       ],
     };
 
-    let expectedHash = utils.getMd5(state);
+    let expectedHash = commonUtils.getHash(state);
 
     this.mockDb.setState(state);
 
-    let serverMd5;
+    let serverChecksum;
     const response = await utils.sync(this.sessionId, '-', {});
-    serverMd5 = response.body.md5;
+    serverChecksum = response.body.checksum;
 
-    expect(serverMd5).toEqual(expectedHash);
-    expect(serverMd5).toEqual('jVBQly9W0N1pfUASFpRmPg');
+    expect(serverChecksum).toEqual(expectedHash);
+    expect(serverChecksum).toEqual('jVBQly9W0N1pfUASFpRmPg');
   });
 });
