@@ -265,70 +265,7 @@ describe('sync', () => {
   // TODO: Optimizations
   /*
   test("Sync - Optimizations", async () => {
-    // Create
-    let clientAncestorState = utils.getInitialState();
-    let clientLocalState = {
-      teams: [
-        {
-          id: "4MWewta24olLam",
-          name: "BigTeam",
-          games: []
-        }
-      ],
-      players: [],
-      optomizations: [
-        {
-          id: "5iWewta24olLam",
-          name: "Big sim",
-          data: "...",
-          completed: 233,
-          total: 1000,
-          lineup: [],
-          histogram: {}
-        },
-        {}
-      ]
-    };
-    let clientPatch = objectMerge.diff(clientAncestorState, clientLocalState);
-    let clientHash = utils.getMd5(clientLocalState);
 
-    let response = await utils.sync(sessionId, clientHash, clientPatch);
-    let serverMd5 = response.body.md5;
-
-    expect(serverMd5).toEqual(clientHash);
-
-    // Edit
-    clientAncestorState = clientLocalState;
-    clientLocalState = {
-      teams: [
-        {
-          id: "4MWewta24olLam",
-          name: "ActuallyThisBigTeam",
-          games: []
-        }
-      ],
-      players: []
-    };
-
-    clientPatch = objectMerge.diff(clientAncestorState, clientLocalState);
-    clientHash = utils.getMd5(clientLocalState);
-
-    response = await utils.sync(sessionId, clientHash, clientPatch);
-    serverMd5 = response.body.md5;
-
-    expect(serverMd5).toEqual(clientHash);
-
-    // Delete
-    clientAncestorState = clientLocalState;
-    clientLocalState = { teams: [], players: [] };
-
-    clientPatch = objectMerge.diff(clientAncestorState, clientLocalState);
-    clientHash = utils.getMd5(clientLocalState);
-
-    response = await utils.sync(sessionId, clientHash, clientPatch);
-    serverMd5 = response.body.md5;
-
-    expect(serverMd5).toEqual(clientHash);
   });
   */
 

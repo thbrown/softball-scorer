@@ -1,4 +1,4 @@
-const hasher = require('object-hash');
+const commonUtils = require('./common-utils');
 
 /**
  *	This is a library to diff and merge objects with similar structures.
@@ -49,9 +49,9 @@ let diffInternal = function(mine, theirs, path, result) {
     // Add everything to mine that is in theirs
     adds.forEach(add => {
       // We just need the key to be unique, so we'll use whatever is shorter.
-      let md5 = getMd5(add);
+      let checksum = commonUtils.getHash(add);
       let value = JSON.stringify(add);
-      let key = value.length <= md5.length ? value : md5;
+      let key = value.length <= checksum.length ? value : checksum;
       addToResult(
         result,
         path,
@@ -385,19 +385,6 @@ let diff3 = function(mine, ancestor, theirs) {
   // My changes will overwrite their changes
   return mergeDeep(patch1, patch2);
 };
-
-// Calculate the md5 checksum of the data and return the result as a base64 string
-function getMd5(data) {
-  let checksum = hasher(data, {
-    algorithm: 'md5',
-    excludeValues: false,
-    respectFunctionProperties: false,
-    respectFunctionNames: false,
-    respectType: false,
-    encoding: 'base64',
-  });
-  return checksum.slice(0, -2); // Remove trailing '=='
-}
 
 module.exports = {
   diff: diff,
