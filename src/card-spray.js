@@ -173,6 +173,7 @@ const Field = enhanceField(props => {
 
         return (
           <img
+            id={'pa-' + plateAppearance.id}
             onClick={props.showTooltip(plateAppearance)}
             key={plateAppearance.id}
             src={image}
@@ -198,7 +199,7 @@ const Field = enhanceField(props => {
 
   return (
     <div
-      id="ball-field"
+      id="spray-field"
       onClick={() => {
         if (props.paTooltip) {
           props.hideTooltip();
@@ -335,6 +336,7 @@ const CardSpray = ({
           <div className={classes.subtitle}>Hits</div>
           <div className={classes.filterGroup}>
             <div
+              id="filter-hits"
               className={
                 filter.plateAppearanceType === HIT_TYPE_FILTERS.HITS
                   ? classes.filterButtonActive
@@ -345,6 +347,7 @@ const CardSpray = ({
               <NoSelect> Only Hits </NoSelect>
             </div>
             <div
+              id="filter-extra-hits"
               className={
                 filter.plateAppearanceType === HIT_TYPE_FILTERS.EXTRA_BASE_HITS
                   ? classes.filterButtonActive
@@ -357,6 +360,7 @@ const CardSpray = ({
               <NoSelect> Only Extra Base Hits </NoSelect>
             </div>
             <div
+              id="filter-outs"
               className={
                 filter.plateAppearanceType === HIT_TYPE_FILTERS.OUTS
                   ? classes.filterButtonActive
@@ -370,6 +374,7 @@ const CardSpray = ({
           <div className={classes.subtitle}>Games</div>
           <div className={classes.filterGroup}>
             <div
+              id="filter-past3"
               className={
                 filter.pastGames === 3
                   ? classes.filterButtonActive
@@ -380,6 +385,7 @@ const CardSpray = ({
               <NoSelect> Past 3 Games </NoSelect>
             </div>
             <div
+              id="filter-past5"
               className={
                 filter.pastGames === 5
                   ? classes.filterButtonActive
@@ -390,6 +396,7 @@ const CardSpray = ({
               <NoSelect> Past 5 Games </NoSelect>
             </div>
             <div
+              id="filter-past10"
               className={
                 filter.pastGames === 10
                   ? classes.filterButtonActive
