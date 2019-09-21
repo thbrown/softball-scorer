@@ -34,6 +34,7 @@ export default class CardPlayerList extends expose.Component {
       .map(player => {
         return DOM.div(
           {
+            id: 'player-' + player.id,
             player_id: player.id,
             key: 'player' + player.id,
             className: 'list-item',

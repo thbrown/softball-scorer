@@ -1,5 +1,4 @@
 const hasher = require('node-object-hash');
-const xxhash64 = require('xxhashjs').h64(0xabcd);
 
 exports.factorial = function(n) {
   if (n < 0 || n > 20) {
