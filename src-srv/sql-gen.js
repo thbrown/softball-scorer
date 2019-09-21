@@ -500,10 +500,10 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
   if (obj.optimizations) {
     // Only allow inserting optimization in state 'PAUSED' or 'NOT_STARTED' or 'ERROR' (PAUSING, ALLOCATIING_RESOURCES, and IN_PROGRESS are not allowed.
     // Allowing these would prevent the user from running any more optimizations till they were deleted. They would never be updated by the server.
-    let modifiedState = 'PAUSED';
+    let modifiedState = 4; // PAUSED
     if (
-      obj.optimizations.status === 'NOT_STARTED' ||
-      obj.optimizations.status === 'ERROR'
+      obj.optimizations.status === 0 /* 'NOT_STARTED' */ ||
+      obj.optimizations.status === 5 /* 'ERROR' */
     ) {
       modifiedState = obj.optimizations.status;
     }
