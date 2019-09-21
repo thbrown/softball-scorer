@@ -1,4 +1,5 @@
 const utils = require('./test-utils.js');
+const commonUtils = require('../common-utils.js');
 const objectMerge = require('../../object-merge.js');
 
 module.exports = class StateTester {
@@ -10,15 +11,15 @@ module.exports = class StateTester {
 
   async syncStateClientUpdatesOnly(newState) {
     let clientPatch = objectMerge.diff(this.ancestorState, newState);
-    let clientHash = utils.getMd5(newState);
+    let clientHash = commonUtils.getHash(newState);
 
     // Useful for debugging
     //console.log(JSON.stringify(newState, null, 3), clientHash);
     let response = await utils.sync(this.sessionId, clientHash, clientPatch);
 
-    let serverMd5 = response.body.md5;
+    let serverChecksum = response.body.checksum;
 
-    expect(serverMd5).toEqual(clientHash);
+    expect(serverChecksum).toEqual(clientHash);
 
     this.ancestorState = JSON.parse(JSON.stringify(newState));
     this.localState = JSON.parse(JSON.stringify(newState));

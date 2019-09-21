@@ -1,3 +1,6 @@
+const hasher = require('node-object-hash');
+const xxhash64 = require('xxhashjs').h64(0xabcd);
+
 exports.factorial = function(n) {
   if (n < 0 || n > 20) {
     throw Error('Factorial out of range' + n);
@@ -67,4 +70,28 @@ exports.secondsToString = function(seconds) {
     return seconds + ' second' + numberEnding(seconds);
   }
   return 'less than a second';
+};
+
+// Calculate the hash of the data and return the result as a base64 string
+exports.getHash = function(data) {
+  // I've tried other hashes here (like javascript xxHash) but md5 is faster in the browser and much faster in the server.
+  var objectHasher = hasher({
+    alg: 'md5',
+    sort: true,
+    coerce: false,
+    enc: 'base64',
+  });
+  return objectHasher.hash(data).slice(0, -2); // Remove trailing '=='
+};
+
+// Get the string representation of an object for hashing, sorts properties of objects so representation is stable
+exports.getObjectString = function(data) {
+  var objectHasher = hasher({
+    alg: 'md5',
+    sort: true,
+    coerce: false,
+    enc: 'base64',
+  });
+  // Don't compute the hash, insted get the string that would be hashed
+  return objectHasher.sortObject(data);
 };

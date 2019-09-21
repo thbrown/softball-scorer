@@ -3,7 +3,9 @@ import objectMerge from '../object-merge';
 import network from 'network';
 import idUtils from '../id-utils';
 import results from 'plate-appearance-results';
-import hasher from 'object-hash';
+import commonUtils from '../common-utils';
+
+import dialog from 'dialog';
 
 const exp = {};
 
@@ -100,7 +102,7 @@ exp.sync = async function(fullSync) {
 
     // Get the patch ready to send to the server
     let body = {
-      md5: getMd5(localState),
+      checksum: commonUtils.getHash(localState),
       patch: objectMerge.diff(state.getAncestorState(), localState),
       type: fullSync ? 'full' : 'any',
     };
@@ -146,9 +148,9 @@ exp.sync = async function(fullSync) {
         '[SYNC] CLIENT: ',
         ancestorHash,
         ' SERVER: ',
-        serverState.md5
+        serverState.checksum
       );
-      if (ancestorHash !== serverState.md5) {
+      if (ancestorHash !== serverState.checksum) {
         if (fullSync) {
           // Something went wrong after trying a full sync, we probaly can't do anything about it!
           // serverState.base should have contained a verbatium copy of what the server has, so this is weird.
@@ -156,10 +158,13 @@ exp.sync = async function(fullSync) {
             '[SYNC] Yikes! Something went wrong while attempting full sync'
           );
           console.log(
-            getMd5(state.getAncestorState()),
-            getMd5(serverState.base)
+            commonUtils.getHash(state.getAncestorState()),
+            commonUtils.getHash(serverState.base)
           );
-          console.log(state.getAncestorState(), serverState.base);
+
+          console.log(commonUtils.getObjectString(state.getAncestorState()));
+          console.log(commonUtils.getObjectString(serverState.base));
+
           // Set the state back to what it was when we first did a sync
           state.setAncestorState(ancestorStateCopy);
           throw new Error(-3);
@@ -169,7 +174,12 @@ exp.sync = async function(fullSync) {
           console.log(
             '[SYNC] Something went wrong while attempting patch sync'
           );
-          console.log(getMd5(state.getLocalState), serverState.md5);
+          console.log(
+            commonUtils.getHash(state.getLocalState),
+            serverState.checksum
+          );
+
+          console.log(commonUtils.getObjectString(state.getLocalState));
 
           // Set the state back to what it was when we first did a sync
           state.setAncestorState(ancestorStateCopy);
@@ -238,14 +248,26 @@ exp.sync = async function(fullSync) {
       // Issue with patch based sync, re-try with a full sync
       console.warn('[SYNC] Issue with patch sync: attemtping full sync');
       return await exp.sync(true);
+    } else if (+err.message === 400) {
+      console.warn('[SYNC] Issue with sync 400');
+      dialog.show_notification(
+        'Auto sync failed with message "' +
+          err.message +
+          '". Try refreshing the page, the app may have been updated. Details: ' +
+          err,
+        () => {}
+      );
+      console.log(err);
+      setSyncState(SYNC_STATUS_ENUM.ERROR);
     } else {
       // Other 500s, 400s are probably bugs :(, tell the user something is wrong
       console.warn('[SYNC] Probable bug encountered');
-      alert(
-        'Auto sync failed with status ' +
+      dialog.show_notification(
+        'Auto sync failed with message "' +
           err.message +
-          ". App will continue to function, but your data won't be synced with the server. Consider backing up your data from the main menu to avoid data loss. Details: " +
-          err
+          `". App will continue to function, but your data won't be synced with the server. Consider backing up your data from the main menu to avoid data loss. Details: ` +
+          err,
+        () => {}
       );
       console.log(err);
       setSyncState(SYNC_STATUS_ENUM.ERROR);
@@ -282,7 +304,7 @@ exp.getLocalState = function() {
 };
 
 exp.getLocalStateChecksum = function() {
-  return getMd5(LOCAL_DB_STATE);
+  return commonUtils.getHash(LOCAL_DB_STATE);
 };
 
 exp.setLocalState = function(newState) {
@@ -303,11 +325,14 @@ exp.setAncestorState = function(s) {
 };
 
 exp.getAncestorStateChecksum = function() {
-  return getMd5(ANCESTOR_DB_STATE);
+  return commonUtils.getHash(ANCESTOR_DB_STATE);
 };
 
 exp.hasAnythingChanged = function() {
-  return getMd5(LOCAL_DB_STATE) !== getMd5(INITIAL_STATE);
+  // TODO: It's probaby faster just to comare these directly
+  return (
+    commonUtils.getHash(LOCAL_DB_STATE) !== commonUtils.getHash(INITIAL_STATE)
+  );
 };
 
 // TEAM
@@ -945,18 +970,6 @@ function getNextId() {
   crypto.getRandomValues(arr);
   let hex = Array.from(arr, dec2hex).join('');
   return idUtils.hexToBase62(hex).padStart(14, '0');
-}
-
-function getMd5(data) {
-  let checksum = hasher(data, {
-    algorithm: 'md5',
-    excludeValues: false,
-    respectFunctionProperties: false,
-    respectFunctionNames: false,
-    respectType: false,
-    encoding: 'base64',
-  });
-  return checksum.slice(0, -2); // Remove trailing '=='
 }
 
 // NOT SURE THIS IS THE RIGHT PLACE FOR THESE. MOVE TO SOME OTHER UTIL?

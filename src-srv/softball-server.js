@@ -11,9 +11,9 @@ const bodyParser = require('body-parser');
 const favicon = require('serve-favicon');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const hasher = require('object-hash');
 const got = require('got');
 
+const commonUtils = require('../common-utils');
 const configAccessor = require('./config-accessor');
 const HandledError = require('./handled-error');
 const idUtils = require('../id-utils');
@@ -557,13 +557,13 @@ module.exports = class SoftballServer {
 
     /*
 			req: {
-				md5: db8a5d3c57a8e5f7aa7b
+				checksum: db8a5d3c57a8e5f7aa7b
 				patch: {...}
 				type: {full|any}
 			}
 
 			res: {
-				md5: db8a5d3c57a8e5f7aa7b
+				checksum: db8a5d3c57a8e5f7aa7b
 				patchs: []
 					-- OR --
 				base: {...}
@@ -581,12 +581,18 @@ module.exports = class SoftballServer {
         let data = req.body;
 
         // Validate the request
-        if (!data['md5']) {
-          throw new HandledError(
-            400,
-            'Missing required field: md5',
-            JSON.stringify(data)
-          );
+        if (!data['checksum']) {
+          if (data['md5']) {
+            // We re-named this field (md5 -> checksum), doing this check prevents users from getting a scary error message
+            // before they refresh the page and get the most recent version of the app. It can be removed later.
+            data.checksum = data['md5'];
+          } else {
+            throw new HandledError(
+              400,
+              'Missing required field: checksum',
+              JSON.stringify(data)
+            );
+          }
         }
 
         // Prevent race conditions across requests
@@ -626,7 +632,7 @@ module.exports = class SoftballServer {
               accountId,
               "updatedState",
               JSON.stringify(state, null, 2),
-              getMd5(state)
+              commonUtils.getHash(state)
             );
             */
             anyChangesMade = true;
@@ -636,14 +642,14 @@ module.exports = class SoftballServer {
 
           // Calculate the checksum current state
           state = state || (await this.databaseCalls.getState(accountId));
-          let checksum = getMd5(state);
+          let checksum = commonUtils.getHash(state);
 
           // Compare the calculated checksum with the checksum provided by the client to determine if the server has updates for the client.
-          if (data.md5 !== checksum) {
+          if (data.checksum !== checksum) {
             logger.log(
               accountId,
               'Server has updates. CLIENT: ',
-              data.md5,
+              data.checksum,
               ' SERVER: ',
               checksum
             );
@@ -681,17 +687,33 @@ module.exports = class SoftballServer {
                 'Ansestor present:',
                 !!serverAncestor
               );
+
+              // The browser specifically requested a full sync, something must have gone wrong with the patch sync.
+              // Print the state string so we can compare what went wrong with the browser's version
+              if (data.type === 'full') {
+                logger.warn(
+                  accountId,
+                  'State',
+                  commonUtils.getObjectString(state.getLocalState)
+                );
+              }
+
               responseData.base =
                 state || (await this.databaseCalls.getState(accountId));
             }
 
             anyChangesMade = true;
           } else {
-            logger.log(accountId, 'No updates from server', data.md5, checksum);
+            logger.log(
+              accountId,
+              'No updates from server',
+              data.checksum,
+              checksum
+            );
           }
 
-          // Whatever happened,we need to send the checksum back
-          responseData.md5 = checksum;
+          // Whatever happened, we need to send the checksum back
+          responseData.checksum = checksum;
 
           // Finally, if changes were made by either the client or the server, update the ancestor state for this session. This will reduce network egress for subsequent syncs.
           if (anyChangesMade) {
@@ -1011,19 +1033,6 @@ module.exports = class SoftballServer {
           resolve(ms);
         }, ms);
       });
-    }
-
-    // Calculate the md5 checksum of the data and return the result as a base64 string
-    function getMd5(data) {
-      let checksum = hasher(data, {
-        algorithm: 'md5',
-        excludeValues: false,
-        respectFunctionProperties: false,
-        respectFunctionNames: false,
-        respectType: false,
-        encoding: 'base64',
-      });
-      return checksum.slice(0, -2); // Remove trailing '=='
     }
 
     async function generateToken(length = 30) {
