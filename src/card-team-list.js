@@ -3,8 +3,9 @@ import DOM from 'react-dom-factories';
 import state from 'state';
 import { setRoute } from 'actions/route';
 import Card from 'elements/card';
+import injectSheet from 'react-jss';
 
-export default class CardTeamList extends React.Component {
+class CardTeamList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
@@ -31,7 +32,7 @@ export default class CardTeamList extends React.Component {
           id: 'team-' + team.id,
           team_id: team.id,
           key: 'team' + team.id,
-          className: 'list-item',
+          className: 'list-item ' + this.props.classes.listItem,
           onClick: this.handleTeamClick.bind(this, team),
           style: {
             display: 'flex',
@@ -59,12 +60,12 @@ export default class CardTeamList extends React.Component {
       );
     });
 
-    elems.push(
+    elems.unshift(
       DOM.div(
         {
           key: 'newTeam',
           id: 'newTeam',
-          className: 'list-item add-list-item',
+          className: 'list-item add-list-item ' + this.props.classes.listItem,
           onClick: this.handleCreateClick,
         },
         '+ Add New Team'
@@ -83,3 +84,12 @@ export default class CardTeamList extends React.Component {
     return <Card title="Teams">{this.renderTeamList()}</Card>;
   }
 }
+export default injectSheet(theme => ({
+  listItem: {
+    lineHeight: '20px',
+    [`@media (max-width:${theme.breakpoints.sm})`]: {
+      fontSize: '14px',
+      lineHeight: '14px',
+    },
+  },
+}))(CardTeamList);

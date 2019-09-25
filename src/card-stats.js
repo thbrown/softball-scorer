@@ -204,16 +204,42 @@ export default class CardStats extends React.Component {
     );
   }
 
+  renderNoTable() {
+    if (this.props.routingMethod === 'app') {
+      return (
+        <CardSection isCentered={true}>
+          There aren't any stats for this team yet!
+        </CardSection>
+      );
+    } else {
+      return (
+        <Card title={`${this.props?.team?.name} Stats`}>
+          <div
+            style={{
+              color: css.colors.TEXT_LIGHT,
+              display: 'flex',
+              justifyContent: 'space-around',
+              marginTop: css.spacing.xSmall,
+            }}
+          >
+            <div> There aren't any stats for this team yet! </div>
+          </div>
+        </Card>
+      );
+    }
+  }
+
   render() {
     const { team, routingMethod, state: stateProps } = this.props;
-
-    if (!team) {
-      throw new Error('No team given to CardStats.');
-    }
 
     // TODO: Generate this once when the component mounts.  It's very redundant to do it
     // on each render
     const s = stateProps || state.getLocalState();
+
+    if (!team) {
+      return this.renderNoTable();
+    }
+
     const playerStatsList = s.players
       .filter(player => {
         return team.games.reduce((result, game) => {
@@ -228,7 +254,7 @@ export default class CardStats extends React.Component {
       });
 
     if (playerStatsList.length === 0) {
-      throw new Error('No playerStats could be generated.');
+      return this.renderNoTable();
     }
 
     const tableElems = [this.renderStatsHeader()].concat(

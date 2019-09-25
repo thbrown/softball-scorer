@@ -47,6 +47,9 @@ const exp = {
     large: '20rem',
     xLarge: '30rem',
   },
+  breakpoints: {
+    sm: '320px',
+  },
   config: {
     SYNC_DELAY: '10s',
   },

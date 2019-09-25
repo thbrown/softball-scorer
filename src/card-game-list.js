@@ -1,9 +1,10 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 import state from 'state';
 import { setRoute } from 'actions/route';
+import { sortObjectsByDate } from 'utils/functions';
+import injectSheet from 'react-jss';
 
-export default class CardGameList extends React.Component {
+class CardGameList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
@@ -12,9 +13,8 @@ export default class CardGameList extends React.Component {
       setRoute(`/teams/${props.team.id}/games/${game.id}`); // TODO: always back to lineup?
     };
 
-    this.handleEditClick = function(game, ev) {
+    this.handleEditClick = function(game) {
       setRoute(`/teams/${props.team.id}/games/${game.id}/edit`);
-      ev.stopPropagation();
     };
 
     this.handleCreateClick = function() {
@@ -24,53 +24,45 @@ export default class CardGameList extends React.Component {
   }
 
   renderGameList() {
-    const elems = this.props.team.games.map(game => {
-      return DOM.div(
-        {
-          game_id: game.id,
-          id: 'game-' + game.id,
-          key: 'game' + game.id,
-          className: 'list-item',
-          onClick: this.handleGameClick.bind(this, game),
-          style: {
-            display: 'flex',
-            justifyContent: 'space-between',
-          },
-        },
-        DOM.div(
-          {
-            className: 'prevent-overflow',
-          },
-          'Vs. ' + game.opponent
-        ),
-        DOM.div(
-          {
-            style: {},
-          },
-          DOM.img({
-            src: '/server/assets/edit.svg',
-            alt: 'edit',
-            className: 'list-button',
-            id: 'game-' + game.id + '-edit',
-            onClick: this.handleEditClick.bind(this, game),
-          })
-        )
+    const elems = sortObjectsByDate(this.props.team.games).map(game => {
+      return (
+        <div
+          key={'game-' + game.id}
+          id={'game-' + game.id}
+          className={'list-item ' + this.props.classes.listItem}
+          onClick={this.handleGameClick.bind(this, game)}
+        >
+          <img
+            src="/server/assets/edit.svg"
+            alt="edit"
+            className={'list-button ' + this.props.classes.listButton}
+            id={'game-' + game.id + '-edit'}
+            onClick={ev => {
+              this.handleEditClick(game);
+              ev.preventDefault();
+              ev.stopPropagation();
+            }}
+          />
+          <div className={this.props.classes.dateText}>
+            {new Date(game.date * 1000).toISOString().substring(0, 10)}
+          </div>
+          <div className="prevent-overflow">{'Vs. ' + game.opponent}</div>
+        </div>
       );
     });
 
-    elems.push(
-      DOM.div(
-        {
-          id: 'newGame',
-          key: 'newGame',
-          className: 'list-item add-list-item',
-          onClick: this.handleCreateClick,
-        },
-        '+ Add New Game'
-      )
+    elems.unshift(
+      <div
+        id="newGame"
+        key="newGame"
+        className={'list-item add-list-item ' + this.props.classes.listItem}
+        onClick={this.handleCreateClick}
+      >
+        + Add New Game
+      </div>
     );
 
-    return DOM.div({}, elems);
+    return <>{elems}</>;
   }
 
   render() {
@@ -81,3 +73,21 @@ export default class CardGameList extends React.Component {
     );
   }
 }
+
+export default injectSheet(theme => ({
+  listItem: {
+    lineHeight: '20px',
+    [`@media (max-width:${theme.breakpoints.sm})`]: {
+      fontSize: '14px',
+      lineHeight: '14px',
+    },
+  },
+  listButton: {
+    float: 'right',
+  },
+  dateText: {
+    float: 'right',
+    marginRight: '32px',
+    fontSize: '12px',
+  },
+}))(CardGameList);
