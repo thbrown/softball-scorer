@@ -23,9 +23,9 @@ export const createTeamUI = wrapper => {
     .simulate('change', { target: { value: TEST_TEAM_NAME } });
   wrapper.find('#save').simulate('click');
 
-  // when the Save button is pressed, the team should be in the state as the last team
+  // when the Save button is pressed, the team should be in the state as the first team
   const teams = state.getLocalState().teams;
-  const newTeam = teams.slice(-1)[0];
+  const newTeam = teams[0];
   expect(newTeam).toBeTruthy();
   expect(newTeam.name).toEqual(TEST_TEAM_NAME);
   expect(newTeam.games.length).toEqual(0);
@@ -43,9 +43,9 @@ export const createGameUI = (wrapper, teamId) => {
   wrapper.find('#lineupType').simulate('change', { target: { value: 1 } });
   wrapper.find('#save').simulate('click');
 
-  // the last game in the list for this team should be the newly-created game
+  // the first game in the list for this team should be the newly-created game
   const games = state.getTeam(teamId).games;
-  const newGame = games.slice(-1)[0];
+  const newGame = games[0];
   expect(newGame).toBeTruthy();
   expect(newGame.opponent).toEqual(TEST_GAME_NAME);
   expect(newGame.lineupType).toEqual(1);

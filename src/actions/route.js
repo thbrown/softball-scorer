@@ -29,6 +29,10 @@ export function goBack() {
   }
 }
 
+export function goHome() {
+  setRoute('/');
+}
+
 export function setOnGoBack(cb) {
   onGoBack = cb;
 }
