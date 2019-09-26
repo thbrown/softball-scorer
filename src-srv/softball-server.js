@@ -260,7 +260,10 @@ module.exports = class SoftballServer {
           }
           res.status(200).send(state);
         } else {
-          logger.warn(null, 'No account found with stat_page_id=' + publicId);
+          logger.warn(
+            null,
+            'No account found with stat_page_id=' + publicTeamId
+          );
           res.status(404).send();
         }
       })

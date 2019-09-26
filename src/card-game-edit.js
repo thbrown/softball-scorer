@@ -4,7 +4,7 @@ import dialog from 'dialog';
 import state from 'state';
 import Card from 'elements/card';
 import CardSection from 'elements/card-section';
-import { goBack } from 'actions/route';
+import { goBack, goHome } from 'actions/route';
 import FloatingInput from 'elements/floating-input';
 import FloatingSelect from 'elements/floating-select';
 
@@ -16,21 +16,30 @@ export default class CardGameEdit extends React.Component {
       ...this.props.game,
     };
 
-    this.homeOrBack = () => {
-      dialog.show_confirm(
-        props.isNew
-          ? 'Are you sure you wish to discard this game?'
-          : 'Are you sure you wish to discard changes to this game?',
-        () => {
-          if (props.isNew) {
-            state.removeGame(props.game.id, props.team.id);
-          } else {
-            state.replaceGame(props.game.id, props.team.id, { ...this.state });
+    this.isPristine = props.isNew ? false : true;
+
+    this.homeOrBack = type => cb => {
+      if (!this.isPristine) {
+        dialog.show_confirm(
+          props.isNew
+            ? 'Are you sure you wish to discard this game?'
+            : 'Are you sure you wish to discard changes to this game?',
+          () => {
+            if (props.isNew) {
+              state.removeGame(props.game.id, props.team.id);
+            }
+            if (type === 'home') {
+              goHome();
+            } else {
+              goBack();
+            }
           }
-          goBack();
-        }
-      );
-      return true;
+        );
+        return true;
+      }
+      if (cb) {
+        cb();
+      }
     };
 
     this.handleConfirmClick = () => {
@@ -39,26 +48,29 @@ export default class CardGameEdit extends React.Component {
     };
 
     this.handleCancelClick = () => {
-      this.homeOrBack();
+      this.homeOrBack('back')(goBack);
     };
 
     this.handleDeleteClick = () => {
       dialog.show_confirm(
         `Are you sure you want to delete the game against ${props.game.opponent}?`,
         () => {
-          state.removeGame(props.game.id, props.team.id);
+          // FIXME this causes a brief 404 to flash on the page
           goBack();
+          state.removeGame(props.game.id, props.team.id);
         }
       );
     };
 
     this.handleOpponentNameChange = value => {
+      this.isPristine = false;
       this.setState({
         opponent: value,
       });
     };
 
     this.handleLineupTypeChange = newValue => {
+      this.isPristine = false;
       this.setState({
         lineupType: parseInt(newValue),
       });
@@ -192,8 +204,8 @@ export default class CardGameEdit extends React.Component {
     return (
       <Card
         title="Edit Game"
-        leftHeaderProps={{ onClick: this.homeOrBack }}
-        rightHeaderProps={{ onClick: this.homeOrBack }}
+        leftHeaderProps={{ onClick: this.homeOrBack('back') }}
+        rightHeaderProps={{ onClick: this.homeOrBack('home') }}
       >
         <CardSection>{this.renderGameEdit()}</CardSection>
       </Card>

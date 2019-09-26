@@ -22,7 +22,20 @@ const styles = theme => ({
     margin: '4px',
   },
   button: {
-    cursor: 'pointer',
+    cursor: 'default',
+    padding: '12px',
+    color: theme.colors.TEXT_LIGHT,
+    border: `2px solid ${theme.colors.SECONDARY}`,
+    borderRadius: '4px',
+    textAlign: 'center',
+    fontSize: '18px',
+    width: '48px',
+    margin: '2px',
+    [`@media (max-width:${theme.breakpoints.sm})`]: {
+      fontSize: '16px',
+      padding: '6px',
+      margin: '0px',
+    },
   },
   buttonSelected: {
     backgroundColor: theme.colors.SECONDARY,
@@ -228,7 +241,7 @@ class CardPlateAppearance extends React.Component {
           id={'result-' + result}
           key={`${i} ${result}`}
           className={
-            'button result-button' +
+            this.props.classes.button +
             (this.state.paResult === result
               ? ' ' + this.props.classes.buttonSelected
               : '')
