@@ -19,11 +19,11 @@ process.on('exit', function() {
   process.stdout.write('Bye\n');
 });
 
-// Inject the database service based on config values
-const databaseCalls = configAccessor.getDatabaseService();
-
 // Inject the cache service based on config values
 const cacheCalls = configAccessor.getCacheService();
+
+// Inject the database service based on config values
+const databaseCalls = configAccessor.getDatabaseService(cacheCalls);
 
 // Inject the compute service (for running optimizations)
 const compute = configAccessor.getComputeService();

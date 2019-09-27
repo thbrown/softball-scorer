@@ -29,7 +29,7 @@ let compute;
 /**
  * Accessor utility for config values. This is responsible for setting defaults and handling nested json extraction.
  */
-module.exports.getDatabaseService = function() {
+module.exports.getDatabaseService = function(cacheService) {
   if (database) {
     return database;
   }
@@ -47,6 +47,7 @@ module.exports.getDatabaseService = function() {
       pgusername,
       pgpassword,
       pgdatabase,
+      cacheService,
       err => {
         if (err) {
           logger.log('sys', 'Encountered an error connecting to db', err);

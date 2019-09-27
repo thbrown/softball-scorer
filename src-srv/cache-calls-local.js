@@ -48,6 +48,26 @@ module.exports = class CacheCalls {
     this.putData(accountId, 'ancestor' + sessionId, ancestor);
   }
 
+  async setCache(value, key, secondKey) {
+    // TODO
+    return undefined;
+  }
+
+  async getCache(key, secondKey) {
+    // TODO
+    return undefined;
+  }
+
+  async deleteCache(key, secondKey) {
+    // TODO
+    return undefined;
+  }
+
+  async resetCacheTTL(key) {
+    // TODO
+    return undefined;
+  }
+
   // Intended for these to be private methods
   getData(accountId, field) {
     if (this.cache[accountId]) {
@@ -61,7 +81,7 @@ module.exports = class CacheCalls {
     this.cache[key] = value;
 
     if (this.timers[key]) {
-      console.log('clearign timeout', key, value);
+      console.log('clearing timeout', key, value);
       clearTimeout(this.timers[key]);
     }
     this.timers[key] = setTimeout(

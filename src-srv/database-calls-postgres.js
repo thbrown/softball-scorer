@@ -1,5 +1,6 @@
 const { Pool } = require('pg');
 
+const commonUtils = require('../common-utils.js');
 const HandledError = require('./handled-error.js');
 const idUtils = require('../id-utils.js');
 const logger = require('./logger.js');
@@ -12,8 +13,9 @@ const sqlGen = require('./sql-gen.js');
  * If the coutner fields ever overflows, it's not a big deal (unless sombody is inserting 2 billion + records in the same timestamp).
  */
 module.exports = class DatabaseCalls {
-  constructor(url, port, user, password, database, cb) {
+  constructor(url, port, user, password, database, cacheService, cb) {
     logger.log('sys', 'Connecting to pg', url);
+    this.cacheService = cacheService;
     this.pool = new Pool({
       user: user,
       host: url,
@@ -242,118 +244,205 @@ module.exports = class DatabaseCalls {
     if (accountId === undefined) {
       return { players: [], optimizations: [], teams: [] };
     }
-    let self = this;
-    return new Promise(function(resolve, reject) {
-      var players = self.parameterizedQueryPromise(
-        `
-        SELECT 
-          id as id,
-          name as name,
-          gender as gender,
-          song_link as song_link,
-          song_start as song_start
-        FROM players
-        WHERE account_id = $1
-        ORDER BY 
-          created_at ASC,
-          counter ASC
-      `,
-        [accountId]
-      );
-
-      var optimizations = self.parameterizedQueryPromise(
-        `
-        SELECT 
-          id as id,
-          name as name,
-          type as type,
-          custom_data as custom_data,
-          override_data as override_data,
-          status as status,
-          result_data as result_data,
-          status_message as status_message,
-          send_email as send_email,
-          team_list as team_list,
-          game_list as game_list,
-          player_list as player_list,
-          lineup_type as lineup_type
-        FROM optimization
-        WHERE account_id = $1
-        ORDER BY 
-          created_at ASC,
-          counter ASC
-        `,
-        [accountId]
-      );
-
-      var teams = self.parameterizedQueryPromise(
-        `
-        SELECT
-          teams.id as team_id, 
-          teams.name as team_name,
-          teams.public_id as public_id,
-          teams.public_id_enabled as public_id_enabled,
-          games.id as game_id,
-          extract (epoch from games.date) as game_date, 
-          games.opponent as game_opponent, 
-          games.park as game_park, 
-          games.score_us as score_us, 
-          games.score_them as score_them,
-          games.lineup_type as lineup_type,
-          plate_appearances.id as plate_appearance_id, 
-          plate_appearances.result as result,
-          plate_appearances.hit_location_x as x,
-          plate_appearances.hit_location_y as y,
-          plate_appearances.player_id as player_id,
-          sub_lineup.lineup as lineup
-        FROM 
-          plate_appearances
-        FULL JOIN games ON games.id=plate_appearances.game_id
-        FULL JOIN (SELECT players_games.game_id as game_id, string_agg(players_games.player_id::text, ', ' order by players_games.lineup_index) as lineup
-          FROM players_games
-          WHERE players_games.account_id = $1
-          GROUP BY players_games.game_id) as sub_lineup ON sub_lineup.game_id=games.id
-        FULL JOIN teams ON games.team_id=teams.id
-        WHERE 
-          teams.account_id = $1
-        ORDER BY
-          teams.created_at ASC,
-          teams.counter ASC,
-          games.created_at ASC,
-          games.counter ASC,
-          plate_appearances.created_at ASC,
-          plate_appearances.counter ASC;
-      `,
-        [accountId]
-      );
-
-      Promise.all([players, optimizations, teams]).then(function(values) {
-        var milliseconds = new Date().getTime();
-
-        var state = {};
-
-        // Players
-        state.players = self.processPlayers(values[0].rows);
-
-        // Optimizations
-        state.optimizations = self.processOptimizations(values[1].rows);
-
-        // Teams
-        state.teams = self.processTeams(values[2].rows);
-
-        // For some reason the object hash changes before and after stringification. I couldn't quite figure out why this was happening
-        // the objects with different hashes appear to be identical. So, I'll add this deep copy here for now so we are always hashing
-        // the post-stringified object. This fixes the hash mismatching problem.
-        state = JSON.parse(JSON.stringify(state));
-
-        logger.log(
-          accountId,
-          `SYNC parse took ${new Date().getTime() - milliseconds}ms`
+    return new Promise(
+      function(resolve, reject) {
+        let cacheStartTime = Date.now();
+        // First check to see if the info we need exists in cache, if not look in db
+        let cachedPlayersProm = this.cacheService.getCache(
+          `acct:${accountId}:players`
+        );
+        let cachedOptimizationsProm = this.cacheService.getCache(
+          `acct:${accountId}:optimizations`
+        );
+        let cachedTeamsProm = this.cacheService.getCache(
+          `acct:${accountId}:teams`
         );
 
-        resolve(state);
-      });
-    });
+        Promise.all([
+          cachedPlayersProm,
+          cachedOptimizationsProm,
+          cachedTeamsProm,
+        ]).then(
+          function(values) {
+            let cacheEndTime = Date.now();
+
+            let cachedPlayers = values[0];
+            let players;
+            if (cachedPlayers) {
+              players = Promise.resolve();
+            } else {
+              players = this.parameterizedQueryPromise(
+                `
+                SELECT 
+                  id as id,
+                  name as name,
+                  gender as gender,
+                  song_link as song_link,
+                  song_start as song_start
+                FROM players
+                WHERE account_id = $1
+                ORDER BY 
+                  created_at ASC,
+                  counter ASC
+                `,
+                [accountId]
+              );
+            }
+
+            let cachedOptimizations = values[1];
+            let optimizations;
+            if (cachedOptimizations) {
+              optimizations = Promise.resolve();
+            } else {
+              optimizations = this.parameterizedQueryPromise(
+                `
+                SELECT 
+                  id as id,
+                  name as name,
+                  type as type,
+                  custom_data as custom_data,
+                  override_data as override_data,
+                  status as status,
+                  result_data as result_data,
+                  status_message as status_message,
+                  send_email as send_email,
+                  team_list as team_list,
+                  game_list as game_list,
+                  player_list as player_list,
+                  lineup_type as lineup_type
+                FROM optimization
+                WHERE account_id = $1
+                ORDER BY 
+                  created_at ASC,
+                  counter ASC
+                `,
+                [accountId]
+              );
+            }
+
+            let cachedTeams = values[2];
+            let teams;
+            if (cachedTeams) {
+              teams = Promise.resolve();
+            } else {
+              teams = this.parameterizedQueryPromise(
+                `
+                SELECT
+                  teams.id as team_id, 
+                  teams.name as team_name,
+                  teams.public_id as public_id,
+                  teams.public_id_enabled as public_id_enabled,
+                  games.id as game_id,
+                  extract (epoch from games.date) as game_date, 
+                  games.opponent as game_opponent, 
+                  games.park as game_park, 
+                  games.score_us as score_us, 
+                  games.score_them as score_them,
+                  games.lineup_type as lineup_type,
+                  plate_appearances.id as plate_appearance_id, 
+                  plate_appearances.result as result,
+                  plate_appearances.hit_location_x as x,
+                  plate_appearances.hit_location_y as y,
+                  plate_appearances.player_id as player_id,
+                  sub_lineup.lineup as lineup
+                FROM 
+                  plate_appearances
+                FULL JOIN games ON games.id=plate_appearances.game_id
+                FULL JOIN (SELECT players_games.game_id as game_id, string_agg(players_games.player_id::text, ', ' order by players_games.lineup_index) as lineup
+                  FROM players_games
+                  WHERE players_games.account_id = $1
+                  GROUP BY players_games.game_id) as sub_lineup ON sub_lineup.game_id=games.id
+                FULL JOIN teams ON games.team_id=teams.id
+                WHERE 
+                  teams.account_id = $1
+                ORDER BY
+                  teams.created_at ASC,
+                  teams.counter ASC,
+                  games.created_at ASC,
+                  games.counter ASC,
+                  plate_appearances.created_at ASC,
+                  plate_appearances.counter ASC;
+                `,
+                [accountId]
+              );
+            }
+
+            Promise.all([players, optimizations, teams]).then(
+              function(values) {
+                var dbEndTime = Date.now();
+
+                var state = {};
+
+                // Players
+                state.players = cachedPlayers
+                  ? JSON.parse(cachedPlayers)
+                  : this.processPlayers(values[0].rows);
+
+                // Optimizations
+                state.optimizations = cachedOptimizations
+                  ? JSON.parse(cachedOptimizations)
+                  : this.processOptimizations(values[1].rows);
+
+                // Teams
+                state.teams = cachedTeams
+                  ? JSON.parse(cachedTeams)
+                  : this.processTeams(values[2].rows);
+
+                // Update the caches, or keep them hot
+                if (cachedPlayers) {
+                  this.cacheService.resetCacheTTL(`acct:${accountId}:players`);
+                } else {
+                  this.cacheService.setCache(
+                    JSON.stringify(state.players),
+                    `acct:${accountId}:players`
+                  );
+                }
+
+                if (cachedOptimizations) {
+                  this.cacheService.resetCacheTTL(
+                    `acct:${accountId}:optimizations`
+                  );
+                } else {
+                  this.cacheService.setCache(
+                    JSON.stringify(state.optimizations),
+                    `acct:${accountId}:optimizations`
+                  );
+                }
+
+                if (cachedTeams) {
+                  this.cacheService.resetCacheTTL(`acct:${accountId}:teams`);
+                } else {
+                  this.cacheService.setCache(
+                    JSON.stringify(state.teams),
+                    `acct:${accountId}:teams`
+                  );
+                }
+
+                // For some reason the object hash changes before and after stringification. I couldn't quite figure out why this was happening
+                // the objects with different hashes appear to be identical. So, I'll add this deep copy here for now so we are always hashing
+                // the post-stringified object. This fixes the hash mismatching problem.
+                state = JSON.parse(JSON.stringify(state));
+
+                var dbProcessEndTime = Date.now();
+
+                logger.log(
+                  accountId,
+                  `SYNC players=${cachedPlayers ? 'CACHE' : 'DB'} teams=${
+                    cachedTeams ? 'CACHE' : 'DB'
+                  } optimizations=${cachedOptimizations ? 'CACHE' : 'DB'}`,
+                  `CacheRetrieve: ${cacheEndTime - cacheStartTime}ms`,
+                  `DbRetrieve: ${dbEndTime - cacheEndTime}ms`,
+                  `Processing: ${dbProcessEndTime - dbEndTime}ms`,
+                  `Total: ${dbProcessEndTime - cacheStartTime}ms`
+                );
+
+                resolve(state);
+              }.bind(this)
+            );
+          }.bind(this)
+        );
+      }.bind(this)
+    );
   }
 
   getStateForTeam(accountId, teamId) {
@@ -361,86 +450,155 @@ module.exports = class DatabaseCalls {
       return { players: [], teams: [] };
     }
     let self = this;
-    return new Promise(function(resolve, reject) {
-      var players = self.parameterizedQueryPromise(
-        `
-        SELECT   
-        id as id,
-        name as name,
-        gender as gender,
-        song_link as song_link,
-        song_start as song_start FROM players WHERE id IN 
-        (SELECT DISTINCT player_id FROM players_games WHERE game_id IN 
-          (SELECT id FROM games WHERE team_id = $2)
-          )
-        AND account_id = $1
-        ORDER BY 
-        players.created_at ASC,
-        players.counter ASC
-        `,
-        [accountId, teamId]
-      );
+    return new Promise(
+      function(resolve, reject) {
+        let cacheStartTime = Date.now();
 
-      var teams = self.parameterizedQueryPromise(
-        `
-        SELECT
-          teams.id as team_id, 
-          teams.name as team_name,
-          teams.public_id as public_id,
-          teams.public_id_enabled as public_id_enabled,
-          games.id as game_id,
-          extract (epoch from games.date) as game_date, 
-          games.opponent as game_opponent, 
-          games.park as game_park, 
-          games.score_us as score_us, 
-          games.score_them as score_them,
-          games.lineup_type as lineup_type,
-          plate_appearances.id as plate_appearance_id, 
-          plate_appearances.result as result,
-          plate_appearances.hit_location_x as x,
-          plate_appearances.hit_location_y as y,
-          plate_appearances.player_id as player_id,
-          sub_lineup.lineup as lineup
-        FROM 
-          plate_appearances
-        FULL JOIN games ON games.id=plate_appearances.game_id
-        FULL JOIN (SELECT players_games.game_id as game_id, string_agg(players_games.player_id::text, ', ' order by players_games.lineup_index) as lineup
-          FROM players_games
-          WHERE players_games.account_id = $1
-          GROUP BY players_games.game_id) as sub_lineup ON sub_lineup.game_id=games.id
-        FULL JOIN teams ON games.team_id=teams.id
-        WHERE 
-          teams.account_id = $1 AND 
-          teams.id = $2
-        ORDER BY
-          teams.created_at ASC,
-          teams.counter ASC,
-          games.created_at ASC,
-          games.counter ASC,
-          plate_appearances.created_at ASC,
-          plate_appearances.counter ASC;
-      `,
-        [accountId, teamId]
-      );
-
-      Promise.all([players, teams]).then(function(values) {
-        var milliseconds = new Date().getTime();
-        var state = {};
-
-        // Players
-        state.players = self.processPlayers(values[0].rows);
-
-        // Teams
-        state.teams = self.processTeams(values[1].rows);
-
-        logger.log(
-          accountId,
-          `SYNC_PULL_TEAM took ${new Date().getTime() - milliseconds}ms`
+        // First check to see if the info we need exists in cache, if not look in db
+        let cachedPlayersProm = this.cacheService.getCache(
+          `acct:${accountId}:players-for-team`,
+          idUtils.serverIdToClientId(teamId)
+        );
+        let cachedTeamsProm = this.cacheService.getCache(
+          `acct:${accountId}:team`,
+          idUtils.serverIdToClientId(teamId)
         );
 
-        resolve(state);
-      });
-    });
+        Promise.all([cachedPlayersProm, cachedTeamsProm]).then(
+          function(values) {
+            let cacheEndTime = Date.now();
+
+            let cachedPlayers = values[0];
+            let players;
+            if (cachedPlayers) {
+              players = Promise.resolve();
+            } else {
+              players = self.parameterizedQueryPromise(
+                `
+                SELECT   
+                id as id,
+                name as name,
+                gender as gender,
+                song_link as song_link,
+                song_start as song_start FROM players WHERE id IN 
+                (SELECT DISTINCT player_id FROM players_games WHERE game_id IN 
+                  (SELECT id FROM games WHERE team_id = $2)
+                  )
+                AND account_id = $1
+                ORDER BY 
+                players.created_at ASC,
+                players.counter ASC
+                `,
+                [accountId, teamId]
+              );
+            }
+
+            let cachedTeams = values[1];
+            let teams;
+            if (cachedTeams) {
+              teams = Promise.resolve();
+            } else {
+              teams = self.parameterizedQueryPromise(
+                `
+                SELECT
+                  teams.id as team_id, 
+                  teams.name as team_name,
+                  teams.public_id as public_id,
+                  teams.public_id_enabled as public_id_enabled,
+                  games.id as game_id,
+                  extract (epoch from games.date) as game_date, 
+                  games.opponent as game_opponent, 
+                  games.park as game_park, 
+                  games.score_us as score_us, 
+                  games.score_them as score_them,
+                  games.lineup_type as lineup_type,
+                  plate_appearances.id as plate_appearance_id, 
+                  plate_appearances.result as result,
+                  plate_appearances.hit_location_x as x,
+                  plate_appearances.hit_location_y as y,
+                  plate_appearances.player_id as player_id,
+                  sub_lineup.lineup as lineup
+                FROM 
+                  plate_appearances
+                FULL JOIN games ON games.id=plate_appearances.game_id
+                FULL JOIN (SELECT players_games.game_id as game_id, string_agg(players_games.player_id::text, ', ' order by players_games.lineup_index) as lineup
+                  FROM players_games
+                  WHERE players_games.account_id = $1
+                  GROUP BY players_games.game_id) as sub_lineup ON sub_lineup.game_id=games.id
+                FULL JOIN teams ON games.team_id=teams.id
+                WHERE 
+                  teams.account_id = $1 AND 
+                  teams.id = $2
+                ORDER BY
+                  teams.created_at ASC,
+                  teams.counter ASC,
+                  games.created_at ASC,
+                  games.counter ASC,
+                  plate_appearances.created_at ASC,
+                  plate_appearances.counter ASC;
+                `,
+                [accountId, teamId]
+              );
+            }
+
+            Promise.all([players, teams]).then(
+              function(values) {
+                let dbEndTime = Date.now();
+                var state = {};
+
+                // Players
+                state.players = cachedPlayers
+                  ? JSON.parse(cachedPlayers)
+                  : self.processPlayers(values[0].rows);
+
+                // Teams
+                state.teams = cachedTeams
+                  ? JSON.parse(cachedTeams)
+                  : self.processTeams(values[1].rows);
+
+                // Update the caches, or keep them hot
+                if (cachedPlayers) {
+                  this.cacheService.resetCacheTTL(
+                    `acct:${accountId}:players-for-team`
+                  );
+                } else {
+                  this.cacheService.setCache(
+                    JSON.stringify(state.players),
+                    `acct:${accountId}:players-for-team`,
+                    idUtils.serverIdToClientId(teamId)
+                  );
+                }
+
+                if (cachedTeams) {
+                  this.cacheService.resetCacheTTL(`acct:${accountId}:team`);
+                } else {
+                  this.cacheService.setCache(
+                    JSON.stringify(state.teams),
+                    `acct:${accountId}:team`,
+                    idUtils.serverIdToClientId(teamId)
+                  );
+                }
+
+                let dbProcessEndTime = Date.now();
+
+                logger.log(
+                  accountId,
+                  `SYNC TEAM players=${cachedPlayers ? 'CACHE' : 'DB'} teams=${
+                    cachedTeams ? 'CACHE' : 'DB'
+                  }`,
+                  `CacheRetrieve: ${cacheEndTime - cacheStartTime}ms`,
+                  `DbRetrieve: ${dbEndTime - cacheEndTime}ms`,
+                  `Processing: ${dbProcessEndTime - dbEndTime}ms`,
+                  `Total: ${dbProcessEndTime - cacheStartTime}ms`
+                );
+
+                resolve(state);
+              }.bind(this)
+            );
+          }.bind(this)
+        );
+      }.bind(this)
+    );
   }
 
   async patchState(patch, accountId) {
@@ -457,6 +615,7 @@ module.exports = class DatabaseCalls {
       await client.query('BEGIN');
       await client.query('SET CONSTRAINTS ALL DEFERRED');
 
+      let cachesToInvalidate = new Set();
       for (let i = 0; i < sqlToRun.length; i++) {
         // Check field length before saving
         for (var j = 0; j < sqlToRun[i].values.length; j++) {
@@ -491,7 +650,29 @@ module.exports = class DatabaseCalls {
         // Run the query!
         logger.log(accountId, `Executing:`, sqlToRun[i]);
         await client.query(sqlToRun[i].query, sqlToRun[i].values);
+
+        // Remember the caches we need to invalidate for this statement
+        // NOTE: for a minor perf improvement we could only invalidate the cache if the query modifies rows
+        sqlToRun[i].cache
+          .map(item => JSON.stringify(item))
+          .forEach(item => cachesToInvalidate.add(item));
       }
+
+      // Invalidate the caches
+      cachesToInvalidate.forEach(
+        async function(cacheString) {
+          logger.log(accountId, `Invalidating cache ${cacheString}`);
+          let cache = JSON.parse(cacheString);
+          if (cache.secondKey) {
+            // This is a hash value
+            await this.cacheService.deleteCache(cache.key, cache.secondKey);
+          } else {
+            // This is a string value
+            await this.cacheService.deleteCache(cache.key);
+          }
+        }.bind(this)
+      );
+
       await client.query('COMMIT');
     } catch (e) {
       await client.query('ROLLBACK');
@@ -702,6 +883,7 @@ module.exports = class DatabaseCalls {
       );
     }
     if (result.rowCount === 1) {
+      await this.cacheService.deleteCache(`acct:${accountId}:optimizations`);
       return true;
     } else if (result.rowCount === 0) {
       // The optimization may have been deleted by the user, paused by the user, or something weird is going on
@@ -725,6 +907,7 @@ module.exports = class DatabaseCalls {
       `,
       [newResults, optimizationId, accountId]
     );
+    await this.cacheService.deleteCache(`acct:${accountId}:optimizations`);
   }
 
   async getOptimizationStatus(accountId, optimizationId) {
@@ -804,6 +987,8 @@ module.exports = class DatabaseCalls {
       `,
       [newExecutionData, optimizationId, accountId]
     );
+    // We don't need to invalidate cache here because
+    // this information is not used by the client
   }
 
   async getOptimizationExecutionData(accountId, optimizationId) {
