@@ -6,11 +6,13 @@ Live at https://softball.app/
 
 1. Clone this repo `git clone https://github.com/thbrown/softball-scorer.git`.
 2. Install node.js (12.0.0+) and npm (5.6.0+). Older versions _wont_ work.
-Ubuntu:
+   Ubuntu:
+
 ```
 sudo apt-get install curl
 curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
 ```
+
 3. Install yarn `[sudo] npm install -g yarn`
 4. From this repo's root directory, run `yarn`.
 5. Setup any optional features using the sections below if desired.
@@ -24,7 +26,7 @@ The app will run without any of these enabled, but you can enable these for a pr
 
 - Postgres for persistant storage (uses in-memory storage by default)
 - Redis for caching/locking (uses in-memory caching/locking by default)
-- Nginx as a forward proxy to enable TSL and rate limiting (no forward proxy by default, unencrypted, runs on port 8888, no rate limiting)
+- Nginx as a reverse proxy to enable TLS and rate limiting (no reverse proxy by default, unencrypted, runs on port 8888, no rate limiting)
 
 ### Redis setup (tested on version 5.0.3)
 
@@ -79,20 +81,22 @@ After doing these steps you'll have to import the schema which isn't yet public
 #### Linux
 
 Dev:
+
 1. `sudo apt-get -y install postgresql postgresql-client postgresql-contrib`
 2. `sudo service postgresql restart`
 3. `sudo su postgres`
 4. `psql`
-5. You are now connected to postgres.  Run the following sql commands to create a database.
+5. You are now connected to postgres. Run the following sql commands to create a database.
 6. `CREATE DATABASE softball;`
 7. `CREATE USER softball WITH password 'softball';`
 8. `ALTER USER softball WITH SUPERUSER;`
 9. `\q`
 10. Now you need to import the schema with pg_restore.
 11. `pg_restore -d 'postgresql://softball:softball@localhost/softball' schema/schema.backup`
-12. Create a config.js file from src-srv/config-template.js.  Replace relevant fields with 'softball'.
+12. Create a config.js file from src-srv/config-template.js. Replace relevant fields with 'softball'.
 
 Live:
+
 1. `sudo apt-get -y install postgresql postgresql-client postgresql-contrib`
 2. `sudo -s`
 3. `sudo -u postgres psql postgres`

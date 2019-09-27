@@ -8,10 +8,17 @@ const configAccessor = require('./config-accessor');
 const logger = require('./logger');
 
 const LOCK_EXPIRATION_SEC = 20;
+const CACHE_TTL_SEC = 8 * 24 * 60 * 60; // 8 days, should cover weekly usage
 
 /**
- * This cache implementation uses redis to store sessions and data that must be shared between different sessions of the same account (e.g. account locking data).
- * It's used primarally to keep sessions alive between server restarts and to enable future horizontal app server scaling.
+ * This cache implementation uses redis to store sessions and data that must be shared between app servers
+ *
+ * Key format:
+ *
+ * sess:<session_id> - Session data persisted by express session redis module
+ * cache:acct:<account_id>:* - Cached data scoped to an account (keys are invalidated manually during db writes)
+ * ancestor:sess:<session_id> - Save state tree holduing the last data this client received. Used to send diffs the the client to minimize network traffic.
+ * lock:* - Lock on some object, the object then the objects id will be supplied
  */
 module.exports = class CacheCalls {
   constructor(host, port, password) {
@@ -78,6 +85,9 @@ module.exports = class CacheCalls {
     this.hsetnxAsync = promisify(this.client.hsetnx).bind(this.client);
     this.hdelAsync = promisify(this.client.hdel).bind(this.client);
     this.setAsync = promisify(this.client.set).bind(this.client);
+    this.getAsync = promisify(this.client.get).bind(this.client);
+    this.expireAsync = promisify(this.client.expire).bind(this.client);
+    this.delAsync = promisify(this.client.del).bind(this.client);
     this.evalAsync = promisify(this.client.eval).bind(this.client);
     this.setexAsync = promisify(this.client.setex).bind(this.client);
     this.delAsync = promisify(this.client.del).bind(this.client);
@@ -126,7 +136,7 @@ module.exports = class CacheCalls {
   }
 
   async getAncestor(accountId, sessionId) {
-    let stringData = await this.hgetAsync(accountId, 'ancestor:' + sessionId);
+    let stringData = await this.getAsync('ancestor:sess:' + sessionId);
     if (stringData) {
       var inflated = zlib
         .inflateSync(Buffer.from(stringData, 'base64'))
@@ -140,7 +150,42 @@ module.exports = class CacheCalls {
     var deflated = zlib
       .deflateSync(JSON.stringify(ancestor))
       .toString('base64');
-    this.hsetAsync(accountId, 'ancestor:' + sessionId, deflated);
+    await this.setAsync('ancestor:sess:' + sessionId, deflated);
+  }
+
+  async setCache(value, key, secondKey) {
+    key = 'cache:' + key;
+    if (secondKey) {
+      // TODO: make this one command with lua or multi
+      await this.hsetAsync(key, secondKey, value);
+      await this.expireAsync(key, CACHE_TTL_SEC);
+    } else {
+      await this.setAsync(key, value, 'EX', CACHE_TTL_SEC);
+    }
+  }
+
+  async getCache(key, secondKey) {
+    key = 'cache:' + key;
+    if (secondKey) {
+      return await this.hgetAsync(key, secondKey);
+    } else {
+      return await this.getAsync(key);
+    }
+  }
+
+  async deleteCache(key, secondKey) {
+    key = 'cache:' + key;
+    if (secondKey) {
+      return await this.hdelAsync(key, secondKey);
+    } else {
+      return await this.delAsync(key);
+    }
+  }
+
+  async resetCacheTTL(key) {
+    key = 'cache:' + key;
+    let result = await this.expireAsync(key, CACHE_TTL_SEC);
+    return result;
   }
 
   getSessionStore() {

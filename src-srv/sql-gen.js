@@ -201,7 +201,7 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
               op: 'DELETE',
               table: 'players_games',
             },
-            cache: getCacheFromTable('players_games'),
+            cache: getCaches('players_games', accountId, value.key),
           });
           result.push({
             query:
@@ -214,7 +214,7 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
               op: 'DELETE',
               table: 'plate_appearances',
             },
-            cache: getCacheFromTable('plate_appearances'),
+            cache: getCaches('plate_appearances', accountId, value.key),
           });
           result.push({
             query:
@@ -227,13 +227,13 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
               op: 'DELETE',
               table: 'games',
             },
-            cache: getCacheFromTable('games'),
+            cache: getCaches('games', accountId, value.key),
           });
           // The team itself will be deleted at the end of this method
         }
 
         if (applicableTable === 'games') {
-          // // Perliminary step: To delete a game, we must delete everything that references that game first (order is important)
+          // Preliminary step: To delete a game, we must delete everything that references that game first (order is important)
           result.push({
             query:
               'DELETE FROM players_games WHERE game_id IN ($1) AND account_id IN ($2)',
@@ -245,7 +245,11 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
               op: 'DELETE',
               table: 'players_games',
             },
-            cache: getCacheFromTable('players_games'),
+            cache: getCaches(
+              'players_games',
+              accountId,
+              getIdFromPath(path, 'teams')
+            ),
           });
           result.push({
             query:
@@ -258,7 +262,11 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
               op: 'DELETE',
               table: 'plate_appearances',
             },
-            cache: getCacheFromTable('plate_appearances'),
+            cache: getCaches(
+              'plate_appearances',
+              accountId,
+              getIdFromPath(path, 'teams')
+            ),
           });
           // The game itself will be deleted at the end of this method
         }
@@ -280,7 +288,7 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
               op: 'DELETE',
               table: 'players_games',
             },
-            cache: getCacheFromTable('players_games'),
+            cache: [], // Handled by statement below
           });
           result.push({
             query:
@@ -297,14 +305,18 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
               op: 'DELETE',
               table: 'players_games',
             },
-            cache: getCacheFromTable('players_games'),
+            cache: getCaches(
+              'players_games',
+              accountId,
+              getIdFromPath(path, 'teams')
+            ),
           });
         } else {
           // Now
           result.push({
             query:
               'DELETE FROM ' +
-              applicableTable + // Sanitized, this value must be on the ahrd coded list of tables in this class
+              applicableTable + // Sanitized, this value must be on the hard coded list of tables in this class
               ' WHERE id IN ($1) AND account_id IN ($2)',
             values: [
               idUtils.clientIdToServerId(value.key, accountId),
@@ -314,7 +326,11 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
               op: 'DELETE',
               table: applicableTable,
             },
-            cache: getCacheFromTable(applicableTable),
+            cache: getCaches(
+              applicableTable,
+              accountId,
+              getIdFromPath(path, 'teams')
+            ),
           });
         }
       } else if (op === 'ArrayAdd') {
@@ -330,6 +346,7 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
           parents.teamId = path[1];
           parents.gameId = path[3];
         } else if (applicableJsonValue === 'lineup') {
+          parents.teamId = path[1];
           parents.gameId = path[3];
           insertObject.position = value.param2; // lineup is not based on primary key ordering so we need to specify a position
         }
@@ -382,7 +399,7 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
             op: 'UPDATE',
             table: 'players_games',
           },
-          cache: getCacheFromTable('players_games'),
+          cache: getCaches('players_games', accountId),
         });
       } else if (op === 'Edit') {
         let columnName = getColNameFromJSONValue(value.key);
@@ -402,7 +419,7 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
               op: 'UPDATE',
               table: 'games',
             },
-            cache: getCacheFromTable('games'),
+            cache: getCaches('games', accountId, getIdFromPath(path, 'teams')),
           });
         } else {
           let limit = undefined; // defaults to 50 chars
@@ -444,7 +461,11 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
               op: 'UPDATE',
               table: applicableTable,
             },
-            cache: getCacheFromTable(applicableTable),
+            cache: getCaches(
+              applicableTable,
+              accountId,
+              getIdFromPath(path, 'teams')
+            ),
           });
         }
       } else if (op === 'Add') {
@@ -494,7 +515,7 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
         op: 'INSERT',
         table: 'players',
       },
-      cache: getCacheFromTable('players'),
+      cache: getCaches('players', accountId),
     });
   }
   if (obj.optimizations) {
@@ -538,7 +559,7 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
         op: 'INSERT',
         table: 'optimization',
       },
-      cache: getCacheFromTable('optimization'),
+      cache: getCaches('optimization', accountId),
     });
   }
   if (obj.teams) {
@@ -553,7 +574,7 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
         op: 'INSERT',
         table: 'teams',
       },
-      cache: getCacheFromTable('teams'),
+      cache: getCaches('teams', accountId, obj.teams.id),
     });
     if (obj.teams.games) {
       let insertObject = {};
@@ -585,7 +606,7 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
         op: 'INSERT',
         table: 'games',
       },
-      cache: getCacheFromTable('games'),
+      cache: getCaches('games', accountId, parents.teamId),
     });
     if (obj.games.plateAppearances) {
       let insertObject = {};
@@ -611,14 +632,14 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
         'UPDATE players_games SET lineup_index = lineup_index + 1 WHERE lineup_index >= $1 AND game_id = $2 AND account_id = $3',
       values: [
         obj.position + 1, // lineup oredering starts at 1 not 0
-        idUtils.clientIdToServerId(parents.gameId, accountId),
+        idUtils.clientIdToServerId(parents.gameId, accountId, parents.teamId),
         accountId,
       ],
       order: {
         op: 'INSERT', // Run with the inserts, this and the next statement must be run one after the other
         table: 'players_games',
       },
-      cache: getCacheFromTable('players_games'),
+      cache: [], // Handled by stetment below
     });
     result.push({
       query:
@@ -626,14 +647,14 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
       values: [
         idUtils.clientIdToServerId(obj.lineup, accountId),
         idUtils.clientIdToServerId(parents.gameId, accountId),
-        obj.position + 1, // lineup oredering starts at 1 not 0
+        obj.position + 1, // lineup ordering starts at 1 not 0
         accountId,
       ],
       order: {
         op: 'INSERT',
         table: 'players_games',
       },
-      cache: getCacheFromTable('players_games'),
+      cache: getCaches('players_games', accountId, parents.teamId),
     });
   }
 
@@ -661,7 +682,7 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
         op: 'INSERT',
         table: 'plate_appearances',
       },
-      cache: getCacheFromTable('plate_appearances'),
+      cache: getCaches('plate_appearances', accountId, parents.teamId),
     });
   }
 };
@@ -691,7 +712,7 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
           op: 'INSERT',
           table: 'players',
         },
-        cache: getCacheFromTable('players'),
+        cache: getCaches('players', accountId, parents.teamId),
       });
     }
   }
@@ -730,7 +751,7 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
           op: 'INSERT',
           table: 'optimization',
         },
-        cache: plate_appearances('optimization'),
+        cache: getCaches('optimization', accountId),
       });
     }
   }
@@ -749,7 +770,7 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
           op: 'INSERT',
           table: 'teams',
         },
-        cache: getCacheFromTable('teams'),
+        cache: getCaches('teams', accountId, obj.teams[i].id),
       });
       if (obj.teams[i].games) {
         let insertObject = {};
@@ -782,7 +803,7 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
           op: 'INSERT',
           table: 'games',
         },
-        cache: getCacheFromTable('games'),
+        cache: getCaches('games', accountId, parents.teamId),
       });
       if (obj.games[i].plateAppearances) {
         let insertObject = {};
@@ -818,7 +839,7 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
           op: 'INSERT',
           table: 'players_games',
         },
-        cache: getCacheFromTable('players_games'),
+        cache: getCaches('players_games', accountId, parents.teamId),
       });
     }
   }
@@ -851,7 +872,7 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
           op: 'INSERT',
           table: 'plate_appearances',
         },
-        cache: getCacheFromTable('plate_appearances'),
+        cache: getCaches('plate_appearances', accountId, parents.teamId),
       });
     }
   }
@@ -911,10 +932,7 @@ let getIdFromPath = function(path, type) {
   } else {
     for (let i = path.length - 1; i >= 0; i--) {
       if (!keywords.has(path[i])) {
-        //logger.log(null, 'Approved id', `'${path[i]}'`);
         return path[i];
-      } else {
-        //logger.log(null, 'Rejected id', `'${path[i]}'`);
       }
     }
   }
@@ -941,15 +959,50 @@ let isRoot = function(obj) {
   return true;
 };
 
-// TODO: Would object lookup be faster?
-let getCacheFromTable = function(table) {
+/**
+ * Determines what caches need to be cleared based on the input parameters. Caches
+ * can either be of type 'string' or type 'hash'. String caches are one level deep
+ * key value sets. Hashes are two level deep key value sets. We need hashs in some
+ * cases so we can invalidate the whole second-level value without knowing each
+ * of that value's keys.
+ */
+let getCaches = function(table, accountId, teamId) {
+  let caches = [];
   if (table === 'optimization') {
-    return 'optimizations';
+    caches.push({ type: 'string', key: `acct:${accountId}:optimizations` });
   } else if (table === 'players') {
-    return 'players';
-  } else {
-    return 'teams';
+    // We have no good way of getting teamId here so we'll invalidate all players-for-team caches
+    // if any edits were made to players (really we could do this for edits to players only,
+    // deletes and adds don't need invalidation) TODO: add param to this method to do this?
+    caches.push({
+      type: 'string',
+      key: `acct:${accountId}:players-for-team`,
+    });
+    caches.push({ type: 'string', key: `acct:${accountId}:players` });
+  } else if (table === 'players_games' && teamId) {
+    caches.push({
+      type: 'hash',
+      key: `acct:${accountId}:players-for-team:`,
+      secondKey: teamId,
+    });
   }
+
+  if (
+    table === 'teams' ||
+    table === 'games' ||
+    table === 'plate_appearances' ||
+    table === 'players_games'
+  ) {
+    if (teamId) {
+      caches.push({
+        type: 'hash',
+        key: `acct:${accountId}:team`,
+        secondKey: teamId,
+      });
+    }
+    caches.push({ type: 'string', key: `acct:${accountId}:teams` });
+  }
+  return caches;
 };
 
 module.exports = {
