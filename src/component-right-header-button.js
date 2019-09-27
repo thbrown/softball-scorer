@@ -5,7 +5,8 @@ import { setRoute } from 'actions/route';
 export default class RightHeaderButton extends React.Component {
   constructor(props) {
     super(props);
-    this.handleButtonPress = function() {
+    this.handleButtonPress = function(ev) {
+      ev.preventDefault();
       if (props.onPress) {
         props.onPress();
       }
