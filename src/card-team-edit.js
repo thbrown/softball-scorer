@@ -5,7 +5,7 @@ import dialog from 'dialog';
 import Card from 'elements/card';
 import FloatingInput from 'elements/floating-input';
 import CardSection from 'elements/card-section';
-import { goBack } from 'actions/route';
+import { goBack, goHome } from 'actions/route';
 
 class CardTeamEdit extends React.Component {
   constructor(props) {
@@ -17,59 +17,64 @@ class CardTeamEdit extends React.Component {
     };
 
     this.publicLinkRef = createRef();
+    this.isPristine = this.isNew ? false : true;
 
-    this.goBack = () => {
-      goBack();
-    };
-
-    this.homeOrBack = () => {
-      dialog.show_confirm(
-        props.isNew
-          ? 'Are you sure you wish to discard this team?'
-          : 'Are you sure you wish to discard changes to this team?',
-        () => {
-          if (props.isNew) {
-            state.removeTeam(props.team.id);
-          } else {
-            const newTeam = { ...this.state };
-            delete newTeam.copiedNotificationVisible;
-            state.replaceTeam(props.team.id, newTeam);
+    this.homeOrBack = type => cb => {
+      if (!this.isPristine) {
+        dialog.show_confirm(
+          props.isNew
+            ? 'Are you sure you wish to discard this team?'
+            : 'Are you sure you wish to discard changes to this team?',
+          () => {
+            if (props.isNew) {
+              state.removeTeam(props.team.id);
+            }
+            if (type === 'home') {
+              goHome();
+            } else {
+              goBack();
+            }
           }
-          this.goBack();
-        }
-      );
-      return true;
+        );
+        return true;
+      }
+      if (cb) {
+        cb();
+      }
     };
 
     this.handleConfirmClick = () => {
       const newTeam = { ...this.state };
       delete newTeam.copiedNotificationVisible;
       state.replaceTeam(props.team.id, newTeam);
-      this.goBack();
+      goBack();
     };
 
     this.handleCancelClick = () => {
-      this.homeOrBack();
+      this.homeOrBack('back')(goBack);
     };
 
     this.handleDeleteClick = () => {
       dialog.show_confirm(
         `Are you sure you want to delete the team ${props.team.name}?`,
         () => {
+          // FIXME this causes a brief 404 to flash on the page
+          goBack();
           state.removeTeam(props.team.id);
-          this.goBack();
         }
       );
       return true;
     };
 
     this.handleNameChange = value => {
+      this.isPristine = false;
       this.setState({
         name: value,
       });
     };
 
     this.handlePublicLinkEnabledClicked = ev => {
+      this.isPristine = false;
       this.setState({
         publicIdEnabled: !!ev.target.checked,
       });
@@ -101,10 +106,10 @@ class CardTeamEdit extends React.Component {
       <Card
         title="Edit Team"
         leftHeaderProps={{
-          onClick: this.homeOrBack,
+          onClick: this.homeOrBack('back'),
         }}
         rightHeaderProps={{
-          onClick: this.homeOrBack,
+          onClick: this.homeOrBack('home'),
         }}
       >
         <CardSection>
@@ -115,7 +120,7 @@ class CardTeamEdit extends React.Component {
             defaultValue={this.props.team.name}
           />
         </CardSection>
-        {publicId && (
+        {publicId && state.isSessionValid() && (
           <>
             <CardSection>
               <div className={classes.publicLinkLabelBox}>

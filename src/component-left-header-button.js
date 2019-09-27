@@ -9,7 +9,8 @@ const LeftHeaderButton = props =>
       className="back-arrow"
       alt="back"
       style={props.style}
-      onClick={() => {
+      onClick={ev => {
+        ev.preventDefault();
         if (props.onClick) {
           if (props.onClick()) {
             return;
