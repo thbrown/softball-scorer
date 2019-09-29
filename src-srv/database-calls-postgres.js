@@ -648,7 +648,12 @@ module.exports = class DatabaseCalls {
         }
 
         // Run the query!
-        logger.log(accountId, `Executing:`, sqlToRun[i]);
+        logger.log(
+          accountId,
+          `Executing:`,
+          sqlToRun[i].query,
+          sqlToRun[i].values
+        );
         await client.query(sqlToRun[i].query, sqlToRun[i].values);
 
         // Remember the caches we need to invalidate for this statement

@@ -364,7 +364,7 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
           // The only thing that should be re-orederable is the lineup, other things are all ordered by creation time (i.e. created_at timestamp and serial_counter columns).
           logger.warn(
             accountId,
-            'Something unexpected was reordered!' + applicableTable
+            `Something unexpected was reordered! ${applicableTable}`
           );
           continue; // TODO: add test for players reorder
         }

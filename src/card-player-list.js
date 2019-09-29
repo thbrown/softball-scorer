@@ -64,7 +64,7 @@ export default class CardPlayerList extends expose.Component {
         );
       });
 
-    elems.push(
+    elems.unshift(
       DOM.div(
         {
           key: 'newplayer',
