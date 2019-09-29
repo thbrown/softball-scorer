@@ -4,6 +4,7 @@ import network from 'network';
 import idUtils from '../id-utils';
 import results from 'plate-appearance-results';
 import commonUtils from '../common-utils';
+import { getShallowCopy } from 'utils/functions';
 
 import dialog from 'dialog';
 
@@ -411,8 +412,7 @@ exp.getAllPlayersAlphabetically = function() {
   };
 
   // Make sure we don't re-order the original array, this will result in sync issues
-  let copy = exp.getLocalState().players.slice(0);
-  return copy.sort(playerNameComparator);
+  return getShallowCopy(exp.getLocalState().players).sort(playerNameComparator);
 };
 
 exp.removePlayer = function(playerId) {

@@ -5,6 +5,7 @@ import state from 'state';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import { setRoute } from 'actions/route';
+import { getShallowCopy } from 'utils/functions';
 
 export default class CardOptimizationList extends expose.Component {
   constructor(props) {
@@ -32,39 +33,41 @@ export default class CardOptimizationList extends expose.Component {
 
   renderOptimizationsList() {
     const s = state.getLocalState();
-    let elems = s.optimizations.slice(0).map(optimization => {
-      return DOM.div(
-        {
-          optimization_id: optimization.id,
-          key: 'optimization' + optimization.id,
-          className: 'list-item',
-          onClick: this.handleOptimizationClick.bind(this, optimization),
-          style: {
-            display: 'flex',
-            justifyContent: 'space-between',
-          },
-        },
-        DOM.div(
+    let elems = getShallowCopy(s.optimizations)
+      .reverse()
+      .map(optimization => {
+        return DOM.div(
           {
-            className: 'prevent-overflow',
+            optimization_id: optimization.id,
+            key: 'optimization' + optimization.id,
+            className: 'list-item',
+            onClick: this.handleOptimizationClick.bind(this, optimization),
+            style: {
+              display: 'flex',
+              justifyContent: 'space-between',
+            },
           },
-          optimization.name
-        ),
-        DOM.div(
-          {
-            style: {},
-          },
-          DOM.img({
-            src: '/server/assets/edit.svg',
-            className: 'list-button',
-            onClick: this.handleEditClick.bind(this, optimization),
-            alt: 'edit',
-          })
-        )
-      );
-    });
+          DOM.div(
+            {
+              className: 'prevent-overflow',
+            },
+            optimization.name
+          ),
+          DOM.div(
+            {
+              style: {},
+            },
+            DOM.img({
+              src: '/server/assets/edit.svg',
+              className: 'list-button',
+              onClick: this.handleEditClick.bind(this, optimization),
+              alt: 'edit',
+            })
+          )
+        );
+      });
 
-    elems.push(
+    elems.unshift(
       DOM.div(
         {
           key: 'newoptimization',

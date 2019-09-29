@@ -14,3 +14,7 @@ export const sortObjectsByDate = function(list, isAsc) {
     }
   });
 };
+
+export const getShallowCopy = function(array) {
+  return array.slice(0);
+};
