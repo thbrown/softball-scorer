@@ -133,7 +133,12 @@ export default class CardMenu extends Component {
 
   render() {
     return (
-      <Card title="Menu">
+      <Card
+        title="Menu"
+        rightHeaderProps={{
+          showBlogLink: true,
+        }}
+      >
         <div
           id="teams"
           className="list-item"
