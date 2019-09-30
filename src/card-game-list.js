@@ -1,7 +1,7 @@
 import React from 'react';
 import state from 'state';
 import { setRoute } from 'actions/route';
-import { getShallowCopy, sortObjectsByDate } from 'utils/functions';
+import { sortObjectsByDate } from 'utils/functions';
 import injectSheet from 'react-jss';
 
 class CardGameList extends React.Component {
@@ -24,34 +24,40 @@ class CardGameList extends React.Component {
   }
 
   renderGameList() {
-    const elems = sortObjectsByDate(getShallowCopy(this.props.team.games)).map(
-      game => {
-        return (
-          <div
-            key={'game-' + game.id}
-            id={'game-' + game.id}
-            className={'list-item ' + this.props.classes.listItem}
-            onClick={this.handleGameClick.bind(this, game)}
-          >
-            <img
-              src="/server/assets/edit.svg"
-              alt="edit"
-              className={'list-button ' + this.props.classes.listButton}
-              id={'game-' + game.id + '-edit'}
-              onClick={ev => {
-                this.handleEditClick(game);
-                ev.preventDefault();
-                ev.stopPropagation();
-              }}
-            />
-            <div className={this.props.classes.dateText}>
-              {new Date(game.date * 1000).toISOString().substring(0, 10)}
-            </div>
-            <div className="prevent-overflow">{'Vs. ' + game.opponent}</div>
+    const elems = sortObjectsByDate(this.props.team.games, {
+      eqCb: (a, b) => {
+        if (a.game.opponent === b.game.opponent) {
+          return a.id < b.id ? -1 : 1;
+        } else {
+          return a.game.opponent < b.game.opponent ? -1 : 1;
+        }
+      },
+    }).map(game => {
+      return (
+        <div
+          key={'game-' + game.id}
+          id={'game-' + game.id}
+          className={'list-item ' + this.props.classes.listItem}
+          onClick={this.handleGameClick.bind(this, game)}
+        >
+          <img
+            src="/server/assets/edit.svg"
+            alt="edit"
+            className={'list-button ' + this.props.classes.listButton}
+            id={'game-' + game.id + '-edit'}
+            onClick={ev => {
+              this.handleEditClick(game);
+              ev.preventDefault();
+              ev.stopPropagation();
+            }}
+          />
+          <div className={this.props.classes.dateText}>
+            {new Date(game.date * 1000).toISOString().substring(0, 10)}
           </div>
-        );
-      }
-    );
+          <div className="prevent-overflow">{'Vs. ' + game.opponent}</div>
+        </div>
+      );
+    });
 
     elems.unshift(
       <div

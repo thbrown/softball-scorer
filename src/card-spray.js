@@ -309,14 +309,14 @@ const CardSpray = ({
   player,
   backNavUrl,
 }) => {
+  if (filter.pastGames) {
+    plateAppearances = filterByLastGames(plateAppearances, filter.pastGames);
+  }
   if (filter.plateAppearanceType) {
     plateAppearances = filterByHitType(
       plateAppearances,
       filter.plateAppearanceType
     );
-  }
-  if (filter.pastGames) {
-    plateAppearances = filterByLastGames(plateAppearances, filter.pastGames);
   }
   return (
     <Card
