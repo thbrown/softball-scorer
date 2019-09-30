@@ -106,18 +106,16 @@ module.exports = class DatabaseCalls {
     };
 
     this.processTeams = function(plateAppearances) {
-      let teamIdSet = new Set();
-      let gameIdSet = new Set();
       let outputTeams = [];
+      let parentIdLookupTable = { teamIndexCounter: 0 }; // Contains hetergenious keys
 
       for (let i = 0; i < plateAppearances.length; i++) {
         let plateAppearance = plateAppearances[i];
 
         if (
           plateAppearance.team_id &&
-          !teamIdSet.has(plateAppearance.team_id)
+          parentIdLookupTable[plateAppearance.team_id] === undefined
         ) {
-          teamIdSet.add(plateAppearance.team_id);
           const newTeam = {};
           newTeam.games = [];
           newTeam.id = idUtils.serverIdToClientId(plateAppearance.team_id);
@@ -125,13 +123,21 @@ module.exports = class DatabaseCalls {
           newTeam.publicId = idUtils.hexToBase62(plateAppearance.public_id);
           newTeam.publicIdEnabled = plateAppearance.public_id_enabled;
           outputTeams.push(newTeam);
+          parentIdLookupTable[plateAppearance.team_id] = {};
+          parentIdLookupTable[plateAppearance.team_id].outputTeamsIndex =
+            parentIdLookupTable.teamIndexCounter;
+          parentIdLookupTable.teamIndexCounter++;
+          parentIdLookupTable[
+            plateAppearance.team_id
+          ].outputGamesIndexCounter = 0;
         }
 
         if (
           plateAppearance.game_id &&
-          !gameIdSet.has(plateAppearance.game_id)
+          parentIdLookupTable[plateAppearance.team_id][
+            plateAppearance.game_id
+          ] === undefined
         ) {
-          gameIdSet.add(plateAppearance.game_id);
           var newGame = {};
           newGame.plateAppearances = [];
           newGame.id = idUtils.serverIdToClientId(plateAppearance.game_id);
@@ -146,11 +152,25 @@ module.exports = class DatabaseCalls {
           } else {
             newGame.lineup = [];
           }
-          let team = outputTeams.find(
-            element =>
-              element.id === idUtils.serverIdToClientId(plateAppearance.team_id)
-          );
+
+          let team =
+            outputTeams[
+              parentIdLookupTable[plateAppearance.team_id].outputTeamsIndex
+            ];
           team.games.push(newGame);
+
+          parentIdLookupTable[plateAppearance.team_id][
+            plateAppearance.game_id
+          ] = {};
+          parentIdLookupTable[plateAppearance.team_id][
+            plateAppearance.game_id
+          ].outputGamesIndex =
+            parentIdLookupTable[
+              plateAppearance.team_id
+            ].outputGamesIndexCounter;
+
+          parentIdLookupTable[plateAppearance.team_id]
+            .outputGamesIndexCounter++;
         }
 
         if (plateAppearance.plate_appearance_id) {
@@ -166,14 +186,17 @@ module.exports = class DatabaseCalls {
             x: plateAppearance.x,
             y: plateAppearance.y,
           };
-          let team = outputTeams.find(
-            element =>
-              element.id === idUtils.serverIdToClientId(plateAppearance.team_id)
-          );
-          let game = team.games.find(
-            element =>
-              element.id === idUtils.serverIdToClientId(plateAppearance.game_id)
-          );
+          let team =
+            outputTeams[
+              parentIdLookupTable[plateAppearance.team_id].outputTeamsIndex
+            ];
+
+          let game =
+            team.games[
+              parentIdLookupTable[plateAppearance.team_id][
+                plateAppearance.game_id
+              ].outputGamesIndex
+            ];
           game.plateAppearances.push(newPlateAppearance);
         }
       }
