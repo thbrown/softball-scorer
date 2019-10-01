@@ -154,9 +154,9 @@ test('ArrayAdd - diff and patch', () => {
 
   let expectedPatch = {
     players: {
-      'T8auMWB7NgJ9neGe/krF9g': {
+      'Slj0t9wxasivr0z/oKASIA': {
         op: 'ArrayAdd',
-        key: 'T8auMWB7NgJ9neGe/krF9g',
+        key: 'Slj0t9wxasivr0z/oKASIA',
         param1: '{"id":6,"name":"Jamal","gender":"M"}',
         param2: 5,
       },
@@ -166,9 +166,9 @@ test('ArrayAdd - diff and patch', () => {
         games: {
           '10': {
             plateAppearances: {
-              'vU8qy8N/Dv2Ol45IMFryNA': {
+              '09mmtStsxZf7BwWVLm2uzw': {
                 op: 'ArrayAdd',
-                key: 'vU8qy8N/Dv2Ol45IMFryNA',
+                key: '09mmtStsxZf7BwWVLm2uzw',
                 param1:
                   '{"id":38,"player_id":3,"result":"E","location":{"x":0.57772,"y":0.520725},"plateAppearanceIndex":1}',
                 param2: 3,
