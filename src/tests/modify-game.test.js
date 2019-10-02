@@ -9,25 +9,28 @@ import { setRoute } from 'actions/route';
 Enzyme.configure({ adapter: new Adapter() });
 state.setOffline();
 
-describe('[UI] Add plate appearances', () => {
+const TEAM_ID = '4i7WarrEmtZMxJ';
+
+describe('[UI] Modify Game (add plate appearances)', () => {
   let wrapper = null;
-  let teamId = '4i7WarrEmtZMxJ';
+  let teamId = TEAM_ID;
   let gameId = null;
 
   beforeAll(() => {
     state.setLocalState(mockData);
     const { wrapper: localWrapper } = getPageWrapper();
+    console.log(JSON.stringify(state.getLocalState()));
     wrapper = localWrapper;
     wrapper.find(`#teams`).simulate('click');
-    const game = createGameUI(wrapper, teamId);
-    gameId = game.id;
   });
 
-  it('a user can navigate to a newly-created game', () => {
+  it.only('a user can navigate to a newly-created game', () => {
+    const game = createGameUI(wrapper, teamId);
+    gameId = game.id;
     wrapper.find(`#game-${gameId}`).simulate('click');
   });
 
-  it('a lineup is populated after a game is created', () => {
+  it('when a previous game exists, a lineup is populated after a game is created', () => {
     expect(state.getGame(gameId).lineup.length).toEqual(10);
   });
 

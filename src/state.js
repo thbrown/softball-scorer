@@ -688,21 +688,26 @@ exp.addPlateAppearance = function(player_id, game_id) {
 };
 
 exp.replacePlateAppearance = function(paId, gameId, teamId, newPa) {
-  let localState = exp.getLocalState();
-  let oldPa = exp.getPlateAppearance(paId);
+  const localState = exp.getLocalState();
 
-  let team = exp.getTeam(teamId);
-  let teamIndex = localState.teams.indexOf(team);
+  const team = exp.getTeam(teamId);
+  const teamIndex = localState.teams.indexOf(team);
 
-  let game = exp.getGame(gameId);
-  let gameIndex = localState.teams[teamIndex].games.indexOf(game);
+  const game = exp.getGame(gameId);
+  const gameIndex = localState.teams[teamIndex].games.indexOf(game);
 
-  let oldPaIndex = localState.teams[teamIndex].games[
-    gameIndex
-  ].plateAppearances.indexOf(oldPa);
-  localState.teams[teamIndex].games[gameIndex].plateAppearances[
-    oldPaIndex
-  ] = newPa;
+  const appearances =
+    localState.teams[teamIndex].games[gameIndex].plateAppearances;
+
+  let i = 0;
+  for (i = 0; i < appearances.length; i++) {
+    const pa = appearances[i];
+    if (pa.id === paId) {
+      break;
+    }
+  }
+  appearances.splice(i, 1, newPa);
+  //localState.teams[teamIndex].games[gameIndex].plateAppearances[i] = newPa;
   onEdit();
 };
 
