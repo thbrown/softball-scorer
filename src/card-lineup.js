@@ -22,17 +22,35 @@ export default class CardLineup extends React.Component {
     this.locked =
       this.locked || this.props.game.plateAppearances.length > 0 ? true : false;
 
-    const hideHighlights = () => {
+    const hideHighlights = skipTransition => {
       let highlights = document.getElementsByClassName('highlight');
       for (let i = 0; i < highlights.length; i++) {
+        if (skipTransition) {
+          highlights[i].classList.add('no-transition');
+          console.log('SKIPPING HIDE' + skipTransition);
+        }
         highlights[i].style.visibility = 'hidden';
+        highlights[i].style.height = '0px';
+        if (skipTransition) {
+          highlights[i].offsetHeight; // Trigger a reflow, otherwise transitions will still occur
+          highlights[i].classList.remove('no-transition');
+        }
       }
     };
 
-    const showHighlight = i => {
+    const showHighlight = (i, skipTransition) => {
       let elem = document.getElementById('highlight' + i);
       if (elem) {
+        if (skipTransition) {
+          elem.classList.add('no-transition');
+          console.log('SKIPPING ADD' + skipTransition);
+        }
         elem.style.visibility = 'visible';
+        elem.style.height = `${PLAYER_TILE_HEIGHT + 2}px`;
+        if (skipTransition) {
+          elem.offsetHeight; // Trigger a reflow, otherwise transitions will still occur
+          elem.classList.remove('no-transition');
+        }
       }
     };
 
@@ -94,36 +112,35 @@ export default class CardLineup extends React.Component {
       );
     }.bind(this);
 
-    this.handleDragStart = function(player) {
+    this.handleDragStart = function(player, index) {
       this.setState({
         dragging: true,
       });
       let elem = document.getElementById('lineup_' + player.id);
       elem.style['z-index'] = 100;
       elem.style.position = 'absolute';
-      document.getElementById('lineup-padding').style.display = 'block';
+      this.handleDrag(player, index, true);
     };
 
     this.handleDragStop = function(player, index) {
       this.setState({
         dragging: false,
       });
-      hideHighlights();
+      hideHighlights(true);
       let elem = document.getElementById('lineup_' + player.id);
       elem.style['z-index'] = 1;
       elem.style.position = null;
-      document.getElementById('lineup-padding').style.display = 'none';
       const { new_position_index } = getInds(elem, index);
       state.updateLineup(this.props.game.lineup, player.id, new_position_index);
 
       this.simulateLineup();
     };
 
-    this.handleDrag = function(player, index) {
-      hideHighlights();
+    this.handleDrag = function(player, index, skipTransition) {
+      hideHighlights(skipTransition);
       const elem = document.getElementById('lineup_' + player.id);
       const { highlight_index } = getInds(elem, index);
-      showHighlight(highlight_index);
+      showHighlight(highlight_index, skipTransition);
     };
 
     this.handleLockToggle = function() {
@@ -401,17 +418,6 @@ export default class CardLineup extends React.Component {
       )
     );
 
-    pageElems.unshift(
-      DOM.div({
-        key: 'lineup-padding',
-        id: 'lineup-padding',
-        style: {
-          display: 'none',
-          height: '4px',
-        },
-      })
-    );
-
     return DOM.div({}, pageElems);
   }
 
@@ -468,6 +474,9 @@ export default class CardLineup extends React.Component {
     return DOM.div({}, pageElems);
   }
 
+  /*
+
+          */
   renderPlayerTile(playerId, gameId, index, editable) {
     const player = state.getPlayer(playerId);
     const plateAppearances = state.getPlateAppearancesForPlayerInGame(
@@ -482,12 +491,20 @@ export default class CardLineup extends React.Component {
             key: 'handle',
             className: 'player-drag-handle',
           },
-          DOM.img({
-            src: '/server/assets/drag-handle.png',
-            style: {
-              height: '24px',
-            },
-          })
+          // We are using an inline svg here because using an image tag messes with react draggable handle on desktops
+          <div>
+            <svg
+              style={{
+                width: '24px',
+                height: '24px',
+                fill: 'white',
+                margin: '-10px',
+              }}
+              viewBox="0 0 24 24"
+            >
+              <path d="M9,3H11V5H9V3M13,3H15V5H13V3M9,7H11V9H9V7M13,7H15V9H13V7M9,11H11V13H9V11M13,11H15V13H13V11M9,15H11V17H9V15M13,15H15V17H13V15M9,19H11V21H9V19M13,19H15V21H13V19Z" />
+            </svg>
+          </div>
         )
       );
     }
@@ -535,12 +552,11 @@ export default class CardLineup extends React.Component {
           key: 'lineup-draggable' + player.id,
           axis: 'y',
           handle: '.player-drag-handle',
-          //defaultPosition: { x: 0, y: 0 },
           position: { x: 0, y: 0 },
           grid: [1, 1],
-          onStart: this.handleDragStart.bind(this, player),
+          onStart: this.handleDragStart.bind(this, player, index),
           onStop: this.handleDragStop.bind(this, player, index),
-          onDrag: this.handleDrag.bind(this, player, index),
+          onDrag: this.handleDrag.bind(this, player, index, false),
         },
         DOM.div(
           {
