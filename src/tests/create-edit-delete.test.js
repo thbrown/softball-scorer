@@ -35,6 +35,7 @@ export const createTeamUI = wrapper => {
 
 export const createGameUI = (wrapper, teamId) => {
   setRoute(`/teams`);
+  console.log(wrapper.debug());
   wrapper.find(`#team-${teamId}`).simulate('click');
   wrapper.find('#newGame').simulate('click');
   wrapper
@@ -43,9 +44,9 @@ export const createGameUI = (wrapper, teamId) => {
   wrapper.find('#lineupType').simulate('change', { target: { value: 1 } });
   wrapper.find('#save').simulate('click');
 
-  // the first game in the list for this team should be the newly-created game
+  // the last game in the list for this team should be the newly-created game
   const games = state.getTeam(teamId).games;
-  const newGame = games[0];
+  const newGame = games[games.length - 1];
   expect(newGame).toBeTruthy();
   expect(newGame.opponent).toEqual(TEST_GAME_NAME);
   expect(newGame.lineupType).toEqual(1);
@@ -61,6 +62,7 @@ describe('[UI] Create/Edit/Delete', () => {
       setOnGoBack(path => {
         setRoute(path);
       });
+      state.resetState();
     });
 
     it('A user can create, edit, and delete a team', () => {

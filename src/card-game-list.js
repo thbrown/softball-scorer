@@ -26,10 +26,10 @@ class CardGameList extends React.Component {
   renderGameList() {
     const elems = sortObjectsByDate(this.props.team.games, {
       eqCb: (a, b) => {
-        if (a.game.opponent === b.game.opponent) {
+        if (a.opponent === b.opponent) {
           return a.id < b.id ? -1 : 1;
         } else {
-          return a.game.opponent < b.game.opponent ? -1 : 1;
+          return a.opponent < b.opponent ? -1 : 1;
         }
       },
     }).map(game => {
