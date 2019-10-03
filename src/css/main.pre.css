@@ -534,6 +534,7 @@ body {
   margin: -5px;
   padding: 1px;
   transition: height 100ms;
+  transition: margin-top 100ms;
 }
 
 .no-transition {
