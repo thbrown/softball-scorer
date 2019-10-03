@@ -19,12 +19,11 @@ describe('[UI] Modify Game (add plate appearances)', () => {
   beforeAll(() => {
     state.setLocalState(mockData);
     const { wrapper: localWrapper } = getPageWrapper();
-    console.log(JSON.stringify(state.getLocalState()));
     wrapper = localWrapper;
     wrapper.find(`#teams`).simulate('click');
   });
 
-  it.only('a user can navigate to a newly-created game', () => {
+  it('a user can navigate to a newly-created game', () => {
     const game = createGameUI(wrapper, teamId);
     gameId = game.id;
     wrapper.find(`#game-${gameId}`).simulate('click');

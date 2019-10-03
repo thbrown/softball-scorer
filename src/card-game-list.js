@@ -1,7 +1,6 @@
 import React from 'react';
 import state from 'state';
 import { setRoute } from 'actions/route';
-import { sortObjectsByDate } from 'utils/functions';
 import injectSheet from 'react-jss';
 
 class CardGameList extends React.Component {
@@ -24,15 +23,7 @@ class CardGameList extends React.Component {
   }
 
   renderGameList() {
-    const elems = sortObjectsByDate(this.props.team.games, {
-      eqCb: (a, b) => {
-        if (a.opponent === b.opponent) {
-          return a.id < b.id ? -1 : 1;
-        } else {
-          return a.opponent < b.opponent ? -1 : 1;
-        }
-      },
-    }).map(game => {
+    const elems = [...this.props.team.games].reverse().map(game => {
       return (
         <div
           key={'game-' + game.id}
