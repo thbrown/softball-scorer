@@ -35,7 +35,6 @@ export const createTeamUI = wrapper => {
 
 export const createGameUI = (wrapper, teamId) => {
   setRoute(`/teams`);
-  console.log(wrapper.debug());
   wrapper.find(`#team-${teamId}`).simulate('click');
   wrapper.find('#newGame').simulate('click');
   wrapper
