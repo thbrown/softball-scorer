@@ -27,7 +27,6 @@ export default class CardLineup extends React.Component {
       for (let i = 0; i < highlights.length; i++) {
         if (skipTransition) {
           highlights[i].classList.add('no-transition');
-          console.log('SKIPPING HIDE' + skipTransition);
         }
         highlights[i].style.visibility = 'hidden';
         highlights[i].style.height = '0px';
@@ -43,7 +42,6 @@ export default class CardLineup extends React.Component {
       if (elem) {
         if (skipTransition) {
           elem.classList.add('no-transition');
-          console.log('SKIPPING ADD' + skipTransition);
         }
         elem.style.visibility = 'visible';
         elem.style.height = `${PLAYER_TILE_HEIGHT + 2}px`;
@@ -130,6 +128,7 @@ export default class CardLineup extends React.Component {
       let elem = document.getElementById('lineup_' + player.id);
       elem.style['z-index'] = 1;
       elem.style.position = null;
+      elem.style['margin-top'] = null;
       const { new_position_index } = getInds(elem, index);
       state.updateLineup(this.props.game.lineup, player.id, new_position_index);
 
@@ -141,6 +140,13 @@ export default class CardLineup extends React.Component {
       const elem = document.getElementById('lineup_' + player.id);
       const { highlight_index } = getInds(elem, index);
       showHighlight(highlight_index, skipTransition);
+
+      // This fixxes and issue that causes the element, while being dragged, to
+      if (highlight_index < index) {
+        elem.style['margin-top'] = `-${PLAYER_TILE_HEIGHT}px`;
+      } else {
+        elem.style['margin-top'] = null;
+      }
     };
 
     this.handleLockToggle = function() {
@@ -418,7 +424,7 @@ export default class CardLineup extends React.Component {
       )
     );
 
-    return DOM.div({}, pageElems);
+    return DOM.div({ id: 'list-container' }, pageElems);
   }
 
   renderNonLineupAtBats() {
@@ -474,9 +480,6 @@ export default class CardLineup extends React.Component {
     return DOM.div({}, pageElems);
   }
 
-  /*
-
-          */
   renderPlayerTile(playerId, gameId, index, editable) {
     const player = state.getPlayer(playerId);
     const plateAppearances = state.getPlateAppearancesForPlayerInGame(
