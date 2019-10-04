@@ -15,13 +15,18 @@ export default class CardOptimizationStatsOverride extends expose.Component {
 
     this.state = {};
 
+    let parseIntWithDefault = function(toParse, defaultValue) {
+      let parsedInt = parseInt(toParse);
+      return isNaN(parsedInt) ? defaultValue : parsedInt;
+    };
+
     let buildOverride = function() {
       return {
-        outs: parseInt(document.getElementById('outs').value),
-        singles: parseInt(document.getElementById('1b').value),
-        doubles: parseInt(document.getElementById('2b').value),
-        triples: parseInt(document.getElementById('3b').value),
-        homeruns: parseInt(document.getElementById('hr').value),
+        outs: parseIntWithDefault(document.getElementById('outs').value, 0),
+        singles: parseIntWithDefault(document.getElementById('1b').value, 0),
+        doubles: parseIntWithDefault(document.getElementById('2b').value, 0),
+        triples: parseIntWithDefault(document.getElementById('3b').value, 0),
+        homeruns: parseIntWithDefault(document.getElementById('hr').value, 0),
       };
     };
 
@@ -103,7 +108,7 @@ export default class CardOptimizationStatsOverride extends expose.Component {
             type: 'number',
             maxLength: '50',
             onChange: this.handleOutsChange.bind(this),
-            defaultValue: existingOverride ? existingOverride.outs : 0,
+            defaultValue: existingOverride ? existingOverride.outs : undefined,
           }),
         ],
         [
@@ -114,7 +119,9 @@ export default class CardOptimizationStatsOverride extends expose.Component {
             type: 'number',
             maxLength: '50',
             onChange: this.handle1BChange.bind(this),
-            defaultValue: existingOverride ? existingOverride.singles : 0,
+            defaultValue: existingOverride
+              ? existingOverride.singles
+              : undefined,
           }),
         ],
         [
@@ -125,7 +132,9 @@ export default class CardOptimizationStatsOverride extends expose.Component {
             type: 'number',
             maxLength: '50',
             onChange: this.handle2BChange.bind(this),
-            defaultValue: existingOverride ? existingOverride.doubles : 0,
+            defaultValue: existingOverride
+              ? existingOverride.doubles
+              : undefined,
           }),
         ],
         [
@@ -136,7 +145,9 @@ export default class CardOptimizationStatsOverride extends expose.Component {
             type: 'number',
             maxLength: '50',
             onChange: this.handle3BChange.bind(this),
-            defaultValue: existingOverride ? existingOverride.triples : 0,
+            defaultValue: existingOverride
+              ? existingOverride.triples
+              : undefined,
           }),
         ],
         [
@@ -147,7 +158,9 @@ export default class CardOptimizationStatsOverride extends expose.Component {
             type: 'number',
             maxLength: '50',
             onChange: this.handleHrChange.bind(this),
-            defaultValue: existingOverride ? existingOverride.homeruns : 0,
+            defaultValue: existingOverride
+              ? existingOverride.homeruns
+              : undefined,
           }),
         ],
         this.renderSaveOptions(existingOverride)
