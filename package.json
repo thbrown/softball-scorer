@@ -5,13 +5,14 @@
   "main": "index.js",
   "scripts": {
     "run": "node src-srv",
+    "start": "node src-srv",
     "build": "node build.js build",
-    "watch": "webpack --watch",
+    "watch": "webpack --watch --config webpack.dev.js",
     "build-css": "node build.js build-css",
     "clean": "node build.js clean",
-    "start": "node src-srv",
     "test-watch": "jest --watch ./src/tests/*",
-    "test": "jest --runInBand --detectOpenHandles --bail --verbose=false --forceExit"
+    "test": "jest --runInBand --detectOpenHandles --bail --verbose=false --forceExit",
+    "analyze": "webpack --config webpack.prod.js --profile --json > build/stats.json && webpack-bundle-analyzer build/stats.json"
   },
   "repository": {
     "type": "git",
@@ -127,6 +128,7 @@
     "terser": "^4.0.0",
     "uglifycss": "0.0.26",
     "webpack": "^4.35.3",
+    "webpack-bundle-analyzer": "^3.5.2",
     "webpack-cli": "^3.3.5"
   },
   "config": {
