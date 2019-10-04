@@ -56,6 +56,12 @@ let syncTimer = null;
 
 const state = exp;
 
+const getClientPlateAppearance = (pa, game) => ({
+  ...pa,
+  game,
+  date: game.date,
+});
+
 exp.syncStateToSyncStateName = function(syncState) {
   for (let i in SYNC_STATUS_ENUM) {
     if (syncState === SYNC_STATUS_ENUM[i]) {
@@ -682,21 +688,26 @@ exp.addPlateAppearance = function(player_id, game_id) {
 };
 
 exp.replacePlateAppearance = function(paId, gameId, teamId, newPa) {
-  let localState = exp.getLocalState();
-  let oldPa = exp.getPlateAppearance(paId);
+  const localState = exp.getLocalState();
 
-  let team = exp.getTeam(teamId);
-  let teamIndex = localState.teams.indexOf(team);
+  const team = exp.getTeam(teamId);
+  const teamIndex = localState.teams.indexOf(team);
 
-  let game = exp.getGame(gameId);
-  let gameIndex = localState.teams[teamIndex].games.indexOf(game);
+  const game = exp.getGame(gameId);
+  const gameIndex = localState.teams[teamIndex].games.indexOf(game);
 
-  let oldPaIndex = localState.teams[teamIndex].games[
-    gameIndex
-  ].plateAppearances.indexOf(oldPa);
-  localState.teams[teamIndex].games[gameIndex].plateAppearances[
-    oldPaIndex
-  ] = newPa;
+  const appearances =
+    localState.teams[teamIndex].games[gameIndex].plateAppearances;
+
+  let i = 0;
+  for (i = 0; i < appearances.length; i++) {
+    const pa = appearances[i];
+    if (pa.id === paId) {
+      break;
+    }
+  }
+  appearances.splice(i, 1, newPa);
+  //localState.teams[teamIndex].games[gameIndex].plateAppearances[i] = newPa;
   onEdit();
 };
 
@@ -706,7 +717,7 @@ exp.getPlateAppearance = function(pa_id, state) {
     for (let game of team.games) {
       for (let pa of game.plateAppearances) {
         if (pa.id === pa_id) {
-          return pa;
+          return getClientPlateAppearance(pa, game);
         }
       }
     }
@@ -715,16 +726,16 @@ exp.getPlateAppearance = function(pa_id, state) {
 };
 
 exp.getPlateAppearancesForGame = function(gameId, state) {
-  let game = exp.getGame(gameId, state);
+  const game = exp.getGame(gameId, state);
   if (!game) {
     return null;
   }
-  return game.plateAppearances;
+  return game.plateAppearances.map(pa => getClientPlateAppearance(pa, game));
 };
 
 exp.getPlateAppearancesForPlayerInGame = function(player_id, game_id, state) {
-  let game = exp.getGame(game_id, state);
-  let player = exp.getPlayer(player_id, state);
+  const game = exp.getGame(game_id, state);
+  const player = exp.getPlayer(player_id, state);
   if (!game || !player) {
     return null;
   }
@@ -742,10 +753,7 @@ exp.getPlateAppearancesForPlayerOnTeam = function(player_id, team_id, state) {
         const plateAppearancesThisGame = game.plateAppearances
           .filter(pa => player_id === pa.player_id)
           .map(pa => {
-            return {
-              ...pa,
-              game,
-            };
+            return getClientPlateAppearance(pa, game);
           });
         plateAppearances = plateAppearances.concat(plateAppearancesThisGame);
       }
@@ -793,10 +801,7 @@ exp.getPlateAppearancesForPlayer = function(player_id, state) {
             const plateAppearancesThisGame = game.plateAppearances
               .filter(pa => player_id === pa.player_id)
               .map(pa => {
-                return {
-                  ...pa,
-                  game,
-                };
+                return getClientPlateAppearance(pa, game);
               });
             plateAppearances = plateAppearances.concat(
               plateAppearancesThisGame

@@ -78,6 +78,10 @@ maxmemory-policy allkeys-lru
 
 After doing these steps you'll have to import the schema which isn't yet public
 
+If you want to dump your schema for pull requests, use:
+`sudo su psql`
+`pg_dump <database_name> -F c > schema.backup`
+
 #### Linux
 
 Dev:
@@ -114,7 +118,7 @@ Live:
 
 #### Windows
 
-TODO
+Use WSL + Ubuntu and refer to Linux instructions
 
 ### Nginx
 
