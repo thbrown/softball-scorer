@@ -1,6 +1,7 @@
 node_modules
 build/main.js
 build/vendor.js
+build/stats.json
 assets/main.css
 certs/
 src/workers/service-worker.js
