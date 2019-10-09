@@ -18,6 +18,7 @@ import CardPlayerList from 'card-player-list';
 import CardPlayerEdit from 'card-player-edit';
 import CardPlayerSelection from 'card-player-selection';
 import CardPlayerSelect from 'card-player-select';
+import CardReset from 'card-reset';
 import CardSignup from 'card-signup';
 import CardSpray from 'card-spray';
 import CardTeam from 'card-team';
@@ -86,6 +87,9 @@ routes = {
   },
   '/account/password-reset/:token': ({ token }) => {
     return <CardPasswordReset token={token} />;
+  },
+  '/reset': () => {
+    return <CardReset />;
   },
   '/teams': () => {
     return <CardTeamList />;
