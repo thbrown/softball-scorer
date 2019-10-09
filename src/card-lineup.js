@@ -141,7 +141,8 @@ export default class CardLineup extends React.Component {
       const { highlight_index } = getInds(elem, index);
       showHighlight(highlight_index, skipTransition);
 
-      // This fixxes and issue that causes the element, while being dragged, to
+      // This fixes and issue that causes the element, while being dragged, to jump up the
+      // width of a tile when the highlighted div above it in the dom was expanded
       if (highlight_index < index) {
         elem.style['margin-top'] = `-${PLAYER_TILE_HEIGHT}px`;
       } else {

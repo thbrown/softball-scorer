@@ -717,7 +717,7 @@ exp.getPlateAppearance = function(pa_id, state) {
     for (let game of team.games) {
       for (let pa of game.plateAppearances) {
         if (pa.id === pa_id) {
-          return getClientPlateAppearance(pa, game);
+          return pa;
         }
       }
     }
