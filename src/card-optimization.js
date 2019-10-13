@@ -1,11 +1,9 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 import expose from './expose';
 import state from 'state';
 import dialog from 'dialog';
 import network from 'network';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
+import Card from 'elements/card';
 import FloatingInput from 'elements/floating-input';
 import FloatingSelect from 'elements/floating-select';
 import { setRoute } from 'actions/route';
@@ -602,7 +600,7 @@ Clips can be played from the player's plate appearance page
               key={selectedTeams[i] + 'checkbox'}
               type="checkbox"
               checked={true}
-              disabled="true"
+              disabled={true}
             />
             {teamName}
           </label>
@@ -1069,30 +1067,10 @@ Clips can be played from the player's plate appearance page
   }
 
   render() {
-    return DOM.div(
-      {
-        className: 'card',
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton),
-        DOM.div(
-          {
-            className: 'card-title-text-with-arrow prevent-overflow',
-          },
-          this.optimization.name
-        ),
-        React.createElement(RightHeaderButton)
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderOptimizationPage()
-      )
+    return (
+      <Card title={this.optimization.name}>
+        {this.renderOptimizationPage()}
+      </Card>
     );
   }
 }

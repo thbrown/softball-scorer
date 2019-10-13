@@ -617,8 +617,8 @@ exp.getGamesWithPlayerInLineup = function(playerId, state) {
 };
 
 exp.getGamesWherePlayerHasPlateAppearances = function(playerId, state) {
-  let games = [];
-  let localState = state || exp.getLocalState();
+  const games = [];
+  const localState = state || exp.getLocalState();
   for (let team of localState.teams) {
     for (let game of team.games) {
       for (let pa of game.plateAppearances) {
@@ -638,14 +638,14 @@ exp.addPlayerToLineup = function(lineup, player_id) {
 };
 
 exp.updateLineup = function(lineup, playerId, newIndex) {
-  let ind = lineup.indexOf(playerId);
+  const ind = lineup.indexOf(playerId);
   lineup.splice(ind, 1);
   lineup.splice(newIndex, 0, playerId);
   onEdit();
 };
 
 exp.removePlayerFromLineup = function(lineup, player_id) {
-  let index = lineup.indexOf(player_id);
+  const index = lineup.indexOf(player_id);
   lineup.splice(index, 1);
   onEdit();
 };
@@ -670,10 +670,10 @@ exp.removeGame = function(game_id, team_id) {
 // PLATE APPEARANCE
 
 exp.addPlateAppearance = function(player_id, game_id) {
-  let game = exp.getGame(game_id);
-  let plateAppearances = game.plateAppearances;
-  let id = getNextId();
-  let plateAppearance = {
+  const game = exp.getGame(game_id);
+  const plateAppearances = game.plateAppearances;
+  const id = getNextId();
+  const plateAppearance = {
     id: id,
     player_id: player_id,
     result: null,
@@ -706,8 +706,15 @@ exp.replacePlateAppearance = function(paId, gameId, teamId, newPa) {
       break;
     }
   }
-  appearances.splice(i, 1, newPa);
-  //localState.teams[teamIndex].games[gameIndex].plateAppearances[i] = newPa;
+  appearances.splice(i, 1, {
+    id: newPa.id,
+    player_id: newPa.player_id,
+    result: newPa.result,
+    location: {
+      x: newPa?.location?.x,
+      y: newPa?.location?.y,
+    },
+  });
   onEdit();
 };
 

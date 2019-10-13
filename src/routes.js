@@ -296,7 +296,7 @@ routes = {
         return player.id === playerId ? player : prev;
       }, null);
 
-      let team = data.teams[0];
+      const team = data.teams[0];
 
       // TODO: This is duplicated logic from the state class, figure out how we can re-use that code
       let plateAppearances = [];
