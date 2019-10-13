@@ -88,11 +88,5 @@ class CardTeamList extends React.Component {
   }
 }
 export default injectSheet(theme => ({
-  listItem: {
-    lineHeight: '20px',
-    [`@media (max-width:${theme.breakpoints.sm})`]: {
-      fontSize: '14px',
-      lineHeight: '14px',
-    },
-  },
+  listItem: theme.classes.listItem,
 }))(CardTeamList);

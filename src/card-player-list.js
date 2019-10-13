@@ -1,15 +1,13 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import expose from './expose';
 import state from 'state';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
 import { setRoute } from 'actions/route';
+import injectSheet from 'react-jss';
+import Card from 'elements/card';
 
-export default class CardPlayerList extends expose.Component {
+class CardPlayerList extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
     this.state = {};
 
     this.handlePlayerClick = function(player) {
@@ -79,30 +77,10 @@ export default class CardPlayerList extends expose.Component {
   }
 
   render() {
-    return DOM.div(
-      {
-        className: 'card',
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {}),
-        DOM.div(
-          {
-            className: 'prevent-overflow card-title-text-with-arrow',
-          },
-          'Players'
-        ),
-        React.createElement(RightHeaderButton, {})
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderPlayerList()
-      )
-    );
+    return <Card title="Players">{this.renderPlayerList()}</Card>;
   }
 }
+
+export default injectSheet(theme => ({
+  listItem: theme.classes.listItem,
+}))(CardPlayerList);

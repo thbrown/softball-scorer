@@ -17,6 +17,7 @@ import CardPlateAppearance from 'card-plate-appearance';
 import CardPlayerList from 'card-player-list';
 import CardPlayerEdit from 'card-player-edit';
 import CardPlayerSelection from 'card-player-selection';
+import CardOptimizationLineupImport from 'card-optimization-lineup-import';
 import CardPlayerSelect from 'card-player-select';
 import CardSignup from 'card-signup';
 import CardSpray from 'card-spray';
@@ -233,7 +234,9 @@ routes = {
     assertStateObjects(optimization);
     return (
       <CardPlayerSelect
+        optimization={optimization}
         selected={JSON.parse(optimization.playerList)}
+        players={state.getAllPlayersAlphabetically()}
         onComplete={players => {
           state.setOptimizationField(
             optimization.id,
@@ -244,6 +247,13 @@ routes = {
         }}
       />
     );
+  },
+  '/optimizations/:optimizationId/overrides/import-lineup': ({
+    optimizationId,
+  }) => {
+    const optimization = state.getOptimization(optimizationId);
+    assertStateObjects(optimization);
+    return <CardOptimizationLineupImport optimization={optimization} />;
   },
   '/optimizations/:optimizationId/overrides/:playerId': ({
     optimizationId,
