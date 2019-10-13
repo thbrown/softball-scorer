@@ -11,6 +11,11 @@ const enhance = compose(
   }),
   injectSheet(theme => ({
     listItem: theme.classes.listItem,
+    listItemFloat: {
+      float: 'right',
+      marginRight: '32px',
+      fontSize: '12px',
+    },
   }))
 );
 
@@ -18,7 +23,7 @@ const ListPicker = props => (
   <div>
     {props.items.map((item, i) => (
       <div
-        id={item.id}
+        id={'list-' + item.id}
         key={item + i}
         onClick={props.handleItemClick(item)}
         className={
@@ -26,6 +31,11 @@ const ListPicker = props => (
         }
       >
         <NoSelect>{item.name}</NoSelect>
+        {item.floatName && (
+          <span className={props.classes.listItemFloat}>
+            <NoSelect>{item.floatName}</NoSelect>
+          </span>
+        )}
       </div>
     ))}
   </div>
@@ -33,7 +43,7 @@ const ListPicker = props => (
 
 const ListPickerEnhanced = enhance(ListPicker);
 
-// an item is { name, id }
+// an item is { name, id, ?floatName }
 ListPickerEnhanced.defaultProps = {
   onClick: () => {},
   items: [],

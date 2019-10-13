@@ -465,10 +465,12 @@ exp.getAllOptimizations = function() {
 };
 
 exp.replaceOptimization = function(optimizationId, newOptimization) {
-  let localState = exp.getLocalState();
-  let oldOptimization = exp.getOptimization(optimizationId);
+  const localState = exp.getLocalState();
+  const oldOptimization = exp.getOptimization(optimizationId);
 
-  let oldOptimizationIndex = localState.optimizations.indexOf(oldOptimization);
+  const oldOptimizationIndex = localState.optimizations.indexOf(
+    oldOptimization
+  );
   localState.optimizations[oldOptimizationIndex] = newOptimization;
   onEdit();
 };
@@ -479,8 +481,8 @@ exp.setOptimizationCustomDataField = function(
   fieldName,
   fieldValue
 ) {
-  let optimization = exp.getOptimization(optimizationId);
-  let customData = JSON.parse(optimization.customData);
+  const optimization = exp.getOptimization(optimizationId);
+  const customData = JSON.parse(optimization.customData);
   if (fieldValue) {
     customData[fieldName] = fieldValue;
   } else {
@@ -496,9 +498,7 @@ exp.setOptimizationField = function(
   fieldValue,
   isJson
 ) {
-  console.log('Setting field', fieldName, fieldValue);
-
-  let optimization = exp.getOptimization(optimizationId);
+  const optimization = exp.getOptimization(optimizationId);
   if (isJson) {
     optimization[fieldName] = JSON.stringify(fieldValue);
   } else {
@@ -508,13 +508,13 @@ exp.setOptimizationField = function(
 };
 
 exp.getOptimizationCustomDataField = function(optimizationId, fieldName) {
-  let optimization = exp.getOptimization(optimizationId);
-  let customData = JSON.parse(optimization.customData);
+  const optimization = exp.getOptimization(optimizationId);
+  const customData = JSON.parse(optimization.customData);
   return customData[fieldName];
 };
 
 exp.removeOptimization = function(optimizationId) {
-  let localState = exp.getLocalState();
+  const localState = exp.getLocalState();
   localState.optimizations = localState.optimizations.filter(optimization => {
     return optimization.id !== optimizationId;
   });

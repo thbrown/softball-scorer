@@ -57,11 +57,11 @@ export default class CardOptimizationEdit extends React.Component {
       );
     }.bind(this);
 
-    this.handleOptimizationNameChange = function() {
+    this.handleOptimizationNameChange = value => {
       this.setState({
-        optimizationName: document.getElementById('optimizationName').value,
+        optimizationName: value,
       });
-    }.bind(this);
+    };
   }
 
   componentDidMount() {}
@@ -76,7 +76,7 @@ export default class CardOptimizationEdit extends React.Component {
           key: 'optimizationName',
           inputId: 'optimizationName',
           label: 'Optimization name',
-          onChange: this.handleOptimizationNameChange.bind(this),
+          onChange: this.handleOptimizationNameChange,
           defaultValue: this.state.optimizationName,
         }),
       ],
@@ -91,6 +91,7 @@ export default class CardOptimizationEdit extends React.Component {
       DOM.div(
         {
           key: 'confirm',
+          id: 'save',
           className: 'edit-button button confirm-button',
           // TODO - Make this a component and fix the style there with CSS.
           style: {
@@ -132,6 +133,7 @@ export default class CardOptimizationEdit extends React.Component {
         DOM.div(
           {
             key: 'delete',
+            id: 'delete',
             className: 'edit-button button cancel-button',
             // TODO - Make this a component and fix the style there with CSS.
             style: {

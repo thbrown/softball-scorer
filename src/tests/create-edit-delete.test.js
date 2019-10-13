@@ -9,6 +9,7 @@ state.setOffline();
 
 const TEST_TEAM_NAME = 'Test Team';
 const TEST_GAME_NAME = 'Test Opponent';
+const TEST_OPTIMIZATION_NAME = 'Test Optimization';
 const TEST_PLAYERS = [];
 for (let i = 0; i < 10; i++) {
   TEST_PLAYERS.push('PLAYER ' + i);
@@ -51,6 +52,23 @@ export const createGameUI = (wrapper, teamId) => {
   expect(newGame.lineupType).toEqual(1);
 
   return newGame;
+};
+
+export const createOptimizationUI = wrapper => {
+  setRoute(`/`);
+  wrapper.find('#optimizations').simulate('click');
+  wrapper.find('#new-optimization').simulate('click');
+  wrapper
+    .find('input#optimizationName')
+    .simulate('change', { target: { value: TEST_OPTIMIZATION_NAME } });
+  wrapper.find('#save').simulate('click');
+
+  const optimizations = state.getLocalState().optimizations;
+  const newOptimization = optimizations[optimizations.length - 1];
+  expect(newOptimization).toBeTruthy();
+  expect(newOptimization.name).toEqual(TEST_OPTIMIZATION_NAME);
+
+  return newOptimization;
 };
 
 describe('[UI] Create/Edit/Delete', () => {
@@ -120,6 +138,24 @@ describe('[UI] Create/Edit/Delete', () => {
       });
 
       expect(state.getGame(gameId).lineup.length).toEqual(0);
+    });
+  });
+
+  describe('Optimization', () => {
+    it('A user can create, edit, and delete an optimization', () => {
+      const { wrapper } = getPageWrapper();
+      const optimizationId = createOptimizationUI(wrapper).id;
+
+      wrapper.find(`#optimization-${optimizationId}`).simulate('click');
+      wrapper.find('#accordion-players').simulate('click');
+      wrapper.find('#accordion-games').simulate('click');
+      wrapper.find('#accordion-options').simulate('click');
+      wrapper.find('#back-button').simulate('click');
+      wrapper.find(`#edit-optimization-${optimizationId}`).simulate('click');
+      wrapper.find('#delete').simulate('click');
+      wrapper.find('#dialog-confirm').simulate('click');
+
+      expect(state.getLocalState().optimizations.length).toEqual(0);
     });
   });
 });

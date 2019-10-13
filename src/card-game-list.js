@@ -2,6 +2,7 @@ import React from 'react';
 import state from 'state';
 import { setRoute } from 'actions/route';
 import injectSheet from 'react-jss';
+import { toClientDate } from 'utils/functions';
 
 class CardGameList extends React.Component {
   constructor(props) {
@@ -43,7 +44,7 @@ class CardGameList extends React.Component {
             }}
           />
           <div className={this.props.classes.dateText}>
-            {new Date(game.date * 1000).toISOString().substring(0, 10)}
+            {toClientDate(game.date)}
           </div>
           <div className="prevent-overflow">{'Vs. ' + game.opponent}</div>
         </div>
@@ -74,13 +75,7 @@ class CardGameList extends React.Component {
 }
 
 export default injectSheet(theme => ({
-  listItem: {
-    lineHeight: '20px',
-    [`@media (max-width:${theme.breakpoints.sm})`]: {
-      fontSize: '14px',
-      lineHeight: '14px',
-    },
-  },
+  listItem: theme.classes.listItem,
   listButton: {
     float: 'right',
   },

@@ -5,16 +5,17 @@ import injectSheet from 'react-jss';
 import { compose, withState, withHandlers } from 'recompose';
 import ListPicker from 'elements/list-picker';
 import { setRoute } from 'actions/route';
+import { toClientDate } from 'utils/functions';
 
 const enhance = compose(
   withState('team', 'setTeam', null),
   withState('game', 'setGame', null),
   withHandlers({
-    handleTeamItemClick: props => teamId => () => {
-      props.setTeam(state.getTeam(teamId));
+    handleTeamItemClick: props => item => {
+      props.setTeam(state.getTeam(item.id));
     },
-    handleGameItemClick: props => gameId => () => {
-      props.setGame(state.getGame(gameId));
+    handleGameItemClick: props => item => {
+      props.setGame(state.getGame(item.id));
     },
     handleBackClick: props => () => {
       let skipDefaultBack = false;
@@ -34,35 +35,78 @@ const enhance = compose(
         props.game.lineup,
         true
       );
-      setRoute(`/optimizations/${props.optimization.id}?acc0=true`);
+      state.setOptimizationField(
+        props.optimization.id,
+        'teamList',
+        [props.team.id],
+        true
+      );
+      setRoute(
+        `/optimizations/${props.optimization.id}/overrides/player-select`
+      );
     },
   }),
   injectSheet(theme => ({
     title: {
-      fontSize: '32px',
+      position: 'sticky',
+      left: '0px',
+      top: '48px',
+      fontSize: theme.typography.size.xLarge,
       textAlign: 'center',
       color: theme.colors.TEXT_LIGHT,
       padding: theme.spacing.small,
+      backgroundColor: theme.colors.SECONDARY_DARK,
+      borderTop: '2px solid ' + theme.colors.PRIMARY,
     },
     itemCustom: {
       backgroundColor: theme.colors.PRIMARY_DARK,
+      textAlign: 'center',
+    },
+    confirmButtonContainer: {
+      display: 'flex',
+      justifyContent: 'center',
+    },
+    confirmButton: {
+      width: '180px',
+    },
+    vs: {
+      color: theme.colors.TEXT_LIGHT,
+      fontSize: theme.typography.size.medium,
+    },
+    chipContainer: {
+      paddingTop: theme.spacing.xSmall,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    chip: {
+      padding: '15px',
+      marginRight: theme.spacing.xxSmall,
+      marginLeft: theme.spacing.xxSmall,
+      color: theme.colors.TEXT_LIGHT,
+      backgroundColor: theme.colors.PRIMARY_DARK,
+      borderRadius: '30px',
+      fontSize: theme.typography.size.medium,
     },
   }))
 );
 
 const toItems = list =>
-  list.map(obj => ({ name: obj.name || obj.opponent, id: obj.id }));
+  list.map(obj => ({
+    name: obj.name || obj.opponent,
+    id: obj.id,
+    floatName: obj.date ? toClientDate(obj.date) : undefined,
+  }));
 
-const getComponent = props => {
+const LineupList = props => {
   if (props.game) {
     return (
       <>
         <div className={props.classes.title}> Use this lineup? </div>
-        <div
-          className={'button edit-button confirm-button'}
-          onClick={props.handleConfirmClick}
-        >
-          Confirm
+        <div className={props.classes.chipContainer}>
+          <div className={props.classes.chip}>{props.team.name}</div>
+          <span className={props.classes.vs}> vs. </span>
+          <div className={props.classes.chip}>{props.game.opponent}</div>
         </div>
         <ListPicker
           itemClassName={props.classes.itemCustom}
@@ -71,19 +115,31 @@ const getComponent = props => {
             id: state.getPlayer(playerId).id,
           }))}
           onClick={() => {}}
-        ></ListPicker>
+        />
+        <div className={props.classes.confirmButtonContainer}>
+          <div
+            id="confirm"
+            className={
+              'button edit-button confirm-button ' + props.classes.confirmButton
+            }
+            onClick={props.handleConfirmClick}
+          >
+            Confirm
+          </div>
+        </div>
       </>
     );
   } else if (props.team) {
     return (
       <>
         <div className={props.classes.title}> Pick a game </div>
+        <div className={props.classes.chipContainer}>
+          <div className={props.classes.chip}>{props.team.name}</div>
+        </div>
         <ListPicker
           items={toItems([...props.team.games].reverse())}
-          onClick={({ id }) => {
-            props.setGame(state.getGame(id));
-          }}
-        ></ListPicker>
+          onClick={props.handleGameItemClick}
+        />
       </>
     );
   } else {
@@ -92,10 +148,8 @@ const getComponent = props => {
         <div className={props.classes.title}> Pick a team </div>
         <ListPicker
           items={toItems([...state.getLocalState().teams].reverse())}
-          onClick={({ id }) => {
-            props.setTeam(state.getTeam(id));
-          }}
-        ></ListPicker>
+          onClick={props.handleTeamItemClick}
+        />
       </>
     );
   }
@@ -108,7 +162,7 @@ const CardImport = enhance(props => (
       onClick: props.handleBackClick,
     }}
   >
-    {getComponent(props)}
+    <LineupList {...props} />
   </Card>
 ));
 
