@@ -57,14 +57,14 @@ class CardPlateAppearance extends React.Component {
 
     this.isNew = props.isNew;
 
-    const buildPlateAppearance = function() {
+    const buildPlateAppearance = () => {
       const pa = JSON.parse(JSON.stringify(props.plateAppearance));
       pa.result = this.state.paResult;
       pa.location = {};
       pa.location.x = this.state.paLocationX;
       pa.location.y = this.state.paLocationY;
       return pa;
-    }.bind(this);
+    };
 
     this.homeOrBack = function() {
       const newPa = buildPlateAppearance();
@@ -87,29 +87,30 @@ class CardPlateAppearance extends React.Component {
       }
     };
 
-    this.handleConfirmClick = function() {
+    this.handleConfirmClick = () => {
+      const newPa = buildPlateAppearance();
       state.replacePlateAppearance(
         props.plateAppearance.id,
         props.game.id,
         props.team.id,
-        buildPlateAppearance()
+        newPa
       );
       goBack();
     };
 
     this.handleCancelClick = function() {
+      goBack();
       if (props.isNew) {
         state.removePlateAppearance(props.plateAppearance.id, props.game.id);
       }
-      goBack();
     };
 
     this.handleDeleteClick = function() {
       dialog.show_confirm(
         'Are you sure you want to delete this plate appearance?',
         () => {
-          state.removePlateAppearance(props.plateAppearance.id, props.game.id);
           goBack();
+          state.removePlateAppearance(props.plateAppearance.id, props.game.id);
         }
       );
     };
@@ -268,7 +269,8 @@ class CardPlateAppearance extends React.Component {
   renderField(imageSrcForCurrentPa) {
     let indicators = [];
 
-    // Add the indicators for all plate appearances for this player, the current plate appearance will be displayed in a different color
+    // Add the indicators for all plate appearances for this player,
+    // the current plate appearance will be displayed in a different color
     this.props.plateAppearances.forEach(value => {
       let x = -1;
       let y = -1;

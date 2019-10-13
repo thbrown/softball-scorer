@@ -13,7 +13,7 @@ const defaultTab = 'lineup';
 export default class CardGame extends expose.Component {
   constructor(props) {
     super(props);
-    this.expose();
+    this.exposeOverwrite('game');
 
     this.handleTabClick = function(newTab) {
       setRoute(
