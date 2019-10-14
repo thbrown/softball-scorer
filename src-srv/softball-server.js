@@ -2,6 +2,7 @@
 
 const http = require('http');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 const express = require('express');
 const helmet = require('helmet');
 const passport = require('passport');
@@ -201,9 +202,38 @@ module.exports = class SoftballServer {
     );
     app.use(passport.initialize());
     app.use(passport.session());
+    app.use(cookieParser());
+
+    // Middleware to check that our second auth cookie is present and valid
+    // This allows clients to log out when offline
+    app.use(async function(req, res, next) {
+      if (req.isAuthenticated()) {
+        let cookieToken = req.cookies.nonHttpOnlyToken;
+        let sessionToken = req.session.nonHttpOnlyToken;
+        if (sessionToken !== undefined) {
+          if (cookieToken !== sessionToken) {
+            let accountId = extractSessionInfo(req, 'accountId');
+            logger.log(accountId, 'Logging out user due to token mismatch');
+            await new Promise((resolve, reject) => {
+              req.logout();
+              req.session.destroy(function(err) {
+                if (err) {
+                  reject(err);
+                }
+                resolve();
+              });
+            }); // Log out the user
+          }
+        } else {
+          // No token stored in the session, assign one
+          // This is only required for keeping existing sessions valid.
+          initSecondAuthToken(req, res);
+        }
+      }
+      next();
+    });
 
     // Routes
-
     app.get(
       '/server/state',
       wrapForErrorProcessing(async (req, res) => {
@@ -272,13 +302,14 @@ module.exports = class SoftballServer {
     app.post(
       '/server/account/login',
       wrapForErrorProcessing((req, res, next) => {
-        passport.authenticate('local', function(err, accountInfo, info) {
+        passport.authenticate('local', async function(err, accountInfo, info) {
           if (err || !accountInfo) {
             logger.warn(null, 'Authentication Failed', accountInfo, err, info);
             res.status(400).send();
             return;
           }
           req.logIn(accountInfo, function() {
+            initSecondAuthToken(req, res);
             logger.log(accountInfo.account_id, 'Login Successful!');
             res.status(204).send();
           });
@@ -1038,6 +1069,18 @@ module.exports = class SoftballServer {
       });
     }
 
+    function initSecondAuthToken(req, res) {
+      // Make the cookie
+      let token = require('uuid/v4')();
+      res.cookie('nonHttpOnlyToken', token, {
+        maxAge: 500000,
+        httpOnly: false,
+      });
+      // Remember this cookie's token in the session
+      var sessData = req.session;
+      sessData.nonHttpOnlyToken = token;
+    }
+
     async function generateToken(length = 30) {
       return new Promise((resolve, reject) => {
         crypto.randomBytes(length, (err, buf) => {
@@ -1075,11 +1118,7 @@ module.exports = class SoftballServer {
     }
 
     async function logIn(account, req, res) {
-      logger.log(account.account_id, 'Loggin in', account);
-      let sessionInfo = {
-        accountId: account.account_id,
-        email: account.email,
-      };
+      logger.log(account.account_id, 'Logging in', account);
       try {
         await new Promise(function(resolve, reject) {
           req.logIn(account, function() {
@@ -1100,12 +1139,13 @@ module.exports = class SoftballServer {
               return done;
             };
             req._passport.instance.serializeUser(sessionInfo, doneWrapper(req));
+            initSecondAuthToken(req, res);
             resolve();
           });
         });
         logger.log(account.account_id, 'Login Successful -- backdoor!');
       } catch (e) {
-        logger.log(account.account_id, 'ERROR', e);
+        logger.error(account.account_id, 'ERROR', e);
         res.status(500).send();
       }
     }
