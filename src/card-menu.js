@@ -65,14 +65,15 @@ export default class CardMenu extends Component {
             setRoute('/menu/login');
           });
         } else {
-          // We can't delete our sid cookie in javascript because is has the httpOnly header, it has to be done from the server.
-          // TODO: I think we can get aroud this by having two session cookies, one httpOnly and one we can remove with javascript. Both would be required to auth.
-          dialog.show_notification(
-            `Logout failed. You must be online to logout (${response.status})`,
-            function() {
-              setRoute('/menu');
-            }
-          );
+          // If we're offline we can't delete our sid cookie in javascript because is has the httpOnly header, it has to be done from the server.
+          // Instead we'll delete our nonHttpOnlyToken cookie locally. Since both are required for performing an authenticated request
+          // the server will invalidate the sid cookie next time any request succeeds.
+          document.cookie =
+            'nonHttpOnlyToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          state.resetState();
+          dialog.show_notification('Logout successful', function() {
+            setRoute('/menu/login');
+          });
         }
       });
     };
