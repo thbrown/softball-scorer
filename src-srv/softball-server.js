@@ -213,7 +213,10 @@ module.exports = class SoftballServer {
         if (sessionToken !== undefined) {
           if (cookieToken !== sessionToken) {
             let accountId = extractSessionInfo(req, 'accountId');
-            logger.log(accountId, 'Logging out user due to token mismatch');
+            logger.log(
+              accountId,
+              `Logging out user due to token mismatch expected ${cookieToken} to be ${sessionToken}`
+            );
             await new Promise((resolve, reject) => {
               req.logout();
               req.session.destroy(function(err) {
