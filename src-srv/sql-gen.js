@@ -58,6 +58,7 @@ let jsonValueToSqlColName = {
   location: 'location',
   x: 'hit_location_x',
   y: 'hit_location_y',
+  player_id: 'player_id',
 
   // players columns
   name: 'name',
@@ -420,6 +421,29 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
               table: 'games',
             },
             cache: getCaches('games', accountId, getIdFromPath(path, 'teams')),
+          });
+        } else if (
+          applicableTable === 'plate_appearances' &&
+          columnName === 'player_id'
+        ) {
+          // Special case: player_id field must be converted to a uuid before updateing
+          result.push({
+            query:
+              'UPDATE plate_appearances SET player_id = $1 WHERE id IN ($2) AND account_id IN ($3);',
+            values: [
+              idUtils.clientIdToServerId(value.param2, accountId),
+              idUtils.clientIdToServerId(getIdFromPath(path), accountId),
+              accountId,
+            ],
+            order: {
+              op: 'UPDATE',
+              table: 'plate_appearances',
+            },
+            cache: getCaches(
+              'plate_appearances',
+              accountId,
+              getIdFromPath(path, 'teams')
+            ),
           });
         } else {
           let limit = undefined; // defaults to 50 chars
@@ -884,19 +908,23 @@ let getColNameFromJSONValue = function(value) {
   // READ ONLY FIELDS - Including a field here make it so it can not be updated, but it has no
   // effect on whether or not it can be inserted. To prevent insertion do not include that
   // field in the INSERT statements for it's parent object.
-  let valueLowerCase = dbColName.toLowerCase();
-  if (
-    valueLowerCase === 'account_id' || // Don't let sombody assign an object to another account
-    valueLowerCase === 'status' || // Don't let people change the status of their optimization (might allow them to run more than one optimization in parrelel)
-    valueLowerCase === 'public_id' // Don't let people change their public link
-  ) {
-    logger.warn(
-      `Security Notification. User attempted to modify read-only column: ${value}`
-    );
+  if (dbColName) {
+    let valueLowerCase = dbColName.toLowerCase();
+    if (
+      valueLowerCase === 'account_id' || // Don't let sombody assign an object to another account
+      valueLowerCase === 'status' || // Don't let people change the status of their optimization (might allow them to run more than one optimization in parrelel)
+      valueLowerCase === 'public_id' // Don't let people change their public link
+    ) {
+      logger.warn(
+        `Security Notification. User attempted to modify read-only column: ${value}`
+      );
+      return undefined;
+    }
+    return dbColName;
+  } else {
+    logger.warn(`Unrecognized column was edited ${value}`);
     return undefined;
   }
-
-  return dbColName;
 };
 
 // If 'key' is a jsonValue that references a db table, it's corresponding table name is returned. Otherwise, this function selects
