@@ -298,25 +298,17 @@ routes = {
 
       let team = data.teams[0];
 
-      // TODO: This is duplicated logic from the state class, figure out how we can re-use that code
-      let plateAppearances = [];
-      if (team && team.games) {
-        team.games.forEach(game => {
-          if (game.plateAppearances) {
-            const plateAppearancesThisGame = game.plateAppearances.filter(
-              pa => player.id === pa.player_id
-            );
-            plateAppearances = plateAppearances.concat(
-              plateAppearancesThisGame
-            );
-          }
-        });
-      }
+      const playerPlateAppearances = state.getPlateAppearancesForPlayerOnTeam(
+        playerId,
+        team.id,
+        data
+      );
+
       return (
         <CardSpray
           team={team}
           player={player}
-          plateAppearances={plateAppearances}
+          plateAppearances={playerPlateAppearances}
           backNavUrl={`/public-teams/${publicTeamId}/stats`}
         />
       );

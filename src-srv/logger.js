@@ -76,3 +76,8 @@ exports.error = function(accountId, ...messages) {
   // Red
   logColor(accountId, '31m', ...messages);
 };
+
+exports.dev = function(...messages) {
+  // Cyan
+  logColor('dev', '36m', ...messages);
+};

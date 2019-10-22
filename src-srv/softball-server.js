@@ -354,6 +354,7 @@ module.exports = class SoftballServer {
             let recapchaResponseBody = JSON.parse(recapchaResponse.body);
             if (!recapchaResponseBody.success) {
               throw new HandledError(
+                'N/A',
                 400,
                 "We don't serve their kind here",
                 recapchaResponse.body
@@ -364,6 +365,7 @@ module.exports = class SoftballServer {
               throw error;
             } else {
               throw new HandledError(
+                'N/A',
                 500,
                 'Failed to get recapcha approval from Google',
                 error
@@ -625,6 +627,7 @@ module.exports = class SoftballServer {
             data.checksum = data['md5'];
           } else {
             throw new HandledError(
+              accountId,
               400,
               'Missing required field: checksum',
               JSON.stringify(data)
@@ -1017,7 +1020,7 @@ module.exports = class SoftballServer {
 
     // 404 on unrecognized routes
     app.use(function() {
-      throw new HandledError(404, 'Resource not found');
+      throw new HandledError('N/A', 404, 'Resource not found');
     });
 
     app.use(function(error, req, res, next) {
@@ -1105,6 +1108,7 @@ module.exports = class SoftballServer {
     function checkFieldLength(field, maxLength) {
       if (field && field.length > maxLength) {
         throw new HandledError(
+          'N/A',
           400,
           `Field ${field} exceeds the maximum length ${maxLength}`
         );
@@ -1114,6 +1118,7 @@ module.exports = class SoftballServer {
     function checkRequiredField(field, fieldName) {
       if (!field || field.trim().length === 0) {
         throw new HandledError(
+          'N/A',
           400,
           `Field ${fieldName} is required but was not specified`
         );
@@ -1182,6 +1187,7 @@ module.exports = class SoftballServer {
 
         if (counter > 100) {
           throw new HandledError(
+            accountId,
             503,
             'Another request is consuming system resources allocated for this account. Please try agin in a few minutes.'
           );

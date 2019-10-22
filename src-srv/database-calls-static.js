@@ -312,7 +312,7 @@ let databaseCalls = class DatabaseCalls {
 
   async patchState(patch, accountId) {
     if (accountId === undefined) {
-      throw new HandledError(403, 'Please sign in first');
+      throw new HandledError(accountId, 403, 'Please sign in first');
     }
     logger.log('Attempting to merge', this.STATES[accountId], patch);
     objectMerge.patch(this.STATES[accountId], patch);
