@@ -626,7 +626,7 @@ module.exports = class DatabaseCalls {
 
   async patchState(patch, accountId) {
     if (accountId === undefined) {
-      throw new HandledError(403, 'Please sign in first');
+      throw new HandledError(accountId, 403, 'Please sign in first');
     }
 
     // Generate sql based off the patch
@@ -650,6 +650,7 @@ module.exports = class DatabaseCalls {
             ) {
               if (sqlToRun[i].values[j].length > sqlToRun[i].limits[j + 1]) {
                 throw new HandledError(
+                  accountId,
                   400,
                   `Field was larger than overriden limit ${
                     sqlToRun.limits[i + 1]
@@ -660,6 +661,7 @@ module.exports = class DatabaseCalls {
               }
             } else if (sqlToRun[i].values[j].length > 50) {
               throw new HandledError(
+                accountId,
                 400,
                 'Field was larger than 50 characters ' +
                   sqlToRun[i].values[j] +
@@ -735,8 +737,14 @@ module.exports = class DatabaseCalls {
     );
     if (results.rowCount > 1) {
       throw new HandledError(
+        'N/A',
         500,
-        `A strange number of accounts were returned: hash=${passwordTokenHash} results=${results}`
+        `An error occured while retrieving account information`,
+        `A strange number of accounts were returned: hash=${passwordTokenHash} rows=${JSON.stringify(
+          result.rows,
+          null,
+          2
+        )}`
       );
     } else if (results.rowCount === 1) {
       return results.rows[0];
@@ -765,8 +773,14 @@ module.exports = class DatabaseCalls {
       return result.rows[0];
     } else if (result.rowCount !== 0) {
       throw new HandledError(
+        'N/A',
         500,
-        `A strange number of accounts were returned: email=${email} result=${result}`
+        `An error occured while retrieving account details`,
+        `A strange number of accounts were returned: email=${email} rows=${JSON.stringify(
+          result.rows,
+          null,
+          2
+        )}`
       );
     }
     return undefined;
@@ -785,8 +799,14 @@ module.exports = class DatabaseCalls {
       return newObject;
     } else if (result.rowCount !== 0) {
       throw new HandledError(
+        'N/A',
         500,
-        `A strange number of accounts were returned: id=${id} result=${result}`
+        `An error occured while retrieving account id information`,
+        `A strange number of accounts were returned: id=${id} rows=${JSON.stringify(
+          result.rows,
+          null,
+          2
+        )}`
       );
     }
     return undefined;
@@ -806,8 +826,14 @@ module.exports = class DatabaseCalls {
       };
     } else if (result.rowCount !== 0) {
       throw new HandledError(
+        'N/A',
         500,
-        `A strange number of accounts were returned: public_id=${publicId} result=${result}`
+        `An error occured while retrieving team information`,
+        `A strange number of teams were returned: public_id=${publicId} rows=${JSON.stringify(
+          result.rows,
+          null,
+          2
+        )}`
       );
     }
     return undefined;
@@ -862,8 +888,14 @@ module.exports = class DatabaseCalls {
       return result.rows[0].count;
     } else if (result.rowCount !== 0) {
       throw new HandledError(
+        accountId,
         500,
-        `A strange number of results were returned: accountId=${accountId} result=${result}`
+        `An error occured while retrieving optimization information`,
+        `A strange number of results were returned: accountId=${accountId} rows=${JSON.stringify(
+          result.rows,
+          null,
+          2
+        )}`
       );
     }
     return undefined;
@@ -920,7 +952,11 @@ module.exports = class DatabaseCalls {
     } else {
       logger.error(
         accountId,
-        `A strange number of rows were updated ${result.rowCount} ${optimizationId}`
+        `A strange number of rows were updated ${optimizationId} rows=${JSON.stringify(
+          result.rows,
+          null,
+          2
+        )}`
       );
       return false;
     }
@@ -951,8 +987,14 @@ module.exports = class DatabaseCalls {
       return result.rows[0].status;
     } else if (result.rowCount !== 0) {
       throw new HandledError(
+        accountId,
         500,
-        `A strange number of optimization result datas were returned: ${optimizationId} ${result}`
+        `An error occured while retrieving optimization status information`,
+        `A strange number of optimization result datas were returned: ${optimizationId} rows=${JSON.stringify(
+          result.rows,
+          null,
+          2
+        )}`
       );
     }
     return undefined;
@@ -971,8 +1013,14 @@ module.exports = class DatabaseCalls {
       return result.rows[0].result_data;
     } else if (result.rowCount !== 0) {
       throw new HandledError(
+        accountId,
         500,
-        `A strange number of optimization result datas were returned: ${optimizationId} ${result}`
+        `An error occured while retrieving optimization result information`,
+        `A strange number of optimization result datas were returned: ${optimizationId} rows=${JSON.stringify(
+          result.rows,
+          null,
+          2
+        )}`
       );
     }
     return undefined;
@@ -995,8 +1043,14 @@ module.exports = class DatabaseCalls {
       return newObject;
     } else if (result.rowCount !== 0) {
       throw new HandledError(
+        accountId,
         500,
-        `A strange number of optimization result datas were returned: ${optimizationId} ${result}`
+        `An error occured while retrieving optimization detail information`,
+        `A strange number of optimization result datas were returned: ${optimizationId} rows=${JSON.stringify(
+          result.rows,
+          null,
+          2
+        )}`
       );
     }
     return undefined;
@@ -1032,8 +1086,14 @@ module.exports = class DatabaseCalls {
       return result.rows[0].execution_data;
     } else if (result.rowCount !== 0) {
       throw new HandledError(
+        accountId,
         500,
-        `A strange number of optimizatio execution datas were returned: ${optimizationId} ${result}`
+        `An error occured while retrieving optimization execution data information`,
+        `A strange number of optimization execution datas were returned: ${optimizationId} rows=${JSON.stringify(
+          result.rows,
+          null,
+          2
+        )}`
       );
     }
     return undefined;

@@ -142,6 +142,7 @@ let getSqlFromPatch = function(patch, accountId) {
           return tableSort;
         } else {
           throw new HandledError(
+            accountId,
             500,
             'Internal Server Error',
             `Unable to compare these tables: ${aTable} ${bTable}. Please add them to the tableSortOrder constant.,
@@ -153,6 +154,7 @@ let getSqlFromPatch = function(patch, accountId) {
         return opSort;
       } else {
         throw new HandledError(
+          accountId,
           500,
           'Internal Server Error',
           `Unable to compare these tables: ${opOrdering[aOp]} ${opOrdering[bOp]}. Please add them to the opSortOrder constant.`
@@ -160,6 +162,7 @@ let getSqlFromPatch = function(patch, accountId) {
       }
     } else {
       throw new HandledError(
+        accountId,
         500,
         'Internal Server Error',
         `Could not determine order of these statements ${a.query} ${b.query}. Add an order property to the query object.`
@@ -172,6 +175,7 @@ let getSqlFromPatch = function(patch, accountId) {
 let getSqlFromPatchInternal = function(patch, path, result, accountId) {
   if (accountId === undefined) {
     throw new HandledError(
+      accountId,
       500,
       'Internal Server Error',
       'Tried to generate sql while accountId was undefined (no account logged in, or at least no data was stored in the session)'
@@ -497,6 +501,7 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
         logger.warn(accountId, 'WARNING: skipped add');
       } else {
         throw new HandledError(
+          accountId,
           400,
           'The request specified an invalid operation. Try again.',
           'Unrecognized operation: ' +
@@ -518,6 +523,7 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
 let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
   if (accountId === undefined) {
     throw new HandledError(
+      accountId,
       500,
       'Internal Server Error',
       'Tried to generate sql while accountId was undefined (no account logged in, or at least data was not stored in the session)'
@@ -714,6 +720,7 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
 let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
   if (!accountId) {
     throw new HandledError(
+      accountId,
       500,
       'Internal Server Error',
       'Tried to generate sql while accountId was undefined (no account loged in)'
