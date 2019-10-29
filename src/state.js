@@ -268,7 +268,7 @@ exp.sync = async function(fullSync) {
       setSyncState(SYNC_STATUS_ENUM.ERROR);
     } else {
       // Other 500s, 400s are probably bugs :(, tell the user something is wrong
-      console.warn('[SYNC] Probable bug encountered');
+      console.warn(`[SYNC] Probable bug encountered ${err}`);
       dialog.show_notification(
         'Auto sync failed with message "' +
           err.message +

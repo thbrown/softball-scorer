@@ -1,13 +1,10 @@
 /*eslint no-process-exit:*/
 'use strict';
 
-const objectHash = require('object-hash');
-const got = require('got');
-
 const configAccessor = require('../config-accessor');
 const SoftballServer = require('../softball-server');
 const utils = require('./test-utils.js');
-const state = require('../../src/state.js');
+const state = require('../../src/state.js').default;
 
 /**
  * This test requires an attached postgres database.

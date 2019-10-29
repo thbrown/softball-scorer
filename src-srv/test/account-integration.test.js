@@ -37,6 +37,8 @@ describe('sync', () => {
     // Login
     let sessionId = await utils.login(email, password);
 
+    console.log(sessionId);
+
     // Delete
     await utils.deleteAccount(sessionId);
   });
