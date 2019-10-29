@@ -208,11 +208,11 @@ module.exports = class SoftballServer {
     // This allows clients to log out when offline
     app.use(async function(req, res, next) {
       if (req.isAuthenticated()) {
+        let accountId = extractSessionInfo(req, 'accountId');
         let cookieToken = req.cookies.nonHttpOnlyToken;
         let sessionToken = req.session.nonHttpOnlyToken;
         if (sessionToken !== undefined) {
           if (cookieToken !== sessionToken) {
-            let accountId = extractSessionInfo(req, 'accountId');
             logger.log(
               accountId,
               `Logging out user due to token mismatch expected ${cookieToken} to be ${sessionToken}`
@@ -231,6 +231,7 @@ module.exports = class SoftballServer {
           // No token stored in the session, assign one
           // This is only required for keeping existing sessions valid.
           initSecondAuthToken(req, res);
+          logger.log(accountId, `Assigned user a second auth cookie`);
         }
       }
       next();
@@ -1079,7 +1080,7 @@ module.exports = class SoftballServer {
       // Make the cookie
       let token = require('uuid/v4')();
       res.cookie('nonHttpOnlyToken', token, {
-        maxAge: 500000,
+        expires: new Date(253402300000000),
         httpOnly: false,
       });
       // Remember this cookie's token in the session

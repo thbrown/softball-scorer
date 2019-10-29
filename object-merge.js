@@ -295,8 +295,14 @@ let patch = function(
           toPatch[value] = patchObj[key].param1;
         }
       } else if (op == 'Edit') {
-        // TODO: Check if value is param2 before change?
-        toPatch[value] = patchObj[key].param2;
+        if (toPatch) {
+          // TODO: Check if value is param2 before change?
+          toPatch[value] = patchObj[key].param2;
+        } else if (!skipOperationOnNonExistant) {
+          throw new Error(
+            `This patch can not be applied: Attempting an edit to an object that doesn't exist ${patchObj[key].param2}`
+          );
+        }
       } else {
         throw 'Unrecognized operation: ' +
           op +

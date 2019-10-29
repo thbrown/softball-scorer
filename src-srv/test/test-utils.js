@@ -1,5 +1,4 @@
 const got = require('got');
-const hasher = require('object-hash');
 const configAccessor = require('../config-accessor');
 
 let port = configAccessor.getAppServerPort();
@@ -38,8 +37,8 @@ exports.login = async function(email, password) {
   } catch (error) {
     throw error;
   }
-  // Return the session id
-  return response.headers['set-cookie'][0].split(';')[0];
+  // Return the cookies (two of which are required for authentication)
+  return response.headers['set-cookie'];
 };
 
 exports.deleteAccount = async function(sessionId) {
