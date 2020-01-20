@@ -33,7 +33,7 @@ module.exports = class SoftballServer {
   }
 
   start() {
-    logger.log(null, 'Starting');
+    logger.log('sys', 'Starting');
 
     // Start the optimization server
     new OptimizationServer(this.databaseCalls, this.compute);
@@ -1051,7 +1051,7 @@ module.exports = class SoftballServer {
     });
 
     this.server = server.listen(this.port, function listening() {
-      logger.log(null, 'Softball App: Listening on', server.address().port);
+      logger.log('sys', 'Softball App: Listening on', server.address().port);
     });
 
     // Helpers -- TODO use consistent declarations

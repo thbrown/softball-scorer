@@ -89,4 +89,4 @@ export default class YesNoCancelDialog extends React.Component {
       })
     );
   }
-};
+}

@@ -47,12 +47,14 @@ exp.show_confirm = function(text, on_confirm, on_cancel) {
 exp.show_yes_no_cancel = function(text, on_yes, on_no, on_cancel) {
   show();
   expose.set_state('main', {
-    type: 'yesNoCancel',
-    text: text,
-    on_yes: on_yes || function() {},
-    on_no: on_no || function() {},
-    on_cancel: on_cancel || function() {},
-    hide: exp.hide,
+    dialog: {
+      type: 'yesNoCancel',
+      text: text,
+      on_yes: on_yes || function() {},
+      on_no: on_no || function() {},
+      on_cancel: on_cancel || function() {},
+      hide: exp.hide,
+    },
   });
 };
 
