@@ -101,8 +101,8 @@ export default class CardAuth extends expose.Component {
               );
             });
           }
-
           let keepLocalChanges = await prompt;
+
           if (keepLocalChanges === 'CANCEL') {
             return;
           }

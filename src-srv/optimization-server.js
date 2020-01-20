@@ -381,4 +381,4 @@ module.exports = class OptimizationServer {
     };
   }
 };
-logger.log(null, 'Optimization server listening on ' + PORT);
+logger.log('sys', 'Optimization server listening on ' + PORT);
