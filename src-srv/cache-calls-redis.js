@@ -17,7 +17,7 @@ const CACHE_TTL_SEC = 8 * 24 * 60 * 60; // 8 days, should cover weekly usage
  *
  * sess:<session_id> - Session data persisted by express session redis module
  * cache:acct:<account_id>:* - Cached data scoped to an account (keys are invalidated manually during db writes)
- * ancestor:sess:<session_id> - Save state tree holduing the last data this client received. Used to send diffs the the client to minimize network traffic.
+ * ancestor:acct:<account_id>:sess:<session_id> - Save state tree holduing the last data this client received. Used to send diffs the the client to minimize network traffic.
  * lock:* - Lock on some object, the object then the objects id will be supplied
  */
 module.exports = class CacheCalls {
@@ -136,7 +136,9 @@ module.exports = class CacheCalls {
   }
 
   async getAncestor(accountId, sessionId) {
-    let stringData = await this.getAsync('ancestor:sess:' + sessionId);
+    let stringData = await this.getAsync(
+      `ancestor:acct:${accountId}:sess:${sessionId}`
+    );
     if (stringData) {
       var inflated = zlib
         .inflateSync(Buffer.from(stringData, 'base64'))
@@ -150,7 +152,10 @@ module.exports = class CacheCalls {
     var deflated = zlib
       .deflateSync(JSON.stringify(ancestor))
       .toString('base64');
-    await this.setAsync('ancestor:sess:' + sessionId, deflated);
+    await this.setAsync(
+      `ancestor:acct:${accountId}:sess:${sessionId}`,
+      deflated
+    );
   }
 
   async setCache(value, key, secondKey) {
