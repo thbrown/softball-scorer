@@ -701,6 +701,12 @@ module.exports = class SoftballServer {
               accountId,
               req.sessionID
             );
+            logger.log(
+              accountId,
+              'Retrieving ancestor for',
+              accountId,
+              JSON.stringify(serverAncestor, null, 2)
+            );
             if (data.type === 'any' && serverAncestor) {
               // Yes we have an ancestor!
               logger.log(accountId, 'performing patch sync w/ ancestor');
