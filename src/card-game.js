@@ -10,6 +10,7 @@ import { setRoute } from 'actions/route';
 
 const defaultTab = 'lineup';
 
+
 export default class CardGame extends expose.Component {
   constructor(props) {
     super(props);

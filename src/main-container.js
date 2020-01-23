@@ -34,6 +34,7 @@ export default class MainContainer extends expose.Component {
   constructor(props) {
     super(props);
     this.expose('main');
+    console.log('PIZZA2');
 
     this.state = {
       render: true,

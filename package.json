@@ -7,7 +7,7 @@
     "run": "node src-srv",
     "start": "node src-srv",
     "build": "node build.js build",
-    "watch": "webpack --watch --config webpack.dev.js",
+    "watch": "concurrently -n srv,webpack \"node src-srv\" \"webpack-dev-server --client-log-level error  --config webpack.dev.js\"",
     "build-css": "node build.js build-css",
     "clean": "node build.js clean",
     "test-watch": "jest --watch ./src/tests/*",
@@ -109,7 +109,8 @@
     "babel-eslint": "^10.0.1",
     "babel-loader": "^8.0.6",
     "babel-plugin-module-resolver": "^3.2.0",
-    "cross-env": "^5.2.0",
+    "concurrently": "^5.0.2",
+    "cross-env": "^6.0.3",
     "enzyme": "^3.10.0",
     "enzyme-adapter-react-16": "latest",
     "eslint": "^5.16.0",
@@ -130,7 +131,8 @@
     "uglifycss": "0.0.26",
     "webpack": "^4.35.3",
     "webpack-bundle-analyzer": "^3.5.2",
-    "webpack-cli": "^3.3.5"
+    "webpack-cli": "^3.3.5",
+    "webpack-dev-server": "^3.10.1"
   },
   "config": {
     "bundles": {

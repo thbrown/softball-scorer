@@ -1,4 +1,5 @@
 const path = require('path');
+const srvUrl = 'http://localhost:8888';
 
 module.exports = {
   entry: './src/index.js',
@@ -20,5 +21,17 @@ module.exports = {
         use: ['babel-loader'],
       },
     ],
+  },
+  devServer: {
+    contentBase: __dirname,
+    compress: true,
+    hot: true,
+    liveReload: true,
+    open: true,
+    // openPage: '/',
+    proxy: {
+      // '/build/*': srvUrl,
+      '/server/*': srvUrl,
+    },
   },
 };
