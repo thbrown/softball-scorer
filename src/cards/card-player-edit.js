@@ -1,6 +1,5 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import expose from './expose';
 import dialog from 'dialog';
 import state from 'state';
 import LeftHeaderButton from 'component-left-header-button';
@@ -9,10 +8,9 @@ import FloatingInput from 'elements/floating-input';
 import WalkupSong from 'component-walkup-song';
 import { goBack } from 'actions/route';
 
-export default class CardPlayerEdit extends expose.Component {
+export default class CardPlayerEdit extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
 
     this.isNew = props.isNew;
 

@@ -1,47 +1,42 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import expose from './expose';
 import state from 'state';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import { setRoute } from 'actions/route';
-import { getShallowCopy } from 'utils/functions';
 
-export default class CardOptimizationList extends expose.Component {
+export default class CardPlayerList extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
     this.state = {};
 
-    this.handleOptimizationClick = function(optimization) {
-      setRoute(`/optimizations/${optimization.id}`);
+    this.handlePlayerClick = function(player) {
+      setRoute(`/players/${player.id}`);
     };
 
-    this.handleEditClick = function(optimization, ev) {
-      setRoute(`/optimizations/${optimization.id}/edit`);
+    this.handleEditClick = function(player, ev) {
+      setRoute(`/players/${player.id}/edit`);
       ev.stopPropagation();
     };
 
     this.handleCreateClick = function() {
-      var d = new Date();
-      let optimization = state.addOptimization(
-        `${d.getMonth() + 1}/${d.getDate()} optimization`
-      );
-      setRoute(`/optimizations/${optimization.id}/edit?isNew=true`);
+      const player = state.addPlayer('', 'M');
+      setRoute(`/players/${player.id}/edit?isNew=true`);
     };
   }
 
-  renderOptimizationsList() {
-    const s = state.getLocalState();
-    let elems = getShallowCopy(s.optimizations)
-      .reverse()
-      .map(optimization => {
+  renderPlayerList() {
+    let elems = state
+      .getAllPlayersAlphabetically()
+      .slice()
+      .map(player => {
         return DOM.div(
           {
-            optimization_id: optimization.id,
-            key: 'optimization' + optimization.id,
+            id: 'player-' + player.id,
+            player_id: player.id,
+            key: 'player' + player.id,
             className: 'list-item',
-            onClick: this.handleOptimizationClick.bind(this, optimization),
+            onClick: this.handlePlayerClick.bind(this, player),
             style: {
               display: 'flex',
               justifyContent: 'space-between',
@@ -51,7 +46,7 @@ export default class CardOptimizationList extends expose.Component {
             {
               className: 'prevent-overflow',
             },
-            optimization.name
+            player.name
           ),
           DOM.div(
             {
@@ -59,9 +54,9 @@ export default class CardOptimizationList extends expose.Component {
             },
             DOM.img({
               src: '/server/assets/edit.svg',
-              className: 'list-button',
-              onClick: this.handleEditClick.bind(this, optimization),
               alt: 'edit',
+              className: 'list-button',
+              onClick: this.handleEditClick.bind(this, player),
             })
           )
         );
@@ -70,11 +65,11 @@ export default class CardOptimizationList extends expose.Component {
     elems.unshift(
       DOM.div(
         {
-          key: 'newoptimization',
+          key: 'newplayer',
           className: 'list-item add-list-item',
           onClick: this.handleCreateClick,
         },
-        '+ Add New Optimization'
+        '+ Add New Player'
       )
     );
 
@@ -96,7 +91,7 @@ export default class CardOptimizationList extends expose.Component {
           {
             className: 'prevent-overflow card-title-text-with-arrow',
           },
-          'Optimizations'
+          'Players'
         ),
         React.createElement(RightHeaderButton, {})
       ),
@@ -104,7 +99,7 @@ export default class CardOptimizationList extends expose.Component {
         {
           className: 'card-body',
         },
-        this.renderOptimizationsList()
+        this.renderPlayerList()
       )
     );
   }

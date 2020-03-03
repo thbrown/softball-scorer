@@ -4,8 +4,8 @@ import dialog from 'dialog';
 import network from 'network';
 import noSleepImport from './lib/nosleep.js';
 import state from 'state';
-import CardNotFound from 'card-not-found';
-import CardLoading from 'card-loading';
+import CardNotFound from 'cards/card-not-found';
+import CardLoading from 'cards/card-loading';
 import DataContainer from 'elements/data-container';
 import { Dialog } from 'dialog';
 import config from './config';
@@ -34,7 +34,6 @@ export default class MainContainer extends expose.Component {
   constructor(props) {
     super(props);
     this.expose('main');
-    console.log('PIZZA2');
 
     this.state = {
       render: true,
@@ -185,7 +184,7 @@ export default class MainContainer extends expose.Component {
           process.env.NODE_ENV !== 'test' &&
           (true || window.ENABLE_VERBOSE_LOGGING)
         ) {
-          console.error(err);
+          console.error(renderRouteComponent, err);
         }
         CardComponent = (
           <CardNotFound

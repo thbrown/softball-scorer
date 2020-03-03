@@ -1,6 +1,6 @@
 import React, { createRef } from 'react';
 import dialog from 'dialog';
-import objectMerge from '../object-merge.js';
+import objectMerge from '/../object-merge.js';
 import state from 'state';
 import Card from 'elements/card';
 import CardSection from 'elements/card-section';

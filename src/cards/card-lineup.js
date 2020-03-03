@@ -1,6 +1,6 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import expose from './expose';
+import expose from 'expose';
 import state from 'state';
 import dialog from 'dialog';
 import Draggable from 'react-draggable';

@@ -1,15 +1,14 @@
 import React from 'react';
-import expose from './expose';
+import expose from 'expose';
 import DOM from 'react-dom-factories';
 import css from 'css';
-import CardLineup from 'card-lineup';
-import CardScorer from 'card-scorer';
+import CardLineup from 'cards/card-lineup';
+import CardScorer from 'cards/card-scorer';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import { setRoute } from 'actions/route';
 
 const defaultTab = 'lineup';
-
 
 export default class CardGame extends expose.Component {
   constructor(props) {

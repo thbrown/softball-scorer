@@ -1,6 +1,5 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import expose from './expose';
 import state from 'state';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
@@ -8,10 +7,9 @@ import Select from 'react-select';
 import { goBack } from 'actions/route';
 
 // This is a more generic player selection card to replace card-player-selection
-export default class CardPlayerSelect extends expose.Component {
+export default class CardPlayerSelect extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
 
     let players = state.getAllPlayersAlphabetically();
     let options = [];

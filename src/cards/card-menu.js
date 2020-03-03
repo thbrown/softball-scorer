@@ -115,7 +115,7 @@ export default class CardMenu extends Component {
 
     this.handleAddToHomeScreenClick = function() {
       dialog.show_confirm(
-        "**Would you like to add Softball.app to your homescreen as a standalone app?** Presssing yes will cause your browser to issue an 'add to home screen' prompt. If you dismiss the browser's prompt, this menu option will disappear for a while.",
+        "**Would you like to add Softball.app to your home screen as a standalone app?** Pressing yes will cause your browser to issue an 'add to home screen' prompt. If you dismiss the browser's prompt, this menu option will disappear for a while.",
         () => {
           let deferredPrompt = state.getAddToHomescreenPrompt().prompt();
           // Wait for the user to respond to the prompt

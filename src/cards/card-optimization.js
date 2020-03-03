@@ -1,6 +1,5 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import expose from './expose';
 import state from 'state';
 import dialog from 'dialog';
 import network from 'network';
@@ -9,16 +8,15 @@ import RightHeaderButton from 'component-right-header-button';
 import FloatingInput from 'elements/floating-input';
 import FloatingSelect from 'elements/floating-select';
 import { setRoute } from 'actions/route';
-import SimulationTimeEstimator from '../simulation-time-estimator';
-import CommonUtils from '../common-utils';
+import SimulationTimeEstimator from '/../simulation-time-estimator';
+import CommonUtils from '/../common-utils';
 
 const ACCORDION_QUERYPARAM_PREFIX = 'acc';
 const SYNC_DELAY_MS = 10000; // This value also exists in the CSS
 
-export default class CardOptimization extends expose.Component {
+export default class CardOptimization extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
 
     this.state = {};
 
