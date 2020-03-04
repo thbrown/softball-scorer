@@ -284,6 +284,7 @@ const enhance = compose(
       '&:hover': {
         filter: 'brightness(80%)',
       },
+      opacity: 1,
     },
     filterButtonActive: {
       '-webkitTapHighlightColor': 'rgba(0,0,0,0)',
