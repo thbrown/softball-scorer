@@ -1,11 +1,10 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
 import state from 'state';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
 import { setRoute } from 'actions/route';
+import Card from 'elements/card';
 
-export default class CardPlayerList extends React.Component {
+class CardPlayerList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
@@ -77,30 +76,8 @@ export default class CardPlayerList extends React.Component {
   }
 
   render() {
-    return DOM.div(
-      {
-        className: 'card',
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {}),
-        DOM.div(
-          {
-            className: 'prevent-overflow card-title-text-with-arrow',
-          },
-          'Players'
-        ),
-        React.createElement(RightHeaderButton, {})
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderPlayerList()
-      )
-    );
+    return <Card title="Players">{this.renderPlayerList()}</Card>;
   }
 }
+
+export default CardPlayerList;

@@ -1,17 +1,15 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 import state from 'state';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
+import Card from 'elements/card';
 import Select from 'react-select';
-import { goBack } from 'actions/route';
+import { goBack, setRoute } from 'actions/route';
 
 // This is a more generic player selection card to replace card-player-selection
 export default class CardPlayerSelect extends React.Component {
   constructor(props) {
     super(props);
 
-    let players = state.getAllPlayersAlphabetically();
+    const players = this.props.players;
     let options = [];
     for (let playerIndex = 0; playerIndex < players.length; playerIndex++) {
       let entry = {
@@ -25,7 +23,9 @@ export default class CardPlayerSelect extends React.Component {
     for (let i = 0; i < props.selected.length; i++) {
       let player = state.getPlayer(props.selected[i]);
       if (!player) {
-        continue; // Player may have been deleted, this should remove them going forward (only applicable for the optimization players list, players in a lineup can't be deleted)
+        // Player may have been deleted, this should remove them going forward  (only applicable
+        // for the optimization players list, players in a lineup can't be deleted)
+        continue;
       }
       let entry = {
         value: player.id,
@@ -57,11 +57,16 @@ export default class CardPlayerSelect extends React.Component {
 
     this.handleSubmitClick = function() {
       props.onComplete(this.state.players);
-      goBack();
+      setRoute(`/optimizations/${this.props.optimization.id}?acc0=true`);
     };
 
     this.handleCancelClick = function() {
       goBack();
+    };
+
+    this.handleBackClick = () => {
+      setRoute(`/optimizations/${this.props.optimization.id}?acc0=true`);
+      return true; //skip default back button action
     };
 
     this.handleBackOrHome = function() {
@@ -78,10 +83,12 @@ export default class CardPlayerSelect extends React.Component {
     // Lots of bad code in this method, see comments
     this.adjustSpacerDivHeight = function() {
       let adjust = function() {
-        // Neither of these are good selectors, but I'm not sure how else to get the menu height from inside the component
+        // Neither of these are good selectors, but I'm not sure how else to get the menu
+        // height from inside the component
         //let menus = document.querySelectorAll('div[class$="-menu"]');
         //if (!menus) {
-        // Idk why the '-menu' suffix is left off the css class for builds on some computers but not for builds on others, here is an alternitive selector
+        // Idk why the '-menu' suffix is left off the css class for builds on some computers
+        // but not for builds on others, here is an alternative selector
         let menus = [
           document.getElementById('select-container').children[0].children[2],
         ];
@@ -96,7 +103,8 @@ export default class CardPlayerSelect extends React.Component {
         }
       };
 
-      // Lame way to make sure this gets the height after it's been rendered (Maybe this can go as a callback to setState instead?)
+      // Lame way to make sure this gets the height after it's been rendered (Maybe this
+      // can go as a callback to setState instead?)
       setTimeout(adjust, 10);
     };
 
@@ -106,7 +114,6 @@ export default class CardPlayerSelect extends React.Component {
       // Duplicate options
       let optionsCopy = JSON.parse(JSON.stringify(this.state.options));
       optionsCopy.push({ label: newPlayer.name, value: newPlayer.id });
-      console.log('New Options', optionsCopy);
       this.setState({
         options: optionsCopy,
       });
@@ -145,19 +152,19 @@ export default class CardPlayerSelect extends React.Component {
     // https://react-select.com/styles
     this.customStyles = {
       option: provided => {
-        let modifications = {
+        const modifications = {
           padding: 15,
         };
         return Object.assign(provided, modifications);
       },
       multiValue: provided => {
-        let modifications = {
+        const modifications = {
           padding: 14,
         };
         return Object.assign(provided, modifications);
       },
       menu: provided => {
-        let modifications = {
+        const modifications = {
           padding: 1,
         };
         return Object.assign(provided, modifications);
@@ -165,38 +172,6 @@ export default class CardPlayerSelect extends React.Component {
     };
   }
 
-  render() {
-    return DOM.div(
-      {
-        className: 'card',
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {
-          onPress: this.handleBackOrHome.bind(this),
-        }),
-        DOM.div(
-          {
-            className: 'card-title-text-with-arrow',
-          },
-          'Add/Remove Players'
-        ),
-        React.createElement(RightHeaderButton, {
-          onPress: this.handleBackOrHome.bind(this),
-        })
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderPlayerSelection(),
-        this.renderButtons()
-      )
-    );
-  }
   renderButtons() {
     return (
       <div>
@@ -219,6 +194,17 @@ export default class CardPlayerSelect extends React.Component {
             Cancel
           </div>
         </div>
+        <div
+          id="import"
+          className={'button edit-button confirm-button'}
+          onClick={() =>
+            setRoute(
+              `/optimizations/${this.props.optimization.id}/overrides/import-lineup`
+            )
+          }
+        >
+          Import From Previous Game
+        </div>
       </div>
     );
   }
@@ -227,7 +213,6 @@ export default class CardPlayerSelect extends React.Component {
     return (
       <div id="select-container" className="buffer">
         <Select
-          inputId="test"
           isMulti
           styles={this.customStyles}
           options={this.state.options}
@@ -243,6 +228,20 @@ export default class CardPlayerSelect extends React.Component {
           defaultValue={this.state.startingValues}
         />
       </div>
+    );
+  }
+
+  render() {
+    return (
+      <Card
+        title="Add/Remove Players"
+        leftHeaderProps={{
+          onClick: this.handleBackClick,
+        }}
+      >
+        {this.renderPlayerSelection()}
+        {this.renderButtons()}
+      </Card>
     );
   }
 }

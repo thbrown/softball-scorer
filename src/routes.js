@@ -26,6 +26,7 @@ import CardTeamEdit from 'cards/card-team-edit';
 import CardTeamList from 'cards/card-team-list';
 import CardVerifyEmail from 'cards/card-verify-email';
 import CardStats from 'cards/card-stats';
+import CardOptimizationLineupImport from 'cards/card-optimization-lineup-import';
 
 // possibility to add '/app/' here?
 export const ROUTE_PREFIX = '';
@@ -264,7 +265,9 @@ routes = {
     assertStateObjects(optimization);
     return (
       <CardPlayerSelect
+        optimization={optimization}
         selected={JSON.parse(optimization.playerList)}
+        players={state.getAllPlayersAlphabetically()}
         onComplete={players => {
           state.setOptimizationField(
             optimization.id,
@@ -275,6 +278,13 @@ routes = {
         }}
       />
     );
+  },
+  [`${ROUTE_PREFIX}/optimizations/:optimizationId/overrides/import-lineup`]: ({
+    optimizationId,
+  }) => {
+    const optimization = state.getOptimization(optimizationId);
+    assertStateObjects(optimization);
+    return <CardOptimizationLineupImport optimization={optimization} />;
   },
   [`${ROUTE_PREFIX}/optimizations/:optimizationId/overrides/:playerId`]: ({
     optimizationId,
@@ -323,7 +333,7 @@ routes = {
         return player.id === playerId ? player : prev;
       }, null);
 
-      let team = data.teams[0];
+      const team = data.teams[0];
 
       const playerPlateAppearances = state.getPlateAppearancesForPlayerOnTeam(
         playerId,

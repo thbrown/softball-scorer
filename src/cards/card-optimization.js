@@ -1,15 +1,14 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
+import Card from 'elements/card';
 import state from 'state';
 import dialog from 'dialog';
 import network from 'network';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
 import FloatingInput from 'elements/floating-input';
 import FloatingSelect from 'elements/floating-select';
 import { setRoute } from 'actions/route';
-import SimulationTimeEstimator from '/../simulation-time-estimator';
-import CommonUtils from '/../common-utils';
+import SimulationTimeEstimator from '../simulation-time-estimator';
+import CommonUtils from '../common-utils';
+import NoSelect from 'elements/no-select';
 
 const ACCORDION_QUERYPARAM_PREFIX = 'acc';
 const SYNC_DELAY_MS = 10000; // This value also exists in the CSS
@@ -20,8 +19,10 @@ export default class CardOptimization extends React.Component {
 
     this.state = {};
 
-    // Optimization is mutable inside this component so we'll stor it in an instance
-    // variable instead fo using the props. This gets updated in the render method.
+    this.pieTimer = React.createRef();
+
+    // Optimization is mutable inside this component so we'll store it in an instance
+    // variable instead of using the props. This gets updated in the render method.
     this.optimization = props.optimization;
 
     this.handleSongHelpClick = function(event) {
@@ -65,8 +66,8 @@ Clips can be played from the player's plate appearance page
       clearTimeout(this.activeTime);
     };
 
-    this.startCssAnimation = function() {
-      let element = document.getElementById('pie-timer');
+    this.startCssAnimation = () => {
+      let element = this.pieTimer.current;
       if (element) {
         element.classList.remove('hidden');
 
@@ -141,16 +142,17 @@ Clips can be played from the player's plate appearance page
       }
     }.bind(this);
 
+    this.toggleOptimizationButtonRef = React.createRef();
     this.handlePauseClick = async function() {
       // Disable button in the UI
-      let buttonDiv = document.getElementById('toggle-optimization-button');
+      const buttonDiv = this.toggleOptimizationButtonRef.current;
       buttonDiv.innerHTML = 'Pausing...';
       buttonDiv.classList.add('disabled');
 
-      let body = JSON.stringify({
+      const body = JSON.stringify({
         optimizationId: this.optimization.id,
       });
-      let response = await network.request(
+      const response = await network.request(
         'POST',
         'server/pause-optimization',
         body
@@ -184,7 +186,7 @@ Clips can be played from the player's plate appearance page
 
     this.handleStartClick = async function() {
       // Disable button in the UI
-      let buttonDiv = document.getElementById('toggle-optimization-button');
+      const buttonDiv = this.toggleOptimizationButtonRef.current;
       buttonDiv.innerHTML = 'Starting...';
       buttonDiv.classList.add('disabled');
 
@@ -195,8 +197,8 @@ Clips can be played from the player's plate appearance page
       let customData = JSON.parse(this.optimization.customData);
       let overrideData = JSON.parse(this.optimization.overrideData);
 
-      // Filter out any delted teams or games
-      let filteredTeamList = teamIds.filter(teamId => state.getTeam(teamId));
+      // Filter out any deleted teams or games
+      const filteredTeamList = teamIds.filter(teamId => state.getTeam(teamId));
       state.setOptimizationField(
         this.optimization.id,
         'teamList',
@@ -204,7 +206,7 @@ Clips can be played from the player's plate appearance page
         true
       );
 
-      let filteredGameList = gameIds.filter(gameId => state.getTeam(gameId));
+      const filteredGameList = gameIds.filter(gameId => state.getTeam(gameId));
       state.setOptimizationField(
         this.optimization.id,
         'gameList',
@@ -213,8 +215,8 @@ Clips can be played from the player's plate appearance page
       );
 
       // Filter out any overrides that don't belong to a player in the playerList
-      let overridePlayerIds = Object.keys(overrideData);
-      let filteredOverrides = {};
+      const overridePlayerIds = Object.keys(overrideData);
+      const filteredOverrides = {};
       for (let i = 0; i < overridePlayerIds.length; i++) {
         if (playerIds.includes(overridePlayerIds[i])) {
           filteredOverrides[overridePlayerIds[i]] =
@@ -344,7 +346,7 @@ Clips can be played from the player's plate appearance page
      * Gets stats to be used in the optimization for each playerId passed in.
      * Respects any stats overrides.
      * The result is a map of playerId to stats object and there will be
-     * no entrys for players that have been deleted.
+     * no entries for players that have been deleted.
      */
     this.getActiveStatsForAllPlayers = function(
       overrideData,
@@ -415,9 +417,9 @@ Clips can be played from the player's plate appearance page
 
     this.switchAccordion = function(index, e) {
       e.preventDefault();
-      var accordionTitle = e.currentTarget.parentNode.nextElementSibling;
-      var accordionContent = e.currentTarget;
-      var accordionChevron = e.currentTarget.children[0];
+      const accordionTitle = e.currentTarget.parentNode.nextElementSibling;
+      const accordionContent = e.currentTarget;
+      const accordionChevron = e.currentTarget.children[0];
       if (accordionTitle.classList.contains('is-collapsed')) {
         this.setAccordionAria(accordionContent, accordionTitle, 'true');
         state.editQueryObject(ACCORDION_QUERYPARAM_PREFIX + index, true);
@@ -435,6 +437,7 @@ Clips can be played from the player's plate appearance page
     };
 
     // Attach listeners to the accordion (and click if necessary)
+    // TODO eww, this is gross and incompatible with tests
     let queryObject = state.getQueryObj();
     let accordionToggles = document.querySelectorAll('.js-accordionTrigger');
     for (var i = 0, len = accordionToggles.length; i < len; i++) {
@@ -458,7 +461,7 @@ Clips can be played from the player's plate appearance page
         false
       );
 
-      // Open the accordions indicated by he query params
+      // Open the accordions indicated by the query params
       if (queryObject[ACCORDION_QUERYPARAM_PREFIX + i] === 'true') {
         accordionToggles[i].click();
       }
@@ -487,28 +490,28 @@ Clips can be played from the player's plate appearance page
       </tr>
     );
 
-    let displayPlayers = [];
-    let playerIds = JSON.parse(this.optimization.playerList);
-    let teamIds = JSON.parse(this.optimization.teamList);
-    let overrideData = JSON.parse(this.optimization.overrideData);
+    const displayPlayers = [];
+    const playerIds = JSON.parse(this.optimization.playerList);
+    const teamIds = JSON.parse(this.optimization.teamList);
+    const overrideData = JSON.parse(this.optimization.overrideData);
 
-    let stats = this.getActiveStatsForAllPlayers(
+    const stats = this.getActiveStatsForAllPlayers(
       overrideData,
       playerIds,
       teamIds
     );
     for (let i = 0; i < playerIds.length; i++) {
-      let displayPlayer = {};
+      const displayPlayer = {};
       Object.assign(displayPlayer, stats[playerIds[i]]);
 
-      let existingOverride = overrideData[playerIds[i]];
+      const existingOverride = overrideData[playerIds[i]];
       if (existingOverride) {
         displayPlayer.isOverride = true;
       } else {
         displayPlayer.isOverride = false;
       }
 
-      let player = state.getPlayer(playerIds[i]);
+      const player = state.getPlayer(playerIds[i]);
       if (player) {
         displayPlayer.name = player.name;
       } else {
@@ -552,11 +555,11 @@ Clips can be played from the player's plate appearance page
     }
 
     // Build teams checkboxes
-    let allTeams = state.getLocalState().teams;
-    let teamsCheckboxes = [];
+    const allTeams = state.getLocalState().teams;
+    const teamsCheckboxes = [];
 
-    let selectedTeams = JSON.parse(this.optimization.teamList);
-    let selectedTeamsSet = new Set(selectedTeams);
+    const selectedTeams = JSON.parse(this.optimization.teamList);
+    const selectedTeamsSet = new Set(selectedTeams);
     if (isInNotStartedState) {
       // What if there are not games/teams selected?
       if (allTeams.length === 0) {
@@ -568,7 +571,7 @@ Clips can be played from the player's plate appearance page
       for (let i = 0; i < allTeams.length; i++) {
         let team = allTeams[i];
         teamsCheckboxes.push(
-          <label key={team.name + 'checkboxLabel'}>
+          <label key={team.name + 'checkboxLabel' + i}>
             <input
               key={team.name + 'checkbox'}
               type="checkbox"
@@ -587,7 +590,7 @@ Clips can be played from the player's plate appearance page
         );
       }
       for (let i = 0; i < selectedTeams.length; i++) {
-        let team = state.getTeam(selectedTeams[i]);
+        const team = state.getTeam(selectedTeams[i]);
         let teamName;
         if (!team) {
           teamName = '<Team was deleted>';
@@ -600,7 +603,7 @@ Clips can be played from the player's plate appearance page
               key={selectedTeams[i] + 'checkbox'}
               type="checkbox"
               checked={true}
-              disabled="true"
+              disabled={true}
             />
             {teamName}
           </label>
@@ -641,7 +644,7 @@ Clips can be played from the player's plate appearance page
     }
 
     // Simulation Options
-    let parsedCustomData = JSON.parse(this.optimization.customData);
+    const parsedCustomData = JSON.parse(this.optimization.customData);
 
     return (
       <div className="accordionContainer">
@@ -657,16 +660,18 @@ Clips can be played from the player's plate appearance page
           <dl>
             <dt>
               <div
+                id="accordion-players"
                 aria-expanded="false"
                 aria-controls="accordion1"
                 className="accordion-title accordionTitle js-accordionTrigger"
+                style={{ cursor: 'pointer' }}
               >
                 <img
                   src="/server/assets/chevron-right.svg"
                   alt=">"
                   className="chevron"
                 />
-                Players
+                <NoSelect>Players</NoSelect>
               </div>
             </dt>
             <dd
@@ -680,6 +685,7 @@ Clips can be played from the player's plate appearance page
               {this.optimization.status ===
               state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ? (
                 <div
+                  id="edit-players"
                   className="edit-button button cancel-button"
                   onClick={this.handleAddPlayerClick}
                 >
@@ -691,16 +697,18 @@ Clips can be played from the player's plate appearance page
             </dd>
             <dt>
               <div
+                id="accordion-games"
                 aria-expanded="false"
                 aria-controls="accordion2"
                 className="accordion-title accordionTitle js-accordionTrigger"
+                style={{ cursor: 'pointer' }}
               >
                 <img
                   src="/server/assets/chevron-right.svg"
                   alt=">"
                   className="chevron"
                 />
-                Games
+                <NoSelect>Games</NoSelect>
               </div>
             </dt>
             <dd
@@ -712,15 +720,17 @@ Clips can be played from the player's plate appearance page
             </dd>
             <dt>
               <div
+                id="accordion-options"
                 aria-controls="accordion3"
                 className="accordion-title accordionTitle js-accordionTrigger"
+                style={{ cursor: 'pointer' }}
               >
                 <img
                   src="/server/assets/chevron-right.svg"
                   alt=">"
                   className="chevron"
                 />
-                Simulation Options
+                <NoSelect>Simulation Options</NoSelect>
               </div>
             </dt>
             <dd
@@ -912,16 +922,18 @@ Clips can be played from the player's plate appearance page
       <div style={resultsStyle}>
         <dt>
           <div
+            id="accordion-results"
             aria-expanded="false"
             aria-controls="accordion4"
             className="accordion-title accordionTitle js-accordionTrigger"
+            style={{ cursor: 'pointer' }}
           >
             <img
               src="/server/assets/chevron-right.svg"
               alt=">"
               className="chevron"
             />
-            Results
+            <NoSelect>Results</NoSelect>
             {/*
             <div className="help-container">
               <img
@@ -1039,6 +1051,7 @@ Clips can be played from the player's plate appearance page
       <div>
         <div>{estimatedTime}</div>
         <div
+          ref={this.toggleOptimizationButtonRef}
           id="toggle-optimization-button"
           className="edit-button button cancel-button"
           onClick={toggleButtonHandler}
@@ -1067,30 +1080,10 @@ Clips can be played from the player's plate appearance page
   }
 
   render() {
-    return DOM.div(
-      {
-        className: 'card',
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton),
-        DOM.div(
-          {
-            className: 'card-title-text-with-arrow prevent-overflow',
-          },
-          this.optimization.name
-        ),
-        React.createElement(RightHeaderButton)
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderOptimizationPage()
-      )
+    return (
+      <Card title={this.optimization.name}>
+        {this.renderOptimizationPage()}
+      </Card>
     );
   }
 }

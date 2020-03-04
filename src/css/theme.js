@@ -1,7 +1,7 @@
 // Color Theme
 // https://material.io/tools/color/#!/?view.left=0&view.right=0&primary.color=4caf50&secondary.color=775447
 
-const exp = {
+const theme = {
   colors: {
     PRIMARY: '#4caf50',
     PRIMARY_LIGHT: '#80e27e',
@@ -54,4 +54,5 @@ const exp = {
     SYNC_DELAY: '10s',
   },
 };
-module.exports = exp;
+
+module.exports = theme;

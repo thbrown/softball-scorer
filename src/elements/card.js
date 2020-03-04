@@ -9,6 +9,7 @@ const Card = ({
   enableRightHeader,
   leftHeaderProps,
   rightHeaderProps,
+  titleProps,
   noFade,
 }) => {
   return (
@@ -20,7 +21,7 @@ const Card = ({
           }}
           {...leftHeaderProps}
         />
-        {title}
+        <span {...titleProps}>{title}</span>
         <RightHeaderButton
           style={{
             visibility: enableRightHeader ? 'visible' : 'hidden',
@@ -40,6 +41,7 @@ Card.defaultProps = {
   noFade: false,
   leftHeaderProps: {},
   rightHeaderProps: {},
+  titleProps: {},
 };
 
 export default Card;
