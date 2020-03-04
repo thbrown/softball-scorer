@@ -1,5 +1,4 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 import { setRoute } from 'actions/route';
 
 export default class RightHeaderButton extends React.Component {
@@ -25,16 +24,18 @@ export default class RightHeaderButton extends React.Component {
 
   render() {
     const src = this.props.showBlogLink
-      ? '/server/assets/logo192.png'
+      ? '/server/assets/logo512-alt2.png'
       : '/server/assets/home.svg';
     const alt = this.props.showBlogLink ? 'blog' : 'home';
-    return DOM.img({
-      id: 'home-button',
-      src,
-      className: 'header-right',
-      onClick: this.handleButtonPress,
-      alt,
-      style: this.props.style,
-    });
+    return (
+      <img
+        id="home-button"
+        src={src}
+        className="header-right"
+        onClick={this.handleButtonPress}
+        alt={alt}
+        style={{ ...this.props.style }}
+      />
+    );
   }
 }

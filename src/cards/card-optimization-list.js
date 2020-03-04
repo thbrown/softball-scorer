@@ -2,14 +2,10 @@ import React from 'react';
 import state from 'state';
 import Card from 'elements/card';
 import { setRoute } from 'actions/route';
-import injectSheet from 'react-jss';
 import { compose, withHandlers } from 'recompose';
 import NoSelect from 'elements/no-select';
 
 const enhance = compose(
-  injectSheet(theme => ({
-    listItem: theme.classes.listItem,
-  })),
   withHandlers({
     handleOptimizationClick: props => optimization => () => {
       setRoute(`/optimizations/${optimization.id}`);
@@ -32,7 +28,7 @@ const CardOptimizationList = props => (
   <Card title="Optimizations">
     <div
       id="new-optimization"
-      className={'list-item add-list-item ' + props.classes.listItem}
+      className={'list-item add-list-item'}
       onClick={props.handleCreateClick}
       style={{
         display: 'flex',
@@ -45,7 +41,7 @@ const CardOptimizationList = props => (
       <div
         id={'optimization-' + optimization.id}
         key={optimization.id}
-        className={'list-item ' + props.classes.listItem}
+        className={'list-item'}
         onClick={props.handleOptimizationClick(optimization)}
         style={{
           display: 'flex',

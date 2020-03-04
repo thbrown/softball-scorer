@@ -284,6 +284,7 @@ const enhance = compose(
       '&:hover': {
         filter: 'brightness(80%)',
       },
+      opacity: 1,
     },
     filterButtonActive: {
       '-webkitTapHighlightColor': 'rgba(0,0,0,0)',
@@ -309,7 +310,6 @@ const CardSpray = ({
   player,
   backNavUrl,
 }) => {
-  console.log(JSON.stringify(plateAppearances, null, 2));
   if (filter.pastGames) {
     plateAppearances = filterByLastGames(plateAppearances, filter.pastGames);
   }

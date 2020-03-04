@@ -2,7 +2,6 @@ import React from 'react';
 import DOM from 'react-dom-factories';
 import state from 'state';
 import { setRoute } from 'actions/route';
-import injectSheet from 'react-jss';
 import Card from 'elements/card';
 
 class CardPlayerList extends React.Component {
@@ -81,6 +80,4 @@ class CardPlayerList extends React.Component {
   }
 }
 
-export default injectSheet(theme => ({
-  listItem: theme.classes.listItem,
-}))(CardPlayerList);
+export default CardPlayerList;

@@ -2,7 +2,6 @@ import Enzyme from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import { getPageWrapper } from './test-helpers';
 import state from 'state';
-import { setRoute } from 'actions/route';
 import mockData from './mock.json';
 import { createOptimizationUI } from './create-edit-delete.test';
 

@@ -1,1 +1,2 @@
-export { default } from './theme.js';
+const theme = require('./theme');
+module.exports = theme;

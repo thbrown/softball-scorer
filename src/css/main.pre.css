@@ -10,6 +10,11 @@ body {
   padding-top: 48px; /* sticky header height */
 }
 
+svg path,
+svg rect{
+  fill: #FFF;
+}
+
 .card {
 
 }
@@ -940,7 +945,7 @@ Scrolling is ~10-20x smoother.
 }
 
 .pie-timer {
-  background: -webkit-linear-gradient(left, $css.colors.PRIMARY 50%, #795548 50%); /* $css.colors.SECONDARY doesn't get substitued here, so I'm hardcoding #4caf50 */
+  background: -webkit-linear-gradient(left, $css.colors.PRIMARY 50%, #795548 50%); /* $css.colors.SECONDARY doesn't get substituted here, so I'm hardcoding #4caf50 */
   border-radius: 100%;
   height: 25px; /* Height and width */
   position: relative;
@@ -994,3 +999,12 @@ Scrolling is ~10-20x smoother.
       transform: rotate(-180deg);
   }
 }​
+
+.list-item: {
+  line-height: 20px,
+}
+@media only screen and (max-width:$css.breakpoints.sm): {
+  .list-item
+  font-size: 14px,
+  line-height: 14px,
+},

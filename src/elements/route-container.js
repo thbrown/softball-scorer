@@ -1,6 +1,5 @@
 import React from 'react';
 import expose from 'expose';
-import { setRoute } from 'actions/route';
 
 export function routeMatches(url, path, state) {
   // Remove any url params so they don't affect the matching
