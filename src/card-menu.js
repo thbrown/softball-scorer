@@ -6,8 +6,9 @@ import css from 'css';
 import network from 'network';
 import Card from 'elements/card';
 import { setRoute } from 'actions/route';
+import injectSheet from 'react-jss';
 
-export default class CardMenu extends Component {
+class CardMenu extends Component {
   constructor(props) {
     super(props);
     this.state = {};
@@ -115,7 +116,7 @@ export default class CardMenu extends Component {
 
     this.handleAddToHomeScreenClick = function() {
       dialog.show_confirm(
-        "**Would you like to add Softball.app to your homescreen as a standalone app?** Presssing yes will cause your browser to issue an 'add to home screen' prompt. If you dismiss the browser's prompt, this menu option will disappear for a while.",
+        "**Would you like to add Softball.app to your home screen as a standalone app?** Pressing yes will cause your browser to issue an 'add to home screen' prompt. If you dismiss the browser's prompt, this menu option will disappear for a while.",
         () => {
           let deferredPrompt = state.getAddToHomescreenPrompt().prompt();
           // Wait for the user to respond to the prompt
@@ -142,7 +143,7 @@ export default class CardMenu extends Component {
       >
         <div
           id="teams"
-          className="list-item"
+          className={'list-item ' + this.props.classes.listItem}
           onClick={this.handleTeamsClick.bind(this)}
           style={{
             backgroundColor: css.colors.BG,
@@ -152,7 +153,7 @@ export default class CardMenu extends Component {
         </div>
         <div
           id="players"
-          className="list-item"
+          className={'list-item ' + this.props.classes.listItem}
           onClick={this.handlePlayersClick.bind(this)}
           style={{
             backgroundColor: css.colors.BG,
@@ -162,7 +163,7 @@ export default class CardMenu extends Component {
         </div>
         <div
           id="optimizations"
-          className="list-item"
+          className={'list-item ' + this.props.classes.listItem}
           onClick={this.handleOptimizationsClick.bind(this)}
           style={{
             backgroundColor: css.colors.BG,
@@ -173,7 +174,7 @@ export default class CardMenu extends Component {
         {state.getAddToHomescreenPrompt() && (
           <div
             id="addToHomescreen"
-            className="list-item"
+            className={'list-item ' + this.props.classes.listItem}
             onClick={this.handleAddToHomeScreenClick.bind(this)}
             style={{
               backgroundColor: css.colors.BG,
@@ -185,7 +186,7 @@ export default class CardMenu extends Component {
         {state.isSessionValid() ? (
           <div
             id="logout"
-            className="list-item"
+            className={'list-item ' + this.props.classes.listItem}
             onClick={this.handleLogoutClick.bind(this)}
             style={{
               backgroundColor: css.colors.BG,
@@ -196,7 +197,7 @@ export default class CardMenu extends Component {
         ) : (
           <div
             id="login"
-            className="list-item"
+            className={'list-item ' + this.props.classes.listItem}
             onClick={this.handleLoginClick.bind(this)}
             style={{
               backgroundColor: css.colors.BG,
@@ -207,7 +208,7 @@ export default class CardMenu extends Component {
         )}
         <div
           id="sync"
-          className="list-item"
+          className={'list-item ' + this.props.classes.listItem}
           onClick={this.handleSyncClick.bind(this)}
           style={{
             backgroundColor: css.colors.BG,
@@ -217,7 +218,7 @@ export default class CardMenu extends Component {
         </div>
         <div
           id="save"
-          className="list-item"
+          className={'list-item ' + this.props.classes.listItem}
           onClick={this.handleSaveClick.bind(this)}
           style={{
             backgroundColor: css.colors.BG,
@@ -227,7 +228,7 @@ export default class CardMenu extends Component {
         </div>
         <div
           id="load"
-          className="list-item"
+          className={'list-item ' + this.props.classes.listItem}
           onClick={this.handleLoadClick.bind(this)}
           style={{
             backgroundColor: css.colors.BG,
@@ -239,3 +240,7 @@ export default class CardMenu extends Component {
     );
   }
 }
+
+export default injectSheet(theme => ({
+  listItem: theme.classes.listItem,
+}))(CardMenu);

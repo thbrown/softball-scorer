@@ -11,6 +11,18 @@ state.setOffline();
 
 const TEAM_ID = '4i7WarrEmtZMxJ';
 
+const addPlateAppearance = (wrapper, gameId, playerIndex) => {
+  const lineup = state.getGame(gameId).lineup;
+  wrapper.find(`#newPa-${lineup[playerIndex]}`).simulate('click');
+  wrapper.find('#result-Out').simulate('click');
+  wrapper.find('#pa-confirm').simulate('click');
+
+  const pas = state.getGame(gameId).plateAppearances;
+  const pa = pas[pas.length - 1];
+  expect(pa.player_id).toEqual(lineup[playerIndex]);
+  expect(pa.result).toEqual('Out');
+};
+
 describe('[UI] Modify Game (add plate appearances)', () => {
   let wrapper = null;
   let teamId = TEAM_ID;
@@ -77,5 +89,11 @@ describe('[UI] Modify Game (add plate appearances)', () => {
     wrapper.find('#dialog-confirm').simulate('click');
 
     expect(state.getGame(gameId).plateAppearances.length).toEqual(1);
+  });
+
+  it('a user can add 100 plate appearances', () => {
+    for (let i = 0; i < 100; i++) {
+      addPlateAppearance(wrapper, gameId, i % 10);
+    }
   });
 });
