@@ -34,7 +34,7 @@ export default class FloatingInput extends React.Component {
           onFocus={() => {
             this.setState({ active: true });
           }}
-          onBlur={e => {
+          onBlur={() => {
             if (!this.state.value) {
               this.setState({ active: false });
             }

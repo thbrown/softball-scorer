@@ -9,6 +9,7 @@
     "build": "node build.js build",
     "watch": "concurrently -n srv,webpack \"node src-srv\" \"webpack-dev-server --client-log-level error  --config webpack.dev.js\"",
     "build-css": "node build.js build-css",
+    "update-service-worker": "node build.js update-service-worker",
     "clean": "node build.js clean",
     "test-watch": "jest --watch ./src/tests/*",
     "test": "jest --runInBand --detectOpenHandles --bail --verbose=false --forceExit",

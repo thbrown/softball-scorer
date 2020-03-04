@@ -21,7 +21,7 @@ const Card = ({
           }}
           {...leftHeaderProps}
         />
-        <span
+        <div
           style={{
             maxWidth: '70%',
             overflow: 'hidden',
@@ -30,7 +30,7 @@ const Card = ({
           {...titleProps}
         >
           {title}
-        </span>
+        </div>
         <RightHeaderButton
           style={{
             visibility: enableRightHeader ? 'visible' : 'hidden',

@@ -1,7 +1,7 @@
 import React from 'react';
 import expose from 'expose';
-import DOM from 'react-dom-factories';
 import css from 'css';
+import Card from 'elements/card';
 import CardLineup from 'cards/card-lineup';
 import CardScorer from 'cards/card-scorer';
 import LeftHeaderButton from 'component-left-header-button';
@@ -24,64 +24,96 @@ export default class CardGame extends expose.Component {
 
   render() {
     let tab = this.props.tab || defaultTab;
-    let subcard = '';
-    if (tab === 'lineup') {
-      subcard = React.createElement(CardLineup, {
-        team: this.props.team,
-        game: this.props.game,
-      });
-    } else if (tab === 'scorer') {
-      subcard = React.createElement(CardScorer, {
-        team: this.props.team,
-        game: this.props.game,
-      });
-    }
 
-    return DOM.div(
-      {
-        style: {
-          className: 'card',
-        },
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {}),
-        DOM.div(
-          {
-            className: 'card-title-tab-container',
-          },
-          DOM.div(
-            {
-              onClick: this.handleTabClick.bind(this, 'lineup'),
-              style: {
-                width: '50%',
+    return (
+      <Card
+        title={
+          <div className="card-title-tab-container">
+            <div
+              onClick={() => {
+                this.handleTabClick('lineup');
+              }}
+              style={{
                 borderBottom:
                   tab === 'lineup'
                     ? '5px solid ' + css.colors.TEXT_LIGHT
                     : 'none',
-              },
-            },
-            'Lineup'
-          ),
-          DOM.div(
-            {
-              onClick: this.handleTabClick.bind(this, 'scorer'),
-              style: {
-                width: '50%',
+                height: '42px',
+              }}
+            >
+              Lineup
+            </div>
+            <div
+              onClick={() => {
+                this.handleTabClick('scorer');
+              }}
+              style={{
                 borderBottom:
                   tab === 'scorer'
                     ? '5px solid ' + css.colors.TEXT_LIGHT
                     : 'none',
-              },
-            },
-            'Scorer'
-          )
-        ),
-        React.createElement(RightHeaderButton, {})
-      ),
-      subcard
+                height: '42px',
+              }}
+            >
+              Scorer
+            </div>
+          </div>
+        }
+      >
+        {tab === 'scorer' ? (
+          <CardScorer team={this.props.team} game={this.props.game} />
+        ) : null}
+        {tab === 'lineup' ? (
+          <CardLineup team={this.props.team} game={this.props.game} />
+        ) : null}
+      </Card>
     );
+
+    // return DOM.div(
+    //   {
+    //     style: {
+    //       className: 'card',
+    //     },
+    //   },
+    //   DOM.div(
+    //     {
+    //       className: 'card-title',
+    //     },
+    //     React.createElement(LeftHeaderButton, {}),
+    //     DOM.div(
+    //       {
+    //         className: 'card-title-tab-container',
+    //       },
+    //       DOM.div(
+    //         {
+    //           onClick: this.handleTabClick.bind(this, 'lineup'),
+    //           style: {
+    //             width: '50%',
+    //             borderBottom:
+    //               tab === 'lineup'
+    //                 ? '5px solid ' + css.colors.TEXT_LIGHT
+    //                 : 'none',
+    //           },
+    //         },
+    //         'Lineup'
+    //       ),
+    //       DOM.div(
+    //         {
+    //           onClick: this.handleTabClick.bind(this, 'scorer'),
+    //           style: {
+    //             width: '50%',
+    //             borderBottom:
+    //               tab === 'scorer'
+    //                 ? '5px solid ' + css.colors.TEXT_LIGHT
+    //                 : 'none',
+    //           },
+    //         },
+    //         'Scorer'
+    //       )
+    //     ),
+    //     React.createElement(RightHeaderButton, {})
+    //   ),
+    //   subcard
+    // );
   }
 }

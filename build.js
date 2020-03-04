@@ -69,7 +69,9 @@ const rules = {
       });
     });
   },
-
+  'update-service-worker': function(cb) {
+    updateServiceWorker(cb);
+  },
   watch: function(cb) {
     const cmd = `webpack --watch`;
     _execute(cmd, cb);

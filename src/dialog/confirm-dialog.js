@@ -1,5 +1,4 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 import marked from 'marked';
 
 marked.setOptions({
@@ -22,57 +21,34 @@ export default class ConfirmDialog extends React.Component {
   }
 
   render() {
-    return DOM.div(
-      {},
-      DOM.div(
-        {},
-        DOM.div(
-          {
-            className: 'dialog',
-          },
-          DOM.div({
-            className: 'dialog-text',
-            dangerouslySetInnerHTML: { __html: marked(this.props.text) },
-          }),
-          DOM.div(
-            {
-              style: {
-                display: 'flex',
-                justifyContent: 'flex-end',
-              },
-            },
-            DOM.div(
-              {
-                id: 'dialog-confirm',
-                className: 'button confirm-button',
-                onClick: this.handleConfirmClick,
-              },
-              DOM.span(
-                {
-                  className: 'no-select',
-                },
-                'Yes'
-              )
-            ),
-            DOM.div(
-              {
-                id: 'dialog-cancel',
-                className: 'button cancel-button',
-                onClick: this.handleCancelClick,
-              },
-              DOM.span(
-                {
-                  className: 'no-select',
-                },
-                'Cancel'
-              )
-            )
-          )
-        )
-      ),
-      DOM.div({
-        className: 'overlay',
-      })
+    return (
+      <div>
+        <div>
+          <div className="dialog">
+            <div
+              className="dialog-text"
+              dangerouslySetInnerHTML={{ __html: marked(this.props.text) }}
+            ></div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <div
+                id="dialog-confirm"
+                className="button confirm-button"
+                onClick={this.handleConfirmClick}
+              >
+                <span className="no-select">Yes</span>
+              </div>
+              <div
+                id="dialog-cancel"
+                className="button cancel-button"
+                onClick={this.handleCancelClick}
+              >
+                <span className="no-select">Cancel</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="overlay" />
+      </div>
     );
   }
 }

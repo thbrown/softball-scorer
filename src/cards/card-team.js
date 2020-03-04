@@ -1,7 +1,7 @@
 import React from 'react';
 import css from 'css';
 import CardStats from 'cards/card-stats';
-import CardGameList from 'cards/card-game-list';
+import GameList from 'components/game-list';
 import Card from 'elements/card';
 import { setRoute } from 'actions/route';
 
@@ -23,11 +23,11 @@ export default class CardTeam extends React.Component {
                 this.handleTabClick('stats');
               }}
               style={{
-                width: '50%',
                 borderBottom:
                   this.props.tab === 'stats'
                     ? '5px solid ' + css.colors.TEXT_LIGHT
                     : 'none',
+                height: '42px',
               }}
             >
               Stats
@@ -37,11 +37,11 @@ export default class CardTeam extends React.Component {
                 this.handleTabClick('games');
               }}
               style={{
-                width: '50%',
                 borderBottom:
                   this.props.tab === 'games'
                     ? '5px solid ' + css.colors.TEXT_LIGHT
                     : 'none',
+                height: '42px',
               }}
             >
               Games
@@ -52,7 +52,7 @@ export default class CardTeam extends React.Component {
         {this.props.tab === 'stats' ? (
           <CardStats team={this.props.team} routingMethod="app" />
         ) : (
-          <CardGameList team={this.props.team} />
+          <GameList team={this.props.team} />
         )}
       </Card>
     );

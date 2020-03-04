@@ -144,6 +144,7 @@ export default class CardPlayerSelection extends React.Component {
       maxLength: '50',
       value: playerNameValue,
       onChange: this.onChange.bind(this),
+      autoFocus: true,
     };
     return React.createElement(Autosuggest, {
       suggestions: this.state.suggestions,

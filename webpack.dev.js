@@ -16,6 +16,8 @@ const execAsync = cmd => {
   });
 };
 
+//let updatedServiceWorker = false;
+
 module.exports = {
   entry: [
     './src/index.js',
@@ -44,6 +46,7 @@ module.exports = {
   plugins: [
     new WebpackBeforeBuildPlugin(async (stats, callback) => {
       await execAsync('yarn build-css');
+      await execAsync('yarn update-service-worker');
       callback();
     }),
   ],
@@ -59,8 +62,9 @@ module.exports = {
     port: 8889,
     proxy: {
       '/server/*': srvUrl,
-      // 'service-worker': srvUrl,
-      'favicon.ico': srvUrl,
+      '/service-worker': srvUrl,
+      '/favicon.ico': srvUrl,
+      '/robots.txt': srvUrl,
     },
   },
 };
