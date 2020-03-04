@@ -1,111 +1,70 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
-import expose from './expose';
 import state from 'state';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
+import Card from 'elements/card';
 import { setRoute } from 'actions/route';
-import { getShallowCopy } from 'utils/functions';
+import injectSheet from 'react-jss';
+import { compose, withHandlers } from 'recompose';
+import NoSelect from 'elements/no-select';
 
-export default class CardOptimizationList extends expose.Component {
-  constructor(props) {
-    super(props);
-    this.expose();
-    this.state = {};
-
-    this.handleOptimizationClick = function(optimization) {
+const enhance = compose(
+  injectSheet(theme => ({
+    listItem: theme.classes.listItem,
+  })),
+  withHandlers({
+    handleOptimizationClick: props => optimization => () => {
       setRoute(`/optimizations/${optimization.id}`);
-    };
-
-    this.handleEditClick = function(optimization, ev) {
+    },
+    handleEditClick: props => optimization => ev => {
       setRoute(`/optimizations/${optimization.id}/edit`);
       ev.stopPropagation();
-    };
-
-    this.handleCreateClick = function() {
-      var d = new Date();
-      let optimization = state.addOptimization(
+    },
+    handleCreateClick: props => () => {
+      const d = new Date();
+      const optimization = state.addOptimization(
         `${d.getMonth() + 1}/${d.getDate()} optimization`
       );
       setRoute(`/optimizations/${optimization.id}/edit?isNew=true`);
-    };
-  }
+    },
+  })
+);
 
-  renderOptimizationsList() {
-    const s = state.getLocalState();
-    let elems = getShallowCopy(s.optimizations)
-      .reverse()
-      .map(optimization => {
-        return DOM.div(
-          {
-            optimization_id: optimization.id,
-            key: 'optimization' + optimization.id,
-            className: 'list-item',
-            onClick: this.handleOptimizationClick.bind(this, optimization),
-            style: {
-              display: 'flex',
-              justifyContent: 'space-between',
-            },
-          },
-          DOM.div(
-            {
-              className: 'prevent-overflow',
-            },
-            optimization.name
-          ),
-          DOM.div(
-            {
-              style: {},
-            },
-            DOM.img({
-              src: '/server/assets/edit.svg',
-              className: 'list-button',
-              onClick: this.handleEditClick.bind(this, optimization),
-              alt: 'edit',
-            })
-          )
-        );
-      });
+const CardOptimizationList = props => (
+  <Card title="Optimizations">
+    <div
+      id="new-optimization"
+      className={'list-item add-list-item ' + props.classes.listItem}
+      onClick={props.handleCreateClick}
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+      }}
+    >
+      <NoSelect className="prevent-overflow">+ Add New Optimization</NoSelect>
+    </div>
+    {[...state.getLocalState().optimizations].reverse().map(optimization => (
+      <div
+        id={'optimization-' + optimization.id}
+        key={optimization.id}
+        className={'list-item ' + props.classes.listItem}
+        onClick={props.handleOptimizationClick(optimization)}
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+        }}
+      >
+        <NoSelect className="prevent-overflow">{optimization.name}</NoSelect>
+        <div>
+          <img
+            id={'edit-optimization-' + optimization.id}
+            alt="edit"
+            src="/server/assets/edit.svg"
+            className="list-button"
+            onClick={props.handleEditClick(optimization)}
+          />
+        </div>
+      </div>
+    ))}
+  </Card>
+);
 
-    elems.unshift(
-      DOM.div(
-        {
-          key: 'newoptimization',
-          className: 'list-item add-list-item',
-          onClick: this.handleCreateClick,
-        },
-        '+ Add New Optimization'
-      )
-    );
-
-    return DOM.div({}, elems);
-  }
-
-  render() {
-    return DOM.div(
-      {
-        className: 'card',
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {}),
-        DOM.div(
-          {
-            className: 'prevent-overflow card-title-text-with-arrow',
-          },
-          'Optimizations'
-        ),
-        React.createElement(RightHeaderButton, {})
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderOptimizationsList()
-      )
-    );
-  }
-}
+export default enhance(CardOptimizationList);

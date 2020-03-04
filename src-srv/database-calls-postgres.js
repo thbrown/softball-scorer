@@ -205,7 +205,7 @@ module.exports = class DatabaseCalls {
   }
 
   disconnect() {
-    logger.log(null, 'disconnecting from posrgres');
+    logger.log(null, 'disconnecting from postgres');
     return new Promise(
       function(resolve, reject) {
         this.pool

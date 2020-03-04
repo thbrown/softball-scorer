@@ -3,7 +3,7 @@
 const shell = require('child_process');
 const argv = require('minimist')(process.argv.slice(2));
 const fs = require('fs');
-const css = require('./src/css');
+const css = require('./src/css/theme.js');
 const uglifycss = require('uglifycss');
 const { hashElement } = require('folder-hash');
 
