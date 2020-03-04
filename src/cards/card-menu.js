@@ -6,7 +6,6 @@ import css from 'css';
 import network from 'network';
 import Card from 'elements/card';
 import { setRoute } from 'actions/route';
-import injectSheet from 'react-jss';
 
 class CardMenu extends Component {
   constructor(props) {
@@ -143,7 +142,7 @@ class CardMenu extends Component {
       >
         <div
           id="teams"
-          className={'list-item ' + this.props.classes.listItem}
+          className={'list-item'}
           onClick={this.handleTeamsClick.bind(this)}
           style={{
             backgroundColor: css.colors.BG,
@@ -153,7 +152,7 @@ class CardMenu extends Component {
         </div>
         <div
           id="players"
-          className={'list-item ' + this.props.classes.listItem}
+          className={'list-item'}
           onClick={this.handlePlayersClick.bind(this)}
           style={{
             backgroundColor: css.colors.BG,
@@ -163,7 +162,7 @@ class CardMenu extends Component {
         </div>
         <div
           id="optimizations"
-          className={'list-item ' + this.props.classes.listItem}
+          className={'list-item'}
           onClick={this.handleOptimizationsClick.bind(this)}
           style={{
             backgroundColor: css.colors.BG,
@@ -174,7 +173,7 @@ class CardMenu extends Component {
         {state.getAddToHomescreenPrompt() && (
           <div
             id="addToHomescreen"
-            className={'list-item ' + this.props.classes.listItem}
+            className={'list-item'}
             onClick={this.handleAddToHomeScreenClick.bind(this)}
             style={{
               backgroundColor: css.colors.BG,
@@ -186,7 +185,7 @@ class CardMenu extends Component {
         {state.isSessionValid() ? (
           <div
             id="logout"
-            className={'list-item ' + this.props.classes.listItem}
+            className={'list-item'}
             onClick={this.handleLogoutClick.bind(this)}
             style={{
               backgroundColor: css.colors.BG,
@@ -197,7 +196,7 @@ class CardMenu extends Component {
         ) : (
           <div
             id="login"
-            className={'list-item ' + this.props.classes.listItem}
+            className={'list-item'}
             onClick={this.handleLoginClick.bind(this)}
             style={{
               backgroundColor: css.colors.BG,
@@ -208,7 +207,7 @@ class CardMenu extends Component {
         )}
         <div
           id="sync"
-          className={'list-item ' + this.props.classes.listItem}
+          className={'list-item'}
           onClick={this.handleSyncClick.bind(this)}
           style={{
             backgroundColor: css.colors.BG,
@@ -218,7 +217,7 @@ class CardMenu extends Component {
         </div>
         <div
           id="save"
-          className={'list-item ' + this.props.classes.listItem}
+          className={'list-item'}
           onClick={this.handleSaveClick.bind(this)}
           style={{
             backgroundColor: css.colors.BG,
@@ -228,7 +227,7 @@ class CardMenu extends Component {
         </div>
         <div
           id="load"
-          className={'list-item ' + this.props.classes.listItem}
+          className={'list-item'}
           onClick={this.handleLoadClick.bind(this)}
           style={{
             backgroundColor: css.colors.BG,
@@ -241,6 +240,4 @@ class CardMenu extends Component {
   }
 }
 
-export default injectSheet(theme => ({
-  listItem: theme.classes.listItem,
-}))(CardMenu);
+export default CardMenu;

@@ -309,7 +309,6 @@ const CardSpray = ({
   player,
   backNavUrl,
 }) => {
-  console.log(JSON.stringify(plateAppearances, null, 2));
   if (filter.pastGames) {
     plateAppearances = filterByLastGames(plateAppearances, filter.pastGames);
   }

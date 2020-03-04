@@ -10,7 +10,6 @@ const enhance = compose(
     },
   }),
   injectSheet(theme => ({
-    listItem: theme.classes.listItem,
     listItemFloat: {
       float: 'right',
       marginRight: '32px',
@@ -26,9 +25,7 @@ const ListPicker = props => (
         id={'list-' + item.id}
         key={item + i}
         onClick={props.handleItemClick(item)}
-        className={
-          'list-item  ' + props.classes.listItem + ' ' + props.itemClassName
-        }
+        className={'list-item ' + props.itemClassName}
       >
         <NoSelect>{item.name}</NoSelect>
         {item.floatName && (
