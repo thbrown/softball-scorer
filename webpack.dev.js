@@ -20,7 +20,7 @@ module.exports = {
   entry: [
     './src/index.js',
     'webpack/hot/dev-server',
-    'webpack-dev-server/client?http://localhost:8081',
+    'webpack-dev-server/client?http://localhost:8889',
   ],
   mode: 'development',
   devtool: 'inline-source-map',
@@ -56,8 +56,10 @@ module.exports = {
     openPage: '',
     publicPath: '',
     historyApiFallback: true,
+    port: 8889,
     proxy: {
       '/server/*': srvUrl,
+      // 'service-worker': srvUrl,
       'favicon.ico': srvUrl,
     },
   },

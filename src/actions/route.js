@@ -9,7 +9,6 @@ window.onpopstate = function() {
 };
 
 export function setRoute(path, routeId) {
-  console.log('SET ROUTE', path, routeId);
   if (path !== window?.location?.pathname) {
     setUrl(ROUTE_PREFIX + path);
   }
@@ -19,7 +18,6 @@ export function setRoute(path, routeId) {
 }
 
 export function setUrl(path) {
-  console.log('SET URL', path);
   urlStack.unshift(path);
   window.history.pushState({}, '', path);
 }

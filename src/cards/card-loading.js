@@ -1,58 +1,49 @@
 import React from 'react';
 import Card from 'elements/card';
-import { compose, withState } from 'recompose';
-import injectSheet from 'react-jss';
+import { makeStyles } from 'css/helpers';
+import Loading from 'elements/loading';
 
 // This might be pointless now, but we can adjust this later for free
 const MS_BEFORE_LOADING_GIF_SHOWS = 1;
 
-class CardLoading extends React.Component {
-  componentWillUnmount() {
-    this.props.setShowGif(false);
-    clearTimeout(this.timeoutId);
-  }
-
-  componentDidMount() {
-    this.props.setShowGif(false);
-    this.timeoutId = setTimeout(() => {
-      this.props.setShowGif(true);
+const useCardLoadingStyles = makeStyles(theme => ({
+  gif: {
+    width: '100%',
+  },
+  gifContainer: {
+    width: '5rem',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    marginTop: '5rem',
+  },
+}));
+const CardLoading = props => {
+  const { styles } = useCardLoadingStyles();
+  const [showGif, setShowGif] = React.useState(false);
+  React.useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setShowGif(true);
     }, MS_BEFORE_LOADING_GIF_SHOWS);
-  }
+    return () => {
+      clearTimeout(timeoutId);
+      setShowGif(false);
+    };
+  }, []);
 
-  render() {
-    const props = this.props;
-    return (
-      <Card
-        title=""
-        noFade={true}
-        enableLeftHeader={false}
-        enableRightHeader={false}
-      >
-        {this.props.showGif && (
-          <div className={props.classes.gifContainer}>
-            <img
-              src="/server/assets/spinner.gif"
-              alt="loading"
-              className={props.classes.gif}
-            />
-          </div>
-        )}
-      </Card>
-    );
-  }
-}
+  return (
+    <Card
+      title=""
+      noFade={true}
+      enableLeftHeader={false}
+      enableRightHeader={false}
+    >
+      {showGif && (
+        <div style={styles.gifContainer}>
+          <Loading style={styles.gif} />
+        </div>
+      )}
+    </Card>
+  );
+};
 
-export default compose(
-  withState('showGif', 'setShowGif', false),
-  injectSheet(theme => ({
-    gif: {
-      width: '100%',
-    },
-    gifContainer: {
-      width: theme.sizing.xSmall,
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      marginTop: theme.spacing.medium,
-    },
-  }))
-)(CardLoading);
+export default CardLoading;

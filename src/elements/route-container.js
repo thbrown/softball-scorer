@@ -67,7 +67,6 @@ export default class RouteContainer extends expose.Component {
       this.state.path,
       this.props.routes
     );
-    console.log('renderRouteComp4', this.state.path, 1);
     const search = window?.location?.search?.slice(1);
     const routeProps = {
       page: this.state.path,

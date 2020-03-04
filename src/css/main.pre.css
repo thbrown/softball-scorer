@@ -10,6 +10,11 @@ body {
   padding-top: 48px; /* sticky header height */
 }
 
+svg path,
+svg rect{
+  fill: #FFF;
+}
+
 .card {
 
 }
