@@ -1,6 +1,5 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import expose from './expose';
 import state from 'state';
 import dialog from 'dialog';
 import network from 'network';
@@ -9,10 +8,9 @@ import RightHeaderButton from 'component-right-header-button';
 import config from 'config';
 import { setRoute } from 'actions/route';
 
-export default class CardSignup extends expose.Component {
+export default class CardSignup extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
     this.state = {};
     this.recapchaId = {};
 

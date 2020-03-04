@@ -29,13 +29,16 @@ class CardGameList extends React.Component {
         <div
           key={'game-' + game.id}
           id={'game-' + game.id}
-          className={'list-item ' + this.props.classes.listItem}
+          className={'list-item'}
           onClick={this.handleGameClick.bind(this, game)}
         >
           <img
             src="/server/assets/edit.svg"
             alt="edit"
-            className={'list-button ' + this.props.classes.listButton}
+            className={'list-button'}
+            style={{
+              float: 'right',
+            }}
             id={'game-' + game.id + '-edit'}
             onClick={ev => {
               this.handleEditClick(game);
@@ -55,7 +58,7 @@ class CardGameList extends React.Component {
       <div
         id="newGame"
         key="newGame"
-        className={'list-item add-list-item ' + this.props.classes.listItem}
+        className={'list-item add-list-item'}
         onClick={this.handleCreateClick}
       >
         + Add New Game
@@ -75,10 +78,6 @@ class CardGameList extends React.Component {
 }
 
 export default injectSheet(theme => ({
-  listItem: theme.classes.listItem,
-  listButton: {
-    float: 'right',
-  },
   dateText: {
     float: 'right',
     marginRight: '32px',

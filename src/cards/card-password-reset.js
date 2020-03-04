@@ -1,16 +1,14 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import expose from './expose';
 import dialog from 'dialog';
 import network from 'network';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import { setRoute } from 'actions/route';
 
-export default class CardPasswordReset extends expose.Component {
+export default class CardPasswordReset extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
     this.state = {};
 
     this.token = props.token;

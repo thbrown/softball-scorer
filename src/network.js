@@ -5,6 +5,7 @@ const exp = {};
 
 const FETCH_TIMEOUT =
   config.network && config.network.timeout ? config.network.timeout : 10000;
+const NETWORK_DELAY = 0;
 
 let requestInternal;
 
@@ -54,8 +55,7 @@ requestInternal = async function(method, url, body) {
           },
           body: body,
         });
-
-        resolve(reqResp);
+        setTimeout(() => resolve(reqResp), NETWORK_DELAY);
       } catch (err) {
         reject(new Error('Something went wrong during the request: ' + err));
       } finally {

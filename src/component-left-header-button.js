@@ -22,7 +22,7 @@ const LeftHeaderButton = props =>
       }}
     />
   ) : (
-    <></>
+    <div style={{ width: '36px' }} />
   );
 
 LeftHeaderButton.defaultProps = {

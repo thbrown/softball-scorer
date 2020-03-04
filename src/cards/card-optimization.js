@@ -6,8 +6,8 @@ import network from 'network';
 import FloatingInput from 'elements/floating-input';
 import FloatingSelect from 'elements/floating-select';
 import { setRoute } from 'actions/route';
-import SimulationTimeEstimator from '../simulation-time-estimator';
-import CommonUtils from '../common-utils';
+import SimulationTimeEstimator from '/../simulation-time-estimator';
+import CommonUtils from '/../common-utils';
 import NoSelect from 'elements/no-select';
 
 const ACCORDION_QUERYPARAM_PREFIX = 'acc';

@@ -1,7 +1,7 @@
 import React from 'react';
 import css from 'css';
-import CardStats from 'card-stats';
-import CardGameList from 'card-game-list';
+import CardStats from 'cards/card-stats';
+import CardGameList from 'cards/card-game-list';
 import Card from 'elements/card';
 import { setRoute } from 'actions/route';
 

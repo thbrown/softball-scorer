@@ -55,13 +55,4 @@ const theme = {
   },
 };
 
-theme.classes = {
-  listItem: {
-    lineHeight: '20px',
-    [`@media (max-width:${theme.breakpoints.sm})`]: {
-      fontSize: '14px',
-      lineHeight: '14px',
-    },
-  },
-};
 module.exports = theme;

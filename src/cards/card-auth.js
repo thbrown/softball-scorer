@@ -1,5 +1,4 @@
 import React from 'react';
-import expose from './expose';
 import DOM from 'react-dom-factories';
 import network from 'network';
 import dialog from 'dialog';
@@ -9,10 +8,9 @@ import { setRoute } from 'actions/route';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 
-export default class CardAuth extends expose.Component {
+export default class CardAuth extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
     this.state = {};
 
     this.handleSignupClick = function() {

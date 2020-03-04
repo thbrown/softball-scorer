@@ -1,4 +1,5 @@
 import expose from 'expose';
+import { ROUTE_PREFIX } from 'routes';
 
 const urlStack = ['/'];
 let onGoBack = () => {};
@@ -9,10 +10,10 @@ window.onpopstate = function() {
 
 export function setRoute(path, routeId) {
   if (path !== window?.location?.pathname) {
-    setUrl(path);
+    setUrl(ROUTE_PREFIX + path);
   }
   expose.set_state('router' + (routeId || ''), {
-    path,
+    path: ROUTE_PREFIX + path,
   });
 }
 

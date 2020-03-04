@@ -21,7 +21,16 @@ const Card = ({
           }}
           {...leftHeaderProps}
         />
-        <span {...titleProps}>{title}</span>
+        <span
+          style={{
+            maxWidth: '70%',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+          {...titleProps}
+        >
+          {title}
+        </span>
         <RightHeaderButton
           style={{
             visibility: enableRightHeader ? 'visible' : 'hidden',

@@ -1,6 +1,5 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import expose from './expose';
 import state from 'state';
 import dialog from 'dialog';
 import network from 'network';
@@ -8,10 +7,9 @@ import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import { setRoute } from 'actions/route';
 
-export default class CardVerifyEmail extends expose.Component {
+export default class CardVerifyEmail extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
     this.state = {};
 
     this.token = props.token;

@@ -1,6 +1,5 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import expose from './expose';
 import state from 'state';
 import dialog from 'dialog';
 import FloatingInput from 'elements/floating-input';
@@ -8,10 +7,9 @@ import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import { goBack } from 'actions/route';
 
-export default class CardOptimizationStatsOverride extends expose.Component {
+export default class CardOptimizationStatsOverride extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
 
     this.state = {};
 

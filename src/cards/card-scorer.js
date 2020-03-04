@@ -1,15 +1,13 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import expose from './expose';
 import state from 'state';
 import dialog from 'dialog';
 import order from 'batting-order';
 import { setRoute } from 'actions/route';
 
-export default class CardScorer extends expose.Component {
+export default class CardScorer extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
     this.state = {};
 
     this.handleDeleteClick = function(player, ev) {

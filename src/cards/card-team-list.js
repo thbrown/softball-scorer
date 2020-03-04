@@ -3,7 +3,6 @@ import DOM from 'react-dom-factories';
 import state from 'state';
 import { setRoute } from 'actions/route';
 import Card from 'elements/card';
-import injectSheet from 'react-jss';
 import { getShallowCopy } from 'utils/functions';
 
 class CardTeamList extends React.Component {
@@ -35,7 +34,7 @@ class CardTeamList extends React.Component {
             id: 'team-' + team.id,
             team_id: team.id,
             key: 'team' + team.id,
-            className: 'list-item ' + this.props.classes.listItem,
+            className: 'list-item',
             onClick: this.handleTeamClick.bind(this, team),
             style: {
               display: 'flex',
@@ -68,7 +67,7 @@ class CardTeamList extends React.Component {
         {
           key: 'newTeam',
           id: 'newTeam',
-          className: 'list-item add-list-item ' + this.props.classes.listItem,
+          className: 'list-item add-list-item',
           onClick: this.handleCreateClick,
         },
         '+ Add New Team'
@@ -87,6 +86,4 @@ class CardTeamList extends React.Component {
     return <Card title="Teams">{this.renderTeamList()}</Card>;
   }
 }
-export default injectSheet(theme => ({
-  listItem: theme.classes.listItem,
-}))(CardTeamList);
+export default CardTeamList;
