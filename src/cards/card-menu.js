@@ -10,7 +10,10 @@ import { setRoute } from 'actions/route';
 class CardMenu extends Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      forceSyncText: 'Force Sync',
+      forceSyncDisabled: false,
+    };
 
     this.handleTeamsClick = function() {
       setRoute('/teams');
@@ -83,22 +86,34 @@ class CardMenu extends Component {
     };
 
     this.handleSyncClick = async function() {
-      let buttonDiv = document.getElementById('sync');
-      buttonDiv.innerHTML = 'Sync (In Progress)';
-      buttonDiv.classList.add('disabled');
-      let status = await state.sync();
+      this.setState({
+        forceSyncText: 'Sync (In Progress)',
+        forceSyncDisabled: true,
+      });
+      const status = await state.sync();
       if (status === 200) {
-        buttonDiv.innerHTML = 'Sync (Success)';
+        this.setState({
+          forceSyncText: 'Sync (Success)',
+          forceSyncDisabled: true,
+        });
       } else if (status === 403) {
         dialog.show_notification('Please log in');
-        buttonDiv.innerHTML = 'Force Sync';
+        this.setState({
+          forceSyncText: 'Force Sync',
+          forceSyncDisabled: false,
+        });
       } else if (status === -1) {
         dialog.show_notification('Sync Failed. App is in offline mode');
-        buttonDiv.innerHTML = 'Force Sync';
+        this.setState({
+          forceSyncText: 'Force Sync',
+          forceSyncDisabled: false,
+        });
       } else {
-        buttonDiv.innerHTML = `Sync (Fail - ${status})`;
+        this.setState({
+          forceSyncText: `Sync (Fail - ${status})`,
+          forceSyncDisabled: false,
+        });
       }
-      buttonDiv.classList.remove('disabled');
     };
 
     this.handleSaveClick = function() {
@@ -205,16 +220,20 @@ class CardMenu extends Component {
             Login/Signup
           </div>
         )}
-        <div
-          id="sync"
-          className={'list-item'}
-          onClick={this.handleSyncClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BG,
-          }}
-        >
-          Force Sync
-        </div>
+        {state.isSessionValid() ? (
+          <div
+            id="sync"
+            className={
+              'list-item' + (this.state.forceSyncDisabled ? ' disabled' : '')
+            }
+            onClick={this.handleSyncClick.bind(this)}
+            style={{
+              backgroundColor: css.colors.BG,
+            }}
+          >
+            {this.state.forceSyncText}
+          </div>
+        ) : null}
         <div
           id="save"
           className={'list-item'}

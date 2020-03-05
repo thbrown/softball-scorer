@@ -18,7 +18,7 @@ const useCardLoadingStyles = makeStyles(theme => ({
   },
 }));
 const CardLoading = props => {
-  const { styles } = useCardLoadingStyles();
+  const { classes } = useCardLoadingStyles();
   const [showGif, setShowGif] = React.useState(false);
   React.useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -38,8 +38,8 @@ const CardLoading = props => {
       enableRightHeader={false}
     >
       {showGif && (
-        <div style={styles.gifContainer}>
-          <Loading style={styles.gif} />
+        <div className={classes.gifContainer}>
+          <Loading className={classes.gif} />
         </div>
       )}
     </Card>
