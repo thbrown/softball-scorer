@@ -80,14 +80,8 @@ svg rect{
   overflow: hidden;
 }
 
-.card-title-tab-container {
-  display: flex;
-  justify-content: space-between;
-  min-width: 200px;
-}
-
 .card-textbox {
-  padding: .75rem;
+  padding: .75rem .25rem;
   color: $css.colors.TEXT_LIGHT;
 }
 
@@ -117,11 +111,11 @@ svg rect{
   font-size: 14px;
   color: $css.colors.TEXT_LIGHT;
   background-color: $css.colors.PRIMARY;
-  border-bottom: 1px solid $css.colors.SECONDARY;
+  border-bottom: 1px solid $css.colors.PRIMARY_LIGHT;
 }
 .table-cell {
-  border-right: 1px solid $css.colors.SECONDARY;
-  border-bottom: 1px solid $css.colors.SECONDARY;
+  border-right: 1px solid $css.colors.PRIMARY_LIGHT;
+  border-bottom: 1px solid $css.colors.PRIMARY_LIGHT;
   padding: 7px;
   min-width: 50px;
   height:24px;
@@ -130,11 +124,17 @@ svg rect{
 .table-cell-header {
   padding: 7px;
 }
+.table-cell-header-label {
+  background-color: $css.colors.PRIMARY_DARK;
+}
 
 .name-stat-cell {
   width: 80px;
   text-align: left;
   height:24px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  background-color: $css.colors.PRIMARY_DARK;
 }
 
 .number-stat-cell {

@@ -1,6 +1,8 @@
 const path = require('path');
 const srvUrl = 'http://localhost:8888';
 const WebpackBeforeBuildPlugin = require('before-build-webpack');
+const WriteFilePlugin = require('write-file-webpack-plugin');
+
 const exec = require('child_process').exec;
 
 const execAsync = cmd => {
@@ -15,8 +17,6 @@ const execAsync = cmd => {
     });
   });
 };
-
-//let updatedServiceWorker = false;
 
 module.exports = {
   entry: [
@@ -49,6 +49,7 @@ module.exports = {
       await execAsync('yarn update-service-worker');
       callback();
     }),
+    new WriteFilePlugin(),
   ],
   devServer: {
     contentBase: path.join(__dirname, 'build'),

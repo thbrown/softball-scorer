@@ -1,8 +1,8 @@
 import React from 'react';
-import css from 'css';
 import CardStats from 'cards/card-stats';
 import GameList from 'components/game-list';
 import Card from 'elements/card';
+import HeaderTabs from 'elements/header-tabs';
 import { setRoute } from 'actions/route';
 
 export default class CardTeam extends React.Component {
@@ -17,36 +17,16 @@ export default class CardTeam extends React.Component {
     return (
       <Card
         title={
-          <div className="card-title-tab-container">
-            <div
-              onClick={() => {
-                this.handleTabClick('stats');
-              }}
-              style={{
-                borderBottom:
-                  this.props.tab === 'stats'
-                    ? '5px solid ' + css.colors.TEXT_LIGHT
-                    : 'none',
-                height: '42px',
-              }}
-            >
-              Stats
-            </div>
-            <div
-              onClick={() => {
-                this.handleTabClick('games');
-              }}
-              style={{
-                borderBottom:
-                  this.props.tab === 'games'
-                    ? '5px solid ' + css.colors.TEXT_LIGHT
-                    : 'none',
-                height: '42px',
-              }}
-            >
-              Games
-            </div>
-          </div>
+          <HeaderTabs
+            handleTabClick={tabValue => {
+              this.handleTabClick(tabValue);
+            }}
+            tab={this.props.tab}
+            tabNames={[
+              { value: 'games', label: 'Games' },
+              { value: 'stats', label: 'Stats' },
+            ]}
+          />
         }
       >
         {this.props.tab === 'stats' ? (

@@ -9,7 +9,7 @@ const useGameListStyles = makeStyles(theme => ({
     float: 'right',
     marginRight: '32px',
     fontSize: '12px',
-    marginTop: '10px',
+    marginTop: '8px',
   },
 }));
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import state from 'state';
 import Card from 'elements/card';
-import injectSheet from 'react-jss';
+import { makeStyles } from 'css/helpers';
 import { compose, withState, withHandlers } from 'recompose';
 import ListPicker from 'elements/list-picker';
 import { setRoute } from 'actions/route';
@@ -13,9 +13,11 @@ const enhance = compose(
   withHandlers({
     handleTeamItemClick: props => item => {
       props.setTeam(state.getTeam(item.id));
+      window.scroll(0, 0);
     },
     handleGameItemClick: props => item => {
       props.setGame(state.getGame(item.id));
+      window.scroll(0, 0);
     },
     handleBackClick: props => () => {
       let skipDefaultBack = false;
@@ -45,51 +47,60 @@ const enhance = compose(
         `/optimizations/${props.optimization.id}/overrides/player-select`
       );
     },
-  }),
-  injectSheet(theme => ({
-    title: {
-      position: 'sticky',
-      left: '0px',
-      top: '48px',
-      fontSize: theme.typography.size.xLarge,
-      textAlign: 'center',
-      color: theme.colors.TEXT_LIGHT,
-      padding: theme.spacing.small,
-      backgroundColor: theme.colors.SECONDARY_DARK,
-      borderTop: '2px solid ' + theme.colors.PRIMARY,
-    },
-    itemCustom: {
-      backgroundColor: theme.colors.PRIMARY_DARK,
-      textAlign: 'center',
-    },
-    confirmButtonContainer: {
-      display: 'flex',
-      justifyContent: 'center',
-    },
-    confirmButton: {
-      width: '180px',
-    },
-    vs: {
-      color: theme.colors.TEXT_LIGHT,
-      fontSize: theme.typography.size.medium,
-    },
-    chipContainer: {
-      paddingTop: theme.spacing.xSmall,
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    chip: {
-      padding: '15px',
-      marginRight: theme.spacing.xxSmall,
-      marginLeft: theme.spacing.xxSmall,
-      color: theme.colors.TEXT_LIGHT,
-      backgroundColor: theme.colors.PRIMARY_DARK,
-      borderRadius: '30px',
-      fontSize: theme.typography.size.medium,
-    },
-  }))
+  })
 );
+
+const useLineupListStyles = makeStyles(theme => ({
+  title: {
+    position: 'sticky',
+    left: '0px',
+    top: '48px',
+    fontSize: theme.typography.size.xLarge,
+    textAlign: 'center',
+    color: theme.colors.TEXT_LIGHT,
+    padding: theme.spacing.xSmall,
+    backgroundColor: theme.colors.SECONDARY_DARK,
+    borderTop: '5px solid ' + theme.colors.PRIMARY_LIGHT,
+    boxShadow: '0px 2px 5px 5px rgba(0,0,0,0.5)',
+    marginBottom: theme.spacing.small,
+  },
+  itemCustom: {
+    backgroundColor: theme.colors.PRIMARY_DARK,
+    textAlign: 'center',
+  },
+  itemText: {
+    maxWidth: '70%',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'pre',
+  },
+  confirmButtonContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  confirmButton: {
+    width: '180px',
+  },
+  vs: {
+    color: theme.colors.TEXT_LIGHT,
+    fontSize: theme.typography.size.medium,
+  },
+  chipContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: theme.spacing.xSmall,
+  },
+  chip: {
+    padding: '15px',
+    marginRight: theme.spacing.xxSmall,
+    marginLeft: theme.spacing.xxSmall,
+    color: theme.colors.TEXT_LIGHT,
+    backgroundColor: theme.colors.PRIMARY_DARK,
+    borderRadius: '30px',
+    fontSize: theme.typography.size.medium,
+  },
+}));
 
 const toItems = list =>
   list.map(obj => ({
@@ -99,28 +110,31 @@ const toItems = list =>
   }));
 
 const LineupList = props => {
+  const { classes } = useLineupListStyles();
+
   if (props.game) {
     return (
       <>
-        <div className={props.classes.title}> Use this lineup? </div>
-        <div className={props.classes.chipContainer}>
-          <div className={props.classes.chip}>{props.team.name}</div>
-          <span className={props.classes.vs}> vs. </span>
-          <div className={props.classes.chip}>{props.game.opponent}</div>
+        <div className={classes.title}> Use this lineup? </div>
+        <div className={classes.chipContainer}>
+          <div className={classes.chip}>{props.team.name}</div>
+          <span className={classes.vs}> vs. </span>
+          <div className={classes.chip}>{props.game.opponent}</div>
         </div>
         <ListPicker
-          itemClassName={props.classes.itemCustom}
+          itemClassName={classes.itemCustom}
+          textClassName={classes.itemText}
           items={props.game.lineup.map(playerId => ({
             name: state.getPlayer(playerId).name,
             id: state.getPlayer(playerId).id,
           }))}
           onClick={() => {}}
         />
-        <div className={props.classes.confirmButtonContainer}>
+        <div className={classes.confirmButtonContainer}>
           <div
             id="confirm"
             className={
-              'button edit-button confirm-button ' + props.classes.confirmButton
+              'button edit-button confirm-button ' + classes.confirmButton
             }
             onClick={props.handleConfirmClick}
           >
@@ -132,11 +146,12 @@ const LineupList = props => {
   } else if (props.team) {
     return (
       <>
-        <div className={props.classes.title}> Pick a game </div>
-        <div className={props.classes.chipContainer}>
-          <div className={props.classes.chip}>{props.team.name}</div>
+        <div className={classes.title}> Pick a game </div>
+        <div className={classes.chipContainer}>
+          <div className={classes.chip}>{props.team.name}</div>
         </div>
         <ListPicker
+          textClassName={classes.itemText}
           items={toItems([...props.team.games].reverse())}
           onClick={props.handleGameItemClick}
         />
@@ -145,7 +160,7 @@ const LineupList = props => {
   } else {
     return (
       <>
-        <div className={props.classes.title}> Pick a team </div>
+        <div className={classes.title}> Pick a team </div>
         <ListPicker
           items={toItems([...state.getLocalState().teams].reverse())}
           onClick={props.handleTeamItemClick}

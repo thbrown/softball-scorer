@@ -6,13 +6,14 @@
   "scripts": {
     "run": "node src-srv",
     "start": "node src-srv",
+    "start:dev": "yarn watch",
     "build": "node build.js build",
-    "watch": "concurrently -n srv,webpack \"node src-srv\" \"webpack-dev-server --client-log-level error  --config webpack.dev.js\"",
+    "watch": "rm -rf build/*hot-update.json build/*.hot-update.js && concurrently -n srv,webpack \"node src-srv\" \"webpack-dev-server --client-log-level error --config webpack.dev.js\"",
     "build-css": "node build.js build-css",
     "update-service-worker": "node build.js update-service-worker",
     "clean": "node build.js clean",
-    "test-watch": "jest --watch ./src/tests/*",
     "test": "jest --runInBand --detectOpenHandles --bail --verbose=false --forceExit",
+    "test:frontend": "jest --watch ./src/tests/*",
     "analyze": "webpack --config webpack.prod.js --profile --json > build/stats.json && webpack-bundle-analyzer build/stats.json"
   },
   "repository": {
@@ -135,7 +136,8 @@
     "webpack": "^4.35.3",
     "webpack-bundle-analyzer": "^3.5.2",
     "webpack-cli": "^3.3.5",
-    "webpack-dev-server": "^3.10.1"
+    "webpack-dev-server": "^3.10.1",
+    "write-file-webpack-plugin": "^4.5.1"
   },
   "config": {
     "bundles": {

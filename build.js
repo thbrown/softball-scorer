@@ -169,21 +169,21 @@ function build_css(cb) {
   };
 
   fs.readdir(pre_css_folder, (err, files) => {
-    let numfiles = 0;
-    let numfilesparsed = 0;
+    let numFiles = 0;
+    let numFilesParsed = 0;
     let complete_output = '';
     files.forEach(file => {
       if (file.indexOf('pre.css') > -1) {
-        numfiles++;
+        numFiles++;
         _compile_file(pre_css_folder + file, output => {
-          numfilesparsed++;
+          numFilesParsed++;
           if (file === 'main.pre.css') {
             complete_output = output + '\n' + complete_output;
           } else {
             complete_output += '\n' + output;
           }
 
-          if (numfiles === numfilesparsed) {
+          if (numFiles === numFilesParsed) {
             _output_file(complete_output);
           }
         });

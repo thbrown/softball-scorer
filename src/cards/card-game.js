@@ -1,11 +1,9 @@
 import React from 'react';
 import expose from 'expose';
-import css from 'css';
 import Card from 'elements/card';
+import HeaderTabs from 'elements/header-tabs';
 import CardLineup from 'cards/card-lineup';
 import CardScorer from 'cards/card-scorer';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
 import { setRoute } from 'actions/route';
 
 const defaultTab = 'lineup';
@@ -28,36 +26,16 @@ export default class CardGame extends expose.Component {
     return (
       <Card
         title={
-          <div className="card-title-tab-container">
-            <div
-              onClick={() => {
-                this.handleTabClick('lineup');
-              }}
-              style={{
-                borderBottom:
-                  tab === 'lineup'
-                    ? '5px solid ' + css.colors.TEXT_LIGHT
-                    : 'none',
-                height: '42px',
-              }}
-            >
-              Lineup
-            </div>
-            <div
-              onClick={() => {
-                this.handleTabClick('scorer');
-              }}
-              style={{
-                borderBottom:
-                  tab === 'scorer'
-                    ? '5px solid ' + css.colors.TEXT_LIGHT
-                    : 'none',
-                height: '42px',
-              }}
-            >
-              Scorer
-            </div>
-          </div>
+          <HeaderTabs
+            handleTabClick={tabValue => {
+              this.handleTabClick(tabValue);
+            }}
+            tab={this.props.tab}
+            tabNames={[
+              { value: 'lineup', label: 'Lineup' },
+              { value: 'scorer', label: 'Scorer' },
+            ]}
+          />
         }
       >
         {tab === 'scorer' ? (
@@ -68,52 +46,5 @@ export default class CardGame extends expose.Component {
         ) : null}
       </Card>
     );
-
-    // return DOM.div(
-    //   {
-    //     style: {
-    //       className: 'card',
-    //     },
-    //   },
-    //   DOM.div(
-    //     {
-    //       className: 'card-title',
-    //     },
-    //     React.createElement(LeftHeaderButton, {}),
-    //     DOM.div(
-    //       {
-    //         className: 'card-title-tab-container',
-    //       },
-    //       DOM.div(
-    //         {
-    //           onClick: this.handleTabClick.bind(this, 'lineup'),
-    //           style: {
-    //             width: '50%',
-    //             borderBottom:
-    //               tab === 'lineup'
-    //                 ? '5px solid ' + css.colors.TEXT_LIGHT
-    //                 : 'none',
-    //           },
-    //         },
-    //         'Lineup'
-    //       ),
-    //       DOM.div(
-    //         {
-    //           onClick: this.handleTabClick.bind(this, 'scorer'),
-    //           style: {
-    //             width: '50%',
-    //             borderBottom:
-    //               tab === 'scorer'
-    //                 ? '5px solid ' + css.colors.TEXT_LIGHT
-    //                 : 'none',
-    //           },
-    //         },
-    //         'Scorer'
-    //       )
-    //     ),
-    //     React.createElement(RightHeaderButton, {})
-    //   ),
-    //   subcard
-    // );
   }
 }
