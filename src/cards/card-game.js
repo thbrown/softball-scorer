@@ -1,11 +1,9 @@
 import React from 'react';
 import expose from 'expose';
-import DOM from 'react-dom-factories';
-import css from 'css';
+import Card from 'elements/card';
+import HeaderTabs from 'elements/header-tabs';
 import CardLineup from 'cards/card-lineup';
 import CardScorer from 'cards/card-scorer';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
 import { setRoute } from 'actions/route';
 
 const defaultTab = 'lineup';
@@ -24,64 +22,29 @@ export default class CardGame extends expose.Component {
 
   render() {
     let tab = this.props.tab || defaultTab;
-    let subcard = '';
-    if (tab === 'lineup') {
-      subcard = React.createElement(CardLineup, {
-        team: this.props.team,
-        game: this.props.game,
-      });
-    } else if (tab === 'scorer') {
-      subcard = React.createElement(CardScorer, {
-        team: this.props.team,
-        game: this.props.game,
-      });
-    }
 
-    return DOM.div(
-      {
-        style: {
-          className: 'card',
-        },
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {}),
-        DOM.div(
-          {
-            className: 'card-title-tab-container',
-          },
-          DOM.div(
-            {
-              onClick: this.handleTabClick.bind(this, 'lineup'),
-              style: {
-                width: '50%',
-                borderBottom:
-                  tab === 'lineup'
-                    ? '5px solid ' + css.colors.TEXT_LIGHT
-                    : 'none',
-              },
-            },
-            'Lineup'
-          ),
-          DOM.div(
-            {
-              onClick: this.handleTabClick.bind(this, 'scorer'),
-              style: {
-                width: '50%',
-                borderBottom:
-                  tab === 'scorer'
-                    ? '5px solid ' + css.colors.TEXT_LIGHT
-                    : 'none',
-              },
-            },
-            'Scorer'
-          )
-        ),
-        React.createElement(RightHeaderButton, {})
-      ),
-      subcard
+    return (
+      <Card
+        title={
+          <HeaderTabs
+            handleTabClick={tabValue => {
+              this.handleTabClick(tabValue);
+            }}
+            tab={this.props.tab}
+            tabNames={[
+              { value: 'lineup', label: 'Lineup' },
+              { value: 'scorer', label: 'Scorer' },
+            ]}
+          />
+        }
+      >
+        {tab === 'scorer' ? (
+          <CardScorer team={this.props.team} game={this.props.game} />
+        ) : null}
+        {tab === 'lineup' ? (
+          <CardLineup team={this.props.team} game={this.props.game} />
+        ) : null}
+      </Card>
     );
   }
 }

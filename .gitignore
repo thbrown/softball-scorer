@@ -1,5 +1,7 @@
 node_modules
 build/main.js
+build/*.hot-update.json
+build/*.hot-update.js
 build/vendor.js
 build/stats.json
 assets/main.css

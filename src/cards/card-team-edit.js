@@ -1,219 +1,13 @@
-import React, { createRef } from 'react';
-import injectSheet from 'react-jss';
+import React from 'react';
 import state from 'state';
 import dialog from 'dialog';
 import Card from 'elements/card';
 import FloatingInput from 'elements/floating-input';
 import CardSection from 'elements/card-section';
 import { goBack, goHome } from 'actions/route';
+import { makeStyles } from 'css/helpers';
 
-class CardTeamEdit extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      ...props.team,
-      copiedNotificationVisible: false,
-    };
-
-    this.publicLinkRef = createRef();
-    this.isPristine = this.isNew ? false : true;
-
-    this.homeOrBack = type => cb => {
-      if (!this.isPristine) {
-        dialog.show_confirm(
-          props.isNew
-            ? 'Are you sure you wish to discard this team?'
-            : 'Are you sure you wish to discard changes to this team?',
-          () => {
-            if (props.isNew) {
-              state.removeTeam(props.team.id);
-            }
-            if (type === 'home') {
-              goHome();
-            } else {
-              goBack();
-            }
-          }
-        );
-        return true;
-      }
-      if (cb) {
-        cb();
-      }
-    };
-
-    this.handleConfirmClick = () => {
-      const newTeam = { ...this.state };
-      delete newTeam.copiedNotificationVisible;
-      state.replaceTeam(props.team.id, newTeam);
-      goBack();
-    };
-
-    this.handleCancelClick = () => {
-      this.homeOrBack('back')(goBack);
-    };
-
-    this.handleDeleteClick = () => {
-      dialog.show_confirm(
-        `Are you sure you want to delete the team ${props.team.name}?`,
-        () => {
-          // FIXME this causes a brief 404 to flash on the page
-          goBack();
-          state.removeTeam(props.team.id);
-        }
-      );
-      return true;
-    };
-
-    this.handleNameChange = value => {
-      this.isPristine = false;
-      this.setState({
-        name: value,
-      });
-    };
-
-    this.handlePublicLinkEnabledClicked = ev => {
-      this.isPristine = false;
-      this.setState({
-        publicIdEnabled: !!ev.target.checked,
-      });
-    };
-
-    this.handleCopyClick = () => {
-      const copyText = this.publicLinkRef.current;
-      copyText.select();
-      document.execCommand('copy');
-      this.setState({
-        copiedNotificationVisible: true,
-      });
-      setTimeout(() => {
-        this.setState({
-          copiedNotificationVisible: false,
-        });
-      }, 2999);
-      window.getSelection().removeAllRanges();
-      copyText.blur();
-    };
-  }
-
-  render() {
-    const { classes } = this.props;
-    const { publicId, publicIdEnabled } = this.state;
-    const publicLink = `${window.location.host}/public-teams/${publicId}/stats`;
-
-    return (
-      <Card
-        title="Edit Team"
-        leftHeaderProps={{
-          onClick: this.homeOrBack('back'),
-        }}
-        rightHeaderProps={{
-          onClick: this.homeOrBack('home'),
-        }}
-      >
-        <CardSection>
-          <FloatingInput
-            maxLength="50"
-            label="Team Name"
-            onChange={this.handleNameChange}
-            defaultValue={this.props.team.name}
-          />
-        </CardSection>
-        {publicId && state.isSessionValid() && (
-          <>
-            <CardSection>
-              <div className={classes.publicLinkLabelBox}>
-                <label
-                  htmlFor="publicIdEnabled"
-                  className={classes.publicLinkLabel}
-                >
-                  Public Link
-                </label>
-                <input
-                  id="publicIdEnabled"
-                  type="checkbox"
-                  checked={!!publicIdEnabled}
-                  className={classes.publicLinkCheckbox}
-                  onChange={this.handlePublicLinkEnabledClicked}
-                />
-                {this.state.copiedNotificationVisible && (
-                  <span className={classes.publicLinkCopiedText + ' fade-out'}>
-                    Link copied
-                  </span>
-                )}
-              </div>
-              {publicIdEnabled && (
-                <div className={classes.publicLinkContainer}>
-                  <div className={classes.publicLinkLineItem}>
-                    <span>
-                      <img
-                        onClick={this.handleCopyClick}
-                        className={classes.publicLinkCopyButton}
-                        src="/server/assets/copy.svg"
-                        alt="copy"
-                      />
-                    </span>
-                  </div>
-                  <input
-                    id="publicLink"
-                    ref={this.publicLinkRef}
-                    readOnly
-                    size={publicLink.length}
-                    value={publicLink}
-                    className={classes.publicLink}
-                  />
-                </div>
-              )}
-            </CardSection>
-          </>
-        )}
-        <CardSection>
-          <div
-            id="save"
-            className="edit-button button confirm-button"
-            onClick={this.handleConfirmClick}
-          >
-            <img
-              className="edit-button-icon"
-              src="/server/assets/check.svg"
-              alt=""
-            />
-            <span className="edit-button-icon"> Save </span>
-          </div>
-          <div
-            id="cancel"
-            className="edit-button button cancel-button"
-            onClick={this.handleCancelClick}
-          >
-            <img
-              className="edit-button-icon"
-              src="/server/assets/cancel.svg"
-              alt=""
-            />
-            <span className="edit-button-icon"> Cancel </span>
-          </div>
-          {!this.props.isNew && (
-            <div
-              id="delete"
-              className="edit-button button cancel-button"
-              onClick={this.handleDeleteClick}
-            >
-              <img
-                className="edit-button-icon"
-                src="/server/assets/delete.svg"
-                alt=""
-              />
-              <span className="edit-button-icon"> Delete </span>
-            </div>
-          )}
-        </CardSection>
-      </Card>
-    );
-  }
-}
-
-const styles = css => ({
+const useCardTeamEditStyles = makeStyles(css => ({
   publicLink: {
     fontSize: css.typography.size.xSmall,
     padding: css.spacing.xxSmall,
@@ -259,6 +53,200 @@ const styles = css => ({
     height: '1rem',
     marginRight: css.spacing.xSmall,
   },
-});
+}));
 
-export default injectSheet(styles)(CardTeamEdit);
+const CardTeamEdit = props => {
+  const [team, setTeam] = React.useState(props.team);
+  const [
+    copiedNotificationVisible,
+    setCopiedNotificationVisible,
+  ] = React.useState(false);
+  const publicLinkRef = React.useRef(null);
+  let isPristine = props.isNew ? false : true;
+
+  const homeOrBack = (type, cb) => {
+    if (!isPristine) {
+      dialog.show_confirm(
+        props.isNew
+          ? 'Are you sure you wish to discard team?'
+          : 'Are you sure you wish to discard changes to team?',
+        () => {
+          if (props.isNew) {
+            state.removeTeam(props.team.id);
+          }
+          if (type === 'home') {
+            goHome();
+          } else {
+            goBack();
+          }
+        }
+      );
+      return true;
+    }
+    if (cb) {
+      cb();
+    }
+  };
+
+  const handleConfirmClick = () => {
+    const newTeam = { ...team };
+    delete newTeam.copiedNotificationVisible;
+    state.replaceTeam(props.team.id, newTeam);
+    goBack();
+  };
+
+  const handleCancelClick = () => {
+    homeOrBack('back', goBack);
+  };
+
+  const handleDeleteClick = () => {
+    dialog.show_confirm(
+      `Are you sure you want to delete the team ${props.team.name}?`,
+      () => {
+        // FIXME causes a brief 404 to flash on the page
+        goBack();
+        state.removeTeam(props.team.id);
+      }
+    );
+    return true;
+  };
+
+  const handleNameChange = value => {
+    isPristine = false;
+    setTeam({
+      ...team,
+      name: value,
+    });
+  };
+
+  const handlePublicLinkEnabledClicked = ev => {
+    setTeam({
+      ...team,
+      publicIdEnabled: !!ev.target.checked,
+    });
+  };
+
+  const handleCopyClick = () => {
+    const copyText = publicLinkRef.current;
+    copyText.select();
+    document.execCommand('copy');
+    setCopiedNotificationVisible(true);
+    setTimeout(() => {
+      setCopiedNotificationVisible(false);
+    }, 2999);
+    window.getSelection().removeAllRanges();
+    copyText.blur();
+  };
+
+  const { styles } = useCardTeamEditStyles();
+  const { publicId, publicIdEnabled } = team;
+  const publicLink = `${window.location.host}/public-teams/${publicId}/stats`;
+
+  return (
+    <Card
+      title="Edit Team"
+      leftHeaderProps={{
+        onClick: () => homeOrBack('back'),
+      }}
+      rightHeaderProps={{
+        onClick: () => homeOrBack('home'),
+      }}
+    >
+      <CardSection>
+        <FloatingInput
+          maxLength="50"
+          label="Team Name"
+          onChange={handleNameChange}
+          defaultValue={props.team.name}
+        />
+      </CardSection>
+      {publicId && state.isSessionValid() && (
+        <>
+          <CardSection>
+            <div style={styles.publicLinkLabelBox}>
+              <label htmlFor="publicIdEnabled" style={styles.publicLinkLabel}>
+                Public Link
+              </label>
+              <input
+                id="publicIdEnabled"
+                type="checkbox"
+                checked={!!publicIdEnabled}
+                style={styles.publicLinkCheckbox}
+                onChange={handlePublicLinkEnabledClicked}
+              />
+              {copiedNotificationVisible && (
+                <span style={styles.publicLinkCopiedText} className="fade-out">
+                  Link copied
+                </span>
+              )}
+            </div>
+            {publicIdEnabled && (
+              <div style={styles.publicLinkContainer}>
+                <div style={styles.publicLinkLineItem}>
+                  <span>
+                    <img
+                      onClick={handleCopyClick}
+                      style={styles.publicLinkCopyButton}
+                      src="/server/assets/copy.svg"
+                      alt="copy"
+                    />
+                  </span>
+                </div>
+                <input
+                  id="publicLink"
+                  ref={publicLinkRef}
+                  readOnly
+                  size={publicLink.length}
+                  value={publicLink}
+                  style={styles.publicLink}
+                />
+              </div>
+            )}
+          </CardSection>
+        </>
+      )}
+      <CardSection>
+        <div
+          id="save"
+          className="edit-button button confirm-button"
+          onClick={handleConfirmClick}
+        >
+          <img
+            className="edit-button-icon"
+            src="/server/assets/check.svg"
+            alt=""
+          />
+          <span className="edit-button-icon"> Save </span>
+        </div>
+        <div
+          id="cancel"
+          className="edit-button button cancel-button"
+          onClick={handleCancelClick}
+        >
+          <img
+            className="edit-button-icon"
+            src="/server/assets/cancel.svg"
+            alt=""
+          />
+          <span className="edit-button-icon"> Cancel </span>
+        </div>
+        {!props.isNew && (
+          <div
+            id="delete"
+            className="edit-button button cancel-button"
+            onClick={handleDeleteClick}
+          >
+            <img
+              className="edit-button-icon"
+              src="/server/assets/delete.svg"
+              alt=""
+            />
+            <span className="edit-button-icon"> Delete </span>
+          </div>
+        )}
+      </CardSection>
+    </Card>
+  );
+};
+
+export default CardTeamEdit;

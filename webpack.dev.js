@@ -1,6 +1,8 @@
 const path = require('path');
 const srvUrl = 'http://localhost:8888';
 const WebpackBeforeBuildPlugin = require('before-build-webpack');
+const WriteFilePlugin = require('write-file-webpack-plugin');
+
 const exec = require('child_process').exec;
 
 const execAsync = cmd => {
@@ -44,8 +46,10 @@ module.exports = {
   plugins: [
     new WebpackBeforeBuildPlugin(async (stats, callback) => {
       await execAsync('yarn build-css');
+      await execAsync('yarn update-service-worker');
       callback();
     }),
+    new WriteFilePlugin(),
   ],
   devServer: {
     contentBase: path.join(__dirname, 'build'),
@@ -59,8 +63,9 @@ module.exports = {
     port: 8889,
     proxy: {
       '/server/*': srvUrl,
-      // 'service-worker': srvUrl,
-      'favicon.ico': srvUrl,
+      '/service-worker': srvUrl,
+      '/favicon.ico': srvUrl,
+      '/robots.txt': srvUrl,
     },
   },
 };

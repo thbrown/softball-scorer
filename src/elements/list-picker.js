@@ -1,6 +1,6 @@
 import React from 'react';
-import injectSheet from 'react-jss';
 import { compose, withHandlers } from 'recompose';
+import { makeStyles } from 'css/helpers';
 import NoSelect from 'elements/no-select';
 
 const enhance = compose(
@@ -8,35 +8,46 @@ const enhance = compose(
     handleItemClick: props => item => () => {
       props.onClick(item);
     },
-  }),
-  injectSheet(theme => ({
-    listItemFloat: {
-      float: 'right',
-      marginRight: '32px',
-      fontSize: '12px',
-    },
-  }))
+  })
 );
 
-const ListPicker = props => (
-  <div>
-    {props.items.map((item, i) => (
-      <div
-        id={'list-' + item.id}
-        key={item + i}
-        onClick={props.handleItemClick(item)}
-        className={'list-item ' + props.itemClassName}
-      >
-        <NoSelect>{item.name}</NoSelect>
-        {item.floatName && (
-          <span className={props.classes.listItemFloat}>
-            <NoSelect>{item.floatName}</NoSelect>
-          </span>
-        )}
-      </div>
-    ))}
-  </div>
-);
+const useListPickerStyles = makeStyles(theme => ({
+  listItemFloat: {
+    float: 'right',
+    marginRight: '5px',
+    fontSize: '12px',
+    marginTop: '8px',
+  },
+}));
+
+const ListPicker = props => {
+  const { classes } = useListPickerStyles();
+  return (
+    <div>
+      {props.items.map((item, i) => (
+        <div
+          id={'list-' + item.id}
+          key={item.id + i}
+          onClick={props.handleItemClick(item)}
+          className={'list-item ' + props.itemClassName}
+        >
+          <NoSelect
+            style={{ display: 'inline-block' }}
+            div={true}
+            className={props.textClassName}
+          >
+            {item.name}
+          </NoSelect>
+          {item.floatName && (
+            <span className={classes.listItemFloat}>
+              <NoSelect>{item.floatName}</NoSelect>
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const ListPickerEnhanced = enhance(ListPicker);
 

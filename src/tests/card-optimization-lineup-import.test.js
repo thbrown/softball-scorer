@@ -24,7 +24,7 @@ describe('[UI] Optimization', () => {
 
   it('A user can access navigate to the optimization player select card', () => {
     wrapper.find('#optimization-' + optimizationId).simulate('click');
-    wrapper.find(`#edit-players`).simulate('click');
+    wrapper.find('#edit-players').simulate('click');
     wrapper.find('#import').simulate('click');
   });
 

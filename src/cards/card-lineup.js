@@ -31,7 +31,7 @@ export default class CardLineup extends React.Component {
         highlights[i].style.visibility = 'hidden';
         highlights[i].style.height = '0px';
         if (skipTransition) {
-          highlights[i].offsetHeight; // Trigger a reflow, otherwise transitions will still occur
+          // highlights[i].offsetHeight; // Trigger a reflow, otherwise transitions will still occur
           highlights[i].classList.remove('no-transition');
         }
       }
@@ -46,7 +46,7 @@ export default class CardLineup extends React.Component {
         elem.style.visibility = 'visible';
         elem.style.height = `${PLAYER_TILE_HEIGHT + 2}px`;
         if (skipTransition) {
-          elem.offsetHeight; // Trigger a reflow, otherwise transitions will still occur
+          // elem.offsetHeight; // Trigger a reflow, otherwise transitions will still occur
           elem.classList.remove('no-transition');
         }
       }

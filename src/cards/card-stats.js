@@ -152,7 +152,9 @@ export default class CardStats extends React.Component {
       return (
         <Cell key={statName}>
           <div
-            className={this.getCellClassName(statName)}
+            className={
+              this.getCellClassName(statName) + ' table-cell-header-label'
+            }
             onClick={this.handleStatsClick.bind(this, statName)}
           >
             <span style={{ userSelect: 'none' }}>

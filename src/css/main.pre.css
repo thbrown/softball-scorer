@@ -32,104 +32,6 @@ svg rect{
   margin: 0 auto;
 }
 
-@keyframes fadein {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Firefox < 16 */
-@-moz-keyframes fadein {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Safari, Chrome and Opera > 12.1 */
-@-webkit-keyframes fadein {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Internet Explorer */
-@-ms-keyframes fadein {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Opera < 12.1 */
-@-o-keyframes fadein {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes fadein {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-/* Firefox < 16 */
-@-moz-keyframes fadeout {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-/* Safari, Chrome and Opera > 12.1 */
-@-webkit-keyframes fadeout {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-/* Internet Explorer */
-@-ms-keyframes fadeout {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-/* Opera < 12.1 */
-@-o-keyframes fadeout {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
 .page-error {
   text-align: center;
   font-size: 24px;
@@ -178,14 +80,8 @@ svg rect{
   overflow: hidden;
 }
 
-.card-title-tab-container {
-  display: flex;
-  justify-content: space-between;
-  width: calc(100% - 96px); /* 96px  = icon width (48px) * 2 icons */
-}
-
 .card-textbox {
-  padding: .75rem;
+  padding: .75rem .25rem;
   color: $css.colors.TEXT_LIGHT;
 }
 
@@ -215,11 +111,11 @@ svg rect{
   font-size: 14px;
   color: $css.colors.TEXT_LIGHT;
   background-color: $css.colors.PRIMARY;
-  border-bottom: 1px solid $css.colors.SECONDARY;
+  border-bottom: 1px solid $css.colors.PRIMARY_LIGHT;
 }
 .table-cell {
-  border-right: 1px solid $css.colors.SECONDARY;
-  border-bottom: 1px solid $css.colors.SECONDARY;
+  border-right: 1px solid $css.colors.PRIMARY_LIGHT;
+  border-bottom: 1px solid $css.colors.PRIMARY_LIGHT;
   padding: 7px;
   min-width: 50px;
   height:24px;
@@ -228,11 +124,17 @@ svg rect{
 .table-cell-header {
   padding: 7px;
 }
+.table-cell-header-label {
+  background-color: $css.colors.PRIMARY_DARK;
+}
 
 .name-stat-cell {
   width: 80px;
   text-align: left;
   height:24px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  background-color: $css.colors.PRIMARY_DARK;
 }
 
 .number-stat-cell {
@@ -465,9 +367,9 @@ svg rect{
   transform: translateX(-50%);
   max-width: 960px;
   background-color: $css.colors.PRIMARY_LIGHT;
-  border: 4px solid $css.colors.PRIMARY;
   border-radius: 8px;
   color: $css.colors.TEXT_DARK;
+  box-shadow: 0px 9px 25px 10px rgba(0,0,0,0.5);
   padding: 16px;
   z-index: 2001;
 }
