@@ -675,6 +675,12 @@ exp.setScore = function({ scoreUs, scoreThem }, gameId) {
   const game = exp.getGame(gameId);
   game.scoreUs = scoreUs === undefined ? game.scoreUs : scoreUs;
   game.scoreThem = scoreThem === undefined ? game.scoreThem : scoreThem;
+  if (game.scoreUs < 0) {
+    game.scoreUs = 0;
+  }
+  if (game.scoreThem < 0) {
+    game.scoreUs = 0;
+  }
   onEdit();
   return game;
 };
