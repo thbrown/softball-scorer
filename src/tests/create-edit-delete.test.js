@@ -61,6 +61,7 @@ export const createOptimizationUI = wrapper => {
   wrapper
     .find('input#optimizationName')
     .simulate('change', { target: { value: TEST_OPTIMIZATION_NAME } });
+
   wrapper.find('#save').simulate('click');
 
   const optimizations = state.getLocalState().optimizations;

@@ -145,6 +145,8 @@ module.exports = class DatabaseCalls {
           newGame.date = plateAppearance.game_date;
           newGame.park = plateAppearance.game_park;
           newGame.lineupType = plateAppearance.lineup_type;
+          newGame.scoreUs = plateAppearance.score_us;
+          newGame.scoreThem = plateAppearance.score_them;
           if (plateAppearance.lineup) {
             newGame.lineup = plateAppearance.lineup
               .split(',')
