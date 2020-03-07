@@ -677,7 +677,7 @@ exp.setScore = function({ scoreUs, scoreThem }, gameId) {
     game.scoreUs = 0;
   }
   if (game.scoreThem < 0) {
-    game.scoreUs = 0;
+    game.scoreThem = 0;
   }
   onEdit();
   return game;
