@@ -67,7 +67,6 @@ module.exports = class ComputeLocal {
             ? data.split(' ')[2].replace(/"/g, '')
             : false;
 
-          console.log('JAVA VERSION', javaVersion);
           if (javaVersion !== false) {
             return resolve(javaVersion);
           } else {
