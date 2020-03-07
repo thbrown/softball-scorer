@@ -579,15 +579,13 @@ exp.addGame = function(teamId, opposingTeamName) {
 };
 
 exp.replaceGame = function(oldGameId, teamId, newGame) {
-  let localState = exp.getLocalState();
-  let oldGame = exp.getGame(oldGameId);
+  const localState = exp.getLocalState();
+  const oldGame = exp.getGame(oldGameId);
 
-  let team = exp.getTeam(teamId);
-  let teamIndex = localState.teams.indexOf(team);
+  const team = exp.getTeam(teamId);
+  const teamIndex = localState.teams.indexOf(team);
 
-  console.log('NEW GAME', newGame);
-
-  let oldGameIndex = localState.teams[teamIndex].games.indexOf(oldGame);
+  const oldGameIndex = localState.teams[teamIndex].games.indexOf(oldGame);
   localState.teams[teamIndex].games[oldGameIndex] = newGame;
   onEdit();
 };
@@ -1240,7 +1238,6 @@ exp.getSyncStateEnum = function() {
 };
 
 exp.setPreventScreenLock = function(value) {
-  console.log('setting value', value);
   this.preventScreenLock = value;
   reRender();
 };
