@@ -12,6 +12,8 @@ const theme = {
     TEXT_LIGHT: '#FFFFFF',
     TEXT_GREY: 'rgba(0,0,0,.87)',
     TEXT_DARK: '#000000',
+    CANCEL: '#B72A2A',
+    DELETE: '#B72A2A',
     WHITE: '#FFFFFF',
     INVISIBLE: 'rgba(0, 0, 0, 0)',
     DISABLED: '#aaa',
@@ -30,6 +32,9 @@ const theme = {
       large: '20px',
       xLarge: '32px',
     },
+  },
+  borderRadius: {
+    small: '5px',
   },
   spacing: {
     xxSmall: '0.5rem',
@@ -52,6 +57,9 @@ const theme = {
   },
   config: {
     SYNC_DELAY: '10s',
+  },
+  boxShadow: {
+    paper: '0 0 4px rgba(0, 0, 0, 0.14), 0 4px 8px rgba(0, 0, 0, 0.28);',
   },
 };
 

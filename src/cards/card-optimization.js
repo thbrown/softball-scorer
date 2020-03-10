@@ -525,7 +525,7 @@ Clips can be played from the player's plate appearance page
       playerTable.push(
         <tr
           key={'row' + i}
-          className={displayPlayers[i].isOverride ? 'overriden' : undefined}
+          className={displayPlayers[i].isOverride ? 'overridden' : undefined}
         >
           <td height="48" className="name">
             {displayPlayers[i].name}
@@ -686,7 +686,7 @@ Clips can be played from the player's plate appearance page
               state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ? (
                 <div
                   id="edit-players"
-                  className="edit-button button cancel-button"
+                  className="edit-button button confirm-button"
                   onClick={this.handleAddPlayerClick}
                 >
                   + Add/Remove Players
@@ -977,9 +977,13 @@ Clips can be played from the player's plate appearance page
     let estimatedTime = false;
 
     if (
-      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ||
+      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.ERROR
     ) {
-      toggleButtonText = 'Start Simulation';
+      toggleButtonText =
+        this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.ERROR
+          ? 'Restart Simulation '
+          : 'Start Simulation';
       emailCheckboxDisabled = false;
       toggleButtonHandler = this.handleStartClick.bind(this);
 
@@ -1028,7 +1032,7 @@ Clips can be played from the player's plate appearance page
     } else if (
       this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
       this.optimization.status ===
-        state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RSEOURCES
+        state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
     ) {
       toggleButtonText = 'Pause Simulation';
       emailCheckboxDisabled = false;
@@ -1040,7 +1044,6 @@ Clips can be played from the player's plate appearance page
       emailCheckboxDisabled = false;
       toggleButtonHandler = this.handleStartClick.bind(this);
     } else if (
-      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.ERROR ||
       this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.PAUSING ||
       this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.COMPLETE
     ) {
@@ -1053,7 +1056,7 @@ Clips can be played from the player's plate appearance page
         <div
           ref={this.toggleOptimizationButtonRef}
           id="toggle-optimization-button"
-          className="edit-button button cancel-button"
+          className={'edit-button button confirm-button'}
           onClick={toggleButtonHandler}
         >
           {toggleButtonText}

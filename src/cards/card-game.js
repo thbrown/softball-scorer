@@ -3,7 +3,7 @@ import expose from 'expose';
 import Card from 'elements/card';
 import HeaderTabs from 'elements/header-tabs';
 import CardLineup from 'cards/card-lineup';
-import CardScorer from 'cards/card-scorer';
+import GameScorer from 'components/game-scorer';
 import { setRoute } from 'actions/route';
 
 const defaultTab = 'lineup';
@@ -33,13 +33,13 @@ export default class CardGame extends expose.Component {
             tab={this.props.tab}
             tabNames={[
               { value: 'lineup', label: 'Lineup' },
-              { value: 'scorer', label: 'Scorer' },
+              { value: 'scorer', label: 'Score' },
             ]}
           />
         }
       >
         {tab === 'scorer' ? (
-          <CardScorer team={this.props.team} game={this.props.game} />
+          <GameScorer teamId={this.props.team.id} gameId={this.props.game.id} />
         ) : null}
         {tab === 'lineup' ? (
           <CardLineup team={this.props.team} game={this.props.game} />

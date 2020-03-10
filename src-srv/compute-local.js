@@ -57,16 +57,17 @@ module.exports = class ComputeLocal {
 
     this.javaversion = function() {
       return new Promise((resolve, reject) => {
-        var spawn = require('child_process').spawn('java', ['-version']);
+        const spawn = require('child_process').spawn('java', ['-version']);
         spawn.on('error', function(err) {
           return reject(err);
         });
         spawn.stderr.on('data', function(data) {
           data = data.toString().split('\n')[0];
-          var javaVersion = new RegExp('java version').test(data)
+          let javaVersion = /(java|openjdk) version/.test(data)
             ? data.split(' ')[2].replace(/"/g, '')
             : false;
-          if (javaVersion != false) {
+
+          if (javaVersion !== false) {
             return resolve(javaVersion);
           } else {
             return reject(
