@@ -3,6 +3,7 @@ import DOM from 'react-dom-factories';
 import expose from 'expose';
 import state from 'state';
 import dialog from 'dialog';
+import Button from 'elements/Button';
 import Draggable from 'react-draggable';
 import { setRoute } from 'actions/route';
 
@@ -354,7 +355,7 @@ export default class CardLineup extends React.Component {
       );
       return DOM.div(
         { className: 'page-error' },
-        'Lineup: No game, team, or lineup exist.'
+        'Lineup: No game, team, or lineup exists.'
       );
     }
 
@@ -424,6 +425,22 @@ export default class CardLineup extends React.Component {
         this.getUiTextForLockButton()
       )
     );
+
+    if (this.props.game.plateAppearances.length === 0) {
+      pageElems.push(
+        <Button
+          id="import"
+          key="import"
+          onClick={() => {
+            setRoute(
+              `/teams/${this.props.team.id}/games/${this.props.game.id}/import`
+            );
+          }}
+        >
+          Import from Optimization
+        </Button>
+      );
+    }
 
     return DOM.div({ id: 'list-container' }, pageElems);
   }

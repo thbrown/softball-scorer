@@ -35,6 +35,8 @@ self.addEventListener('install', function(event) {
         '/server/assets/main.css',
         '/server/assets/remove.svg',
         '/server/assets/spinner.gif',
+        '/server/assets/scoreboard-webfont.woff',
+        '/server/assets/scoreboard-webfont.woff2',
         '/server/build/main.js',
         '/server/simulation-worker',
       ]);

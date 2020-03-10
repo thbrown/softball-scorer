@@ -1,193 +1,117 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 import state from 'state';
 import dialog from 'dialog';
 import FloatingInput from 'elements/floating-input';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
-import { goBack } from 'actions/route';
+import Card from 'elements/card';
+import CardSection from 'elements/card-section';
+import Button from 'elements/button';
+import NoSelect from 'elements/no-select';
+import { goBack, goHome } from 'actions/route';
 
-export default class CardOptimizationEdit extends React.Component {
-  constructor(props) {
-    super(props);
+const CardOptimizationEdit = props => {
+  const [optName, setOptName] = React.useState(props.optimization.name);
+  const [isPristine, setIsPristine] = React.useState(
+    props.isNew ? false : true
+  );
 
-    this.state = {
-      optimizationName: props.optimization.name,
-    };
+  const buildOptimization = function() {
+    const optimization = JSON.parse(JSON.stringify(props.optimization));
+    optimization.name = optName;
+    return optimization;
+  };
 
-    let buildOptimization = function() {
-      let optimization = JSON.parse(JSON.stringify(props.optimization));
-      optimization.name = this.state.optimizationName;
-      return optimization;
-    }.bind(this);
-
-    this.homeOrBack = function() {
-      let newOptimization = buildOptimization();
-      if (
-        props.isNew &&
-        JSON.stringify(newOptimization) === JSON.stringify(props.optimization)
-      ) {
-        state.removeOptimization(props.optimization.id);
-      } else {
-        state.replaceOptimization(props.optimization.id, newOptimization);
-      }
-    };
-
-    this.handleConfirmClick = function() {
-      state.replaceOptimization(props.optimization.id, buildOptimization());
-      goBack();
-    };
-
-    this.handleCancelClick = function() {
-      if (props.isNew) {
-        state.removeOptimization(props.optimization.id);
-      }
-      goBack();
-    };
-
-    this.handleDeleteClick = function() {
+  const homeOrBack = function(type) {
+    if (!isPristine) {
       dialog.show_confirm(
-        'Are you sure you want to delete this optimization "' +
-          this.state.optimizationName +
-          '"?',
+        props.isNew
+          ? 'Are you sure you wish to discard this optimization?'
+          : 'Are you sure you wish to discard changes to this optimization?',
         () => {
-          state.removeOptimization(props.optimization.id);
-          goBack();
+          if (props.isNew) {
+            state.removeOptimization(props.optimization.id);
+          }
+          if (type === 'home') {
+            goHome();
+          } else {
+            goBack();
+          }
         }
       );
-    }.bind(this);
-
-    this.handleOptimizationNameChange = value => {
-      this.setState({
-        optimizationName: value,
-      });
-    };
-  }
-
-  componentDidMount() {}
-
-  renderOptimizationEdit() {
-    return DOM.div(
-      {
-        className: 'auth-input-container',
-      },
-      [
-        React.createElement(FloatingInput, {
-          key: 'optimizationName',
-          inputId: 'optimizationName',
-          label: 'Optimization name',
-          onChange: this.handleOptimizationNameChange,
-          defaultValue: this.state.optimizationName,
-        }),
-      ],
-      this.renderSaveOptions()
-    );
-  }
-
-  renderSaveOptions() {
-    let buttons = [];
-
-    buttons.push(
-      DOM.div(
-        {
-          key: 'confirm',
-          id: 'save',
-          className: 'edit-button button confirm-button',
-          // TODO - Make this a component and fix the style there with CSS.
-          style: {
-            marginLeft: '0',
-            marginRight: '0',
-          },
-          onClick: this.handleConfirmClick,
-        },
-        DOM.img({
-          className: 'edit-button-icon',
-          src: '/server/assets/check.svg',
-        }),
-        'Save'
-      )
-    );
-
-    buttons.push(
-      DOM.div(
-        {
-          key: 'cancel',
-          className: 'edit-button button cancel-button',
-          // TODO - Make this a component and fix the style there with CSS.
-          style: {
-            marginLeft: '0',
-            marginRight: '0',
-          },
-          onClick: this.handleCancelClick,
-        },
-        DOM.img({
-          className: 'edit-button-icon',
-          src: '/server/assets/cancel.svg',
-        }),
-        'Cancel'
-      )
-    );
-
-    if (!this.props.isNew) {
-      buttons.push(
-        DOM.div(
-          {
-            key: 'delete',
-            id: 'delete',
-            className: 'edit-button button cancel-button',
-            // TODO - Make this a component and fix the style there with CSS.
-            style: {
-              marginLeft: '0',
-              marginRight: '0',
-            },
-            onClick: this.handleDeleteClick,
-          },
-          DOM.img({
-            className: 'edit-button-icon',
-            src: '/server/assets/delete.svg',
-          }),
-          'Delete'
-        )
-      );
     }
+  };
 
-    return DOM.div(
-      {
-        key: 'saveOptions',
-      },
-      buttons
-    );
-  }
+  const handleConfirmClick = function() {
+    state.replaceOptimization(props.optimization.id, buildOptimization());
+    goBack();
+  };
 
-  render() {
-    return DOM.div(
-      {
-        className: 'card',
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {
-          onPress: this.homeOrBack,
-        }),
-        DOM.div(
-          {
-            className: 'card-title-text-with-arrow',
-          },
-          'Edit Optimization'
-        ),
-        React.createElement(RightHeaderButton, {
-          onPress: this.homeOrBack,
-        })
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderOptimizationEdit()
-      )
+  const handleCancelClick = function() {
+    homeOrBack('back');
+  };
+
+  const handleDeleteClick = function() {
+    dialog.show_confirm(
+      'Are you sure you want to delete this optimization "' +
+        state.optimizationName +
+        '"?',
+      () => {
+        state.removeOptimization(props.optimization.id);
+        goBack();
+      }
     );
-  }
-}
+  };
+
+  const handleOptimizationNameChange = value => {
+    setIsPristine(false);
+    setOptName(value);
+  };
+
+  return (
+    <Card
+      title="Edit Optimization"
+      leftHeaderProps={{ onClick: () => homeOrBack('back') }}
+      rightHeaderProps={{ onClick: () => homeOrBack('home') }}
+    >
+      <CardSection>
+        <FloatingInput
+          inputId="optimizationName"
+          defaultValue={optName}
+          label="Optimization Name"
+          onChange={value => handleOptimizationNameChange(value)}
+        />
+        <Button id="save" onClick={handleConfirmClick}>
+          <div className="flex-center-row">
+            <img
+              alt="check"
+              className="edit-button-icon"
+              src="/server/assets/check.svg"
+            />
+            <NoSelect>Save</NoSelect>
+          </div>
+        </Button>
+        <Button id="cancel" onClick={handleCancelClick} type="cancel">
+          <div className="flex-center-row">
+            <img
+              alt="x"
+              className="edit-button-icon"
+              src="/server/assets/cancel.svg"
+            />
+            <NoSelect>Cancel</NoSelect>
+          </div>
+        </Button>
+        <Button id="delete" onClick={handleDeleteClick} type="delete">
+          <div className="flex-center-row">
+            <img
+              alt="del"
+              className="edit-button-icon"
+              src="/server/assets/delete.svg"
+            />
+            <NoSelect>Delete</NoSelect>
+          </div>
+        </Button>
+      </CardSection>
+    </Card>
+  );
+};
+
+export default CardOptimizationEdit;

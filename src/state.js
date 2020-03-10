@@ -550,10 +550,10 @@ exp.addOptimization = function(name) {
 
 // GAME
 
-exp.addGame = function(team_id, opposing_team_name) {
+exp.addGame = function(teamId, opposingTeamName) {
   let new_state = exp.getLocalState();
   const id = getNextId();
-  const team = exp.getTeam(team_id, new_state);
+  const team = exp.getTeam(teamId, new_state);
   const timestamp = Math.floor(new Date().getTime() / 1000); // Postgres expects time in seconds not ms
   let lastLineup = [];
   let lastLineupType = 0;
@@ -564,10 +564,12 @@ exp.addGame = function(team_id, opposing_team_name) {
   }
   let game = {
     id: id,
-    opponent: opposing_team_name,
+    opponent: opposingTeamName,
     lineup: lastLineup ? lastLineup : [],
     date: timestamp,
     park: null,
+    scoreUs: 0,
+    scoreThem: 0,
     lineupType: lastLineupType ? lastLineupType : exp.LINEUP_TYPE_ENUM.NORMAL,
     plateAppearances: [],
   };
@@ -577,13 +579,13 @@ exp.addGame = function(team_id, opposing_team_name) {
 };
 
 exp.replaceGame = function(oldGameId, teamId, newGame) {
-  let localState = exp.getLocalState();
-  let oldGame = exp.getGame(oldGameId);
+  const localState = exp.getLocalState();
+  const oldGame = exp.getGame(oldGameId);
 
-  let team = exp.getTeam(teamId);
-  let teamIndex = localState.teams.indexOf(team);
+  const team = exp.getTeam(teamId);
+  const teamIndex = localState.teams.indexOf(team);
 
-  let oldGameIndex = localState.teams[teamIndex].games.indexOf(oldGame);
+  const oldGameIndex = localState.teams[teamIndex].games.indexOf(oldGame);
   localState.teams[teamIndex].games[oldGameIndex] = newGame;
   onEdit();
 };
@@ -667,15 +669,29 @@ exp.removeGame = function(game_id, team_id) {
   onEdit();
 };
 
+exp.setScore = function({ scoreUs, scoreThem }, gameId) {
+  const game = exp.getGame(gameId);
+  game.scoreUs = scoreUs === undefined ? game.scoreUs : scoreUs;
+  game.scoreThem = scoreThem === undefined ? game.scoreThem : scoreThem;
+  if (game.scoreUs < 0) {
+    game.scoreUs = 0;
+  }
+  if (game.scoreThem < 0) {
+    game.scoreThem = 0;
+  }
+  onEdit();
+  return game;
+};
+
 // PLATE APPEARANCE
 
-exp.addPlateAppearance = function(player_id, game_id) {
-  const game = exp.getGame(game_id);
+exp.addPlateAppearance = function(playerId, gameId) {
+  const game = exp.getGame(gameId);
   const plateAppearances = game.plateAppearances;
   const id = getNextId();
   const plateAppearance = {
     id: id,
-    player_id: player_id,
+    player_id: playerId,
     result: null,
     location: {
       x: null,
@@ -1222,7 +1238,6 @@ exp.getSyncStateEnum = function() {
 };
 
 exp.setPreventScreenLock = function(value) {
-  console.log('setting value', value);
   this.preventScreenLock = value;
   reRender();
 };

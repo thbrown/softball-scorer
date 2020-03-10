@@ -27,6 +27,7 @@ import CardTeams from 'cards/card-teams';
 import CardVerifyEmail from 'cards/card-verify-email';
 import CardStats from 'cards/card-stats';
 import CardOptimizationLineupImport from 'cards/card-optimization-lineup-import';
+import CardLineupImporter from 'cards/card-lineup-importer';
 
 // possibility to add '/app/' here?
 export const ROUTE_PREFIX = '';
@@ -194,6 +195,19 @@ routes = {
       return <CardNotFound />;
     }
     return <CardGame team={team} game={game} tab="scorer" />;
+  },
+  [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/import`]: ({
+    teamId,
+    gameId,
+  }) => {
+    const team = state.getTeam(teamId);
+    const game = state.getGame(gameId);
+    const { valid, errors } = assertStateObjects(team, game);
+    if (!valid) {
+      console.warn(errors);
+      return <CardNotFound />;
+    }
+    return <CardLineupImporter teamId={team.id} gameId={game.id} />;
   },
   [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/player-selection`]: ({
     teamId,
