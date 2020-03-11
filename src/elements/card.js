@@ -23,7 +23,7 @@ const Card = ({
         />
         <div
           style={{
-            maxWidth: '70%',
+            width: 'calc(100% - 100px)',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
           }}

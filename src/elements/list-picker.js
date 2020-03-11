@@ -2,6 +2,7 @@ import React from 'react';
 import { compose, withHandlers } from 'recompose';
 import { makeStyles } from 'css/helpers';
 import NoSelect from 'elements/no-select';
+import ListButton from 'elements/list-button';
 
 const enhance = compose(
   withHandlers({
@@ -16,7 +17,7 @@ const useListPickerStyles = makeStyles(theme => ({
     float: 'right',
     marginRight: '5px',
     fontSize: '12px',
-    marginTop: '8px',
+    marginTop: '6px',
   },
 }));
 
@@ -25,25 +26,29 @@ const ListPicker = props => {
   return (
     <div>
       {props.items.map((item, i) => (
-        <div
+        <ListButton
           id={'list-' + item.id}
           key={item.id + i}
           onClick={props.handleItemClick(item)}
           className={'list-item ' + props.itemClassName}
         >
-          <NoSelect
-            style={{ display: 'inline-block' }}
-            div={true}
-            className={props.textClassName}
-          >
-            {item.name}
-          </NoSelect>
-          {item.floatName && (
-            <span className={classes.listItemFloat}>
-              <NoSelect>{item.floatName}</NoSelect>
-            </span>
-          )}
-        </div>
+          <div className="centered-row">
+            <NoSelect
+              style={{ display: 'inline-block' }}
+              div={true}
+              className={`prevent-overflow ${props.textClassName}`}
+            >
+              {item.name}
+            </NoSelect>
+            {item.floatName ? (
+              <span className={classes.listItemFloat}>
+                <NoSelect>{item.floatName}</NoSelect>
+              </span>
+            ) : (
+              <div />
+            )}
+          </div>
+        </ListButton>
       ))}
     </div>
   );

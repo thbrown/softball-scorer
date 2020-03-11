@@ -5,18 +5,18 @@ const useHeaderTabsStyles = makeStyles(css => ({
   tabContainer: {
     display: 'flex',
     justifyContent: 'space-between',
-    minWidth: '200px',
   },
   headerTab: {
+    width: '45%',
     transition: 'border 0.25s',
     height: '42px',
     borderBottom: '5px solid ' + css.colors.PRIMARY_DARK,
   },
   headerTabSelected: {
+    width: '45%',
     transition: 'border 0.25s',
     height: '42px',
     borderBottom: '5px solid ' + css.colors.TEXT_LIGHT,
-    borderRadius: '4px',
   },
 }));
 
