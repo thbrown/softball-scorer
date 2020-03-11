@@ -15,6 +15,14 @@ svg rect{
   fill: #FFF;
 }
 
+@font-face {
+  font-family: 'score_boardregular';
+  src: url('/server/assets/scoreboard-webfont.woff2') format('woff2'),
+       url('/server/assets/scoreboard-webfont.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
 .card {
 
 }
@@ -396,12 +404,27 @@ svg rect{
   margin: 24px 8px 0 8px;
   padding: 12px;
   text-align: center;
-  width: 80px;
+  min-width: 80px;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.button:active, 
-.button:hover {
-  filter: brightness(85%);
+.button:active {
+  filter: brightness(75%);
+}
+
+@media (hover: hover) {
+  .button:active, 
+  .button:hover {
+    filter: brightness(85%);
+  }
+}
+
+.flex-center-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
 }
 
 .confirm-button {
@@ -411,6 +434,11 @@ svg rect{
 
 .cancel-button {
   background-color: $css.colors.SECONDARY_LIGHT;
+  color: $css.colors.TEXT_LIGHT;
+}
+
+.delete-button {
+  background-color: $css.colors.DELETE;
   color: $css.colors.TEXT_LIGHT;
 }
 
@@ -812,7 +840,7 @@ Scrolling is ~10-20x smoother.
   border-collapse: collapse;
 }
 
-.playerTable .overriden {
+.playerTable .overridden {
   font-style: italic;
   font-weight: 900;
 }
