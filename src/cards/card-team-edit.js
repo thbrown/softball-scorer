@@ -4,6 +4,7 @@ import dialog from 'dialog';
 import Card from 'elements/card';
 import FloatingInput from 'elements/floating-input';
 import CardSection from 'elements/card-section';
+import ListButton from 'elements/list-button';
 import { goBack, goHome } from 'actions/route';
 import { makeStyles } from 'css/helpers';
 
@@ -152,99 +153,94 @@ const CardTeamEdit = props => {
         onClick: () => homeOrBack('home'),
       }}
     >
-      <CardSection>
+      <div className="auth-input-container">
         <FloatingInput
           maxLength="50"
           label="Team Name"
           onChange={handleNameChange}
           defaultValue={props.team.name}
         />
-      </CardSection>
+      </div>
       {publicId && state.isSessionValid() && (
         <>
           <CardSection>
-            <div style={styles.publicLinkLabelBox}>
-              <label htmlFor="publicIdEnabled" style={styles.publicLinkLabel}>
-                Public Link
-              </label>
-              <input
-                id="publicIdEnabled"
-                type="checkbox"
-                checked={!!publicIdEnabled}
-                style={styles.publicLinkCheckbox}
-                onChange={handlePublicLinkEnabledClicked}
-              />
-              {copiedNotificationVisible && (
-                <span style={styles.publicLinkCopiedText} className="fade-out">
-                  Link copied
-                </span>
+            <div className="auth-input-container">
+              <div style={styles.publicLinkLabelBox}>
+                <label htmlFor="publicIdEnabled" style={styles.publicLinkLabel}>
+                  Public Link
+                </label>
+                <input
+                  id="publicIdEnabled"
+                  type="checkbox"
+                  checked={!!publicIdEnabled}
+                  style={styles.publicLinkCheckbox}
+                  onChange={handlePublicLinkEnabledClicked}
+                />
+                {copiedNotificationVisible && (
+                  <span
+                    style={styles.publicLinkCopiedText}
+                    className="fade-out"
+                  >
+                    Link copied
+                  </span>
+                )}
+              </div>
+              {publicIdEnabled && (
+                <div style={styles.publicLinkContainer}>
+                  <div style={styles.publicLinkLineItem}>
+                    <span>
+                      <img
+                        onClick={handleCopyClick}
+                        style={styles.publicLinkCopyButton}
+                        src="/server/assets/copy.svg"
+                        alt="copy"
+                      />
+                    </span>
+                  </div>
+                  <input
+                    id="publicLink"
+                    ref={publicLinkRef}
+                    readOnly
+                    size={publicLink.length}
+                    value={publicLink}
+                    style={styles.publicLink}
+                  />
+                </div>
               )}
             </div>
-            {publicIdEnabled && (
-              <div style={styles.publicLinkContainer}>
-                <div style={styles.publicLinkLineItem}>
-                  <span>
-                    <img
-                      onClick={handleCopyClick}
-                      style={styles.publicLinkCopyButton}
-                      src="/server/assets/copy.svg"
-                      alt="copy"
-                    />
-                  </span>
-                </div>
-                <input
-                  id="publicLink"
-                  ref={publicLinkRef}
-                  readOnly
-                  size={publicLink.length}
-                  value={publicLink}
-                  style={styles.publicLink}
-                />
-              </div>
-            )}
           </CardSection>
         </>
       )}
-      <CardSection>
-        <div
-          id="save"
-          className="edit-button button confirm-button"
-          onClick={handleConfirmClick}
-        >
+      <ListButton id="save" onClick={handleConfirmClick}>
+        <img
+          className="edit-button-icon"
+          src="/server/assets/check.svg"
+          alt=""
+        />
+        <span className="edit-button-icon"> Save </span>
+      </ListButton>
+      <ListButton
+        id="cancel"
+        className="edit-button button cancel-button"
+        onClick={handleCancelClick}
+      >
+        <img
+          className="edit-button-icon"
+          src="/server/assets/cancel.svg"
+          alt=""
+        />
+        <span className="edit-button-icon"> Cancel </span>
+      </ListButton>
+      {!props.isNew && (
+        <ListButton id="delete" onClick={handleDeleteClick}>
           <img
             className="edit-button-icon"
-            src="/server/assets/check.svg"
+            src="/server/assets/delete.svg"
             alt=""
           />
-          <span className="edit-button-icon"> Save </span>
-        </div>
-        <div
-          id="cancel"
-          className="edit-button button cancel-button"
-          onClick={handleCancelClick}
-        >
-          <img
-            className="edit-button-icon"
-            src="/server/assets/cancel.svg"
-            alt=""
-          />
-          <span className="edit-button-icon"> Cancel </span>
-        </div>
-        {!props.isNew && (
-          <div
-            id="delete"
-            className="edit-button button cancel-button"
-            onClick={handleDeleteClick}
-          >
-            <img
-              className="edit-button-icon"
-              src="/server/assets/delete.svg"
-              alt=""
-            />
-            <span className="edit-button-icon"> Delete </span>
-          </div>
-        )}
-      </CardSection>
+          <span className="edit-button-icon"> Delete </span>
+        </ListButton>
+      )}
     </Card>
   );
 };

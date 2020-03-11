@@ -1,9 +1,8 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 import dialog from 'dialog';
 import state from 'state';
 import Card from 'elements/card';
-import CardSection from 'elements/card-section';
+import ListButton from 'elements/list-button';
 import { goBack, goHome } from 'actions/route';
 import FloatingInput from 'elements/floating-input';
 import FloatingSelect from 'elements/floating-select';
@@ -89,114 +88,72 @@ export default class CardGameEdit extends React.Component {
 
   renderGameEdit() {
     return (
-      <div className="auth-input-container">
-        <FloatingInput
-          inputId="opponentName"
-          maxLength="50"
-          label="Opponent"
-          onChange={this.handleOpponentNameChange}
-          defaultValue={this.props.game.opponent}
-        />
-        <div className="help-parent">
-          <FloatingSelect
-            selectId="lineupType"
-            label="Lineup Type"
-            initialValue={this.props.game.lineupType || 2}
-            onChange={this.handleLineupTypeChange}
-            values={{
-              1: 'Normal',
-              2: 'Alternating Gender',
-              3: 'No Consecutive Females',
-            }}
+      <>
+        <div className="auth-input-container">
+          <FloatingInput
+            inputId="opponentName"
+            maxLength="50"
+            label="Opponent"
+            onChange={this.handleOpponentNameChange}
+            defaultValue={this.props.game.opponent}
           />
-          <div className="help-container">
-            <img
-              className="help-icon"
-              src="/server/assets/help.svg"
-              alt="help"
-              onClick={this.handleLineupTypeHelpClick}
+          <div className="help-parent">
+            <FloatingSelect
+              selectId="lineupType"
+              label="Lineup Type"
+              initialValue={this.props.game.lineupType || 2}
+              onChange={this.handleLineupTypeChange}
+              values={{
+                1: 'Normal',
+                2: 'Alternating Gender',
+                3: 'No Consecutive Females',
+              }}
             />
+            <div className="help-container">
+              <img
+                className="help-icon"
+                src="/server/assets/help.svg"
+                alt="help"
+                onClick={this.handleLineupTypeHelpClick}
+              />
+            </div>
           </div>
         </div>
         {this.renderSaveOptions()}
-      </div>
+      </>
     );
   }
 
   renderSaveOptions() {
-    let buttons = [];
-
-    buttons.push(
-      DOM.div(
-        {
-          key: 'confirm',
-          id: 'save',
-          className: 'edit-button button confirm-button',
-          onClick: this.handleConfirmClick,
-        },
-        DOM.img({
-          className: 'edit-button-icon',
-          src: '/server/assets/check.svg',
-          alt: 'back',
-        }),
-        DOM.span(
-          {
-            className: 'edit-button-icon',
-          },
-          'Save'
-        )
-      )
-    );
-
-    buttons.push(
-      DOM.div(
-        {
-          key: 'cancel',
-          id: 'cancel',
-          className: 'edit-button button cancel-button',
-          onClick: this.handleCancelClick,
-        },
-        DOM.img({
-          className: 'edit-button-icon',
-          src: '/server/assets/cancel.svg',
-        }),
-        DOM.span(
-          {
-            className: 'edit-button-icon',
-          },
-          'Cancel'
-        )
-      )
-    );
-
-    if (!this.props.isNew) {
-      buttons.push(
-        DOM.div(
-          {
-            key: 'delete',
-            id: 'delete',
-            className: 'edit-button button cancel-button',
-            onClick: this.handleDeleteClick,
-          },
-          DOM.img({
-            className: 'edit-button-icon',
-            src: '/server/assets/delete.svg',
-          }),
-          DOM.span(
-            {
-              className: 'edit-button-icon',
-            },
-            'Delete'
-          )
-        )
-      );
-    }
-
-    return DOM.div(
-      {
-        key: 'saveOptions',
-      },
-      buttons
+    return (
+      <>
+        <ListButton id="save" onClick={this.handleConfirmClick}>
+          <img
+            className="edit-button-icon"
+            src="/server/assets/check.svg"
+            alt="save"
+          />
+          <span className="edit-button-icon">Save</span>
+        </ListButton>
+        <ListButton id="cancel" onClick={this.handleCancelClick}>
+          <img
+            className="edit-button-icon"
+            src="/server/assets/cancel.svg"
+            alt="cancel"
+          />
+          <span className="edit-button-icon">Cancel</span>
+        </ListButton>
+        {this.props.isNew ? null : (
+          <ListButton id="delete" onClick={this.handleDeleteClick}>
+            <img
+              className="edit-button-icon"
+              src="/server/assets/delete.svg"
+              alt="delete"
+            />
+            <span className="edit-button-icon">Delete</span>
+          </ListButton>
+        )}
+      </>
     );
   }
 
@@ -207,7 +164,7 @@ export default class CardGameEdit extends React.Component {
         leftHeaderProps={{ onClick: this.homeOrBack('back') }}
         rightHeaderProps={{ onClick: this.homeOrBack('home') }}
       >
-        <CardSection>{this.renderGameEdit()}</CardSection>
+        {this.renderGameEdit()}
       </Card>
     );
   }

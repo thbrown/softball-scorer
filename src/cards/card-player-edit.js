@@ -1,12 +1,11 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 import dialog from 'dialog';
 import state from 'state';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
 import FloatingInput from 'elements/floating-input';
 import WalkupSong from 'component-walkup-song';
-import { goBack } from 'actions/route';
+import Card from 'elements/card';
+import ListButton from 'elements/list-button';
+import { goBack, goHome } from 'actions/route';
 
 export default class CardPlayerEdit extends React.Component {
   constructor(props) {
@@ -21,24 +20,38 @@ export default class CardPlayerEdit extends React.Component {
       playerSongStart: props.player.song_start,
     };
 
-    let buildPlayer = function() {
-      let player = JSON.parse(JSON.stringify(props.player));
+    const buildPlayer = () => {
+      const player = JSON.parse(JSON.stringify(props.player));
       player.name = this.state.playerName;
       player.gender = this.state.playerGender;
       player.song_link = this.state.playerSongLink;
       player.song_start = this.state.playerSongStart;
       return player;
-    }.bind(this);
+    };
 
-    this.homeOrBack = function() {
-      let newPlayer = buildPlayer();
-      if (
-        props.isNew &&
-        JSON.stringify(newPlayer) === JSON.stringify(props.player)
-      ) {
-        state.removePlayer(props.player.id);
-      } else {
-        state.replacePlayer(props.player.id, newPlayer);
+    this.isPristine = props.isNew ? false : true;
+
+    this.homeOrBack = type => cb => {
+      if (!this.isPristine) {
+        dialog.show_confirm(
+          props.isNew
+            ? 'Are you sure you wish to discard this player?'
+            : 'Are you sure you wish to discard changes to this player?',
+          () => {
+            if (props.isNew) {
+              state.removePlayer(props.player.id);
+            }
+            if (type === 'home') {
+              goHome();
+            } else {
+              goBack();
+            }
+          }
+        );
+        return true;
+      }
+      if (cb) {
+        cb();
       }
     };
 
@@ -47,11 +60,8 @@ export default class CardPlayerEdit extends React.Component {
       goBack();
     };
 
-    this.handleCancelClick = function() {
-      if (props.isNew) {
-        state.removePlayer(props.player.id);
-      }
-      goBack();
+    this.handleCancelClick = () => {
+      this.homeOrBack('back')(goBack);
     };
 
     this.handleDeleteClick = function() {
@@ -71,19 +81,22 @@ export default class CardPlayerEdit extends React.Component {
       );
     }.bind(this);
 
-    this.handlePlayerNameChange = function() {
+    this.handlePlayerNameChange = value => {
+      this.isPristine = false;
       this.setState({
-        playerName: document.getElementById('playerName').value,
+        playerName: value,
       });
-    }.bind(this);
+    };
 
-    this.handleGenderChange = function(event) {
+    this.handleGenderChange = function(ev) {
+      this.isPristine = false;
       this.setState({
-        playerGender: event.target.value,
+        playerGender: ev.target.value,
       });
     }.bind(this);
 
     this.handleSongLinkChange = function() {
+      this.isPristine = false;
       let newValue = document.getElementById('songLink').value;
       let dataArray = newValue.split(/\/|\?|=|%3D|&/);
       for (let i = 0; i < dataArray.length; i++) {
@@ -97,6 +110,7 @@ export default class CardPlayerEdit extends React.Component {
     }.bind(this);
 
     this.handleSongStartChange = function() {
+      this.isPristine = false;
       this.setState({
         playerSongStart: document.getElementById('songStart').value,
       });
@@ -124,228 +138,129 @@ Clips can be played from the player's plate appearance page
   }
 
   renderPlayerEdit() {
-    return DOM.div(
-      {
-        className: 'auth-input-container',
-      },
-      [
-        React.createElement(FloatingInput, {
-          key: 'playerName',
-          inputId: 'playerName',
-          label: 'Player name',
-          onChange: this.handlePlayerNameChange.bind(this),
-          defaultValue: this.state.playerName,
-        }),
-        DOM.div(
-          {
-            key: 'genderPanel',
-            className: 'radio-button',
-          },
-          DOM.fieldset(
-            {
-              className: 'radio-button-fieldset',
-            },
-            DOM.legend(
-              {
-                className: 'radio-button-legend',
-              },
-              'Gender'
-            ),
-            DOM.div(
-              {
-                className: 'radio-button-option',
-              },
-              DOM.input({
-                type: 'radio',
-                name: 'gender',
-                value: 'M',
-                id: 'maleGenderChoice',
-                onChange: this.handleGenderChange,
-              }),
-              DOM.label(
-                {
-                  htmlFor: 'maleGenderChoice',
-                },
-                'Male'
-              )
-            ),
-            DOM.div(
-              {
-                className: 'radio-button-option',
-              },
-              DOM.input({
-                type: 'radio',
-                name: 'gender',
-                value: 'F',
-                id: 'femaleGenderChoice',
-                onChange: this.handleGenderChange,
-              }),
-              DOM.label(
-                {
-                  htmlFor: 'femaleGenderChoice',
-                },
-                'Female'
-              )
-            )
-          )
-        ),
-        React.createElement(FloatingInput, {
-          key: 'songLink',
-          inputId: 'songLink',
-          label: 'Walk up song YouTube link (Optional)',
-          onChange: this.handleSongLinkChange.bind(this),
-          defaultValue: this.state.playerSongLink
-            ? `https://youtu.be/${this.state.playerSongLink}`
-            : '',
-        }),
-        React.createElement(FloatingInput, {
-          key: 'songStart',
-          inputId: 'songStart',
-          label: 'Song start time in seconds (Optional)',
-          type: 'number',
-          min: '0',
-          step: '1',
-          maxLength: '50',
-          onChange: this.handleSongStartChange.bind(this),
-          defaultValue: this.state.playerSongStart,
-        }),
-
-        DOM.div(
-          {
-            key: 'songLabel',
-            id: 'songLabel',
-            className: 'song-label',
-          },
-          'Song Preview'
-        ),
-        DOM.div(
-          {
-            key: 'songWrapper',
-            id: 'songWrapper',
-            className: 'song-preview-container',
-          },
-          React.createElement(WalkupSong, {
-            songLink: this.state.playerSongLink,
-            songStart: this.state.playerSongStart,
-            width: 48,
-            height: 48,
-          }),
-          DOM.div(
-            { className: 'help-container' },
-            DOM.img({
-              className: 'help-icon',
-              src: '/server/assets/help.svg',
-              onClick: this.handleSongHelpClick,
-            })
-          )
-        ),
-      ],
-      this.renderSaveOptions()
+    return (
+      <>
+        <div className="auth-input-container">
+          <FloatingInput
+            inputId="playerName"
+            label="Player Name"
+            onChange={this.handlePlayerNameChange}
+            defaultValue={this.state.playerName}
+          />
+          <div className="radio-button">
+            <fieldset className="radio-button-fieldset">
+              <legend className="radio-button-legend">Gender</legend>
+              <div className="radio-button-option">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="M"
+                  id="maleGenderChoice"
+                  onChange={this.handleGenderChange}
+                />
+                <label htmlFor="maleGenderChoice">Male</label>
+              </div>
+              <div className="radio-button-option">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="F"
+                  id="femaleGenderChoice"
+                  onChange={this.handleGenderChange}
+                />
+                <label htmlFor="femaleGenderChoice">Female</label>
+              </div>
+            </fieldset>
+          </div>
+          <FloatingInput
+            inputId="songLink"
+            label="Walk up song YouTube link (Optional)"
+            onChange={this.handleSongLinkChange}
+            defaultValue={
+              this.state.playerSongLink
+                ? `https://youtu.be/${this.state.playerSongLink}`
+                : ''
+            }
+          />
+          <FloatingInput
+            inputId="songStart"
+            label="Song start time in seconds (Optional)"
+            type="number"
+            min="0"
+            step="1"
+            maxLength="50"
+            onChange={this.handleSongStartChange}
+            defaultValue={this.state.playerSongStart || ''}
+          />
+          <div id="songLabel" className="song-label">
+            Song Preview
+          </div>
+          <div id="songWrapper" className="song-preview-container">
+            <WalkupSong
+              songLink={this.state.playerSongLink}
+              songStart={this.state.playerSongStart || ''}
+              width={48}
+              height={48}
+            ></WalkupSong>
+            <div className="help-container">
+              <img
+                alt="help"
+                className="help-icon"
+                src="/server/assets/help.svg"
+                onClick={this.handleSongHelpClick}
+              />
+            </div>
+          </div>
+        </div>
+        {this.renderSaveOptions()}
+      </>
     );
   }
 
   renderSaveOptions() {
-    let buttons = [];
-
-    buttons.push(
-      DOM.div(
-        {
-          key: 'confirm',
-          className: 'edit-button button confirm-button',
-          // TODO - Make this a component and fix the style there with CSS.
-          style: {
-            marginLeft: '0',
-            marginRight: '0',
-          },
-          onClick: this.handleConfirmClick,
-        },
-        DOM.img({
-          className: 'edit-button-icon',
-          src: '/server/assets/check.svg',
-        }),
-        'Save'
-      )
-    );
-
-    buttons.push(
-      DOM.div(
-        {
-          key: 'cancel',
-          className: 'edit-button button cancel-button',
-          // TODO - Make this a component and fix the style there with CSS.
-          style: {
-            marginLeft: '0',
-            marginRight: '0',
-          },
-          onClick: this.handleCancelClick,
-        },
-        DOM.img({
-          className: 'edit-button-icon',
-          src: '/server/assets/cancel.svg',
-        }),
-        'Cancel'
-      )
-    );
-
-    if (!this.isNew) {
-      buttons.push(
-        DOM.div(
-          {
-            key: 'delete',
-            className: 'edit-button button cancel-button',
-            // TODO - Make this a component and fix the style there with CSS.
-            style: {
-              marginLeft: '0',
-              marginRight: '0',
-            },
-            onClick: this.handleDeleteClick,
-          },
-          DOM.img({
-            className: 'edit-button-icon',
-            src: '/server/assets/delete.svg',
-          }),
-          'Delete'
-        )
-      );
-    }
-
-    return DOM.div(
-      {
-        key: 'saveOptions',
-      },
-      buttons
+    return (
+      <>
+        <>
+          <ListButton id="save" onClick={this.handleConfirmClick}>
+            <img
+              className="edit-button-icon"
+              src="/server/assets/check.svg"
+              alt="save"
+            />
+            <span className="edit-button-icon">Save</span>
+          </ListButton>
+          <ListButton id="cancel" onClick={this.handleCancelClick}>
+            <img
+              className="edit-button-icon"
+              src="/server/assets/cancel.svg"
+              alt="cancel"
+            />
+            <span className="edit-button-icon">Cancel</span>
+          </ListButton>
+          {this.props.isNew ? null : (
+            <ListButton id="delete" onClick={this.handleDeleteClick}>
+              <img
+                className="edit-button-icon"
+                src="/server/assets/delete.svg"
+                alt="delete"
+              />
+              <span className="edit-button-icon">Delete</span>
+            </ListButton>
+          )}
+        </>
+      </>
     );
   }
 
   render() {
-    return DOM.div(
-      {
-        className: 'card',
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {
-          onPress: this.homeOrBack,
-        }),
-        DOM.div(
-          {
-            className: 'card-title-text-with-arrow',
-          },
-          'Edit Player'
-        ),
-        React.createElement(RightHeaderButton, {
-          onPress: this.homeOrBack,
-        })
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderPlayerEdit()
-      )
+    return (
+      <Card
+        title="Edit Player"
+        leftHeaderProps={{ onClick: this.homeOrBack('back') }}
+        rightHeaderProps={{ onClick: this.homeOrBack('home') }}
+      >
+        {this.renderPlayerEdit()}
+      </Card>
     );
   }
 }
