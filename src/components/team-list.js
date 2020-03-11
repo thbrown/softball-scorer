@@ -1,5 +1,6 @@
 import React from 'react';
 import state from 'state';
+import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
 import { getShallowCopy } from 'utils/functions';
 
@@ -23,40 +24,43 @@ const TeamList = () => {
     .reverse()
     .map(team => {
       return (
-        <div
+        <ListButton
           id={'team-' + team.id}
           team_id={team.id}
           key={'team' + team.id}
           className={'list-item'}
           onClick={() => handleTeamClick(team)}
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-          }}
         >
-          <div className="prevent-overflow">{team.name}</div>
-          <div>
-            <img
-              id={'team-' + team.id + '-edit'}
-              src={'/server/assets/edit.svg'}
-              alt={'edit'}
-              className={'list-button'}
-              onClick={handleEditClick.bind(this, team)}
-            />
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+            }}
+          >
+            <div className="prevent-overflow">{team.name}</div>
+            <div>
+              <img
+                id={'team-' + team.id + '-edit'}
+                src={'/server/assets/edit.svg'}
+                alt={'edit'}
+                className={'list-button'}
+                onClick={handleEditClick.bind(this, team)}
+              />
+            </div>
           </div>
-        </div>
+        </ListButton>
       );
     });
 
   elems.unshift(
-    <div
+    <ListButton
       key={'newTeam'}
       id={'newTeam'}
-      className={'list-item add-list-item'}
+      type="secondary"
       onClick={handleCreateClick}
     >
       + Add New Team
-    </div>
+    </ListButton>
   );
 
   return <div id="teamList">{elems}</div>;

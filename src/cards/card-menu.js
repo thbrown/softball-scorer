@@ -5,6 +5,7 @@ import FileSaver from 'file-saver';
 import css from 'css';
 import network from 'network';
 import Card from 'elements/card';
+import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
 
 class CardMenu extends Component {
@@ -155,61 +156,53 @@ class CardMenu extends Component {
           showBlogLink: true,
         }}
       >
-        <div
+        <ListButton
           id="teams"
-          className={'list-item'}
           onClick={this.handleTeamsClick.bind(this)}
           style={{
             backgroundColor: css.colors.BG,
           }}
         >
           Teams
-        </div>
-        <div
+        </ListButton>
+        <ListButton
           id="players"
-          className={'list-item'}
           onClick={this.handlePlayersClick.bind(this)}
           style={{
             backgroundColor: css.colors.BG,
           }}
         >
           Players
-        </div>
-        <div
+        </ListButton>
+        <ListButton
           id="optimizations"
-          className={'list-item'}
           onClick={this.handleOptimizationsClick.bind(this)}
           style={{
             backgroundColor: css.colors.BG,
           }}
         >
           Optimizations
-        </div>
+        </ListButton>
         {state.getAddToHomescreenPrompt() && (
-          <div
+          <ListButton
             id="addToHomescreen"
-            className={'list-item'}
             onClick={this.handleAddToHomeScreenClick.bind(this)}
-            style={{
-              backgroundColor: css.colors.BG,
-            }}
           >
             Add App to Homescreen
-          </div>
+          </ListButton>
         )}
         {state.isSessionValid() ? (
-          <div
+          <ListButton
             id="logout"
-            className={'list-item'}
             onClick={this.handleLogoutClick.bind(this)}
             style={{
               backgroundColor: css.colors.BG,
             }}
           >
             Logout
-          </div>
+          </ListButton>
         ) : (
-          <div
+          <ListButton
             id="login"
             className={'list-item'}
             onClick={this.handleLoginClick.bind(this)}
@@ -218,10 +211,10 @@ class CardMenu extends Component {
             }}
           >
             Login/Signup
-          </div>
+          </ListButton>
         )}
         {state.isSessionValid() ? (
-          <div
+          <ListButton
             id="sync"
             className={
               'list-item' + (this.state.forceSyncDisabled ? ' disabled' : '')
@@ -232,9 +225,9 @@ class CardMenu extends Component {
             }}
           >
             {this.state.forceSyncText}
-          </div>
+          </ListButton>
         ) : null}
-        <div
+        <ListButton
           id="save"
           className={'list-item'}
           onClick={this.handleSaveClick.bind(this)}
@@ -243,8 +236,8 @@ class CardMenu extends Component {
           }}
         >
           Save as File
-        </div>
-        <div
+        </ListButton>
+        <ListButton
           id="load"
           className={'list-item'}
           onClick={this.handleLoadClick.bind(this)}
@@ -253,7 +246,7 @@ class CardMenu extends Component {
           }}
         >
           Load from File
-        </div>
+        </ListButton>
       </Card>
     );
   }
