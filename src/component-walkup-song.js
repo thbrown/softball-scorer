@@ -114,8 +114,8 @@ export default class WalkupSong extends expose.Component {
             top: 0,
             left: 0,
             zIndex: 2,
-            //backgroundColor: "red",
-            opacity: 0.5,
+            backgroundColor: 'black',
+            opacity: 0.1,
           },
         })
       );
