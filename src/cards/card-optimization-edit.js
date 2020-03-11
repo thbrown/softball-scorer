@@ -4,8 +4,8 @@ import dialog from 'dialog';
 import FloatingInput from 'elements/floating-input';
 import Card from 'elements/card';
 import CardSection from 'elements/card-section';
-import Button from 'elements/button';
 import NoSelect from 'elements/no-select';
+import ListButton from 'elements/list-button';
 import { goBack, goHome } from 'actions/route';
 
 const CardOptimizationEdit = props => {
@@ -37,6 +37,7 @@ const CardOptimizationEdit = props => {
           }
         }
       );
+      return true;
     }
   };
 
@@ -51,9 +52,7 @@ const CardOptimizationEdit = props => {
 
   const handleDeleteClick = function() {
     dialog.show_confirm(
-      'Are you sure you want to delete this optimization "' +
-        state.optimizationName +
-        '"?',
+      'Are you sure you want to delete this optimization "' + optName + '"?',
       () => {
         state.removeOptimization(props.optimization.id);
         goBack();
@@ -72,44 +71,44 @@ const CardOptimizationEdit = props => {
       leftHeaderProps={{ onClick: () => homeOrBack('back') }}
       rightHeaderProps={{ onClick: () => homeOrBack('home') }}
     >
-      <CardSection>
+      <div className="auth-input-container">
         <FloatingInput
           inputId="optimizationName"
           defaultValue={optName}
           label="Optimization Name"
           onChange={value => handleOptimizationNameChange(value)}
         />
-        <Button id="save" onClick={handleConfirmClick}>
-          <div className="flex-center-row">
-            <img
-              alt="check"
-              className="edit-button-icon"
-              src="/server/assets/check.svg"
-            />
-            <NoSelect>Save</NoSelect>
-          </div>
-        </Button>
-        <Button id="cancel" onClick={handleCancelClick} type="cancel">
-          <div className="flex-center-row">
-            <img
-              alt="x"
-              className="edit-button-icon"
-              src="/server/assets/cancel.svg"
-            />
-            <NoSelect>Cancel</NoSelect>
-          </div>
-        </Button>
-        <Button id="delete" onClick={handleDeleteClick} type="delete">
-          <div className="flex-center-row">
-            <img
-              alt="del"
-              className="edit-button-icon"
-              src="/server/assets/delete.svg"
-            />
-            <NoSelect>Delete</NoSelect>
-          </div>
-        </Button>
-      </CardSection>
+      </div>
+      <ListButton id="save" onClick={handleConfirmClick}>
+        <img
+          className="edit-button-icon"
+          src="/server/assets/check.svg"
+          alt=""
+        />
+        <span className="edit-button-icon"> Save </span>
+      </ListButton>
+      <ListButton
+        id="cancel"
+        className="edit-button button cancel-button"
+        onClick={handleCancelClick}
+      >
+        <img
+          className="edit-button-icon"
+          src="/server/assets/cancel.svg"
+          alt=""
+        />
+        <span className="edit-button-icon"> Cancel </span>
+      </ListButton>
+      {!props.isNew && (
+        <ListButton id="delete" onClick={handleDeleteClick}>
+          <img
+            className="edit-button-icon"
+            src="/server/assets/delete.svg"
+            alt=""
+          />
+          <span className="edit-button-icon"> Delete </span>
+        </ListButton>
+      )}
     </Card>
   );
 };

@@ -1,8 +1,8 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 import state from 'state';
 import { setRoute } from 'actions/route';
 import Card from 'elements/card';
+import ListButton from 'elements/list-button';
 
 class CardPlayerList extends React.Component {
   constructor(props) {
@@ -25,54 +25,48 @@ class CardPlayerList extends React.Component {
   }
 
   renderPlayerList() {
-    let elems = state
-      .getAllPlayersAlphabetically()
-      .slice()
-      .map(player => {
-        return DOM.div(
-          {
-            id: 'player-' + player.id,
-            player_id: player.id,
-            key: 'player' + player.id,
-            className: 'list-item',
-            onClick: this.handlePlayerClick.bind(this, player),
-            style: {
-              display: 'flex',
-              justifyContent: 'space-between',
-            },
-          },
-          DOM.div(
-            {
-              className: 'prevent-overflow',
-            },
-            player.name
-          ),
-          DOM.div(
-            {
-              style: {},
-            },
-            DOM.img({
-              src: '/server/assets/edit.svg',
-              alt: 'edit',
-              className: 'list-button',
-              onClick: this.handleEditClick.bind(this, player),
-            })
-          )
-        );
-      });
-
-    elems.unshift(
-      DOM.div(
-        {
-          key: 'newplayer',
-          className: 'list-item add-list-item',
-          onClick: this.handleCreateClick,
-        },
-        '+ Add New Player'
-      )
+    return (
+      <>
+        <ListButton
+          id="newPlayer"
+          key="newPlayer"
+          type="secondary"
+          onClick={this.handleCreateClick}
+        >
+          <div className="prevent-overflow">+ Add New Player</div>
+        </ListButton>
+        {state
+          .getAllPlayersAlphabetically()
+          .slice()
+          .map(player => {
+            return (
+              <ListButton
+                id={'player-' + player.id}
+                key={'player-' + player.id}
+                onClick={this.handlePlayerClick.bind(this, player)}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div className="prevent-overflow">{player.name}</div>
+                  <div>
+                    <img
+                      id={'player-' + player.id + '-edit'}
+                      src={'/server/assets/edit.svg'}
+                      alt={'edit'}
+                      className={'list-button'}
+                      onClick={this.handleEditClick.bind(this, player)}
+                    />
+                  </div>
+                </div>
+              </ListButton>
+            );
+          })}
+      </>
     );
-
-    return DOM.div({}, elems);
   }
 
   render() {

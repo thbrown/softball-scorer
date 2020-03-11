@@ -267,9 +267,14 @@ export default class CardStats extends React.Component {
 
     if (routingMethod === 'app') {
       return (
-        <CardSection isCentered={true}>
-          <StickyTable>{tableElems}</StickyTable>
-        </CardSection>
+        <div
+          style={{
+            height: window.innerHeight - 48 + 'px',
+            width: '100%',
+          }}
+        >
+          <StickyTable stickyHeaderCount={1}>{tableElems}</StickyTable>
+        </div>
       );
     } else {
       return (

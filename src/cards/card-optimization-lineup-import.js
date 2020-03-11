@@ -69,7 +69,7 @@ const useLineupListStyles = makeStyles(theme => ({
     textAlign: 'center',
   },
   itemText: {
-    maxWidth: '70%',
+    width: 'calc(100% - 80px)',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'pre',

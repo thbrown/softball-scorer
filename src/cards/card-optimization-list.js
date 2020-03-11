@@ -4,6 +4,7 @@ import Card from 'elements/card';
 import { setRoute } from 'actions/route';
 import { compose, withHandlers } from 'recompose';
 import NoSelect from 'elements/no-select';
+import ListButton from 'elements/list-button';
 
 const enhance = compose(
   withHandlers({
@@ -26,19 +27,15 @@ const enhance = compose(
 
 const CardOptimizationList = props => (
   <Card title="Optimizations">
-    <div
+    <ListButton
       id="new-optimization"
-      className={'list-item add-list-item'}
       onClick={props.handleCreateClick}
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-      }}
+      type="secondary"
     >
       <NoSelect className="prevent-overflow">+ Add New Optimization</NoSelect>
-    </div>
+    </ListButton>
     {[...state.getLocalState().optimizations].reverse().map(optimization => (
-      <div
+      <ListButton
         id={'optimization-' + optimization.id}
         key={optimization.id}
         className={'list-item'}
@@ -48,17 +45,24 @@ const CardOptimizationList = props => (
           justifyContent: 'space-between',
         }}
       >
-        <NoSelect className="prevent-overflow">{optimization.name}</NoSelect>
-        <div>
-          <img
-            id={'edit-optimization-' + optimization.id}
-            alt="edit"
-            src="/server/assets/edit.svg"
-            className="list-button"
-            onClick={props.handleEditClick(optimization)}
-          />
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+          }}
+        >
+          <NoSelect className="prevent-overflow">{optimization.name}</NoSelect>
+          <div>
+            <img
+              id={'edit-optimization-' + optimization.id}
+              alt="edit"
+              src="/server/assets/edit.svg"
+              className="list-button"
+              onClick={props.handleEditClick(optimization)}
+            />
+          </div>
         </div>
-      </div>
+      </ListButton>
     ))}
   </Card>
 );

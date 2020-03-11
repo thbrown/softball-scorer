@@ -1,17 +1,8 @@
 import React from 'react';
 import state from 'state';
+import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
 import { toClientDate } from 'utils/functions';
-import { makeStyles } from 'css/helpers';
-
-const useGameListStyles = makeStyles(theme => ({
-  dateText: {
-    float: 'right',
-    marginRight: '32px',
-    fontSize: '12px',
-    marginTop: '8px',
-  },
-}));
 
 const GameList = props => {
   const handleGameClick = function(game) {
@@ -27,48 +18,61 @@ const GameList = props => {
     setRoute(`/teams/${props.team.id}/games/${game.id}/edit?isNew=true`);
   };
 
-  const { styles } = useGameListStyles();
-
   const elems = [...props.team.games].reverse().map(game => {
     return (
-      <div
+      <ListButton
         key={'game-' + game.id}
         id={'game-' + game.id}
-        className={'list-item'}
         onClick={handleGameClick.bind(this, game)}
       >
-        <img
-          src="/server/assets/edit.svg"
-          alt="edit"
-          className={'list-button'}
-          style={{
-            float: 'right',
-          }}
-          id={'game-' + game.id + '-edit'}
-          onClick={ev => {
-            handleEditClick(game);
-            ev.preventDefault();
-            ev.stopPropagation();
-          }}
-        />
-        <div style={styles.dateText}>{toClientDate(game.date)}</div>
-        <div className="prevent-overflow">
-          <span style={{ fontSize: '12px' }}>VS. </span>
-          {game.opponent}
+        <div className="centered-row">
+          <div
+            className="prevent-overflow"
+            style={{
+              maxWidth: 'calc(100% - 100px)',
+            }}
+          >
+            <span style={{ fontSize: '12px' }}>VS. </span>
+            {game.opponent}
+          </div>
+          <div className="centered-row">
+            <div
+              style={{
+                fontSize: '12px',
+                marginRight: '10px',
+                marginTop: '4px',
+              }}
+            >
+              {toClientDate(game.date)}
+            </div>
+            <img
+              src="/server/assets/edit.svg"
+              alt="edit"
+              style={{
+                float: 'right',
+              }}
+              id={'game-' + game.id + '-edit'}
+              onClick={ev => {
+                handleEditClick(game);
+                ev.preventDefault();
+                ev.stopPropagation();
+              }}
+            />
+          </div>
         </div>
-      </div>
+      </ListButton>
     );
   });
 
   elems.unshift(
-    <div
+    <ListButton
       id="newGame"
       key="newGame"
-      className={'list-item add-list-item'}
+      type="secondary"
       onClick={handleCreateClick}
     >
       + Add New Game
-    </div>
+    </ListButton>
   );
 
   return (

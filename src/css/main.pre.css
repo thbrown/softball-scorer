@@ -27,6 +27,12 @@ svg rect{
 
 }
 
+.centered-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .fade-out {
   -webkit-animation: fadeout 3.0s;
   -moz-animation: fadeout 3.0s;
@@ -303,13 +309,15 @@ svg rect{
   color: $css.colors.TEXT_LIGHT;
   font-size: 12px;
   padding: 0 16px 8px 0;
+  margin-left: 2px;
 }
 
 /* It's possible to make these have prettier names */
 .react-autosuggest__container,
 .auth-input-container {
   position: relative;
-  margin: 16px;
+  /* TODO This should match the list-button  */
+  margin: 10px;
   /* TODO Which color is this supposed to be?  */
   color: $css.colors.TEXT_LIGHT;
   color: black;
@@ -404,7 +412,7 @@ svg rect{
   margin: 24px 8px 0 8px;
   padding: 12px;
   text-align: center;
-  min-width: 80px;
+  min-width: 52px;
   -webkit-tap-highlight-color: rgba(0,0,0,0);
   -webkit-tap-highlight-color: transparent;
 }
@@ -429,6 +437,11 @@ svg rect{
 
 .confirm-button {
   background-color: $css.colors.SECONDARY;
+  color: $css.colors.TEXT_LIGHT;
+}
+
+.secondary-button {
+  background-color: $css.colors.PRIMARY_DARK;
   color: $css.colors.TEXT_LIGHT;
 }
 

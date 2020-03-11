@@ -2,6 +2,7 @@ import React from 'react';
 import state from 'state';
 import Card from 'elements/card';
 import Select from 'react-select';
+import ListButton from 'elements/list-button';
 import { goBack, setRoute } from 'actions/route';
 
 // This is a more generic player selection card to replace card-player-selection
@@ -177,26 +178,23 @@ export default class CardPlayerSelect extends React.Component {
       <div>
         <div id="spacer" style={{ transition: 'height .25s' }} />
         <div>
-          <div
-            className="edit-button button confirm-button"
+          <ListButton
             style={{ marginLeft: '16px' }}
             onClick={this.handleSubmitClick.bind(this)}
           >
             Submit
-          </div>
+          </ListButton>
         </div>
         <div>
-          <div
-            className="edit-button button cancel-button"
+          <ListButton
             style={{ marginLeft: '16px' }}
             onClick={this.handleCancelClick}
           >
             Cancel
-          </div>
+          </ListButton>
         </div>
-        <div
+        <ListButton
           id="import"
-          className={'button edit-button confirm-button'}
           onClick={() =>
             setRoute(
               `/optimizations/${this.props.optimization.id}/overrides/import-lineup`
@@ -204,7 +202,7 @@ export default class CardPlayerSelect extends React.Component {
           }
         >
           Import From Previous Game
-        </div>
+        </ListButton>
       </div>
     );
   }

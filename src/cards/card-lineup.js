@@ -3,7 +3,7 @@ import DOM from 'react-dom-factories';
 import expose from 'expose';
 import state from 'state';
 import dialog from 'dialog';
-import Button from 'elements/Button';
+import Button from 'elements/list-button';
 import Draggable from 'react-draggable';
 import { setRoute } from 'actions/route';
 
