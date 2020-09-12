@@ -129,7 +129,7 @@
     "eslint-plugin-react-hooks": "^1.6.0",
     "jest": "^24.9.0",
     "jest-enzyme": "^7.1.1",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "prettier": "^1.18.2",
     "terser": "^4.0.0",
     "uglifycss": "0.0.26",
