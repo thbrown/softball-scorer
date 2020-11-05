@@ -1,0 +1,12 @@
+steps:
+- name: node
+  entrypoint: yarn
+  args: ['install']
+- name: node
+  entrypoint: yarn
+  args: ['build']
+artifacts:
+  objects:
+    location: "gs://optimum-library-250223_cloudbuild/build"
+    paths: ['build/index.html', 'build/main.js', 'assets/main.css', 'src/workers/service-worker.js', 'src-srv/config.js']
+
