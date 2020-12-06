@@ -4,6 +4,7 @@ build/*.hot-update.json
 build/*.hot-update.js
 build/vendor.js
 build/stats.json
+build/main.js.LICENSE.txt
 assets/main.css
 certs/
 src/workers/service-worker.js
