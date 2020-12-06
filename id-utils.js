@@ -1,6 +1,7 @@
 const baseX = require('base-x');
 const BASE62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const bs62 = baseX(BASE62);
+const buffer = require('buffer/').Buffer 
 
 // Clicnet ids are 14 chars base 62 (e.g. 1CHDaeMNJlrvWW)
 exports.clientIdToServerId = function(clientId, accountId) {
@@ -16,7 +17,7 @@ exports.clientIdToServerId = function(clientId, accountId) {
 // account id of the account this eneity belongs to (e.g. 000000010000d3d7203977664fdb23cf)
 exports.serverIdToClientId = function(serverId) {
   return bs62
-    .encode(Buffer.from(serverId.replace(/-/g, '').substr(12), 'hex'))
+    .encode(buffer.from(serverId.replace(/-/g, '').substr(12), 'hex'))
     .padStart(14, '0');
 };
 
@@ -27,7 +28,7 @@ exports.getAccountIdFromServerId = function(serverId) {
 
 exports.hexToBase62 = function(hex) {
   // Filter out any dashes from uuids as well
-  return bs62.encode(Buffer.from(hex.replace(/-/g, ''), 'hex'));
+  return bs62.encode(buffer.from(hex.replace(/-/g, ''), 'hex'));
 };
 
 exports.base62ToHex = function(hex) {

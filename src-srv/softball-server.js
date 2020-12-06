@@ -13,6 +13,7 @@ const favicon = require('serve-favicon');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const got = require('got');
+const { v4: uuidv4 } = require('uuid');
 
 const commonUtils = require('../common-utils');
 const configAccessor = require('./config-accessor');
@@ -140,8 +141,7 @@ module.exports = class SoftballServer {
           ],
           objectSrc: ["'none'"],
           reportUri: '/server/report-violation',
-        },
-        browserSniff: false,
+        }
       })
     );
     //app.use(helmet.referrerPolicy({ policy: "same-origin" })); // This breaks embeded youtube on ios safari
@@ -1084,7 +1084,7 @@ module.exports = class SoftballServer {
 
     function initSecondAuthToken(req, res) {
       // Make the cookie
-      let token = require('uuid/v4')();
+      let token = uuidv4();
       res.cookie('nonHttpOnlyToken', token, {
         expires: new Date(253402300000000),
         httpOnly: false,

@@ -29,6 +29,11 @@ module.exports = {
   resolve: {
     extensions: ['*', '.js', '.jsx'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
+    fallback: {
+      "buffer": require.resolve("buffer/"),
+      "crypto": require.resolve("crypto-browserify"),
+      "stream": require.resolve("stream-browserify")
+    }
   },
   output: {
     filename: 'main.js',
@@ -41,7 +46,7 @@ module.exports = {
         exclude: /node_modules/,
         use: ['babel-loader'],
       },
-    ],
+    ],szfgxdfsdf
   },
   plugins: [
     new WebpackBeforeBuildPlugin(async (stats, callback) => {
@@ -50,6 +55,9 @@ module.exports = {
       callback();
     }),
     new WriteFilePlugin(),
+    new webpack.ProvidePlugin({
+      process: 'process/browser'
+    })
   ],
   devServer: {
     contentBase: path.join(__dirname, 'build'),
