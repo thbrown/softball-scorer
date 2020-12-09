@@ -1,11 +1,11 @@
 const path = require('path');
 const srvUrl = 'http://localhost:8888';
 const WebpackBeforeBuildPlugin = require('before-build-webpack');
-const WriteFilePlugin = require('write-file-webpack-plugin');
+const webpack = require('webpack');
 
 const exec = require('child_process').exec;
 
-const execAsync = cmd => {
+const execAsync = (cmd) => {
   return new Promise((resolve, reject) => {
     exec(cmd, (err, result) => {
       if (err) {
@@ -30,10 +30,10 @@ module.exports = {
     extensions: ['*', '.js', '.jsx'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
     fallback: {
-      "buffer": require.resolve("buffer/"),
-      "crypto": require.resolve("crypto-browserify"),
-      "stream": require.resolve("stream-browserify")
-    }
+      buffer: require.resolve('buffer/'),
+      crypto: require.resolve('crypto-browserify'),
+      stream: require.resolve('stream-browserify'),
+    },
   },
   output: {
     filename: 'main.js',
@@ -54,10 +54,9 @@ module.exports = {
       await execAsync('yarn update-service-worker');
       callback();
     }),
-    new WriteFilePlugin(),
     new webpack.ProvidePlugin({
-      process: 'process/browser'
-    })
+      process: 'process/browser',
+    }),
   ],
   devServer: {
     contentBase: path.join(__dirname, 'build'),

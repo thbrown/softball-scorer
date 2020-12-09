@@ -8,7 +8,7 @@
     "start": "node src-srv",
     "start:dev": "yarn watch",
     "build": "node build.js build",
-    "watch": "rm -rf build/*hot-update.json build/*.hot-update.js && concurrently -n srv,webpack \"node src-srv\" \"webpack-dev-server --client-log-level error --config webpack.dev.js\"",
+    "watch": "rm -rf build/*hot-update.json build/*.hot-update.js && concurrently -n srv,webpack \"node src-srv\" \"node_modules/.bin/webpack serve --env development --config webpack.dev.js\"",
     "build-css": "node build.js build-css",
     "update-service-worker": "node build.js update-service-worker",
     "clean": "node build.js clean",

@@ -3,17 +3,17 @@ const commonUtils = require('./common-utils');
 /**
  *	This is a library to diff and merge objects with similar structures.
  */
-let diff = function(mine, theirs) {
+let diff = function (mine, theirs) {
   return diffInternal(mine, theirs, [], {});
 };
 
-let diffInternal = function(mine, theirs, path, result) {
+let diffInternal = function (mine, theirs, path, result) {
   if (Array.isArray(mine) && Array.isArray(theirs)) {
     // Determine what elements the arrays have in common (commonElementsA, commonElementsB)
     // what elements are in mine but not in theirs (deletes)
     // what elements are in theirs but not in mine (adds)
-    let myIds = mine.map(v => getUniqueId(v));
-    let theirIds = theirs.map(v => getUniqueId(v));
+    let myIds = mine.map((v) => getUniqueId(v));
+    let theirIds = theirs.map((v) => getUniqueId(v));
 
     let theirIdsSet = new Set(theirIds);
     let commonElementsAIds = [];
@@ -42,12 +42,12 @@ let diffInternal = function(mine, theirs, path, result) {
     }
 
     // Delete everything in mine that isn't in theirs
-    deletes.forEach(del => {
+    deletes.forEach((del) => {
       addToResult(result, path, getUniqueId(del), 'Delete');
     });
 
     // Add everything to mine that is in theirs
-    adds.forEach(add => {
+    adds.forEach((add) => {
       // We just need the key to be unique, so we'll use whatever is shorter.
       let checksum = commonUtils.getHash(add);
       let value = JSON.stringify(add);
@@ -88,7 +88,8 @@ let diffInternal = function(mine, theirs, path, result) {
   } else if (
     mine !== null &&
     typeof mine === 'object' &&
-    (theirs !== null && typeof theirs === 'object')
+    theirs !== null &&
+    typeof theirs === 'object'
   ) {
     let myIds = Object.keys(mine);
     let theirIds = Object.keys(theirs);
@@ -112,15 +113,15 @@ let diffInternal = function(mine, theirs, path, result) {
       }
     }
 
-    deletes.forEach(del => {
+    deletes.forEach((del) => {
       addToResult(result, path, del, 'Delete');
     });
 
-    adds.forEach(add => {
+    adds.forEach((add) => {
       return addToResult(result, path, add, 'Add', theirs[add]);
     });
 
-    Object.keys(commonElementsObjectA).forEach(prop => {
+    Object.keys(commonElementsObjectA).forEach((prop) => {
       diffInternal(mine[prop], theirs[prop], path.concat(prop), result);
     });
   } else if (mine !== Object(mine) && theirs !== Object(theirs)) {
@@ -128,20 +129,22 @@ let diffInternal = function(mine, theirs, path, result) {
       addToResult(result, path, undefined, 'Edit', mine, theirs);
     }
   } else {
-    throw "I don't know how to diff objects of different types! " +
+    throw (
+      "I don't know how to diff objects of different types! " +
       typeof mine +
       ' ' +
       typeof theirs +
       ' ' +
       JSON.stringify(mine) +
       ' ' +
-      JSON.stringify(theirs);
+      JSON.stringify(theirs)
+    );
   }
   return result;
 };
 
 // https://stackoverflow.com/questions/41239651/javascript-check-if-two-arrays-are-equal-when-arrays-contain-an-object-and-an
-let arraysEqual = function(arr1, arr2) {
+let arraysEqual = function (arr1, arr2) {
   if (arr1.length !== arr2.length) return false;
   for (var i = arr1.length; i--; ) {
     if (arr1[i] !== arr2[i]) return false;
@@ -149,14 +152,14 @@ let arraysEqual = function(arr1, arr2) {
   return true;
 };
 
-let addToResult = function(result, path, value, op, param1, param2) {
+let addToResult = function (result, path, value, op, param1, param2) {
   // If no value, we want to assign the inst to the last value in the path
   if (!value && value !== 0) {
     value = path.pop();
   }
 
   let handle = result;
-  path.forEach(element => {
+  path.forEach((element) => {
     if (!handle[element.toString()] && handle[element.toString()] !== 0) {
       handle[element.toString()] = {};
     }
@@ -174,7 +177,7 @@ let addToResult = function(result, path, value, op, param1, param2) {
 };
 
 // We can use the id property to identify what objects are the same during merge
-let getUniqueId = function(value) {
+let getUniqueId = function (value) {
   if (isObject(value)) {
     if (value.id || value.id === 0) {
       return value.id;
@@ -196,13 +199,13 @@ let getUniqueId = function(value) {
  * skipOperationOnNonExistant - if true will skip patch operations where the data to be patched does not exist in the patch object. If false an error will be thrown instead.
  * skipDeletes - don't do delete operations if true (usefully for doing merges)
  */
-let patch = function(
+let patch = function (
   toPatch,
   patchObj,
   skipOperationOnNonExistant,
   skipDeletes
 ) {
-  Object.keys(patchObj).forEach(function(key) {
+  Object.keys(patchObj).forEach(function (key) {
     if (isLeaf(patchObj[key])) {
       let op = patchObj[key].op;
       let value = patchObj[key].key;
@@ -212,7 +215,7 @@ let patch = function(
         } else {
           if (Array.isArray(toPatch)) {
             let delIndex = toPatch.findIndex(
-              v => getUniqueId(v) === patchObj[key].key
+              (v) => getUniqueId(v) === patchObj[key].key
             );
             if (delIndex === -1) {
               if (skipOperationOnNonExistant) {
@@ -238,7 +241,7 @@ let patch = function(
       } else if (op == 'ArrayAdd') {
         let newEntry = JSON.parse(patchObj[key].param1);
         let existingIndex = toPatch.findIndex(
-          v => getUniqueId(v) === getUniqueId(newEntry)
+          (v) => getUniqueId(v) === getUniqueId(newEntry)
         );
         if (existingIndex == -1) {
           let position = patchObj[key].param2;
@@ -262,7 +265,7 @@ let patch = function(
         let indexesInToPatch = [];
         for (let i = 0; i < oldOrder.length; i++) {
           let indexToMove = toPatch.findIndex(
-            v => getUniqueId(v) === oldOrder[i]
+            (v) => getUniqueId(v) === oldOrder[i]
           ); // May not be adjacent, so we need to search
           indexesInToPatch.push(indexToMove);
         }
@@ -304,19 +307,18 @@ let patch = function(
           );
         }
       } else {
-        throw 'Unrecognized operation: ' +
-          op +
-          ' ' +
-          JSON.stringify(patchObj[key]);
+        throw (
+          'Unrecognized operation: ' + op + ' ' + JSON.stringify(patchObj[key])
+        );
       }
     } else {
       let toPatchSubtree;
       if (Array.isArray(toPatch)) {
-        let index = toPatch.findIndex(v => {
+        let index = toPatch.findIndex((v) => {
           return v.id == key;
         }); // Can't do array of arrays I think?
         if (index < 0) {
-          index = toPatch.findIndex(v => v === patchObj);
+          index = toPatch.findIndex((v) => v === patchObj);
         }
         toPatchSubtree = toPatch[index];
       } else if (toPatch && toPatch.hasOwnProperty(key)) {
@@ -346,7 +348,7 @@ let patch = function(
 };
 
 // Returns true if none of the object's properties are objects themselves.
-let isLeaf = function(obj) {
+let isLeaf = function (obj) {
   let keys = Object.keys(obj);
   for (var i = 0; i < keys.length; i++) {
     let key = keys[i];
@@ -363,7 +365,7 @@ let isLeaf = function(obj) {
  * @param ...sources
  * https://stackoverflow.com/questions/27936772/how-to-deep-merge-instead-of-shallow-merge
  */
-let mergeDeep = function(target, ...sources) {
+let mergeDeep = function (target, ...sources) {
   if (!sources.length) return target;
   const source = sources.shift();
 
@@ -381,11 +383,11 @@ let mergeDeep = function(target, ...sources) {
   return mergeDeep(target, ...sources);
 };
 
-let isObject = function(item) {
+let isObject = function (item) {
   return item && typeof item === 'object' && !Array.isArray(item);
 };
 
-let diff3 = function(mine, ancestor, theirs) {
+let diff3 = function (mine, ancestor, theirs) {
   let patch1 = diff(ancestor, theirs);
   let patch2 = diff(ancestor, mine);
   // My changes will overwrite their changes

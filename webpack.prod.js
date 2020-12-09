@@ -9,10 +9,10 @@ module.exports = {
     extensions: ['*', '.js', '.jsx'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
     fallback: {
-      "buffer": require.resolve("buffer/"),
-      "crypto": require.resolve("crypto-browserify"),
-      "stream": require.resolve("stream-browserify")
-    }
+      buffer: require.resolve('buffer/'),
+      crypto: require.resolve('crypto-browserify'),
+      stream: require.resolve('stream-browserify'),
+    },
   },
   output: {
     filename: 'main.js',
@@ -29,7 +29,7 @@ module.exports = {
   },
   plugins: [
     new webpack.ProvidePlugin({
-      process: 'process/browser'
-    })
+      process: 'process/browser',
+    }),
   ],
 };

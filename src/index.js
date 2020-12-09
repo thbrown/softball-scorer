@@ -17,11 +17,11 @@ document.body.prepend(container);
 
 let Main = (global.Main = {});
 
-const App = props => {
+const App = (props) => {
   return (
     <DataContainer
       url="server/current-account"
-      onRequestComplete={async data => {
+      onRequestComplete={async (data) => {
         if (data.email) {
           console.log(`[AUTH] Active User: ${data.email}`);
           state.setActiveUser(data.email);
@@ -34,7 +34,7 @@ const App = props => {
       {({ data, loading }) => {
         return (
           <RouteContainer routes={routes}>
-            {routeProps => {
+            {(routeProps) => {
               return (
                 <ThemeProvider theme={css}>
                   <MainContainer
@@ -53,12 +53,12 @@ const App = props => {
   );
 };
 
-(Main.render = function() {
+(Main.render = function () {
   ReactDOM.render(<App />, container);
 })();
 
 let _resize_timeout = null;
-window.addEventListener('resize', function() {
+window.addEventListener('resize', function () {
   if (_resize_timeout !== null) {
     clearTimeout(_resize_timeout);
   }

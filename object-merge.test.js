@@ -95,7 +95,7 @@ test('Edit - diff and patch', () => {
 
   let expectedPatch = {
     players: {
-      '1': {
+      1: {
         name: {
           op: 'Edit',
           key: 'name',
@@ -105,11 +105,11 @@ test('Edit - diff and patch', () => {
       },
     },
     teams: {
-      '123': {
+      123: {
         games: {
-          '10': {
+          10: {
             plateAppearances: {
-              '37': {
+              37: {
                 location: {
                   x: {
                     op: 'Edit',
@@ -162,9 +162,9 @@ test('ArrayAdd - diff and patch', () => {
       },
     },
     teams: {
-      '123': {
+      123: {
         games: {
-          '10': {
+          10: {
             plateAppearances: {
               '09mmtStsxZf7BwWVLm2uzw': {
                 op: 'ArrayAdd',
@@ -197,7 +197,7 @@ test('Add - diff and patch', () => {
 
   let expectedPatch = {
     players: {
-      '3': {
+      3: {
         walkup_song: {
           op: 'Add',
           key: 'walkup_song',
@@ -224,9 +224,9 @@ test('Re-Order - diff and patch', () => {
 
   let expectedPatch = {
     teams: {
-      '123': {
+      123: {
         games: {
-          '10': {
+          10: {
             lineup: {
               ReOrder: {
                 op: 'ReOrder',
@@ -255,7 +255,7 @@ test('Delete - diff and patch', () => {
 
   let expectedPatch = {
     players: {
-      '4': {
+      4: {
         op: 'Delete',
         key: 4,
       },
@@ -279,37 +279,37 @@ test('Reorder, ArrayAdd, Delete - diff and patch', () => {
 
   let expectedPatch = {
     teams: {
-      '123': {
+      123: {
         games: {
-          '10': {
+          10: {
             lineup: {
-              '2': {
+              2: {
                 op: 'Delete',
                 key: 2,
               },
-              '8': {
+              8: {
                 op: 'Delete',
                 key: 8,
               },
-              '11': {
+              11: {
                 op: 'ArrayAdd',
                 key: '11',
                 param1: '11',
                 param2: 0,
               },
-              '16': {
+              16: {
                 op: 'ArrayAdd',
                 key: '16',
                 param1: '16',
                 param2: 2,
               },
-              '17': {
+              17: {
                 op: 'ArrayAdd',
                 key: '17',
                 param1: '17',
                 param2: 3,
               },
-              '18': {
+              18: {
                 op: 'ArrayAdd',
                 key: '18',
                 param1: '18',
