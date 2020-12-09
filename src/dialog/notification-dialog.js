@@ -1,9 +1,6 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
 import marked from 'marked';
-marked.setOptions({
-  sanitize: true,
-});
 
 export default class NotificationDialog extends React.Component {
   constructor(props) {

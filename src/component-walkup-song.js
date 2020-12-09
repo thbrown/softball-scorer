@@ -57,7 +57,7 @@ export default class WalkupSong extends expose.Component {
     }
   }
 
-  componentWillUpdate() {
+  UNSAFE_componentWillUpdate() {
     let song = document.getElementById('songOverlay');
     let frame = document.getElementById('currentBatterSong');
 
@@ -65,7 +65,7 @@ export default class WalkupSong extends expose.Component {
       song.classList.add('gone');
 
       // This is a way to prevent the iframe state changes from being persisted to browser history
-      // Iframe relaods only add to history if they are attached to the DOM on change
+      // Iframe reloads only add to history if they are attached to the DOM on change
       let parent = frame.parentNode;
       parent.removeChild(frame);
       frame.setAttribute(

@@ -1,12 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { ThemeProvider } from 'react-jss';
 import DataContainer from 'elements/data-container';
 import RouteContainer from 'elements/route-container';
 import MainContainer from 'main-container';
 import state from 'state';
 import routes from 'routes';
-import css from 'css';
 
 require('utils/polyfills');
 
@@ -36,14 +34,12 @@ const App = (props) => {
           <RouteContainer routes={routes}>
             {(routeProps) => {
               return (
-                <ThemeProvider theme={css}>
-                  <MainContainer
-                    main={Main}
-                    data={data}
-                    loading={loading}
-                    {...routeProps}
-                  />
-                </ThemeProvider>
+                <MainContainer
+                  main={Main}
+                  data={data}
+                  loading={loading}
+                  {...routeProps}
+                />
               );
             }}
           </RouteContainer>

@@ -1,64 +1,14 @@
-import React, { createRef } from 'react';
+import React from 'react';
 import dialog from 'dialog';
 import objectMerge from '/../object-merge.js';
 import state from 'state';
 import Card from 'elements/card';
 import CardSection from 'elements/card-section';
 import { setRoute } from 'actions/route';
-import injectSheet from 'react-jss';
-import { compose, withState, withHandlers, withProps } from 'recompose';
+import { makeStyles } from 'css/helpers';
 
-const enhance = compose(
-  withState('fileName', 'setFileName', null),
-  withState('loadType', 'setLoadType', 'Merge'),
-  withProps(() => ({ fileInputRef: createRef() })),
-  withHandlers({
-    handleFileInputChange: (props) => (ev) => {
-      props.setFileName(ev.target.files[0].name);
-    },
-    handleLoadClick: (props) => () => {
-      const file = props.fileInputRef.current.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          let parsedData;
-          try {
-            parsedData = JSON.parse(e.target.result); // TODO: additional verification of object structure
-          } catch (exception) {
-            dialog.show_notification(
-              'There was an error while parsing file input: ' +
-                exception.message
-            );
-            return;
-          }
-
-          if (props.loadType === 'Merge') {
-            const diff = objectMerge.diff(state.getLocalState(), parsedData);
-            const stateCopy = JSON.parse(JSON.stringify(state.getLocalState()));
-            objectMerge.patch(stateCopy, diff, true, true);
-            state.setLocalState(stateCopy);
-            dialog.show_notification(
-              'Your data has succesfully been merged with the existing data.'
-            );
-            setRoute('/teams');
-          } else if (props.loadType === 'Overwrite') {
-            state.setLocalState(parsedData);
-            dialog.show_notification(`Your data has succesfully been loaded.`);
-            setRoute('/teams');
-          } else {
-            dialog.show_notification(
-              'Please select load type option before clicking "Load"'
-            );
-          }
-        };
-        reader.readAsText(file);
-      }
-    },
-    handleRadioClick: (props) => (ev) => {
-      props.setLoadType(ev.target.value);
-    },
-  }),
-  injectSheet((theme) => ({
+const useStyles = makeStyles((theme) => {
+  return {
     fileInputContainer: {
       display: 'flex',
       justifyContent: 'center',
@@ -97,70 +47,117 @@ const enhance = compose(
         filter: 'brightness(100%)',
       },
     },
-  }))
-);
+  };
+});
 
-const CardImport = enhance((props) => (
-  <Card title="Load from File">
-    <CardSection isCentered="true">
-      <div style={{ maxWidth: '500px' }}>
-        <div className={props.classes.fileInputContainer}>
-          <input
-            className={props.classes.fileInput}
-            ref={props.fileInputRef}
-            type="file"
-            name="fileData"
-            id="fileData"
-            onChange={props.handleFileInputChange}
-          />
-          <label
-            htmlFor="fileData"
-            className={'button ' + props.classes.fileInputButton}
-          >
-            {props.fileName ? props.fileName : 'Choose a File'}
-          </label>
-        </div>
-        <div className={props.classes.radioButtonsContainer}>
-          <div className="radio-button-option">
+const CardImport = () => {
+  const { classes } = useStyles();
+  const [fileName, setFileName] = React.useState(null);
+  const [loadType, setLoadType] = React.useState('Merge');
+  const fileInputRef = React.useRef(null);
+  const handleFileInputChange = (ev) => {
+    setFileName(ev.target.files[0].name);
+  };
+  const handleRadioClick = (ev) => {
+    setLoadType(ev.target.value);
+  };
+  const handleLoadClick = () => {
+    const file = fileInputRef.current.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        let parsedData;
+        try {
+          parsedData = JSON.parse(e.target.result); // TODO: additional verification of object structure
+        } catch (exception) {
+          dialog.show_notification(
+            'There was an error while parsing file input: ' + exception.message
+          );
+          return;
+        }
+
+        if (loadType === 'Merge') {
+          const diff = objectMerge.diff(state.getLocalState(), parsedData);
+          const stateCopy = JSON.parse(JSON.stringify(state.getLocalState()));
+          objectMerge.patch(stateCopy, diff, true, true);
+          state.setLocalState(stateCopy);
+          dialog.show_notification(
+            'Your data has successfully been merged with the existing data.'
+          );
+          setRoute('/teams');
+        } else if (loadType === 'Overwrite') {
+          state.setLocalState(parsedData);
+          dialog.show_notification(`Your data has successfully been loaded.`);
+          setRoute('/teams');
+        } else {
+          dialog.show_notification(
+            'Please select load type option before clicking "Load"'
+          );
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+  return (
+    <Card title="Load from File">
+      <CardSection isCentered="true">
+        <div style={{ maxWidth: '500px' }}>
+          <div className={classes.fileInputContainer}>
             <input
-              id="mergeChoice"
-              type="radio"
-              name="loadType"
-              value="Merge"
-              onChange={props.handleRadioClick}
-              checked={props.loadType === 'Merge'}
+              className={classes.fileInput}
+              ref={fileInputRef}
+              type="file"
+              name="fileData"
+              id="fileData"
+              onChange={handleFileInputChange}
             />
-            <label htmlFor="mergeChoice">Merge</label>
+            <label
+              htmlFor="fileData"
+              className={'button ' + classes.fileInputButton}
+            >
+              {fileName ? fileName : 'Choose a File'}
+            </label>
           </div>
-          <div className="radio-button-option">
-            <input
-              id="overwriteChoice"
-              type="radio"
-              name="loadType"
-              value="Overwrite"
-              onChange={props.handleRadioClick}
-              checked={props.loadType === 'Overwrite'}
-            />
-            <label htmlFor="overwriteChoice">Overwrite</label>
+          <div className={classes.radioButtonsContainer}>
+            <div className="radio-button-option">
+              <input
+                id="mergeChoice"
+                type="radio"
+                name="loadType"
+                value="Merge"
+                onChange={handleRadioClick}
+                checked={loadType === 'Merge'}
+              />
+              <label htmlFor="mergeChoice">Merge</label>
+            </div>
+            <div className="radio-button-option">
+              <input
+                id="overwriteChoice"
+                type="radio"
+                name="loadType"
+                value="Overwrite"
+                onChange={handleRadioClick}
+                checked={loadType === 'Overwrite'}
+              />
+              <label htmlFor="overwriteChoice">Overwrite</label>
+            </div>
+          </div>
+          <div className={classes.fileInputContainer}>
+            <div
+              id="load"
+              className={
+                'button confirm-button ' +
+                (fileName ? classes.loadButton : classes.loadButtonDisabled)
+              }
+              onClick={handleLoadClick}
+            >
+              Load
+            </div>
           </div>
         </div>
-        <div className={props.classes.fileInputContainer}>
-          <div
-            id="load"
-            className={
-              'button confirm-button ' +
-              (props.fileName
-                ? props.classes.loadButton
-                : props.classes.loadButtonDisabled)
-            }
-            onClick={props.handleLoadClick}
-          >
-            Load
-          </div>
-        </div>
-      </div>
-    </CardSection>
-  </Card>
-));
+      </CardSection>
+    </Card>
+  );
+};
 
 export default CardImport;

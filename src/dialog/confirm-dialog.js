@@ -1,10 +1,6 @@
 import React from 'react';
 import marked from 'marked';
 
-marked.setOptions({
-  sanitize: true,
-});
-
 export default class ConfirmDialog extends React.Component {
   constructor(props) {
     super(props);

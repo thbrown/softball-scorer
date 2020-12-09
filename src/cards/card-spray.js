@@ -1,11 +1,11 @@
 import React from 'react';
-import injectSheet from 'react-jss';
 import Card from 'elements/card';
 import results from 'plate-appearance-results';
 import { normalize } from 'utils/functions';
 import { setRoute } from 'actions/route';
 import { compose, withState, withHandlers } from 'recompose';
 import css from 'css';
+import { withStyles } from 'css/helpers';
 import NoSelect from 'elements/no-select';
 import {
   HIT_TYPE_FILTERS,
@@ -70,7 +70,7 @@ const getTooltipPosition = ({ x, y }, tooltipRows) => {
   };
 };
 
-const SprayTooltip = injectSheet((theme) => ({
+const SprayTooltip = withStyles((theme) => ({
   tooltip: {
     position: 'absolute',
     color: theme.colors.TEXT_DARK,
@@ -150,7 +150,7 @@ const enhanceField = compose(
       props.setTooltip(null);
     },
   }),
-  injectSheet((theme) => ({
+  withStyles((theme) => ({
     ball: {
       position: 'absolute',
       width: BALL_SIZE + 'px',
@@ -247,7 +247,7 @@ const enhance = compose(
       ev.preventDefault();
     },
   }),
-  injectSheet((theme) => ({
+  withStyles((theme) => ({
     card: {
       marginTop: css.spacing.xSmall,
       maxWidth: BALL_FIELD_MAX_WIDTH + 'px',
