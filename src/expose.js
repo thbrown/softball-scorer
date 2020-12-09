@@ -38,7 +38,7 @@ export class Component extends React.Component {
   UNSAFE_componentWillMount() {
     if (this._expose_id) {
       states[this._expose_id] = {
-        setState: state => {
+        setState: (state) => {
           this.setState(state);
         },
         getState: () => {
@@ -61,12 +61,12 @@ export class Component extends React.Component {
   }
 }
 
-export const set_state = function(id, state) {
+export const set_state = function (id, state) {
   if (states[id]) {
     states[id].setState(state);
   }
 };
-export const get_state = function(id) {
+export const get_state = function (id) {
   if (states[id]) {
     return states[id].getState();
   } else {

@@ -8,7 +8,7 @@ export default class CardReset extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
-    this.promptForReset = async function() {
+    this.promptForReset = async function () {
       dialog.show_confirm(
         'Would you like to reset your client? You will lose any changes that have not been synced.',
         () => {

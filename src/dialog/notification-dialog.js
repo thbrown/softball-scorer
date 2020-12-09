@@ -53,4 +53,4 @@ export default class NotificationDialog extends React.Component {
       })
     );
   }
-};
+}

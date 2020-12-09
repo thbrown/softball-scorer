@@ -13,7 +13,7 @@ const FILE_NAME = 'softball-sim.jar';
  */
 module.exports = class ComputeLocal {
   constructor() {
-    this.download = function(url, dest, skipExistenceCheck) {
+    this.download = function (url, dest, skipExistenceCheck) {
       if (fs.existsSync(FILE_NAME) && !skipExistenceCheck) {
         logger.log(
           null,
@@ -27,7 +27,7 @@ module.exports = class ComputeLocal {
         https
           .get(
             url,
-            async function(response) {
+            async function (response) {
               if (response.statusCode == 302) {
                 logger.log(null, 'Handling redirect');
                 try {
@@ -38,8 +38,8 @@ module.exports = class ComputeLocal {
                 }
               } else {
                 response.pipe(file);
-                file.on('finish', function() {
-                  file.close(function() {
+                file.on('finish', function () {
+                  file.close(function () {
                     logger.log(null, 'Jar succesfully downloaded');
                     resolve();
                   });
@@ -47,7 +47,7 @@ module.exports = class ComputeLocal {
               }
             }.bind(this)
           )
-          .on('error', function(err) {
+          .on('error', function (err) {
             logger.log(null, 'Error downloading jar ' + err);
             fs.unlink(dest); // Delete the file async. (But we don't check the result)
             reject(err.message);
@@ -55,13 +55,13 @@ module.exports = class ComputeLocal {
       });
     };
 
-    this.javaversion = function() {
+    this.javaversion = function () {
       return new Promise((resolve, reject) => {
         const spawn = require('child_process').spawn('java', ['-version']);
-        spawn.on('error', function(err) {
+        spawn.on('error', function (err) {
           return reject(err);
         });
-        spawn.stderr.on('data', function(data) {
+        spawn.stderr.on('data', function (data) {
           data = data.toString().split('\n')[0];
           let javaVersion = /(java|openjdk) version/.test(data)
             ? data.split(' ')[2].replace(/"/g, '')
@@ -126,11 +126,11 @@ module.exports = class ComputeLocal {
         stdio: ['ignore', 'ignore', 'pipe'],
       }
     );
-    spawn.on('error', function(err) {
+    spawn.on('error', function (err) {
       logger.warn(accountId, 'Error encountered');
       return Promise.reject(err);
     });
-    spawn.stderr.on('data', function(data) {
+    spawn.stderr.on('data', function (data) {
       // TODO: find some way to group multiple messages from std error. Currently only the latest one gets persisted (usually a stack trace)
       logger.warn(accountId, 'Optimization client stderr', data.toString());
       //return Promise.reject(data.toString()); // This would be an unhandled rejection

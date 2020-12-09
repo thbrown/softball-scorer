@@ -21,7 +21,7 @@ const TOOLTIP_WIDTH = window.innerWidth < 400 ? 125 : 175;
 const TOOLTIP_ROW_HEIGHT = 30;
 const TOOLTIP_PADDING = 10;
 
-const getHitPosition = pa => {
+const getHitPosition = (pa) => {
   const x = pa?.location?.x || 0;
   const y = pa?.location?.y || 0;
   const newX = Math.floor(
@@ -70,7 +70,7 @@ const getTooltipPosition = ({ x, y }, tooltipRows) => {
   };
 };
 
-const SprayTooltip = injectSheet(theme => ({
+const SprayTooltip = injectSheet((theme) => ({
   tooltip: {
     position: 'absolute',
     color: theme.colors.TEXT_DARK,
@@ -142,15 +142,15 @@ const SprayTooltip = injectSheet(theme => ({
 const enhanceField = compose(
   withState('paTooltip', 'setTooltip', null),
   withHandlers({
-    showTooltip: props => pa => ev => {
+    showTooltip: (props) => (pa) => (ev) => {
       props.setTooltip(pa);
       ev.stopPropagation();
     },
-    hideTooltip: props => () => {
+    hideTooltip: (props) => () => {
       props.setTooltip(null);
     },
   }),
-  injectSheet(theme => ({
+  injectSheet((theme) => ({
     ball: {
       position: 'absolute',
       width: BALL_SIZE + 'px',
@@ -159,9 +159,9 @@ const enhanceField = compose(
   }))
 );
 
-const Field = enhanceField(props => {
+const Field = enhanceField((props) => {
   const indicators = props.plateAppearances
-    .map(plateAppearance => {
+    .map((plateAppearance) => {
       const { x, y } = getHitPosition(plateAppearance);
       if (plateAppearance.location && x && y) {
         const image = results.getNoHitResults().includes(plateAppearance.result)
@@ -193,7 +193,7 @@ const Field = enhanceField(props => {
         return null;
       }
     })
-    .filter(component => {
+    .filter((component) => {
       return !!component;
     });
 
@@ -231,14 +231,14 @@ const enhance = compose(
     plateAppearanceType: null,
   }),
   withHandlers({
-    setPastGamesFilter: props => value => ev => {
+    setPastGamesFilter: (props) => (value) => (ev) => {
       props.setFilter({
         plateAppearanceType: props.filter.plateAppearanceType,
         pastGames: value === props.filter.pastGames ? null : value,
       });
       ev.preventDefault();
     },
-    setPlateAppearanceTypeFilter: props => value => ev => {
+    setPlateAppearanceTypeFilter: (props) => (value) => (ev) => {
       props.setFilter({
         plateAppearanceType:
           value === props.filter.plateAppearanceType ? null : value,
@@ -247,7 +247,7 @@ const enhance = compose(
       ev.preventDefault();
     },
   }),
-  injectSheet(theme => ({
+  injectSheet((theme) => ({
     card: {
       marginTop: css.spacing.xSmall,
       maxWidth: BALL_FIELD_MAX_WIDTH + 'px',

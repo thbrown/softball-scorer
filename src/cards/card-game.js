@@ -13,7 +13,7 @@ export default class CardGame extends expose.Component {
     super(props);
     this.exposeOverwrite('game');
 
-    this.handleTabClick = function(newTab) {
+    this.handleTabClick = function (newTab) {
       setRoute(
         `/teams/${this.props.team.id}/games/${this.props.game.id}/${newTab}`
       );
@@ -27,7 +27,7 @@ export default class CardGame extends expose.Component {
       <Card
         title={
           <HeaderTabs
-            handleTabClick={tabValue => {
+            handleTabClick={(tabValue) => {
               this.handleTabClick(tabValue);
             }}
             tab={this.props.tab}

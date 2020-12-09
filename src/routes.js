@@ -34,10 +34,10 @@ export const ROUTE_PREFIX = '';
 
 let routes;
 
-const assertStateObjects = function(...args) {
+const assertStateObjects = function (...args) {
   let valid = true;
   const errors = [];
-  args.forEach(val => {
+  args.forEach((val) => {
     if (!val) {
       valid = false;
       errors.push(
@@ -50,14 +50,14 @@ const assertStateObjects = function(...args) {
   return { valid };
 };
 
-const isSameRouteAs = function(key) {
-  return props => {
+const isSameRouteAs = function (key) {
+  return (props) => {
     return routes[ROUTE_PREFIX + key](props);
   };
 };
 
-const renderWhileLoading = function({ loading, error }) {
-  return Component => {
+const renderWhileLoading = function ({ loading, error }) {
+  return (Component) => {
     if (loading) {
       return <CardLoading />;
     } else if (error) {
@@ -353,7 +353,7 @@ routes = {
         optimization={optimization}
         selected={JSON.parse(optimization.playerList)}
         players={state.getAllPlayersAlphabetically()}
-        onComplete={players => {
+        onComplete={(players) => {
           state.setOptimizationField(
             optimization.id,
             'playerList',

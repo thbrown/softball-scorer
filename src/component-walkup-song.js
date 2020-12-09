@@ -10,11 +10,11 @@ export default class WalkupSong extends expose.Component {
       key: 0,
     };
 
-    this.startIframeClickDetect = function() {
+    this.startIframeClickDetect = function () {
       // Handle walkup song clicks
       clearInterval(this.monitor);
       this.monitor = setInterval(
-        function() {
+        function () {
           var elem = document.activeElement;
           if (elem && elem.tagName === 'IFRAME') {
             clearInterval(this.monitor);
@@ -27,7 +27,7 @@ export default class WalkupSong extends expose.Component {
 
     this.startIframeClickDetect();
 
-    this.handleOverlayClick = function() {
+    this.handleOverlayClick = function () {
       // Reload song iframe
       this.forceRender = true;
       this.setState({
@@ -37,7 +37,7 @@ export default class WalkupSong extends expose.Component {
       this.startIframeClickDetect();
     }.bind(this);
 
-    this.buildUrl = function(songLink, songStart) {
+    this.buildUrl = function (songLink, songStart) {
       return `https://thbrown.github.io/iframe-proxy/index.html?id=${songLink}&start=${
         songStart ? songStart : 0
       }`;

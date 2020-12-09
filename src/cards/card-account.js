@@ -11,7 +11,7 @@ export default class CardAccount extends Component {
     this.state = {};
 
     // TODO: only render this button if email has not yet been validated
-    this.handleEmailValidationClick = async function() {
+    this.handleEmailValidationClick = async function () {
       let buttonDiv = document.getElementById('email-validation');
       buttonDiv.classList.add('disabled');
 
@@ -34,7 +34,7 @@ export default class CardAccount extends Component {
       }
       buttonDiv.classList.remove('disabled');
 
-      dialog.show_notification(message, function() {
+      dialog.show_notification(message, function () {
         setRoute('/menu');
       });
     };

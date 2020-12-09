@@ -6,7 +6,7 @@ import Loading from 'elements/loading';
 // This might be pointless now, but we can adjust this later for free
 const MS_BEFORE_LOADING_GIF_SHOWS = 1;
 
-const useCardLoadingStyles = makeStyles(theme => ({
+const useCardLoadingStyles = makeStyles((theme) => ({
   gif: {
     width: '100%',
   },
@@ -17,7 +17,7 @@ const useCardLoadingStyles = makeStyles(theme => ({
     marginTop: '5rem',
   },
 }));
-const CardLoading = props => {
+const CardLoading = (props) => {
   const { classes } = useCardLoadingStyles();
   const [showGif, setShowGif] = React.useState(false);
   React.useEffect(() => {

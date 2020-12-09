@@ -57,6 +57,6 @@ export default class DataContainer extends Component {
 
 DataContainer.defaultProps = {
   url: '',
-  onRequestComplete: function() {},
-  onRequestError: function() {},
+  onRequestComplete: function () {},
+  onRequestError: function () {},
 };

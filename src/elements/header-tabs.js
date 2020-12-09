@@ -1,7 +1,7 @@
 import React from 'react';
 import { makeStyles } from 'css/helpers';
 
-const useHeaderTabsStyles = makeStyles(css => ({
+const useHeaderTabsStyles = makeStyles((css) => ({
   tabContainer: {
     display: 'flex',
     justifyContent: 'space-between',

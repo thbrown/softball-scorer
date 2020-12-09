@@ -9,16 +9,16 @@ class CardPlayerList extends React.Component {
     super(props);
     this.state = {};
 
-    this.handlePlayerClick = function(player) {
+    this.handlePlayerClick = function (player) {
       setRoute(`/players/${player.id}`);
     };
 
-    this.handleEditClick = function(player, ev) {
+    this.handleEditClick = function (player, ev) {
       setRoute(`/players/${player.id}/edit`);
       ev.stopPropagation();
     };
 
-    this.handleCreateClick = function() {
+    this.handleCreateClick = function () {
       const player = state.addPlayer('', 'M');
       setRoute(`/players/${player.id}/edit?isNew=true`);
     };
@@ -38,7 +38,7 @@ class CardPlayerList extends React.Component {
         {state
           .getAllPlayersAlphabetically()
           .slice()
-          .map(player => {
+          .map((player) => {
             return (
               <ListButton
                 id={'player-' + player.id}

@@ -6,13 +6,13 @@ import ListButton from 'elements/list-button';
 
 const enhance = compose(
   withHandlers({
-    handleItemClick: props => item => () => {
+    handleItemClick: (props) => (item) => () => {
       props.onClick(item);
     },
   })
 );
 
-const useListPickerStyles = makeStyles(theme => ({
+const useListPickerStyles = makeStyles((theme) => ({
   listItemFloat: {
     float: 'right',
     marginRight: '5px',
@@ -21,7 +21,7 @@ const useListPickerStyles = makeStyles(theme => ({
   },
 }));
 
-const ListPicker = props => {
+const ListPicker = (props) => {
   const { classes } = useListPickerStyles();
   return (
     <div>

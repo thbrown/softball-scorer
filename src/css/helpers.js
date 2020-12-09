@@ -3,7 +3,7 @@ import theme from './theme';
 let ctr = 0;
 const cache = {};
 
-const toCssCase = value => {
+const toCssCase = (value) => {
   let ret = '';
   for (let i = 0; i < value.length; i++) {
     const ch = value[i];
@@ -17,7 +17,7 @@ const toCssCase = value => {
   return ret;
 };
 
-const toClassNames = styles => {
+const toClassNames = (styles) => {
   const ret = {};
   const style = document.createElement('style');
   style.type = 'text/css';
@@ -49,8 +49,8 @@ const toClassNames = styles => {
   return ret;
 };
 
-export const makeStyles = func => {
-  return props => {
+export const makeStyles = (func) => {
+  return (props) => {
     return {
       styles: func(theme, props),
       classes: toClassNames(func(theme, props)),

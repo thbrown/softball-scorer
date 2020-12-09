@@ -7,15 +7,15 @@ const configAccessor = require('./config-accessor');
 const logger = require('./logger.js');
 
 // Log on inturruptions
-process.on('SIGINT', function() {
+process.on('SIGINT', function () {
   logger.log('sys', 'SIGINT');
   process.exit(0);
 });
-process.on('SIGTERM', function() {
+process.on('SIGTERM', function () {
   logger.log('sys', 'SIGTERM');
   process.exit(0);
 });
-process.on('exit', function() {
+process.on('exit', function () {
   process.stdout.write('Bye\n');
 });
 
