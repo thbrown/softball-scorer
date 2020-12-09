@@ -1,6 +1,6 @@
 const hasher = require('node-object-hash');
 
-exports.factorial = function(n) {
+exports.factorial = function (n) {
   if (n < 0 || n > 20) {
     throw Error('Factorial out of range' + n);
   }
@@ -30,7 +30,7 @@ exports.factorial = function(n) {
   return fact[n];
 };
 
-exports.binomial = function(n, k) {
+exports.binomial = function (n, k) {
   if (n === 0) {
     return 0;
   }
@@ -43,7 +43,7 @@ exports.binomial = function(n, k) {
 };
 
 // https://stackoverflow.com/questions/8211744/convert-time-interval-given-in-seconds-into-more-human-readable-form
-exports.secondsToString = function(seconds) {
+exports.secondsToString = function (seconds) {
   function numberEnding(number) {
     return number > 1 ? 's' : '';
   }
@@ -72,7 +72,7 @@ exports.secondsToString = function(seconds) {
 };
 
 // Calculate the hash of the data and return the result as a base64 string
-exports.getHash = function(data) {
+exports.getHash = function (data) {
   // I've tried other hashes here (like javascript xxHash) but md5 is faster in the browser and much faster in the server.
   var objectHasher = hasher({
     alg: 'md5',
@@ -84,7 +84,7 @@ exports.getHash = function(data) {
 };
 
 // Get the string representation of an object for hashing, sorts properties of objects so representation is stable
-exports.getObjectString = function(data) {
+exports.getObjectString = function (data) {
   var objectHasher = hasher({
     alg: 'md5',
     sort: true,
