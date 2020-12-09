@@ -23,7 +23,7 @@ export default class CardAuth extends React.Component {
 
     this.handlePasswordResetClick = function () {
       dialog.show_input(
-        'To reset your password, please enter your email address',
+        'To reset your password, please enter your email address.',
         async (email) => {
           console.log('Email', email);
           if (email === undefined || email.trim().length === 0) {
@@ -83,9 +83,20 @@ export default class CardAuth extends React.Component {
           if (state.getActiveUser() === null && state.hasAnythingChanged()) {
             prompt = new Promise(function (resolve) {
               dialog.show_yes_no_cancel(
-                `Would you like to keep the data you entered here while you weren't logged in? 
-  * Selecting **no** will delete the local data permanently. 
-  * Selecting **yes** will merge local data with your account's data.`,
+                <div>
+                  Would you like to keep the data you entered here while you
+                  weren't logged in?
+                  <div style={{ margin: '1rem' }}>
+                    <div>
+                      Selecting <b>no</b> will delete the local data
+                      permanently.
+                    </div>
+                    <div>
+                      Selecting <b>yes</b> will merge local data with your
+                      account's data.
+                    </div>
+                  </div>
+                </div>,
                 () => {
                   resolve('KEEP');
                 },
@@ -129,11 +140,11 @@ export default class CardAuth extends React.Component {
               window.location.reload();
             } else {
               dialog.show_notification(
-                'An error occured while attempting sync: ' + status
+                'An error occurred while attempting sync: ' + status
               );
             }
           } else if (response.status === 400) {
-            dialog.show_notification('Invalid login');
+            dialog.show_notification('Invalid login.');
           } else {
             dialog.show_notification(
               'Could not login. Error code: ' + response.status
