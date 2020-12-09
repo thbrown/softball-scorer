@@ -53,7 +53,7 @@ const LineupPicker = ({ gameId, teamId }) => {
             return opt.resultData !== '{}';
           })
           .reverse()
-          .map(({ name, id }, i) => {
+          .map(({ name, id }) => {
             return { name, id };
           })}
       />

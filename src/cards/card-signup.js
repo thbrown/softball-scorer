@@ -75,7 +75,12 @@ export default class CardSignup extends React.Component {
         state.setActiveUser(email.value);
 
         dialog.show_notification(
-          `Thank you for creating an account on Softball.app! You have been logged in. To enable all softball.app features, please verify your email by clicking the activation link in the welcome email sent to ${email.value}. This link will expire after 24 hours.`,
+          <div>
+            Thank you for creating an account on Softball.app! You have been
+            logged in. To enable all softball.app features, please verify your
+            email by clicking the activation link in the welcome email sent to
+            {email.value}. This link will expire after 24 hours.
+          </div>,
           function () {
             setRoute('/menu');
           }
@@ -167,7 +172,7 @@ export default class CardSignup extends React.Component {
   }
 
   renderSubmitButton() {
-    // There is no active user, say that the data in this app will be associated with this accoutn now
+    // There is no active user, say that the data in this app will be associated with this account now
     var toRender = [];
     if (!state.getActiveUser()) {
       toRender.push(
