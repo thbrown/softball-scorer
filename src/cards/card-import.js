@@ -13,14 +13,14 @@ const enhance = compose(
   withState('loadType', 'setLoadType', 'Merge'),
   withProps(() => ({ fileInputRef: createRef() })),
   withHandlers({
-    handleFileInputChange: props => ev => {
+    handleFileInputChange: (props) => (ev) => {
       props.setFileName(ev.target.files[0].name);
     },
-    handleLoadClick: props => () => {
+    handleLoadClick: (props) => () => {
       const file = props.fileInputRef.current.files[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
           let parsedData;
           try {
             parsedData = JSON.parse(e.target.result); // TODO: additional verification of object structure
@@ -54,11 +54,11 @@ const enhance = compose(
         reader.readAsText(file);
       }
     },
-    handleRadioClick: props => ev => {
+    handleRadioClick: (props) => (ev) => {
       props.setLoadType(ev.target.value);
     },
   }),
-  injectSheet(theme => ({
+  injectSheet((theme) => ({
     fileInputContainer: {
       display: 'flex',
       justifyContent: 'center',
@@ -100,7 +100,7 @@ const enhance = compose(
   }))
 );
 
-const CardImport = enhance(props => (
+const CardImport = enhance((props) => (
   <Card title="Load from File">
     <CardSection isCentered="true">
       <div style={{ maxWidth: '500px' }}>

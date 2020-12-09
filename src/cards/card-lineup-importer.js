@@ -6,7 +6,7 @@ import dialog from 'dialog';
 import { setRoute } from 'actions/route';
 
 const LineupPicker = ({ gameId, teamId }) => {
-  const handleItemClick = item => {
+  const handleItemClick = (item) => {
     const opt = state.getOptimization(item.id);
     try {
       const results = JSON.parse(opt.resultData);
@@ -49,7 +49,7 @@ const LineupPicker = ({ gameId, teamId }) => {
         onClick={handleItemClick}
         items={state
           .getAllOptimizations()
-          .filter(opt => {
+          .filter((opt) => {
             return opt.resultData !== '{}';
           })
           .reverse()

@@ -1,7 +1,7 @@
 // Prepend polyfill
 // from: https://github.com/jserz/js_piece/blob/master/DOM/ParentNode/prepend()/prepend().md
-(function(arr) {
-  arr.forEach(function(item) {
+(function (arr) {
+  arr.forEach(function (item) {
     if (item.hasOwnProperty('prepend')) {
       return;
     }
@@ -13,7 +13,7 @@
         let argArr = Array.prototype.slice.call(arguments),
           docFrag = document.createDocumentFragment();
 
-        argArr.forEach(function(argItem) {
+        argArr.forEach(function (argItem) {
           let isNode = argItem instanceof Node;
           docFrag.appendChild(
             isNode ? argItem : document.createTextNode(String(argItem))

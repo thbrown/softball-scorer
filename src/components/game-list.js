@@ -4,21 +4,21 @@ import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
 import { toClientDate } from 'utils/functions';
 
-const GameList = props => {
-  const handleGameClick = function(game) {
+const GameList = (props) => {
+  const handleGameClick = function (game) {
     setRoute(`/teams/${props.team.id}/games/${game.id}`); // TODO: always back to lineup?
   };
 
-  const handleEditClick = function(game) {
+  const handleEditClick = function (game) {
     setRoute(`/teams/${props.team.id}/games/${game.id}/edit`);
   };
 
-  const handleCreateClick = function() {
+  const handleCreateClick = function () {
     const game = state.addGame(props.team.id, '');
     setRoute(`/teams/${props.team.id}/games/${game.id}/edit?isNew=true`);
   };
 
-  const elems = [...props.team.games].reverse().map(game => {
+  const elems = [...props.team.games].reverse().map((game) => {
     return (
       <ListButton
         key={'game-' + game.id}
@@ -52,7 +52,7 @@ const GameList = props => {
                 float: 'right',
               }}
               id={'game-' + game.id + '-edit'}
-              onClick={ev => {
+              onClick={(ev) => {
                 handleEditClick(game);
                 ev.preventDefault();
                 ev.stopPropagation();

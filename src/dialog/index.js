@@ -12,7 +12,7 @@ window.current_cancel = null;
 let is_visible = false;
 let require_shift = false;
 
-let on_key_down = function(ev) {
+let on_key_down = function (ev) {
   let t = true;
   if (require_shift) {
     t = ev.shiftKey;
@@ -26,43 +26,43 @@ let on_key_down = function(ev) {
   }
 };
 
-const show = function() {
+const show = function () {
   is_visible = true;
   window.addEventListener('keydown', on_key_down);
 };
 
-exp.show_confirm = function(text, on_confirm, on_cancel) {
+exp.show_confirm = function (text, on_confirm, on_cancel) {
   show();
   expose.set_state('main', {
     dialog: {
       type: 'confirm',
       text,
       on_confirm,
-      on_cancel: on_cancel || function() {},
+      on_cancel: on_cancel || function () {},
       hide: exp.hide,
     },
   });
 };
 
-exp.show_yes_no_cancel = function(text, on_yes, on_no, on_cancel) {
+exp.show_yes_no_cancel = function (text, on_yes, on_no, on_cancel) {
   show();
   expose.set_state('main', {
     dialog: {
       type: 'yesNoCancel',
       text: text,
-      on_yes: on_yes || function() {},
-      on_no: on_no || function() {},
-      on_cancel: on_cancel || function() {},
+      on_yes: on_yes || function () {},
+      on_no: on_no || function () {},
+      on_cancel: on_cancel || function () {},
       hide: exp.hide,
     },
   });
 };
 
-exp.set_shift_req = function(v) {
+exp.set_shift_req = function (v) {
   require_shift = v;
 };
 
-exp.show_input = function(
+exp.show_input = function (
   node_or_default_text,
   on_confirm,
   on_cancel,
@@ -81,8 +81,8 @@ exp.show_input = function(
       type: 'input',
       node,
       default_text,
-      on_confirm: on_confirm || function() {},
-      on_cancel: on_cancel || function() {},
+      on_confirm: on_confirm || function () {},
+      on_cancel: on_cancel || function () {},
       whiteSpace: require_shift,
       hide: exp.hide,
       startingValue,
@@ -90,19 +90,19 @@ exp.show_input = function(
   });
 };
 
-exp.show_notification = function(text, on_confirm) {
+exp.show_notification = function (text, on_confirm) {
   show();
   expose.set_state('main', {
     dialog: {
       type: 'notification',
       text: text,
-      on_confirm: on_confirm || function() {},
+      on_confirm: on_confirm || function () {},
       hide: exp.hide,
     },
   });
 };
 
-exp.hide = function() {
+exp.hide = function () {
   if (is_visible) {
     is_visible = false;
     window.removeEventListener('keydown', on_key_down);
@@ -112,7 +112,7 @@ exp.hide = function() {
   }
 };
 
-exp.is_visible = function() {
+exp.is_visible = function () {
   return is_visible;
 };
 

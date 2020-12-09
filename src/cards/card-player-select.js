@@ -36,32 +36,32 @@ export default class CardPlayerSelect extends React.Component {
     }
 
     this.state = {
-      players: Array.from(startingValues.slice(0).map(v => v.value)),
+      players: Array.from(startingValues.slice(0).map((v) => v.value)),
       options: options,
       startingValues: startingValues,
       typed: '',
       gender: 'M',
     };
 
-    this.onInputChange = function(inputValue) {
+    this.onInputChange = function (inputValue) {
       this.adjustSpacerDivHeight();
       this.setState({
         typed: inputValue,
       });
     };
 
-    this.handleRadioButtonChange = function(event) {
+    this.handleRadioButtonChange = function (event) {
       this.setState({
         gender: event.target.value,
       });
     };
 
-    this.handleSubmitClick = function() {
+    this.handleSubmitClick = function () {
       props.onComplete(this.state.players);
       setRoute(`/optimizations/${this.props.optimization.id}?acc0=true`);
     };
 
-    this.handleCancelClick = function() {
+    this.handleCancelClick = function () {
       goBack();
     };
 
@@ -70,20 +70,20 @@ export default class CardPlayerSelect extends React.Component {
       return true; //skip default back button action
     };
 
-    this.handleBackOrHome = function() {
+    this.handleBackOrHome = function () {
       props.onComplete(this.state.players);
     };
 
-    this.onChange = function(selectedOptions) {
-      let valuesOnly = Array.from(selectedOptions.slice(0).map(v => v.value));
+    this.onChange = function (selectedOptions) {
+      let valuesOnly = Array.from(selectedOptions.slice(0).map((v) => v.value));
       this.setState({
         players: valuesOnly,
       });
     };
 
     // Lots of bad code in this method, see comments
-    this.adjustSpacerDivHeight = function() {
-      let adjust = function() {
+    this.adjustSpacerDivHeight = function () {
+      let adjust = function () {
         // Neither of these are good selectors, but I'm not sure how else to get the menu
         // height from inside the component
         //let menus = document.querySelectorAll('div[class$="-menu"]');
@@ -109,7 +109,7 @@ export default class CardPlayerSelect extends React.Component {
       setTimeout(adjust, 10);
     };
 
-    this.onCreatePlayerClick = function() {
+    this.onCreatePlayerClick = function () {
       let newPlayer = state.addPlayer(this.state.typed, this.state.gender);
 
       // Duplicate options
@@ -120,7 +120,7 @@ export default class CardPlayerSelect extends React.Component {
       });
     };
 
-    this.noOptionsMessage = function() {
+    this.noOptionsMessage = function () {
       if (!this.state.typed) {
         return <div>Type a name to add a new player</div>;
       }
@@ -152,19 +152,19 @@ export default class CardPlayerSelect extends React.Component {
 
     // https://react-select.com/styles
     this.customStyles = {
-      option: provided => {
+      option: (provided) => {
         const modifications = {
           padding: 15,
         };
         return Object.assign(provided, modifications);
       },
-      multiValue: provided => {
+      multiValue: (provided) => {
         const modifications = {
           padding: 14,
         };
         return Object.assign(provided, modifications);
       },
-      menu: provided => {
+      menu: (provided) => {
         const modifications = {
           padding: 1,
         };

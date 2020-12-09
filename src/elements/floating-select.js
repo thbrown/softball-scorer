@@ -18,12 +18,12 @@ export default class FloatingSelect extends React.Component {
           className="select"
           disabled={this.props.disabled}
           value={this.state.value}
-          onChange={e => {
+          onChange={(e) => {
             this.props.onChange(e.target.value);
             this.setState({ value: e.target.value });
           }}
         >
-          {Object.keys(this.props.values).map(value => {
+          {Object.keys(this.props.values).map((value) => {
             const label = this.props.values[value];
             return (
               <option value={value} key={value}>

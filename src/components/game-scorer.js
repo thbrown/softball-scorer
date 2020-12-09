@@ -4,7 +4,7 @@ import state from 'state';
 import { makeStyles } from 'css/helpers';
 import css from 'css';
 
-const useScorePaperStyles = makeStyles(css => ({
+const useScorePaperStyles = makeStyles((css) => ({
   root: {
     width: '120px',
     display: 'flex',
@@ -64,7 +64,7 @@ const ScoreChanger = ({ onScoreChange }) => {
   return (
     <div className={classes.buttonRoot}>
       <div
-        onClick={ev => {
+        onClick={(ev) => {
           onScoreChange(1);
           ev.preventDefault();
         }}
@@ -73,7 +73,7 @@ const ScoreChanger = ({ onScoreChange }) => {
         +1
       </div>
       <div
-        onClick={ev => {
+        onClick={(ev) => {
           onScoreChange(-1);
           ev.preventDefault();
         }}
@@ -88,7 +88,7 @@ const ScoreChanger = ({ onScoreChange }) => {
   );
 };
 
-const useGameScorerStyles = makeStyles(css => ({
+const useGameScorerStyles = makeStyles((css) => ({
   cards: {
     display: 'flex',
     justifyContent: 'space-around',
@@ -124,12 +124,12 @@ const GameScorer = ({ teamId, gameId }) => {
       </div>
       <div className={classes.cards}>
         <ScoreChanger
-          onScoreChange={inc => {
+          onScoreChange={(inc) => {
             handleScoreChange(inc, 'scoreUs');
           }}
         />
         <ScoreChanger
-          onScoreChange={inc => {
+          onScoreChange={(inc) => {
             handleScoreChange(inc, 'scoreThem');
           }}
           name={themName}

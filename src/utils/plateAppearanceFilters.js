@@ -22,11 +22,11 @@ const extraHits = {
 
 export function filterByHitType(plateAppearances, hitType) {
   if (hitType === HIT_TYPE_FILTERS.HITS) {
-    return plateAppearances.filter(pa => !!hits[pa.result]);
+    return plateAppearances.filter((pa) => !!hits[pa.result]);
   } else if (hitType === HIT_TYPE_FILTERS.OUTS) {
-    return plateAppearances.filter(pa => !hits[pa.result]);
+    return plateAppearances.filter((pa) => !hits[pa.result]);
   } else if (hitType === HIT_TYPE_FILTERS.EXTRA_BASE_HITS) {
-    return plateAppearances.filter(pa => !!extraHits[pa.result]);
+    return plateAppearances.filter((pa) => !!extraHits[pa.result]);
   }
 }
 

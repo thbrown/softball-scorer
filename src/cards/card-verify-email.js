@@ -13,7 +13,7 @@ export default class CardVerifyEmail extends React.Component {
 
     this.token = props.token;
 
-    this.validateEmail = async function() {
+    this.validateEmail = async function () {
       let body = {
         token: this.token,
       };
@@ -31,13 +31,13 @@ export default class CardVerifyEmail extends React.Component {
           message = `Thank you. Your email address has been verified.`;
           redirect = '/menu';
         }
-        dialog.show_notification(message, function() {
+        dialog.show_notification(message, function () {
           setRoute(redirect);
         });
       } else if (response.status === 404) {
         dialog.show_notification(
           `We were unable to verify your email. The token may have expired. Try [resending the validation email](/account).`,
-          function() {
+          function () {
             setRoute('/menu');
           }
         );
@@ -46,7 +46,7 @@ export default class CardVerifyEmail extends React.Component {
           `We were unable to verify your email. ${
             response.body ? response.body.message : ''
           }`,
-          function() {
+          function () {
             setRoute('/menu');
           }
         );

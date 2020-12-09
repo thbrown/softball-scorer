@@ -18,7 +18,7 @@ export default class CardPlayerSelection extends React.Component {
       gender: undefined,
     };
 
-    this.handleRadioButtonChange = event => {
+    this.handleRadioButtonChange = (event) => {
       this.setState({
         gender: event.target.value,
       });
@@ -168,7 +168,7 @@ export default class CardPlayerSelection extends React.Component {
     const suggestions =
       inputLength === 0
         ? []
-        : players.filter(player => {
+        : players.filter((player) => {
             if (playersAlreadyInLineup.includes(player.id)) {
               return false;
             }

@@ -8,7 +8,7 @@ import ListButton from 'elements/list-button';
 import { goBack, goHome } from 'actions/route';
 import { makeStyles } from 'css/helpers';
 
-const useCardTeamEditStyles = makeStyles(css => ({
+const useCardTeamEditStyles = makeStyles((css) => ({
   publicLink: {
     fontSize: css.typography.size.xSmall,
     padding: css.spacing.xxSmall,
@@ -56,7 +56,7 @@ const useCardTeamEditStyles = makeStyles(css => ({
   },
 }));
 
-const CardTeamEdit = props => {
+const CardTeamEdit = (props) => {
   const [team, setTeam] = React.useState(props.team);
   const [
     copiedNotificationVisible,
@@ -112,7 +112,7 @@ const CardTeamEdit = props => {
     return true;
   };
 
-  const handleNameChange = value => {
+  const handleNameChange = (value) => {
     isPristine = false;
     setTeam({
       ...team,
@@ -120,7 +120,7 @@ const CardTeamEdit = props => {
     });
   };
 
-  const handlePublicLinkEnabledClicked = ev => {
+  const handlePublicLinkEnabledClicked = (ev) => {
     setTeam({
       ...team,
       publicIdEnabled: !!ev.target.checked,

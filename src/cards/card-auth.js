@@ -12,7 +12,7 @@ export default class CardAuth extends React.Component {
     super(props);
     this.state = {};
 
-    this.handleSignupClick = function() {
+    this.handleSignupClick = function () {
       let emailValue = document.getElementById('email').value;
       if (emailValue) {
         setRoute(`/menu/signup?email=${encodeURIComponent(emailValue)}`);
@@ -21,10 +21,10 @@ export default class CardAuth extends React.Component {
       }
     };
 
-    this.handlePasswordResetClick = function() {
+    this.handlePasswordResetClick = function () {
       dialog.show_input(
         'To reset your password, please enter your email address',
-        async email => {
+        async (email) => {
           console.log('Email', email);
           if (email === undefined || email.trim().length === 0) {
             dialog.show_notification('You must specify an email.');
@@ -56,7 +56,7 @@ export default class CardAuth extends React.Component {
       );
     };
 
-    this.handleSubmitClick = async function() {
+    this.handleSubmitClick = async function () {
       // Disable the button
       if (this.blocked) {
         return;
@@ -81,7 +81,7 @@ export default class CardAuth extends React.Component {
           let prompt = undefined;
           console.log('ACTIVE USER', state.getActiveUser());
           if (state.getActiveUser() === null && state.hasAnythingChanged()) {
-            prompt = new Promise(function(resolve) {
+            prompt = new Promise(function (resolve) {
               dialog.show_yes_no_cancel(
                 `Would you like to keep the data you entered here while you weren't logged in? 
   * Selecting **no** will delete the local data permanently. 
@@ -144,7 +144,7 @@ export default class CardAuth extends React.Component {
             Email: email.value,
             Password: password.value,
           };
-          let missingFields = Object.keys(map).filter(field => {
+          let missingFields = Object.keys(map).filter((field) => {
             return !map[field];
           });
           dialog.show_notification(
