@@ -2,7 +2,6 @@ import React from 'react';
 import DOM from 'react-dom-factories';
 import state from 'state';
 import dialog from 'dialog';
-import network from 'network';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import config from 'config';
@@ -14,7 +13,7 @@ export default class CardSignup extends React.Component {
     this.state = {};
     this.recapchaId = {};
 
-    this.handleSubmitClick = async function() {
+    this.handleSubmitClick = async function () {
       let email = document.getElementById('email');
       let password = document.getElementById('password');
       let passwordConfirm = document.getElementById('passwordConfirm');
@@ -32,7 +31,7 @@ export default class CardSignup extends React.Component {
           'Confirm Password': passwordConfirm.value,
           reCAPTCHA: recapchaResult,
         };
-        let missingFields = Object.keys(map).filter(field => {
+        let missingFields = Object.keys(map).filter((field) => {
           return !map[field];
         });
         dialog.show_notification(
@@ -61,7 +60,7 @@ export default class CardSignup extends React.Component {
         password: password.value,
         reCAPCHA: recapchaResult,
       };
-      let response = await network.request(
+      let response = await state.request(
         'POST',
         'server/account/signup',
         JSON.stringify(body)
@@ -77,7 +76,7 @@ export default class CardSignup extends React.Component {
 
         dialog.show_notification(
           `Thank you for creating an account on Softball.app! You have been logged in. To enable all softball.app features, please verify your email by clicking the activation link in the welcome email sent to ${email.value}. This link will expire after 24 hours.`,
-          function() {
+          function () {
             setRoute('/menu');
           }
         );
@@ -89,11 +88,11 @@ export default class CardSignup extends React.Component {
       }
     };
 
-    this.showRecapcha = function() {
+    this.showRecapcha = function () {
       showRecapchaInternal();
     };
 
-    let showRecapchaInternal = function() {
+    let showRecapchaInternal = function () {
       if (
         typeof grecaptcha !== 'undefined' &&
         window.grecaptcha &&
@@ -110,7 +109,7 @@ export default class CardSignup extends React.Component {
           box.hidden = true;
         }
       } else {
-        setTimeout(function() {
+        setTimeout(function () {
           showRecapchaInternal();
         }, 500);
       }

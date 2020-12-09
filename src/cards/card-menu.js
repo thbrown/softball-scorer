@@ -3,7 +3,6 @@ import state from 'state';
 import dialog from 'dialog';
 import FileSaver from 'file-saver';
 import css from 'css';
-import network from 'network';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
@@ -62,7 +61,7 @@ class CardMenu extends Component {
           }
         }
 
-        let response = await network.request('POST', 'server/account/logout');
+        let response = await state.request('POST', 'server/account/logout');
         if (response.status === 204) {
           state.resetState();
           dialog.show_notification('Logout successful', function() {

@@ -1,7 +1,7 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
 import dialog from 'dialog';
-import network from 'network';
+import state from 'state';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import { setRoute } from 'actions/route';
@@ -42,7 +42,7 @@ export default class CardPasswordReset extends React.Component {
         password: password.value,
       };
 
-      let response = await network.request(
+      let response = await state.request(
         'POST',
         `server/account/reset-password`,
         JSON.stringify(body)

@@ -46,7 +46,7 @@ module.exports = {
         exclude: /node_modules/,
         use: ['babel-loader'],
       },
-    ],szfgxdfsdf
+    ],
   },
   plugins: [
     new WebpackBeforeBuildPlugin(async (stats, callback) => {

@@ -59,13 +59,14 @@ export default class MainContainer extends expose.Component {
       };
 
       // The actual registration
-      window.addEventListener('load', function() {
+      window.addEventListener('load', function () {
         navigator.serviceWorker.register('/service-worker');
       });
     }
 
-    // Load data from localstorage synchronously
+    // TODO: if(test) logic shoud be removed and we should find a way to mock problematic APIs
     if (!this.props.test) {
+      // Load data from localstorage synchronously
       state.loadStateFromLocalStorage();
 
       // Reload from local storage each time after the window regains focus
@@ -88,8 +89,8 @@ export default class MainContainer extends expose.Component {
       window.addEventListener(
         'online',
         () => {
-          // This event really just tells us if we are connected to a network, we need to ping the server to know if we are online and authenticated
-          network.updateNetworkStatus();
+          // This event really just tells us if we are connected to a network, we need to actually talk to the server to know if we are online and authenticated
+          state.sync();
         },
         false
       );
@@ -102,7 +103,7 @@ export default class MainContainer extends expose.Component {
         false
       );
 
-      window.addEventListener('beforeinstallprompt', e => {
+      window.addEventListener('beforeinstallprompt', (e) => {
         // Prevent Chrome 67 and earlier from automatically showing the prompt
         e.preventDefault();
         // Stash the event so it can be triggered later.
@@ -116,7 +117,7 @@ export default class MainContainer extends expose.Component {
           : undefined;
       window.ga =
         window.ga ||
-        function() {
+        function () {
           (window.ga.q = window.ga.q || []).push(arguments);
         };
       window.ga.l = +new Date();
@@ -126,7 +127,7 @@ export default class MainContainer extends expose.Component {
         stripQuery: true,
         indexFilename: 'index.html',
         trailingSlash: 'remove',
-        urlFieldsFilter: function(fieldsObj, parseUrl) {
+        urlFieldsFilter: function (fieldsObj, parseUrl) {
           fieldsObj.page = parseUrl(fieldsObj.page)
             .pathname.replace(/teams\/[a-zA-Z0-9]{14}/, 'teams/<team-id>')
             .replace(/player\/[a-zA-Z0-9]{14}/, 'player/<player-id>')
@@ -196,10 +197,10 @@ export default class MainContainer extends expose.Component {
     }
 
     return (
-      <>
+      <div className="app-container">
         {CardComponent}
         <Dialog {...this.state.dialog} />
-      </>
+      </div>
     );
   }
 }

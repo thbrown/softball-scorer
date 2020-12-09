@@ -12,7 +12,7 @@ describe('sync', () => {
   let cache;
   let server;
 
-  beforeAll(async () => {
+  beforeAll(async (done) => {
     const port = configAccessor.getAppServerPort();
     const optPort = configAccessor.getOptimizationServerPort();
     cache = configAccessor.getCacheService();
@@ -20,11 +20,13 @@ describe('sync', () => {
     compute = configAccessor.getComputeService();
     server = new SoftballServer(port, optPort, databaseCalls, cache, compute);
     server.start();
+    done();
   });
 
-  afterAll(() => {
-    server.stop();
-    databaseCalls.disconnect();
+  afterAll(async (done) => {
+    await server.stop();
+    await databaseCalls.disconnect();
+    done();
   });
 
   test('Test account lifecycle', async () => {

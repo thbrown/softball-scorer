@@ -12,6 +12,8 @@ describe('optimization', () => {
     compute = configAccessor.getComputeService();
   });
 
+  test('Do nothing', async () => {});
+
   // This is useful for testing that the integration with gcp is working properly.
   // This test simulates the api call to start a gcp it starts instance (if configured to use gcp).
   // I'm commenting this out to avoid accidental instance creation and expense

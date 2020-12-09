@@ -9,41 +9,23 @@ const NETWORK_DELAY = 0;
 
 let requestInternal;
 
-exp.request = async function(method, url, body) {
+exp.request = async function (method, url, body) {
   url = exp.getServerUrl(url);
-  try {
-    let response = await requestInternal(method, url, body);
-    state.setStatusBasedOnHttpResponse(response.status);
-    return response;
-  } catch (err) {
-    console.log('Encountered an error during network request');
-    console.log(err);
-    state.setOffline();
-    // We'll just return -1 to say that something went wrong with the network
-    const response = {};
-    response.status = -1;
-    response.body = {};
-    response.body.message = err;
-    return response;
-  }
+  return await requestInternal(method, url, body);
 };
 export const request = exp.request;
 
-exp.getServerUrl = function(path) {
+exp.getServerUrl = function (path) {
   return window.location.origin + '/' + path;
 };
 export const getServerUrl = exp.getServerUrl;
 
-requestInternal = async function(method, url, body) {
+requestInternal = async function (method, url, body) {
   const response = {};
 
-  if (process.env.NODE_ENV === 'test') {
-    return response;
-  }
-
   if ('fetch' in window) {
-    const res = await new Promise(async function(resolve, reject) {
-      const timeout = setTimeout(function() {
+    const res = await new Promise(async function (resolve, reject) {
+      const timeout = setTimeout(function () {
         reject(new Error('Request timed out'));
       }, FETCH_TIMEOUT);
       try {
@@ -51,13 +33,15 @@ requestInternal = async function(method, url, body) {
           method: method,
           credentials: 'same-origin',
           headers: {
-            'content-type': 'application/json',
+            'content-type': 'application/json', // TODO: accept gzip?
           },
           body: body,
         });
         setTimeout(() => resolve(reqResp), NETWORK_DELAY);
       } catch (err) {
-        reject(new Error('Something went wrong during the request: ' + err));
+        reject(
+          new Error('Something went wrong during the request: ' + err, err)
+        );
       } finally {
         clearTimeout(timeout);
       }
@@ -78,11 +62,11 @@ requestInternal = async function(method, url, body) {
   } else {
     console.log('xhr', new XMLHttpRequest());
     // TODO: This is untested and probably doesn't work
-    const request = await new Promise(function(resolve, reject) {
+    const request = await new Promise(function (resolve, reject) {
       const xhr = new XMLHttpRequest();
       xhr.open(method, url, true);
       xhr.setRequestHeader('Content-type', 'application/json');
-      xhr.onload = function() {
+      xhr.onload = function () {
         if (this.status >= 200 && this.status < 300) {
           resolve(xhr.response);
         } else {
@@ -93,7 +77,7 @@ requestInternal = async function(method, url, body) {
           });
         }
       };
-      xhr.onerror = function() {
+      xhr.onerror = function () {
         reject({
           status: this.status,
           statusText: xhr.statusText,
@@ -105,6 +89,8 @@ requestInternal = async function(method, url, body) {
     if (response.status !== 204) {
       response.body = request.response;
     }
+
+    state.setStatusBasedOnHttpResponse(response.status);
   }
   console.log('[NET] Request Complete', url, response.status, response.body);
   return response;

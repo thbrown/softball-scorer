@@ -15,8 +15,8 @@ describe('sync', () => {
   let cache;
   let compute;
   let server;
-  let sessionId;
-  beforeAll(async () => {
+  let sessionCookies;
+  beforeAll(async (done) => {
     const port = configAccessor.getAppServerPort();
     const optPort = configAccessor.getOptimizationServerPort();
     cache = configAccessor.getCacheService();
@@ -26,39 +26,52 @@ describe('sync', () => {
     server.start();
 
     // Wait for services to start up (TODO: fix this)
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     let email = `syncTest${utils.randomId(10)}@softball.app`;
     let accountPassword = 'pizza';
     await utils.signup(email, accountPassword);
 
-    sessionId = await utils.login(email, accountPassword);
-    authenticate(sessionId); // see jest-setup.js
+    sessionCookies = await utils.login(email, accountPassword);
+    authenticate(sessionCookies); // global, see jest-setup.js
+    done();
   });
 
-  afterAll(async () => {
+  afterAll(async (done) => {
     try {
-      await utils.deleteAccount(sessionId);
+      await utils.deleteAccount(sessionCookies);
       await server.stop();
 
-      // This isn't currenlty working for some reason
+      // This isn't currenlty working for some reason (is this causing the open file handles after tests run?)
       await databaseCalls.disconnect();
     } catch (err) {
       console.log(`Something went wrong in afterAll ${err}`);
+      throw err;
     }
+    done();
   });
 
-  let performAndValidateSync = async function(activeState) {
+  let performAndValidateSync = async function (activeState) {
     let beforeSyncCopy = JSON.stringify(state.getLocalState(), null, 2);
     let clientChecksum = activeState.getLocalStateChecksum();
     let responseStatus = await activeState.sync();
     expect(responseStatus).toEqual(200);
+
+    // Strip server-side generated fields
+    let teams = activeState.getLocalState().teams;
+    if (teams) {
+      for (let i = 0; i < teams.length; i++) {
+        delete teams[i].publicId;
+      }
+    }
+
     let serverChecksum = activeState.getLocalStateChecksum();
     let afterSyncCopy = JSON.stringify(state.getLocalState(), null, 2);
 
     if (clientChecksum !== serverChecksum) {
       // Checksums don't care about ordering, so they are the definitive answer
       // If those don't match, we'll compare the strings because they are much easier to debug
+      /*
       console.log(
         'Pre',
         beforeSyncCopy,
@@ -67,10 +80,10 @@ describe('sync', () => {
         afterSyncCopy,
         clientChecksum
       );
+      */
       expect(afterSyncCopy).toEqual(beforeSyncCopy);
     }
 
-    expect(afterSyncCopy).toEqual(beforeSyncCopy);
     console.log('Sync assertions successful');
   };
 
@@ -266,7 +279,7 @@ describe('sync', () => {
   });
   */
 
-  test('Ordering - This query includes both deletes and and insert, this tests to makse sure the resulting querys are sorted and performed in the right order', async () => {
+  test('Ordering - This query includes both deletes and and insert, this tests to makes sure the resulting querys are sorted and performed in the right order', async () => {
     state.deleteAllLocalData();
     await performAndValidateSync(state);
 

@@ -62,7 +62,7 @@ const getClientPlateAppearance = (pa, game) => ({
   date: game.date,
 });
 
-exp.syncStateToSyncStateName = function(syncState) {
+exp.syncStateToSyncStateName = function (syncState) {
   for (let i in SYNC_STATUS_ENUM) {
     if (syncState === SYNC_STATUS_ENUM[i]) {
       return i;
@@ -71,7 +71,7 @@ exp.syncStateToSyncStateName = function(syncState) {
   return '';
 };
 
-exp.getServerUrl = function(path) {
+exp.getServerUrl = function (path) {
   return window.location.href + path;
 };
 
@@ -79,7 +79,7 @@ exp.getServerUrl = function(path) {
 // -1 network issue
 // -2 failed on fullSync = false
 // -3 failed on fullSync = true
-exp.sync = async function(fullSync) {
+exp.sync = async function (fullSync) {
   console.log('[SYNC] Sync requested', fullSync ? 'full' : 'patchOnly');
 
   while (
@@ -116,7 +116,7 @@ exp.sync = async function(fullSync) {
 
     // Ship it
     console.log('[SYNC] Syncing...', body);
-    let response = await network.request(
+    let response = await state.request(
       'POST',
       'server/sync',
       JSON.stringify(body)
@@ -139,7 +139,7 @@ exp.sync = async function(fullSync) {
         // Patches were sent, apply all patches to a copy of the local state
         console.log(`[SYNC] Applying patches `);
 
-        serverState.patches.forEach(patch => {
+        serverState.patches.forEach((patch) => {
           objectMerge.patch(localStateCopyPreRequest, patch);
         });
         // The local state with the server updates is the new ancestor
@@ -283,11 +283,11 @@ exp.sync = async function(fullSync) {
   }
 };
 
-exp.resetSyncState = function() {
+exp.resetSyncState = function () {
   setSyncState(SYNC_STATUS_ENUM.UNKNOWN);
 };
 
-exp.resetState = function() {
+exp.resetState = function () {
   setSyncState(SYNC_STATUS_ENUM.UNKNOWN);
 
   online = true;
@@ -301,41 +301,41 @@ exp.resetState = function() {
   exp.saveDbStateToLocalStorage();
 };
 
-exp.deleteAllLocalData = function() {
+exp.deleteAllLocalData = function () {
   LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
   onEdit();
 };
 
-exp.getLocalState = function() {
+exp.getLocalState = function () {
   return LOCAL_DB_STATE;
 };
 
-exp.getLocalStateChecksum = function() {
+exp.getLocalStateChecksum = function () {
   return commonUtils.getHash(LOCAL_DB_STATE);
 };
 
-exp.setLocalState = function(newState) {
+exp.setLocalState = function (newState) {
   LOCAL_DB_STATE = newState;
   onEdit();
 };
 
-let setLocalStateNoSideEffects = function(newState) {
+let setLocalStateNoSideEffects = function (newState) {
   LOCAL_DB_STATE = newState;
 };
 
-exp.getAncestorState = function() {
+exp.getAncestorState = function () {
   return ANCESTOR_DB_STATE;
 };
 
-exp.setAncestorState = function(s) {
+exp.setAncestorState = function (s) {
   ANCESTOR_DB_STATE = s;
 };
 
-exp.getAncestorStateChecksum = function() {
+exp.getAncestorStateChecksum = function () {
   return commonUtils.getHash(ANCESTOR_DB_STATE);
 };
 
-exp.hasAnythingChanged = function() {
+exp.hasAnythingChanged = function () {
   // TODO: It's probaby faster just to comare these directly
   return (
     commonUtils.getHash(LOCAL_DB_STATE) !== commonUtils.getHash(INITIAL_STATE)
@@ -344,26 +344,27 @@ exp.hasAnythingChanged = function() {
 
 // TEAM
 
-exp.getTeam = function(team_id, state) {
+exp.getTeam = function (team_id, state) {
   return (state || LOCAL_DB_STATE).teams.reduce((prev, curr) => {
     return curr.id === team_id ? curr : prev;
   }, null);
 };
 
-exp.addTeam = function(team_name) {
+exp.addTeam = function (team_name) {
   const id = getNextId();
   let new_state = exp.getLocalState();
   let team = {
     id: id,
     name: team_name,
     games: [],
+    publicIdEnabled: false,
   };
   new_state.teams.push(team);
   onEdit();
   return team;
 };
 
-exp.replaceTeam = function(oldTeamId, newTeam) {
+exp.replaceTeam = function (oldTeamId, newTeam) {
   let localState = exp.getLocalState();
   let oldTeam = exp.getTeam(oldTeamId);
   let oldTeamIndex = localState.teams.indexOf(oldTeam);
@@ -371,15 +372,15 @@ exp.replaceTeam = function(oldTeamId, newTeam) {
   onEdit();
 };
 
-exp.removeTeam = function(team_id) {
+exp.removeTeam = function (team_id) {
   let new_state = exp.getLocalState();
-  new_state.teams = new_state.teams.filter(team => {
+  new_state.teams = new_state.teams.filter((team) => {
     return team.id !== team_id;
   });
   onEdit();
 };
 
-exp.setTeamPublicIdEnabled = function(teamId, isEnabled) {
+exp.setTeamPublicIdEnabled = function (teamId, isEnabled) {
   const team = exp.getTeam(teamId);
   team.publicIdEnabled = isEnabled;
   onEdit();
@@ -387,13 +388,13 @@ exp.setTeamPublicIdEnabled = function(teamId, isEnabled) {
 
 // PLAYER
 
-exp.getPlayer = function(player_id, state) {
+exp.getPlayer = function (player_id, state) {
   return (state || LOCAL_DB_STATE).players.reduce((prev, curr) => {
     return curr.id === player_id ? curr : prev;
   }, null);
 };
 
-exp.replacePlayer = function(playerId, newPlayer) {
+exp.replacePlayer = function (playerId, newPlayer) {
   let localState = exp.getLocalState();
   let oldPlayer = exp.getPlayer(playerId, localState);
 
@@ -402,12 +403,12 @@ exp.replacePlayer = function(playerId, newPlayer) {
   onEdit();
 };
 
-exp.getAllPlayers = function(state) {
+exp.getAllPlayers = function (state) {
   return (state || exp.getLocalState()).players;
 };
 
-exp.getAllPlayersAlphabetically = function() {
-  let playerNameComparator = function(a, b) {
+exp.getAllPlayersAlphabetically = function () {
+  let playerNameComparator = function (a, b) {
     if (a.name.toLowerCase() < b.name.toLowerCase()) {
       return -1;
     }
@@ -421,13 +422,13 @@ exp.getAllPlayersAlphabetically = function() {
   return getShallowCopy(exp.getLocalState().players).sort(playerNameComparator);
 };
 
-exp.removePlayer = function(playerId) {
+exp.removePlayer = function (playerId) {
   if (
     exp.getGamesWithPlayerInLineup(playerId).length === 0 &&
     exp.getGamesWherePlayerHasPlateAppearances(playerId).length === 0
   ) {
     let localState = exp.getLocalState();
-    localState.players = localState.players.filter(player => {
+    localState.players = localState.players.filter((player) => {
       return player.id !== playerId;
     });
     onEdit();
@@ -437,7 +438,7 @@ exp.removePlayer = function(playerId) {
   }
 };
 
-exp.addPlayer = function(playerName, gender) {
+exp.addPlayer = function (playerName, gender) {
   const id = getNextId();
   let new_state = exp.getLocalState();
   let player = {
@@ -454,17 +455,17 @@ exp.addPlayer = function(playerName, gender) {
 
 // OPTIMIZATION
 
-exp.getOptimization = function(optimizationId) {
+exp.getOptimization = function (optimizationId) {
   return LOCAL_DB_STATE.optimizations.reduce((prev, curr) => {
     return curr.id === optimizationId ? curr : prev;
   }, null);
 };
 
-exp.getAllOptimizations = function() {
+exp.getAllOptimizations = function () {
   return exp.getLocalState().optimizations;
 };
 
-exp.replaceOptimization = function(optimizationId, newOptimization) {
+exp.replaceOptimization = function (optimizationId, newOptimization) {
   const localState = exp.getLocalState();
   const oldOptimization = exp.getOptimization(optimizationId);
 
@@ -476,7 +477,7 @@ exp.replaceOptimization = function(optimizationId, newOptimization) {
 };
 
 // TODO: can this be merged with setOptimizationField?
-exp.setOptimizationCustomDataField = function(
+exp.setOptimizationCustomDataField = function (
   optimizationId,
   fieldName,
   fieldValue
@@ -492,7 +493,7 @@ exp.setOptimizationCustomDataField = function(
   onEdit();
 };
 
-exp.setOptimizationField = function(
+exp.setOptimizationField = function (
   optimizationId,
   fieldName,
   fieldValue,
@@ -507,21 +508,21 @@ exp.setOptimizationField = function(
   onEdit();
 };
 
-exp.getOptimizationCustomDataField = function(optimizationId, fieldName) {
+exp.getOptimizationCustomDataField = function (optimizationId, fieldName) {
   const optimization = exp.getOptimization(optimizationId);
   const customData = JSON.parse(optimization.customData);
   return customData[fieldName];
 };
 
-exp.removeOptimization = function(optimizationId) {
+exp.removeOptimization = function (optimizationId) {
   const localState = exp.getLocalState();
-  localState.optimizations = localState.optimizations.filter(optimization => {
+  localState.optimizations = localState.optimizations.filter((optimization) => {
     return optimization.id !== optimizationId;
   });
   onEdit();
 };
 
-exp.addOptimization = function(name) {
+exp.addOptimization = function (name) {
   const id = getNextId();
   let new_state = exp.getLocalState();
   let optimization = {
@@ -550,7 +551,7 @@ exp.addOptimization = function(name) {
 
 // GAME
 
-exp.addGame = function(teamId, opposingTeamName) {
+exp.addGame = function (teamId, opposingTeamName) {
   let new_state = exp.getLocalState();
   const id = getNextId();
   const team = exp.getTeam(teamId, new_state);
@@ -578,7 +579,7 @@ exp.addGame = function(teamId, opposingTeamName) {
   return game;
 };
 
-exp.replaceGame = function(oldGameId, teamId, newGame) {
+exp.replaceGame = function (oldGameId, teamId, newGame) {
   const localState = exp.getLocalState();
   const oldGame = exp.getGame(oldGameId);
 
@@ -590,7 +591,7 @@ exp.replaceGame = function(oldGameId, teamId, newGame) {
   onEdit();
 };
 
-exp.getGame = function(game_id, state) {
+exp.getGame = function (game_id, state) {
   for (let team of (state || LOCAL_DB_STATE).teams) {
     for (let game of team.games) {
       if (game.id === game_id) {
@@ -602,7 +603,7 @@ exp.getGame = function(game_id, state) {
   return null;
 };
 
-exp.getGamesWithPlayerInLineup = function(playerId, state) {
+exp.getGamesWithPlayerInLineup = function (playerId, state) {
   let games = [];
   let localState = state || exp.getLocalState();
   for (let team of localState.teams) {
@@ -618,7 +619,7 @@ exp.getGamesWithPlayerInLineup = function(playerId, state) {
   return games;
 };
 
-exp.getGamesWherePlayerHasPlateAppearances = function(playerId, state) {
+exp.getGamesWherePlayerHasPlateAppearances = function (playerId, state) {
   const games = [];
   const localState = state || exp.getLocalState();
   for (let team of localState.teams) {
@@ -634,30 +635,30 @@ exp.getGamesWherePlayerHasPlateAppearances = function(playerId, state) {
   return games;
 };
 
-exp.addPlayerToLineup = function(lineup, player_id) {
+exp.addPlayerToLineup = function (lineup, player_id) {
   lineup.push(player_id);
   onEdit();
 };
 
-exp.updateLineup = function(lineup, playerId, newIndex) {
+exp.updateLineup = function (lineup, playerId, newIndex) {
   const ind = lineup.indexOf(playerId);
   lineup.splice(ind, 1);
   lineup.splice(newIndex, 0, playerId);
   onEdit();
 };
 
-exp.removePlayerFromLineup = function(lineup, player_id) {
+exp.removePlayerFromLineup = function (lineup, player_id) {
   const index = lineup.indexOf(player_id);
   lineup.splice(index, 1);
   onEdit();
 };
 
-exp.removeGame = function(game_id, team_id) {
+exp.removeGame = function (game_id, team_id) {
   const new_state = exp.getLocalState();
   const team = exp.getTeam(team_id);
   const index = new_state.teams.indexOf(team);
 
-  team.games = team.games.filter(game => {
+  team.games = team.games.filter((game) => {
     return game.id !== game_id;
   });
 
@@ -669,7 +670,7 @@ exp.removeGame = function(game_id, team_id) {
   onEdit();
 };
 
-exp.setScore = function({ scoreUs, scoreThem }, gameId) {
+exp.setScore = function ({ scoreUs, scoreThem }, gameId) {
   const game = exp.getGame(gameId);
   game.scoreUs = scoreUs === undefined ? game.scoreUs : scoreUs;
   game.scoreThem = scoreThem === undefined ? game.scoreThem : scoreThem;
@@ -685,7 +686,7 @@ exp.setScore = function({ scoreUs, scoreThem }, gameId) {
 
 // PLATE APPEARANCE
 
-exp.addPlateAppearance = function(playerId, gameId) {
+exp.addPlateAppearance = function (playerId, gameId) {
   const game = exp.getGame(gameId);
   const plateAppearances = game.plateAppearances;
   const id = getNextId();
@@ -703,7 +704,7 @@ exp.addPlateAppearance = function(playerId, gameId) {
   return plateAppearance;
 };
 
-exp.replacePlateAppearance = function(paId, gameId, teamId, newPa) {
+exp.replacePlateAppearance = function (paId, gameId, teamId, newPa) {
   const localState = exp.getLocalState();
 
   const team = exp.getTeam(teamId);
@@ -735,7 +736,7 @@ exp.replacePlateAppearance = function(paId, gameId, teamId, newPa) {
 };
 
 // TODO: allow for passing team and game ids to improve perf
-exp.getPlateAppearance = function(pa_id, state) {
+exp.getPlateAppearance = function (pa_id, state) {
   for (let team of (state || LOCAL_DB_STATE).teams) {
     for (let game of team.games) {
       for (let pa of game.plateAppearances) {
@@ -748,34 +749,34 @@ exp.getPlateAppearance = function(pa_id, state) {
   return null;
 };
 
-exp.getPlateAppearancesForGame = function(gameId, state) {
+exp.getPlateAppearancesForGame = function (gameId, state) {
   const game = exp.getGame(gameId, state);
   if (!game) {
     return null;
   }
-  return game.plateAppearances.map(pa => getClientPlateAppearance(pa, game));
+  return game.plateAppearances.map((pa) => getClientPlateAppearance(pa, game));
 };
 
-exp.getPlateAppearancesForPlayerInGame = function(player_id, game_id, state) {
+exp.getPlateAppearancesForPlayerInGame = function (player_id, game_id, state) {
   const game = exp.getGame(game_id, state);
   const player = exp.getPlayer(player_id, state);
   if (!game || !player) {
     return null;
   }
-  return game.plateAppearances.filter(pa => pa.player_id === player_id);
+  return game.plateAppearances.filter((pa) => pa.player_id === player_id);
 };
 
-exp.getPlateAppearancesForPlayerOnTeam = function(player_id, team_id, state) {
+exp.getPlateAppearancesForPlayerOnTeam = function (player_id, team_id, state) {
   const team =
     typeof team_id === 'string' ? exp.getTeam(team_id, state) : team_id;
   let plateAppearances = [];
 
   if (team && team.games) {
-    team.games.forEach(game => {
+    team.games.forEach((game) => {
       if (game.plateAppearances) {
         const plateAppearancesThisGame = game.plateAppearances
-          .filter(pa => player_id === pa.player_id)
-          .map(pa => {
+          .filter((pa) => player_id === pa.player_id)
+          .map((pa) => {
             return getClientPlateAppearance(pa, game);
           });
         plateAppearances = plateAppearances.concat(plateAppearancesThisGame);
@@ -785,7 +786,7 @@ exp.getPlateAppearancesForPlayerOnTeam = function(player_id, team_id, state) {
   return plateAppearances;
 };
 
-exp.getPlateAppearancesForPlayerInGameOrOnTeam = function(
+exp.getPlateAppearancesForPlayerInGameOrOnTeam = function (
   playerId,
   teamIds,
   gameIds,
@@ -811,19 +812,19 @@ exp.getPlateAppearancesForPlayerInGameOrOnTeam = function(
   return plateAppearances;
 };
 
-exp.getPlateAppearancesForPlayer = function(player_id, state) {
+exp.getPlateAppearancesForPlayer = function (player_id, state) {
   let localState = state || exp.getLocalState();
   let teams = localState.teams;
   let plateAppearances = [];
 
   if (teams) {
-    teams.forEach(team => {
+    teams.forEach((team) => {
       if (team.games) {
-        team.games.forEach(game => {
+        team.games.forEach((game) => {
           if (game.plateAppearances) {
             const plateAppearancesThisGame = game.plateAppearances
-              .filter(pa => player_id === pa.player_id)
-              .map(pa => {
+              .filter((pa) => player_id === pa.player_id)
+              .map((pa) => {
                 return getClientPlateAppearance(pa, game);
               });
             plateAppearances = plateAppearances.concat(
@@ -837,23 +838,23 @@ exp.getPlateAppearancesForPlayer = function(player_id, state) {
   return plateAppearances;
 };
 
-exp.updatePlateAppearanceResult = function(plateAppearance, result) {
+exp.updatePlateAppearanceResult = function (plateAppearance, result) {
   plateAppearance.result = result;
   onEdit();
 };
 
-exp.updatePlateAppearanceLocation = function(plateAppearance, location) {
+exp.updatePlateAppearanceLocation = function (plateAppearance, location) {
   plateAppearance.location = {};
   plateAppearance.location.x = Math.floor(location[0]);
   plateAppearance.location.y = Math.floor(location[1]);
   onEdit();
 };
 
-exp.removePlateAppearance = function(plateAppearance_id, game_id) {
+exp.removePlateAppearance = function (plateAppearance_id, game_id) {
   exp.getLocalState();
   let game = exp.getGame(game_id);
 
-  game.plateAppearances = game.plateAppearances.filter(pa => {
+  game.plateAppearances = game.plateAppearances.filter((pa) => {
     return pa.id !== plateAppearance_id;
   });
   onEdit();
@@ -861,7 +862,7 @@ exp.removePlateAppearance = function(plateAppearance_id, game_id) {
 
 // LOCAL STORAGE
 
-exp.saveDbStateToLocalStorage = function() {
+exp.saveDbStateToLocalStorage = function () {
   if (typeof Storage !== 'undefined') {
     /*
     // Disable compression for now
@@ -886,7 +887,7 @@ exp.saveDbStateToLocalStorage = function() {
   }
 };
 
-exp.saveApplicationStateToLocalStorage = function() {
+exp.saveApplicationStateToLocalStorage = function () {
   if (typeof Storage !== 'undefined') {
     localStorage.setItem('SCHEMA_VERSION', CURRENT_LS_SCHEMA_VERSION);
     let applicationState = {
@@ -898,7 +899,7 @@ exp.saveApplicationStateToLocalStorage = function() {
   }
 };
 
-exp.loadStateFromLocalStorage = function() {
+exp.loadStateFromLocalStorage = function () {
   if (typeof Storage !== 'undefined') {
     // These statements define local storage schema migrations
     // TODO: this logic also needs to be executed when importing a file
@@ -959,7 +960,7 @@ exp.loadStateFromLocalStorage = function() {
   reRender();
 };
 
-exp.clearLocalStorage = function() {
+exp.clearLocalStorage = function () {
   console.log('Clearing ls ');
   localStorage.clear();
 };
@@ -980,8 +981,8 @@ function reRender() {
 
 // An async sleep function
 async function sleep(ms) {
-  return new Promise(function(resolve, reject) {
-    setTimeout(function() {
+  return new Promise(function (resolve, reject) {
+    setTimeout(function () {
       resolve(ms);
     }, ms);
   });
@@ -1002,7 +1003,7 @@ function getNextId() {
 
 // NOT SURE THIS IS THE RIGHT PLACE FOR THESE. MOVE TO SOME OTHER UTIL?
 
-exp.getQueryObj = function() {
+exp.getQueryObj = function () {
   let queryString = window.location.search || '';
   if (queryString[0] === '?') {
     queryString = queryString.slice(1);
@@ -1020,7 +1021,7 @@ exp.getQueryObj = function() {
   return params;
 };
 
-exp.editQueryObject = function(fieldName, value) {
+exp.editQueryObject = function (fieldName, value) {
   let queryObject = exp.getQueryObj();
   queryObject[fieldName] = value;
   let queryString = '';
@@ -1040,7 +1041,7 @@ exp.editQueryObject = function(fieldName, value) {
   );
 };
 
-exp.buildStatsObject = function(playerId, plateAppearances) {
+exp.buildStatsObject = function (playerId, plateAppearances) {
   const player =
     typeof playerId === 'string' ? state.getPlayer(playerId) : playerId;
 
@@ -1060,7 +1061,7 @@ exp.buildStatsObject = function(playerId, plateAppearances) {
   stats.walks = 0;
   stats.fieldersChoice = 0;
 
-  plateAppearances.forEach(pa => {
+  plateAppearances.forEach((pa) => {
     if (pa.result) {
       stats.plateAppearances++;
 
@@ -1126,30 +1127,30 @@ exp.buildStatsObject = function(playerId, plateAppearances) {
 
 // APPLICATION STATE FUNCTIONS
 
-exp.isOnline = function() {
+exp.isOnline = function () {
   return online;
 };
 
-exp.isSessionValid = function() {
+exp.isSessionValid = function () {
   return sessionValid;
 };
 
-exp.getActiveUser = function() {
+exp.getActiveUser = function () {
   return activeUser;
 };
 
-exp.setOffline = function() {
+exp.setOffline = function () {
   online = false;
   exp.saveApplicationStateToLocalStorage();
 };
 
-exp.setActiveUser = function(user) {
+exp.setActiveUser = function (user) {
   activeUser = user;
   exp.saveApplicationStateToLocalStorage();
 };
 
 // This assumes all routes are behind login
-exp.setStatusBasedOnHttpResponse = function(code) {
+exp.setStatusBasedOnHttpResponse = function (code) {
   if (code >= 200 && code < 300) {
     sessionValid = true;
     online = true;
@@ -1167,19 +1168,19 @@ exp.setStatusBasedOnHttpResponse = function(code) {
   exp.saveApplicationStateToLocalStorage();
 };
 
-exp.setAddToHomescreenPrompt = function(e) {
+exp.setAddToHomescreenPrompt = function (e) {
   addToHomescreenEvent = e;
   reRender();
 };
 
-exp.getAddToHomescreenPrompt = function() {
+exp.getAddToHomescreenPrompt = function () {
   return addToHomescreenEvent;
 };
 
-exp.scheduleSync = function(time = SYNC_DELAY_MS) {
-  if (process.env.NODE_ENV === 'test') {
-    return;
-  }
+exp.scheduleSync = function (time = SYNC_DELAY_MS) {
+  //if (process.env.NODE_ENV === 'test') {
+  //  return;
+  //}
 
   let currentState = exp.getSyncState();
   if (currentState === SYNC_STATUS_ENUM.ERROR) {
@@ -1197,7 +1198,7 @@ exp.scheduleSync = function(time = SYNC_DELAY_MS) {
   console.log('[SYNC] Sync scheduled');
   clearTimeout(syncTimer);
 
-  syncTimer = setTimeout(function() {
+  syncTimer = setTimeout(function () {
     if (
       exp.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS ||
       currentState === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
@@ -1210,10 +1211,10 @@ exp.scheduleSync = function(time = SYNC_DELAY_MS) {
   }, time);
 };
 
-let setSyncState = function(newState, skipRender) {
-  if (process.env.NODE_ENV === 'test') {
-    return;
-  }
+let setSyncState = function (newState, skipRender) {
+  //if (process.env.NODE_ENV === 'test') {
+  //  return;
+  //}
 
   // Skip unnecessary renders
   if (syncState !== newState) {
@@ -1229,21 +1230,43 @@ let setSyncState = function(newState, skipRender) {
   }
 };
 
-exp.getSyncState = function() {
+exp.getSyncState = function () {
   return syncState;
 };
 
-exp.getSyncStateEnum = function() {
+exp.getSyncStateEnum = function () {
   return SYNC_STATUS_ENUM;
 };
 
-exp.setPreventScreenLock = function(value) {
+exp.setPreventScreenLock = function (value) {
   this.preventScreenLock = value;
   reRender();
 };
 
-exp.getPreventScreenLock = function() {
+exp.getPreventScreenLock = function () {
   return this.preventScreenLock;
+};
+
+/**
+ * Perform a network request, but do the update the state (online, authentication status, etc...)
+ * based on the response
+ */
+exp.request = async function (method, url, body) {
+  try {
+    let response = await network.request(method, url, body);
+    state.setStatusBasedOnHttpResponse(response.status);
+    return response;
+  } catch (err) {
+    console.log('Encountered an error during network request');
+    console.log(err);
+    state.setOffline();
+    // We'll just return -1 to say that something went wrong with the network
+    const response = {};
+    response.status = -1;
+    response.body = {};
+    response.body.message = err;
+    return response;
+  }
 };
 
 // Flip enums for reverse lookups

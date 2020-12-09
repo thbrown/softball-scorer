@@ -37,7 +37,7 @@ module.exports = class SoftballServer {
     logger.log('sys', 'Starting');
 
     // Start the optimization server
-    new OptimizationServer(this.databaseCalls, this.compute);
+    this.optServer = new OptimizationServer(this.databaseCalls, this.compute);
 
     // Authentication
     let self = this;
@@ -47,7 +47,7 @@ module.exports = class SoftballServer {
           usernameField: 'email',
           passwordField: 'password',
         },
-        async function(email, password, cb) {
+        async function (email, password, cb) {
           logger.log(null, 'Checking credentials...', email);
 
           try {
@@ -82,11 +82,11 @@ module.exports = class SoftballServer {
       )
     );
 
-    passport.serializeUser(function(sessionInfo, cb) {
+    passport.serializeUser(function (sessionInfo, cb) {
       cb(null, sessionInfo);
     });
 
-    passport.deserializeUser(async function(sessionInfo, cb) {
+    passport.deserializeUser(async function (sessionInfo, cb) {
       cb(null, sessionInfo);
     });
 
@@ -141,7 +141,7 @@ module.exports = class SoftballServer {
           ],
           objectSrc: ["'none'"],
           reportUri: '/server/report-violation',
-        }
+        },
       })
     );
     //app.use(helmet.referrerPolicy({ policy: "same-origin" })); // This breaks embeded youtube on ios safari
@@ -206,7 +206,7 @@ module.exports = class SoftballServer {
 
     // Middleware to check that our second auth cookie is present and valid
     // This allows clients to log out when offline
-    app.use(async function(req, res, next) {
+    app.use(async function (req, res, next) {
       if (req.isAuthenticated()) {
         let accountId = extractSessionInfo(req, 'accountId');
         let cookieToken = req.cookies.nonHttpOnlyToken;
@@ -219,7 +219,7 @@ module.exports = class SoftballServer {
             );
             await new Promise((resolve, reject) => {
               req.logout();
-              req.session.destroy(function(err) {
+              req.session.destroy(function (err) {
                 if (err) {
                   reject(err);
                 }
@@ -306,13 +306,13 @@ module.exports = class SoftballServer {
     app.post(
       '/server/account/login',
       wrapForErrorProcessing((req, res, next) => {
-        passport.authenticate('local', async function(err, accountInfo, info) {
+        passport.authenticate('local', async function (err, accountInfo, info) {
           if (err || !accountInfo) {
             logger.warn(null, 'Authentication Failed', accountInfo, err, info);
             res.status(400).send();
             return;
           }
-          req.logIn(accountInfo, function() {
+          req.logIn(accountInfo, function () {
             initSecondAuthToken(req, res);
             logger.log(accountInfo.account_id, 'Login Successful!');
             res.status(204).send();
@@ -986,7 +986,7 @@ module.exports = class SoftballServer {
       })
     );
 
-    app.get('/server/current-account', function(req, res) {
+    app.get('/server/current-account', function (req, res) {
       if (!req.isAuthenticated()) {
         res.status(403).send();
         return;
@@ -998,7 +998,7 @@ module.exports = class SoftballServer {
 
     // This route just accepts reports of Content Security Policy (CSP) violations
     // https://helmetjs.github.io/docs/csp/
-    app.post('/server/report-violation', function(req, res) {
+    app.post('/server/report-violation', function (req, res) {
       let accountId = extractSessionInfo(req, 'accountId');
       if (req.body) {
         logger.log(accountId, 'CSP Violation: ', req.body);
@@ -1026,11 +1026,11 @@ module.exports = class SoftballServer {
     );
 
     // 404 on unrecognized routes
-    app.use(function() {
+    app.use(function () {
       throw new HandledError('N/A', 404, 'Resource not found');
     });
 
-    app.use(function(error, req, res, next) {
+    app.use(function (error, req, res, next) {
       let accountId = extractSessionInfo(req, 'accountId');
 
       res.setHeader('content-type', 'application/json');
@@ -1043,9 +1043,7 @@ module.exports = class SoftballServer {
           error.print();
         }
       } else {
-        let errorId = Math.random()
-          .toString(36)
-          .substring(7);
+        let errorId = Math.random().toString(36).substring(7);
         res
           .status(500)
           .send({ message: `Internal Server Error. Error id: ${errorId}.` });
@@ -1064,7 +1062,7 @@ module.exports = class SoftballServer {
 
     // Error handling, so we can catch errors that occur during async too
     function wrapForErrorProcessing(fn) {
-      return async function(req, res, next) {
+      return async function (req, res, next) {
         try {
           await fn(req, res, next);
         } catch (error) {
@@ -1075,8 +1073,8 @@ module.exports = class SoftballServer {
 
     // An async sleep function
     async function sleep(ms) {
-      return new Promise(function(resolve, reject) {
-        setTimeout(function() {
+      return new Promise(function (resolve, reject) {
+        setTimeout(function () {
           resolve(ms);
         }, ms);
       });
@@ -1102,10 +1100,7 @@ module.exports = class SoftballServer {
           } else {
             // Make sure the token is url safe
             resolve(
-              buf
-                .toString('base64')
-                .replace(/\//g, '_')
-                .replace(/\+/g, '-')
+              buf.toString('base64').replace(/\//g, '_').replace(/\+/g, '-')
             );
           }
         });
@@ -1135,15 +1130,15 @@ module.exports = class SoftballServer {
     async function logIn(account, req, res) {
       logger.log(account.account_id, 'Logging in', account);
       try {
-        await new Promise(function(resolve, reject) {
-          req.logIn(account, function() {
+        await new Promise(function (resolve, reject) {
+          req.logIn(account, function () {
             // We need to serialize some info to the session
             let sessionInfo = {
               accountId: account.account_id,
               email: account.email,
             };
-            var doneWrapper = function(req) {
-              var done = function(err, user) {
+            var doneWrapper = function (req) {
+              var done = function (err, user) {
                 if (err) {
                   reject(err);
                   return;
@@ -1165,7 +1160,7 @@ module.exports = class SoftballServer {
       }
     }
 
-    const extractSessionInfo = function(req, field) {
+    const extractSessionInfo = function (req, field) {
       if (
         req &&
         req.session &&
@@ -1180,7 +1175,7 @@ module.exports = class SoftballServer {
 
     // Lock the account. Only one session for a single account can access the database at a time, otherwise there will be lots of race conditions.
     // Depending on the server configuration, locking info may be stored in a cache to allow multiple app servers to access and update the same locks.
-    const lockAccount = async function(accountId) {
+    const lockAccount = async function (accountId) {
       let success = false;
       let counter = 0;
       do {
@@ -1202,11 +1197,11 @@ module.exports = class SoftballServer {
       } while (!success);
     };
 
-    const unlockAccount = async function(accountId) {
+    const unlockAccount = async function (accountId) {
       await self.cacheCalls.unlockAccount(accountId);
     };
 
-    const sendEmailValidationEmail = async function(accountId, email) {
+    const sendEmailValidationEmail = async function (accountId, email) {
       let token = await generateToken();
       let tokenHash = crypto
         .createHash('sha256')
@@ -1226,11 +1221,15 @@ module.exports = class SoftballServer {
     };
   }
 
-  stop() {
-    return new Promise(
-      function(resolve, reject) {
+  async stop() {
+    // Shut doen the opt server
+    let optServerShutdown = this.optServer.stop();
+
+    // Shut down the app server
+    let appShutdown = new Promise(
+      function (resolve, reject) {
         logger.log(null, 'Closing App');
-        this.server.close(function(err) {
+        this.server.close(function (err) {
           if (err) {
             reject(err);
           }
@@ -1239,5 +1238,7 @@ module.exports = class SoftballServer {
         });
       }.bind(this)
     );
+
+    return Promise.all([optServerShutdown, appShutdown]);
   }
 };

@@ -20,10 +20,14 @@ export default class CardLineup extends React.Component {
     super(props);
     this.state = {};
 
+    // Refs
+    this.scoreSpinnerRef = React.createRef();
+    this.scoreTextRef = React.createRef();
+
     this.locked =
       this.locked || this.props.game.plateAppearances.length > 0 ? true : false;
 
-    const hideHighlights = skipTransition => {
+    const hideHighlights = (skipTransition) => {
       let highlights = document.getElementsByClassName('highlight');
       for (let i = 0; i < highlights.length; i++) {
         if (skipTransition) {
@@ -73,11 +77,11 @@ export default class CardLineup extends React.Component {
       return { highlight_index, new_position_index };
     };
 
-    this.clamp = function(num, min, max) {
+    this.clamp = function (num, min, max) {
       return num <= min ? min : num >= max ? max : num;
     };
 
-    this.handleRemoveClick = function(player, ev) {
+    this.handleRemoveClick = function (player, ev) {
       dialog.show_confirm(
         'Do you want to remove "' + player.name + '" from the lineup?',
         () => {
@@ -88,19 +92,19 @@ export default class CardLineup extends React.Component {
       ev.stopPropagation();
     };
 
-    this.handleCreateClick = function() {
+    this.handleCreateClick = function () {
       setRoute(
         `/teams/${this.props.team.id}/games/${this.props.game.id}/player-selection`
       );
     }.bind(this);
 
-    this.handleBoxClick = function(plateAppearanceId) {
+    this.handleBoxClick = function (plateAppearanceId) {
       setRoute(
         `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearanceId}`
       );
     }.bind(this);
 
-    this.handleNewPlateAppearanceClick = function(player, game_id, team_id) {
+    this.handleNewPlateAppearanceClick = function (player, game_id, team_id) {
       let plateAppearance = state.addPlateAppearance(
         player.id,
         game_id,
@@ -111,7 +115,7 @@ export default class CardLineup extends React.Component {
       );
     }.bind(this);
 
-    this.handleDragStart = function(player, index) {
+    this.handleDragStart = function (player, index) {
       this.setState({
         dragging: true,
       });
@@ -121,7 +125,7 @@ export default class CardLineup extends React.Component {
       this.handleDrag(player, index, true);
     };
 
-    this.handleDragStop = function(player, index) {
+    this.handleDragStop = function (player, index) {
       this.setState({
         dragging: false,
       });
@@ -136,7 +140,7 @@ export default class CardLineup extends React.Component {
       this.simulateLineup();
     };
 
-    this.handleDrag = function(player, index, skipTransition) {
+    this.handleDrag = function (player, index, skipTransition) {
       hideHighlights(skipTransition);
       const elem = document.getElementById('lineup_' + player.id);
       const { highlight_index } = getInds(elem, index);
@@ -151,7 +155,7 @@ export default class CardLineup extends React.Component {
       }
     };
 
-    this.handleLockToggle = function() {
+    this.handleLockToggle = function () {
       let lockButton = document.getElementById('lock');
       this.locked = !this.locked;
       lockButton.textContent = this.getUiTextForLockButton();
@@ -161,7 +165,7 @@ export default class CardLineup extends React.Component {
     }.bind(this);
 
     // Prevent ios from scrolling while dragging
-    this.handlePreventTouchmoveWhenDragging = function(event) {
+    this.handlePreventTouchmoveWhenDragging = function (event) {
       if (this.state.dragging) {
         event.preventDefault();
       }
@@ -169,32 +173,27 @@ export default class CardLineup extends React.Component {
   }
 
   simulateLineup() {
-    // web workers don't work in tests
-    if (process.env.NODE_ENV === 'test') {
-      return;
-    }
-
     // Stop existing web workers
     if (this.simWorker) {
       this.simWorker.terminate();
     }
     this.simWorker = new Worker('/server/simulation-worker');
-    this.simWorker.onmessage = function(e) {
+    this.simWorker.onmessage = function (e) {
       let data = JSON.parse(e.data);
-      let elem = document.getElementById('score-text');
+      let elem = this.scoreTextRef.current;
       elem.innerHTML = `Estimated Score: ${data.score.toFixed(3)} runs (took ${
         data.time
       }ms)`;
 
-      let scoreSpinner = document.getElementById('score-spinner');
+      let scoreSpinner = this.scoreSpinnerRef.current;
       scoreSpinner.style.visibility = 'hidden';
     };
 
     // Tell web worker to start computing lineup estimated score
-    let scoreSpinner = document.getElementById('score-spinner');
+    let scoreSpinner = this.scoreSpinnerRef.current;
     scoreSpinner.style.visibility = 'unset';
 
-    let simulatedScoreDiv = document.getElementById('score-text');
+    let simulatedScoreDiv = this.scoreTextRef.current;
     simulatedScoreDiv.innerHTML = SIMULATION_TEXT;
 
     let lineup = [];
@@ -230,7 +229,7 @@ export default class CardLineup extends React.Component {
   disableTouchAction() {
     Array.prototype.forEach.call(
       document.getElementsByClassName('lineup-row'),
-      elem => {
+      (elem) => {
         elem.style['touch-action'] = 'none';
       }
     );
@@ -239,7 +238,7 @@ export default class CardLineup extends React.Component {
   enableTouchAction() {
     Array.prototype.forEach.call(
       document.getElementsByClassName('lineup-row'),
-      elem => {
+      (elem) => {
         elem.style['touch-action'] = null;
       }
     );
@@ -257,10 +256,7 @@ export default class CardLineup extends React.Component {
   }
 
   componentWillUnmount() {
-    // web workers don't work in tests
-    if (process.env.NODE_ENV !== 'test') {
-      this.simWorker.terminate();
-    }
+    this.simWorker.terminate();
     window.document.body.removeEventListener(
       'touchmove',
       this.handlePreventTouchmoveWhenDragging.bind(this),
@@ -328,6 +324,7 @@ export default class CardLineup extends React.Component {
       },
       DOM.img({
         id: 'score-spinner',
+        ref: this.scoreSpinnerRef,
         src: '/server/assets/spinner.gif',
         style: {
           visibility: 'unset',
@@ -336,6 +333,7 @@ export default class CardLineup extends React.Component {
       DOM.div(
         {
           id: 'score-text',
+          ref: this.scoreTextRef,
           className: 'lineup-score-text',
         },
         SIMULATION_TEXT
@@ -453,9 +451,9 @@ export default class CardLineup extends React.Component {
       this.props.game.id
     );
     let nonLineupPlateAppearances = allPlateAppearances.filter(
-      plateAppearance => {
+      (plateAppearance) => {
         let value = true;
-        this.props.game.lineup.forEach(playerInLineupId => {
+        this.props.game.lineup.forEach((playerInLineupId) => {
           if (playerInLineupId === plateAppearance.player_id) {
             value = false; // TODO: how can we break out of this loop early?
           }
@@ -480,14 +478,14 @@ export default class CardLineup extends React.Component {
 
       // Get unique player ids
       let playersIdsNotInLineupWithPlateAppearances = {};
-      nonLineupPlateAppearances.forEach(value => {
+      nonLineupPlateAppearances.forEach((value) => {
         playersIdsNotInLineupWithPlateAppearances[value.player_id] = true;
       });
 
       let playersIdsNotInLineup = Object.keys(
         playersIdsNotInLineupWithPlateAppearances
       );
-      playersIdsNotInLineup.forEach(playerId => {
+      playersIdsNotInLineup.forEach((playerId) => {
         state.getPlateAppearancesForPlayerInGame(playerId, this.props.game.id);
         pageElems.push(
           this.renderPlayerTile(playerId, this.props.game.id, null, NO_EDIT)

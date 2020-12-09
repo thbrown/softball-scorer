@@ -25,9 +25,7 @@ export function setUrl(path) {
 export function goBack() {
   urlStack.shift();
   onGoBack(urlStack[0]);
-  if (process.env.NODE_ENV !== 'test') {
-    window.history.back();
-  }
+  window.history.back();
 }
 
 export function goHome() {

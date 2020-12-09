@@ -31,19 +31,19 @@ module.exports = class OptimizationServer {
     logger.log(null, 'Starting Optimization TCP server');
 
     // Create server to listen for TCP connection on PORT
-    net
-      .createServer(function(sock) {
+    this.server = net
+      .createServer(function (sock) {
         logger.log(
           null,
           'COMPUTER CONNECTED: ' + sock.remoteAddress + ':' + sock.remotePort
         );
 
-        const timer = new TimeoutUtil(SOCKET_TIMEOUT, function() {
+        const timer = new TimeoutUtil(SOCKET_TIMEOUT, function () {
           logger.warn(sock.accountId, 'TCP socket timeout');
           sock.destroy();
         });
 
-        sock.on('data', async function(data) {
+        sock.on('data', async function (data) {
           timer.reset();
           let parsedData = JSON.parse(data);
 
@@ -257,7 +257,7 @@ module.exports = class OptimizationServer {
           }
         });
 
-        sock.on('close', async function(hadError) {
+        sock.on('close', async function (hadError) {
           // The compute client was closed, this could be for any reason: complete optimization,
           // network connectivity loss, instance preemption, whatever. We'll ether do nothing
           // or attempt a retry depending on the optimization's status or if we explicitly diallow
@@ -326,7 +326,7 @@ module.exports = class OptimizationServer {
           }
         });
 
-        sock.on('error', async function(err) {
+        sock.on('error', async function (err) {
           logger.warn(sock.accountId, 'SOCKET ERROR: ', err);
           // Transition the optimization to error state if we haven't already (5 === ERROR state)
           if (sock.optStatus !== 5) {
@@ -361,7 +361,7 @@ module.exports = class OptimizationServer {
     // Helper method that sets the optimization's status in the db and
     // sets the status in the socket itself (so we can use it locally
     // without going back to the db)
-    let setOptimizationStatus = async function(
+    let setOptimizationStatus = async function (
       socket,
       newStatus,
       message,
@@ -379,6 +379,16 @@ module.exports = class OptimizationServer {
       }
       return success;
     };
+  }
+
+  async stop() {
+    return new Promise(
+      function (resolve, reject) {
+        this.server.close(function () {
+          resolve();
+        });
+      }.bind(this)
+    );
   }
 };
 logger.log('sys', 'Optimization server listening on ' + PORT);
