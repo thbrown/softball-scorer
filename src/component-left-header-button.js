@@ -1,7 +1,7 @@
 import React from 'react';
 import { goBack } from 'actions/route';
 
-const LeftHeaderButton = props =>
+const LeftHeaderButton = (props) =>
   window?.history?.length > 1 || props.onClick ? (
     <img
       id="back-button"
@@ -9,7 +9,7 @@ const LeftHeaderButton = props =>
       className="back-arrow"
       alt="back"
       style={props.style}
-      onClick={ev => {
+      onClick={(ev) => {
         ev.preventDefault();
         if (props.onClick) {
           if (props.onClick()) {

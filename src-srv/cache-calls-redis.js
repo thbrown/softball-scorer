@@ -26,7 +26,7 @@ module.exports = class CacheCalls {
       port: port,
       host: host,
       password: password,
-      retry_strategy: function(options) {
+      retry_strategy: function (options) {
         if (options.error && options.error.code === 'ECONNREFUSED') {
           // End reconnecting on a specific error and flush all commands with
           // a individual error
@@ -55,28 +55,28 @@ module.exports = class CacheCalls {
       */
     });
 
-    this.client.on('error', function(err) {
+    this.client.on('error', function (err) {
       logger.error('sys', 'Redis Error - ' + err);
       process.exit(1);
     });
 
-    this.client.on('ready', function() {
+    this.client.on('ready', function () {
       logger.log('sys', 'Redis Ready');
     });
 
-    this.client.on('connect', function() {
+    this.client.on('connect', function () {
       logger.log('sys', 'Redis Connect');
     });
 
-    this.client.on('reconnecting', function() {
+    this.client.on('reconnecting', function () {
       logger.warn('sys', 'Redis Reconnecting');
     });
 
-    this.client.on('end', function() {
+    this.client.on('end', function () {
       logger.warn('sys', 'Redis End');
     });
 
-    this.client.on('warning', function(warn) {
+    this.client.on('warning', function (warn) {
       logger.warn('sys', 'Redis Warning - ' + warn);
     });
 

@@ -31,7 +31,7 @@ const ListButton = ({ children, fullWidth, type, onClick }) => {
 ListButton.defaultProps = {
   type: 'confirm',
   fullWidth: true,
-  onClick: function() {},
+  onClick: function () {},
 };
 
 export default ListButton;

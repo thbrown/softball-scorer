@@ -15,7 +15,7 @@ const LOCATION_DENOMINATOR = 32767;
 
 const BALLFIELD_MAX_WIDTH = 500;
 
-const styles = theme => ({
+const styles = (theme) => ({
   buttonRow: {
     display: 'flex',
     justifyContent: 'space-around',
@@ -66,7 +66,7 @@ class CardPlateAppearance extends React.Component {
       return pa;
     };
 
-    this.homeOrBack = function() {
+    this.homeOrBack = function () {
       const newPa = buildPlateAppearance();
       if (
         props.isNew &&
@@ -98,14 +98,14 @@ class CardPlateAppearance extends React.Component {
       goBack();
     };
 
-    this.handleCancelClick = function() {
+    this.handleCancelClick = function () {
       goBack();
       if (props.isNew) {
         state.removePlateAppearance(props.plateAppearance.id, props.game.id);
       }
     };
 
-    this.handleDeleteClick = function() {
+    this.handleDeleteClick = function () {
       dialog.show_confirm(
         'Are you sure you want to delete this plate appearance?',
         () => {
@@ -115,13 +115,13 @@ class CardPlateAppearance extends React.Component {
       );
     };
 
-    this.handleButtonClick = function(result) {
+    this.handleButtonClick = function (result) {
       this.setState({
         paResult: result,
       });
     };
 
-    this.handleDragStart = function(ev) {
+    this.handleDragStart = function (ev) {
       var element = document.getElementById('baseball');
       element.classList.remove('pulse-animation');
       this.setState({
@@ -129,7 +129,7 @@ class CardPlateAppearance extends React.Component {
       });
     };
 
-    this.handleDragStop = function() {
+    this.handleDragStop = function () {
       // lame way to make this run after the mouseup event
       setTimeout(() => {
         let new_x = Math.floor(
@@ -149,7 +149,7 @@ class CardPlateAppearance extends React.Component {
     };
 
     // Prevent ios from scrolling while dragging
-    this.handlePreventTouchmoveWhenDragging = function(event) {
+    this.handlePreventTouchmoveWhenDragging = function (event) {
       if (this.state.dragging) {
         event.preventDefault();
       }
@@ -165,7 +165,7 @@ class CardPlateAppearance extends React.Component {
       }
     );
 
-    this.onmouseup = ev => {
+    this.onmouseup = (ev) => {
       let ballfield = document.getElementById('ballfield');
 
       if (ev.changedTouches) {
@@ -271,7 +271,7 @@ class CardPlateAppearance extends React.Component {
 
     // Add the indicators for all plate appearances for this player,
     // the current plate appearance will be displayed in a different color
-    this.props.plateAppearances.forEach(value => {
+    this.props.plateAppearances.forEach((value) => {
       let x = -1;
       let y = -1;
       let imageSrc = '/server/assets/baseball.svg';

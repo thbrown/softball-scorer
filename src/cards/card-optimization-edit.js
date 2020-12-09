@@ -8,19 +8,19 @@ import NoSelect from 'elements/no-select';
 import ListButton from 'elements/list-button';
 import { goBack, goHome } from 'actions/route';
 
-const CardOptimizationEdit = props => {
+const CardOptimizationEdit = (props) => {
   const [optName, setOptName] = React.useState(props.optimization.name);
   const [isPristine, setIsPristine] = React.useState(
     props.isNew ? false : true
   );
 
-  const buildOptimization = function() {
+  const buildOptimization = function () {
     const optimization = JSON.parse(JSON.stringify(props.optimization));
     optimization.name = optName;
     return optimization;
   };
 
-  const homeOrBack = function(type) {
+  const homeOrBack = function (type) {
     if (!isPristine) {
       dialog.show_confirm(
         props.isNew
@@ -41,16 +41,16 @@ const CardOptimizationEdit = props => {
     }
   };
 
-  const handleConfirmClick = function() {
+  const handleConfirmClick = function () {
     state.replaceOptimization(props.optimization.id, buildOptimization());
     goBack();
   };
 
-  const handleCancelClick = function() {
+  const handleCancelClick = function () {
     homeOrBack('back');
   };
 
-  const handleDeleteClick = function() {
+  const handleDeleteClick = function () {
     dialog.show_confirm(
       'Are you sure you want to delete this optimization "' + optName + '"?',
       () => {
@@ -60,7 +60,7 @@ const CardOptimizationEdit = props => {
     );
   };
 
-  const handleOptimizationNameChange = value => {
+  const handleOptimizationNameChange = (value) => {
     setIsPristine(false);
     setOptName(value);
   };
@@ -76,7 +76,7 @@ const CardOptimizationEdit = props => {
           inputId="optimizationName"
           defaultValue={optName}
           label="Optimization Name"
-          onChange={value => handleOptimizationNameChange(value)}
+          onChange={(value) => handleOptimizationNameChange(value)}
         />
       </div>
       <ListButton id="save" onClick={handleConfirmClick}>

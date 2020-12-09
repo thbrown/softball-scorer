@@ -4,7 +4,7 @@ import { ROUTE_PREFIX } from 'routes';
 const urlStack = ['/'];
 let onGoBack = () => {};
 
-window.onpopstate = function() {
+window.onpopstate = function () {
   setRoute(window?.location?.pathname);
 };
 

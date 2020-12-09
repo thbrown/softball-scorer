@@ -17,7 +17,7 @@ export default class CardGameEdit extends React.Component {
 
     this.isPristine = props.isNew ? false : true;
 
-    this.homeOrBack = type => cb => {
+    this.homeOrBack = (type) => (cb) => {
       if (!this.isPristine) {
         dialog.show_confirm(
           props.isNew
@@ -61,14 +61,14 @@ export default class CardGameEdit extends React.Component {
       );
     };
 
-    this.handleOpponentNameChange = value => {
+    this.handleOpponentNameChange = (value) => {
       this.isPristine = false;
       this.setState({
         opponent: value,
       });
     };
 
-    this.handleLineupTypeChange = newValue => {
+    this.handleLineupTypeChange = (newValue) => {
       this.isPristine = false;
       this.setState({
         lineupType: parseInt(newValue),

@@ -31,7 +31,7 @@ export default class CardPlayerEdit extends React.Component {
 
     this.isPristine = props.isNew ? false : true;
 
-    this.homeOrBack = type => cb => {
+    this.homeOrBack = (type) => (cb) => {
       if (!this.isPristine) {
         dialog.show_confirm(
           props.isNew
@@ -55,7 +55,7 @@ export default class CardPlayerEdit extends React.Component {
       }
     };
 
-    this.handleConfirmClick = function() {
+    this.handleConfirmClick = function () {
       state.replacePlayer(props.player.id, buildPlayer());
       goBack();
     };
@@ -64,7 +64,7 @@ export default class CardPlayerEdit extends React.Component {
       this.homeOrBack('back')(goBack);
     };
 
-    this.handleDeleteClick = function() {
+    this.handleDeleteClick = function () {
       dialog.show_confirm(
         'Are you sure you want to delete the player "' +
           this.state.playerName +
@@ -81,21 +81,21 @@ export default class CardPlayerEdit extends React.Component {
       );
     }.bind(this);
 
-    this.handlePlayerNameChange = value => {
+    this.handlePlayerNameChange = (value) => {
       this.isPristine = false;
       this.setState({
         playerName: value,
       });
     };
 
-    this.handleGenderChange = function(ev) {
+    this.handleGenderChange = function (ev) {
       this.isPristine = false;
       this.setState({
         playerGender: ev.target.value,
       });
     }.bind(this);
 
-    this.handleSongLinkChange = function() {
+    this.handleSongLinkChange = function () {
       this.isPristine = false;
       let newValue = document.getElementById('songLink').value;
       let dataArray = newValue.split(/\/|\?|=|%3D|&/);
@@ -109,14 +109,14 @@ export default class CardPlayerEdit extends React.Component {
       }
     }.bind(this);
 
-    this.handleSongStartChange = function() {
+    this.handleSongStartChange = function () {
       this.isPristine = false;
       this.setState({
         playerSongStart: document.getElementById('songStart').value,
       });
     }.bind(this);
 
-    this.handleSongHelpClick = function() {
+    this.handleSongHelpClick = function () {
       dialog.show_notification(
         // TODO - Read this from a file so the format isn't dependent on indent spaces.
         `**Walkup Song**

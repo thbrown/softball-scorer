@@ -28,12 +28,12 @@ module.exports = class DatabaseCalls {
     // (9,007,199,254,740,991) so we'll instruct pg to return all bigints from the database as javascript numbers.
     // See https://github.com/brianc/node-pg-types
     var types = require('pg').types;
-    types.setTypeParser(20, function(val) {
+    types.setTypeParser(20, function (val) {
       return parseInt(val);
     });
 
     // Verify connection
-    this.pool.connect(function(err) {
+    this.pool.connect(function (err) {
       if (err) {
         logger.error(
           'sys',
@@ -51,11 +51,11 @@ module.exports = class DatabaseCalls {
       }
     });
 
-    this.pool.on('error', error => {
+    this.pool.on('error', (error) => {
       logger.error(null, `Postgres error: ${error}`);
     });
 
-    this.processPlayers = function(players) {
+    this.processPlayers = function (players) {
       for (let i = 0; i < players.length; i++) {
         players[i].id = idUtils.serverIdToClientId(players[i].id);
         players[i].song_link = players[i].song_link
@@ -68,7 +68,7 @@ module.exports = class DatabaseCalls {
       return players;
     };
 
-    this.processOptimizations = function(optimizations) {
+    this.processOptimizations = function (optimizations) {
       let outputOptimizations = [];
       for (let i = 0; i < optimizations.length; i++) {
         outputOptimizations.push({});
@@ -105,7 +105,7 @@ module.exports = class DatabaseCalls {
       return outputOptimizations;
     };
 
-    this.processTeams = function(plateAppearances) {
+    this.processTeams = function (plateAppearances) {
       let outputTeams = [];
       let parentIdLookupTable = { teamIndexCounter: 0 }; // Contains hetergenious keys
 
@@ -150,7 +150,7 @@ module.exports = class DatabaseCalls {
           if (plateAppearance.lineup) {
             newGame.lineup = plateAppearance.lineup
               .split(',')
-              .map(v => idUtils.serverIdToClientId(v.trim()));
+              .map((v) => idUtils.serverIdToClientId(v.trim()));
           } else {
             newGame.lineup = [];
           }
@@ -209,26 +209,26 @@ module.exports = class DatabaseCalls {
   disconnect() {
     logger.log(null, 'disconnecting from postgres');
     return new Promise(
-      function(resolve, reject) {
+      function (resolve, reject) {
         this.pool
           .end()
           .then(() => resolve())
-          .catch(err => reject(err));
+          .catch((err) => reject(err));
       }.bind(this)
     );
   }
 
   queryPromise(queryString) {
     let self = this;
-    return new Promise(function(resolve, reject) {
-      self.pool.connect(function(err, client, done) {
+    return new Promise(function (resolve, reject) {
+      self.pool.connect(function (err, client, done) {
         if (err) {
           logger.error(null, 'There was a problem getting db connection:');
           logger.error(err);
           reject(err);
         }
 
-        client.query(queryString, function(err, result) {
+        client.query(queryString, function (err, result) {
           done();
           if (err) {
             logger.error(null, err);
@@ -243,8 +243,8 @@ module.exports = class DatabaseCalls {
 
   parameterizedQueryPromise(queryString, values) {
     let self = this;
-    return new Promise(function(resolve, reject) {
-      self.pool.connect(function(err, client, done) {
+    return new Promise(function (resolve, reject) {
+      self.pool.connect(function (err, client, done) {
         if (err) {
           logger.error(null, 'There was a problem getting db connection:');
           logger.error(null, err);
@@ -270,7 +270,7 @@ module.exports = class DatabaseCalls {
       return { players: [], optimizations: [], teams: [] };
     }
     return new Promise(
-      function(resolve, reject) {
+      function (resolve, reject) {
         let cacheStartTime = Date.now();
         // First check to see if the info we need exists in cache, if not look in db
         let cachedPlayersProm = this.cacheService.getCache(
@@ -288,7 +288,7 @@ module.exports = class DatabaseCalls {
           cachedOptimizationsProm,
           cachedTeamsProm,
         ]).then(
-          function(values) {
+          function (values) {
             let cacheEndTime = Date.now();
 
             let cachedPlayers = values[0];
@@ -393,7 +393,7 @@ module.exports = class DatabaseCalls {
             }
 
             Promise.all([players, optimizations, teams]).then(
-              function(values) {
+              function (values) {
                 var dbEndTime = Date.now();
 
                 var state = {};
@@ -476,7 +476,7 @@ module.exports = class DatabaseCalls {
     }
     let self = this;
     return new Promise(
-      function(resolve, reject) {
+      function (resolve, reject) {
         let cacheStartTime = Date.now();
 
         // First check to see if the info we need exists in cache, if not look in db
@@ -490,7 +490,7 @@ module.exports = class DatabaseCalls {
         );
 
         Promise.all([cachedPlayersProm, cachedTeamsProm]).then(
-          function(values) {
+          function (values) {
             let cacheEndTime = Date.now();
 
             let cachedPlayers = values[0];
@@ -567,7 +567,7 @@ module.exports = class DatabaseCalls {
             }
 
             Promise.all([players, teams]).then(
-              function(values) {
+              function (values) {
                 let dbEndTime = Date.now();
                 var state = {};
 
@@ -686,13 +686,13 @@ module.exports = class DatabaseCalls {
         // Remember the caches we need to invalidate for this statement
         // NOTE: for a minor perf improvement we could only invalidate the cache if the query modifies rows
         sqlToRun[i].cache
-          .map(item => JSON.stringify(item))
-          .forEach(item => cachesToInvalidate.add(item));
+          .map((item) => JSON.stringify(item))
+          .forEach((item) => cachesToInvalidate.add(item));
       }
 
       // Invalidate the caches
       cachesToInvalidate.forEach(
-        async function(cacheString) {
+        async function (cacheString) {
           logger.log(accountId, `Invalidating cache ${cacheString}`);
           let cache = JSON.parse(cacheString);
           if (cache.secondKey) {

@@ -26,7 +26,7 @@ function ensureDirectoryExistence(filePath) {
   fs.mkdirSync(dirname);
 }
 
-let logColor = function(accountId, color, ...messages) {
+let logColor = function (accountId, color, ...messages) {
   let timestamp = new Date().getTime(); // process.hrtime() * 1000 + hrTime[1] / 1000000;
   let location = new Error().stack.split('\n')[3];
   accountId = accountId ? accountId : 'N/A';
@@ -62,22 +62,22 @@ let logColor = function(accountId, color, ...messages) {
   }
 };
 
-exports.log = function(accountId, ...messages) {
+exports.log = function (accountId, ...messages) {
   // Green
   logColor(accountId, '32m', ...messages);
 };
 
-exports.warn = function(accountId, ...messages) {
+exports.warn = function (accountId, ...messages) {
   // Yellow
   logColor(accountId, '33m', ...messages);
 };
 
-exports.error = function(accountId, ...messages) {
+exports.error = function (accountId, ...messages) {
   // Red
   logColor(accountId, '31m', ...messages);
 };
 
-exports.dev = function(...messages) {
+exports.dev = function (...messages) {
   // Cyan
   logColor('dev', '36m', ...messages);
 };

@@ -77,7 +77,7 @@ export default class CardStats extends React.Component {
       }
     };
 
-    this.handleStatsClick = function(sortField) {
+    this.handleStatsClick = function (sortField) {
       const newState = Object.assign({}, this.state);
       if (newState.sortField === sortField) {
         newState.sortDirection =
@@ -89,7 +89,7 @@ export default class CardStats extends React.Component {
       this.setState(newState);
     }.bind(this);
 
-    this.handlePlayerClick = function(playerId) {
+    this.handlePlayerClick = function (playerId) {
       const {
         team: { id: teamId },
         routingMethod,
@@ -148,7 +148,7 @@ export default class CardStats extends React.Component {
   }
 
   renderStatsHeader() {
-    const elems = ['name'].concat(STATS_NAMES).map(statName => {
+    const elems = ['name'].concat(STATS_NAMES).map((statName) => {
       return (
         <Cell key={statName}>
           <div
@@ -243,12 +243,12 @@ export default class CardStats extends React.Component {
     }
 
     const playerStatsList = s.players
-      .filter(player => {
+      .filter((player) => {
         return team.games.reduce((result, game) => {
           return result || game.lineup.indexOf(player.id) > -1;
         }, false);
       })
-      .map(player => {
+      .map((player) => {
         return this.buildStatsObject(team.id, player.id);
       })
       .sort((a, b) => {
@@ -260,7 +260,7 @@ export default class CardStats extends React.Component {
     }
 
     const tableElems = [this.renderStatsHeader()].concat(
-      playerStatsList.map(playerStats => {
+      playerStatsList.map((playerStats) => {
         return this.renderPlayerRow(playerStats);
       })
     );

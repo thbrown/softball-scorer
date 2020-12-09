@@ -5,7 +5,7 @@ export default class InputDialog extends React.Component {
   constructor(props) {
     super(props);
 
-    this.handleInputChange = ev => {
+    this.handleInputChange = (ev) => {
       this.setState({
         value: ev.target.value,
       });
@@ -110,4 +110,4 @@ export default class InputDialog extends React.Component {
       })
     );
   }
-};
+}

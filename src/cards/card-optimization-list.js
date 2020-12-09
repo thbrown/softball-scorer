@@ -8,14 +8,14 @@ import ListButton from 'elements/list-button';
 
 const enhance = compose(
   withHandlers({
-    handleOptimizationClick: props => optimization => () => {
+    handleOptimizationClick: (props) => (optimization) => () => {
       setRoute(`/optimizations/${optimization.id}`);
     },
-    handleEditClick: props => optimization => ev => {
+    handleEditClick: (props) => (optimization) => (ev) => {
       setRoute(`/optimizations/${optimization.id}/edit`);
       ev.stopPropagation();
     },
-    handleCreateClick: props => () => {
+    handleCreateClick: (props) => () => {
       const d = new Date();
       const optimization = state.addOptimization(
         `${d.getMonth() + 1}/${d.getDate()} optimization`
@@ -25,7 +25,7 @@ const enhance = compose(
   })
 );
 
-const CardOptimizationList = props => (
+const CardOptimizationList = (props) => (
   <Card title="Optimizations">
     <ListButton
       id="new-optimization"
@@ -34,7 +34,7 @@ const CardOptimizationList = props => (
     >
       <NoSelect className="prevent-overflow">+ Add New Optimization</NoSelect>
     </ListButton>
-    {[...state.getLocalState().optimizations].reverse().map(optimization => (
+    {[...state.getLocalState().optimizations].reverse().map((optimization) => (
       <ListButton
         id={'optimization-' + optimization.id}
         key={optimization.id}
