@@ -6,7 +6,7 @@ import network from 'network';
 const exp = {};
 
 for (let funcName in network) {
-  exp[funcName] = function() {
+  exp[funcName] = function () {
     console.log(
       '[MOCK]',
       'This function has been mocked:',
@@ -16,7 +16,7 @@ for (let funcName in network) {
   };
 }
 // Override the the actual network call to do nothing
-exp.requestInternal = async function(method, url, body) {
+exp.requestInternal = async function (method, url, body) {
   console.log(
     '[NET] Not making network request due to environmental variable settings'
   );

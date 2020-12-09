@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import css from 'css';
-import network from 'network';
+import state from 'state';
 import Card from 'elements/card';
 import dialog from 'dialog';
 import { setRoute } from 'actions/route';
@@ -15,7 +15,7 @@ export default class CardAccount extends Component {
       let buttonDiv = document.getElementById('email-validation');
       buttonDiv.classList.add('disabled');
 
-      let response = await network.request(
+      let response = await state.request(
         'POST',
         'server/account/send-verification-email'
       );

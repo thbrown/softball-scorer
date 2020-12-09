@@ -1,6 +1,5 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import network from 'network';
 import dialog from 'dialog';
 import state from 'state';
 import { setRoute } from 'actions/route';
@@ -37,7 +36,7 @@ export default class CardAuth extends React.Component {
           });
 
           // TODO: loading icon
-          let response = await network.request(
+          let response = await state.request(
             'POST',
             'server/account/reset-password-request',
             body
@@ -105,7 +104,7 @@ export default class CardAuth extends React.Component {
             return;
           }
 
-          let response = await network.request(
+          let response = await state.request(
             'POST',
             'server/account/login',
             body

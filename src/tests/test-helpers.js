@@ -11,7 +11,7 @@ export const getPageWrapper = () => {
   return {
     wrapper: mount(
       <RouteContainer routes={routes}>
-        {routeProps => {
+        {(routeProps) => {
           publicRouteProps = routeProps;
           return (
             <ThemeProvider theme={css}>

@@ -2,7 +2,6 @@ import React from 'react';
 import Card from 'elements/card';
 import state from 'state';
 import dialog from 'dialog';
-import network from 'network';
 import FloatingInput from 'elements/floating-input';
 import FloatingSelect from 'elements/floating-select';
 import { setRoute } from 'actions/route';
@@ -25,7 +24,7 @@ export default class CardOptimization extends React.Component {
     // variable instead of using the props. This gets updated in the render method.
     this.optimization = props.optimization;
 
-    this.handleSongHelpClick = function(event) {
+    this.handleSongHelpClick = function (event) {
       event.stopPropagation();
       dialog.show_notification(
         // TODO - Read this from a file so the format isn't dependent on whitespace spaces.
@@ -38,23 +37,23 @@ Clips can be played from the player's plate appearance page
       );
     };
 
-    this.handleOverrideClick = function(playerId) {
+    this.handleOverrideClick = function (playerId) {
       setRoute(`/optimizations/${this.optimization.id}/overrides/${playerId}`);
     }.bind(this);
 
-    this.handleAddPlayerClick = function() {
+    this.handleAddPlayerClick = function () {
       setRoute(
         `/optimizations/${this.optimization.id}/overrides/player-select`
       );
     }.bind(this);
 
-    this.enableAutoSync = async function(dontReset) {
+    this.enableAutoSync = async function (dontReset) {
       if (!dontReset) {
         clearTimeout(this.activeTime);
       }
       this.startCssAnimation();
       this.activeTime = setTimeout(
-        async function() {
+        async function () {
           await state.sync();
           this.enableAutoSync(true);
         }.bind(this),
@@ -62,7 +61,7 @@ Clips can be played from the player's plate appearance page
       );
     }.bind(this);
 
-    this.disableAutoSync = async function() {
+    this.disableAutoSync = async function () {
       clearTimeout(this.activeTime);
     };
 
@@ -76,13 +75,13 @@ Clips can be played from the player's plate appearance page
         element.getClientRects(); /* trigger reflow https://gist.github.com/paulirish/5d52fb081b3570c81e3a */
         element.classList.remove('gone');
 
-        setTimeout(function() {
+        setTimeout(function () {
           element.classList.add('hidden');
         }, SYNC_DELAY_MS);
       }
     };
 
-    this.onRenderUpdateOrMount = function() {
+    this.onRenderUpdateOrMount = function () {
       // Make sure we are working with the most up-to-date optimization
       this.optimization = state.getOptimization(this.props.optimization.id);
 
@@ -100,7 +99,7 @@ Clips can be played from the player's plate appearance page
       }
     };
 
-    this.handleTeamCheckboxClick = function(team) {
+    this.handleTeamCheckboxClick = function (team) {
       let parsedTeams = JSON.parse(this.optimization.teamList);
       let newSet = new Set(parsedTeams);
       if (parsedTeams.includes(team.id)) {
@@ -122,7 +121,7 @@ Clips can be played from the player's plate appearance page
       }
     }.bind(this);
 
-    this.onOptionsChange = function(fieldName, value) {
+    this.onOptionsChange = function (fieldName, value) {
       if (fieldName === 'lineupType') {
         state.setOptimizationField(this.optimization.id, 'lineupType', value);
       } else {
@@ -134,7 +133,7 @@ Clips can be played from the player's plate appearance page
       }
     }.bind(this);
 
-    this.handleSendEmailCheckbox = function() {
+    this.handleSendEmailCheckbox = function () {
       if (this.optimization.sendEmail) {
         state.setOptimizationField(this.optimization.id, 'sendEmail', false);
       } else {
@@ -143,7 +142,7 @@ Clips can be played from the player's plate appearance page
     }.bind(this);
 
     this.toggleOptimizationButtonRef = React.createRef();
-    this.handlePauseClick = async function() {
+    this.handlePauseClick = async function () {
       // Disable button in the UI
       const buttonDiv = this.toggleOptimizationButtonRef.current;
       buttonDiv.innerHTML = 'Pausing...';
@@ -152,7 +151,7 @@ Clips can be played from the player's plate appearance page
       const body = JSON.stringify({
         optimizationId: this.optimization.id,
       });
-      const response = await network.request(
+      const response = await state.request(
         'POST',
         'server/pause-optimization',
         body
@@ -184,7 +183,7 @@ Clips can be played from the player's plate appearance page
       buttonDiv.innerHTML = 'Pause Simulation';
     };
 
-    this.handleStartClick = async function() {
+    this.handleStartClick = async function () {
       // Disable button in the UI
       const buttonDiv = this.toggleOptimizationButtonRef.current;
       buttonDiv.innerHTML = 'Starting...';
@@ -198,7 +197,9 @@ Clips can be played from the player's plate appearance page
       let overrideData = JSON.parse(this.optimization.overrideData);
 
       // Filter out any deleted teams or games
-      const filteredTeamList = teamIds.filter(teamId => state.getTeam(teamId));
+      const filteredTeamList = teamIds.filter((teamId) =>
+        state.getTeam(teamId)
+      );
       state.setOptimizationField(
         this.optimization.id,
         'teamList',
@@ -206,7 +207,9 @@ Clips can be played from the player's plate appearance page
         true
       );
 
-      const filteredGameList = gameIds.filter(gameId => state.getTeam(gameId));
+      const filteredGameList = gameIds.filter((gameId) =>
+        state.getTeam(gameId)
+      );
       state.setOptimizationField(
         this.optimization.id,
         'gameList',
@@ -281,7 +284,7 @@ Clips can be played from the player's plate appearance page
         executionData: executionData,
         optimizationId: this.optimization.id,
       });
-      let response = await network.request(
+      let response = await state.request(
         'POST',
         'server/start-optimization',
         body
@@ -313,7 +316,7 @@ Clips can be played from the player's plate appearance page
     }.bind(this);
 
     // TODO: should these stats methods go into some stats util?
-    this.getSummaryStats = function(fullStats) {
+    this.getSummaryStats = function (fullStats) {
       let result = {};
       result.outs = fullStats.atBats - fullStats.hits;
       result.singles = fullStats.singles + fullStats.walks;
@@ -324,7 +327,7 @@ Clips can be played from the player's plate appearance page
     };
 
     // TODO: should these stats methods go into some stats util?
-    this.getTeamAverage = function(playerStats) {
+    this.getTeamAverage = function (playerStats) {
       let validPlayerIds = Object.keys(playerStats);
       let teamHits = 0;
       let teamOuts = 0;
@@ -348,7 +351,7 @@ Clips can be played from the player's plate appearance page
      * The result is a map of playerId to stats object and there will be
      * no entries for players that have been deleted.
      */
-    this.getActiveStatsForAllPlayers = function(
+    this.getActiveStatsForAllPlayers = function (
       overrideData,
       playerIds,
       teamIds
@@ -392,15 +395,15 @@ Clips can be played from the player's plate appearance page
   componentDidMount() {
     this.onRenderUpdateOrMount();
 
-    this.skipClickDelay = function(e) {
+    this.skipClickDelay = function (e) {
       e.preventDefault();
       e.target.click();
     };
 
-    this.setAriaAttr = function(el, ariaType, newProperty) {
+    this.setAriaAttr = function (el, ariaType, newProperty) {
       el.setAttribute(ariaType, newProperty);
     };
-    this.setAccordionAria = function(el1, el2, expanded) {
+    this.setAccordionAria = function (el1, el2, expanded) {
       switch (expanded) {
         case 'true':
           this.setAriaAttr(el1, 'aria-expanded', 'true');
@@ -415,7 +418,7 @@ Clips can be played from the player's plate appearance page
       }
     };
 
-    this.switchAccordion = function(index, e) {
+    this.switchAccordion = function (index, e) {
       e.preventDefault();
       const accordionTitle = e.currentTarget.parentNode.nextElementSibling;
       const accordionContent = e.currentTarget;

@@ -32,7 +32,7 @@ const crypto = require('crypto');
 Object.defineProperty(global.self, 'crypto', {
   value: {
     // web crypto overrides the passed in array, node crypto returns a random array of the passed in length
-    getRandomValues: function(arr) {
+    getRandomValues: function (arr) {
       let randomArray = new Uint8Array(crypto.randomBytes(arr.length));
       for (let i = 0; i < arr.length; i++) {
         arr[i] = randomArray[i];
@@ -42,18 +42,20 @@ Object.defineProperty(global.self, 'crypto', {
 });
 
 // authentication - allow tests to specify a sessionId that should be used for all fetch requests
-let sessionCookie = null;
-global.authenticate = function(sessionId) {
-  sessionCookie = sessionId;
+// There are two session IDs required for authentication. One is stored in an HTTPonly cookie to provide additional secitity agains XXS.
+// The other is stored in a javascript accessible cookie and it's used so we can logout when the user is offline (which is not possible with HTTP only cookies).
+let authCookies = null;
+global.authenticate = function (inputAuthCookies) {
+  authCookies = inputAuthCookies;
 };
 
 // fetch - use node-fetch module but make sure to augment requests with headers auth info is included if specified
-global.fetch = function(url, opts) {
-  if (sessionCookie) {
+global.fetch = function (url, opts) {
+  if (authCookies) {
     if (!opts.headers) {
       opts.headers = {};
     }
-    opts.headers.cookie = sessionCookie;
+    opts.headers.cookie = authCookies;
   }
   let nodeFetch = require('node-fetch');
 
@@ -67,3 +69,20 @@ global.window = Object.create(window);
 global.window.location = {
   origin: `http://localhost:${configAccessor.getAppServerPort()}`,
 };
+
+// Webworkers - we'll need to actually make this fully featured to test web workers
+class MockWorker {
+  constructor(stringUrl) {
+    this.url = stringUrl;
+    this.onmessage = () => {};
+  }
+
+  postMessage(msg) {
+    //this.onmessage(msg);
+  }
+
+  terminate() {
+    // Okay... I terminated
+  }
+}
+global.Worker = MockWorker;
