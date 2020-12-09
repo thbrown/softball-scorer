@@ -11,7 +11,7 @@ module.exports = class ComputeGCP {
     // variable that points to the file containing auth credentials
     process.env['GOOGLE_APPLICATION_CREDENTIALS'] = __dirname + '/../cred.json';
 
-    this.createInstance = function(
+    this.createInstance = function (
       accountId,
       name,
       coreCount,
@@ -19,9 +19,9 @@ module.exports = class ComputeGCP {
       optimizationId
     ) {
       return new Promise(
-        function(resolve, reject) {
+        function (resolve, reject) {
           this.authorize(
-            function(authClient) {
+            function (authClient) {
               // For custom machine type use this: custom-${coreCount}-${memoryMb}
               // More doc: https://cloud.google.com/compute/docs/reference/rest/v1/instances/insert
               var request = {
@@ -92,7 +92,7 @@ module.exports = class ComputeGCP {
                 accountId,
                 `Attempting to insert new gcp compute instance ${name}`
               );
-              compute.instances.insert(request, function(err) {
+              compute.instances.insert(request, function (err) {
                 if (err) {
                   logger.error(
                     accountId,
@@ -116,15 +116,15 @@ module.exports = class ComputeGCP {
       );
     };
 
-    this.waitForInstanceToBeInStatus = function(
+    this.waitForInstanceToBeInStatus = function (
       accountId,
       name,
       desiredStatus
     ) {
       return new Promise(
-        function(resolve, reject) {
+        function (resolve, reject) {
           this.authorize(
-            async function(authClient) {
+            async function (authClient) {
               var request = {
                 project: gcpParams.project,
                 zone: this.getZone(optimizationId),
@@ -142,8 +142,8 @@ module.exports = class ComputeGCP {
                 );
 
                 // Is the status what we want it to be?
-                status = await new Promise(function(resolve, reject) {
-                  compute.instances.get(request, function(err, response) {
+                status = await new Promise(function (resolve, reject) {
+                  compute.instances.get(request, function (err, response) {
                     if (err) {
                       logger.error(accountId, err);
                       reject(err);
@@ -181,12 +181,12 @@ module.exports = class ComputeGCP {
       );
     };
 
-    this.stopInstance = function(name) {};
+    this.stopInstance = function (name) {};
 
-    this.deleteInstance = function(name) {};
+    this.deleteInstance = function (name) {};
 
-    this.authorize = function(callback) {
-      google.auth.getApplicationDefault(function(err, authClient) {
+    this.authorize = function (callback) {
+      google.auth.getApplicationDefault(function (err, authClient) {
         if (err) {
           logger.error(null, 'authentication failed: ', err);
           return;
@@ -208,7 +208,7 @@ module.exports = class ComputeGCP {
     // always available.
     this.zoneMap = {};
 
-    this.getZone = function(optimizationId) {
+    this.getZone = function (optimizationId) {
       let zoneIndex = this.zoneMap[optimizationId];
       if (!zoneIndex) {
         zoneIndex = 0;
@@ -217,7 +217,7 @@ module.exports = class ComputeGCP {
       return gcpParams.zones[zoneIndex];
     };
 
-    this.getZoneIndex = function(optimizationId) {
+    this.getZoneIndex = function (optimizationId) {
       let zoneIndex = this.zoneMap[optimizationId];
       if (!zoneIndex) {
         zoneIndex = 0;
@@ -225,7 +225,7 @@ module.exports = class ComputeGCP {
       return zoneIndex;
     };
 
-    this.nextZone = function(accountId, optimizationId) {
+    this.nextZone = function (accountId, optimizationId) {
       this.getZone(optimizationId); // Make sure the zone map is populated
       let zoneIndex = this.zoneMap[optimizationId];
       if (zoneIndex < gcpParams.zones.length - 1) {
@@ -245,7 +245,7 @@ module.exports = class ComputeGCP {
       }
     };
 
-    this.removeZoneCounter = function(optimizationID) {
+    this.removeZoneCounter = function (optimizationID) {
       delete this.zoneMap[optimizationID];
     };
   }

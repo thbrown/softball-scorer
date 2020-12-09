@@ -21,7 +21,7 @@ export default class FloatingInput extends React.Component {
           maxLength={this.props.maxLength ? this.props.maxLength : 50}
           value={this.state.value}
           disabled={this.props.disabled}
-          onChange={e => {
+          onChange={(e) => {
             this.props.onChange(
               this.props.type === 'number'
                 ? parseFloat(e.target.value)

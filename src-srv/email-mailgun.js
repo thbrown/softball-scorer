@@ -32,7 +32,7 @@ module.exports = class EmailMailGun {
       subject: subject,
       text: message,
     };
-    this.mg.messages().send(data, function(error, body) {
+    this.mg.messages().send(data, function (error, body) {
       if (error) {
         logger.error(accountId, 'Error while sending email', error);
       }

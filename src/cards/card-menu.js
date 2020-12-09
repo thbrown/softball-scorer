@@ -15,19 +15,19 @@ class CardMenu extends Component {
       forceSyncDisabled: false,
     };
 
-    this.handleTeamsClick = function() {
+    this.handleTeamsClick = function () {
       setRoute('/teams');
     };
 
-    this.handlePlayersClick = function() {
+    this.handlePlayersClick = function () {
       setRoute('/players');
     };
 
-    this.handleOptimizationsClick = function() {
+    this.handleOptimizationsClick = function () {
       setRoute('/optimizations');
     };
 
-    this.handleLogoutClick = async function() {
+    this.handleLogoutClick = async function () {
       dialog.show_confirm('Are you sure you want to log out?', async () => {
         // Do a sync if necessary
         if (state.getSyncState() !== state.getSyncStateEnum().COMPLETE) {
@@ -39,7 +39,7 @@ class CardMenu extends Component {
 
             // Wait for user to select an option
             // TODO: make all dialogs return promises
-            await new Promise(function(resolve) {
+            await new Promise(function (resolve) {
               dialog.show_confirm(
                 message,
                 () => {
@@ -64,7 +64,7 @@ class CardMenu extends Component {
         let response = await state.request('POST', 'server/account/logout');
         if (response.status === 204) {
           state.resetState();
-          dialog.show_notification('Logout successful', function() {
+          dialog.show_notification('Logout successful', function () {
             setRoute('/menu/login');
           });
         } else {
@@ -74,18 +74,18 @@ class CardMenu extends Component {
           document.cookie =
             'nonHttpOnlyToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
           state.resetState();
-          dialog.show_notification('Logout successful', function() {
+          dialog.show_notification('Logout successful', function () {
             setRoute('/menu/login');
           });
         }
       });
     };
 
-    this.handleLoginClick = function() {
+    this.handleLoginClick = function () {
       setRoute('/menu/login');
     };
 
-    this.handleSyncClick = async function() {
+    this.handleSyncClick = async function () {
       this.setState({
         forceSyncText: 'Sync (In Progress)',
         forceSyncDisabled: true,
@@ -116,7 +116,7 @@ class CardMenu extends Component {
       }
     };
 
-    this.handleSaveClick = function() {
+    this.handleSaveClick = function () {
       const today = new Date().getTime();
       const blob = new Blob([JSON.stringify(state.getLocalState(), null, 2)], {
         type: 'text/plain;charset=utf-8',
@@ -124,17 +124,17 @@ class CardMenu extends Component {
       FileSaver.saveAs(blob, 'save' + today + '.json');
     };
 
-    this.handleLoadClick = function() {
+    this.handleLoadClick = function () {
       setRoute('/menu/import');
     };
 
-    this.handleAddToHomeScreenClick = function() {
+    this.handleAddToHomeScreenClick = function () {
       dialog.show_confirm(
         "**Would you like to add Softball.app to your home screen as a standalone app?** Pressing yes will cause your browser to issue an 'add to home screen' prompt. If you dismiss the browser's prompt, this menu option will disappear for a while.",
         () => {
           let deferredPrompt = state.getAddToHomescreenPrompt().prompt();
           // Wait for the user to respond to the prompt
-          deferredPrompt.userChoice.then(choice => {
+          deferredPrompt.userChoice.then((choice) => {
             state.setAddToHomescreenPrompt(null);
             if (choice.outcome === 'accepted') {
               console.log('User accepted the prompt');

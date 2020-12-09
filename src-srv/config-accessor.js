@@ -29,7 +29,7 @@ let compute;
 /**
  * Accessor utility for config values. This is responsible for setting defaults and handling nested json extraction.
  */
-module.exports.getDatabaseService = function(cacheService) {
+module.exports.getDatabaseService = function (cacheService) {
   if (database) {
     return database;
   }
@@ -48,7 +48,7 @@ module.exports.getDatabaseService = function(cacheService) {
       pgpassword,
       pgdatabase,
       cacheService,
-      err => {
+      (err) => {
         if (err) {
           logger.log('sys', 'Encountered an error connecting to db', err);
           process.exit(1);
@@ -63,7 +63,7 @@ module.exports.getDatabaseService = function(cacheService) {
   return database;
 };
 
-module.exports.getCacheService = function() {
+module.exports.getCacheService = function () {
   if (cache) {
     return cache;
   }
@@ -78,7 +78,7 @@ module.exports.getCacheService = function() {
   return cache;
 };
 
-module.exports.getEmailService = function() {
+module.exports.getEmailService = function () {
   if (email) {
     return email;
   }
@@ -108,7 +108,7 @@ module.exports.getEmailService = function() {
   return email;
 };
 
-module.exports.getComputeService = function() {
+module.exports.getComputeService = function () {
   if (compute) {
     return compute;
   }
@@ -131,30 +131,30 @@ module.exports.getComputeService = function() {
   return compute;
 };
 
-module.exports.getAppServerPort = function() {
+module.exports.getAppServerPort = function () {
   return (config.app && config.app.port) || 8888;
 };
 
-module.exports.getOptimizationServerPort = function() {
+module.exports.getOptimizationServerPort = function () {
   return (config.optimization && config.optimization.port) || 8414;
 };
 
-module.exports.getRecapchaSecretKey = function() {
+module.exports.getRecapchaSecretKey = function () {
   return (config && config.recapcha && config.recapcha.secretkey) || null;
 };
 
-module.exports.getSessionSecretKey = function() {
+module.exports.getSessionSecretKey = function () {
   return (
     (config.session && config.session.secretkey) ||
     crypto.randomBytes(20).toString('hex')
   );
 };
 
-module.exports.getAppOptimizationLockTTL = function() {
+module.exports.getAppOptimizationLockTTL = function () {
   return (config && config.app && config.app.optimizationLockTTL) || 30;
 };
 
-module.exports.getAppOptimizationSweeperPeriod = function() {
+module.exports.getAppOptimizationSweeperPeriod = function () {
   return (config && config.app && config.app.optimizationSweeperPeriod) || 120;
 };
 

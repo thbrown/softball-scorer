@@ -8,7 +8,7 @@ import { setRoute } from 'actions/route';
 export default class CardTeam extends React.Component {
   constructor(props) {
     super(props);
-    this.handleTabClick = tab => {
+    this.handleTabClick = (tab) => {
       setRoute(window?.location?.pathname + '?tab=' + tab);
     };
   }
@@ -18,7 +18,7 @@ export default class CardTeam extends React.Component {
       <Card
         title={
           <HeaderTabs
-            handleTabClick={tabValue => {
+            handleTabClick={(tabValue) => {
               this.handleTabClick(tabValue);
             }}
             tab={this.props.tab}

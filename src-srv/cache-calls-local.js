@@ -85,7 +85,7 @@ module.exports = class CacheCalls {
       clearTimeout(this.timers[key]);
     }
     this.timers[key] = setTimeout(
-      function() {
+      function () {
         console.log('keyHasExpired', key, value);
         delete this.cache[key];
       }.bind(this),

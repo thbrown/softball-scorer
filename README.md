@@ -155,3 +155,9 @@ To use gcp instances for optimization computation see the README in the gcp fold
 `npm i eslint -g`
 
 `npm i eslint-plugin-react@latest -g`
+
+#### Format all files
+
+From the root directory
+`npx prettier --write ./`
+`git checkout assets`

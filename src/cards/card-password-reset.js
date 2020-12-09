@@ -13,7 +13,7 @@ export default class CardPasswordReset extends React.Component {
 
     this.token = props.token;
 
-    this.handleSubmitClick = async function() {
+    this.handleSubmitClick = async function () {
       const password = document.getElementById('password');
       const passwordConfirm = document.getElementById('passwordConfirm');
 
@@ -22,7 +22,7 @@ export default class CardPasswordReset extends React.Component {
           Password: password.value,
           'Confirm Password': passwordConfirm.value,
         };
-        let missingFields = Object.keys(map).filter(field => {
+        let missingFields = Object.keys(map).filter((field) => {
           return !map[field];
         });
         dialog.show_notification(
@@ -50,14 +50,14 @@ export default class CardPasswordReset extends React.Component {
       if (response.status === 204) {
         dialog.show_notification(
           `Success! Your password has been changed. Please login.`,
-          function() {
+          function () {
             setRoute('/menu/login');
           }
         );
       } else if (response.status === 404) {
         dialog.show_notification(
           `Error! We were not able to change your password. The activation link may have expired. Please request another password reset.`,
-          function() {
+          function () {
             setRoute('/menu/login');
           }
         );
@@ -66,7 +66,7 @@ export default class CardPasswordReset extends React.Component {
           `Error! We were not able to change your password. Please request another password reset. ${
             response.body ? response.body.message : ''
           }`,
-          function() {
+          function () {
             setRoute('/menu/login');
           }
         );

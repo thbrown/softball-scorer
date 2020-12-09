@@ -1,5 +1,5 @@
 // TODO: minify
-self.addEventListener("message", e => {
+self.addEventListener('message', (e) => {
   let message = JSON.parse(e.data);
   let lineup = [];
 
@@ -64,17 +64,17 @@ self.addEventListener("message", e => {
 
         if (VERBOSE) {
           let message =
-            "\t hit:" +
+            '\t hit:' +
             mapBasesToHitType(bases) +
-            "\t outs:" +
+            '\t outs:' +
             outs +
-            "\t score:" +
+            '\t score:' +
             gameScore;
           console.log(message);
         }
       }
       if (VERBOSE) {
-        console.log("--------------");
+        console.log('--------------');
       }
 
       // Clear the bases
@@ -83,9 +83,9 @@ self.addEventListener("message", e => {
       third = false;
     }
     if (VERBOSE) {
-      console.log("Runs Scored: " + gameScore);
+      console.log('Runs Scored: ' + gameScore);
       console.log(
-        "============================================================="
+        '============================================================='
       );
     }
     totalScore += gameScore;
@@ -102,15 +102,15 @@ self.addEventListener("message", e => {
 function mapBasesToHitType(bases) {
   switch (bases) {
     case 0:
-      return "out";
+      return 'out';
     case 1:
-      return "single";
+      return 'single';
     case 2:
-      return "double";
+      return 'double';
     case 3:
-      return "triple";
+      return 'triple';
     case 4:
-      return "homerun";
+      return 'homerun';
     default:
       throw Error(`Unrecognized bases count: ${bases}`);
   }
@@ -118,21 +118,21 @@ function mapBasesToHitType(bases) {
 
 function mapResultToHitType(result) {
   switch (result) {
-    case "Out":
-    case "SAC":
-    case "FC":
-    case "K":
-    case "E":
+    case 'Out':
+    case 'SAC':
+    case 'FC':
+    case 'K':
+    case 'E':
       return 0;
-    case "1B":
-    case "BB":
+    case '1B':
+    case 'BB':
       return 1;
-    case "2B":
+    case '2B':
       return 2;
-    case "3B":
+    case '3B':
       return 3;
-    case "HRi":
-    case "HRo":
+    case 'HRi':
+    case 'HRo':
       return 4;
     default:
       throw Error(`Unrecognized hit type: ${result}`);

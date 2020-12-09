@@ -11,15 +11,15 @@ const enhance = compose(
   withState('team', 'setTeam', null),
   withState('game', 'setGame', null),
   withHandlers({
-    handleTeamItemClick: props => item => {
+    handleTeamItemClick: (props) => (item) => {
       props.setTeam(state.getTeam(item.id));
       window.scroll(0, 0);
     },
-    handleGameItemClick: props => item => {
+    handleGameItemClick: (props) => (item) => {
       props.setGame(state.getGame(item.id));
       window.scroll(0, 0);
     },
-    handleBackClick: props => () => {
+    handleBackClick: (props) => () => {
       let skipDefaultBack = false;
       if (props.game) {
         props.setGame(null);
@@ -30,7 +30,7 @@ const enhance = compose(
       }
       return skipDefaultBack;
     },
-    handleConfirmClick: props => ev => {
+    handleConfirmClick: (props) => (ev) => {
       state.setOptimizationField(
         props.optimization.id,
         'playerList',
@@ -50,7 +50,7 @@ const enhance = compose(
   })
 );
 
-const useLineupListStyles = makeStyles(theme => ({
+const useLineupListStyles = makeStyles((theme) => ({
   title: {
     position: 'sticky',
     left: '0px',
@@ -102,14 +102,14 @@ const useLineupListStyles = makeStyles(theme => ({
   },
 }));
 
-const toItems = list =>
-  list.map(obj => ({
+const toItems = (list) =>
+  list.map((obj) => ({
     name: obj.name || obj.opponent,
     id: obj.id,
     floatName: obj.date ? toClientDate(obj.date) : undefined,
   }));
 
-const LineupList = props => {
+const LineupList = (props) => {
   const { classes } = useLineupListStyles();
 
   if (props.game) {
@@ -124,7 +124,7 @@ const LineupList = props => {
         <ListPicker
           itemClassName={classes.itemCustom}
           textClassName={classes.itemText}
-          items={props.game.lineup.map(playerId => ({
+          items={props.game.lineup.map((playerId) => ({
             name: state.getPlayer(playerId).name,
             id: state.getPlayer(playerId).id,
           }))}
@@ -170,7 +170,7 @@ const LineupList = props => {
   }
 };
 
-const CardImport = enhance(props => (
+const CardImport = enhance((props) => (
   <Card
     title="Import Lineup"
     leftHeaderProps={{

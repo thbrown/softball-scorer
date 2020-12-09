@@ -110,13 +110,13 @@ for (let i = 0; i < opSortOrder.length; i++) {
 const JSON_BLOB_MAX_CHARS = 5000;
 const JSON_LIST_MAX_CHARS = 500; // Can hold just under 30 ids (TODO: this is too small for game list [which we haven't implemented yet], and maybe too small for team list [or maybe not? 30 teams is a lot])
 
-let getSqlFromPatch = function(patch, accountId) {
+let getSqlFromPatch = function (patch, accountId) {
   logger.log(accountId, 'Converting patch to sql');
   let result = [];
   getSqlFromPatchInternal(patch, [], result, accountId);
 
   // This requires a stable sorting algorithm. Keeping the statments of a single table in their previous order is important!
-  stable.inplace(result, function(a, b) {
+  stable.inplace(result, function (a, b) {
     // First order by operation
     let aOp = a.order.op;
     let bOp = b.order.op;
@@ -172,7 +172,7 @@ let getSqlFromPatch = function(patch, accountId) {
   return result;
 };
 
-let getSqlFromPatchInternal = function(patch, path, result, accountId) {
+let getSqlFromPatchInternal = function (patch, path, result, accountId) {
   if (accountId === undefined) {
     throw new HandledError(
       accountId,
@@ -385,10 +385,11 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
           accountId,
         ];
         for (let entry = 0; entry < oldOrder.length; entry++) {
-          reOrderQuery += `($1, $${entry * 2 +
-            3}, (SELECT lineup_index FROM players_games WHERE player_id = $${entry *
-            2 +
-            4} AND game_id = $1 AND account_id = $2))`;
+          reOrderQuery += `($1, $${
+            entry * 2 + 3
+          }, (SELECT lineup_index FROM players_games WHERE player_id = $${
+            entry * 2 + 4
+          } AND game_id = $1 AND account_id = $2))`;
           if (entry !== oldOrder.length - 1) {
             reOrderQuery += ',';
           }
@@ -520,7 +521,12 @@ let getSqlFromPatchInternal = function(patch, path, result, accountId) {
   }
 };
 
-let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
+let printInsertStatementsFromPatch = function (
+  obj,
+  parents,
+  result,
+  accountId
+) {
   if (accountId === undefined) {
     throw new HandledError(
       accountId,
@@ -717,7 +723,7 @@ let printInsertStatementsFromPatch = function(obj, parents, result, accountId) {
   }
 };
 
-let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
+let printInsertStatementsFromRaw = function (obj, parents, result, accountId) {
   if (!accountId) {
     throw new HandledError(
       accountId,
@@ -909,7 +915,7 @@ let printInsertStatementsFromRaw = function(obj, parents, result, accountId) {
   }
 };
 
-let getColNameFromJSONValue = function(value) {
+let getColNameFromJSONValue = function (value) {
   let dbColName = jsonValueToSqlColName[value];
 
   // READ ONLY FIELDS - Including a field here make it so it can not be updated, but it has no
@@ -936,7 +942,7 @@ let getColNameFromJSONValue = function(value) {
 
 // If 'key' is a jsonValue that references a db table, it's corresponding table name is returned. Otherwise, this function selects
 // the latest json value in the 'path' array that is a table reference, converts it to table name and returns it;
-let getTableNameFromPath = function(path, key) {
+let getTableNameFromPath = function (path, key) {
   let sqlTableName = jsonValueToSqlTableName[key];
   if (sqlTableName) {
     return {
@@ -957,7 +963,7 @@ let getTableNameFromPath = function(path, key) {
 };
 
 // Returns the id of type from the path. If no type is specified, returns latest id.
-let getIdFromPath = function(path, type) {
+let getIdFromPath = function (path, type) {
   if (type) {
     for (let i = path.length - 1; i >= 0; i--) {
       if (path[i] === type) {
@@ -974,7 +980,7 @@ let getIdFromPath = function(path, type) {
 };
 
 // Returns true if the obj has any properties assigned
-let hasProperties = function(obj) {
+let hasProperties = function (obj) {
   if (Object.keys(obj).length > 0) {
     return true;
   } else {
@@ -983,7 +989,7 @@ let hasProperties = function(obj) {
 };
 
 // Returns true if none of the object's properties are objects themselves.
-let isRoot = function(obj) {
+let isRoot = function (obj) {
   let keys = Object.keys(obj);
   for (var i = 0; i < keys.length; i++) {
     let key = keys[i];
@@ -1001,7 +1007,7 @@ let isRoot = function(obj) {
  * cases so we can invalidate the whole second-level value without knowing each
  * of that value's keys.
  */
-let getCaches = function(table, accountId, teamId) {
+let getCaches = function (table, accountId, teamId) {
   let caches = [];
   if (table === 'optimization') {
     caches.push({ type: 'string', key: `acct:${accountId}:optimizations` });

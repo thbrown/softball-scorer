@@ -13,12 +13,12 @@ export default class CardOptimizationStatsOverride extends React.Component {
 
     this.state = {};
 
-    let parseIntWithDefault = function(toParse, defaultValue) {
+    let parseIntWithDefault = function (toParse, defaultValue) {
       let parsedInt = parseInt(toParse);
       return isNaN(parsedInt) ? defaultValue : parsedInt;
     };
 
-    let buildOverride = function() {
+    let buildOverride = function () {
       return {
         outs: parseIntWithDefault(document.getElementById('outs').value, 0),
         singles: parseIntWithDefault(document.getElementById('1b').value, 0),
@@ -28,7 +28,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
       };
     };
 
-    this.homeOrBack = function() {
+    this.homeOrBack = function () {
       let newOverride = buildOverride();
       let allOverrides = JSON.parse(props.optimization.overrideData);
       allOverrides[props.player.id] = newOverride;
@@ -40,16 +40,16 @@ export default class CardOptimizationStatsOverride extends React.Component {
       );
     };
 
-    this.handleConfirmClick = function() {
+    this.handleConfirmClick = function () {
       this.homeOrBack();
       goBack();
     }.bind(this);
 
-    this.handleCancelClick = function() {
+    this.handleCancelClick = function () {
       goBack();
     };
 
-    this.handleDeleteClick = function() {
+    this.handleDeleteClick = function () {
       dialog.show_confirm(
         'Are you sure you want to delete this stat override for player "' +
           props.player.name +
@@ -68,15 +68,15 @@ export default class CardOptimizationStatsOverride extends React.Component {
       );
     };
 
-    this.handleOutsChange = function() {};
+    this.handleOutsChange = function () {};
 
-    this.handle1BChange = function() {};
+    this.handle1BChange = function () {};
 
-    this.handle2BChange = function() {};
+    this.handle2BChange = function () {};
 
-    this.handle3BChange = function() {};
+    this.handle3BChange = function () {};
 
-    this.handleHrChange = function() {};
+    this.handleHrChange = function () {};
   }
 
   componentDidMount() {}

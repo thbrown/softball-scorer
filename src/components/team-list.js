@@ -5,7 +5,7 @@ import { setRoute } from 'actions/route';
 import { getShallowCopy } from 'utils/functions';
 
 const TeamList = () => {
-  const handleTeamClick = team => {
+  const handleTeamClick = (team) => {
     setRoute(`/teams/${team.id}`);
   };
 
@@ -22,7 +22,7 @@ const TeamList = () => {
   const s = state.getLocalState();
   const elems = getShallowCopy(s.teams)
     .reverse()
-    .map(team => {
+    .map((team) => {
       return (
         <ListButton
           id={'team-' + team.id}
