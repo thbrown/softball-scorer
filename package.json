@@ -1,19 +1,19 @@
 {
   "name": "softball-scorer",
   "version": "1.0.0",
-  "description": "This program tracks scores softball teams.",
+  "description": "This program assists with the tracking of stats for softball teams.",
   "main": "index.js",
   "scripts": {
     "run": "node src-srv",
     "start": "node src-srv",
     "start:dev": "yarn watch",
     "build": "node build.js build",
-    "watch": "rm -rf build/*hot-update.json build/*.hot-update.js && concurrently -n srv,webpack \"node src-srv\" \"node_modules/.bin/webpack serve --env development --config webpack.dev.js\"",
+    "watch": "rm -rf build/*hot-update.json build/*.hot-update.js && concurrently -n srv,webpack \"node src-srv\" \"node_modules/.bin/webpack serve --env development --config webpack.dev.js --progress\"",
     "build-css": "node build.js build-css",
     "update-service-worker": "node build.js update-service-worker",
     "clean": "node build.js clean",
     "test": "jest --runInBand --detectOpenHandles --bail --verbose=false --forceExit",
-    "test:frontend": "jest --watch ./src/tests/*",
+    "test:ui": "jest --watch ./src/tests/*",
     "analyze": "webpack --config webpack.prod.js --profile --json > build/stats.json && webpack-bundle-analyzer build/stats.json"
   },
   "repository": {
@@ -92,7 +92,6 @@
     "react-dom": "17.0.1",
     "react-dom-factories": "^1.0.2",
     "react-draggable": "^4.4.3",
-    "react-jss": "^10.5.0",
     "react-select": "^3.1.1",
     "react-sticky-table": "2.0.0",
     "reactify": "^1.1.1",

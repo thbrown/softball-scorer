@@ -57,3 +57,13 @@ export const makeStyles = (func) => {
     };
   };
 };
+
+export const withStyles = (s) => {
+  const useStyles = makeStyles(s);
+  return (Element) => {
+    return (props) => {
+      const { classes, styles } = useStyles(props);
+      return <Element classes={classes} styles={styles} {...props} />;
+    };
+  };
+};

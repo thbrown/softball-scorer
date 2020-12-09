@@ -9,13 +9,13 @@ import state from 'state';
 import WalkupSong from 'component-walkup-song';
 import { normalize } from 'utils/functions';
 import { goBack } from 'actions/route';
-import injectSheet from 'react-jss';
+import { makeStyles } from 'css/helpers';
 
 const LOCATION_DENOMINATOR = 32767;
 
 const BALLFIELD_MAX_WIDTH = 500;
 
-const styles = (theme) => ({
+const useStyles = makeStyles((theme) => ({
   buttonRow: {
     display: 'flex',
     justifyContent: 'space-around',
@@ -40,7 +40,7 @@ const styles = (theme) => ({
   buttonSelected: {
     backgroundColor: theme.colors.SECONDARY,
   },
-});
+}));
 
 class CardPlateAppearance extends React.Component {
   constructor(props) {
@@ -498,4 +498,9 @@ class CardPlateAppearance extends React.Component {
   }
 }
 
-export default injectSheet(styles)(CardPlateAppearance);
+const CardPlateAppearanceWrapper = (props) => {
+  const classes = useStyles();
+  return <CardPlateAppearance {...props} classes={classes} />;
+};
+
+export default CardPlateAppearanceWrapper;
