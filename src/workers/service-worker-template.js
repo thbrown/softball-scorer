@@ -1,4 +1,4 @@
-// The build process appends a autoGenCacheName variable to the top of this file based on the hash of the src and assets directory
+// The build process appends an autoGenCacheName variable to the top of this file based on the hash of the src and assets directory
 let cacheName = 'softball-v1';
 if (typeof autoGenCacheName !== 'undefined') {
   cacheName = autoGenCacheName;
@@ -30,8 +30,9 @@ self.addEventListener('install', function (event) {
         '/server/assets/empty.svg',
         '/server/assets/help.svg',
         '/server/assets/home.svg',
-        '/server/assets/logo192.png',
-        '/server/assets/logo512.png',
+        '/server/assets/icons/logo.svg',
+        '/server/assets/icons/logo192.png',
+        '/server/assets/icons/logo512.png',
         '/server/assets/main.css',
         '/server/assets/remove.svg',
         '/server/assets/spinner.gif',

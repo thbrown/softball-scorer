@@ -925,7 +925,7 @@ let getColNameFromJSONValue = function (value) {
     let valueLowerCase = dbColName.toLowerCase();
     if (
       valueLowerCase === 'account_id' || // Don't let sombody assign an object to another account
-      valueLowerCase === 'status' || // Don't let people change the status of their optimization (might allow them to run more than one optimization in parrelel)
+      valueLowerCase === 'status' || // Don't let people change the status of their optimization (might allow them to run more than one optimization in parallel)
       valueLowerCase === 'public_id' // Don't let people change their public link
     ) {
       logger.warn(

@@ -146,7 +146,7 @@ module.exports = class SoftballServer {
     );
     //app.use(helmet.referrerPolicy({ policy: "same-origin" })); // This breaks embeded youtube on ios safari
 
-    app.use(favicon(__dirname + '/../assets/fav-icon.png'));
+    app.use(favicon(__dirname + '/../assets/icons/favicon.ico'));
     app.use(
       '/server/build',
       express.static(path.join(__dirname + '/../build').normalize())

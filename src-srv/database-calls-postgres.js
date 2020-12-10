@@ -1,6 +1,5 @@
 const { Pool } = require('pg');
 
-const commonUtils = require('../common-utils.js');
 const HandledError = require('./handled-error.js');
 const idUtils = require('../id-utils.js');
 const logger = require('./logger.js');
@@ -107,7 +106,7 @@ module.exports = class DatabaseCalls {
 
     this.processTeams = function (plateAppearances) {
       let outputTeams = [];
-      let parentIdLookupTable = { teamIndexCounter: 0 }; // Contains hetergenious keys
+      let parentIdLookupTable = { teamIndexCounter: 0 }; // Contains heterogeneous keys
 
       for (let i = 0; i < plateAppearances.length; i++) {
         let plateAppearance = plateAppearances[i];
