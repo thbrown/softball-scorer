@@ -1,5 +1,4 @@
 import React from 'react';
-import marked from 'marked';
 
 export default class ConfirmDialog extends React.Component {
   constructor(props) {
@@ -21,10 +20,7 @@ export default class ConfirmDialog extends React.Component {
       <div>
         <div>
           <div className="dialog">
-            <div
-              className="dialog-text"
-              dangerouslySetInnerHTML={{ __html: marked(this.props.text) }}
-            ></div>
+            <div className="dialog-text">{this.props.text}</div>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <div
                 id="dialog-confirm"

@@ -77,10 +77,21 @@ export default class CardGameEdit extends React.Component {
 
     this.handleLineupTypeHelpClick = () => {
       dialog.show_notification(
-        `**Lineup Type** is used by the lineup simulator to determine what lineups are valid. Some leagues have restrictions on which players can bat in which slots. Softball.app supports three types of lineups:
-* **Normal** Any batter is allowed to bat anywhere in the lineup
-* **Alternating Gender** Consecutive batters must have different genders
-* **No Consecutive Females** Females may not bat back-to-back`,
+        <div>
+          <b>Lineup Type</b> is used by the lineup simulator to determine what
+          lineups are valid. Some leagues have restrictions on which players can
+          bat in which slots. Softball.app supports three types of lineups:
+          <div style={{ margin: '1rem' }}>
+            <b>- Normal</b> Any batter is allowed to bat anywhere in the lineup.
+          </div>
+          <div style={{ margin: '1rem' }}>
+            <b>- Alternating Gender</b> Consecutive batters must have different
+            genders.
+          </div>
+          <div style={{ margin: '1rem' }}>
+            <b>- No Consecutive Females</b> Females may not bat back-to-back.
+          </div>
+        </div>,
         undefined
       );
     };

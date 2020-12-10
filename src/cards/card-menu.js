@@ -34,9 +34,15 @@ class CardMenu extends Component {
           let abort = true;
           let status = await state.sync();
           if (status !== 200) {
-            let message =
-              'Could not sync account data prior to logout. You may be offline. If you continue to sign out you will lose unsynced data. You might consider backing up your data [here](/menu) before continuing. Continue anyways?';
-
+            let message = (
+              <div>
+                Could not sync account data prior to logout. You may be offline.
+                If you continue to sign out you will lose un-synced data. You
+                might consider backing up your data <a href="/menu">here</a>
+                before continuing.
+                <div style={{ margin: '1rem' }}>Continue anyways?</div>
+              </div>
+            );
             // Wait for user to select an option
             // TODO: make all dialogs return promises
             await new Promise(function (resolve) {
@@ -64,7 +70,7 @@ class CardMenu extends Component {
         let response = await state.request('POST', 'server/account/logout');
         if (response.status === 204) {
           state.resetState();
-          dialog.show_notification('Logout successful', function () {
+          dialog.show_notification('Logout successful.', function () {
             setRoute('/menu/login');
           });
         } else {
@@ -74,7 +80,7 @@ class CardMenu extends Component {
           document.cookie =
             'nonHttpOnlyToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
           state.resetState();
-          dialog.show_notification('Logout successful', function () {
+          dialog.show_notification('Logout successful.', function () {
             setRoute('/menu/login');
           });
         }
@@ -97,13 +103,13 @@ class CardMenu extends Component {
           forceSyncDisabled: true,
         });
       } else if (status === 403) {
-        dialog.show_notification('Please log in');
+        dialog.show_notification('Please log in.');
         this.setState({
           forceSyncText: 'Force Sync',
           forceSyncDisabled: false,
         });
       } else if (status === -1) {
-        dialog.show_notification('Sync Failed. App is in offline mode');
+        dialog.show_notification('Sync Failed. App is in offline mode.');
         this.setState({
           forceSyncText: 'Force Sync',
           forceSyncDisabled: false,
@@ -130,7 +136,17 @@ class CardMenu extends Component {
 
     this.handleAddToHomeScreenClick = function () {
       dialog.show_confirm(
-        "**Would you like to add Softball.app to your home screen as a standalone app?** Pressing yes will cause your browser to issue an 'add to home screen' prompt. If you dismiss the browser's prompt, this menu option will disappear for a while.",
+        <div>
+          <b>
+            Would you like to add Softball.app to your home screen as a
+            standalone app?
+          </b>
+          <div style={{ marginTop: '1rem' }}>
+            Pressing yes will cause your browser to issue an 'add to home
+            screen' prompt. If you dismiss the browser's prompt, this menu
+            option will disappear for a while.
+          </div>
+        </div>,
         () => {
           let deferredPrompt = state.getAddToHomescreenPrompt().prompt();
           // Wait for the user to respond to the prompt
