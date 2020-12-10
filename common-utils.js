@@ -4,7 +4,7 @@ exports.factorial = function (n) {
   if (n < 0 || n > 20) {
     throw Error('Factorial out of range' + n);
   }
-  let fact = [
+  const fact = [
     1,
     1,
     2,
