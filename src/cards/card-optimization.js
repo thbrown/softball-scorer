@@ -24,19 +24,6 @@ export default class CardOptimization extends React.Component {
     // variable instead of using the props. This gets updated in the render method.
     this.optimization = props.optimization;
 
-    this.handleSongHelpClick = function (event) {
-      event.stopPropagation();
-      dialog.show_notification(
-        // TODO - Read this from a file so the format isn't dependent on whitespace spaces.
-        `**Walkup Song**
-
-Clips can be played from the player's plate appearance page
-
-![Plate appearance scoring screenshot](/server/assets/help-walkup.svg)`,
-        undefined
-      );
-    };
-
     this.handleOverrideClick = function (playerId) {
       setRoute(`/optimizations/${this.optimization.id}/overrides/${playerId}`);
     }.bind(this);
@@ -164,7 +151,11 @@ Clips can be played from the player's plate appearance page
         return;
       } else if (response.status === 403) {
         dialog.show_notification(
-          'You must be logged in to pause a lineup simulation. Please [Login](/menu/login) or [Signup](/menu/signup).'
+          <div>
+            You must be logged in to pause a lineup simulation. Please{' '}
+            <a href="/menu/login">Login </a> or{' '}
+            <a href="/menu/signup">Signup</a>.
+          </div>
         );
       } else if (response.status === -1) {
         dialog.show_notification(
@@ -297,7 +288,11 @@ Clips can be played from the player's plate appearance page
         return;
       } else if (response.status === 403) {
         dialog.show_notification(
-          'You must be logged in to run a lineup simulation. Please [Login](/menu/login) or [Signup](/menu/signup).'
+          <div>
+            You must be logged in to run a lineup simulation. Please{' '}
+            <a href="/menu/login">Login </a> or{' '}
+            <a href="/menu/signup">Signup</a>.
+          </div>
         );
       } else if (response.status === -1) {
         dialog.show_notification(

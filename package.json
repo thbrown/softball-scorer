@@ -80,7 +80,6 @@
     "ip": "^1.1.5",
     "lz-string": "^1.4.4",
     "mailgun-js": "^0.22.0",
-    "marked": "^1.2.5",
     "node-object-hash": "^2.0.0",
     "object-hash": "^2.0.0",
     "passport": "^0.4.0",

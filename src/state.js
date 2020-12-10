@@ -32,7 +32,7 @@ exp.OPTIMIZATION_STATUS_ENUM = Object.freeze({
   PAUSING: 6,
 });
 const OPTIMIZATION_TYPE_ENUM = Object.freeze({
-  MONTE_CARLO_EXAUSTIVE: 0,
+  MONTE_CARLO_EXHAUSTIVE: 0,
 });
 exp.LINEUP_TYPE_ENUM = Object.freeze({
   NORMAL: 1,
@@ -253,7 +253,7 @@ exp.sync = async function (fullSync) {
       exp.scheduleSync();
     } else if (+err.message === -2) {
       // Issue with patch based sync, re-try with a full sync
-      console.warn('[SYNC] Issue with patch sync: attemtping full sync');
+      console.warn('[SYNC] Issue with patch sync: attempting full sync');
       return await exp.sync(true);
     } else if (+err.message === 400) {
       console.warn('[SYNC] Issue with sync 400');
@@ -336,7 +336,7 @@ exp.getAncestorStateChecksum = function () {
 };
 
 exp.hasAnythingChanged = function () {
-  // TODO: It's probaby faster just to comare these directly
+  // TODO: It's probably faster just to compare these directly
   return (
     commonUtils.getHash(LOCAL_DB_STATE) !== commonUtils.getHash(INITIAL_STATE)
   );
@@ -528,7 +528,7 @@ exp.addOptimization = function (name) {
   let optimization = {
     id: id,
     name: name,
-    type: OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXAUSTIVE,
+    type: OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXHAUSTIVE,
     customData: JSON.stringify({
       innings: 7,
       iterations: 10000,
@@ -981,7 +981,7 @@ function reRender() {
 
 // An async sleep function
 async function sleep(ms) {
-  return new Promise(function (resolve, reject) {
+  return new Promise(function (resolve) {
     setTimeout(function () {
       resolve(ms);
     }, ms);
