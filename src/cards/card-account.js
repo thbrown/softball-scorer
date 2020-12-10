@@ -21,14 +21,14 @@ export default class CardAccount extends Component {
       );
       let message;
       if (response.status === 204) {
-        message = 'Email has been sent';
+        message = 'Email has been sent.';
       } else if (response.status === 400) {
-        message = 'Email not sent, your email is alreay validated';
+        message = 'Email not sent, your email is already validated.';
       } else if (response.status === -1) {
         message =
           'Email can not be sent while offline. Try again when you have a connection.';
       } else {
-        message = `An unexpected error occured. Response: ${JSON.stringify(
+        message = `An unexpected error occurred. Response: ${JSON.stringify(
           response
         )}`;
       }

@@ -14,7 +14,7 @@ export default class CardReset extends React.Component {
         () => {
           state.resetState();
           dialog.show_notification(
-            "Your client has been reset. You will be redirected to the main menu. Once you've arived there, please refresh the page.",
+            "Your client has been reset. You will be redirected to the main menu. Once you've arrived there, please refresh the page.",
             () => {
               setRoute('/menu');
             }

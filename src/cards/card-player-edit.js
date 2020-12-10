@@ -119,11 +119,18 @@ export default class CardPlayerEdit extends React.Component {
     this.handleSongHelpClick = function () {
       dialog.show_notification(
         // TODO - Read this from a file so the format isn't dependent on indent spaces.
-        `**Walkup Song**
-
-Clips can be played from the player's plate appearance page
-
-![Plate appearance scoring screenshot](/server/assets/help-walkup.svg)`,
+        <div>
+          <b>Walkup Song</b>
+          <div style={{ margin: '1rem' }}>
+            Clips can be played from the player's plate appearance page.
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <img
+              alt="Plate appearance scoring screenshot"
+              src="/server/assets/help-walkup.svg"
+            ></img>
+          </div>
+        </div>,
         undefined
       );
     };
