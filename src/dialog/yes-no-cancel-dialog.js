@@ -1,6 +1,5 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
-import marked from 'marked';
 
 export default class YesNoCancelDialog extends React.Component {
   constructor(props) {
@@ -31,10 +30,12 @@ export default class YesNoCancelDialog extends React.Component {
           {
             className: 'dialog',
           },
-          DOM.div({
-            className: 'dialog-text',
-            dangerouslySetInnerHTML: { __html: marked(this.props.text) },
-          }),
+          DOM.div(
+            {
+              className: 'dialog-text',
+            },
+            this.props.text
+          ),
           DOM.div(
             {
               style: {

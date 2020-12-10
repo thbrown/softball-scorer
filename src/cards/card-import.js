@@ -91,7 +91,7 @@ const CardImport = () => {
           setRoute('/teams');
         } else {
           dialog.show_notification(
-            'Please select load type option before clicking "Load"'
+            'Please select load type option before clicking "Load".'
           );
         }
       };
