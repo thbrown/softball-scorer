@@ -4,7 +4,7 @@ const logger = require('./logger.js');
 module.exports = class EmailLogOnly {
   constructor() {}
 
-  sendMessage(accountId, destinationEmail, subject, message) {
+  sendMessage(accountId, destinationEmail, subject, message, html) {
     logger.warn(
       accountId,
       'Email was not sent because mailgun was not configured',

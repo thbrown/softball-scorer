@@ -299,12 +299,28 @@ export default class CardOptimization extends React.Component {
           'The network is offline. Try again when you have an internet connection.'
         );
       } else {
-        dialog.show_notification(
-          'Something went wrong. ' +
-            response.status +
-            ' ' +
-            JSON.stringify(response.body)
-        );
+        // Make sure email validation works
+        // Make sure links show up in optimization dialogs
+        if (
+          response.body.error &&
+          response.body.error === 'EMAIL_NOT_VERIFIED'
+        ) {
+          dialog.show_notification(
+            <div>
+              The 'send me an email...' checkbox was checked but the email
+              address associated with this account has not been verified. Please
+              verify your email at <a href="/account">softball.app/account</a>)
+              or uncheck the box.{' '}
+            </div>
+          );
+        } else {
+          dialog.show_notification(
+            'Something went wrong. ' +
+              response.status +
+              ' ' +
+              JSON.stringify(response.body)
+          );
+        }
       }
       buttonDiv.classList.remove('disabled');
       buttonDiv.innerHTML = 'Start Simulation';

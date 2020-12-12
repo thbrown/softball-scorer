@@ -23,6 +23,8 @@ const logger = require('./logger');
 const objectMerge = require('../object-merge');
 const OptimizationServer = require('./optimization-server');
 const SimulationTimeEstimator = require('../simulation-time-estimator');
+const welcomeEmailHtml = require('./email/welcome-email-html');
+const passwordResetEmailHtml = require('./email/password-reset-email-html');
 
 module.exports = class SoftballServer {
   constructor(appPort, optimizationPort, databaseCalls, cacheCalls, compute) {
@@ -423,7 +425,10 @@ module.exports = class SoftballServer {
               account.account_id,
               req.body.email,
               'Softball.app Password Reset',
-              `Sombody tried to reset the password for the softball.app (https://softball.app) account associated with this email address (hopefully it was you!). Please click this link to reset the password: https://softball.app/account/password-reset/${token}`
+              `Sombody tried to reset the password for the softball.app (https://softball.app) account associated with this email address. Please click this link to reset the password: https://softball.app/account/password-reset/${token} If you did not request this message or if you no longer want to reset your password, please ignore this email. This reset link will expire in 24 hours.`,
+              passwordResetEmailHtml(
+                `https://softball.app/account/password-reset/${token}`
+              )
             );
 
           res.status(204).send();
@@ -857,6 +862,7 @@ module.exports = class SoftballServer {
           // Don't run optimizations with estimated completion time greater than 12 hours
           if (estimatedTime > 43200) {
             res.status(400).send({
+              error: 'BAD_ESTIMATED_COMPLETION_TIME',
               message:
                 'Could not start the simulation because the estimated completion time for this lineup is greater then 12 hours. Reduce the estimated runtime and try again.',
             });
@@ -872,8 +878,9 @@ module.exports = class SoftballServer {
           );
           if (optimization.sendEmail && !account.verifiedEmail) {
             res.status(400).send({
+              error: 'EMAIL_NOT_VERIFIED',
               message:
-                "The 'send me an email...' checkbox was checked but the email address associated with this account has not been verified. Please [verify your email](/account) or uncheck the box.",
+                "The 'send me an email...' checkbox was checked but the email address associated with this account has not been verified. Please verify your email at (softball.app/account) or uncheck the box.",
             });
             return;
           }
@@ -1214,7 +1221,8 @@ module.exports = class SoftballServer {
           accountId,
           email,
           'Welcome to Softball.app!',
-          `Thank you for signing up for an account on https://softball.app. Please click this activation link to verify your email address: https://softball.app/account/verify-email/${token}`
+          `Thank you for signing up for an account on https://softball.app. Please click this activation link to verify your email address: https://softball.app/account/verify-email/${token}`,
+          welcomeEmailHtml(`https://softball.app/account/verify-email/${token}`)
         );
 
       return tokenHash;

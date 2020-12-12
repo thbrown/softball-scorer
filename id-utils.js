@@ -3,7 +3,7 @@ const BASE62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const bs62 = baseX(BASE62);
 const buffer = require('buffer/').Buffer;
 
-// Clicnet ids are 14 chars base 62 (e.g. 1CHDaeMNJlrvWW)
+// Client ids are 14 chars base 62 (e.g. 1CHDaeMNJlrvWW)
 exports.clientIdToServerId = function (clientId, accountId) {
   let hexAccountId = accountId.toString(parseInt(16)).padStart(8, '0');
   let hexId = bs62.decode(clientId).toString('hex');

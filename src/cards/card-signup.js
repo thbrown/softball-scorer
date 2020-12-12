@@ -78,7 +78,7 @@ export default class CardSignup extends React.Component {
           <div>
             Thank you for creating an account on Softball.app! You have been
             logged in. To enable all softball.app features, please verify your
-            email by clicking the activation link in the welcome email sent to
+            email by clicking the activation link in the welcome email sent to{' '}
             {email.value}. This link will expire after 24 hours.
           </div>,
           function () {
