@@ -8,7 +8,7 @@ module.exports = class EmailMailGun {
     this.mg = mailgun({ apiKey: apiKey, domain: domain });
   }
 
-  sendMessage(accountId, destinationEmail, subject, message) {
+  sendMessage(accountId, destinationEmail, subject, message, html) {
     // So we don't email randos during testing, only allow emails to be sent to a particular domain (probably softball.app)
     if (
       this.restrictEmailsToDomain &&
@@ -31,6 +31,7 @@ module.exports = class EmailMailGun {
       bcc: 'notify@softball.app',
       subject: subject,
       text: message,
+      html: html,
     };
     this.mg.messages().send(data, function (error, body) {
       if (error) {

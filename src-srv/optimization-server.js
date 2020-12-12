@@ -6,6 +6,8 @@ const TimeoutUtil = require('./timeout-util');
 const net = require('net');
 const ip = require('ip');
 
+const optimizationCompleteEmailHtml = require('./email/optimization-complete-email-html');
+
 const HOST = ip.address();
 const PORT = configAccessor.getOptimizationServerPort();
 
@@ -221,7 +223,11 @@ module.exports = class OptimizationServer {
                 sock.accountId,
                 account.email,
                 `Softball.app Optimization ${optimization.name} has Completed!`,
-                JSON.stringify(parsedData, null, 2)
+                JSON.stringify(parsedData, null, 2),
+                optimizationCompleteEmailHtml(
+                  JSON.stringify(parsedData, null, 2),
+                  'https://softball.app/optimizations'
+                ) // TODO: link to the particular optimization, not the general optimization page
               );
             } else {
               logger.warn(

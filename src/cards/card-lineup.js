@@ -187,7 +187,7 @@ export default class CardLineup extends React.Component {
 
       let scoreSpinner = this.scoreSpinnerRef.current;
       scoreSpinner.style.visibility = 'hidden';
-    };
+    }.bind(this);
 
     // Tell web worker to start computing lineup estimated score
     let scoreSpinner = this.scoreSpinnerRef.current;

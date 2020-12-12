@@ -242,9 +242,9 @@ class CardPlateAppearance extends React.Component {
           id={'result-' + result}
           key={`${i} ${result}`}
           className={
-            this.props.classes.button +
+            this.props.classes.classes.button +
             (this.state.paResult === result
-              ? ' ' + this.props.classes.buttonSelected
+              ? ' ' + this.props.classes.classes.buttonSelected
               : '')
           }
           onClick={this.handleButtonClick.bind(this, result)}
@@ -256,10 +256,10 @@ class CardPlateAppearance extends React.Component {
 
     return (
       <div>
-        <div className={this.props.classes.buttonRow}>
+        <div className={this.props.classes.classes.buttonRow}>
           {elems.slice(0, elems.length / 2)}
         </div>
-        <div className={this.props.classes.buttonRow}>
+        <div className={this.props.classes.classes.buttonRow}>
           {elems.slice(elems.length / 2, elems.length)}
         </div>
       </div>
