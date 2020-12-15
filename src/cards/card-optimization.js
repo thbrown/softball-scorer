@@ -949,7 +949,7 @@ export default class CardOptimization extends React.Component {
             />
             <NoSelect>Results</NoSelect>
             {/*
-            <div className="help-container">
+            <div className="icon-button">
               <img
                 src="/server/assets/help.svg"
                 alt="?"

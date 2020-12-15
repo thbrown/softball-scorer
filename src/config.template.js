@@ -11,5 +11,8 @@ const config = {
   analytics: {
     trackingId: undefined,
   },
+  youtube: {
+    apikey: undefined,
+  },
 };
 export default config;

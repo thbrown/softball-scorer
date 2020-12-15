@@ -1,11 +1,15 @@
-const mailgun = require('mailgun-js');
+const mailgun = require('mailgun.js');
 const logger = require('./logger.js');
 
 // This email service sends emails using a configured MailGun account (https://www.mailgun.com/)
 module.exports = class EmailMailGun {
   constructor(apiKey, domain, restrictEmailsToDomain) {
     this.restrictEmailsToDomain = restrictEmailsToDomain;
-    this.mg = mailgun({ apiKey: apiKey, domain: domain });
+    this.domain = domain;
+    this.mg = mailgun.client({
+      username: 'api',
+      key: apiKey,
+    });
   }
 
   sendMessage(accountId, destinationEmail, subject, message, html) {
@@ -33,7 +37,7 @@ module.exports = class EmailMailGun {
       text: message,
       html: html,
     };
-    this.mg.messages().send(data, function (error, body) {
+    this.mg.messages.create(this.domain, data).catch(function (error) {
       if (error) {
         logger.error(accountId, 'Error while sending email', error);
       }

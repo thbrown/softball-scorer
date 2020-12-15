@@ -6,6 +6,8 @@ import WalkupSong from 'component-walkup-song';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
 import { goBack, goHome } from 'actions/route';
+import network from 'network';
+import AsyncSelect from 'react-select/async';
 
 export default class CardPlayerEdit extends React.Component {
   constructor(props) {
@@ -18,6 +20,8 @@ export default class CardPlayerEdit extends React.Component {
       playerName: props.player.name,
       playerSongLink: props.player.song_link,
       playerSongStart: props.player.song_start,
+      youtubeDialogSelection: undefined,
+      walkupSongChangeDetector: 0, // Used as a react 'key' so we can reset the floating label when an a youtube search changes the field
     };
 
     const buildPlayer = () => {
@@ -30,6 +34,83 @@ export default class CardPlayerEdit extends React.Component {
     };
 
     this.isPristine = props.isNew ? false : true;
+
+    this.queryYouTube = async function (query) {
+      if (query.length <= 3) {
+        return [];
+      }
+      // Do the query
+      const searchTerms = encodeURIComponent(query);
+      const url = `server/youtube?q=${searchTerms}`;
+      let response = await network.request('GET', url);
+
+      const listOfVideos = response.body.items;
+
+      // Filter so we just get what we want
+      let results = [];
+      for (let i = 0; i < listOfVideos.length; i++) {
+        results.push({
+          label: listOfVideos[i].snippet.title,
+          value: listOfVideos[i].id.videoId,
+          thumbnail: listOfVideos[i].snippet.thumbnails.default.url,
+        });
+      }
+      return results;
+    };
+
+    this.formatOptionLabel = ({ value, label, thumbnail }, { context }) => {
+      if (context === 'value') {
+        return <div>{label}</div>;
+      } else {
+        // 'menu'
+        return (
+          <div style={{ display: 'flex', position: 'relative' }}>
+            <div>
+              <img src={thumbnail} alt={''} width="120" height="90"></img>
+            </div>
+            <div
+              style={{
+                margin: 0,
+                position: 'absolute',
+                top: '50%',
+                msTransform: 'translateY(-50%)',
+                transform: 'translateY(-50%)',
+                wordWrap: 'break-word',
+                paddingLeft: '125px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {label}
+            </div>
+          </div>
+        );
+      }
+    };
+
+    this.debounce = function (func, wait) {
+      let timeout;
+      return async function () {
+        return new Promise((resolve) => {
+          let args = arguments;
+
+          // Define the function we will be debouncing
+          let later = async function () {
+            timeout = null;
+            let result = await func.apply(this, args);
+            resolve(result);
+          };
+
+          // Clear the timeout if there is one
+          if (timeout) {
+            clearTimeout(timeout);
+          }
+
+          // Set a new timeout
+          timeout = setTimeout(later, wait);
+        });
+      }.bind(this);
+    };
 
     this.homeOrBack = (type) => (cb) => {
       if (!this.isPristine) {
@@ -97,7 +178,7 @@ export default class CardPlayerEdit extends React.Component {
 
     this.handleSongLinkChange = function () {
       this.isPristine = false;
-      let newValue = document.getElementById('songLink').value;
+      let newValue = document.getElementById('songLink').value; // TODO: just get value from event?
       let dataArray = newValue.split(/\/|\?|=|%3D|&/);
       for (let i = 0; i < dataArray.length; i++) {
         let results = dataArray[i].match(/[0-9a-zA-Z-_]{11}/);
@@ -118,7 +199,6 @@ export default class CardPlayerEdit extends React.Component {
 
     this.handleSongHelpClick = function () {
       dialog.show_notification(
-        // TODO - Read this from a file so the format isn't dependent on indent spaces.
         <div>
           <b>Walkup Song</b>
           <div style={{ margin: '1rem' }}>
@@ -134,6 +214,47 @@ export default class CardPlayerEdit extends React.Component {
         undefined
       );
     };
+
+    this.handleYoutubeSearchClick = function () {
+      dialog.show_confirm(
+        <div>
+          <div style={{ padding: '5px' }}>Search YouTube</div>
+          <div>
+            <AsyncSelect
+              cacheOptions
+              defaultOptions
+              loadOptions={this.debounce(this.queryYouTube, 2000, false)}
+              formatOptionLabel={this.formatOptionLabel}
+              onChange={this.handleYoutubeVideoSelect}
+            />
+          </div>
+          <div style={{ padding: '5px', paddingTop: '35px' }}>
+            Do you want to use the selected video?
+          </div>
+        </div>,
+        this.handleYoutubeDialogConfirm
+      );
+    }.bind(this);
+
+    this.handleYoutubeVideoSelect = function (selectedOption) {
+      this.setState({
+        youtubeDialogSelection: selectedOption.value,
+      });
+    }.bind(this);
+
+    this.handleYoutubeDialogConfirm = async function () {
+      if (this.state.youtubeDialogSelection) {
+        //document.getElementById('songLink').value = this.state.youtubeSelect;
+        this.setState(
+          {
+            playerSongLink: this.state.youtubeDialogSelection,
+            youtubeSelect: undefined,
+            walkupSongChangeDetector: this.state.walkupSongChangeDetector + 1,
+          },
+          this.handleSongLinkChange()
+        );
+      }
+    }.bind(this);
   }
 
   componentDidMount() {
@@ -155,8 +276,8 @@ export default class CardPlayerEdit extends React.Component {
             defaultValue={this.state.playerName}
           />
           <div className="radio-button">
-            <fieldset className="radio-button-fieldset">
-              <legend className="radio-button-legend">Gender</legend>
+            <fieldset className="group">
+              <legend className="group-legend">Gender</legend>
               <div className="radio-button-option">
                 <input
                   type="radio"
@@ -179,45 +300,61 @@ export default class CardPlayerEdit extends React.Component {
               </div>
             </fieldset>
           </div>
-          <FloatingInput
-            inputId="songLink"
-            label="Walk up song YouTube link (Optional)"
-            onChange={this.handleSongLinkChange}
-            defaultValue={
-              this.state.playerSongLink
-                ? `https://youtu.be/${this.state.playerSongLink}`
-                : ''
-            }
-          />
-          <FloatingInput
-            inputId="songStart"
-            label="Song start time in seconds (Optional)"
-            type="number"
-            min="0"
-            step="1"
-            maxLength="50"
-            onChange={this.handleSongStartChange}
-            defaultValue={this.state.playerSongStart || ''}
-          />
-          <div id="songLabel" className="song-label">
-            Song Preview
-          </div>
-          <div id="songWrapper" className="song-preview-container">
-            <WalkupSong
-              songLink={this.state.playerSongLink}
-              songStart={this.state.playerSongStart || ''}
-              width={48}
-              height={48}
-            ></WalkupSong>
-            <div className="help-container">
-              <img
-                alt="help"
-                className="help-icon"
-                src="/server/assets/help.svg"
-                onClick={this.handleSongHelpClick}
-              />
+          <fieldset style={{ padding: '5px' }} className="group">
+            <legend className="group-legend">Walk Up Song (Optional)</legend>
+            <div style={{ display: 'flex' }}>
+              <div style={{ width: '100%' }}>
+                <FloatingInput
+                  inputId="songLink"
+                  label="Walk up song YouTube link"
+                  onChange={this.handleSongLinkChange}
+                  defaultValue={
+                    this.state.playerSongLink
+                      ? `https://youtu.be/${this.state.playerSongLink}`
+                      : ''
+                  }
+                  key={this.state.walkupSongChangeDetector}
+                />
+              </div>
+              <div className="icon-button">
+                <img
+                  alt="search YouYube"
+                  className="help-icon"
+                  src="/server/assets/search.svg"
+                  onClick={this.handleYoutubeSearchClick}
+                />
+              </div>
             </div>
-          </div>
+            <FloatingInput
+              inputId="songStart"
+              label="Song start time in seconds"
+              type="number"
+              min="0"
+              step="1"
+              maxLength="50"
+              onChange={this.handleSongStartChange}
+              defaultValue={this.state.playerSongStart || ''}
+            />
+            <div id="songLabel" className="song-label">
+              Song Preview
+            </div>
+            <div id="songWrapper" className="song-preview-container">
+              <WalkupSong
+                songLink={this.state.playerSongLink}
+                songStart={this.state.playerSongStart || ''}
+                width={128}
+                height={128}
+              ></WalkupSong>
+              <div className="icon-button">
+                <img
+                  alt="help"
+                  className="help-icon"
+                  src="/server/assets/help.svg"
+                  onClick={this.handleSongHelpClick}
+                />
+              </div>
+            </div>
+          </fieldset>
         </div>
         {this.renderSaveOptions()}
       </>

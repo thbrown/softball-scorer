@@ -281,14 +281,15 @@ svg rect{
   font-size: 18px;
 }
 
-.radio-button-fieldset {
+.group {
   border: 1px #795548 solid;
   border-radius: 4px;
   padding: 0px;
   margin-bottom: 8px;
+  color: $css.colors.TEXT_LIGHT;
 }
 
-.radio-button-legend {
+.group-legend {
   font-size: 12px;
   margin-left: 8px;
 }
@@ -669,7 +670,7 @@ Scrolling is ~10-20x smoother.
   display: flex;
 }
 
-.help-container {
+.icon-button {
   width: 48px;
   height: 48px;
   text-align: center;
