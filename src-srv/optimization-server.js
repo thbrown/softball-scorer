@@ -385,6 +385,8 @@ module.exports = class OptimizationServer {
       }
       return success;
     };
+
+    logger.log('sys', 'Optimization server listening on ' + PORT);
   }
 
   async stop() {
@@ -397,4 +399,3 @@ module.exports = class OptimizationServer {
     );
   }
 };
-logger.log('sys', 'Optimization server listening on ' + PORT);

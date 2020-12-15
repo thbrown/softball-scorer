@@ -128,8 +128,10 @@ export default class WalkupSong extends expose.Component {
             width: this.props.width,
             height: this.props.height,
             textAlign: 'center',
-            color: 'white',
+            color: 'black',
             paddingTop: '8px',
+            backgroundColor: 'lightgray',
+            borderRadius: '5px',
           },
         },
         'No Song'

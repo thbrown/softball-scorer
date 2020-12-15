@@ -49,4 +49,8 @@ module.exports = {
     mode: 'local',
     params: null,
   },
+
+  youtube: {
+    apikey: undefined,
+  },
 };

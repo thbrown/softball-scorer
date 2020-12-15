@@ -29,6 +29,7 @@ export default class FloatingInput extends React.Component {
             );
             this.setState({
               value: e.target.value,
+              //active: e.target.value === undefined ? false : true,
             });
           }}
           onFocus={() => {

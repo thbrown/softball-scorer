@@ -14,6 +14,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const got = require('got');
 const { v4: uuidv4 } = require('uuid');
+const querystring = require('querystring');
 
 const commonUtils = require('../common-utils');
 const configAccessor = require('./config-accessor');
@@ -130,6 +131,7 @@ module.exports = class SoftballServer {
             'https://www.gstatic.com/recaptcha/',
             'https://www.google.com/recaptcha/api.js',
             'https://www.google-analytics.com',
+            'https://i.ytimg.com',
           ],
           frameSrc: [
             'https://www.google.com/', // ReCapcha
@@ -140,6 +142,7 @@ module.exports = class SoftballServer {
             "'self'",
             'https://www.google-analytics.com',
             'https://stats.g.doubleclick.net',
+            'https://i.ytimg.com', // YouTube thumbnails
           ],
           objectSrc: ["'none'"],
           reportUri: '/server/report-violation',
@@ -1000,6 +1003,34 @@ module.exports = class SoftballServer {
       }
       let responseData = {};
       responseData.email = extractSessionInfo(req, 'email');
+      res.status(200).send(responseData);
+    });
+
+    // Just a middle layer between the browser and the youtube API so we can keep our API key private
+    app.get('/server/youtube', async function (req, res) {
+      let searchTerms = querystring.escape(req.query.q);
+      let apiKey = configAccessor.getYoutubeApiKey();
+
+      let responseData = {};
+      responseData.query = searchTerms;
+      logger.log('ANO', 'YouTube search: ', searchTerms);
+
+      let youtubeResponse = {
+        items: [],
+      };
+      if (apiKey) {
+        try {
+          youtubeResponse = await got.get(
+            `https://youtube.googleapis.com/youtube/v3/search?part=snippet&maxResults=25&q=${searchTerms}&key=${apiKey}`
+          );
+        } catch (e) {
+          logger.error('Anon', 'YouTube search error: ', e);
+        }
+      } else {
+        logger.error('Anon', 'Missing youtube API key');
+      }
+
+      responseData = youtubeResponse.body;
       res.status(200).send(responseData);
     });
 

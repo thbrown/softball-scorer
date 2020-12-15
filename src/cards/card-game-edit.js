@@ -120,7 +120,7 @@ export default class CardGameEdit extends React.Component {
                 3: 'No Consecutive Females',
               }}
             />
-            <div className="help-container">
+            <div className="icon-button">
               <img
                 className="help-icon"
                 src="/server/assets/help.svg"

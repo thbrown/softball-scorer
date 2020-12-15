@@ -3,6 +3,7 @@ const DatabaseCallsStatic = require('./database-calls-static');
 const CacheCallsRedis = require('./cache-calls-redis');
 const CacheCallsLocal = require('./cache-calls-local');
 const ComputeGCP = require('./compute-gcp');
+
 const ComputeLocal = require('./compute-local');
 const ComputeNone = require('./compute-none');
 const EmailLogOnly = require('./email-log-only');
@@ -156,6 +157,10 @@ module.exports.getAppOptimizationLockTTL = function () {
 
 module.exports.getAppOptimizationSweeperPeriod = function () {
   return (config && config.app && config.app.optimizationSweeperPeriod) || 120;
+};
+
+module.exports.getYoutubeApiKey = function () {
+  return (config && config.youtube && config.youtube.apikey) || undefined;
 };
 
 // Logger must access the config directly because it we can't require modules that use the logger beofre the logger is configured
