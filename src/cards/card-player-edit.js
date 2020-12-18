@@ -8,6 +8,7 @@ import ListButton from 'elements/list-button';
 import { goBack, goHome } from 'actions/route';
 import network from 'network';
 import AsyncSelect from 'react-select/async';
+import FloatingReactAsyncCreatableSelect from 'elements/floating-react-async-creatable-select';
 
 export default class CardPlayerEdit extends React.Component {
   constructor(props) {
@@ -20,8 +21,7 @@ export default class CardPlayerEdit extends React.Component {
       playerName: props.player.name,
       playerSongLink: props.player.song_link,
       playerSongStart: props.player.song_start,
-      youtubeDialogSelection: undefined,
-      walkupSongChangeDetector: 0, // Used as a react 'key' so we can reset the floating label when an a youtube search changes the field
+      youTubeKey: 0, // Used as a react 'key' so we can reset the floating label when an a youtube search changes the field
     };
 
     const buildPlayer = () => {
@@ -36,9 +36,6 @@ export default class CardPlayerEdit extends React.Component {
     this.isPristine = props.isNew ? false : true;
 
     this.queryYouTube = async function (query) {
-      if (query.length <= 3) {
-        return [];
-      }
       // Do the query
       const searchTerms = encodeURIComponent(query);
       const url = `server/youtube?q=${searchTerms}`;
@@ -55,8 +52,9 @@ export default class CardPlayerEdit extends React.Component {
           thumbnail: listOfVideos[i].snippet.thumbnails.default.url,
         });
       }
+      console.log('YoutubeResults', results);
       return results;
-    };
+    }.bind(this);
 
     this.formatOptionLabel = ({ value, label, thumbnail }, { context }) => {
       if (context === 'value') {
@@ -70,15 +68,16 @@ export default class CardPlayerEdit extends React.Component {
             </div>
             <div
               style={{
-                margin: 0,
                 position: 'absolute',
                 top: '50%',
                 msTransform: 'translateY(-50%)',
                 transform: 'translateY(-50%)',
                 wordWrap: 'break-word',
-                paddingLeft: '125px',
+                marginLeft: '125px',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
+                color: 'black',
+                height: '87px',
               }}
             >
               {label}
@@ -88,18 +87,51 @@ export default class CardPlayerEdit extends React.Component {
       }
     };
 
-    this.debounce = function (func, wait) {
+    this.onYouTubeSelect = function () {
       let timeout;
-      return async function () {
+      return async function (query) {
+        if (query.length == 0) {
+          return new Promise((resolve) => {
+            resolve([]);
+          });
+        }
+
+        // Don't call the API if the query is less than 4 characters
+        if (query.length <= 3) {
+          return new Promise((resolve) => {
+            resolve([
+              {
+                label: 'Enter more than 3 characters to search',
+                value: undefined,
+                thumbnail: '/server/assets/alert.svg',
+              },
+            ]);
+          });
+        }
+
+        // Don't call the API if the user entered a valid YouTube link
+        if (this.isValidYouTubeVideoLink(query)) {
+          return new Promise((resolve) => {
+            resolve([
+              {
+                label: 'Link: ' + query,
+                value: query,
+                thumbnail: '/server/assets/link.svg',
+              },
+            ]);
+          });
+        }
+
+        // Debounced Query
         return new Promise((resolve) => {
           let args = arguments;
 
           // Define the function we will be debouncing
           let later = async function () {
             timeout = null;
-            let result = await func.apply(this, args);
+            let result = await this.queryYouTube.apply(this, args);
             resolve(result);
-          };
+          }.bind(this);
 
           // Clear the timeout if there is one
           if (timeout) {
@@ -107,10 +139,10 @@ export default class CardPlayerEdit extends React.Component {
           }
 
           // Set a new timeout
-          timeout = setTimeout(later, wait);
+          timeout = setTimeout(later, 2000);
         });
       }.bind(this);
-    };
+    }.bind(this);
 
     this.homeOrBack = (type) => (cb) => {
       if (!this.isPristine) {
@@ -176,19 +208,36 @@ export default class CardPlayerEdit extends React.Component {
       });
     }.bind(this);
 
-    this.handleSongLinkChange = function () {
+    this.handleYouTubeSelection = function (selectedOption) {
       this.isPristine = false;
-      let newValue = document.getElementById('songLink').value; // TODO: just get value from event?
-      let dataArray = newValue.split(/\/|\?|=|%3D|&/);
-      for (let i = 0; i < dataArray.length; i++) {
-        let results = dataArray[i].match(/[0-9a-zA-Z-_]{11}/);
-        if (results && results.length === 1) {
-          this.setState({
-            playerSongLink: results[0],
-          });
+      let newValue = selectedOption.value;
+      if (this.isValidYouTubeVideoLink(newValue)) {
+        // This is a link, extract the video id
+        let dataArray = newValue.split(/\/|\?|=|%3D|&/);
+        for (let i = 0; i < dataArray.length; i++) {
+          let results = dataArray[i].match(/[0-9a-zA-Z-_]{11}/);
+          if (results && results.length === 1) {
+            this.setState({
+              playerSongLink: results[0],
+              youTubeKey: this.state.youtubeKey + 1, // force select to update
+            });
+          }
         }
+      } else {
+        // Not a link, search populated a video id, set state directly
+        this.setState({
+          playerSongLink: newValue,
+          youTubeKey: this.state.youtubeKey + 1, // force select to update
+        });
       }
     }.bind(this);
+
+    this.isValidYouTubeVideoLink = function (url) {
+      let result = url.match(
+        /(?:https?:\/\/)?(?:youtu\.be\/|(?:www\.|m\.)?youtube\.com\/(?:watch|v|embed)(?:\.php)?(?:\?.*v=|\/))([a-zA-Z0-9\_-]{11})/
+      );
+      return result == null ? false : true;
+    };
 
     this.handleSongStartChange = function () {
       this.isPristine = false;
@@ -214,47 +263,6 @@ export default class CardPlayerEdit extends React.Component {
         undefined
       );
     };
-
-    this.handleYoutubeSearchClick = function () {
-      dialog.show_confirm(
-        <div>
-          <div style={{ padding: '5px' }}>Search YouTube</div>
-          <div>
-            <AsyncSelect
-              cacheOptions
-              defaultOptions
-              loadOptions={this.debounce(this.queryYouTube, 2000, false)}
-              formatOptionLabel={this.formatOptionLabel}
-              onChange={this.handleYoutubeVideoSelect}
-            />
-          </div>
-          <div style={{ padding: '5px', paddingTop: '35px' }}>
-            Do you want to use the selected video?
-          </div>
-        </div>,
-        this.handleYoutubeDialogConfirm
-      );
-    }.bind(this);
-
-    this.handleYoutubeVideoSelect = function (selectedOption) {
-      this.setState({
-        youtubeDialogSelection: selectedOption.value,
-      });
-    }.bind(this);
-
-    this.handleYoutubeDialogConfirm = async function () {
-      if (this.state.youtubeDialogSelection) {
-        //document.getElementById('songLink').value = this.state.youtubeSelect;
-        this.setState(
-          {
-            playerSongLink: this.state.youtubeDialogSelection,
-            youtubeSelect: undefined,
-            walkupSongChangeDetector: this.state.walkupSongChangeDetector + 1,
-          },
-          this.handleSongLinkChange()
-        );
-      }
-    }.bind(this);
   }
 
   componentDidMount() {
@@ -302,32 +310,25 @@ export default class CardPlayerEdit extends React.Component {
           </div>
           <fieldset style={{ padding: '5px' }} className="group">
             <legend className="group-legend">Walk Up Song (Optional)</legend>
-            <div style={{ display: 'flex' }}>
-              <div style={{ width: '100%' }}>
-                <FloatingInput
-                  inputId="songLink"
-                  label="Walk up song YouTube link"
-                  onChange={this.handleSongLinkChange}
-                  defaultValue={
-                    this.state.playerSongLink
-                      ? `https://youtu.be/${this.state.playerSongLink}`
-                      : ''
-                  }
-                  key={this.state.walkupSongChangeDetector}
-                />
-              </div>
-              <div className="icon-button">
-                <img
-                  alt="search YouYube"
-                  className="help-icon"
-                  src="/server/assets/search.svg"
-                  onClick={this.handleYoutubeSearchClick}
-                />
-              </div>
-            </div>
+            <FloatingReactAsyncCreatableSelect
+              defaultValue={{
+                label: this.state.playerSongLink
+                  ? `https://youtu.be/${this.state.playerSongLink}`
+                  : '',
+                value: this.state.playerSongLink,
+              }}
+              label={'Search YouTube / Paste YouTube Link'}
+              loadOptions={this.onYouTubeSelect()}
+              formatOptionLabel={this.formatOptionLabel}
+              onChange={this.handleYouTubeSelection}
+              isValidNewOption={() => {
+                return false;
+              }}
+              key={this.state.youTubeKey}
+            />
             <FloatingInput
               inputId="songStart"
-              label="Song start time in seconds"
+              label="Start time in seconds"
               type="number"
               min="0"
               step="1"
@@ -336,7 +337,7 @@ export default class CardPlayerEdit extends React.Component {
               defaultValue={this.state.playerSongStart || ''}
             />
             <div id="songLabel" className="song-label">
-              Song Preview
+              Preview
             </div>
             <div id="songWrapper" className="song-preview-container">
               <WalkupSong
