@@ -143,6 +143,7 @@ module.exports = class SoftballServer {
             'https://www.google-analytics.com',
             'https://stats.g.doubleclick.net',
             'https://i.ytimg.com', // YouTube thumbnails
+            'https://yt3.ggpht.com',
           ],
           objectSrc: ["'none'"],
           reportUri: '/server/report-violation',
@@ -1016,7 +1017,24 @@ module.exports = class SoftballServer {
       logger.log('ANO', 'YouTube search: ', searchTerms);
 
       let youtubeResponse = {
-        items: [],
+        body: {
+          items: [
+            {
+              snippet: {
+                title:
+                  'An error occured while querying YouTube. We may be hitting API limits. Try again tomorrow or try pasting a link to a video instead.',
+                thumbnails: {
+                  default: {
+                    url: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/default.jpg',
+                  },
+                },
+              },
+              id: {
+                videoId: 'DLzxrzFCyOs',
+              },
+            },
+          ],
+        },
       };
       if (apiKey) {
         try {
@@ -1027,7 +1045,8 @@ module.exports = class SoftballServer {
           logger.error('Anon', 'YouTube search error: ', e);
         }
       } else {
-        logger.error('Anon', 'Missing youtube API key');
+        youtubeResponse.body.items[0].snippet.title = 'Misconfigured API key';
+        logger.error('Anon', 'Missing youtube API key in config');
       }
 
       responseData = youtubeResponse.body;

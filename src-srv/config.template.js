@@ -1,11 +1,12 @@
 /**
- * This is the server side configuration template. To add your own configuration, please copy this file and rename it to 'config.js'
+ * This is the server side configuration template. To use a custom configuration, please copy this file and rename it to 'config.js'
+ * If there is no config.js file present during the build, the build porocess will copy this one for you.
  **/
 module.exports = {
   app: {
-    port: undefined,
-    optimizationSweeperPeriod: undefined,
-    optimizationLockTTL: undefined,
+    port: null,
+    optimizationSweeperPeriod: null,
+    optimizationLockTTL: null,
   },
 
   database: {
@@ -36,13 +37,13 @@ module.exports = {
   },
 
   email: {
-    apiKey: undefined,
-    domain: undefined,
-    restrictEmailsToDomain: undefined,
+    apiKey: null,
+    domain: null,
+    restrictEmailsToDomain: null,
   },
 
   optimization: {
-    port: undefined,
+    port: null,
   },
 
   compute: {
@@ -51,6 +52,6 @@ module.exports = {
   },
 
   youtube: {
-    apikey: undefined,
+    apikey: null,
   },
 };
