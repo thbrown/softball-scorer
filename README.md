@@ -10,7 +10,7 @@ Live at https://softball.app/
 
 ```
 sudo apt-get install curl
-curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 ```
 
 3. Install yarn `[sudo] npm install -g yarn`
@@ -143,6 +143,10 @@ Use WSL + Ubuntu and refer to Linux instructions
 TODO
 
 ### Google Cloud Platform
+
+Cloud build:
+
+`./gcp-build.sh && yarn start`
 
 To use gcp instances for optimization computation see the README in the gcp folder.
 

@@ -554,6 +554,10 @@ let databaseCalls = class DatabaseCalls {
     );
     return undefined;
   }
+
+  disconnect() {
+    logger.log(null, 'disconnecting from static db (NO-OP)');
+  }
 };
 
 // Node only

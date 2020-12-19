@@ -746,16 +746,19 @@ Scrolling is ~10-20x smoother.
 .floating-react-select {
   margin-top: 7px;
 }
+
 .floating-react-select > div:first-of-type > div:first-of-type {
   padding-bottom: 0px !important;
   padding-left: 0px !important;
 }
+
 .floating-react-select input,
 .floating-react-select > div:first-of-type > div:first-of-type > div:first-of-type,
 .floating-react-select > div:first-of-type > div:first-of-type > div:first-of-type > div:first-of-type {
   width: 100% !important;
 }
-.floating-react-select div[class$="indicatorContainer"] {
+
+.floating-react-select div[class*="indicatorContainer"] {
   display: none !important;
 }
 
