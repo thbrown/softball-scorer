@@ -11,7 +11,7 @@ export default class CardAccount extends Component {
     this.state = {};
 
     // TODO: only render this button if email has not yet been validated
-    this.handleEmailValidationClick = async function () {
+    this.handleEmailValidationClick = async function() {
       let buttonDiv = document.getElementById('email-validation');
       buttonDiv.classList.add('disabled');
 
@@ -23,7 +23,7 @@ export default class CardAccount extends Component {
       if (response.status === 204) {
         message = 'Email has been sent.';
       } else if (response.status === 400) {
-        message = 'Email not sent, your email is already validated.';
+        message = 'Email not sent, your email has already been validated.';
       } else if (response.status === -1) {
         message =
           'Email can not be sent while offline. Try again when you have a connection.';
@@ -34,7 +34,7 @@ export default class CardAccount extends Component {
       }
       buttonDiv.classList.remove('disabled');
 
-      dialog.show_notification(message, function () {
+      dialog.show_notification(message, function() {
         setRoute('/menu');
       });
     };

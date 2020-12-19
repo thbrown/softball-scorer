@@ -1,0 +1,13 @@
+# This file is used when going a gcp cloud build, to limit what files are uploaded to the build server
+# See https://cloud.google.com/sdk/gcloud/reference/topic/gcloudignore
+
+.gcloudignore
+.git
+.gitignore
+
+# Ignore everything we've specified in the git ignore file
+#!include:.gitignore
+
+# Client-side config must be incorporated into the build artifacts (unlike the server side config) 
+# So here we explicitly don't ignore it even though it's .gitignore
+!src/config.js
