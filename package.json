@@ -14,7 +14,8 @@
     "clean": "node build.js clean",
     "test": "jest --runInBand --detectOpenHandles --bail --verbose=false --forceExit",
     "test:ui": "jest --watch ./src/tests/*",
-    "analyze": "webpack --config webpack.prod.js --profile --json > build/stats.json && webpack-bundle-analyzer build/stats.json"
+    "analyze": "webpack --config webpack.prod.js --profile --json > build/stats.json && webpack-bundle-analyzer build/stats.json",
+    "fix": "npm i --package-lock-only && npm audit fix && rm yarn.lock && yarn import && rm package-lock.json"
   },
   "repository": {
     "type": "git",

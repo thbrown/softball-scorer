@@ -101,74 +101,10 @@ module.exports = class ComputeGCP {
             err.message,
             JSON.stringify(err, null, 2)
           );
-
-          reject(err);
-          return;
+          throw new Error(err);
         }
         logger.log(accountId, `Inserted new gcp compute instance ${name}`);
-        resolve();
       });
-    };
-
-    this.waitForInstanceToBeInStatus = async function (
-      accountId,
-      name,
-      desiredStatus
-    ) {
-      const auth = new google.auth.GoogleAuth({
-        // Scopes can be specified either as an array or as a single, space-delimited string.
-        scopes: ['https://www.googleapis.com/auth/compute'],
-      });
-      const authClient = await auth.getClient();
-
-      var request = {
-        project: gcpParams.project,
-        zone: this.getZone(optimizationId),
-        instance: name,
-        auth: authClient,
-      };
-      let status = 'UNKNOWN';
-
-      const MAX_RETRY = 40;
-      let counter = 0;
-      do {
-        // Wait 3 seconds
-        await new Promise((resolve, reject) => setTimeout(resolve, 3000));
-
-        // Is the status what we want it to be?
-        status = await new Promise(function (resolve, reject) {
-          compute.instances.get(request, function (err, response) {
-            if (err) {
-              logger.error(accountId, err);
-              reject(err);
-              return;
-            }
-            resolve(response);
-          });
-        });
-        logger.log(
-          accountId,
-          `Status is now ${JSON.stringify(
-            status,
-            null,
-            2
-          )} - Retries remaining ${MAX_RETRY - counter}`
-        );
-        counter++;
-      } while (status !== desiredStatus && counter < MAX_RETRY);
-
-      // Either it worked or it didn't
-      if (counter >= MAX_RETRY) {
-        logger.error(
-          accountId,
-          `Timeout while waiting for instance ${name} to be in status ${desiredStatus}. Instance was in status ${status} instead.`
-        );
-        reject(
-          `Timeout while waiting for instance ${name} to be in status ${desiredStatus}. Instance was in status ${status} instead.`
-        );
-      } else {
-        resolve();
-      }
     };
 
     this.stopInstance = function (name) {};
@@ -207,14 +143,6 @@ module.exports = class ComputeGCP {
       } else {
         logger.error(accountId, 'Zones exhausted');
         return false;
-        /*
-        // We've exhausted our list of zones, wait a couple minutes and try again
-        function sleep(ms) {
-          return new Promise(resolve => setTimeout(resolve, ms));
-        }
-        await sleep(120000);
-        this.zoneMap[optimizationId] = 0;
-        */
       }
     };
 
