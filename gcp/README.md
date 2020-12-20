@@ -120,7 +120,7 @@ Note2: You can find project and projectNumber at `https://console.cloud.google.c
 
 ### Other notes
 
-#### Debuging
+#### Debugging
 
 Startup script logs can be seen using `cat /var/log/daemon.log | grep "mystartup.sh"` on debian linux
 
@@ -145,6 +145,6 @@ Press enter
 `./gradlew clean test --info`
 `ctrl A` then `d`
 Wait a long time (several hours probably, unless you have a server with a ton of cores)
-Rename the `estimated-time-config.js` to someting that identifies it as having been run on your machine (e.g. `xenon-skylake-8.js`)
+Rename the `estimated-time-config.js` to something that identifies it as having been run on your machine (e.g. `xenon-skylake-8.js`)
 Move that file to the `time-estimation-configs` directory in this project
 Modify `simulation-time-estimator.js` to point to your new config

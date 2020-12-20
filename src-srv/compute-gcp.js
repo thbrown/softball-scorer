@@ -11,196 +11,169 @@ module.exports = class ComputeGCP {
     // variable that points to the file containing auth credentials
     process.env['GOOGLE_APPLICATION_CREDENTIALS'] = __dirname + '/../cred.json';
 
-    this.createInstance = function (
+    this.createInstance = async function (
       accountId,
       name,
       coreCount,
       remoteIp,
       optimizationId
     ) {
-      return new Promise(
-        function (resolve, reject) {
-          this.authorize(
-            function (authClient) {
-              // For custom machine type use this: custom-${coreCount}-${memoryMb}
-              // More doc: https://cloud.google.com/compute/docs/reference/rest/v1/instances/insert
-              var request = {
-                project: gcpParams.project,
-                zone: this.getZone(optimizationId),
-                resource: {
-                  name: name,
-                  machineType: `zones/${this.getZone(
-                    optimizationId
-                  )}/machineTypes/n1-highcpu-${coreCount}`,
-                  scheduling: {
-                    preemptible: true,
-                  },
-                  metadata: {
-                    items: [
-                      { key: 'remote-ip', value: remoteIp },
-                      { key: 'optimization-id', value: optimizationId },
-                      { key: 'delete-on-shutdown', value: 'yes' }, // Any value will work here, as long as something is set delete will occur
-                    ],
-                  },
+      const auth = new google.auth.GoogleAuth({
+        // Scopes can be specified either as an array or as a single, space-delimited string.
+        scopes: ['https://www.googleapis.com/auth/compute'],
+      });
+      const authClient = await auth.getClient();
 
-                  networkInterfaces: [
-                    {
-                      network: 'global/networks/default',
-                      // Required if we want internet access, which is not needed for gcp api calls
-                      accessConfigs: [
-                        { type: 'ONE_TO_ONE_NAT', name: 'External NAT' },
-                      ],
-                    },
-                  ],
+      // For custom machine type use this: custom-${coreCount}-${memoryMb}
+      // More doc: https://cloud.google.com/compute/docs/reference/rest/v1/instances/insert
+      const request = {
+        project: gcpParams.project,
+        zone: this.getZone(optimizationId),
+        resource: {
+          name: name,
+          machineType: `zones/${this.getZone(
+            optimizationId
+          )}/machineTypes/n1-highcpu-${coreCount}`,
+          scheduling: {
+            preemptible: true,
+          },
+          metadata: {
+            items: [
+              { key: 'remote-ip', value: remoteIp },
+              { key: 'optimization-id', value: optimizationId },
+              { key: 'delete-on-shutdown', value: 'yes' }, // Any value will work here, as long as something is set delete will occur
+            ],
+          },
 
-                  disks: [
-                    {
-                      boot: true,
-                      initializeParams: {
-                        sourceSnapshot: `global/snapshots/${gcpParams.snapshotName}`,
-                      },
-                      autoDelete: true,
-                    },
-                  ],
-                  // This SHOULD make it so that we don't have to include cred.json in the snapshot and
-                  // auth it in the cleanup script. It auths gcp api calls automatically after the instaces
-                  // is created; however, it's not working as I think it should.
-                  //
-                  // Error message when attempting to run the delete command:
-                  // There was a problem refreshing your current auth tokens: Failed to retrieve
-                  // http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/[SERVICE ACCOUTNT EMAIL]/token
-                  // from the Google Compute Enginemetadata service (404)
-                  //
-                  // The other benifit of this (I'm hoping) is that it will prevent us from havint toi have internet access for
-                  // these machines. That will keep us from using up our ip address quota or having to mess with NATs. Although, I'm
-                  // not sure that the delete instance command will work without an interconnect connection.
-                  /*
-                  serviceAccounts: [
-                    {
-                      email: `optimization@optimum-library-250223.iam.gserviceaccount.com`,
-                      //scopes: [
-                      //  'https://www.googleapis.com/auth/cloud-platform',
-                      //],
-                    },
-                  ],
-                  */
-                },
-                auth: authClient,
-              };
+          networkInterfaces: [
+            {
+              network: 'global/networks/default',
+              // Required if we want internet access, which is not needed for gcp api calls
+              accessConfigs: [{ type: 'ONE_TO_ONE_NAT', name: 'External NAT' }],
+            },
+          ],
 
-              logger.log(
-                accountId,
-                `Attempting to insert new gcp compute instance ${name}`
-              );
-              compute.instances.insert(request, function (err) {
-                if (err) {
-                  logger.error(
-                    accountId,
-                    `Failed to insert gcp compute instance`,
-                    err.code, // 400
-                    err.message
-                  );
+          disks: [
+            {
+              boot: true,
+              initializeParams: {
+                sourceSnapshot: `global/snapshots/${gcpParams.snapshotName}`,
+              },
+              autoDelete: true,
+            },
+          ],
+          // This SHOULD make it so that we don't have to include cred.json in the snapshot and
+          // auth it in the cleanup script. It auths gcp api calls automatically after the instances
+          // is created; however, it's not working as I think it should.
+          //
+          // Error message when attempting to run the delete command:
+          // There was a problem refreshing your current auth tokens: Failed to retrieve
+          // http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/[SERVICE ACCOUNT EMAIL]/token
+          // from the Google Compute Engine metadata service (404)
+          //
+          // The other benefit of this (I'm hoping) is that it will prevent us from having to have internet access for
+          // these machines. That will keep us from using up our ip address quota or having to mess with NATs. Although, I'm
+          // not sure that the delete instance command will work without an interconnect connection.
+          /*
+          serviceAccounts: [
+            {
+              email: `optimization@optimum-library-250223.iam.gserviceaccount.com`,
+              //scopes: [
+              //  'https://www.googleapis.com/auth/cloud-platform',
+              //],
+            },
+          ],
+          */
+        },
+        auth: authClient,
+      };
 
-                  reject(err);
-                  return;
-                }
-                logger.log(
-                  accountId,
-                  `Inserted new gcp compute instance ${name}`
-                );
-                resolve();
-              });
-            }.bind(this)
-          );
-        }.bind(this)
+      logger.log(
+        accountId,
+        `Attempting to insert new gcp compute instance ${name}`
       );
+      compute.instances.insert(request, function (err) {
+        if (err) {
+          logger.error(
+            accountId,
+            `Failed to insert gcp compute instance`,
+            err.code, // 400
+            err.message,
+            JSON.stringify(err, null, 2)
+          );
+
+          reject(err);
+          return;
+        }
+        logger.log(accountId, `Inserted new gcp compute instance ${name}`);
+        resolve();
+      });
     };
 
-    this.waitForInstanceToBeInStatus = function (
+    this.waitForInstanceToBeInStatus = async function (
       accountId,
       name,
       desiredStatus
     ) {
-      return new Promise(
-        function (resolve, reject) {
-          this.authorize(
-            async function (authClient) {
-              var request = {
-                project: gcpParams.project,
-                zone: this.getZone(optimizationId),
-                instance: name,
-                auth: authClient,
-              };
-              let status = 'UNKNOWN';
+      const auth = new google.auth.GoogleAuth({
+        // Scopes can be specified either as an array or as a single, space-delimited string.
+        scopes: ['https://www.googleapis.com/auth/compute'],
+      });
+      const authClient = await auth.getClient();
 
-              const MAX_RETRY = 40;
-              let counter = 0;
-              do {
-                // Wait 3 seconds
-                await new Promise((resolve, reject) =>
-                  setTimeout(resolve, 3000)
-                );
+      var request = {
+        project: gcpParams.project,
+        zone: this.getZone(optimizationId),
+        instance: name,
+        auth: authClient,
+      };
+      let status = 'UNKNOWN';
 
-                // Is the status what we want it to be?
-                status = await new Promise(function (resolve, reject) {
-                  compute.instances.get(request, function (err, response) {
-                    if (err) {
-                      logger.error(accountId, err);
-                      reject(err);
-                      return;
-                    }
-                    resolve(response);
-                  });
-                });
-                logger.log(
-                  accountId,
-                  `Status is now ${JSON.stringify(
-                    status,
-                    null,
-                    2
-                  )} - Retrys remaining ${MAX_RETRY - counter}`
-                );
-                counter++;
-              } while (status !== desiredStatus && counter < MAX_RETRY);
+      const MAX_RETRY = 40;
+      let counter = 0;
+      do {
+        // Wait 3 seconds
+        await new Promise((resolve, reject) => setTimeout(resolve, 3000));
 
-              // Either it worked or it didn't
-              if (counter >= MAX_RETRY) {
-                logger.error(
-                  accountId,
-                  `Timeout while waiting for instance ${name} to be in status ${desiredStatus}. Instance was in status ${status} instead.`
-                );
-                reject(
-                  `Timeout while waiting for instance ${name} to be in status ${desiredStatus}. Instance was in status ${status} instead.`
-                );
-              } else {
-                resolve();
-              }
-            }.bind(this)
-          );
-        }.bind(this)
-      );
+        // Is the status what we want it to be?
+        status = await new Promise(function (resolve, reject) {
+          compute.instances.get(request, function (err, response) {
+            if (err) {
+              logger.error(accountId, err);
+              reject(err);
+              return;
+            }
+            resolve(response);
+          });
+        });
+        logger.log(
+          accountId,
+          `Status is now ${JSON.stringify(
+            status,
+            null,
+            2
+          )} - Retries remaining ${MAX_RETRY - counter}`
+        );
+        counter++;
+      } while (status !== desiredStatus && counter < MAX_RETRY);
+
+      // Either it worked or it didn't
+      if (counter >= MAX_RETRY) {
+        logger.error(
+          accountId,
+          `Timeout while waiting for instance ${name} to be in status ${desiredStatus}. Instance was in status ${status} instead.`
+        );
+        reject(
+          `Timeout while waiting for instance ${name} to be in status ${desiredStatus}. Instance was in status ${status} instead.`
+        );
+      } else {
+        resolve();
+      }
     };
 
     this.stopInstance = function (name) {};
 
     this.deleteInstance = function (name) {};
-
-    this.authorize = function (callback) {
-      google.auth.getApplicationDefault(function (err, authClient) {
-        if (err) {
-          logger.error(null, 'authentication failed: ', err);
-          return;
-        }
-        if (
-          authClient.createScopedRequired &&
-          authClient.createScopedRequired()
-        ) {
-          var scopes = ['https://www.googleapis.com/auth/cloud-platform'];
-          authClient = authClient.createScoped(scopes);
-        }
-        callback(authClient);
-      });
-    };
 
     // These methods track the gcp zone we are running commands against.
     // The config lists zones in order of preference. Zones closer to the
@@ -235,7 +208,7 @@ module.exports = class ComputeGCP {
         logger.error(accountId, 'Zones exhausted');
         return false;
         /*
-        // We've exausted our list of zones, wait a couple minutes and try again
+        // We've exhausted our list of zones, wait a couple minutes and try again
         function sleep(ms) {
           return new Promise(resolve => setTimeout(resolve, ms));
         }
@@ -324,6 +297,6 @@ module.exports = class ComputeGCP {
   }
 
   async stop(accountId, name) {
-    logger.log(accountId, 'Stoping simulation on gcp - NOT IMPLEMENTED');
+    logger.log(accountId, 'Stopping simulation on gcp - NOT IMPLEMENTED');
   }
 };
