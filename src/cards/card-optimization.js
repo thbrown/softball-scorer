@@ -431,7 +431,8 @@ export default class CardOptimization extends React.Component {
 
     this.switchAccordion = function (index, e) {
       e.preventDefault();
-      const accordionTitle = e.currentTarget.parentNode.nextElementSibling;
+      const accordionTitle =
+        e.currentTarget.parentNode.parentNode.nextElementSibling;
       const accordionContent = e.currentTarget;
       const accordionChevron = e.currentTarget.children[0];
       if (accordionTitle.classList.contains('is-collapsed')) {
@@ -571,7 +572,6 @@ export default class CardOptimization extends React.Component {
     // Build teams checkboxes
     const allTeams = state.getLocalState().teams;
     const teamsCheckboxes = [];
-
     const selectedTeams = JSON.parse(this.optimization.teamList);
     const selectedTeamsSet = new Set(selectedTeams);
     if (isInNotStartedState) {
@@ -591,6 +591,7 @@ export default class CardOptimization extends React.Component {
               type="checkbox"
               onChange={this.handleTeamCheckboxClick.bind(this, team)}
               checked={selectedTeamsSet.has(team.id)}
+              style={{ marginRight: '5px' }}
             />
             {team.name}
           </label>
@@ -618,6 +619,7 @@ export default class CardOptimization extends React.Component {
               type="checkbox"
               checked={true}
               disabled={true}
+              style={{ marginRight: '5px' }}
             />
             {teamName}
           </label>
@@ -677,15 +679,17 @@ export default class CardOptimization extends React.Component {
                 id="accordion-players"
                 aria-expanded="false"
                 aria-controls="accordion1"
-                className="accordion-title accordionTitle js-accordionTrigger"
+                className="accordion-title accordionTitle"
                 style={{ cursor: 'pointer' }}
               >
-                <img
-                  src="/server/assets/chevron-right.svg"
-                  alt=">"
-                  className="chevron"
-                />
-                <NoSelect>Players</NoSelect>
+                <div className="js-accordionTrigger">
+                  <img
+                    src="/server/assets/chevron-right.svg"
+                    alt=">"
+                    className="chevron"
+                  />
+                  <NoSelect>Players</NoSelect>
+                </div>
               </div>
             </dt>
             <dd
@@ -714,15 +718,17 @@ export default class CardOptimization extends React.Component {
                 id="accordion-games"
                 aria-expanded="false"
                 aria-controls="accordion2"
-                className="accordion-title accordionTitle js-accordionTrigger"
+                className="accordion-title accordionTitle"
                 style={{ cursor: 'pointer' }}
               >
-                <img
-                  src="/server/assets/chevron-right.svg"
-                  alt=">"
-                  className="chevron"
-                />
-                <NoSelect>Games</NoSelect>
+                <div className="js-accordionTrigger">
+                  <img
+                    src="/server/assets/chevron-right.svg"
+                    alt=">"
+                    className="chevron"
+                  />
+                  <NoSelect>Games</NoSelect>
+                </div>
               </div>
             </dt>
             <dd
@@ -736,15 +742,17 @@ export default class CardOptimization extends React.Component {
               <div
                 id="accordion-options"
                 aria-controls="accordion3"
-                className="accordion-title accordionTitle js-accordionTrigger"
+                className="accordion-title accordionTitle"
                 style={{ cursor: 'pointer' }}
               >
-                <img
-                  src="/server/assets/chevron-right.svg"
-                  alt=">"
-                  className="chevron"
-                />
-                <NoSelect>Simulation Options</NoSelect>
+                <div className="js-accordionTrigger">
+                  <img
+                    src="/server/assets/chevron-right.svg"
+                    alt=">"
+                    className="chevron"
+                  />
+                  <NoSelect>Simulation Options</NoSelect>
+                </div>
               </div>
             </dt>
             <dd
@@ -939,15 +947,17 @@ export default class CardOptimization extends React.Component {
             id="accordion-results"
             aria-expanded="false"
             aria-controls="accordion4"
-            className="accordion-title accordionTitle js-accordionTrigger"
+            className="accordion-title accordionTitle"
             style={{ cursor: 'pointer' }}
           >
-            <img
-              src="/server/assets/chevron-right.svg"
-              alt=">"
-              className="chevron"
-            />
-            <NoSelect>Results</NoSelect>
+            <div className="js-accordionTrigger">
+              <img
+                src="/server/assets/chevron-right.svg"
+                alt=">"
+                className="chevron"
+              />
+              <NoSelect>Results</NoSelect>
+            </div>
             {/*
             <div className="icon-button">
               <img

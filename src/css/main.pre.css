@@ -798,7 +798,6 @@ Scrolling is ~10-20x smoother.
 .accordion__Heading {
   background-color: $css.colors.PRIMARY;
   font-size: 20px;
-  padding: 12px;
   display: block;
   color: $css.colors.TEXT_LIGHT;
   transition: background-color 0.25s ease-in-out;
@@ -838,6 +837,11 @@ Scrolling is ~10-20x smoother.
     opacity: 1;
     transform: scale(1);
   }
+}
+
+.js-accordionTrigger {
+  padding: 12px;
+  display: inline-block;
 }
 
 .playerTable {

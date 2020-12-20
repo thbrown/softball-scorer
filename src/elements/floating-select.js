@@ -9,22 +9,13 @@ export default class FloatingSelect extends React.Component {
     };
   }
 
-  /*
-    control: base => ({
-    ...base,
-    border: 0,
-    // This line disable the blue border
-    boxShadow: 'none'
-  })
-  */
-
   render() {
     return (
       <div className={'float-container active'}>
         <label>{this.props.label}</label>
         <select
           id={this.props.selectId}
-          className=""
+          className="select"
           disabled={this.props.disabled}
           value={this.state.value}
           onChange={(e) => {
