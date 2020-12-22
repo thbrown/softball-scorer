@@ -53,6 +53,7 @@ let activeUser = null;
 let addToHomescreenEvent = null;
 let syncState = SYNC_STATUS_ENUM.UNKNOWN;
 let syncTimer = null;
+let syncTimerTimestamp = null;
 
 const state = exp;
 
@@ -94,6 +95,7 @@ exp.sync = async function (fullSync) {
   }
   // Kill any scheduled syncs
   clearTimeout(syncTimer);
+  syncTimerTimestamp = null;
   setSyncState(SYNC_STATUS_ENUM.IN_PROGRESS);
   try {
     // Save a deep copy of the local state
@@ -635,6 +637,12 @@ exp.getGamesWherePlayerHasPlateAppearances = function (playerId, state) {
   return games;
 };
 
+exp.setGameLineup = function (gameId, newLineup) {
+  const game = exp.getGame(gameId);
+  game.lineup = newLineup; // Do we need to do a deep copy here?
+  onEdit();
+};
+
 exp.addPlayerToLineup = function (lineup, player_id) {
   lineup.push(player_id);
   onEdit();
@@ -1125,6 +1133,15 @@ exp.buildStatsObject = function (playerId, plateAppearances) {
   return stats;
 };
 
+// WINDOW STATE FUNCTIONS
+
+exp.getTimeTillSync = function () {
+  if (syncTimerTimestamp === null) {
+    return null;
+  }
+  return SYNC_DELAY_MS - (Date.now() - syncTimerTimestamp);
+};
+
 // APPLICATION STATE FUNCTIONS
 
 exp.isOnline = function () {
@@ -1178,10 +1195,6 @@ exp.getAddToHomescreenPrompt = function () {
 };
 
 exp.scheduleSync = function (time = SYNC_DELAY_MS) {
-  //if (process.env.NODE_ENV === 'test') {
-  //  return;
-  //}
-
   let currentState = exp.getSyncState();
   if (currentState === SYNC_STATUS_ENUM.ERROR) {
     console.warn('[SYNC] Sync skipped, in error state');
@@ -1197,6 +1210,7 @@ exp.scheduleSync = function (time = SYNC_DELAY_MS) {
 
   // console.log('[SYNC] Sync scheduled');
   clearTimeout(syncTimer);
+  syncTimerTimestamp = Date.now();
 
   syncTimer = setTimeout(function () {
     if (
@@ -1212,10 +1226,6 @@ exp.scheduleSync = function (time = SYNC_DELAY_MS) {
 };
 
 let setSyncState = function (newState, skipRender) {
-  //if (process.env.NODE_ENV === 'test') {
-  //  return;
-  //}
-
   // Skip unnecessary renders
   if (syncState !== newState) {
     const origStateName = exp.syncStateToSyncStateName(syncState);
@@ -1248,7 +1258,7 @@ exp.getPreventScreenLock = function () {
 };
 
 /**
- * Perform a network request, but do the update the state (online, authentication status, etc...)
+ * Perform a network request, and update the state (online, authentication status, etc...)
  * based on the response
  */
 exp.request = async function (method, url, body) {

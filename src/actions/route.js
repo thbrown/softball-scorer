@@ -22,10 +22,13 @@ export function setUrl(path) {
   window.history.pushState({}, '', path);
 }
 
-export function goBack() {
-  urlStack.shift();
-  onGoBack(urlStack[0]);
-  window.history.back();
+export function goBack(amount) {
+  amount = amount ? -Math.abs(amount) : -1;
+  for (let i = 0; i < Math.abs(amount); i++) {
+    urlStack.shift();
+    onGoBack(urlStack[0]);
+  }
+  window.history.go(amount);
 }
 
 export function goHome() {

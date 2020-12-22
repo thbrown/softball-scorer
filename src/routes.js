@@ -16,7 +16,6 @@ import CardPasswordReset from 'cards/card-password-reset';
 import CardPlateAppearance from 'cards/card-plate-appearance';
 import CardPlayerList from 'cards/card-player-list';
 import CardPlayerEdit from 'cards/card-player-edit';
-import CardPlayerSelection from 'cards/card-player-selection';
 import CardPlayerSelect from 'cards/card-player-select';
 import CardReset from 'cards/card-reset';
 import CardSignup from 'cards/card-signup';
@@ -26,8 +25,9 @@ import CardTeamEdit from 'cards/card-team-edit';
 import CardTeams from 'cards/card-teams';
 import CardVerifyEmail from 'cards/card-verify-email';
 import CardStats from 'cards/card-stats';
-import CardOptimizationLineupImport from 'cards/card-optimization-lineup-import';
+import CardLineupImport from 'cards/card-lineup-import';
 import CardLineupImporter from 'cards/card-lineup-importer';
+import { goBack, setRoute } from 'actions/route';
 
 // possibility to add '/app/' here?
 export const ROUTE_PREFIX = '';
@@ -209,7 +209,7 @@ routes = {
     }
     return <CardLineupImporter teamId={team.id} gameId={game.id} />;
   },
-  [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/player-selection`]: ({
+  [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/import-lineup`]: ({
     teamId,
     gameId,
   }) => {
@@ -220,8 +220,47 @@ routes = {
       console.warn(errors);
       return <CardNotFound />;
     }
+
+    let onConfirm = (ev, targetTeam, targetGame) => {
+      console.log('Importing', game.lineup);
+      state.setGameLineup(game.id, targetGame.lineup); // TODO: do we need to deep copy here?
+      goBack(2);
+    };
+
+    let onCancel = (ev) => {
+      goBack();
+    };
+
     return (
-      <CardPlayerSelection id="player-selection" team={team} game={game} />
+      <CardLineupImport
+        handleConfirmClick={onConfirm}
+        handleCancelClick={onCancel}
+      />
+    );
+  },
+  [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/player-select`]: ({
+    teamId,
+    gameId,
+  }) => {
+    const team = state.getTeam(teamId);
+    const game = state.getGame(gameId);
+    const { valid, errors } = assertStateObjects(team, game);
+    if (!valid) {
+      console.warn(errors);
+      return <CardNotFound />;
+    }
+
+    return (
+      <CardPlayerSelect
+        selected={game.lineup ? game.lineup : []}
+        players={state.getAllPlayersAlphabetically()}
+        onComplete={(players) => {
+          state.setGameLineup(game.id, players);
+        }}
+        onImportClick={function () {
+          setRoute(`/teams/${team.id}/games/${game.id}/import-lineup`);
+        }}
+      />
     );
   },
   [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/edit`]: ({
@@ -339,7 +378,7 @@ routes = {
     }
     return <CardOptimization optimization={optimization} />;
   },
-  [`${ROUTE_PREFIX}/optimizations/:optimizationId/overrides/player-select`]: ({
+  [`${ROUTE_PREFIX}/optimizations/:optimizationId/player-select`]: ({
     optimizationId,
   }) => {
     const optimization = state.getOptimization(optimizationId);
@@ -350,7 +389,6 @@ routes = {
     }
     return (
       <CardPlayerSelect
-        optimization={optimization}
         selected={JSON.parse(optimization.playerList)}
         players={state.getAllPlayersAlphabetically()}
         onComplete={(players) => {
@@ -361,10 +399,13 @@ routes = {
             true
           );
         }}
+        onImportClick={function () {
+          setRoute(`/optimizations/${optimization.id}/import-lineup`);
+        }}
       />
     );
   },
-  [`${ROUTE_PREFIX}/optimizations/:optimizationId/overrides/import-lineup`]: ({
+  [`${ROUTE_PREFIX}/optimizations/:optimizationId/import-lineup`]: ({
     optimizationId,
   }) => {
     const optimization = state.getOptimization(optimizationId);
@@ -373,7 +414,26 @@ routes = {
       console.warn(errors);
       return <CardNotFound />;
     }
-    return <CardOptimizationLineupImport optimization={optimization} />;
+    let onConfirm = (ev, team, game) => {
+      state.setOptimizationField(
+        optimization.id,
+        'playerList',
+        game.lineup,
+        true
+      );
+      goBack(2);
+    };
+
+    let onCancel = (ev) => {
+      goBack();
+    };
+
+    return (
+      <CardLineupImport
+        handleConfirmClick={onConfirm}
+        handleCancelClick={onCancel}
+      />
+    );
   },
   [`${ROUTE_PREFIX}/optimizations/:optimizationId/overrides/:playerId`]: ({
     optimizationId,

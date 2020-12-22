@@ -34,7 +34,5 @@ describe('[UI] Optimization', () => {
     wrapper.find('#confirm').simulate('click');
     const { playerList, teamList } = state.getOptimization(optimizationId);
     expect(JSON.parse(playerList).length).toEqual(10);
-    expect(JSON.parse(teamList).length).toEqual(1);
-    expect(JSON.parse(teamList)[0]).toEqual(TEAM_ID);
   });
 });

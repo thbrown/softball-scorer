@@ -5,7 +5,6 @@ import Select from 'react-select';
 import ListButton from 'elements/list-button';
 import { goBack, setRoute } from 'actions/route';
 
-// This is a more generic player selection card to replace card-player-selection
 export default class CardPlayerSelect extends React.Component {
   constructor(props) {
     super(props);
@@ -56,9 +55,9 @@ export default class CardPlayerSelect extends React.Component {
       });
     };
 
-    this.handleSubmitClick = function () {
+    this.handleConfirmClick = function () {
       props.onComplete(this.state.players);
-      setRoute(`/optimizations/${this.props.optimization.id}?acc0=true`);
+      goBack();
     };
 
     this.handleCancelClick = function () {
@@ -66,8 +65,7 @@ export default class CardPlayerSelect extends React.Component {
     };
 
     this.handleBackClick = () => {
-      setRoute(`/optimizations/${this.props.optimization.id}?acc0=true`);
-      return true; //skip default back button action
+      goBack();
     };
 
     this.handleBackOrHome = function () {
@@ -75,10 +73,18 @@ export default class CardPlayerSelect extends React.Component {
     };
 
     this.onChange = function (selectedOptions) {
-      let valuesOnly = Array.from(selectedOptions.slice(0).map((v) => v.value));
-      this.setState({
-        players: valuesOnly,
-      });
+      if (selectedOptions) {
+        let valuesOnly = Array.from(
+          selectedOptions.slice(0).map((v) => v.value)
+        );
+        this.setState({
+          players: valuesOnly,
+        });
+      } else {
+        this.setState({
+          players: [],
+        });
+      }
     };
 
     // Lots of bad code in this method, see comments
@@ -180,9 +186,9 @@ export default class CardPlayerSelect extends React.Component {
         <div>
           <ListButton
             style={{ marginLeft: '16px' }}
-            onClick={this.handleSubmitClick.bind(this)}
+            onClick={this.handleConfirmClick.bind(this)}
           >
-            Submit
+            Confirm Selection
           </ListButton>
         </div>
         <div>
@@ -193,15 +199,8 @@ export default class CardPlayerSelect extends React.Component {
             Cancel
           </ListButton>
         </div>
-        <ListButton
-          id="import"
-          onClick={() =>
-            setRoute(
-              `/optimizations/${this.props.optimization.id}/overrides/import-lineup`
-            )
-          }
-        >
-          Import From Previous Game
+        <ListButton id="import" onClick={this.props.onImportClick}>
+          Import From Another Game
         </ListButton>
       </div>
     );

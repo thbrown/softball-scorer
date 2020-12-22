@@ -94,7 +94,7 @@ export default class CardLineup extends React.Component {
 
     this.handleCreateClick = function () {
       setRoute(
-        `/teams/${this.props.team.id}/games/${this.props.game.id}/player-selection`
+        `/teams/${this.props.team.id}/games/${this.props.game.id}/player-select`
       );
     }.bind(this);
 
@@ -408,7 +408,7 @@ export default class CardLineup extends React.Component {
           className: 'list-item add-list-item',
           onClick: this.handleCreateClick,
         },
-        '+ Add Player'
+        '+ Add/Remove Players'
       )
     );
 

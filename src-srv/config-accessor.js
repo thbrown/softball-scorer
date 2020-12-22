@@ -51,7 +51,7 @@ module.exports.getDatabaseService = function (cacheService) {
       cacheService,
       (err) => {
         if (err) {
-          logger.log('sys', 'Encountered an error connecting to db', err);
+          logger.error('sys', 'Encountered an error connecting to db', err);
           process.exit(1);
         }
         logger.log('sys', 'Connected to db.');

@@ -6,6 +6,7 @@ import css from 'css';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
+import HrTitle from 'elements/hr-title';
 
 class CardMenu extends Component {
   constructor(props) {
@@ -171,6 +172,13 @@ class CardMenu extends Component {
           showBlogLink: true,
         }}
       >
+        <div>{'Status: ' + (state.isOnline() ? 'Online' : 'Offline')}</div>
+        <div>
+          {'Current User: ' +
+            (state.getActiveUser() == null ? 'Guest' : state.getActiveUser())}
+        </div>
+        <div>{'Time Till Sync: ' + state.getTimeTillSync()}</div>
+        <HrTitle title="Application"></HrTitle>
         <ListButton
           id="teams"
           onClick={this.handleTeamsClick.bind(this)}
@@ -198,14 +206,7 @@ class CardMenu extends Component {
         >
           Optimizations
         </ListButton>
-        {state.getAddToHomescreenPrompt() && (
-          <ListButton
-            id="addToHomescreen"
-            onClick={this.handleAddToHomeScreenClick.bind(this)}
-          >
-            Add App to Homescreen
-          </ListButton>
-        )}
+        <HrTitle title="Account"></HrTitle>
         {state.isSessionValid() ? (
           <ListButton
             id="logout"
@@ -228,6 +229,7 @@ class CardMenu extends Component {
             Login/Signup
           </ListButton>
         )}
+        <HrTitle title="Data"></HrTitle>
         {state.isSessionValid() ? (
           <ListButton
             id="sync"
@@ -250,7 +252,7 @@ class CardMenu extends Component {
             backgroundColor: css.colors.BG,
           }}
         >
-          Save as File
+          Export To File
         </ListButton>
         <ListButton
           id="load"
@@ -260,8 +262,17 @@ class CardMenu extends Component {
             backgroundColor: css.colors.BG,
           }}
         >
-          Load from File
+          Import From File...
         </ListButton>
+        <HrTitle title="Site"></HrTitle>
+        {state.getAddToHomescreenPrompt() && (
+          <ListButton
+            id="addToHomescreen"
+            onClick={this.handleAddToHomeScreenClick.bind(this)}
+          >
+            Add App to Homescreen
+          </ListButton>
+        )}
       </Card>
     );
   }

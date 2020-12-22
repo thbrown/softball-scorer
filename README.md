@@ -24,9 +24,9 @@ curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 
 The app will run without any of these enabled, but you can enable these for a production-like experience:
 
-- Postgres for persistant storage (uses in-memory storage by default)
+- Postgres for persistent storage (uses in-memory storage by default)
 - Redis for caching/locking (uses in-memory caching/locking by default)
-- Nginx as a reverse proxy to enable TLS and rate limiting (no reverse proxy by default, unencrypted, runs on port 8888, no rate limiting)
+- Nginx as a reverse proxy to enable TLS and rate limiting (no reverse proxy by default, un-encrypted, runs on port 8888, no rate limiting)
 
 ### Redis setup (tested on version 5.0.3)
 
@@ -46,10 +46,11 @@ Windows requires the use of Windows Subsystem for Linux (WSL)
 
 #### Linux
 
-2. `sudo apt-get update`
-3. `sudo apt-get upgrade`
-4. `sudo systemctl enable redis-server.service`
-5. `sudo service redis-server restart`
+1. `sudo apt-get update`
+2. `sudo apt-get upgrade`
+3. `sudo apt install redis-server`
+4. `redis-server`
+5. Update/Create ./src-srv/config.js with Redis server info (see ./src-srv/config-template.js)
 
 To run redis with own config:
 
@@ -57,7 +58,7 @@ To run redis with own config:
 2. `sudo systemctl stop redis` Redis runs automatically. We will need to stop and restart to use our own config file.
 3. `sudo redis-server` optionally supply `./redis.conf`
 4. Press `Ctrl + A` then `d` to detach screen
-5. Update/Create ./src-svr/config.js with Redis server info (see ./src-svr/config-template.js)
+5. Update/Create ./src-srv/config.js with Redis server info (see ./src-srv/config-template.js)
 
 Example redis.conf
 
@@ -74,13 +75,17 @@ maxmemory-policy allkeys-lru
 # Optionally allow other non-localhost machines to connect (req obviously if the app server is running on another machine)
 ```
 
+Some other useful commands:
+`sudo systemctl enable redis-server.service`
+`sudo service redis-server restart`
+
 ### Postgres (tested on version 11)
 
 After doing these steps you'll have to import the schema which isn't yet public
 
 If you want to dump your schema for pull requests, use:
 `sudo su psql`
-`pg_dump <database_name> -F c > schema.backup`
+`pg_dump <database_name> -s -F c > schema.backup`
 
 #### Linux
 
@@ -113,12 +118,20 @@ Live:
 8. `sudo nano $(ls /etc/postgresql/*/main/postgresql.conf)`
    Under `CONNECTIONS AND AUTHENTICATION` Uncomment and change `listen_addresses = 'localhost'` to `listen_addresses = '*'`
 9. `sudo service postgresql restart`
-10. Update/Create ./src-svr/config.js with Postgres server info (see ./src-svr/config-template.js)
+10. Update/Create ./src-srv/config.js with Postgres server info (see ./src-srv/config-template.js)
 11. Update your firewall rules to allow traffic on 5432 (or whatever port) if you'd like to connect remotely `1.2.3.4/32` `tcp:5432`
 
 #### Windows
 
-Use WSL + Ubuntu and refer to Linux instructions
+1. Install Postgres and run the Windows installer (https://www.postgresql.org/download/).
+2. Open pgAdmin (tested on version 4).
+3. Set a personal password (if opening for the first time).
+4. Create a new database.
+5. Right click the new db, and then click `Restore...`.
+6. Navigate to the schema backup `/scheam.backup`.
+7. Update the `/src-srv/config.js` to contain your new db's info. Copy the config file from the template (`/src-srv/config.template.js`) if it does not yet exist.
+
+Alternatively use WSL and follow the Linux instructions.
 
 ### Nginx
 

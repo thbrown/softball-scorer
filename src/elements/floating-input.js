@@ -5,7 +5,10 @@ export default class FloatingInput extends React.Component {
     super(props);
     this.state = {
       value: this.props.defaultValue,
-      active: !!this.props.defaultValue,
+      active: !(
+        this.props.defaultValue === undefined ||
+        this.props.defaultValue.length === 0
+      ),
     };
   }
 

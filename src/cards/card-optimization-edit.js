@@ -3,8 +3,6 @@ import state from 'state';
 import dialog from 'dialog';
 import FloatingInput from 'elements/floating-input';
 import Card from 'elements/card';
-import CardSection from 'elements/card-section';
-import NoSelect from 'elements/no-select';
 import ListButton from 'elements/list-button';
 import { goBack, goHome } from 'actions/route';
 
@@ -38,6 +36,9 @@ const CardOptimizationEdit = (props) => {
         }
       );
       return true;
+    } else {
+      // This uses a callback for a bunch of other *-edit pages, not sure why
+      goBack();
     }
   };
 

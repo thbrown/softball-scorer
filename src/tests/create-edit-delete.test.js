@@ -121,7 +121,7 @@ describe('[UI] Create/Edit/Delete', () => {
           .simulate('change', { target: { value: playerName } });
 
         // TODO click on the autosuggest instead of setting state here
-        wrapper.find('#player-selection').setState({
+        wrapper.find('#player-select').setState({
           createNewPlayer: true,
         });
         wrapper.find('#submit').simulate('click');

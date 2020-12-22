@@ -29,9 +29,7 @@ export default class CardOptimization extends React.Component {
     }.bind(this);
 
     this.handleAddPlayerClick = function () {
-      setRoute(
-        `/optimizations/${this.optimization.id}/overrides/player-select`
-      );
+      setRoute(`/optimizations/${this.optimization.id}/player-select`);
     }.bind(this);
 
     this.enableAutoSync = async function (dontReset) {

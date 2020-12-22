@@ -4,7 +4,6 @@ import Card from 'elements/card';
 import { makeStyles } from 'css/helpers';
 import { compose, withState, withHandlers } from 'recompose';
 import ListPicker from 'elements/list-picker';
-import { setRoute } from 'actions/route';
 import { toClientDate } from 'utils/functions';
 
 const enhance = compose(
@@ -20,6 +19,7 @@ const enhance = compose(
       window.scroll(0, 0);
     },
     handleBackClick: (props) => () => {
+      // Back means different things in each stage of the import wizard
       let skipDefaultBack = false;
       if (props.game) {
         props.setGame(null);
@@ -30,23 +30,8 @@ const enhance = compose(
       }
       return skipDefaultBack;
     },
-    handleConfirmClick: (props) => (ev) => {
-      state.setOptimizationField(
-        props.optimization.id,
-        'playerList',
-        props.game.lineup,
-        true
-      );
-      state.setOptimizationField(
-        props.optimization.id,
-        'teamList',
-        [props.team.id],
-        true
-      );
-      setRoute(
-        `/optimizations/${props.optimization.id}/overrides/player-select`
-      );
-    },
+    handleConfirmClick: (props) => props.handleConfirmClick,
+    handleCancelClick: (props) => props.handleCancelClick,
   })
 );
 
@@ -74,11 +59,11 @@ const useLineupListStyles = makeStyles((theme) => ({
     textOverflow: 'ellipsis',
     whiteSpace: 'pre',
   },
-  confirmButtonContainer: {
+  actionButtonContainer: {
     display: 'flex',
     justifyContent: 'center',
   },
-  confirmButton: {
+  actionButton: {
     width: '180px',
   },
   vs: {
@@ -130,15 +115,28 @@ const LineupList = (props) => {
           }))}
           onClick={() => {}}
         />
-        <div className={classes.confirmButtonContainer}>
+        <div className={classes.actionButtonContainer}>
           <div
             id="confirm"
             className={
-              'button edit-button confirm-button ' + classes.confirmButton
+              'button edit-button confirm-button ' + classes.actionButton
             }
-            onClick={props.handleConfirmClick}
+            onClick={function wrapper(ev) {
+              return props.handleConfirmClick(ev, props.team, props.game);
+            }}
           >
             Confirm
+          </div>
+        </div>
+        <div className={classes.actionButtonContainer}>
+          <div
+            id="cancel"
+            className={
+              'button edit-button confirm-button ' + classes.actionButton
+            }
+            onClick={props.handleCancelClick}
+          >
+            Cancel
           </div>
         </div>
       </>

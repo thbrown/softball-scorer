@@ -10,6 +10,12 @@ body {
   padding-top: 48px; /* sticky header height */
 }
 
+hr {
+  border: 0;
+  height: 1px;
+  background: #333;
+}
+
 svg path,
 svg rect{
   fill: #FFF;
