@@ -326,6 +326,8 @@ let databaseCalls = class DatabaseCalls {
       password_hash: passwordHash,
       password_token_hash: passwordTokenHash,
       password_token_expiration: Date.now() + 3600000,
+      optimizers: '"[0}"',
+      balance: 0,
     };
     this.ACCOUNTS.push(newAccount);
     this.idCounter++;

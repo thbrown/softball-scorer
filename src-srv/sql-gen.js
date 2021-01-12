@@ -6,19 +6,20 @@ const idUtils = require('../id-utils.js');
 const logger = require('./logger.js');
 
 /*
- * This class contains the logic for translating the json structure applicationData on client side to sql statements on the server. It's a hot mess.
- * One unfortunate requirement: All jsonValues must not be 14 chars, or they will be mistaken for ids.
+ * This class contains the logic for translating the json structure applicationData on client side to sql statements on the server.
+ * One unfortunate requirement: All jsonValues specified in `jsonValueToSqlColName` below must not be 14 chars, or they will be mistaken for ids.
  *
- * This generates a list of sql statments from a json diff. The objects that contain the sql have the following format:
+ * This generates a list of Javascript objects containing sql statements and other information needed to update the db based on a json diff.
+ * The objects have the following format:
  *  {
- *    query: <some_sql_query>
+ *    query: <some sql query, probably an update, delete, or insert>
  *    values: [<substitutions for the query>]
- *    order: { // This determines the order in which the statment will be executed. This is importatnt to prevent foreign key violations.
+ *    order: { // This determines the order in which the statement will be executed. This is important to prevent foreign key violations.
  *      op: <DELETE or INSERT or UPDATE>,
  *      table: <some table name>,
  *    },
  *    limits: {
- *      <value_index> : <max length of that value, this is checked before the statement is executed, dafaults to 50 chars if not specified>
+ *      <value_index> : <max length of that value, this is checked before the statement is executed, defaults to 50 chars if not specified>
  *    }
  *    cache: <cache that should be invalidated when statement is executed>,
  */
@@ -29,9 +30,14 @@ const jsonValueToSqlTableName = {
   games: 'games',
   lineup: 'players_games',
   optimizations: 'optimization',
+  account: 'account',
 };
 
 let jsonValueToSqlColName = {
+  // account columns
+  optimizers: 'optimizers',
+  balance: 'balance',
+
   // optimization columns
   type: 'type',
   customData: 'custom_data',
@@ -44,6 +50,7 @@ let jsonValueToSqlColName = {
   gameList: 'game_list',
   sendEmail: 'send_email',
   lineupType: 'lineup_type',
+  optimizer: 'optimizer',
 
   // games columns
   date: 'date',
@@ -85,7 +92,7 @@ const keywords = new Set(
 );
 
 // Specify what order we should execute sql statements in for inserts/updates (deletes are done in reverse order)
-// This is importatnt because it prevents foreign key violations between tables, items at the top have are referenced by lower items
+// This is important because it prevents foreign key violations between tables, items at the top have are referenced by lower items
 const tableSortOrder = [
   'players',
   'optimization',
@@ -93,6 +100,7 @@ const tableSortOrder = [
   'games',
   'players_games',
   'plate_appearances',
+  'account',
 ];
 let tableOrdering = {}; // map for efficient lookup
 for (let i = 0; i < tableSortOrder.length; i++) {
@@ -100,7 +108,7 @@ for (let i = 0; i < tableSortOrder.length; i++) {
 }
 
 // Specify what order we should return sql statements that do delete, insert, and update
-// This also prevents foreign key violations because we need to do delets in reverse order and inserts/updates in forward order (order per tableSortOrder)
+// This also prevents foreign key violations because we need to do deletes in reverse order and inserts/updates in forward order (order per tableSortOrder)
 const opSortOrder = ['DELETE', 'INSERT', 'UPDATE'];
 let opOrdering = {}; // map for easy lookup
 for (let i = 0; i < opSortOrder.length; i++) {
@@ -115,7 +123,7 @@ let getSqlFromPatch = function (patch, accountId) {
   let result = [];
   getSqlFromPatchInternal(patch, [], result, accountId);
 
-  // This requires a stable sorting algorithm. Keeping the statments of a single table in their previous order is important!
+  // This requires a stable sorting algorithm. Keeping the statements of a single table in their previous order is important!
   stable.inplace(result, function (a, b) {
     // First order by operation
     let aOp = a.order.op;
@@ -195,7 +203,7 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
         if (applicableTable === 'teams') {
           // Preliminary step: To delete a team, we must delete everythign that references that team first (order is important)
           result.push({
-            // We need to do the subquery here because we don't have the game id available in the path
+            // We need to do the sub-query here because we don't have the game id available in the path
             query:
               'DELETE FROM players_games WHERE game_id IN (SELECT id FROM games WHERE team_id IN ($1) AND account_id IN ($2)) AND account_id IN ($2)',
             values: [
@@ -276,7 +284,12 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
           // The game itself will be deleted at the end of this method
         }
 
-        if (applicableTable === 'players_games') {
+        if (applicableTable === 'account') {
+          logger.warn(
+            accountId,
+            'Security Notification: Attempt to delete from account table'
+          );
+        } else if (applicableTable === 'players_games') {
           // The players_games table indicates lineup order, we need to shift other players up the lineup if a player above them is removed from that lineup
           result.push({
             query:
@@ -366,7 +379,7 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
         let newOrder = JSON.parse(value.param2);
 
         if (applicableTable != 'players_games') {
-          // The only thing that should be re-orederable is the lineup, other things are all ordered by creation time (i.e. created_at timestamp and serial_counter columns).
+          // The only thing that should be re-orderable is the lineup, other things are all ordered by creation time (i.e. created_at timestamp and serial_counter columns).
           logger.warn(
             accountId,
             `Something unexpected was reordered! ${applicableTable}`
@@ -410,9 +423,9 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
       } else if (op === 'Edit') {
         let columnName = getColNameFromJSONValue(value.key);
         if (!columnName) {
-          // Read only field was edited - skipping, client will performe a full sync and will get what the server has
+          // Read only field was edited - skipping, client will perform a full sync and will get what the server has
         } else if (applicableTable === 'games' && columnName === 'date') {
-          // Special case: date field must be converted to a time before updateing
+          // Special case: date field must be converted to a time before updating
           result.push({
             query:
               'UPDATE games SET date = to_timestamp($1) WHERE id IN ($2) AND account_id IN ($3);',
@@ -431,7 +444,7 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
           applicableTable === 'plate_appearances' &&
           columnName === 'player_id'
         ) {
-          // Special case: player_id field must be converted to a uuid before updateing
+          // Special case: player_id field must be converted to a uuid before updating
           result.push({
             query:
               'UPDATE plate_appearances SET player_id = $1 WHERE id IN ($2) AND account_id IN ($3);',
@@ -450,6 +463,28 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
               getIdFromPath(path, 'teams')
             ),
           });
+        } else if (applicableTable === 'account') {
+          // Special case: changes to the account table can be done directly
+          let limit = undefined; // default limit is 50 chars
+          if (columnName === 'optimizers') {
+            limit = JSON_LIST_MAX_CHARS;
+          }
+
+          result.push({
+            query:
+              'UPDATE account SET ' +
+              columnName +
+              ' = $1 WHERE account_id IN ($2);',
+            values: [value.param2, accountId],
+            limits: {
+              1: limit,
+            },
+            order: {
+              op: 'UPDATE',
+              table: applicableTable,
+            },
+            cache: getCaches('account', accountId, null),
+          });
         } else {
           let limit = undefined; // defaults to 50 chars
 
@@ -464,7 +499,8 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
             } else if (
               columnName === 'team_list' ||
               columnName === 'game_list' ||
-              columnName === 'player_list'
+              columnName === 'player_list' ||
+              columnName === 'optimizers'
             ) {
               limit = JSON_LIST_MAX_CHARS;
             }
@@ -721,6 +757,13 @@ let printInsertStatementsFromPatch = function (
       cache: getCaches('plate_appearances', accountId, parents.teamId),
     });
   }
+
+  if (obj.account) {
+    logger.warn(
+      accountId,
+      'Security Notification: Attempt to add to account table'
+    );
+  }
 };
 
 let printInsertStatementsFromRaw = function (obj, parents, result, accountId) {
@@ -913,6 +956,13 @@ let printInsertStatementsFromRaw = function (obj, parents, result, accountId) {
       });
     }
   }
+
+  if (obj.account) {
+    logger.warn(
+      accountId,
+      'Security Notification: Attempt to add to account table raw'
+    );
+  }
 };
 
 let getColNameFromJSONValue = function (value) {
@@ -924,18 +974,20 @@ let getColNameFromJSONValue = function (value) {
   if (dbColName) {
     let valueLowerCase = dbColName.toLowerCase();
     if (
-      valueLowerCase === 'account_id' || // Don't let sombody assign an object to another account
+      valueLowerCase === 'account_id' || // Don't let people assign an object to another account
       valueLowerCase === 'status' || // Don't let people change the status of their optimization (might allow them to run more than one optimization in parallel)
-      valueLowerCase === 'public_id' // Don't let people change their public link
+      valueLowerCase === 'public_id' || // Don't let people change their public link
+      valueLowerCase === 'balance'
     ) {
       logger.warn(
+        '?',
         `Security Notification. User attempted to modify read-only column: ${value}`
       );
       return undefined;
     }
     return dbColName;
   } else {
-    logger.warn(`Unrecognized column was edited ${value}`);
+    logger.warn('?', `Unrecognized column was edited ${value}`);
     return undefined;
   }
 };
@@ -1025,6 +1077,11 @@ let getCaches = function (table, accountId, teamId) {
       type: 'hash',
       key: `acct:${accountId}:players-for-team:`,
       secondKey: teamId,
+    });
+  } else if (table === 'account') {
+    caches.push({
+      type: 'string',
+      key: `acct:${accountId}:account`,
     });
   }
 

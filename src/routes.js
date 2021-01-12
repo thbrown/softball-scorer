@@ -27,6 +27,7 @@ import CardVerifyEmail from 'cards/card-verify-email';
 import CardStats from 'cards/card-stats';
 import CardLineupImport from 'cards/card-lineup-import';
 import CardLineupImporter from 'cards/card-lineup-importer';
+import CardOptimizerSelect from 'cards/card-optimizer-select';
 import { goBack, setRoute } from 'actions/route';
 
 // possibility to add '/app/' here?
@@ -503,6 +504,9 @@ routes = {
         />
       );
     });
+  },
+  [`${ROUTE_PREFIX}/account/select-optimizers`]: ({}) => {
+    return <CardOptimizerSelect />;
   },
 };
 

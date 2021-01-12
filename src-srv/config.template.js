@@ -23,6 +23,7 @@ module.exports = {
     password: null,
   },
 
+  // If you enable redis, but don't reset this, your sessions wont persist across app server restarts
   session: {
     secretkey: null,
   },
@@ -53,5 +54,9 @@ module.exports = {
 
   youtube: {
     apikey: null,
+  },
+
+  optimizerGallery: {
+    definitionsUrl: null,
   },
 };

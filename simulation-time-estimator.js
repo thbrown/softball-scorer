@@ -20,7 +20,7 @@ const commonUtils = require('./common-utils.js');
  */
 let config = require('./time-estimation-configs/local-7600k-8.js').config;
 
-exports.estimateOptimizationTime = function(
+exports.estimateOptimizationTime = function (
   numLineups,
   coreCount,
   iterations,
@@ -56,7 +56,7 @@ exports.estimateOptimizationTime = function(
 };
 
 // TODO: at some point we'll need to have different classes for each of these lineupTypes to contain this logic
-exports.getNumberOfPossibleLineups = function(
+exports.getNumberOfPossibleLineups = function (
   lineupType,
   maleCount,
   femaleCount
@@ -94,6 +94,6 @@ exports.getNumberOfPossibleLineups = function(
   return numberOfLineups;
 };
 
-exports.getCoreCount = function() {
+exports.getCoreCount = function () {
   return 8;
 };

@@ -50,7 +50,7 @@ module.exports = class SoftballServer {
           usernameField: 'email',
           passwordField: 'password',
         },
-        async function(email, password, cb) {
+        async function (email, password, cb) {
           logger.log(null, 'Checking credentials...', email);
 
           try {
@@ -85,11 +85,11 @@ module.exports = class SoftballServer {
       )
     );
 
-    passport.serializeUser(function(sessionInfo, cb) {
+    passport.serializeUser(function (sessionInfo, cb) {
       cb(null, sessionInfo);
     });
 
-    passport.deserializeUser(async function(sessionInfo, cb) {
+    passport.deserializeUser(async function (sessionInfo, cb) {
       cb(null, sessionInfo);
     });
 
@@ -113,7 +113,7 @@ module.exports = class SoftballServer {
             'https://fonts.googleapis.com',
             //"'sha256-eeE4BsGQZBvwOOvyAnxzD6PBzhU/5IfP4NdPMywc3VE='", // react draggable components
             //"'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='", // inline style (used by many react/babel components)
-            "'unsafe-inline'", // I give up on this, too many react cmps use inline styles (react-select spicifically)
+            "'unsafe-inline'", // I give up on this, too many react cmps use inline styles (react-select specifically)
           ],
           fontSrc: ["'self'", 'https://fonts.gstatic.com'],
           scriptSrc: [
@@ -136,6 +136,8 @@ module.exports = class SoftballServer {
           frameSrc: [
             'https://www.google.com/', // ReCapcha
             'https://thbrown.github.io/', // YouTube Proxy
+            'https://optimizers.softball.app/', // Optimizers selection page
+            'http://localhost:8085/', // For testing optimizer selection locally
           ],
           mediaSrc: ['data:'], // This is for the noSleep lib, TODO: there might be a way to tighten this up
           imgSrc: [
@@ -212,7 +214,7 @@ module.exports = class SoftballServer {
 
     // Middleware to check that our second auth cookie is present and valid
     // This allows clients to log out when offline
-    app.use(async function(req, res, next) {
+    app.use(async function (req, res, next) {
       if (req.isAuthenticated()) {
         let accountId = extractSessionInfo(req, 'accountId');
         let cookieToken = req.cookies.nonHttpOnlyToken;
@@ -225,7 +227,7 @@ module.exports = class SoftballServer {
             );
             await new Promise((resolve, reject) => {
               req.logout();
-              req.session.destroy(function(err) {
+              req.session.destroy(function (err) {
                 if (err) {
                   reject(err);
                 }
@@ -312,13 +314,13 @@ module.exports = class SoftballServer {
     app.post(
       '/server/account/login',
       wrapForErrorProcessing((req, res, next) => {
-        passport.authenticate('local', async function(err, accountInfo, info) {
+        passport.authenticate('local', async function (err, accountInfo, info) {
           if (err || !accountInfo) {
             logger.warn(null, 'Authentication Failed', accountInfo, err, info);
             res.status(400).send();
             return;
           }
-          req.logIn(accountInfo, function() {
+          req.logIn(accountInfo, function () {
             initSecondAuthToken(req, res);
             logger.log(accountInfo.account_id, 'Login Successful!');
             res.status(204).send();
@@ -466,7 +468,7 @@ module.exports = class SoftballServer {
         if (account) {
           logger.log(
             account.account_id,
-            'Password update recieved. Token',
+            'Password update received. Token',
             req.body.token
           );
           // If the user reset their passowrd, the email address is confirmed
@@ -971,7 +973,7 @@ module.exports = class SoftballServer {
           // Return success
           res.status(204).send();
 
-          // We don't want to open up an opportinity for some user to quickly start and pause optimizations that
+          // We don't want to open up an opportunity for some user to quickly start and pause optimizations that
           // can result in user having several active compute instances. Putting a buffer between the pause button
           // press and actual pausing should give enough time for the paused compute instance to shut down
           await sleep(30000);
@@ -983,12 +985,12 @@ module.exports = class SoftballServer {
             4 //state.OPTIMIZATION_STATUS_ENUM.PAUSED
           );
 
-          // Call compute service spicific cleanup
+          // Call compute service specific cleanup
           this.compute.cleanup(accountId, serverOptimizationId);
         } catch (error) {
           logger.log(
             accountId,
-            'An error occured while pausing an optimization',
+            'An error occurred while pausing an optimization',
             error
           );
           throw error;
@@ -996,7 +998,7 @@ module.exports = class SoftballServer {
       })
     );
 
-    app.get('/server/current-account', function(req, res) {
+    app.get('/server/current-account', function (req, res) {
       if (!req.isAuthenticated()) {
         res.status(403).send();
         return;
@@ -1006,8 +1008,8 @@ module.exports = class SoftballServer {
       res.status(200).send(responseData);
     });
 
-    // Just a middle layer between the browser and the youtube API so we can keep our API key private
-    app.get('/server/youtube', async function(req, res) {
+    // Just a middle layer between the browser and the YouTube API so we can keep our API key private
+    app.get('/server/youtube', async function (req, res) {
       let searchTerms = querystring.escape(req.query.q);
       let apiKey = configAccessor.getYoutubeApiKey();
 
@@ -1021,7 +1023,7 @@ module.exports = class SoftballServer {
             {
               snippet: {
                 title:
-                  'An error occured while querying YouTube. We may be hitting API limits. Try again tomorrow or try pasting a link to a video instead.',
+                  'An error occurred while querying YouTube. We may be hitting API limits. Try again tomorrow or try pasting a link to a video instead.',
                 thumbnails: {
                   default: {
                     url: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/default.jpg',
@@ -1052,9 +1054,41 @@ module.exports = class SoftballServer {
       res.status(200).send(responseData);
     });
 
+    app.get(
+      '/server/optimizer-definition/:optimizerId',
+      async function (req, res) {
+        const { optimizerId } = req.params;
+        logger.log(
+          '?',
+          'Proxy request for optimizer definition ' +
+            optimizerId +
+            ' to ' +
+            configAccessor.getOptimizerDefinitionUrl(optimizerId)
+        );
+
+        let githubResponse = { body: [] };
+        try {
+          githubResponse = await got.get(
+            configAccessor.getOptimizerDefinitionUrl(optimizerId)
+          );
+        } catch (e) {
+          logger.error(
+            'Anon',
+            'Github search error: ',
+            optimizerId,
+            configAccessor.getOptimizerDefinitionUrl(optimizerId),
+            e
+          );
+        }
+
+        githubResponse = githubResponse.body;
+        res.status(200).send(githubResponse);
+      }
+    );
+
     // This route just accepts reports of Content Security Policy (CSP) violations
     // https://helmetjs.github.io/docs/csp/
-    app.post('/server/report-violation', function(req, res) {
+    app.post('/server/report-violation', function (req, res) {
       let accountId = extractSessionInfo(req, 'accountId');
       if (req.body) {
         logger.log(accountId, 'CSP Violation: ', req.body);
@@ -1064,7 +1098,7 @@ module.exports = class SoftballServer {
       res.status(204).send();
     });
 
-    // The root should retrun the whole app
+    // The root should return the whole app
     app.get(
       '/',
       wrapForErrorProcessing((req, res) => {
@@ -1082,11 +1116,11 @@ module.exports = class SoftballServer {
     );
 
     // 404 on unrecognized routes
-    app.use(function() {
+    app.use(function () {
       throw new HandledError('N/A', 404, 'Resource not found');
     });
 
-    app.use(function(error, req, res, next) {
+    app.use(function (error, req, res, next) {
       let accountId = extractSessionInfo(req, 'accountId');
 
       res.setHeader('content-type', 'application/json');
@@ -1099,9 +1133,7 @@ module.exports = class SoftballServer {
           error.print();
         }
       } else {
-        let errorId = Math.random()
-          .toString(36)
-          .substring(7);
+        let errorId = Math.random().toString(36).substring(7);
         res
           .status(500)
           .send({ message: `Internal Server Error. Error id: ${errorId}.` });
@@ -1120,7 +1152,7 @@ module.exports = class SoftballServer {
 
     // Error handling, so we can catch errors that occur during async too
     function wrapForErrorProcessing(fn) {
-      return async function(req, res, next) {
+      return async function (req, res, next) {
         try {
           await fn(req, res, next);
         } catch (error) {
@@ -1131,8 +1163,8 @@ module.exports = class SoftballServer {
 
     // An async sleep function
     async function sleep(ms) {
-      return new Promise(function(resolve, reject) {
-        setTimeout(function() {
+      return new Promise(function (resolve, reject) {
+        setTimeout(function () {
           resolve(ms);
         }, ms);
       });
@@ -1158,10 +1190,7 @@ module.exports = class SoftballServer {
           } else {
             // Make sure the token is url safe
             resolve(
-              buf
-                .toString('base64')
-                .replace(/\//g, '_')
-                .replace(/\+/g, '-')
+              buf.toString('base64').replace(/\//g, '_').replace(/\+/g, '-')
             );
           }
         });
@@ -1191,15 +1220,15 @@ module.exports = class SoftballServer {
     async function logIn(account, req, res) {
       logger.log(account.account_id, 'Logging in', account);
       try {
-        await new Promise(function(resolve, reject) {
-          req.logIn(account, function() {
+        await new Promise(function (resolve, reject) {
+          req.logIn(account, function () {
             // We need to serialize some info to the session
             let sessionInfo = {
               accountId: account.account_id,
               email: account.email,
             };
-            var doneWrapper = function(req) {
-              var done = function(err, user) {
+            var doneWrapper = function (req) {
+              var done = function (err, user) {
                 if (err) {
                   reject(err);
                   return;
@@ -1221,7 +1250,7 @@ module.exports = class SoftballServer {
       }
     }
 
-    const extractSessionInfo = function(req, field) {
+    const extractSessionInfo = function (req, field) {
       if (
         req &&
         req.session &&
@@ -1236,7 +1265,7 @@ module.exports = class SoftballServer {
 
     // Lock the account. Only one session for a single account can access the database at a time, otherwise there will be lots of race conditions.
     // Depending on the server configuration, locking info may be stored in a cache to allow multiple app servers to access and update the same locks.
-    const lockAccount = async function(accountId) {
+    const lockAccount = async function (accountId) {
       let success = false;
       let counter = 0;
       do {
@@ -1258,11 +1287,11 @@ module.exports = class SoftballServer {
       } while (!success);
     };
 
-    const unlockAccount = async function(accountId) {
+    const unlockAccount = async function (accountId) {
       await self.cacheCalls.unlockAccount(accountId);
     };
 
-    const sendEmailValidationEmail = async function(accountId, email) {
+    const sendEmailValidationEmail = async function (accountId, email) {
       let token = await generateToken();
       let tokenHash = crypto
         .createHash('sha256')
@@ -1289,9 +1318,9 @@ module.exports = class SoftballServer {
 
     // Shut down the app server
     let appShutdown = new Promise(
-      function(resolve, reject) {
+      function (resolve, reject) {
         logger.log(null, 'Closing App');
-        this.server.close(function(err) {
+        this.server.close(function (err) {
           if (err) {
             reject(err);
           }

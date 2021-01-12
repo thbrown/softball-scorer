@@ -14,7 +14,7 @@ const PORT = configAccessor.getOptimizationServerPort();
 const SOCKET_TIMEOUT = 30000;
 
 /*
-TODO: we have a lot of numbers in this file that refere to optimization states, 
+TODO: we have a lot of numbers in this file that refer to optimization states, 
 it would be a lot clearer if we could reference them by their enum value instead of number
 
 exp.OPTIMIZATION_STATUS_ENUM = Object.freeze({
@@ -337,7 +337,7 @@ module.exports = class OptimizationServer {
           // Transition the optimization to error state if we haven't already (5 === ERROR state)
           if (sock.optStatus !== 5) {
             if (err.code === 'ECONNRESET') {
-              // The compute client was closed unexpectedly, this is a retryable condition
+              // The compute client was closed unexpectedly, this is a re-tryable condition
               // so we wont transition to error yet
               logger.log(
                 sock.accountId,

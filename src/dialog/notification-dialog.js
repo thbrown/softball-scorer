@@ -22,6 +22,7 @@ export default class NotificationDialog extends React.Component {
         DOM.div(
           {
             className: 'dialog-text',
+            style: { maxHeight: '70vh', overflow: 'auto' },
           },
           this.props.text
         ),

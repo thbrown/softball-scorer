@@ -116,6 +116,8 @@ exp.sync = async function (fullSync) {
       type: fullSync ? 'full' : 'any',
     };
 
+    console.log('PATCH', body);
+
     // Ship it
     console.log('[SYNC] Syncing...', body);
     let response = await state.request(
@@ -859,12 +861,21 @@ exp.updatePlateAppearanceLocation = function (plateAppearance, location) {
 };
 
 exp.removePlateAppearance = function (plateAppearance_id, game_id) {
-  exp.getLocalState();
+  //exp.getLocalState();
   let game = exp.getGame(game_id);
 
   game.plateAppearances = game.plateAppearances.filter((pa) => {
     return pa.id !== plateAppearance_id;
   });
+  onEdit();
+};
+
+exp.getAccountSelectedOptimizers = function () {
+  return JSON.parse(exp.getLocalState().account.optimizers);
+};
+
+exp.setAccountOptimizers = function (newOptimizersArray) {
+  exp.getLocalState().account.optimizers = JSON.stringify(newOptimizersArray);
   onEdit();
 };
 

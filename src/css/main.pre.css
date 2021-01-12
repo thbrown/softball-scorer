@@ -208,6 +208,24 @@ svg rect{
   margin: -12px;
 }
 
+.loading-container {
+  /* To position the loading */
+  position: relative;
+}
+
+.loading {
+  left: 0;
+  position: absolute;
+  top: 0;
+
+  height: 100%;
+  width: 100%;
+
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
 .player-name {
   color: $css.colors.TEXT_LIGHT;
   font-size: 16px;
@@ -708,6 +726,7 @@ Scrolling is ~10-20x smoother.
   position: relative;
   border-radius: 4px;
   background-color: white;
+  width: 100%;
 }
 
 .float-container input {
@@ -780,13 +799,13 @@ Scrolling is ~10-20x smoother.
 
 .accordion dl,
 .accordion-list {
-  border: 1px solid $css.colors.WHITE;
+  border: 1px solid $css.colors.PRIMARY_LIGHT;
   border-bottom: none;
 }
 
 .accordion dd,
 .accordion__panel {
-  background-color: $css.colors.WHITE;
+  background-color: $css.colors.PRIMARY_LIGHT;
   font-size: 1em;
   margin-inline-start: 0px;
 }
@@ -796,7 +815,7 @@ Scrolling is ~10-20x smoother.
 
 .accordion {
   position: relative;
-  background-color: $css.colors.WHITE;
+  background-color: $css.colors.PRIMARY_LIGHT;
 }
 .accordionContainer {
 }

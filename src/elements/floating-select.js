@@ -4,12 +4,27 @@ export default class FloatingSelect extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      value:
-        props.initialValue || props.values?.[Object.keys(props?.values?.[0])],
+      value: props.initialValue || props.values[Object.keys(props?.values)[0]],
     };
   }
 
   render() {
+    let options = Object.keys(this.props.values).map((value) => {
+      const label = this.props.values[value];
+      return (
+        <option value={value} key={value}>
+          {label}
+        </option>
+      );
+    });
+    if (!this.state.value) {
+      options.push(
+        <option disabled selected value>
+          {'-- select an option --'}
+        </option>
+      );
+    }
+
     return (
       <div className={'float-container active'}>
         <label>{this.props.label}</label>
@@ -23,14 +38,7 @@ export default class FloatingSelect extends React.Component {
             this.setState({ value: e.target.value });
           }}
         >
-          {Object.keys(this.props.values).map((value) => {
-            const label = this.props.values[value];
-            return (
-              <option value={value} key={value}>
-                {label}
-              </option>
-            );
-          })}
+          {options}
         </select>
       </div>
     );

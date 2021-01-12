@@ -1,7 +1,6 @@
 import React from 'react';
 import expose from 'expose';
 import dialog from 'dialog';
-import network from 'network';
 import noSleepImport from './lib/nosleep.js';
 import state from 'state';
 import CardNotFound from 'cards/card-not-found';
@@ -49,7 +48,7 @@ export default class MainContainer extends expose.Component {
       navigator.serviceWorker.oncontrollerchange = () => {
         if (document.hidden) {
           dialog.show_notification(
-            'Softball.app has been updated, this page will be automatically refreshed. You will not lose any data you have entered.',
+            'Softball.app has been updated, this page will be automatically refreshed. You will not lose any data you have submitted.',
             () => {
               window.location.reload();
             }
@@ -65,7 +64,7 @@ export default class MainContainer extends expose.Component {
       });
     }
 
-    // TODO: if(test) logic shoud be removed and we should find a way to mock problematic APIs
+    // TODO: if(test) logic should be removed and we should find a way to mock problematic APIs
     if (!this.props.test) {
       // Load data from localstorage synchronously
       state.loadStateFromLocalStorage();

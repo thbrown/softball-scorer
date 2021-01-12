@@ -9,7 +9,7 @@ const sqlGen = require('./sql-gen.js');
  * This implementation uses postgres db as the persistance layer. Connection info and credentials can be supplied in the server side config.
  *
  * During reads, results are ordered first by their created_at timestamps then by a separate counter variable (since records inserted quickly may have duplicated timestamps).
- * If the coutner fields ever overflows, it's not a big deal (unless sombody is inserting 2 billion + records in the same timestamp).
+ * If the counter fields ever overflows, it's not a big deal (unless somebody is inserting 2 billion + records in the same timestamp).
  */
 module.exports = class DatabaseCalls {
   constructor(url, port, user, password, database, cacheService, cb) {
@@ -53,6 +53,16 @@ module.exports = class DatabaseCalls {
     this.pool.on('error', (error) => {
       logger.error(null, `Postgres error: ${error}`);
     });
+
+    this.processAccount = function (account) {
+      if (account.length === 1) {
+        account[0].optimizers = JSON.stringify(account[0].optimizers);
+        return account[0];
+      } else {
+        logger.log('sys', account);
+        throw new Error('An incorrect number of accounts were returned');
+      }
+    };
 
     this.processPlayers = function (players) {
       for (let i = 0; i < players.length; i++) {
@@ -100,6 +110,7 @@ module.exports = class DatabaseCalls {
           ? JSON.stringify(optimizations[i].player_list)
           : '[]';
         outputOptimizations[i].lineupType = optimizations[i].lineup_type;
+        outputOptimizations[i].optimizer = optimizations[i].optimizer;
       }
       return outputOptimizations;
     };
@@ -253,8 +264,8 @@ module.exports = class DatabaseCalls {
         client.query(queryString, values, (err, result) => {
           done();
           if (err) {
-            logger.log(null, err.stack);
-            logger.log(null, 'GOT ERR', err.stack, queryString, values);
+            logger.error(null, err.stack);
+            logger.error(null, 'GOT ERR', err.stack, queryString, values);
             reject(err);
           } else {
             resolve(result);
@@ -266,12 +277,15 @@ module.exports = class DatabaseCalls {
 
   getState(accountId) {
     if (accountId === undefined) {
-      return { players: [], optimizations: [], teams: [] };
+      return { account: {}, players: [], optimizations: [], teams: [] };
     }
     return new Promise(
       function (resolve, reject) {
         let cacheStartTime = Date.now();
         // First check to see if the info we need exists in cache, if not look in db
+        let cachedAccountProm = this.cacheService.getCache(
+          `acct:${accountId}:account`
+        );
         let cachedPlayersProm = this.cacheService.getCache(
           `acct:${accountId}:players`
         );
@@ -283,6 +297,7 @@ module.exports = class DatabaseCalls {
         );
 
         Promise.all([
+          cachedAccountProm,
           cachedPlayersProm,
           cachedOptimizationsProm,
           cachedTeamsProm,
@@ -290,7 +305,24 @@ module.exports = class DatabaseCalls {
           function (values) {
             let cacheEndTime = Date.now();
 
-            let cachedPlayers = values[0];
+            let cachedAccount = values[0];
+            let account;
+            if (cachedAccount) {
+              account = Promise.resolve();
+            } else {
+              account = this.parameterizedQueryPromise(
+                `
+                SELECT 
+                  optimizers as optimizers,
+                  balance as balance
+                FROM account
+                WHERE account_id = $1
+                `,
+                [accountId]
+              );
+            }
+
+            let cachedPlayers = values[1];
             let players;
             if (cachedPlayers) {
               players = Promise.resolve();
@@ -313,7 +345,7 @@ module.exports = class DatabaseCalls {
               );
             }
 
-            let cachedOptimizations = values[1];
+            let cachedOptimizations = values[2];
             let optimizations;
             if (cachedOptimizations) {
               optimizations = Promise.resolve();
@@ -333,7 +365,8 @@ module.exports = class DatabaseCalls {
                   team_list as team_list,
                   game_list as game_list,
                   player_list as player_list,
-                  lineup_type as lineup_type
+                  lineup_type as lineup_type,
+                  optimizer as optimizer
                 FROM optimization
                 WHERE account_id = $1
                 ORDER BY 
@@ -344,7 +377,7 @@ module.exports = class DatabaseCalls {
               );
             }
 
-            let cachedTeams = values[2];
+            let cachedTeams = values[3];
             let teams;
             if (cachedTeams) {
               teams = Promise.resolve();
@@ -391,28 +424,42 @@ module.exports = class DatabaseCalls {
               );
             }
 
-            Promise.all([players, optimizations, teams]).then(
+            Promise.all([account, players, optimizations, teams]).then(
               function (values) {
                 var dbEndTime = Date.now();
 
                 var state = {};
 
+                // Account
+                state.account = cachedAccount
+                  ? JSON.parse(cachedAccount)
+                  : this.processAccount(values[0].rows);
+
                 // Players
                 state.players = cachedPlayers
                   ? JSON.parse(cachedPlayers)
-                  : this.processPlayers(values[0].rows);
+                  : this.processPlayers(values[1].rows);
 
                 // Optimizations
                 state.optimizations = cachedOptimizations
                   ? JSON.parse(cachedOptimizations)
-                  : this.processOptimizations(values[1].rows);
+                  : this.processOptimizations(values[2].rows);
 
                 // Teams
                 state.teams = cachedTeams
                   ? JSON.parse(cachedTeams)
-                  : this.processTeams(values[2].rows);
+                  : this.processTeams(values[3].rows);
 
                 // Update the caches, or keep them hot
+                if (cachedAccount) {
+                  this.cacheService.resetCacheTTL(`acct:${accountId}:account`);
+                } else {
+                  this.cacheService.setCache(
+                    JSON.stringify(state.account),
+                    `acct:${accountId}:account`
+                  );
+                }
+
                 if (cachedPlayers) {
                   this.cacheService.resetCacheTTL(`acct:${accountId}:players`);
                 } else {
@@ -451,9 +498,11 @@ module.exports = class DatabaseCalls {
 
                 logger.log(
                   accountId,
-                  `SYNC players=${cachedPlayers ? 'CACHE' : 'DB'} teams=${
-                    cachedTeams ? 'CACHE' : 'DB'
-                  } optimizations=${cachedOptimizations ? 'CACHE' : 'DB'}`,
+                  `SYNC account=${cachedAccount ? 'CACHE' : 'DB'} players=${
+                    cachedPlayers ? 'CACHE' : 'DB'
+                  } teams=${cachedTeams ? 'CACHE' : 'DB'} optimizations=${
+                    cachedOptimizations ? 'CACHE' : 'DB'
+                  }`,
                   `CacheRetrieve: ${cacheEndTime - cacheStartTime}ms`,
                   `DbRetrieve: ${dbEndTime - cacheEndTime}ms`,
                   `Processing: ${dbProcessEndTime - dbEndTime}ms`,
@@ -653,7 +702,7 @@ module.exports = class DatabaseCalls {
                 throw new HandledError(
                   accountId,
                   400,
-                  `Field was larger than overriden limit ${
+                  `Field was larger than overridden limit ${
                     sqlToRun.limits[i + 1]
                   } characters ${sqlToRun[i].values[j]} -- ${JSON.stringify(
                     sqlToRun[i]
@@ -716,8 +765,8 @@ module.exports = class DatabaseCalls {
   async signup(email, passwordHash, passwordTokenHash) {
     let result = await this.parameterizedQueryPromise(
       `
-        INSERT INTO account (email, password_hash, password_token_hash, password_token_expiration, status)
-        VALUES ($1, $2, $3, now() + interval '1' hour, 'TRIAL')
+        INSERT INTO account (email, password_hash, password_token_hash, password_token_expiration, status, optimizers, balance)
+        VALUES ($1, $2, $3, now() + interval '1' hour, 'TRIAL', [0], 0)
         RETURNING account_id, email
       `,
       [email, passwordHash, passwordTokenHash]

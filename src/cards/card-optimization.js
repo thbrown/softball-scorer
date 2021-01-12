@@ -2,12 +2,13 @@ import React from 'react';
 import Card from 'elements/card';
 import state from 'state';
 import dialog from 'dialog';
-import FloatingInput from 'elements/floating-input';
-import FloatingSelect from 'elements/floating-select';
 import { setRoute } from 'actions/route';
 import SimulationTimeEstimator from '/../simulation-time-estimator';
 import CommonUtils from '/../common-utils';
 import NoSelect from 'elements/no-select';
+import StandardOptions from 'elements/optimizer-standard-options';
+import CustomOptions from 'elements/optimizer-custom-options';
+import network from 'network';
 
 const ACCORDION_QUERYPARAM_PREFIX = 'acc';
 const SYNC_DELAY_MS = 10000; // This value also exists in the CSS
@@ -16,7 +17,10 @@ export default class CardOptimization extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {};
+    this.state = {
+      selectedOptimizerId: undefined,
+      optimizerData: undefined,
+    };
 
     this.pieTimer = React.createRef();
 
@@ -104,6 +108,26 @@ export default class CardOptimization extends React.Component {
           true
         );
       }
+    }.bind(this);
+
+    this.onOptimizerChange = function (newOptimizerId) {
+      this.setState(
+        {
+          selectedOptimizerId: newOptimizerId,
+        },
+        function () {
+          console.log('FINISHED SETTING STATE', this.state.selectedOptimizerId);
+        }.bind(this)
+      );
+
+      // TODO: should this be part of the set state callback?
+      state.setOptimizationField(
+        this.optimization.id,
+        'optimizer',
+        newOptimizerId
+      );
+      console.log('SETTING OPT', this.optimization);
+      //setRoute(`/optimizations/${this.optimization.id}/player-select`);
     }.bind(this);
 
     this.onOptionsChange = function (fieldName, value) {
@@ -479,6 +503,29 @@ export default class CardOptimization extends React.Component {
         accordionToggles[i].click();
       }
     }
+
+    // Tested to 300 calls, seems to work okay
+    let prom = [];
+    let optimizerIds = state.getAccountSelectedOptimizers();
+    for (let i = 0; i < optimizerIds.length; i++) {
+      prom.push(
+        network.request('GET', 'server/optimizer-definition/' + optimizerIds[i])
+      );
+    }
+
+    Promise.all(prom).then((values) => {
+      values = values.map((v) => v.body);
+      // Convert optimizer data array to an object
+      let optData = {};
+      for (let i = 0; i < values.length; i++) {
+        let opt = values[i];
+        optData[opt.id] = opt;
+      }
+
+      this.setState({
+        optimizerData: optData,
+      });
+    });
   }
 
   renderOptimizationPage() {
@@ -659,6 +706,10 @@ export default class CardOptimization extends React.Component {
 
     // Simulation Options
     const parsedCustomData = JSON.parse(this.optimization.customData);
+    const customOptions =
+      this.state.selectedOptimizerId && this.state.optimizerData
+        ? this.state.optimizerData[this.state.selectedOptimizerId].options
+        : null;
 
     return (
       <div className="accordionContainer">
@@ -759,45 +810,36 @@ export default class CardOptimization extends React.Component {
               aria-hidden="true"
             >
               <div id="simulationOptionsMenu">
-                {React.createElement(FloatingInput, {
-                  key: 'iterations',
-                  inputId: 'iterations',
-                  maxLength: '12',
-                  label: 'Iterations',
-                  onChange: this.onOptionsChange.bind(this, 'iterations'),
-                  type: 'number',
-                  defaultValue: parsedCustomData.iterations,
-                  disabled:
-                    this.optimization.status !==
-                    state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
-                })}
-                {React.createElement(FloatingInput, {
-                  key: 'innings',
-                  inputId: 'innings',
-                  label: 'Innings to Simulate',
-                  onChange: this.onOptionsChange.bind(this, 'innings'),
-                  maxLength: '2',
-                  type: 'number',
-                  defaultValue: parsedCustomData.innings,
-                  disabled:
-                    this.optimization.status !==
-                    state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
-                })}
-                <FloatingSelect
-                  selectId="lineupType"
-                  label="Lineup Type"
-                  initialValue={this.optimization.lineupType}
-                  onChange={this.onOptionsChange.bind(this, 'lineupType')}
-                  values={{
-                    1: 'Normal',
-                    2: 'Alternating Gender',
-                    3: 'No Consecutive Females',
-                  }}
-                  disabled={
-                    this.optimization.status !==
-                    state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
-                  }
-                />
+                <fieldset style={{ padding: '5px' }} className="group">
+                  <legend className="group-legend" style={{ color: 'black' }}>
+                    Standard Options
+                  </legend>
+                  <StandardOptions
+                    disabled={
+                      this.optimization.status !==
+                      state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+                    }
+                    lineupType={this.optimization.lineupType}
+                    onOptionChange={this.onOptionsChange.bind(
+                      this,
+                      'lineupType'
+                    )}
+                    selectedOptimizerId={this.state.selectedOptimizerId}
+                    onOptimizerChange={this.onOptimizerChange}
+                    optimizerData={this.state.optimizerData}
+                  ></StandardOptions>
+                </fieldset>
+                <fieldset style={{ padding: '5px' }} className="group">
+                  <legend className="group-legend" style={{ color: 'black' }}>
+                    Optimizer Specific Options
+                  </legend>
+                  <CustomOptions
+                    options={customOptions}
+                    //selectedOptimizerId={this.state.selectedOptimizerId}
+                    //optimizerData={this.state.optimizerData}
+                    //optionsData={parsedCustomData}
+                  ></CustomOptions>
+                </fieldset>
               </div>
             </dd>
             {this.renderResultsAccordion()}

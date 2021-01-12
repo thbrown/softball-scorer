@@ -151,19 +151,28 @@ module.exports.getSessionSecretKey = function () {
   );
 };
 
-module.exports.getAppOptimizationLockTTL = function () {
-  return (config && config.app && config.app.optimizationLockTTL) || 30;
-};
-
-module.exports.getAppOptimizationSweeperPeriod = function () {
-  return (config && config.app && config.app.optimizationSweeperPeriod) || 120;
+module.exports.getOptimizerDefinitionUrl = function (optimizerId) {
+  let url =
+    (config.optimizerGallery && config.optimizerGallery.definitionsUrl) ||
+    'https://optimizers.softball.app/definitions';
+  return url + '/' + optimizerId + '.json';
 };
 
 module.exports.getYoutubeApiKey = function () {
   return (config && config.youtube && config.youtube.apikey) || undefined;
 };
 
-// Logger must access the config directly because it we can't require modules that use the logger beofre the logger is configured
+// Unused
+module.exports.getAppOptimizationLockTTL = function () {
+  return (config && config.app && config.app.optimizationLockTTL) || 30;
+};
+
+// Unused
+module.exports.getAppOptimizationSweeperPeriod = function () {
+  return (config && config.app && config.app.optimizationSweeperPeriod) || 120;
+};
+
+// Logger must access the config directly because it we can't require modules that use the logger before the logger is configured
 /*
 module.exports.getToFile = function() {
   return (config.logging && config.logging.toFile) || false;

@@ -5,9 +5,12 @@ const exp = {};
 
 const FETCH_TIMEOUT =
   config.network && config.network.timeout ? config.network.timeout : 10000;
-const NETWORK_DELAY = 0;
-
+const NETWORK_DELAY = 1000;
 let requestInternal;
+
+exp.requestCrossOrigin = async function (method, fullUrl, body) {
+  return await requestInternal(method, fullUrl, body);
+};
 
 exp.request = async function (method, url, body) {
   url = exp.getServerUrl(url);

@@ -2,7 +2,7 @@ import React from 'react';
 
 const Loading = ({ className, style }) => {
   return (
-    <div className={className}>
+    <div className={className} style={style}>
       <svg version="1.1" id="loader-1" x="0px" y="0px" viewBox="0 0 40 40">
         <path
           opacity="0.4"

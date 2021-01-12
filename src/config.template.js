@@ -11,8 +11,9 @@ const config = {
   analytics: {
     trackingId: undefined,
   },
-  youtube: {
-    apikey: undefined,
+  optimizerGallery: {
+    baseUrl: 'https://optimizers.softball.app/',
+    indexUrl: 'https://optimizers.softball.app/',
   },
 };
 export default config;

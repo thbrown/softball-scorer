@@ -115,9 +115,9 @@ export default class CardGameEdit extends React.Component {
               initialValue={this.props.game.lineupType || 2}
               onChange={this.handleLineupTypeChange}
               values={{
-                1: 'Normal',
-                2: 'Alternating Gender',
-                3: 'No Consecutive Females',
+                0: 'Normal',
+                1: 'Alternating Gender',
+                2: 'No Consecutive Females',
               }}
             />
             <div className="icon-button">
