@@ -96,7 +96,7 @@
     "react-sticky-table": "2.0.0",
     "reactify": "^1.1.1",
     "recompose": "^0.30.0",
-    "redis": "^3.0.2",
+    "redis": "^3.1.1",
     "serve-favicon": "^2.5.0",
     "stable": "^0.1.8",
     "stream-browserify": "^3.0.0",
