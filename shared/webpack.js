@@ -38,6 +38,9 @@ module.exports = {
     stream: {
       commonjs: 'stream',
     },
+    react: {
+      commonjs: 'react',
+    },
     'react-dom/server': {
       commonjs: 'react-dom/server',
     },

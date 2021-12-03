@@ -1,5 +1,6 @@
 import CommonUtils from '../utils/common-utils';
 import ReactDOMServer from 'react-dom/server';
+import React from 'react';
 
 /*
  * We want to re-use the HTML we use for the results accordion in the optimization complete email. This file contains the common logic.
