@@ -26,7 +26,8 @@ const objectMerge = require('../object-merge');
 const passwordResetEmailHtml = require('./email/password-reset-email-html');
 const welcomeEmailHtml = require('./email/welcome-email-html');
 const optimizationCompleteEmailHtml = require('./email/optimization-complete-email-html');
-const OptimizationResultsHtml = require('../common-optimization-results-html');
+// const OptimizationResultsHtml = require('../common-optimization-results-html');
+const sharedLib = require('../shared-lib');
 
 const MONITORING_INTERVAL = 5000;
 
@@ -1025,7 +1026,7 @@ module.exports = class SoftballServer {
                     `Softball.app Optimization ${optimization.name} has Completed!`,
                     JSON.stringify(parsedData, null, 2),
                     optimizationCompleteEmailHtml(
-                      OptimizationResultsHtml.getResultsAsHtml(
+                      sharedLib.commonOptimizationResults.getResultsAsHtml(
                         JSON.stringify(result),
                         optimization.inputSummaryData
                       ),

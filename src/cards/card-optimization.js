@@ -4,7 +4,7 @@ import state from 'state';
 import dialog from 'dialog';
 import { setRoute } from 'actions/route';
 import CommonUtils from '/../common-utils';
-import OptimizationResultsHtml from '/../common-optimization-results-html';
+import sharedLib from '/../shared-lib';
 import NoSelect from 'elements/no-select';
 import StandardOptions from 'elements/optimizer-standard-options';
 import CustomOptions from 'elements/optimizer-custom-options';
@@ -865,7 +865,7 @@ export default class CardOptimization extends React.Component {
           aria-hidden="true"
         >
           <div id="result-accordion-content">
-            {OptimizationResultsHtml.getResultsAsJsx(
+            {sharedLib.commonOptimizationResults.getResultsAsJsx(
               optimization.resultData,
               optimization.inputSummaryData
             )}
