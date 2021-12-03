@@ -24,8 +24,7 @@ let databaseCalls = class DatabaseCalls {
           {
             id: '0R8p2xFmJSiDAZ',
             name: '6/18 optimization',
-            type: 0,
-            customData: '{"innings":7,"iterations":10000}',
+            customOptionsData: '{"innings":7,"iterations":10000}',
             overrideData: '{}',
             status: 0,
             resultData: null,
@@ -36,7 +35,8 @@ let databaseCalls = class DatabaseCalls {
             playerList:
               '["4ZqtZbpYtlxOVW","47guOwUQN5QLPc","4f4CQExEegoHbV","4SFlePddQQh8OY","4ePGkCgKNTSnH4","4yIOlHpfiREBfJ"]',
             lineupType: 1,
-            executionData: null,
+            optimizationType: '0',
+            inputSummaryData: null,
           },
         ],
         players: [
@@ -404,7 +404,8 @@ let databaseCalls = class DatabaseCalls {
       if (
         state.optimizations[i].status == 1 ||
         state.optimizations[i].status == 2 ||
-        state.optimizations[i].status == 6
+        state.optimizations[i].status == 6 ||
+        state.optimizations[i].status == 7
       ) {
         count++;
       }

@@ -84,6 +84,8 @@ else
 fi
 ```
 
+https://cloud.google.com/compute/docs/instances/create-start-preemptible-instance#:~:text=Creating%20a%20preemptible%20instance,-Create%20a%20preemptible&text=In%20the%20Cloud%20Console%2C%20go%20to%20the%20VM%20instances%20page.&text=Click%20Create%20instance.,disks%2C%20networking%2C%20sole%20tenancy.
+
 11. Make cleanup.sh executable `sudo chmod +x ./cleanup.sh`
 12. Add the cred.json (from the authentication section above) to the same directory as the cleanup script
 13. Shutdown the instance.
@@ -131,7 +133,7 @@ cause `https://console.cloud.google.com/iam-admin/quotas` (you may have to reque
 #### Simulation estimation times accuracy
 
 For accurate compute time estimation you'll need to generate timing constants by running a junit test
-from softball-sim on the instance you'lll be running the optimization on.
+from softball-sim on the instance you'll be running the optimization on.
 
 `sudo apt-get update`
 `sudo apt-get upgrade`

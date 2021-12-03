@@ -180,3 +180,5 @@ From the root directory:
 
 Then prevent minified assets from being formatted:
 `git checkout assets`
+
+export APP_WRITE_LOG_TO_FILE=true

@@ -4,6 +4,7 @@ import network from 'network';
 import idUtils from '../id-utils';
 import results from 'plate-appearance-results';
 import commonUtils from '../common-utils';
+import constants from '../constants.js';
 import { getShallowCopy } from 'utils/functions';
 
 import dialog from 'dialog';
@@ -22,22 +23,20 @@ const SYNC_STATUS_ENUM = Object.freeze({
   IN_PROGRESS_AND_PENDING: 5,
   UNKNOWN: 6,
 });
-exp.OPTIMIZATION_STATUS_ENUM = Object.freeze({
-  NOT_STARTED: 0,
-  ALLOCATING_RESOURCES: 1,
-  IN_PROGRESS: 2,
-  COMPLETE: 3,
-  PAUSED: 4,
-  ERROR: 5,
-  PAUSING: 6,
-});
 const OPTIMIZATION_TYPE_ENUM = Object.freeze({
   MONTE_CARLO_EXHAUSTIVE: 0,
+  MONTE_CARLO_ADAPTIVE: 1,
+  MONTE_CARLO_ANNEALING: 2,
+  EXPECTED_VALUE: 3,
 });
 exp.LINEUP_TYPE_ENUM = Object.freeze({
-  NORMAL: 1,
-  ALTERNATING_GENDER: 2,
-  NO_CONSECUTIVE_FEMALES: 3,
+  NORMAL: 0,
+  ALTERNATING_GENDER: 1,
+  NO_CONSECUTIVE_FEMALES: 2,
+});
+exp.LINEUP_ORDER_ENUM = Object.freeze({
+  StandardBattingLineup: 'StandardBattingLineup',
+  AlternatingBattingLineup: 'AlternatingBattingLineup',
 });
 
 // Database State - Stored in memory, local storage, and persisted in the db
@@ -57,11 +56,47 @@ let syncTimerTimestamp = null;
 
 const state = exp;
 
-const getClientPlateAppearance = (pa, game) => ({
-  ...pa,
-  game,
-  date: game.date,
-});
+// New objects shapes
+exp.getNewTeam = function (teamName) {
+  const id = getNextId();
+  return {
+    id: id,
+    name: teamName,
+    games: [],
+    publicIdEnabled: false,
+  };
+};
+
+exp.getNewGame = function (opposingTeamName, lineup, lineupType) {
+  const timestamp = Math.floor(new Date().getTime() / 1000); // Postgres expects time in seconds not ms
+  const id = getNextId();
+  return {
+    id: id,
+    opponent: opposingTeamName,
+    lineup: lineup ? lineup : [],
+    date: timestamp,
+    park: null,
+    scoreUs: 0,
+    scoreThem: 0,
+    lineupType: lineupType ? lineupType : exp.LINEUP_TYPE_ENUM.NORMAL,
+    plateAppearances: [],
+  };
+};
+
+exp.getNewPlateAppearance = function (playerId) {
+  const id = getNextId();
+  return {
+    id: id,
+    player_id: playerId,
+    result: null,
+    location: {
+      x: null,
+      y: null,
+    },
+  };
+};
+
+// SYNC
 
 exp.syncStateToSyncStateName = function (syncState) {
   for (let i in SYNC_STATUS_ENUM) {
@@ -354,16 +389,10 @@ exp.getTeam = function (team_id, state) {
   }, null);
 };
 
-exp.addTeam = function (team_name) {
-  const id = getNextId();
-  let new_state = exp.getLocalState();
-  let team = {
-    id: id,
-    name: team_name,
-    games: [],
-    publicIdEnabled: false,
-  };
-  new_state.teams.push(team);
+exp.addTeam = function (teamName) {
+  let localState = exp.getLocalState();
+  let team = exp.getNewTeam(teamName);
+  localState.teams.push(team);
   onEdit();
   return team;
 };
@@ -480,23 +509,15 @@ exp.replaceOptimization = function (optimizationId, newOptimization) {
   onEdit();
 };
 
-// TODO: can this be merged with setOptimizationField?
-exp.setOptimizationCustomDataField = function (
-  optimizationId,
-  fieldName,
-  fieldValue
-) {
-  const optimization = exp.getOptimization(optimizationId);
-  const customData = JSON.parse(optimization.customData);
-  if (fieldValue) {
-    customData[fieldName] = fieldValue;
-  } else {
-    delete customData[fieldName];
-  }
-  optimization.customData = JSON.stringify(customData);
-  onEdit();
+exp.getUsedOptimizers = function () {
+  let optimizers = new Set();
+  exp.getLocalState().optimizations.forEach((optimization) => {
+    optimizers.add(optimization.optimizerType);
+  });
+  return Array.from(optimizers);
 };
 
+// Set a field on the specified optimization object
 exp.setOptimizationField = function (
   optimizationId,
   fieldName,
@@ -512,10 +533,141 @@ exp.setOptimizationField = function (
   onEdit();
 };
 
-exp.getOptimizationCustomDataField = function (optimizationId, fieldName) {
+// Set a field on the customOptions field
+exp.setOptimizationCustomOptionsDataField = function (
+  optimizationId,
+  fieldName,
+  fieldValue
+) {
   const optimization = exp.getOptimization(optimizationId);
-  const customData = JSON.parse(optimization.customData);
-  return customData[fieldName];
+  const customOptionsData = JSON.parse(optimization.customOptionsData);
+  if (fieldValue) {
+    customOptionsData[fieldName] = fieldValue;
+  } else {
+    delete customOptionsData[fieldName];
+  }
+  optimization.customOptionsData = JSON.stringify(customOptionsData);
+  onEdit();
+};
+
+exp.getParsedOptimizationOverridePlateAppearances = function (
+  optimizationId,
+  playerId
+) {
+  let optimization = exp.getOptimization(optimizationId);
+  // TODO: do we consistently protect against undefined ?
+  if (optimization.overrideData) {
+    let allOverrides = JSON.parse(optimization.overrideData);
+    return allOverrides[playerId] ? allOverrides[playerId] : [];
+  } else {
+    return [];
+  }
+};
+
+exp.getParsedOptimizationOverridePlateAppearance = function (
+  optimizationId,
+  playerId,
+  paId
+) {
+  let pas = exp.getParsedOptimizationOverridePlateAppearances(
+    optimizationId,
+    playerId
+  );
+  let result = pas.find((pa) => {
+    return pa.id === paId;
+  });
+  return result;
+};
+
+exp.addOptimizationOverridePlateAppearance = function (
+  optimizationId,
+  playerId
+) {
+  let optimization = exp.getOptimization(optimizationId);
+  let allOverrides = JSON.parse(optimization.overrideData);
+
+  let playerOverrides = allOverrides[playerId];
+  let addedPa = this.getNewPlateAppearance(playerId);
+  if (!playerOverrides) {
+    allOverrides[playerId] = [addedPa];
+  } else {
+    allOverrides[playerId].push(addedPa);
+  }
+
+  optimization.overrideData = JSON.stringify(allOverrides);
+  onEdit();
+  return addedPa;
+};
+
+exp.removeOptimizationOverridePlateAppearance = function (
+  optimizationId,
+  playerId,
+  paId
+) {
+  let optimization = exp.getOptimization(optimizationId);
+  let allOverrides = JSON.parse(optimization.overrideData);
+
+  let playerOverrides = allOverrides[playerId];
+
+  allOverrides[playerId] = playerOverrides.filter((pa) => {
+    return pa.id !== paId;
+  });
+
+  // Remove the player entry if the array is empty
+  if (playerOverrides.length === 0) {
+    delete allOverrides[playerId];
+  }
+
+  optimization.overrideData = JSON.stringify(allOverrides);
+  onEdit();
+};
+
+exp.replaceOptimizationOverridePlateAppearance = function (
+  optimizationId,
+  playerId,
+  paId,
+  paToAdd
+) {
+  let optimization = exp.getOptimization(optimizationId);
+  let allOverrides = JSON.parse(optimization.overrideData);
+  let playerOverrides = allOverrides[playerId];
+
+  for (let i = 0; i < playerOverrides.length; i++) {
+    const pa = playerOverrides[i];
+    if (pa.id === paId) {
+      playerOverrides.splice(i, 1, paToAdd);
+      break;
+    }
+  }
+  optimization.overrideData = JSON.stringify(allOverrides);
+  onEdit();
+};
+
+exp.getOptimizationCustomOptionsDataField = function (
+  optimizationId,
+  fieldName
+) {
+  const optimization = exp.getOptimization(optimizationId);
+  const customOptionsData = JSON.parse(optimization.customOptionsData);
+  return customOptionsData[fieldName];
+};
+
+exp.duplicateOptimization = function (optimizationId) {
+  const toDuplicate = exp.getOptimization(optimizationId);
+  let localState = exp.getLocalState();
+  let duplicatedOptimization = JSON.parse(JSON.stringify(toDuplicate));
+
+  // Reset the any status fields and de-duplicate unique fields
+  duplicatedOptimization.id = getNextId();
+  duplicatedOptimization.name = 'Duplicate of ' + duplicatedOptimization.name;
+  duplicatedOptimization.status =
+    constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED;
+  duplicatedOptimization.resultData = JSON.stringify({});
+  duplicatedOptimization.statusMessage = null;
+  duplicatedOptimization.inputSummaryData = JSON.stringify({});
+
+  localState.optimizations.push(duplicatedOptimization);
+  onEdit();
 };
 
 exp.removeOptimization = function (optimizationId) {
@@ -532,21 +684,18 @@ exp.addOptimization = function (name) {
   let optimization = {
     id: id,
     name: name,
-    type: OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXHAUSTIVE,
-    customData: JSON.stringify({
-      innings: 7,
-      iterations: 10000,
-    }),
+    customOptionsData: JSON.stringify({}),
     overrideData: JSON.stringify({}),
-    status: exp.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
-    resultData: null,
+    status: constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
+    resultData: JSON.stringify({}),
     statusMessage: null,
     sendEmail: false,
     teamList: JSON.stringify([]),
     gameList: JSON.stringify([]),
     playerList: JSON.stringify([]),
     lineupType: 1,
-    executionData: null,
+    optimizerType: OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXHAUSTIVE,
+    inputSummaryData: JSON.stringify({}),
   };
   new_state.optimizations.push(optimization);
   onEdit();
@@ -557,9 +706,7 @@ exp.addOptimization = function (name) {
 
 exp.addGame = function (teamId, opposingTeamName) {
   let new_state = exp.getLocalState();
-  const id = getNextId();
   const team = exp.getTeam(teamId, new_state);
-  const timestamp = Math.floor(new Date().getTime() / 1000); // Postgres expects time in seconds not ms
   let lastLineup = [];
   let lastLineupType = 0;
   if (team.games.length) {
@@ -567,17 +714,7 @@ exp.addGame = function (teamId, opposingTeamName) {
     lastLineupType = lastGame.lineupType;
     lastLineup = lastGame.lineup.slice();
   }
-  let game = {
-    id: id,
-    opponent: opposingTeamName,
-    lineup: lastLineup ? lastLineup : [],
-    date: timestamp,
-    park: null,
-    scoreUs: 0,
-    scoreThem: 0,
-    lineupType: lastLineupType ? lastLineupType : exp.LINEUP_TYPE_ENUM.NORMAL,
-    plateAppearances: [],
-  };
+  let game = exp.getNewGame(opposingTeamName, lastLineup, lastLineupType);
   team.games.push(game);
   onEdit();
   return game;
@@ -699,16 +836,7 @@ exp.setScore = function ({ scoreUs, scoreThem }, gameId) {
 exp.addPlateAppearance = function (playerId, gameId) {
   const game = exp.getGame(gameId);
   const plateAppearances = game.plateAppearances;
-  const id = getNextId();
-  const plateAppearance = {
-    id: id,
-    player_id: playerId,
-    result: null,
-    location: {
-      x: null,
-      y: null,
-    },
-  };
+  const plateAppearance = exp.getNewPlateAppearance(playerId);
   plateAppearances.push(plateAppearance);
   onEdit();
   return plateAppearance;
@@ -758,6 +886,12 @@ exp.getPlateAppearance = function (pa_id, state) {
   }
   return null;
 };
+
+const getClientPlateAppearance = (pa, game) => ({
+  ...pa,
+  game,
+  date: game.date,
+});
 
 exp.getPlateAppearancesForGame = function (gameId, state) {
   const game = exp.getGame(gameId, state);
@@ -870,13 +1004,19 @@ exp.removePlateAppearance = function (plateAppearance_id, game_id) {
   onEdit();
 };
 
-exp.getAccountSelectedOptimizers = function () {
-  return JSON.parse(exp.getLocalState().account.optimizers);
+exp.getAccountOptimizersList = function () {
+  if (exp.getLocalState().account) {
+    return JSON.parse(exp.getLocalState().account.optimizers);
+  } else {
+    return [];
+  }
 };
 
-exp.setAccountOptimizers = function (newOptimizersArray) {
-  exp.getLocalState().account.optimizers = JSON.stringify(newOptimizersArray);
-  onEdit();
+exp.setAccountOptimizersList = function (newOptimizersArray) {
+  if (exp.getLocalState().account) {
+    exp.getLocalState().account.optimizers = JSON.stringify(newOptimizersArray);
+    onEdit();
+  }
 };
 
 // LOCAL STORAGE
@@ -1141,7 +1281,47 @@ exp.buildStatsObject = function (playerId, plateAppearances) {
     );
   }
 
+  // Derived stats
+  stats.outs = stats.atBats - stats.hits;
+  stats.singles = stats.singles + stats.walks;
+  stats.homeruns = stats.insideTheParkHR + stats.outsideTheParkHR;
+
   return stats;
+};
+
+/**
+ * Gets stats to be used in the optimization for each playerId passed in.
+ * Respects any stats overrides.
+ * The result is a map of playerId to stats object and there will be
+ * no entries for players that have been deleted.
+ */
+exp.getActiveStatsForAllPlayers = function (overrideData, playerIds, teamIds) {
+  let activeStats = {};
+  for (let i = 0; i < playerIds.length; i++) {
+    let player = exp.getPlayer(playerIds[i]);
+    if (!player) {
+      continue; // Player may have been deleted
+    }
+
+    let plateAppearances = [];
+    let existingOverride = overrideData[player.id];
+    if (existingOverride) {
+      // If there are stats overrides, use those
+      plateAppearances = existingOverride;
+    } else {
+      // Otherwise use the historical hitting data
+      plateAppearances = exp.getPlateAppearancesForPlayerInGameOrOnTeam(
+        player.id,
+        teamIds,
+        null // TODO: gameIds
+      );
+    }
+
+    // Gather the stats required for the optimization
+    let fullStats = exp.buildStatsObject(player.id, plateAppearances);
+    activeStats[player.id] = fullStats;
+  }
+  return activeStats;
 };
 
 // WINDOW STATE FUNCTIONS
@@ -1289,16 +1469,6 @@ exp.request = async function (method, url, body) {
     return response;
   }
 };
-
-// Flip enums for reverse lookups
-let optStatuses = Object.keys(exp.OPTIMIZATION_STATUS_ENUM);
-exp.OPTIMIZATION_STATUS_ENUM_INVERSE = {};
-for (let i = 0; i < optStatuses.length; i++) {
-  let englishValue = optStatuses[i];
-  exp.OPTIMIZATION_STATUS_ENUM_INVERSE[
-    exp.OPTIMIZATION_STATUS_ENUM[englishValue]
-  ] = englishValue;
-}
 
 /*
 let lineupTypes = Object.keys(exp.LINEUP_TYPE_ENUM);

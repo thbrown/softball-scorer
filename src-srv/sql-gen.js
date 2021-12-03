@@ -35,14 +35,12 @@ const jsonValueToSqlTableName = {
 
 let jsonValueToSqlColName = {
   // account columns
-  optimizers: 'optimizers',
+  optimizers: 'optimizers_list',
   balance: 'balance',
 
   // optimization columns
-  type: 'type',
-  customData: 'custom_data',
+  customOptionsData: 'custom_options_data',
   overrideData: 'override_data',
-  status: 'status',
   resultData: 'result_data',
   statusMessage: 'statusMessage',
   teamList: 'team_list',
@@ -50,7 +48,8 @@ let jsonValueToSqlColName = {
   gameList: 'game_list',
   sendEmail: 'send_email',
   lineupType: 'lineup_type',
-  optimizer: 'optimizer',
+  optimizerType: 'optimizer_type',
+  inputSummaryData: 'input_summary_data',
 
   // games columns
   date: 'date',
@@ -466,7 +465,7 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
         } else if (applicableTable === 'account') {
           // Special case: changes to the account table can be done directly
           let limit = undefined; // default limit is 50 chars
-          if (columnName === 'optimizers') {
+          if (columnName === 'optimizer_list') {
             limit = JSON_LIST_MAX_CHARS;
           }
 
@@ -488,10 +487,10 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
         } else {
           let limit = undefined; // defaults to 50 chars
 
-          // customData, snapshtotData, teams, games, players, and results fields on the optimization table contain potentially longer stringified JSON
+          // customOptionsData, teams, games, players, and results fields on the optimization table contain potentially longer stringified JSON
           if (applicableTable === 'optimization') {
             if (
-              columnName === 'custom_data' ||
+              columnName === 'custom_options_data' ||
               columnName === 'override_data' ||
               columnName === 'result_data'
             ) {
@@ -500,7 +499,7 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
               columnName === 'team_list' ||
               columnName === 'game_list' ||
               columnName === 'player_list' ||
-              columnName === 'optimizers'
+              columnName === 'optimizers_list'
             ) {
               limit = JSON_LIST_MAX_CHARS;
             }
@@ -602,12 +601,11 @@ let printInsertStatementsFromPatch = function (
     }
     result.push({
       query:
-        'INSERT INTO optimization (id, name, type, custom_data, override_data, status, result_data, status_message, send_email, team_list, game_list, player_list, lineup_type, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)',
+        'INSERT INTO optimization (id, name, custom_options_data, override_data, status, result_data, status_message, send_email, team_list, game_list, player_list, lineup_type, optimizer_type, input_summary_data, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)',
       values: [
         idUtils.clientIdToServerId(obj.optimizations.id, accountId),
         obj.optimizations.name,
-        obj.optimizations.type,
-        obj.optimizations.customData,
+        obj.optimizations.customOptionsData,
         obj.optimizations.overrideData,
         modifiedState,
         obj.optimizations.resultData,
@@ -617,6 +615,8 @@ let printInsertStatementsFromPatch = function (
         obj.optimizations.gameList,
         obj.optimizations.playerList,
         obj.optimizations.lineupType,
+        obj.optimizations.optimizerType,
+        obj.optimizations.inputSummaryData,
         accountId,
       ],
       limits: {
@@ -802,12 +802,11 @@ let printInsertStatementsFromRaw = function (obj, parents, result, accountId) {
     for (let i = 0; i < obj.players.length; i++) {
       result.push({
         query:
-          'INSERT INTO optimization (id, name, type, custom_data, override_data, status, result_data, status_message, send_email, team_list, game_list, player_list, lineup_type, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING id;',
+          'INSERT INTO optimization (id, name, custom_options_data, override_data, status, result_data, status_message, send_email, team_list, game_list, player_list, lineup_type, input_summary_data, optimizer_type, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING id;',
         values: [
           idUtils.clientIdToServerId(obj.optimizations[i].id, accountId),
           obj.optimizations[i].name,
-          obj.optimizations[i].type,
-          obj.optimizations[i].customData,
+          obj.optimizations[i].customOptionsData,
           obj.optimizations[i].overrideData,
           obj.optimizations[i].status,
           obj.optimizations[i].resultData,
@@ -817,6 +816,8 @@ let printInsertStatementsFromRaw = function (obj, parents, result, accountId) {
           obj.optimizations[i].gameList,
           obj.optimizations[i].playerList,
           obj.optimizations[i].lineupType,
+          obj.optimizations[i].optimizerType,
+          obj.optimizations[i].inputSummaryData,
           accountId,
         ],
         limits: {

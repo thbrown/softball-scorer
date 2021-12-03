@@ -94,3 +94,12 @@ exports.getObjectString = function (data) {
   // Don't compute the hash, insted get the string that would be hashed
   return objectHasher.sortObject(data);
 };
+
+// Concatenate arrays and remove duplicates
+exports.merge = function (array1, array2) {
+  return [...new Set([...array1, ...array2])];
+};
+
+exports.truncate = function (str, n) {
+  return str.length > n ? str.substr(0, n - 1) : str;
+};

@@ -14,7 +14,7 @@ export default class CardOptimizerSelect extends expose.Component {
       config.optimizerGallery?.indexUrl || 'https://optimizers.softball.app/';
 
     this.onMessageReceived = function onMessageReceived(evt) {
-      state.setAccountOptimizers(evt.data);
+      state.setAccountOptimizersList(evt.data);
       console.log('Selected optimizers', evt.data);
     };
   }
@@ -27,7 +27,7 @@ export default class CardOptimizerSelect extends expose.Component {
 
       // Send starting message
       let iframeWin = iframe.contentWindow;
-      let selectedOptimizers = state.getAccountSelectedOptimizers();
+      let selectedOptimizers = state.getAccountOptimizersList();
       iframeWin.postMessage(selectedOptimizers, this.baseUrl);
 
       // Hide the loading div

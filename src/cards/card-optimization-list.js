@@ -5,6 +5,7 @@ import { setRoute } from 'actions/route';
 import { compose, withHandlers } from 'recompose';
 import NoSelect from 'elements/no-select';
 import ListButton from 'elements/list-button';
+import constants from '/../constants.js';
 
 const enhance = compose(
   withHandlers({
@@ -51,7 +52,20 @@ const CardOptimizationList = (props) => (
             justifyContent: 'space-between',
           }}
         >
-          <NoSelect className="prevent-overflow">{optimization.name}</NoSelect>
+          <NoSelect className="prevent-overflow">
+            <div style={{ display: 'flex' }}>
+              <div>{optimization.name}</div>
+              <div class="secondary" style={{ marginLeft: '5px' }}>
+                {'['}
+                {
+                  constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
+                    optimization.status
+                  ]
+                }
+                {']'}
+              </div>
+            </div>
+          </NoSelect>
           <div>
             <img
               id={'edit-optimization-' + optimization.id}

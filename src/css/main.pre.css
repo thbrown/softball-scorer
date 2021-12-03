@@ -284,6 +284,10 @@ svg rect{
   color: $css.colors.TEXT_GREY;
 }
 
+.secondary {
+  color: $css.colors.TEXT_GREY;
+}
+
 .result-button {
   cursor: default;
   width: 48px;
@@ -297,6 +301,7 @@ svg rect{
 
 .disabled {
   pointer-events: none;
+  color: $css.colors.TEXT_GREY !important;
 }
 
 .radio-button {
@@ -843,7 +848,7 @@ Scrolling is ~10-20x smoother.
 }
 
 .accordionItem.is-collapsed {
-  max-height: 0;
+  max-height: 0 !important;
   padding: 0;
 }
 .no-js .accordionItem.is-collapsed {

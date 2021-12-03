@@ -62,12 +62,12 @@ exports.getNumberOfPossibleLineups = function (
   femaleCount
 ) {
   let numberOfLineups = 0;
-  if (lineupType == 1) {
+  if (lineupType == 0) {
     numberOfLineups = commonUtils.factorial(maleCount + femaleCount);
-  } else if (lineupType == 2) {
+  } else if (lineupType == 1) {
     numberOfLineups =
       commonUtils.factorial(maleCount) * commonUtils.factorial(femaleCount);
-  } else if (lineupType == 3) {
+  } else if (lineupType == 2) {
     // All three of these cases are invalid and won't be processed on the server anyways,
     if (femaleCount < 0) {
       // No females? Then it's just a normal lineup for the men

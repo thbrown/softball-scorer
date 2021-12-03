@@ -3,10 +3,32 @@ import FloatingInput from 'elements/floating-input';
 import FloatingSelect from 'elements/floating-select';
 import Loading from '../elements/loading';
 import dialog from 'dialog';
+import state from 'state';
+import constants from '/../constants.js';
 
 export default class OptimizerCustomOptions extends React.Component {
   constructor(props) {
     super(props);
+
+    this.onChange = function (longLabel) {
+      return function (value) {
+        state.setOptimizationCustomOptionsDataField(
+          this.props.optimizationId,
+          longLabel,
+          value
+        );
+      }.bind(this);
+    }.bind(this);
+
+    this.onChangeLiteral = function (longLabel, value) {
+      return function () {
+        state.setOptimizationCustomOptionsDataField(
+          this.props.optimizationId,
+          longLabel,
+          value
+        );
+      }.bind(this);
+    }.bind(this);
 
     this.getHelpFunction = function (helpTitle, helpBody) {
       return function () {
@@ -22,30 +44,41 @@ export default class OptimizerCustomOptions extends React.Component {
   }
 
   render() {
-    //selectedOptimizerId={this.state.selectedOptimizerId}
-    //optimizerData={this.state.optimizerData}
-    //optionsData={parsedCustomData}
+    const selectedOptimizerCustomOptions = this.props.optimizerData
+      ? this.props.optimizerData[this.props.selectedOptimizerId].options
+      : null;
+
+    // If an optimizer has been selected and optimizer data is present, build the
+    // html input elements for the selected optimizer's custom options
     let inputElements = [];
-    for (const key in this.props.options) {
-      let value = this.props.options[key];
-      console.log(value.type);
+    for (const key in selectedOptimizerCustomOptions) {
+      let value = selectedOptimizerCustomOptions[key];
 
       // Some fields should not appear in the UI
       if (value.uiVisibility === 'HIDDEN') {
         continue;
       }
 
+      let currentValue = state.getOptimizationCustomOptionsDataField(
+        this.props.optimizationId,
+        value.longLabel
+      );
+      currentValue =
+        currentValue === undefined ? value.defaultValue : currentValue;
+
       if (value.type === 'String') {
         inputElements.push(
-          <div style={{ display: 'flex', textTransform: 'capitalize' }}>
+          <div
+            style={{ display: 'flex', textTransform: 'capitalize' }}
+            key={value.longLabel}
+          >
             <FloatingInput
-              inputId={key}
+              inputId={value.longLabel}
               maxLength="50"
               label={value.longLabel}
-              onChange={function (v) {
-                console.log(v);
-              }}
-              defaultValue={value.defaultValue}
+              onChange={this.onChange(value.longLabel)}
+              defaultValue={currentValue}
+              disabled={this.props.disabled}
             />
             <div className="icon-button" style={{ backgroundColor: 'black' }}>
               <img
@@ -69,6 +102,7 @@ export default class OptimizerCustomOptions extends React.Component {
               textTransform: 'capitalize',
               width: '100%',
             }}
+            key={value.longLabel}
           >
             <div className="radio-button" style={{ width: '100%' }}>
               <fieldset
@@ -82,7 +116,9 @@ export default class OptimizerCustomOptions extends React.Component {
                     name={value.longLabel}
                     value="true"
                     id={'id-true-' + value.longLabel}
-                    onChange={this.handleGenderChange}
+                    onClick={this.onChangeLiteral(value.longLabel, 'true')}
+                    defaultChecked={currentValue === 'true'}
+                    disabled={this.props.disabled}
                   />
                   <label htmlFor={'id-true-' + value.longLabel}>True</label>
                 </div>
@@ -92,8 +128,9 @@ export default class OptimizerCustomOptions extends React.Component {
                     name={value.longLabel}
                     value="false"
                     id={'id-false-' + value.longLabel}
-                    onChange={this.handleGenderChange}
-                    checked={true}
+                    onClick={this.onChangeLiteral(value.longLabel, 'false')}
+                    defaultChecked={currentValue !== 'true'}
+                    disabled={this.props.disabled}
                   />
                   <label htmlFor={'id-false-' + value.longLabel}>False</label>
                 </div>
@@ -118,18 +155,21 @@ export default class OptimizerCustomOptions extends React.Component {
         for (let index in value.values) {
           options[value.values[index]] = value.values[index];
         }
-        console.log('Options', options, value.values);
 
         inputElements.push(
-          <div style={{ display: 'flex', textTransform: 'capitalize' }}>
+          <div
+            style={{ display: 'flex', textTransform: 'capitalize' }}
+            key={value.longLabel}
+          >
             <FloatingSelect
               selectId={key}
               label={value.longLabel}
-              //initialValue={this.props.game.lineupType || 2}
-              onChange={function (value) {
-                console.log(value);
-              }}
+              initialValue={
+                currentValue === undefined ? value.defaultValue : currentValue
+              }
+              onChange={this.onChange(value.longLabel)}
               values={options}
+              disabled={this.props.disabled}
             ></FloatingSelect>
             <div className="icon-button" style={{ backgroundColor: 'black' }}>
               <img
@@ -146,7 +186,10 @@ export default class OptimizerCustomOptions extends React.Component {
         );
       } else if (value.type === 'Number') {
         inputElements.push(
-          <div style={{ display: 'flex', textTransform: 'capitalize' }}>
+          <div
+            style={{ display: 'flex', textTransform: 'capitalize' }}
+            key={value.longLabel}
+          >
             <FloatingInput
               type="number"
               inputId={key}
@@ -154,10 +197,9 @@ export default class OptimizerCustomOptions extends React.Component {
               min={value.min}
               step={value.step}
               label={value.longLabel}
-              onChange={function (v) {
-                console.log(v);
-              }}
-              defaultValue={value.defaultValue}
+              onChange={this.onChange(value.longLabel)}
+              defaultValue={currentValue}
+              disabled={this.props.disabled}
             />
             <div className="icon-button" style={{ backgroundColor: 'black' }}>
               <img
@@ -174,51 +216,26 @@ export default class OptimizerCustomOptions extends React.Component {
         );
       }
     }
-    JSON.stringify(this.props.options, null, 2);
 
-    return (
-      <div class="loading-container">
-        <div
-          className={`loading ${this.props.options ? 'gone' : ''}`}
-          id="loading"
-          style={{ backgroundColor: 'gray', opacity: 0.9, zIndex: 1 }}
-        >
-          <Loading style={{ width: '85px', height: '85px' }}></Loading>
+    // Decide which content should be rendered
+    let content = '';
+    if (!this.props.optimizerData) {
+      // Show the loading page if there is no optimizer data
+      content = (
+        <div style={{ height: '100px' }}>
+          <div className={`loading`}>
+            <div id="loading" style={{ opacity: 0.9, zIndex: 1 }}>
+              <Loading style={{ width: '85px', height: '85px' }}></Loading>
+            </div>
+            <div style={{ height: '103px' }}></div>
+          </div>
         </div>
-        <div
-          className={`${this.props.options ? 'gone' : ''}`}
-          style={{ height: '103px' }}
-        ></div>
-        <div>{inputElements}</div>
-      </div>
-    );
-    /*}
-        <FloatingInput
-          key="iterations"
-          inputId="iterations"
-          maxLength="12"
-          label="Iterations"
-          onChange={this.onOptionsChange.bind(this, 'iterations')}
-          type="number"
-          defaultValue={parsedCustomData.iterations}
-          disabled={
-            this.optimization.status !==
-            state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
-          }
-        />
-        <FloatingInput
-          key="innings"
-          inputId="innings"
-          label="Innings to Simulate"
-          onChange={this.onOptionsChange.bind(this, 'innings')}
-          maxLength="2"
-          type="number"
-          defaultValue={parsedCustomData.innings}
-          disabled={
-            this.optimization.status !==
-            state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
-          }
-        />
-        */
+      );
+    } else {
+      // Otherwise show the selected optimizer's custom options
+      content = <div>{inputElements}</div>;
+    }
+
+    return <div class="loading-container">{content}</div>;
   }
 }

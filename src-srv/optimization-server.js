@@ -2,6 +2,7 @@ const configAccessor = require('./config-accessor');
 const idUtils = require('../id-utils.js');
 const logger = require('./logger.js');
 const TimeoutUtil = require('./timeout-util');
+const constants = require('../constants.js');
 
 const net = require('net');
 const ip = require('ip');
@@ -12,21 +13,6 @@ const HOST = ip.address();
 const PORT = configAccessor.getOptimizationServerPort();
 
 const SOCKET_TIMEOUT = 30000;
-
-/*
-TODO: we have a lot of numbers in this file that refer to optimization states, 
-it would be a lot clearer if we could reference them by their enum value instead of number
-
-exp.OPTIMIZATION_STATUS_ENUM = Object.freeze({
-  NOT_STARTED: 0,
-  ALLOCATING_RESOURCES: 1,
-  IN_PROGRESS: 2,
-  COMPLETE: 3,
-  PAUSED: 4,
-  ERROR: 5,
-  PAUSING: 6,
-});
-*/
 
 module.exports = class OptimizationServer {
   constructor(databaseCalls, computeService) {
@@ -208,7 +194,7 @@ module.exports = class OptimizationServer {
             );
             await setOptimizationStatus(
               sock,
-              3 // TODO: state.OPTIMIZATION_STATUS_ENUM.COMPLETE
+              constants.OPTIMIZATION_STATUS_ENUM.COMPLETE
             );
 
             // Send Completion Email
@@ -245,7 +231,7 @@ module.exports = class OptimizationServer {
               null
             );
 
-            // Call any compute spicific cleanup
+            // Call any compute specific cleanup
             computeService.cleanup(sock.accountId, sock.optimizationId);
           } else if (parsedData.command === 'ERROR') {
             logger.log(sock.accountId, 'ERROR');
@@ -253,7 +239,7 @@ module.exports = class OptimizationServer {
             logger.log(sock.accountId, parsedData.trace);
             await setOptimizationStatus(
               sock,
-              5, // TODO: state.OPTIMIZATION_STATUS_ENUM.ERROR
+              constants.OPTIMIZATION_STATUS_ENUM.ERROR,
               parsedData.message
               // Any status can transition to ERROR
             );
@@ -313,12 +299,12 @@ module.exports = class OptimizationServer {
               computeService.cleanup(sock.accountId, sock.optimizationId);
               await setOptimizationStatus(
                 sock,
-                5, // TODO: state.OPTIMIZATION_STATUS_ENUM.ERROR
+                constants.OPTIMIZATION_STATUS_ENUM.ERROR,
                 `Insufficient resources, try again later`
               );
               logger.log(
                 sock.accountId,
-                `Insufficient resources. Error occured during retry attempt: ${JSON.stringify(
+                `Insufficient resources. Error occurred during retry attempt: ${JSON.stringify(
                   error
                 )}`
               );
@@ -354,7 +340,7 @@ module.exports = class OptimizationServer {
               computeService.cleanup(sock.accountId, sock.optimizationId);
               await setOptimizationStatus(
                 sock,
-                5, // TODO: state.OPTIMIZATION_STATUS_ENUM.ERROR
+                constants.OPTIMIZATION_STATUS_ENUM.ERROR,
                 JSON.stringify(err)
                 // Any status can transition to ERROR
               );

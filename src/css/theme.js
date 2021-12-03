@@ -10,7 +10,7 @@ const theme = {
     SECONDARY_LIGHT: '#a98274',
     SECONDARY_DARK: '#4b2c20',
     TEXT_LIGHT: '#FFFFFF',
-    TEXT_GREY: 'rgba(0,0,0,.87)',
+    TEXT_GREY: '#919191',
     TEXT_DARK: '#000000',
     CANCEL: '#B72A2A',
     DELETE: '#B72A2A',

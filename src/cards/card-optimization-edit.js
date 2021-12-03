@@ -61,6 +61,18 @@ const CardOptimizationEdit = (props) => {
     );
   };
 
+  const handleDuplicateClick = function () {
+    dialog.show_confirm(
+      'Are you sure you want to duplicate optimization "' +
+        optName +
+        '"? This will result in a new optimization with the same players, overrides, and selected games but with status NOT_STARTED. The existing optimization will not be affected.',
+      () => {
+        state.duplicateOptimization(props.optimization.id);
+        goBack();
+      }
+    );
+  };
+
   const handleOptimizationNameChange = (value) => {
     setIsPristine(false);
     setOptName(value);
@@ -108,6 +120,16 @@ const CardOptimizationEdit = (props) => {
             alt=""
           />
           <span className="edit-button-icon"> Delete </span>
+        </ListButton>
+      )}
+      {!props.isNew && (
+        <ListButton id="duplicate" onClick={handleDuplicateClick}>
+          <img
+            className="edit-button-icon"
+            src="/server/assets/duplicate.svg"
+            alt=""
+          />
+          <span className="edit-button-icon"> Duplicate </span>
         </ListButton>
       )}
     </Card>

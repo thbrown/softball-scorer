@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This is a script that will build the app on a gcp machine. It uses google cloud build to
+# This is a script that will build the app on a gcp machine. It uses Google Cloud Build to
 # do the actual build, stores the build artifacts in a bucket, then copies those artifacts to their
 # proper local directory.
 

@@ -1,0 +1,116 @@
+yarn run v1.22.10
+$ node src-srv
+LOG FILE CREATED D:\gitRepos\softball-scorer\src-srv/logs/server.log
+1634277097672	sys	[32mConnecting to pg[0m	[32mlocalhost[0m	[34m    at new DatabaseCalls (D:\gitRepos\softball-scorer\src-srv\database-calls-postgres.js:16:12)[0m
+1634277097675	N/A	[33mWarning: running with local optimization compute[0m	[34m    at Object.module.exports.getOptimizationComputeService (D:\gitRepos\softball-scorer\src-srv\config-accessor.js:123:12)[0m
+1634277097675	sys	[32mCreating directory finished!![0m	[32mD:\gitRepos\softball-scorer\src-srv/optimizations-temp[0m	[34m    at new OptimizationComputeLocal (D:\gitRepos\softball-scorer\src-srv\optimization-compute-local.js:40:12)[0m
+1634277097676	sys	[32mStarting[0m	[34m    at SoftballServer.start (D:\gitRepos\softball-scorer\src-srv\softball-server.js:47:12)[0m
+1634277097682	sys	[32mSoftball App: Listening on[0m	[32m8888[0m	[34m    at Server.listening (D:\gitRepos\softball-scorer\src-srv\softball-server.js:1302:14)[0m
+1634277097683	sys	[32mRedis Connect[0m	[34m    at RedisClient.<anonymous> (D:\gitRepos\softball-scorer\src-srv\cache-calls-redis.js:68:14)[0m
+1634277097686	sys	[32mRedis Ready[0m	[34m    at RedisClient.<anonymous> (D:\gitRepos\softball-scorer\src-srv\cache-calls-redis.js:64:14)[0m
+1634277097688	sys	[33mRedis Warning - Warning: Redis server does not require a password, but a password was supplied.[0m	[34m    at RedisClient.<anonymous> (D:\gitRepos\softball-scorer\src-srv\cache-calls-redis.js:80:14)[0m
+1634277097738	sys	[32mPostgres Connected[0m	[34m    at PendingItem.callback (D:\gitRepos\softball-scorer\src-srv\database-calls-postgres.js:46:16)[0m
+1634277097738	sys	[32mConnected to db.[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\config-accessor.js:58:16[0m
+1634277129954	431	[32mNo updates from client[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:697:20[0m
+1634277129966	431	[32mSYNC account=CACHE players=CACHE teams=CACHE optimizations=CACHE[0m	[32mCacheRetrieve: 1ms[0m	[32mDbRetrieve: 0ms[0m	[32mProcessing: 10ms[0m	[32mTotal: 11ms[0m	[34m    at DatabaseCalls.<anonymous> (D:\gitRepos\softball-scorer\src-srv\database-calls-postgres.js:504:24)[0m
+1634277129989	431	[32mNo updates from server[0m	[32mMZ3k4KNQx3lAty66fb80kw[0m	[32mMZ3k4KNQx3lAty66fb80kw[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:769:20[0m
+1634277130999	?	[32mProxy request for optimizer definition 0 to https://optimizers.softball.app/definitions/0.json[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:1213:16[0m
+1634277131017	?	[32mProxy request for optimizer definition 1 to https://optimizers.softball.app/definitions/1.json[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:1213:16[0m
+1634277131018	?	[32mProxy request for optimizer definition 2 to https://optimizers.softball.app/definitions/2.json[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:1213:16[0m
+1634277131021	?	[32mProxy request for optimizer definition 4 to https://optimizers.softball.app/definitions/4.json[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:1213:16[0m
+1634277131550	431	[32mNo updates from client[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:697:20[0m
+1634277131556	431	[32mSYNC account=CACHE players=CACHE teams=CACHE optimizations=CACHE[0m	[32mCacheRetrieve: 1ms[0m	[32mDbRetrieve: 0ms[0m	[32mProcessing: 5ms[0m	[32mTotal: 6ms[0m	[34m    at DatabaseCalls.<anonymous> (D:\gitRepos\softball-scorer\src-srv\database-calls-postgres.js:504:24)[0m
+1634277131565	431	[32mNo updates from server[0m	[32mMZ3k4KNQx3lAty66fb80kw[0m	[32mMZ3k4KNQx3lAty66fb80kw[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:769:20[0m
+1634277132962	431	[32mNo updates from client[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:697:20[0m
+1634277132972	431	[32mSYNC account=CACHE players=CACHE teams=CACHE optimizations=CACHE[0m	[32mCacheRetrieve: 3ms[0m	[32mDbRetrieve: 0ms[0m	[32mProcessing: 7ms[0m	[32mTotal: 10ms[0m	[34m    at DatabaseCalls.<anonymous> (D:\gitRepos\softball-scorer\src-srv\database-calls-postgres.js:504:24)[0m
+1634277132984	431	[32mNo updates from server[0m	[32mMZ3k4KNQx3lAty66fb80kw[0m	[32mMZ3k4KNQx3lAty66fb80kw[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:769:20[0m
+1634277134017	?	[32mProxy request for optimizer definition 0 to https://optimizers.softball.app/definitions/0.json[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:1213:16[0m
+1634277134018	?	[32mProxy request for optimizer definition 1 to https://optimizers.softball.app/definitions/1.json[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:1213:16[0m
+1634277134019	?	[32mProxy request for optimizer definition 2 to https://optimizers.softball.app/definitions/2.json[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:1213:16[0m
+1634277134019	?	[32mProxy request for optimizer definition 4 to https://optimizers.softball.app/definitions/4.json[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:1213:16[0m
+1634277134564	431	[32mNo updates from client[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:697:20[0m
+1634277134569	431	[32mSYNC account=CACHE players=CACHE teams=CACHE optimizations=CACHE[0m	[32mCacheRetrieve: 1ms[0m	[32mDbRetrieve: 0ms[0m	[32mProcessing: 4ms[0m	[32mTotal: 5ms[0m	[34m    at DatabaseCalls.<anonymous> (D:\gitRepos\softball-scorer\src-srv\database-calls-postgres.js:504:24)[0m
+1634277134577	431	[32mNo updates from server[0m	[32mMZ3k4KNQx3lAty66fb80kw[0m	[32mMZ3k4KNQx3lAty66fb80kw[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:769:20[0m
+1634277150707	?	[32mProxy request for optimizer definition 0 to https://optimizers.softball.app/definitions/0.json[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:1213:16[0m
+1634277150712	?	[32mProxy request for optimizer definition 1 to https://optimizers.softball.app/definitions/1.json[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:1213:16[0m
+1634277150714	?	[32mProxy request for optimizer definition 2 to https://optimizers.softball.app/definitions/2.json[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:1213:16[0m
+1634277150714	?	[32mProxy request for optimizer definition 4 to https://optimizers.softball.app/definitions/4.json[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:1213:16[0m
+1634277156929	431	[32mclient has updates[0m	[32m{
+  "optimizations": {
+    "2z5CeH2ksuIxXX": {
+      "playerList": {
+        "op": "Edit",
+        "key": "playerList",
+        "param1": "[\"00000000000001\",\"00000000000002\",\"0000000000000J\",\"0000000000000f\",\"0000000000000P\",\"00000000000003\",\"00000000000004\",\"00000000000008\",\"0000000000000B\",\"1LNzzN5LRnvdIW\"]",
+        "param2": "[\"00000000000001\",\"00000000000002\",\"0000000000000J\",\"0000000000000f\",\"0000000000000P\",\"00000000000003\",\"00000000000004\",\"00000000000008\",\"0000000000000S\",\"0000000000000E\"]"
+      }
+    }
+  }
+}[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:668:20[0m
+1634277156935	431	[32mSYNC account=CACHE players=CACHE teams=CACHE optimizations=CACHE[0m	[32mCacheRetrieve: 1ms[0m	[32mDbRetrieve: 0ms[0m	[32mProcessing: 5ms[0m	[32mTotal: 6ms[0m	[34m    at DatabaseCalls.<anonymous> (D:\gitRepos\softball-scorer\src-srv\database-calls-postgres.js:504:24)[0m
+1634277156974	431	[32mConverting patch to sql[0m	[34m    at Object.getSqlFromPatch (D:\gitRepos\softball-scorer\src-srv\sql-gen.js:121:10)[0m
+1634277157132	431	[32mExecuting:[0m	[32mUPDATE optimization SET player_list = $1 WHERE id IN ($2) AND account_id IN ($3);[0m	[32m[
+  '["00000000000001","00000000000002","0000000000000J","0000000000000f","0000000000000P","00000000000003","00000000000004","00000000000008","0000000000000S","0000000000000E"]',
+  '000001af00006cb059f8fce797f95209',
+  431
+][0m	[34m    at DatabaseCalls.patchState (D:\gitRepos\softball-scorer\src-srv\database-calls-postgres.js:731:16)[0m
+1634277157138	431	[32mInvalidating cache {"type":"string","key":"acct:431:optimizations"}[0m	[34m    at DatabaseCalls.<anonymous> (D:\gitRepos\softball-scorer\src-srv\database-calls-postgres.js:749:18)[0m
+1634277157151	431	[32mSYNC account=CACHE players=CACHE teams=CACHE optimizations=DB[0m	[32mCacheRetrieve: 1ms[0m	[32mDbRetrieve: 3ms[0m	[32mProcessing: 7ms[0m	[32mTotal: 11ms[0m	[34m    at DatabaseCalls.<anonymous> (D:\gitRepos\softball-scorer\src-srv\database-calls-postgres.js:504:24)[0m
+1634277157158	431	[32mNo updates from server[0m	[32mzEYfp2jRhjKlKVKEZwCJ1Q[0m	[32mzEYfp2jRhjKlKVKEZwCJ1Q[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:769:20[0m
+1634277158252	431	[32mStarting optimization[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:803:16[0m
+1634277158253	431	[32mgetting optimization in progress count[0m	[34m    at DatabaseCalls.getNumberOfOptimizationsInProgress (D:\gitRepos\softball-scorer\src-srv\database-calls-postgres.js:932:12)[0m
+1634277158261	431	[32mSYNC account=CACHE players=CACHE teams=CACHE optimizations=CACHE[0m	[32mCacheRetrieve: 1ms[0m	[32mDbRetrieve: 0ms[0m	[32mProcessing: 4ms[0m	[32mTotal: 5ms[0m	[34m    at DatabaseCalls.<anonymous> (D:\gitRepos\softball-scorer\src-srv\database-calls-postgres.js:504:24)[0m
+1634277158262	N/A	[32mPREP STATS DATA[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:904:18[0m
+1634277158262	431	[32mFinal flags [0m	[32m{
+  '--Games': 300000,
+  '--Innings': '7',
+  '-o': 0,
+  '-t': 1,
+  '-l': '00000000000001,00000000000002,0000000000000J,0000000000000f,0000000000000P,00000000000003,00000000000004,00000000000008,0000000000000S,0000000000000E',
+  '-u': 5000,
+  '-f': true,
+  '-e': false
+}[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:955:18[0m
+1634277158262	431	[32mStarting local optimization[0m	[34m    at OptimizationComputeLocal.start (D:\gitRepos\softball-scorer\src-srv\optimization-compute-local.js:113:12)[0m
+1634277158265	sys	[32mOptimization jar already exists on file system. Will not download.[0m	[34m    at OptimizationComputeLocal.download (D:\gitRepos\softball-scorer\src-srv\optimization-compute-local.js:44:16)[0m
+1634277158266	N/A	[32mArray args[0m	[32m[
+  '--Games',
+  300000,
+  '--Innings',
+  '7',
+  '-t',
+  '-l',
+  '00000000000001,00000000000002,0000000000000J,0000000000000f,0000000000000P,00000000000003,00000000000004,00000000000008,0000000000000S,0000000000000E',
+  '-u',
+  5000,
+  '-f'
+][0m	[34m    at OptimizationComputeLocal.start (D:\gitRepos\softball-scorer\src-srv\optimization-compute-local.js:143:12)[0m
+1634277158336	431	[32mJava version is 11.0.9.1[0m	[34m    at OptimizationComputeLocal.start (D:\gitRepos\softball-scorer\src-srv\optimization-compute-local.js:147:12)[0m
+1634277158336	431	[32mInvoking optimization jar[0m	[34m    at OptimizationComputeLocal.start (D:\gitRepos\softball-scorer\src-srv\optimization-compute-local.js:157:12)[0m
+1634277158343	431	[32mchanging optimization status to [0m	[32m0[0m	[32mundefined[0m	[32mundefined[0m	[34m    at DatabaseCalls.setOptimizationStatus (D:\gitRepos\softball-scorer\src-srv\database-calls-postgres.js:965:12)[0m
+1634277158344	431	[32mMONITOR: Getting result [0m	[32m5000[0m	[34m    at SoftballServer.<anonymous> (D:\gitRepos\softball-scorer\src-srv\softball-server.js:1021:22)[0m
+1634277158584	431	[32m[31morg.apache.commons.cli.MissingArgumentException: Missing argument for option: t[0m[0m	[34m    at Socket.<anonymous> (D:\gitRepos\softball-scorer\src-srv\optimization-compute-local.js:196:14)[0m
+1634277158585	431	[32m
+[0m	[34m    at Socket.<anonymous> (D:\gitRepos\softball-scorer\src-srv\optimization-compute-local.js:196:14)[0m
+1634277158585	431	[31mjava.lang.RuntimeException: org.apache.commons.cli.MissingArgumentException: Missing argument for option: t[0m	[34m    at Socket.<anonymous> (D:\gitRepos\softball-scorer\src-srv\optimization-compute-local.js:193:14)[0m
+1634277158586	431	[31m
+	at com.github.thbrown.softballsim.CommandLineOptions.parse(CommandLineOptions.java:211)
+	at com.github.thbrown.softballsim.SoftballSim.mainInternal(SoftballSim.java:67)
+	at com.github.thbrown.softballsim.SoftballSim.main(SoftballSim.java:31)
+[0m	[34m    at Socket.<anonymous> (D:\gitRepos\softball-scorer\src-srv\optimization-compute-local.js:193:14)[0m
+1634277158586	431	[31mCaused by: org.apache.commons.cli.MissingArgumentException: Missing argument for option: t
+	at org.apache.commons.cli.DefaultParser.checkRequiredArgs(DefaultParser.java:211)
+	at org.apache.commons.cli.DefaultParser.handleOption(DefaultParser.java:612)
+	at org.apache.commons.cli.DefaultParser.handleShortAndLongOption(DefaultParser.java:493)
+	at org.apache.commons.cli.DefaultParser.handleToken(DefaultParser.java:243)
+[0m	[34m    at Socket.<anonymous> (D:\gitRepos\softball-scorer\src-srv\optimization-compute-local.js:193:14)[0m
+1634277158586	431	[31m	at org.apache.commons.cli.DefaultParser.parse(DefaultParser.java:120)
+	at org.apache.commons.cli.DefaultParser.parse(DefaultParser.java:81)
+	at com.github.thbrown.softballsim.CommandLineOptions.parse(CommandLineOptions.java:209)
+	... 2 more
+[0m	[34m    at Socket.<anonymous> (D:\gitRepos\softball-scorer\src-srv\optimization-compute-local.js:193:14)[0m
+1634277160240	431	[32mNo updates from client[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:697:20[0m
+1634277160248	431	[32mSYNC account=CACHE players=CACHE teams=CACHE optimizations=DB[0m	[32mCacheRetrieve: 1ms[0m	[32mDbRetrieve: 1ms[0m	[32mProcessing: 6ms[0m	[32mTotal: 8ms[0m	[34m    at DatabaseCalls.<anonymous> (D:\gitRepos\softball-scorer\src-srv\database-calls-postgres.js:504:24)[0m
+1634277160255	431	[32mNo updates from server[0m	[32mzEYfp2jRhjKlKVKEZwCJ1Q[0m	[32mzEYfp2jRhjKlKVKEZwCJ1Q[0m	[34m    at D:\gitRepos\softball-scorer\src-srv\softball-server.js:769:20[0m
+1634277203145	sys	[32mSIGINT[0m	[34m    at process.<anonymous> (D:\gitRepos\softball-scorer\src-srv\index.js:11:10)[0m
+Bye

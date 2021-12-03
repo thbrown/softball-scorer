@@ -3,14 +3,15 @@ import Card from 'elements/card';
 import state from 'state';
 import dialog from 'dialog';
 import { setRoute } from 'actions/route';
-import SimulationTimeEstimator from '/../simulation-time-estimator';
 import CommonUtils from '/../common-utils';
+import OptimizationResultsHtml from '/../common-optimization-results-html';
 import NoSelect from 'elements/no-select';
 import StandardOptions from 'elements/optimizer-standard-options';
 import CustomOptions from 'elements/optimizer-custom-options';
 import network from 'network';
+import constants from '/../constants.js';
 
-const ACCORDION_QUERYPARAM_PREFIX = 'acc';
+const ACCORDION_QUERY_PARAM_PREFIX = 'acc';
 const SYNC_DELAY_MS = 10000; // This value also exists in the CSS
 
 export default class CardOptimization extends React.Component {
@@ -18,33 +19,28 @@ export default class CardOptimization extends React.Component {
     super(props);
 
     this.state = {
-      selectedOptimizerId: undefined,
       optimizerData: undefined,
     };
 
+    this.previousOptimizationState = undefined;
+
     this.pieTimer = React.createRef();
 
-    // Optimization is mutable inside this component so we'll store it in an instance
-    // variable instead of using the props. This gets updated in the render method.
-    this.optimization = props.optimization;
-
     this.handleOverrideClick = function (playerId) {
-      setRoute(`/optimizations/${this.optimization.id}/overrides/${playerId}`);
+      setRoute(`/optimizations/${props.optimization.id}/overrides/${playerId}`);
     }.bind(this);
 
     this.handleAddPlayerClick = function () {
-      setRoute(`/optimizations/${this.optimization.id}/player-select`);
+      setRoute(`/optimizations/${props.optimization.id}/player-select`);
     }.bind(this);
 
-    this.enableAutoSync = async function (dontReset) {
-      if (!dontReset) {
-        clearTimeout(this.activeTime);
-      }
+    this.enableAutoSync = async function () {
       this.startCssAnimation();
+      clearTimeout(this.activeTime);
       this.activeTime = setTimeout(
         async function () {
           await state.sync();
-          this.enableAutoSync(true);
+          this.enableAutoSync();
         }.bind(this),
         SYNC_DELAY_MS
       );
@@ -56,10 +52,11 @@ export default class CardOptimization extends React.Component {
 
     this.startCssAnimation = () => {
       let element = this.pieTimer.current;
+
       if (element) {
         element.classList.remove('hidden');
 
-        // Removing an element from the dom then reinserting it restarts the animation
+        // Removing an element from the DOM then reinserting it restarts the animation
         element.classList.add('gone');
         element.getClientRects(); /* trigger reflow https://gist.github.com/paulirish/5d52fb081b3570c81e3a */
         element.classList.remove('gone');
@@ -71,16 +68,30 @@ export default class CardOptimization extends React.Component {
     };
 
     this.onRenderUpdateOrMount = function () {
-      // Make sure we are working with the most up-to-date optimization
-      this.optimization = state.getOptimization(this.props.optimization.id);
+      // Update Result and Player accordion heights, these is dynamic (thus gets overridden by an !important CSS property on accordion collapse)
+      document.getElementById('accordion4').style.maxHeight =
+        document.getElementById('result-accordion-content').offsetHeight + 'px';
+      document.getElementById('accordion1').style.maxHeight =
+        document.getElementById('player-accordion-content').offsetHeight + 'px';
 
       // Frequently perform syncs on this page to check for server updates to the optimization object
+      let optimization = this.props.optimization;
+
+      // Only enable/disable auto sync if there is a change of status OR this is the first update
       if (
-        this.optimization.status ===
-          state.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
-        this.optimization.status ===
-          state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES ||
-        this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.PAUSING
+        this.previousOptimizationState != undefined &&
+        this.previousOptimizationState == optimization.status
+      ) {
+        return;
+      }
+      this.previousOptimizationState = optimization.status;
+
+      if (
+        optimization.status ===
+          constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
+        optimization.status ===
+          constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES ||
+        optimization.status === constants.OPTIMIZATION_STATUS_ENUM.PAUSING
       ) {
         this.enableAutoSync();
       } else {
@@ -89,12 +100,12 @@ export default class CardOptimization extends React.Component {
     };
 
     this.handleTeamCheckboxClick = function (team) {
-      let parsedTeams = JSON.parse(this.optimization.teamList);
+      let parsedTeams = JSON.parse(this.props.optimization.teamList);
       let newSet = new Set(parsedTeams);
       if (parsedTeams.includes(team.id)) {
         newSet.delete(team.id);
         state.setOptimizationField(
-          this.optimization.id,
+          this.props.optimization.id,
           'teamList',
           Array.from(newSet),
           true
@@ -102,7 +113,7 @@ export default class CardOptimization extends React.Component {
       } else {
         newSet.add(team.id);
         state.setOptimizationField(
-          this.optimization.id,
+          this.props.optimization.id,
           'teamList',
           Array.from(newSet),
           true
@@ -110,43 +121,19 @@ export default class CardOptimization extends React.Component {
       }
     }.bind(this);
 
-    this.onOptimizerChange = function (newOptimizerId) {
-      this.setState(
-        {
-          selectedOptimizerId: newOptimizerId,
-        },
-        function () {
-          console.log('FINISHED SETTING STATE', this.state.selectedOptimizerId);
-        }.bind(this)
-      );
-
-      // TODO: should this be part of the set state callback?
-      state.setOptimizationField(
-        this.optimization.id,
-        'optimizer',
-        newOptimizerId
-      );
-      console.log('SETTING OPT', this.optimization);
-      //setRoute(`/optimizations/${this.optimization.id}/player-select`);
-    }.bind(this);
-
-    this.onOptionsChange = function (fieldName, value) {
-      if (fieldName === 'lineupType') {
-        state.setOptimizationField(this.optimization.id, 'lineupType', value);
-      } else {
-        state.setOptimizationCustomDataField(
-          this.optimization.id,
-          fieldName,
-          value
-        );
-      }
-    }.bind(this);
-
     this.handleSendEmailCheckbox = function () {
-      if (this.optimization.sendEmail) {
-        state.setOptimizationField(this.optimization.id, 'sendEmail', false);
+      if (this.props.optimization.sendEmail) {
+        state.setOptimizationField(
+          this.props.optimization.id,
+          'sendEmail',
+          false
+        );
       } else {
-        state.setOptimizationField(this.optimization.id, 'sendEmail', true);
+        state.setOptimizationField(
+          this.props.optimization.id,
+          'sendEmail',
+          true
+        );
       }
     }.bind(this);
 
@@ -158,7 +145,7 @@ export default class CardOptimization extends React.Component {
       buttonDiv.classList.add('disabled');
 
       const body = JSON.stringify({
-        optimizationId: this.optimization.id,
+        optimizationId: this.props.optimization.id,
       });
       const response = await state.request(
         'POST',
@@ -197,24 +184,99 @@ export default class CardOptimization extends React.Component {
     };
 
     this.handleStartClick = async function () {
+      // Don't do anything if optimizerData isn't loaded
+      if (!this.state.optimizerData) {
+        return;
+      }
+
       // Disable button in the UI
       const buttonDiv = this.toggleOptimizationButtonRef.current;
       buttonDiv.innerHTML = 'Starting...';
       buttonDiv.classList.add('disabled');
 
-      // Extract data from list and json fields
-      let playerIds = JSON.parse(this.optimization.playerList);
-      let teamIds = JSON.parse(this.optimization.teamList);
-      let gameIds = JSON.parse(this.optimization.gameList);
-      let customData = JSON.parse(this.optimization.customData);
-      let overrideData = JSON.parse(this.optimization.overrideData);
+      // Set custom options - Read and prep default optimizer options
+      let optimizer = this.props.optimization.optimizerType;
+      let optimizerOptions = this.state.optimizerData[optimizer].options;
+      let defaultOptions = {};
+      for (let option of optimizerOptions) {
+        if (option.uiVisibility !== 'HIDDEN') {
+          defaultOptions[option.longLabel] = option.defaultValue;
+        }
+      }
 
-      // Filter out any deleted teams or games
+      // Set custom options - Delete any options that are undefined, and merge default and supplied options
+      let parsedCustomOptionsData = JSON.parse(
+        this.props.optimization.customOptionsData
+      );
+      for (let key in defaultOptions) {
+        if (parsedCustomOptionsData[key] !== undefined) {
+          defaultOptions[key] = parsedCustomOptionsData[key];
+        }
+      }
+
+      //console.log('Final options ', defaultOptions);
+      state.setOptimizationField(
+        this.props.optimization.id,
+        'customOptionsData',
+        defaultOptions,
+        true
+      );
+
+      // Set inputSummaryData, this is used to keep a snapshot of the player's stats at the moment the optimization was started
+      const playerIds = JSON.parse(this.props.optimization.playerList);
+      const teamIds = JSON.parse(this.props.optimization.teamList);
+      const overrideData = JSON.parse(this.props.optimization.overrideData);
+
+      const stats = state.getActiveStatsForAllPlayers(
+        overrideData,
+        playerIds,
+        teamIds
+      );
+
+      state.setOptimizationField(
+        this.props.optimization.id,
+        'inputSummaryData',
+        stats,
+        true
+      );
+
+      // To Server
+      /*
+
+
+    custom_options_data jsonb,
+  ->input_summary_data jsonb,
+    status smallint,
+    result_data jsonb,
+    status_message text COLLATE pg_catalog."default",
+    team_list jsonb,
+    game_list jsonb,
+    player_list jsonb,
+    lineup_type integer,
+    optimizer_type integer,
+    override_data jsonb,
+
+        {
+          playerIds: [],
+          teamIds: [],
+          gameIds: [],
+          overrideData: { S: [], S: [] }
+          lineupType: #
+          optimizer: #
+          customOptionsData: {}
+        }
+      */
+
+      /*
+
+
+      // Filter out any deleted teams or games (since these can get out of sync)
+      // TODO: Shouldn't this move to the server side?
       const filteredTeamList = teamIds.filter((teamId) =>
         state.getTeam(teamId)
       );
       state.setOptimizationField(
-        this.optimization.id,
+        this.props.optimization.id,
         'teamList',
         filteredTeamList,
         true
@@ -224,7 +286,7 @@ export default class CardOptimization extends React.Component {
         state.getTeam(gameId)
       );
       state.setOptimizationField(
-        this.optimization.id,
+        this.props.optimization.id,
         'gameList',
         filteredGameList,
         true
@@ -240,62 +302,19 @@ export default class CardOptimization extends React.Component {
         }
       }
       state.setOptimizationField(
-        this.optimization.id,
+        this.props.optimization.id,
         'overrideData',
         filteredOverrides,
         true
       );
 
-      // Reload values that may have change after filtering
-      teamIds = JSON.parse(this.optimization.teamList);
-      gameIds = JSON.parse(this.optimization.gameList);
-      overrideData = JSON.parse(this.optimization.overrideData);
-
-      // Gather player data
-      let executionPlayers = [];
-
-      let stats = this.getActiveStatsForAllPlayers(
-        overrideData,
-        playerIds,
-        teamIds
-      );
-      let statsPlayerIds = Object.keys(stats);
-      for (let i = 0; i < statsPlayerIds.length; i++) {
-        // Add overrides for all players (snapshot of their stats at the optimization's run time)
-        // TODO: can we just set overrideData to stats once instead of going through the loop?
-        overrideData[playerIds[i]] = stats[statsPlayerIds[i]];
-        state.setOptimizationField(
-          this.optimization.id,
-          'overrideData',
-          overrideData,
-          true
-        );
-
-        // Builds the object about player stats to pass to the optimization server
-        let player = state.getPlayer(playerIds[i]);
-        let executionPlayer = {};
-        Object.assign(executionPlayer, stats[player.id]);
-        executionPlayer.id = player.id;
-        executionPlayer.gender = player.gender;
-        executionPlayers.push(executionPlayer);
-      }
-
-      // Flaten all this data into a single execution data object
-      let executionData = {
-        players: executionPlayers,
-        teams: filteredTeamList,
-        games: filteredGameList,
-        innings: customData.innings,
-        iterations: customData.iterations,
-        lineupType: this.optimization.lineupType,
-      };
+      */
 
       // Be sure the server has our optimization details before it tries to run the optimization
       await state.sync();
 
       let body = JSON.stringify({
-        executionData: executionData,
-        optimizationId: this.optimization.id,
+        optimizationId: this.props.optimization.id,
       });
       let response = await state.request(
         'POST',
@@ -304,7 +323,8 @@ export default class CardOptimization extends React.Component {
       );
       if (response.status === 204 || response.status === 200) {
         dialog.show_notification('Sent start request.');
-        // Do a sync, since the above call succeeded server has updated the optimization's status on it's end
+
+        // Do a sync, since the call succeeded, the server has updated the optimization's status on it's end
         await state.sync();
         buttonDiv.classList.remove('disabled');
         return;
@@ -332,7 +352,7 @@ export default class CardOptimization extends React.Component {
               The 'send me an email...' checkbox was checked but the email
               address associated with this account has not been verified. Please
               verify your email at <a href="/account">softball.app/account</a>)
-              or uncheck the box.{' '}
+              or uncheck the box.
             </div>
           );
         } else {
@@ -347,74 +367,6 @@ export default class CardOptimization extends React.Component {
       buttonDiv.classList.remove('disabled');
       buttonDiv.innerHTML = 'Start Simulation';
     }.bind(this);
-
-    // TODO: should these stats methods go into some stats util?
-    this.getSummaryStats = function (fullStats) {
-      let result = {};
-      result.outs = fullStats.atBats - fullStats.hits;
-      result.singles = fullStats.singles + fullStats.walks;
-      result.doubles = fullStats.doubles;
-      result.triples = fullStats.triples;
-      result.homeruns = fullStats.insideTheParkHR + fullStats.outsideTheParkHR;
-      return result;
-    };
-
-    // TODO: should these stats methods go into some stats util?
-    this.getTeamAverage = function (playerStats) {
-      let validPlayerIds = Object.keys(playerStats);
-      let teamHits = 0;
-      let teamOuts = 0;
-      for (let i = 0; i < validPlayerIds.length; i++) {
-        let playerId = validPlayerIds[i];
-        let stats = playerStats[playerId];
-        teamOuts += stats.outs;
-        teamHits =
-          teamHits +
-          stats.singles +
-          stats.doubles +
-          stats.triples +
-          stats.homeruns;
-      }
-      return teamHits / (teamHits + teamOuts);
-    };
-
-    /**
-     * Gets stats to be used in the optimization for each playerId passed in.
-     * Respects any stats overrides.
-     * The result is a map of playerId to stats object and there will be
-     * no entries for players that have been deleted.
-     */
-    this.getActiveStatsForAllPlayers = function (
-      overrideData,
-      playerIds,
-      teamIds
-    ) {
-      let activeStats = {};
-      for (let i = 0; i < playerIds.length; i++) {
-        let player = state.getPlayer(playerIds[i]);
-        if (!player) {
-          continue; // Player may have been deleted
-        }
-
-        let plateAppearances = state.getPlateAppearancesForPlayerInGameOrOnTeam(
-          player.id,
-          teamIds,
-          null // TODO: gameIds
-        );
-
-        // Check to see if there are manual overrides of the stats for this player
-        let existingOverride = overrideData[player.id];
-        if (existingOverride) {
-          activeStats[player.id] = existingOverride;
-        } else {
-          // Gather the stats required for the optimization
-          let fullStats = state.buildStatsObject(player.id, plateAppearances);
-          let summaryStats = this.getSummaryStats(fullStats);
-          activeStats[player.id] = summaryStats;
-        }
-      }
-      return activeStats;
-    };
   }
 
   componentWillUnmount() {
@@ -459,10 +411,10 @@ export default class CardOptimization extends React.Component {
       const accordionChevron = e.currentTarget.children[0];
       if (accordionTitle.classList.contains('is-collapsed')) {
         this.setAccordionAria(accordionContent, accordionTitle, 'true');
-        state.editQueryObject(ACCORDION_QUERYPARAM_PREFIX + index, true);
+        state.editQueryObject(ACCORDION_QUERY_PARAM_PREFIX + index, true);
       } else {
         this.setAccordionAria(accordionContent, accordionTitle, 'false');
-        state.editQueryObject(ACCORDION_QUERYPARAM_PREFIX + index, null);
+        state.editQueryObject(ACCORDION_QUERY_PARAM_PREFIX + index, null);
       }
       accordionContent.classList.toggle('is-collapsed');
       accordionContent.classList.toggle('is-expanded');
@@ -499,14 +451,17 @@ export default class CardOptimization extends React.Component {
       );
 
       // Open the accordions indicated by the query params
-      if (queryObject[ACCORDION_QUERYPARAM_PREFIX + i] === 'true') {
+      if (queryObject[ACCORDION_QUERY_PARAM_PREFIX + i] === 'true') {
         accordionToggles[i].click();
       }
     }
 
-    // Tested to 300 calls, seems to work okay
+    // Get optimizer info, tested to 300 calls, seems to work okay
     let prom = [];
-    let optimizerIds = state.getAccountSelectedOptimizers();
+    let optimizerIds = CommonUtils.merge(
+      state.getAccountOptimizersList(),
+      state.getUsedOptimizers()
+    );
     for (let i = 0; i < optimizerIds.length; i++) {
       prom.push(
         network.request('GET', 'server/optimizer-definition/' + optimizerIds[i])
@@ -528,9 +483,9 @@ export default class CardOptimization extends React.Component {
     });
   }
 
-  renderOptimizationPage() {
+  renderOptimizationPage(optimization) {
     let isInNotStartedState =
-      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED;
+      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED;
 
     // Build players table
     const playerTable = [];
@@ -551,11 +506,11 @@ export default class CardOptimization extends React.Component {
     );
 
     const displayPlayers = [];
-    const playerIds = JSON.parse(this.optimization.playerList);
-    const teamIds = JSON.parse(this.optimization.teamList);
-    const overrideData = JSON.parse(this.optimization.overrideData);
+    const playerIds = JSON.parse(optimization.playerList);
+    const teamIds = JSON.parse(optimization.teamList);
+    const overrideData = JSON.parse(optimization.overrideData);
 
-    const stats = this.getActiveStatsForAllPlayers(
+    const stats = state.getActiveStatsForAllPlayers(
       overrideData,
       playerIds,
       teamIds
@@ -617,7 +572,7 @@ export default class CardOptimization extends React.Component {
     // Build teams checkboxes
     const allTeams = state.getLocalState().teams;
     const teamsCheckboxes = [];
-    const selectedTeams = JSON.parse(this.optimization.teamList);
+    const selectedTeams = JSON.parse(optimization.teamList);
     const selectedTeamsSet = new Set(selectedTeams);
     if (isInNotStartedState) {
       // What if there are not games/teams selected?
@@ -672,52 +627,69 @@ export default class CardOptimization extends React.Component {
       }
     }
 
+    // TODO: can we avoid parsing this each time we need it?
+    let resultData = JSON.parse(optimization.resultData);
+
     // Remaining time (if necessary)
     let remainingTime = false;
     if (
-      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS
+      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS
     ) {
-      // TODO: can we avoid parsing this each time we need it?
-      let resultData = JSON.parse(this.optimization.resultData);
-      if (resultData && resultData.remainingTimeSec) {
+      if (resultData && resultData.estimatedTimeRemainingMs) {
         let timeInfo = `Approximately ${CommonUtils.secondsToString(
-          resultData.remainingTimeSec
+          resultData.estimatedTimeRemainingMs / 1000
         )} remaining`;
         remainingTime = <div id="remainingTime">{timeInfo}</div>;
+      } else {
+        remainingTime = (
+          <div id="remainingTime">{resultData.estimatedTimeRemainingMs}</div>
+        );
+        console.log('Result');
+        console.log(resultData);
       }
     }
 
     // Spinner (if necessary)
     let spinner = false;
     if (
-      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
-      this.optimization.status ===
-        state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES ||
-      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.PAUSING
+      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
+      optimization.status ===
+        constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES ||
+      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.PAUSING
     ) {
       spinner = (
         <div>
-          <div id="pie-timer" className="pie-timer hidden">
+          <div ref={this.pieTimer} id="pie-timer" className="pie-timer hidden">
             <div className="pie-mask" />
           </div>
         </div>
       );
     }
 
-    // Simulation Options
-    const parsedCustomData = JSON.parse(this.optimization.customData);
-    const customOptions =
-      this.state.selectedOptimizerId && this.state.optimizerData
-        ? this.state.optimizerData[this.state.selectedOptimizerId].options
-        : null;
+    // Status messages
+    let statusMessage = undefined;
+    if (optimization.statusMessage) {
+      statusMessage = optimization.statusMessage;
+    } else if (
+      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRES &&
+      resultData &&
+      resultData.countCompleted != undefined &&
+      resultData.countTotal != undefined
+    ) {
+      statusMessage = `${resultData.countCompleted} of ${
+        resultData.countTotal
+      } (${((resultData.countCompleted / resultData.countTotal) * 100).toFixed(
+        1
+      )}%)`;
+    }
 
     return (
       <div className="accordionContainer">
         <div className="text-div">
           Status:{' '}
-          {state.OPTIMIZATION_STATUS_ENUM_INVERSE[this.optimization.status]}
+          {constants.OPTIMIZATION_STATUS_ENUM_INVERSE[optimization.status]}
           <br />
-          {this.optimization.statusMessage}
+          {statusMessage}
           {remainingTime}
           {spinner}
         </div>
@@ -746,21 +718,23 @@ export default class CardOptimization extends React.Component {
               id="accordion1"
               aria-hidden="true"
             >
-              <table className="playerTable">
-                <tbody>{playerTable}</tbody>
-              </table>
-              {this.optimization.status ===
-              state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ? (
-                <div
-                  id="edit-players"
-                  className="edit-button button confirm-button"
-                  onClick={this.handleAddPlayerClick}
-                >
-                  + Add/Remove Players
-                </div>
-              ) : (
-                false // Don't show add/remove button for optimizations that have already started
-              )}
+              <div id="player-accordion-content">
+                <table className="playerTable">
+                  <tbody>{playerTable}</tbody>
+                </table>
+                {optimization.status ===
+                constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ? (
+                  <div
+                    id="edit-players"
+                    className="edit-button button confirm-button"
+                    onClick={this.handleAddPlayerClick}
+                  >
+                    + Add/Remove Players
+                  </div>
+                ) : (
+                  false // Don't show add/remove button for optimizations that have already started
+                )}
+              </div>
             </dd>
             <dt>
               <div
@@ -816,167 +790,43 @@ export default class CardOptimization extends React.Component {
                   </legend>
                   <StandardOptions
                     disabled={
-                      this.optimization.status !==
-                      state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+                      optimization.status !==
+                      constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
                     }
-                    lineupType={this.optimization.lineupType}
-                    onOptionChange={this.onOptionsChange.bind(
-                      this,
-                      'lineupType'
-                    )}
-                    selectedOptimizerId={this.state.selectedOptimizerId}
-                    onOptimizerChange={this.onOptimizerChange}
+                    optimizationId={optimization.id}
+                    lineupType={optimization.lineupType}
+                    selectedOptimizerId={optimization.optimizerType}
                     optimizerData={this.state.optimizerData}
                   ></StandardOptions>
                 </fieldset>
                 <fieldset style={{ padding: '5px' }} className="group">
                   <legend className="group-legend" style={{ color: 'black' }}>
-                    Optimizer Specific Options
+                    Optimizer Parameters
                   </legend>
                   <CustomOptions
-                    options={customOptions}
-                    //selectedOptimizerId={this.state.selectedOptimizerId}
-                    //optimizerData={this.state.optimizerData}
-                    //optionsData={parsedCustomData}
+                    disabled={
+                      optimization.status !==
+                      constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+                    }
+                    optimizationId={optimization.id}
+                    selectedOptimizerId={optimization.optimizerType}
+                    optimizerData={this.state.optimizerData}
                   ></CustomOptions>
                 </fieldset>
               </div>
             </dd>
-            {this.renderResultsAccordion()}
+            {this.renderResultsAccordion(optimization)}
           </dl>
         </div>
-        {this.renderFooter()}
+        {this.renderFooter(optimization)}
       </div>
     );
   }
 
-  renderResultsAccordion() {
-    // Results
-    let resultData = JSON.parse(this.optimization.resultData);
-
-    let groupA;
-    let groupB;
-    let bestScore;
-    let bestPlayers = [];
-    let progress;
-    let elapsedTime;
-    if (resultData && resultData.lineup) {
-      elapsedTime = `Elapsed Time: ${
-        resultData.elapsedTimeMs
-      }ms ~${CommonUtils.secondsToString(
-        Math.round(resultData.elapsedTimeMs / 1000)
-      )}`;
-
-      bestScore = resultData.score;
-      let completed = resultData.complete;
-      let total = resultData.total;
-      if (total === 0) {
-        progress = <div>0%</div>;
-      } else if (completed === total) {
-        progress = (
-          <div>
-            100% Complete<br></br>
-            {elapsedTime}
-          </div>
-        );
-      } else {
-        progress = (
-          <div>
-            {((completed / total) * 100).toFixed(1)}%<br></br>
-            {elapsedTime}
-          </div>
-        );
-      }
-
-      if (
-        this.optimization.lineupType === state.LINEUP_TYPE_ENUM.NORMAL ||
-        this.optimization.lineupType ===
-          state.LINEUP_TYPE_ENUM.NO_CONSECUTIVE_FEMALES
-      ) {
-        groupA = resultData.lineup.GroupA;
-
-        for (let i = 0; i < groupA.length; i++) {
-          let displayPlayer = {};
-          let player = state.getPlayer(groupA[i]);
-          if (!player) {
-            displayPlayer.name = '<Player was deleted>';
-          } else {
-            displayPlayer.name = player.name;
-          }
-          bestPlayers.push(
-            <div key={i}>
-              {displayPlayer.name}
-              <br />
-            </div>
-          );
-        }
-      } else if (
-        this.optimization.lineupType ===
-        state.LINEUP_TYPE_ENUM.ALTERNATING_GENDER
-      ) {
-        groupA = resultData.lineup.GroupA;
-        groupB = resultData.lineup.GroupB;
-
-        bestPlayers.push(
-          <div key="first-group">
-            <i>First Group:</i>
-          </div>
-        );
-
-        for (let i = 0; i < groupA.length; i++) {
-          let displayPlayer = {};
-          let player = state.getPlayer(groupA[i]);
-          if (!player) {
-            displayPlayer.name = '<Player was deleted>';
-          } else {
-            displayPlayer.name = player.name;
-          }
-          bestPlayers.push(
-            <div key={'a' + i}>
-              {displayPlayer.name}
-              <br />
-            </div>
-          );
-        }
-
-        bestPlayers.push(
-          <div key="second-group">
-            <i>Second Group:</i>
-          </div>
-        );
-
-        for (let i = 0; i < groupB.length; i++) {
-          let displayPlayer = {};
-          let player = state.getPlayer(groupB[i]);
-          if (!player) {
-            displayPlayer.name = '<Player was deleted>';
-          } else {
-            displayPlayer.name = player.name;
-          }
-          bestPlayers.push(
-            <div key={'b' + i}>
-              {displayPlayer.name}
-              <br />
-            </div>
-          );
-        }
-      } else {
-        bestPlayers.push(
-          <div key="bad-lineup-type">
-            Unrecognized LineupType
-            <br />
-          </div>
-        );
-      }
-    } else {
-      bestScore = '-';
-      bestPlayers = '-';
-      progress = '-';
-    }
-
+  renderResultsAccordion(optimization) {
     let resultsStyle = {};
     if (
-      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
     ) {
       resultsStyle = { display: 'none' };
     }
@@ -1011,29 +861,21 @@ export default class CardOptimization extends React.Component {
         </dt>
         <dd
           className="accordion-content accordionItem is-collapsed"
-          id="accordion3"
+          id="accordion4"
           aria-hidden="true"
         >
-          <div>
-            <b>Best Score:</b>
-            <br />
-            {bestScore}
-            <br />
-            <br />
-            <b>Best Lineup:</b>
-            <br />
-            {bestPlayers}
-            <br />
-            <b>Progress:</b>
-            <br />
-            {progress}
+          <div id="result-accordion-content">
+            {OptimizationResultsHtml.getResultsAsJsx(
+              optimization.resultData,
+              optimization.inputSummaryData
+            )}
           </div>
         </dd>
       </div>
     );
   }
 
-  renderFooter() {
+  renderFooter(optimization) {
     let emailCheckboxDisabled;
     let toggleButtonText;
     let toggleButtonHandler;
@@ -1041,75 +883,41 @@ export default class CardOptimization extends React.Component {
     let estimatedTime = false;
 
     if (
-      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ||
-      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.ERROR
+      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ||
+      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.ERROR
     ) {
       toggleButtonText =
-        this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.ERROR
+        optimization.status === constants.OPTIMIZATION_STATUS_ENUM.ERROR
           ? 'Restart Simulation '
           : 'Start Simulation';
       emailCheckboxDisabled = false;
       toggleButtonHandler = this.handleStartClick.bind(this);
 
-      let playerIds = JSON.parse(this.optimization.playerList);
-      let teamIds = JSON.parse(this.optimization.teamList);
-      let overrideData = JSON.parse(this.optimization.overrideData);
-
-      let playerStats = this.getActiveStatsForAllPlayers(
-        overrideData,
-        playerIds,
-        teamIds
-      );
-      let teamAverage = this.getTeamAverage(playerStats);
-
-      // Get male and female counts for optimization time estimation
-      let malePlayers = 0;
-      let femalePlayers = 0;
-      let validatedPlayerIds = Object.keys(playerStats);
-      for (let i = 0; i < validatedPlayerIds.length; i++) {
-        let player = state.getPlayer(validatedPlayerIds[i]);
-        if (player.gender === 'M') {
-          malePlayers++;
-        } else if (player.gender === 'F') {
-          femalePlayers++;
-        }
+      if (optimization.customOptionsData) {
+        let estimatedTimeInSeconds = 0;
+        estimatedTime = `(Estimated Completion Time: ${CommonUtils.secondsToString(
+          estimatedTimeInSeconds
+        )})`;
+      } else {
+        estimatedTime = `(Estimated Completion Time: N/A)`;
       }
-
-      let possibleLineups = SimulationTimeEstimator.getNumberOfPossibleLineups(
-        this.optimization.lineupType,
-        malePlayers,
-        femalePlayers
-      );
-
-      let parsedCustomData = JSON.parse(this.optimization.customData);
-
-      let estimatedTimeInSeconds = SimulationTimeEstimator.estimateOptimizationTime(
-        possibleLineups,
-        SimulationTimeEstimator.getCoreCount(),
-        parsedCustomData.iterations,
-        parsedCustomData.innings,
-        teamAverage
-      );
-      estimatedTime = `(Estimated Completion Time: ${CommonUtils.secondsToString(
-        estimatedTimeInSeconds
-      )})`;
     } else if (
-      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
-      this.optimization.status ===
-        state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
+      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
+      optimization.status ===
+        constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
     ) {
       toggleButtonText = 'Pause Simulation';
       emailCheckboxDisabled = false;
       toggleButtonHandler = this.handlePauseClick.bind(this);
     } else if (
-      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.PAUSED
+      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.PAUSED
     ) {
       toggleButtonText = 'Resume Simulation';
       emailCheckboxDisabled = false;
       toggleButtonHandler = this.handleStartClick.bind(this);
     } else if (
-      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.PAUSING ||
-      this.optimization.status === state.OPTIMIZATION_STATUS_ENUM.COMPLETE
+      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.PAUSING ||
+      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.COMPLETE
     ) {
       showToggleButton = false;
     }
@@ -1136,7 +944,7 @@ export default class CardOptimization extends React.Component {
           <input
             type="checkbox"
             onChange={this.handleSendEmailCheckbox}
-            checked={this.optimization.sendEmail}
+            checked={optimization.sendEmail}
             disabled={emailCheckboxDisabled}
           />
           Send me an email when the simulation is complete.
@@ -1147,9 +955,10 @@ export default class CardOptimization extends React.Component {
   }
 
   render() {
+    let optimization = state.getOptimization(this.props.optimization.id);
     return (
-      <Card title={this.optimization.name}>
-        {this.renderOptimizationPage()}
+      <Card title={optimization.name}>
+        {this.renderOptimizationPage(optimization)}
       </Card>
     );
   }

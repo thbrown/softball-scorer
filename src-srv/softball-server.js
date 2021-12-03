@@ -16,31 +16,37 @@ const got = require('got');
 const { v4: uuidv4 } = require('uuid');
 const querystring = require('querystring');
 
+const constants = require('../constants.js');
 const commonUtils = require('../common-utils');
 const configAccessor = require('./config-accessor');
 const HandledError = require('./handled-error');
 const idUtils = require('../id-utils');
 const logger = require('./logger');
 const objectMerge = require('../object-merge');
-const OptimizationServer = require('./optimization-server');
-const SimulationTimeEstimator = require('../simulation-time-estimator');
-const welcomeEmailHtml = require('./email/welcome-email-html');
 const passwordResetEmailHtml = require('./email/password-reset-email-html');
+const welcomeEmailHtml = require('./email/welcome-email-html');
+const optimizationCompleteEmailHtml = require('./email/optimization-complete-email-html');
+const OptimizationResultsHtml = require('../common-optimization-results-html');
+
+const MONITORING_INTERVAL = 5000;
 
 module.exports = class SoftballServer {
-  constructor(appPort, optimizationPort, databaseCalls, cacheCalls, compute) {
+  constructor(
+    appPort,
+    optimizationPort,
+    databaseCalls,
+    cacheCalls,
+    optimizationCompute
+  ) {
     this.databaseCalls = databaseCalls;
     this.cacheCalls = cacheCalls;
-    this.compute = compute;
+    this.optimizationCompute = optimizationCompute;
     this.port = appPort;
     this.optimizationPort = optimizationPort;
   }
 
   start() {
     logger.log('sys', 'Starting');
-
-    // Start the optimization server
-    this.optServer = new OptimizationServer(this.databaseCalls, this.compute);
 
     // Authentication
     let self = this;
@@ -137,6 +143,7 @@ module.exports = class SoftballServer {
             'https://www.google.com/', // ReCapcha
             'https://thbrown.github.io/', // YouTube Proxy
             'https://optimizers.softball.app/', // Optimizers selection page
+            'https://www.youtube-nocookie.com/', // YouTube Embeds
             'http://localhost:8085/', // For testing optimizer selection locally
           ],
           mediaSrc: ['data:'], // This is for the noSleep lib, TODO: there might be a way to tighten this up
@@ -145,7 +152,7 @@ module.exports = class SoftballServer {
             'https://www.google-analytics.com',
             'https://stats.g.doubleclick.net',
             'https://i.ytimg.com', // YouTube thumbnails
-            'https://yt3.ggpht.com',
+            'https://yt3.ggpht.com', // More YouTube thumbnails
           ],
           objectSrc: ["'none'"],
           reportUri: '/server/report-violation',
@@ -797,31 +804,27 @@ module.exports = class SoftballServer {
         let accountId = extractSessionInfo(req, 'accountId');
         logger.log(accountId, `Starting optimization`);
 
-        let optimizationId = undefined;
+        // Convert client optimization id to the server one
+        let serverOptimizationId = idUtils.clientIdToServerId(
+          req.body.optimizationId,
+          accountId
+        );
 
-        // This lock is just to make sure we don't get two optimizations running at the same time
-        await lockAccount(accountId);
         try {
+          // This lock is just to make sure we don't get two optimizations running at the same time
+          await lockAccount(accountId);
+
           // Is there another optimization state IN_PROGRESS (or in ALLOCATING_RESOURCES)
           // If so, don't start another one
           let inProgressCount = await this.databaseCalls.getNumberOfOptimizationsInProgress(
             accountId
           );
-          if (inProgressCount !== 0) {
-            logger.log(accountId, 'Simulations running', inProgressCount);
+          if (inProgressCount === -1) {
             res
               .status(400)
               .send({ message: `There is already an optimization running.` });
             return;
           }
-
-          let data = req.body;
-
-          // Convert client optimization id to the server one
-          optimizationId = idUtils.clientIdToServerId(
-            data.optimizationId,
-            accountId
-          );
 
           // TODO: Do some validation?
           // minimum players (this should be on the client side too)
@@ -830,41 +833,8 @@ module.exports = class SoftballServer {
           // some size restriction?
           // Make sure optimization exists!
 
-          let teamHits = 0;
-          let teamOuts = 0;
-          let maleCount = 0;
-          let femaleCount = 0;
-          for (let i = 0; i < data.executionData.players.length; i++) {
-            teamOuts += data.executionData.players[i].outs;
-            teamHits =
-              teamHits +
-              data.executionData.players[i].singles +
-              data.executionData.players[i].doubles +
-              data.executionData.players[i].triples +
-              data.executionData.players[i].homeruns;
-            if (data.executionData.players[i].gender === 'F') {
-              femaleCount++;
-            } else {
-              maleCount++;
-            }
-          }
-          let teamAverage = teamHits / (teamHits + teamOuts);
-
-          let numLineups = SimulationTimeEstimator.getNumberOfPossibleLineups(
-            data.executionData.lineupType,
-            maleCount,
-            femaleCount
-          );
-
-          let estimatedTime = SimulationTimeEstimator.estimateOptimizationTime(
-            numLineups,
-            SimulationTimeEstimator.getCoreCount(),
-            data.executionData.iterations,
-            data.executionData.innings,
-            teamAverage
-          );
-
           // Don't run optimizations with estimated completion time greater than 12 hours
+          /*
           if (estimatedTime > 43200) {
             res.status(400).send({
               error: 'BAD_ESTIMATED_COMPLETION_TIME',
@@ -872,14 +842,14 @@ module.exports = class SoftballServer {
                 'Could not start the simulation because the estimated completion time for this lineup is greater then 12 hours. Reduce the estimated runtime and try again.',
             });
             return;
-          }
+          }*/
 
           // If the send email checkbox is checked but the email address has not been validated, complain
           // This is also checked by the optimization server after the optimization completes
           let account = await this.databaseCalls.getAccountById(accountId);
           let optimization = await this.databaseCalls.getOptimizationDetails(
             accountId,
-            optimizationId
+            serverOptimizationId
           );
           if (optimization.sendEmail && !account.verifiedEmail) {
             res.status(400).send({
@@ -890,58 +860,217 @@ module.exports = class SoftballServer {
             return;
           }
 
-          // Write execution data to db
-          logger.log(accountId, 'writing execution data');
-          await this.databaseCalls.setOptimizationExecutionData(
-            accountId,
-            optimizationId,
-            data.executionData
+          // Build the stats object
+          let statsData = await this.databaseCalls.getState(accountId);
+
+          // Stats object should not include account or optimizer information
+          delete statsData.account;
+          delete statsData.optimizations;
+          logger.log(null, 'PREP STATS DATA');
+
+          // TODO: Add overrides to a new game
+          // TODO: Find and replace player ids that have overrides
+          // TODO: Filter options string from selections (is this necessary?)
+
+          // Options for all optimizers
+          let standardOptions = {
+            '-o': optimization.optimizerType,
+            '-t': optimization.lineupType,
+            '-l': optimization.playerList.join(),
+            '-u': 5000,
+            '-f': true,
+            '-e': false,
+          };
+
+          // Options for the selected optimizer (prefix with double dash)
+          let prefixedCustomOptions = Object.assign(
+            {},
+            ...Object.keys(optimization.customOptionsData).map((key) => ({
+              ['--' + key]: optimization.customOptionsData[key],
+            }))
           );
 
-          // Transition status to ALLOCATION_RESOURCES
-          await this.databaseCalls.setOptimizationStatus(
-            accountId,
-            optimizationId,
-            1 //state.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES, TODO: make this a common server/client enum
+          let softballSimFlags = Object.assign(
+            prefixedCustomOptions,
+            standardOptions
           );
+          logger.log(accountId, 'Final flags ', softballSimFlags);
+          /*
+            "-o": "0",
+            "-i": "quebec",
+            "-l": "Leroy,Roy,Ben,Joe,Oscar,Cheryl,Jessica,Ashley,Chelsea,Brianna",
+            "-I": "7",
+            "-G": "100",
+            "-u": 5000,
+            "-f": true,
+            "-e": false,
+            "PASSWORD": "<your_pwd>",
+            "data": {
+          */
 
-          // Now unlock the account
+          // Stats object should include overrides as games.
+          /*
+          for (let overridePlayerId in optimization.overrideData) {
+            statsData.teams.push({
+              id: idUtils.serverIdToClientId(uuidv4()),
+              name: 'Overrides',
+              //publicId: 'BhOVxvmOKKs4k91e',
+              //publicIdEnabled: false,
+              games: [
+                {
+                  plateAppearances: optimization.overrideData[overridePlayerId],
+                  id: idUtils.serverIdToClientId(uuidv4()),
+                  opponent: 'Overrides',
+                  date: new Date().getTime(),
+                  //park: '',
+                  lineupType: 0,
+                  scoreUs: 0,
+                  scoreThem: 0,
+                  lineup: [overridePlayerId],
+                },
+              ],
+            });
+          }
+        
+
+          */
+
+          // Now we can start the actual optimization
+          try {
+            await this.databaseCalls.setOptimizationStatus(
+              accountId,
+              serverOptimizationId,
+              constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
+            );
+
+            // Start the computer that will run the optimization
+            await this.optimizationCompute.start(
+              accountId,
+              serverOptimizationId,
+              statsData,
+              softballSimFlags
+            );
+
+            // Retrieve the results of the optimization on an interval, update the db
+            let monitor = async function () {
+              // Copy the results into the database
+              let result = JSON.parse(
+                await this.optimizationCompute.query(
+                  accountId,
+                  serverOptimizationId
+                )
+              );
+              logger.log(accountId, 'MONITOR: Got result ');
+              if (result !== null) {
+                await this.databaseCalls.setOptimizationResultData(
+                  accountId,
+                  serverOptimizationId,
+                  result
+                );
+                logger.log(
+                  accountId,
+                  'Status set ',
+                  constants.OPTIMIZATION_STATUS_ENUM[result.status]
+                );
+                if (constants.OPTIMIZATION_STATUS_ENUM[result.status]) {
+                  // TODO: Don't let IN_PROGRESS override PAUSING
+                  await this.databaseCalls.setOptimizationStatus(
+                    accountId,
+                    serverOptimizationId,
+                    constants.OPTIMIZATION_STATUS_ENUM[result.status]
+                  );
+                }
+                logger.log(
+                  accountId,
+                  'Saving result to db '
+                  //result,
+                  //result.status,
+                  //constants.OPTIMIZATION_STATUS_ENUM[result.status]
+                );
+              }
+
+              // Check again in the future if the optimization has not finished
+              if (
+                result === null ||
+                result.status ===
+                  constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
+                    constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS
+                  ]
+              ) {
+                logger.log(
+                  accountId,
+                  'MONITOR: Checking again in ',
+                  MONITORING_INTERVAL
+                );
+                setTimeout(monitor, MONITORING_INTERVAL);
+              } else {
+                logger.log(
+                  accountId,
+                  'MONITOR: Complete ',
+                  result === null,
+                  constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
+                    constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS
+                  ],
+                  result.status,
+                  Object.keys(result)
+                );
+
+                // Send success email!
+                if (optimization.sendEmail && !account.verifiedEmail) {
+                  let emailAddress = extractSessionInfo(req, 'email');
+                  let email = configAccessor.getEmailService();
+                  email.sendMessage(
+                    accountId,
+                    emailAddress,
+                    `Softball.app Optimization ${optimization.name} has Completed!`,
+                    JSON.stringify(parsedData, null, 2),
+                    optimizationCompleteEmailHtml(
+                      OptimizationResultsHtml.getResultsAsHtml(
+                        JSON.stringify(result),
+                        optimization.inputSummaryData
+                      ),
+                      `https://softball.app/optimizations/${req.body.optimizationId}` // We want the client id here
+                    )
+                  );
+                  logger.log(accountId, 'Completion Email sent');
+                } else {
+                  logger.log(accountId, 'Completion Email not sent');
+                }
+              }
+            }.bind(this);
+            monitor(accountId, serverOptimizationId);
+          } catch (error) {
+            // Transition status to ERROR
+            logger.error(
+              accountId,
+              serverOptimizationId,
+              'Setting optimization status to error in compute start',
+              error
+            );
+            await this.databaseCalls.setOptimizationStatus(
+              accountId,
+              serverOptimizationId,
+              constants.OPTIMIZATION_STATUS_ENUM.ERROR,
+              error
+            );
+            throw error;
+          }
         } catch (error) {
           logger.log(accountId, 'Setting optimization status to error', error);
           await this.databaseCalls.setOptimizationStatus(
             accountId,
-            optimizationId,
-            5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
+            serverOptimizationId,
+            constants.OPTIMIZATION_STATUS_ENUM.ERROR,
             error
           );
           throw error;
         } finally {
+          // Now unlock the account
           await unlockAccount(accountId);
         }
 
         // Return success
         res.status(204).send();
-
-        try {
-          // Start the computer that will run the optimization
-          await this.compute.start(accountId, optimizationId);
-        } catch (error) {
-          // Transition status to ERROR
-          logger.error(
-            accountId,
-            optimizationId,
-            'Setting optimization status to error in compute start',
-            error
-          );
-          await this.databaseCalls.setOptimizationStatus(
-            accountId,
-            optimizationId,
-            5, //state.OPTIMIZATION_STATUS_ENUM.ERROR
-            error
-          );
-          throw error;
-          // TODO: Kill the compute instance? If it's not dead already. This should really happen inside the start command
-        }
       })
     );
 
@@ -954,43 +1083,54 @@ module.exports = class SoftballServer {
         }
 
         let accountId = extractSessionInfo(req, 'accountId');
-        let serverOptimizationId = undefined;
         try {
           // Convert client optimization id to the server one
-          serverOptimizationId = idUtils.clientIdToServerId(
+          let serverOptimizationId = idUtils.clientIdToServerId(
             req.body.optimizationId,
             accountId
           );
 
-          // Transition status to PAUSING, next time the app server hears from the compute client it will destroy the connection
-          // which will shut down the compute instance
-          await this.databaseCalls.setOptimizationStatus(
-            accountId,
-            serverOptimizationId,
-            6 //state.OPTIMIZATION_STATUS_ENUM.PAUSING
-          );
+          await this.optimizationCompute.pause(accountId, serverOptimizationId);
 
           // Return success
           res.status(204).send();
-
-          // We don't want to open up an opportunity for some user to quickly start and pause optimizations that
-          // can result in user having several active compute instances. Putting a buffer between the pause button
-          // press and actual pausing should give enough time for the paused compute instance to shut down
-          await sleep(30000);
-
-          // Transition status to PAUSED
-          await this.databaseCalls.setOptimizationStatus(
-            accountId,
-            serverOptimizationId,
-            4 //state.OPTIMIZATION_STATUS_ENUM.PAUSED
-          );
-
-          // Call compute service specific cleanup
-          this.compute.cleanup(accountId, serverOptimizationId);
         } catch (error) {
           logger.log(
             accountId,
             'An error occurred while pausing an optimization',
+            error
+          );
+          throw error;
+        }
+      })
+    );
+
+    app.post(
+      '/server/estimate-optimization',
+      wrapForErrorProcessing(async (req, res, next) => {
+        if (!req.isAuthenticated()) {
+          res.status(403).send();
+          return;
+        }
+
+        let accountId = extractSessionInfo(req, 'accountId');
+        try {
+          // Convert client optimization id to the server one
+          let serverOptimizationId = idUtils.clientIdToServerId(
+            req.body.optimizationId,
+            accountId
+          );
+
+          let response = this.optimizationCompute.estimate(
+            accountId,
+            serverOptimizationId
+          );
+
+          res.status(200).send(response);
+        } catch (error) {
+          logger.log(
+            accountId,
+            'An error occurred while running an optimization estimate',
             error
           );
           throw error;
@@ -1123,9 +1263,9 @@ module.exports = class SoftballServer {
     app.use(function (error, req, res, next) {
       let accountId = extractSessionInfo(req, 'accountId');
 
-      res.setHeader('content-type', 'application/json');
       if (error instanceof HandledError) {
         logger.error(accountId, 'Sending Error', error.getExternalMessage());
+        res.setHeader('content-type', 'application/json');
         res
           .status(error.getStatusCode())
           .send({ message: [error.getExternalMessage()] });
@@ -1134,6 +1274,8 @@ module.exports = class SoftballServer {
         }
       } else {
         let errorId = Math.random().toString(36).substring(7);
+        logger.error(accountId, 'Sending Error', errorId);
+        res.setHeader('content-type', 'application/json');
         res
           .status(500)
           .send({ message: `Internal Server Error. Error id: ${errorId}.` });
@@ -1313,9 +1455,6 @@ module.exports = class SoftballServer {
   }
 
   async stop() {
-    // Shut doen the opt server
-    let optServerShutdown = this.optServer.stop();
-
     // Shut down the app server
     let appShutdown = new Promise(
       function (resolve, reject) {
@@ -1329,7 +1468,6 @@ module.exports = class SoftballServer {
         });
       }.bind(this)
     );
-
-    return Promise.all([optServerShutdown, appShutdown]);
+    return Promise.all([appShutdown]);
   }
 };
