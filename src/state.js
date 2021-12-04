@@ -1,10 +1,7 @@
 import expose from 'expose';
-import objectMerge from '../object-merge';
 import network from 'network';
-import idUtils from '../id-utils';
+import SharedLib from '/../shared-lib';
 import results from 'plate-appearance-results';
-import commonUtils from '../common-utils';
-import constants from '../constants.js';
 import { getShallowCopy } from 'utils/functions';
 
 import dialog from 'dialog';
@@ -146,8 +143,8 @@ exp.sync = async function (fullSync) {
 
     // Get the patch ready to send to the server
     let body = {
-      checksum: commonUtils.getHash(localState),
-      patch: objectMerge.diff(state.getAncestorState(), localState),
+      checksum: SharedLib.commonUtils.getHash(localState),
+      patch: SharedLib.objectMerge.diff(state.getAncestorState(), localState),
       type: fullSync ? 'full' : 'any',
     };
 
@@ -165,7 +162,7 @@ exp.sync = async function (fullSync) {
       let serverState = response.body;
 
       // First gather any changes that were made locally while the request was still working
-      let localChangesDuringRequest = objectMerge.diff(
+      let localChangesDuringRequest = SharedLib.objectMerge.diff(
         localStateCopyPreRequest,
         localState
       );
@@ -179,7 +176,7 @@ exp.sync = async function (fullSync) {
         console.log(`[SYNC] Applying patches `);
 
         serverState.patches.forEach((patch) => {
-          objectMerge.patch(localStateCopyPreRequest, patch);
+          SharedLib.objectMerge.patch(localStateCopyPreRequest, patch);
         });
         // The local state with the server updates is the new ancestor
         state.setAncestorState(localStateCopyPreRequest);
@@ -204,12 +201,14 @@ exp.sync = async function (fullSync) {
             '[SYNC] Yikes! Something went wrong while attempting full sync'
           );
           console.log(
-            commonUtils.getHash(state.getAncestorState()),
-            commonUtils.getHash(serverState.base)
+            SharedLib.commonUtils.getHash(state.getAncestorState()),
+            SharedLib.commonUtils.getHash(serverState.base)
           );
 
-          console.log(commonUtils.getObjectString(state.getAncestorState()));
-          console.log(commonUtils.getObjectString(serverState.base));
+          console.log(
+            SharedLib.commonUtils.getObjectString(state.getAncestorState())
+          );
+          console.log(SharedLib.commonUtils.getObjectString(serverState.base));
 
           // Set the state back to what it was when we first did a sync
           state.setAncestorState(ancestorStateCopy);
@@ -221,11 +220,13 @@ exp.sync = async function (fullSync) {
             '[SYNC] Something went wrong while attempting patch sync'
           );
           console.log(
-            commonUtils.getHash(state.getLocalState),
+            SharedLib.commonUtils.getHash(state.getLocalState),
             serverState.checksum
           );
 
-          console.log(commonUtils.getObjectString(state.getLocalState));
+          console.log(
+            SharedLib.commonUtils.getObjectString(state.getLocalState)
+          );
 
           // Set the state back to what it was when we first did a sync
           state.setAncestorState(ancestorStateCopy);
@@ -241,7 +242,11 @@ exp.sync = async function (fullSync) {
       let newLocalState = JSON.parse(JSON.stringify(state.getAncestorState()));
 
       // Apply any changes that were made during the request to the new local state (Presumably this will be a no-op most times)
-      objectMerge.patch(newLocalState, localChangesDuringRequest, true);
+      SharedLib.objectMerge.patch(
+        newLocalState,
+        localChangesDuringRequest,
+        true
+      );
 
       // Set local state to a copy of ancestor state (w/ localChangesDuringRequest applied)
       setLocalStateNoSideEffects(newLocalState);
@@ -350,7 +355,7 @@ exp.getLocalState = function () {
 };
 
 exp.getLocalStateChecksum = function () {
-  return commonUtils.getHash(LOCAL_DB_STATE);
+  return SharedLib.commonUtils.getHash(LOCAL_DB_STATE);
 };
 
 exp.setLocalState = function (newState) {
@@ -371,13 +376,14 @@ exp.setAncestorState = function (s) {
 };
 
 exp.getAncestorStateChecksum = function () {
-  return commonUtils.getHash(ANCESTOR_DB_STATE);
+  return SharedLib.commonUtils.getHash(ANCESTOR_DB_STATE);
 };
 
 exp.hasAnythingChanged = function () {
   // TODO: It's probably faster just to compare these directly
   return (
-    commonUtils.getHash(LOCAL_DB_STATE) !== commonUtils.getHash(INITIAL_STATE)
+    SharedLib.commonUtils.getHash(LOCAL_DB_STATE) !==
+    SharedLib.commonUtils.getHash(INITIAL_STATE)
   );
 };
 
@@ -661,7 +667,7 @@ exp.duplicateOptimization = function (optimizationId) {
   duplicatedOptimization.id = getNextId();
   duplicatedOptimization.name = 'Duplicate of ' + duplicatedOptimization.name;
   duplicatedOptimization.status =
-    constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED;
+    SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED;
   duplicatedOptimization.resultData = JSON.stringify({});
   duplicatedOptimization.statusMessage = null;
   duplicatedOptimization.inputSummaryData = JSON.stringify({});
@@ -686,7 +692,7 @@ exp.addOptimization = function (name) {
     name: name,
     customOptionsData: JSON.stringify({}),
     overrideData: JSON.stringify({}),
-    status: constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
+    status: SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
     resultData: JSON.stringify({}),
     statusMessage: null,
     sendEmail: false,
@@ -1157,7 +1163,7 @@ function getNextId() {
   var arr = new Uint8Array((len || 40) / 2);
   crypto.getRandomValues(arr);
   let hex = Array.from(arr, dec2hex).join('');
-  return idUtils.hexToBase62(hex).padStart(14, '0');
+  return SharedLib.idUtils.hexToBase62(hex).padStart(14, '0');
 }
 
 // NOT SURE THIS IS THE RIGHT PLACE FOR THESE. MOVE TO SOME OTHER UTIL?

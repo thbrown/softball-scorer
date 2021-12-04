@@ -16,18 +16,14 @@ const got = require('got');
 const { v4: uuidv4 } = require('uuid');
 const querystring = require('querystring');
 
-const constants = require('../constants.js');
-const commonUtils = require('../common-utils');
 const configAccessor = require('./config-accessor');
 const HandledError = require('./handled-error');
-const idUtils = require('../id-utils');
 const logger = require('./logger');
-const objectMerge = require('../object-merge');
 const passwordResetEmailHtml = require('./email/password-reset-email-html');
 const welcomeEmailHtml = require('./email/welcome-email-html');
 const optimizationCompleteEmailHtml = require('./email/optimization-complete-email-html');
 // const OptimizationResultsHtml = require('../common-optimization-results-html');
-const sharedLib = require('../shared-lib');
+const SharedLib = require('../shared-lib').default;
 
 const MONITORING_INTERVAL = 5000;
 
@@ -588,7 +584,7 @@ module.exports = class SoftballServer {
         try {
           // First delete all the data
           let state = await this.databaseCalls.getState(accountId);
-          let deletePatch = objectMerge.diff(state, {
+          let deletePatch = SharedLib.objectMerge.diff(state, {
             teams: [],
             players: [],
             optimizations: [],
@@ -678,10 +674,10 @@ module.exports = class SoftballServer {
             let stateCopy = JSON.parse(JSON.stringify(state)); // Deep copy
 
             // Apply the patch that was supplied by the client, passing true allows us to ignore any changes that were applied to deleted entries or additions of things that already exist
-            objectMerge.patch(state, data.patch, true);
+            SharedLib.objectMerge.patch(state, data.patch, true);
 
             // Now we'll diff the patched version against our original copied version, this gives us a patch without any edits to deleted entries or additions of things that already exist
-            let cleanPatch = objectMerge.diff(stateCopy, state);
+            let cleanPatch = SharedLib.objectMerge.diff(stateCopy, state);
 
             // We can pass the clean patch to the database to persist
             await this.databaseCalls.patchState(cleanPatch, accountId);
@@ -692,7 +688,7 @@ module.exports = class SoftballServer {
               accountId,
               "updatedState",
               JSON.stringify(state, null, 2),
-              commonUtils.getHash(state)
+              SharedLib.commonUtils.getHash(state)
             );
             */
             anyChangesMade = true;
@@ -702,7 +698,7 @@ module.exports = class SoftballServer {
 
           // Calculate the checksum current state
           state = state || (await this.databaseCalls.getState(accountId));
-          let checksum = commonUtils.getHash(state);
+          let checksum = SharedLib.commonUtils.getHash(state);
 
           // Compare the calculated checksum with the checksum provided by the client to determine if the server has updates for the client.
           if (data.checksum !== checksum) {
@@ -730,10 +726,13 @@ module.exports = class SoftballServer {
               logger.log(accountId, 'performing patch sync w/ ancestor');
 
               // Apply the client's patch to the ancestor
-              objectMerge.patch(serverAncestor, data.patch, true);
+              SharedLib.objectMerge.patch(serverAncestor, data.patch, true);
 
               // Diff the ancestor and the localState (dbState) to get the patch we need to send back to the server
-              let serverPatch = objectMerge.diff(serverAncestor, state);
+              let serverPatch = SharedLib.objectMerge.diff(
+                serverAncestor,
+                state
+              );
               logger.log(
                 accountId,
                 'Server Patch',
@@ -759,7 +758,7 @@ module.exports = class SoftballServer {
                 logger.warn(
                   accountId,
                   'State',
-                  commonUtils.getObjectString(state.getLocalState)
+                  SharedLib.commonUtils.getObjectString(state.getLocalState)
                 );
               }
 
@@ -806,7 +805,7 @@ module.exports = class SoftballServer {
         logger.log(accountId, `Starting optimization`);
 
         // Convert client optimization id to the server one
-        let serverOptimizationId = idUtils.clientIdToServerId(
+        let serverOptimizationId = SharedLib.idUtils.clientIdToServerId(
           req.body.optimizationId,
           accountId
         );
@@ -913,14 +912,14 @@ module.exports = class SoftballServer {
           /*
           for (let overridePlayerId in optimization.overrideData) {
             statsData.teams.push({
-              id: idUtils.serverIdToClientId(uuidv4()),
+              id: SharedLib.idUtils.serverIdToClientId(uuidv4()),
               name: 'Overrides',
               //publicId: 'BhOVxvmOKKs4k91e',
               //publicIdEnabled: false,
               games: [
                 {
                   plateAppearances: optimization.overrideData[overridePlayerId],
-                  id: idUtils.serverIdToClientId(uuidv4()),
+                  id: SharedLib.idUtils.serverIdToClientId(uuidv4()),
                   opponent: 'Overrides',
                   date: new Date().getTime(),
                   //park: '',
@@ -941,7 +940,7 @@ module.exports = class SoftballServer {
             await this.databaseCalls.setOptimizationStatus(
               accountId,
               serverOptimizationId,
-              constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
+              SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
             );
 
             // Start the computer that will run the optimization
@@ -971,14 +970,16 @@ module.exports = class SoftballServer {
                 logger.log(
                   accountId,
                   'Status set ',
-                  constants.OPTIMIZATION_STATUS_ENUM[result.status]
+                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
                 );
-                if (constants.OPTIMIZATION_STATUS_ENUM[result.status]) {
+                if (
+                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
+                ) {
                   // TODO: Don't let IN_PROGRESS override PAUSING
                   await this.databaseCalls.setOptimizationStatus(
                     accountId,
                     serverOptimizationId,
-                    constants.OPTIMIZATION_STATUS_ENUM[result.status]
+                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
                   );
                 }
                 logger.log(
@@ -986,7 +987,7 @@ module.exports = class SoftballServer {
                   'Saving result to db '
                   //result,
                   //result.status,
-                  //constants.OPTIMIZATION_STATUS_ENUM[result.status]
+                  //SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
                 );
               }
 
@@ -994,8 +995,8 @@ module.exports = class SoftballServer {
               if (
                 result === null ||
                 result.status ===
-                  constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
-                    constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS
+                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
+                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS
                   ]
               ) {
                 logger.log(
@@ -1009,33 +1010,37 @@ module.exports = class SoftballServer {
                   accountId,
                   'MONITOR: Complete ',
                   result === null,
-                  constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
-                    constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS
+                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
+                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS
                   ],
                   result.status,
                   Object.keys(result)
                 );
 
                 // Send success email!
-                if (optimization.sendEmail && !account.verifiedEmail) {
+                logger.log(
+                  accountId,
+                  'Input data',
+                  optimization.inputSummaryData
+                );
+
+                if (optimization.sendEmail && account.verifiedEmail) {
                   let emailAddress = extractSessionInfo(req, 'email');
                   let email = configAccessor.getEmailService();
                   email.sendMessage(
                     accountId,
                     emailAddress,
                     `Softball.app Optimization ${optimization.name} has Completed!`,
-                    JSON.stringify(parsedData, null, 2),
+                    JSON.stringify(result, null, 2),
                     optimizationCompleteEmailHtml(
-                      sharedLib.commonOptimizationResults.getResultsAsHtml(
+                      SharedLib.commonOptimizationResults.getResultsAsHtml(
                         JSON.stringify(result),
-                        optimization.inputSummaryData
+                        JSON.stringify(optimization.inputSummaryData)
                       ),
                       `https://softball.app/optimizations/${req.body.optimizationId}` // We want the client id here
                     )
                   );
                   logger.log(accountId, 'Completion Email sent');
-                } else {
-                  logger.log(accountId, 'Completion Email not sent');
                 }
               }
             }.bind(this);
@@ -1051,7 +1056,7 @@ module.exports = class SoftballServer {
             await this.databaseCalls.setOptimizationStatus(
               accountId,
               serverOptimizationId,
-              constants.OPTIMIZATION_STATUS_ENUM.ERROR,
+              SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
               error
             );
             throw error;
@@ -1061,7 +1066,7 @@ module.exports = class SoftballServer {
           await this.databaseCalls.setOptimizationStatus(
             accountId,
             serverOptimizationId,
-            constants.OPTIMIZATION_STATUS_ENUM.ERROR,
+            SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
             error
           );
           throw error;
@@ -1086,7 +1091,7 @@ module.exports = class SoftballServer {
         let accountId = extractSessionInfo(req, 'accountId');
         try {
           // Convert client optimization id to the server one
-          let serverOptimizationId = idUtils.clientIdToServerId(
+          let serverOptimizationId = SharedLib.idUtils.clientIdToServerId(
             req.body.optimizationId,
             accountId
           );
@@ -1117,7 +1122,7 @@ module.exports = class SoftballServer {
         let accountId = extractSessionInfo(req, 'accountId');
         try {
           // Convert client optimization id to the server one
-          let serverOptimizationId = idUtils.clientIdToServerId(
+          let serverOptimizationId = SharedLib.idUtils.clientIdToServerId(
             req.body.optimizationId,
             accountId
           );

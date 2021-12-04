@@ -1,8 +1,7 @@
 const configAccessor = require('./config-accessor');
-const idUtils = require('../id-utils.js');
 const logger = require('./logger.js');
 const TimeoutUtil = require('./timeout-util');
-const constants = require('../constants.js');
+const SharedLib = require('../shared-lib').default;
 
 const net = require('net');
 const ip = require('ip');
@@ -37,7 +36,7 @@ module.exports = class OptimizationServer {
 
           if (parsedData.command === 'READY') {
             sock.optimizationId = parsedData.optimizationId;
-            sock.accountId = idUtils.getAccountIdFromServerId(
+            sock.accountId = SharedLib.idUtils.getAccountIdFromServerId(
               sock.optimizationId
             );
 
@@ -194,7 +193,7 @@ module.exports = class OptimizationServer {
             );
             await setOptimizationStatus(
               sock,
-              constants.OPTIMIZATION_STATUS_ENUM.COMPLETE
+              SharedLib.constants.OPTIMIZATION_STATUS_ENUM.COMPLETE
             );
 
             // Send Completion Email
@@ -239,7 +238,7 @@ module.exports = class OptimizationServer {
             logger.log(sock.accountId, parsedData.trace);
             await setOptimizationStatus(
               sock,
-              constants.OPTIMIZATION_STATUS_ENUM.ERROR,
+              SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
               parsedData.message
               // Any status can transition to ERROR
             );
@@ -299,7 +298,7 @@ module.exports = class OptimizationServer {
               computeService.cleanup(sock.accountId, sock.optimizationId);
               await setOptimizationStatus(
                 sock,
-                constants.OPTIMIZATION_STATUS_ENUM.ERROR,
+                SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
                 `Insufficient resources, try again later`
               );
               logger.log(
@@ -340,7 +339,7 @@ module.exports = class OptimizationServer {
               computeService.cleanup(sock.accountId, sock.optimizationId);
               await setOptimizationStatus(
                 sock,
-                constants.OPTIMIZATION_STATUS_ENUM.ERROR,
+                SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
                 JSON.stringify(err)
                 // Any status can transition to ERROR
               );

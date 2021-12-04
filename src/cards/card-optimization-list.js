@@ -5,7 +5,7 @@ import { setRoute } from 'actions/route';
 import { compose, withHandlers } from 'recompose';
 import NoSelect from 'elements/no-select';
 import ListButton from 'elements/list-button';
-import constants from '/../constants.js';
+import SharedLib from '/../shared-lib';
 
 const enhance = compose(
   withHandlers({
@@ -58,7 +58,7 @@ const CardOptimizationList = (props) => (
               <div class="secondary" style={{ marginLeft: '5px' }}>
                 {'['}
                 {
-                  constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
+                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
                     optimization.status
                   ]
                 }

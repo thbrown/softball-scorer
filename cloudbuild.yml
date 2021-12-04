@@ -4,6 +4,9 @@ steps:
     args: ['install']
   - name: node:14
     entrypoint: yarn
+    args: ['--cwd','./shared', 'build']
+  - name: node:14
+    entrypoint: yarn
     args: ['build']
 artifacts:
   objects:

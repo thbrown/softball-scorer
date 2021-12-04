@@ -71,8 +71,8 @@ const getResultsAsJsx = function (result, inputSummaryData) {
       </div>
     );
     for (let i = 0; i < resultData.flatLineup.length; i++) {
-      let player = inputSummaryData[resultData.flatLineup[i]];
-      if (!player) {
+      let playerStats = stats[resultData.flatLineup[i]];
+      if (!playerStats) {
         bestPlayers.push(
           <div key={i}>
             {PLAYER_DELETED_MSG}
@@ -80,22 +80,19 @@ const getResultsAsJsx = function (result, inputSummaryData) {
           </div>
         );
       } else {
-        let playerStats = stats[resultData.flatLineup[i]];
-        if (playerStats) {
-          bestPlayers.push(
-            <div key={i}>
-              {CommonUtils.truncate(
-                player.name.padEnd(maxNameLength),
-                PLAYER_NAME_MAX_LENGTH + 1
-              ) +
-                ' ' +
-                playerStats.battingAverage.padStart(5) +
-                ' ' +
-                playerStats.sluggingPercentage}
-              <br />
-            </div>
-          );
-        }
+        bestPlayers.push(
+          <div key={i}>
+            {CommonUtils.truncate(
+              playerStats.name.padEnd(maxNameLength),
+              PLAYER_NAME_MAX_LENGTH + 1
+            ) +
+              ' ' +
+              playerStats.battingAverage.padStart(5) +
+              ' ' +
+              playerStats.sluggingPercentage}
+            <br />
+          </div>
+        );
       }
     }
   }
@@ -133,7 +130,7 @@ const getResultsAsHtml = function (result, inputSummaryData) {
   );
 };
 
-export const commonOptimizationResults = {
+export {
   getResultsAsHtml,
   getResultsAsJsx,
 };

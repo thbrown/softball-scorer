@@ -21,6 +21,7 @@ gsutil cp "gs://${PROJECT}_cloudbuild/build/index.html" ./build
 gsutil cp "gs://${PROJECT}_cloudbuild/build/main.js" ./build
 gsutil cp "gs://${PROJECT}_cloudbuild/build/main.css" ./assets
 gsutil cp "gs://${PROJECT}_cloudbuild/build/service-worker.js" ./src/workers
+gsutil cp "gs://${PROJECT}_cloudbuild/shared-lib.js" ./
 
 # Uncomment this if you just want a defalt config, it will override the local
 #gsutil cp gs://optimum-library-250223_cloudbuild/build/config.js ./src-srv

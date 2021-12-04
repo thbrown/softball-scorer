@@ -1,9 +1,9 @@
 const { Pool } = require('pg');
 
 const HandledError = require('./handled-error.js');
-const idUtils = require('../id-utils.js');
 const logger = require('./logger.js');
 const sqlGen = require('./sql-gen.js');
+const SharedLib = require('../shared-lib').default;
 
 /**
  * This implementation uses postgres db as the persistance layer. Connection info and credentials can be supplied in the server side config.
@@ -68,7 +68,7 @@ module.exports = class DatabaseCalls {
 
     this.processPlayers = function (players) {
       for (let i = 0; i < players.length; i++) {
-        players[i].id = idUtils.serverIdToClientId(players[i].id);
+        players[i].id = SharedLib.idUtils.serverIdToClientId(players[i].id);
         players[i].song_link = players[i].song_link
           ? players[i].song_link
           : null;
@@ -83,7 +83,7 @@ module.exports = class DatabaseCalls {
       let outputOptimizations = [];
       for (let i = 0; i < optimizations.length; i++) {
         outputOptimizations.push({});
-        outputOptimizations[i].id = idUtils.serverIdToClientId(
+        outputOptimizations[i].id = SharedLib.idUtils.serverIdToClientId(
           optimizations[i].id
         );
 
@@ -133,9 +133,13 @@ module.exports = class DatabaseCalls {
         ) {
           const newTeam = {};
           newTeam.games = [];
-          newTeam.id = idUtils.serverIdToClientId(plateAppearance.team_id);
+          newTeam.id = SharedLib.idUtils.serverIdToClientId(
+            plateAppearance.team_id
+          );
           newTeam.name = plateAppearance.team_name;
-          newTeam.publicId = idUtils.hexToBase62(plateAppearance.public_id);
+          newTeam.publicId = SharedLib.idUtils.hexToBase62(
+            plateAppearance.public_id
+          );
           newTeam.publicIdEnabled = plateAppearance.public_id_enabled;
           outputTeams.push(newTeam);
           parentIdLookupTable[plateAppearance.team_id] = {};
@@ -155,7 +159,9 @@ module.exports = class DatabaseCalls {
         ) {
           var newGame = {};
           newGame.plateAppearances = [];
-          newGame.id = idUtils.serverIdToClientId(plateAppearance.game_id);
+          newGame.id = SharedLib.idUtils.serverIdToClientId(
+            plateAppearance.game_id
+          );
           newGame.opponent = plateAppearance.game_opponent;
           newGame.date = plateAppearance.game_date;
           newGame.park = plateAppearance.game_park;
@@ -165,7 +171,7 @@ module.exports = class DatabaseCalls {
           if (plateAppearance.lineup) {
             newGame.lineup = plateAppearance.lineup
               .split(',')
-              .map((v) => idUtils.serverIdToClientId(v.trim()));
+              .map((v) => SharedLib.idUtils.serverIdToClientId(v.trim()));
           } else {
             newGame.lineup = [];
           }
@@ -192,10 +198,10 @@ module.exports = class DatabaseCalls {
 
         if (plateAppearance.plate_appearance_id) {
           var newPlateAppearance = {};
-          newPlateAppearance.id = idUtils.serverIdToClientId(
+          newPlateAppearance.id = SharedLib.idUtils.serverIdToClientId(
             plateAppearance.plate_appearance_id
           );
-          newPlateAppearance.player_id = idUtils.serverIdToClientId(
+          newPlateAppearance.player_id = SharedLib.idUtils.serverIdToClientId(
             plateAppearance.player_id
           );
           newPlateAppearance.result = plateAppearance.result;
@@ -535,11 +541,11 @@ module.exports = class DatabaseCalls {
         // First check to see if the info we need exists in cache, if not look in db
         let cachedPlayersProm = this.cacheService.getCache(
           `acct:${accountId}:players-for-team`,
-          idUtils.serverIdToClientId(teamId)
+          SharedLib.idUtils.serverIdToClientId(teamId)
         );
         let cachedTeamsProm = this.cacheService.getCache(
           `acct:${accountId}:team`,
-          idUtils.serverIdToClientId(teamId)
+          SharedLib.idUtils.serverIdToClientId(teamId)
         );
 
         Promise.all([cachedPlayersProm, cachedTeamsProm]).then(
@@ -643,7 +649,7 @@ module.exports = class DatabaseCalls {
                   this.cacheService.setCache(
                     JSON.stringify(state.players),
                     `acct:${accountId}:players-for-team`,
-                    idUtils.serverIdToClientId(teamId)
+                    SharedLib.idUtils.serverIdToClientId(teamId)
                   );
                 }
 
@@ -653,7 +659,7 @@ module.exports = class DatabaseCalls {
                   this.cacheService.setCache(
                     JSON.stringify(state.teams),
                     `acct:${accountId}:team`,
-                    idUtils.serverIdToClientId(teamId)
+                    SharedLib.idUtils.serverIdToClientId(teamId)
                   );
                 }
 
@@ -868,7 +874,7 @@ module.exports = class DatabaseCalls {
   }
 
   async getAccountAndTeamByTeamPublicId(publicId) {
-    publicId = idUtils.base62ToHex(publicId);
+    publicId = SharedLib.idUtils.base62ToHex(publicId);
     const result = await this.parameterizedQueryPromise(
       'SELECT account_id, id AS team_id FROM teams WHERE public_id = $1 AND public_id_enabled = true',
       [publicId]
