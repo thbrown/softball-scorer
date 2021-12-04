@@ -16,8 +16,8 @@ curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 3. Install yarn `[sudo] npm install -g yarn`
 4. From this repo's root directory, run `yarn`.
 5. Setup any optional features using the sections below if desired.
-6. Run this command from the root directory:  
-   `yarn build && yarn start`
+6. Build the shared source, build the client source, and start the server. From the root directory:  
+   `yarn --cwd ./shared build && yarn build && yarn start`
 7. Visit http://localhost:8888 in your browser.
 
 ## Optional features

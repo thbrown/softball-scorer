@@ -1,8 +1,6 @@
-//import CommonUtils from '/common-utils';
-const CommonUtils = require('/common-utils');
-
-//import ReactDOMServer from 'react-dom/server';
-const ReactDOMServer = require('react-dom/server');
+import CommonUtils from '../utils/common-utils';
+import ReactDOMServer from 'react-dom/server';
+import React from 'react';
 
 /*
  * We want to re-use the HTML we use for the results accordion in the optimization complete email. This file contains the common logic.
@@ -17,6 +15,7 @@ const getResultsAsJsx = function (result, inputSummaryData) {
   let bestPlayers = [];
   let progress = '-';
   let elapsedTime = '-';
+  let lineupType = '-';
   if (resultData && resultData.lineup) {
     lineupType = resultData.lineupType;
     optimizer = resultData.optimizer;
@@ -72,8 +71,8 @@ const getResultsAsJsx = function (result, inputSummaryData) {
       </div>
     );
     for (let i = 0; i < resultData.flatLineup.length; i++) {
-      let player = inputSummaryData[resultData.flatLineup[i]];
-      if (!player) {
+      let playerStats = stats[resultData.flatLineup[i]];
+      if (!playerStats) {
         bestPlayers.push(
           <div key={i}>
             {PLAYER_DELETED_MSG}
@@ -81,22 +80,19 @@ const getResultsAsJsx = function (result, inputSummaryData) {
           </div>
         );
       } else {
-        let playerStats = stats[resultData.flatLineup[i]];
-        if (playerStats) {
-          bestPlayers.push(
-            <div key={i}>
-              {CommonUtils.truncate(
-                player.name.padEnd(maxNameLength),
-                PLAYER_NAME_MAX_LENGTH + 1
-              ) +
-                ' ' +
-                playerStats.battingAverage.padStart(5) +
-                ' ' +
-                playerStats.sluggingPercentage}
-              <br />
-            </div>
-          );
-        }
+        bestPlayers.push(
+          <div key={i}>
+            {CommonUtils.truncate(
+              playerStats.name.padEnd(maxNameLength),
+              PLAYER_NAME_MAX_LENGTH + 1
+            ) +
+              ' ' +
+              playerStats.battingAverage.padStart(5) +
+              ' ' +
+              playerStats.sluggingPercentage}
+            <br />
+          </div>
+        );
       }
     }
   }
@@ -134,7 +130,7 @@ const getResultsAsHtml = function (result, inputSummaryData) {
   );
 };
 
-module.exports = {
-  getResultsAsHtml: getResultsAsHtml,
-  getResultsAsJsx: getResultsAsJsx,
+export {
+  getResultsAsHtml,
+  getResultsAsJsx,
 };

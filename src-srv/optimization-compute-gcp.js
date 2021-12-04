@@ -1,7 +1,5 @@
-const configAccessor = require('./config-accessor');
-const idUtils = require('../id-utils.js');
-const constants = require('../constants.js');
 const TimeoutUtil = require('./timeout-util');
+const SharedLib = require('../shared-lib').default;
 
 const net = require('net');
 
@@ -34,32 +32,45 @@ module.exports = class OptimizationComputeGcp {
         );
 
         if (
-          status === constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES ||
-          status === constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS_COMP ||
-          status === constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS_FUNC
+          status ===
+            SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES ||
+          status ===
+            SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS_COMP ||
+          status ===
+            SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS_FUNC
         ) {
           // Continue monitoring
           setTimeout(this.monitor(optimizationId), MONITORING_INTERVAL);
-        } else if (status === constants.OPTIMIZATION_STATUS_ENUM.TRANSITION) {
+        } else if (
+          status === SharedLib.constants.OPTIMIZATION_STATUS_ENUM.TRANSITION
+        ) {
           // Continue monitoring and transition from 'function' to 'compute' and update status to ALLOCATING_RESOURCES
           setTimeout(this.monitor(optimizationId), MONITORING_INTERVAL);
-        } else if (status === constants.OPTIMIZATION_STATUS_ENUM.PREEMPTED) {
+        } else if (
+          status === SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PREEMPTED
+        ) {
           // Continue monitoring and restart the optimization
           setTimeout(this.monitor(optimizationId), MONITORING_INTERVAL);
-        } else if (status === constants.OPTIMIZATION_STATUS_ENUM.PAUSING_FUNC) {
-          // Continue monitoring and update status to PAUSED after 30 seconds
-          setTimeout(this.monitor(optimizationId), MONITORING_INTERVAL);
-        } else if (status === constants.OPTIMIZATION_STATUS_ENUM.PAUSING_COMP) {
+        } else if (
+          status === SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSING_FUNC
+        ) {
           // Continue monitoring and update status to PAUSED after 30 seconds
           setTimeout(this.monitor(optimizationId), MONITORING_INTERVAL);
         } else if (
-          status === constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ||
-          status === constants.OPTIMIZATION_STATUS_ENUM.PAUSED_COMP ||
-          status === constants.OPTIMIZATION_STATUS_ENUM.PAUSED_FUNC ||
-          status === constants.OPTIMIZATION_STATUS_ENUM.ERROR
+          status === SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSING_COMP
+        ) {
+          // Continue monitoring and update status to PAUSED after 30 seconds
+          setTimeout(this.monitor(optimizationId), MONITORING_INTERVAL);
+        } else if (
+          status === SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ||
+          status === SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSED_COMP ||
+          status === SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSED_FUNC ||
+          status === SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR
         ) {
           // Discontinue monitoring
-        } else if (status === constants.OPTIMIZATION_STATUS_ENUM.COMPLETE) {
+        } else if (
+          status === SharedLib.constants.OPTIMIZATION_STATUS_ENUM.COMPLETE
+        ) {
           // Discontinue monitoring and send completion email
         } else {
           throw new Error('Unrecognized optimization status code ' + status);

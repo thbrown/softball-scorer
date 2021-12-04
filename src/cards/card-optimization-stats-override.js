@@ -4,7 +4,7 @@ import state from 'state';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
 import { goBack, goHome, setRoute } from 'actions/route';
-import constants from '/../constants.js';
+import SharedLib from '/../shared-lib';
 
 export default class CardOptimizationStatsOverride extends React.Component {
   constructor(props) {
@@ -93,7 +93,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
 
     if (
       this.props.optimization.status !==
-      constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+      sharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
     ) {
       return DOM.div(
         {

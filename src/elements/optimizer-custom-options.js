@@ -4,7 +4,6 @@ import FloatingSelect from 'elements/floating-select';
 import Loading from '../elements/loading';
 import dialog from 'dialog';
 import state from 'state';
-import constants from '/../constants.js';
 
 export default class OptimizerCustomOptions extends React.Component {
   constructor(props) {

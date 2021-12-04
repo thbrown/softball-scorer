@@ -3,13 +3,11 @@ import Card from 'elements/card';
 import state from 'state';
 import dialog from 'dialog';
 import { setRoute } from 'actions/route';
-import CommonUtils from '/../common-utils';
-import OptimizationResultsHtml from '/../common-optimization-results-html';
+import SharedLib from '/../shared-lib';
 import NoSelect from 'elements/no-select';
 import StandardOptions from 'elements/optimizer-standard-options';
 import CustomOptions from 'elements/optimizer-custom-options';
 import network from 'network';
-import constants from '/../constants.js';
 
 const ACCORDION_QUERY_PARAM_PREFIX = 'acc';
 const SYNC_DELAY_MS = 10000; // This value also exists in the CSS
@@ -88,10 +86,11 @@ export default class CardOptimization extends React.Component {
 
       if (
         optimization.status ===
-          constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
+          SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
         optimization.status ===
-          constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES ||
-        optimization.status === constants.OPTIMIZATION_STATUS_ENUM.PAUSING
+          SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES ||
+        optimization.status ===
+          SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSING
       ) {
         this.enableAutoSync();
       } else {
@@ -458,7 +457,7 @@ export default class CardOptimization extends React.Component {
 
     // Get optimizer info, tested to 300 calls, seems to work okay
     let prom = [];
-    let optimizerIds = CommonUtils.merge(
+    let optimizerIds = SharedLib.commonUtils.merge(
       state.getAccountOptimizersList(),
       state.getUsedOptimizers()
     );
@@ -485,7 +484,8 @@ export default class CardOptimization extends React.Component {
 
   renderOptimizationPage(optimization) {
     let isInNotStartedState =
-      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED;
+      optimization.status ===
+      SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED;
 
     // Build players table
     const playerTable = [];
@@ -633,10 +633,11 @@ export default class CardOptimization extends React.Component {
     // Remaining time (if necessary)
     let remainingTime = false;
     if (
-      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS
+      optimization.status ===
+      SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS
     ) {
       if (resultData && resultData.estimatedTimeRemainingMs) {
-        let timeInfo = `Approximately ${CommonUtils.secondsToString(
+        let timeInfo = `Approximately ${SharedLib.commonUtils.secondsToString(
           resultData.estimatedTimeRemainingMs / 1000
         )} remaining`;
         remainingTime = <div id="remainingTime">{timeInfo}</div>;
@@ -652,10 +653,12 @@ export default class CardOptimization extends React.Component {
     // Spinner (if necessary)
     let spinner = false;
     if (
-      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
       optimization.status ===
-        constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES ||
-      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.PAUSING
+        SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
+      optimization.status ===
+        SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES ||
+      optimization.status ===
+        SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSING
     ) {
       spinner = (
         <div>
@@ -671,7 +674,8 @@ export default class CardOptimization extends React.Component {
     if (optimization.statusMessage) {
       statusMessage = optimization.statusMessage;
     } else if (
-      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRES &&
+      optimization.status ===
+        SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRES &&
       resultData &&
       resultData.countCompleted != undefined &&
       resultData.countTotal != undefined
@@ -687,7 +691,11 @@ export default class CardOptimization extends React.Component {
       <div className="accordionContainer">
         <div className="text-div">
           Status:{' '}
-          {constants.OPTIMIZATION_STATUS_ENUM_INVERSE[optimization.status]}
+          {
+            SharedLib.constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
+              optimization.status
+            ]
+          }
           <br />
           {statusMessage}
           {remainingTime}
@@ -723,7 +731,7 @@ export default class CardOptimization extends React.Component {
                   <tbody>{playerTable}</tbody>
                 </table>
                 {optimization.status ===
-                constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ? (
+                SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ? (
                   <div
                     id="edit-players"
                     className="edit-button button confirm-button"
@@ -791,7 +799,7 @@ export default class CardOptimization extends React.Component {
                   <StandardOptions
                     disabled={
                       optimization.status !==
-                      constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+                      SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
                     }
                     optimizationId={optimization.id}
                     lineupType={optimization.lineupType}
@@ -806,7 +814,7 @@ export default class CardOptimization extends React.Component {
                   <CustomOptions
                     disabled={
                       optimization.status !==
-                      constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+                      SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
                     }
                     optimizationId={optimization.id}
                     selectedOptimizerId={optimization.optimizerType}
@@ -826,7 +834,8 @@ export default class CardOptimization extends React.Component {
   renderResultsAccordion(optimization) {
     let resultsStyle = {};
     if (
-      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+      optimization.status ===
+      SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
     ) {
       resultsStyle = { display: 'none' };
     }
@@ -865,7 +874,8 @@ export default class CardOptimization extends React.Component {
           aria-hidden="true"
         >
           <div id="result-accordion-content">
-            {OptimizationResultsHtml.getResultsAsJsx(
+            {console.log('RESULT', JSON.parse(optimization.resultData))}
+            {SharedLib.commonOptimizationResults.getResultsAsJsx(
               optimization.resultData,
               optimization.inputSummaryData
             )}
@@ -883,11 +893,13 @@ export default class CardOptimization extends React.Component {
     let estimatedTime = false;
 
     if (
-      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ||
-      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.ERROR
+      optimization.status ===
+        SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ||
+      optimization.status === SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR
     ) {
       toggleButtonText =
-        optimization.status === constants.OPTIMIZATION_STATUS_ENUM.ERROR
+        optimization.status ===
+        SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR
           ? 'Restart Simulation '
           : 'Start Simulation';
       emailCheckboxDisabled = false;
@@ -895,29 +907,33 @@ export default class CardOptimization extends React.Component {
 
       if (optimization.customOptionsData) {
         let estimatedTimeInSeconds = 0;
-        estimatedTime = `(Estimated Completion Time: ${CommonUtils.secondsToString(
+        estimatedTime = `(Estimated Completion Time: ${SharedLib.commonUtils.secondsToString(
           estimatedTimeInSeconds
         )})`;
       } else {
         estimatedTime = `(Estimated Completion Time: N/A)`;
       }
     } else if (
-      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
       optimization.status ===
-        constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
+        SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
+      optimization.status ===
+        SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
     ) {
       toggleButtonText = 'Pause Simulation';
       emailCheckboxDisabled = false;
       toggleButtonHandler = this.handlePauseClick.bind(this);
     } else if (
-      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.PAUSED
+      optimization.status ===
+      SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSED
     ) {
       toggleButtonText = 'Resume Simulation';
       emailCheckboxDisabled = false;
       toggleButtonHandler = this.handleStartClick.bind(this);
     } else if (
-      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.PAUSING ||
-      optimization.status === constants.OPTIMIZATION_STATUS_ENUM.COMPLETE
+      optimization.status ===
+        SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSING ||
+      optimization.status ===
+        SharedLib.constants.OPTIMIZATION_STATUS_ENUM.COMPLETE
     ) {
       showToggleButton = false;
     }

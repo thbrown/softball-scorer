@@ -32,8 +32,7 @@
         "module-resolver",
         {
           "root": [
-            "./src",
-            "./src-svr"
+            "./src"
           ]
         }
       ],

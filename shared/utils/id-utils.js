@@ -1,7 +1,7 @@
 const baseX = require('base-x');
 const BASE62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const bs62 = baseX(BASE62);
-const buffer = require('buffer/').Buffer;
+const buffer = require('buffer').Buffer;
 
 // Client ids are 14 chars base 62 (e.g. 1CHDaeMNJlrvWW)
 exports.clientIdToServerId = function (clientId, accountId) {

@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 const logger = require('./logger.js');
-const constants = require('../constants.js');
+const SharedLib = require('../shared-lib').default;
 
 var https = require('https');
 
@@ -203,7 +203,7 @@ module.exports = class OptimizationComputeLocal {
     await this.databaseCalls.setOptimizationStatus(
       accountId,
       optimizationId,
-      constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
+      SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
     );
   }
 
@@ -218,7 +218,7 @@ module.exports = class OptimizationComputeLocal {
     await this.databaseCalls.setOptimizationStatus(
       accountId,
       optimizationId,
-      constants.OPTIMIZATION_STATUS_ENUM.PAUSING
+      SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSING
     );
 
     /*
@@ -229,7 +229,7 @@ module.exports = class OptimizationComputeLocal {
         this.databaseCalls.setOptimizationStatus(
           accountId,
           optimizationId,
-          constants.OPTIMIZATION_STATUS_ENUM.PAUSED
+          SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSED
         );
       }.bind(this),
       10000
@@ -261,7 +261,7 @@ module.exports = class OptimizationComputeLocal {
     await this.databaseCalls.setOptimizationStatus(
       accountId,
       optimizationId,
-      constants.OPTIMIZATION_STATUS_ENUM.PAUSED
+      SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSED
     );
   }
 };

@@ -1,8 +1,7 @@
-const objectMerge = require('../object-merge.js');
 const HandledError = require('./handled-error.js');
 
-const idUtils = require('../id-utils.js');
 const logger = require('./logger.js');
+const SharedLib = require('../shared-lib').default;
 
 let databaseCalls = class DatabaseCalls {
   constructor() {
@@ -315,7 +314,7 @@ let databaseCalls = class DatabaseCalls {
       throw new HandledError(accountId, 403, 'Please sign in first');
     }
     logger.log('Attempting to merge', this.STATES[accountId], patch);
-    objectMerge.patch(this.STATES[accountId], patch);
+    SharedLib.objectMerge.patch(this.STATES[accountId], patch);
   }
 
   async signup(email, passwordHash, passwordTokenHash) {
@@ -420,7 +419,7 @@ let databaseCalls = class DatabaseCalls {
     optionalMessage,
     optionalPreviousStatus
   ) {
-    optimizationId = idUtils.serverIdToClientId(optimizationId);
+    optimizationId = SharedLib.idUtils.serverIdToClientId(optimizationId);
     logger.log(
       accountId,
       'setting optimization status',
@@ -454,7 +453,7 @@ let databaseCalls = class DatabaseCalls {
   }
 
   async setOptimizationResultData(accountId, optimizationId, newResults) {
-    optimizationId = idUtils.serverIdToClientId(optimizationId);
+    optimizationId = SharedLib.idUtils.serverIdToClientId(optimizationId);
     logger.log(accountId, 'setting optimization result data', newResults);
     let state = this.STATES[accountId];
     for (let i = 0; i < state.optimizations.length; i++) {
@@ -474,7 +473,7 @@ let databaseCalls = class DatabaseCalls {
   }
 
   async getOptimizationStatus(accountId, optimizationId) {
-    optimizationId = idUtils.serverIdToClientId(optimizationId);
+    optimizationId = SharedLib.idUtils.serverIdToClientId(optimizationId);
     logger.log(accountId, 'getting optimization status');
     let state = this.STATES[accountId];
     for (let i = 0; i < state.optimizations.length; i++) {
@@ -487,7 +486,7 @@ let databaseCalls = class DatabaseCalls {
   }
 
   async getOptimizationResultData(accountId, optimizationId) {
-    optimizationId = idUtils.serverIdToClientId(optimizationId);
+    optimizationId = SharedLib.idUtils.serverIdToClientId(optimizationId);
     logger.log(accountId, 'getting optimization result data');
     let state = this.STATES[accountId];
     for (let i = 0; i < state.optimizations.length; i++) {
@@ -500,7 +499,7 @@ let databaseCalls = class DatabaseCalls {
   }
 
   async getOptimizationDetails(accountId, optimizationId) {
-    optimizationId = idUtils.serverIdToClientId(optimizationId);
+    optimizationId = SharedLib.idUtils.serverIdToClientId(optimizationId);
     logger.log(accountId, 'getting optimization result data');
     let state = this.STATES[accountId];
     for (let i = 0; i < state.optimizations.length; i++) {
@@ -517,7 +516,7 @@ let databaseCalls = class DatabaseCalls {
     optimizationId,
     newExecutionData
   ) {
-    optimizationId = idUtils.serverIdToClientId(optimizationId);
+    optimizationId = SharedLib.idUtils.serverIdToClientId(optimizationId);
     logger.log(
       accountId,
       'setting optimization execution data',
@@ -538,7 +537,7 @@ let databaseCalls = class DatabaseCalls {
   }
 
   async getOptimizationExecutionData(accountId, optimizationId) {
-    optimizationId = idUtils.serverIdToClientId(optimizationId);
+    optimizationId = SharedLib.idUtils.serverIdToClientId(optimizationId);
 
     logger.log(
       accountId,
