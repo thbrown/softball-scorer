@@ -66,7 +66,7 @@ exports.secondsToString = function (seconds) {
   }
   var seconds = seconds % 60;
   if (seconds) {
-    return seconds + ' second' + numberEnding(seconds);
+    return seconds.toFixed(0) + ' second' + numberEnding(seconds);
   }
   return 'less than a second';
 };
@@ -102,4 +102,14 @@ exports.merge = function (array1, array2) {
 
 exports.truncate = function (str, n) {
   return str.length > n ? str.substr(0, n - 1) : str;
+};
+
+// Accepts a Javascript object and orders it's keys alphabetical order
+exports.order = function (unordered) {
+  return Object.keys(unordered)
+    .sort()
+    .reduce((obj, key) => {
+      obj[key] = unordered[key];
+      return obj;
+    }, {});
 };

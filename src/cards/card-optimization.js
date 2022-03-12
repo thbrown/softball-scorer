@@ -8,6 +8,7 @@ import NoSelect from 'elements/no-select';
 import StandardOptions from 'elements/optimizer-standard-options';
 import CustomOptions from 'elements/optimizer-custom-options';
 import network from 'network';
+import Loading from 'elements/loading';
 
 const ACCORDION_QUERY_PARAM_PREFIX = 'acc';
 const SYNC_DELAY_MS = 10000; // This value also exists in the CSS
@@ -18,9 +19,12 @@ export default class CardOptimization extends React.Component {
 
     this.state = {
       optimizerData: undefined,
+      estimatedCompletionTimeSec: undefined,
     };
 
-    this.previousOptimizationState = undefined;
+    this.previousOptimizationStatus = undefined;
+    this.previousOptimizationHash = undefined;
+    this.previousOptimizationString = undefined;
 
     this.pieTimer = React.createRef();
 
@@ -66,35 +70,62 @@ export default class CardOptimization extends React.Component {
     };
 
     this.onRenderUpdateOrMount = function () {
-      // Update Result and Player accordion heights, these is dynamic (thus gets overridden by an !important CSS property on accordion collapse)
+      // Setup
+      let optimization = this.props.optimization;
+
+      // Only request a new completion time estimate if there is a change to the optimization
+      let currentHash = SharedLib.commonUtils.getHash(optimization);
+      if (
+        this.previousOptimizationHash === undefined ||
+        this.previousOptimizationHash !== currentHash
+      ) {
+        ///* // Debug
+        console.log(
+          'RE_ESTIMATE',
+          this.previousOptimizationHash === undefined
+            ? 'undefined'
+            : this.previousOptimizationHash,
+          this.previousOptimizationHash === undefined ? '' : currentHash
+        );
+        console.log(
+          'RE_ESTIMATE deets',
+          this.previousOptimizationString,
+          JSON.stringify(optimization)
+        );
+        this.previousOptimizationHash = currentHash;
+        this.previousOptimizationString = JSON.stringify(optimization);
+
+        //*/
+        this.handleEstimation();
+      } else {
+        console.log('Skipping estimate');
+      }
+
+      // Update Result and Player accordion heights, this is dynamic (thus gets overridden by an !important CSS property on accordion collapse)
       document.getElementById('accordion4').style.maxHeight =
         document.getElementById('result-accordion-content').offsetHeight + 'px';
       document.getElementById('accordion1').style.maxHeight =
         document.getElementById('player-accordion-content').offsetHeight + 'px';
 
       // Frequently perform syncs on this page to check for server updates to the optimization object
-      let optimization = this.props.optimization;
-
       // Only enable/disable auto sync if there is a change of status OR this is the first update
       if (
-        this.previousOptimizationState != undefined &&
-        this.previousOptimizationState == optimization.status
+        this.previousOptimizationStatus === undefined ||
+        this.previousOptimizationStatus !== optimization.status
       ) {
-        return;
-      }
-      this.previousOptimizationState = optimization.status;
-
-      if (
-        optimization.status ===
-          SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
-        optimization.status ===
-          SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES ||
-        optimization.status ===
-          SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSING
-      ) {
-        this.enableAutoSync();
-      } else {
-        this.disableAutoSync();
+        this.previousOptimizationStatus = optimization.status;
+        if (
+          optimization.status ===
+            SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
+          optimization.status ===
+            SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES ||
+          optimization.status ===
+            SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSING
+        ) {
+          this.enableAutoSync();
+        } else {
+          this.disableAutoSync();
+        }
       }
     };
 
@@ -185,6 +216,9 @@ export default class CardOptimization extends React.Component {
     this.handleStartClick = async function () {
       // Don't do anything if optimizerData isn't loaded
       if (!this.state.optimizerData) {
+        dialog.show_notification(
+          `Optimizations can't be run if optimizer data isn't loaded from the network, try again soon`
+        );
         return;
       }
 
@@ -212,8 +246,6 @@ export default class CardOptimization extends React.Component {
           defaultOptions[key] = parsedCustomOptionsData[key];
         }
       }
-
-      //console.log('Final options ', defaultOptions);
       state.setOptimizationField(
         this.props.optimization.id,
         'customOptionsData',
@@ -221,17 +253,16 @@ export default class CardOptimization extends React.Component {
         true
       );
 
-      // Set inputSummaryData, this is used to keep a snapshot of the player's stats at the moment the optimization was started
+      // Set inputSummaryData. For display purposes, keep a snapshot of the player's name and stats at the moment
+      // the optimization was started. This protects us from future stat updates and player deletions.
       const playerIds = JSON.parse(this.props.optimization.playerList);
       const teamIds = JSON.parse(this.props.optimization.teamList);
       const overrideData = JSON.parse(this.props.optimization.overrideData);
-
       const stats = state.getActiveStatsForAllPlayers(
         overrideData,
         playerIds,
         teamIds
       );
-
       state.setOptimizationField(
         this.props.optimization.id,
         'inputSummaryData',
@@ -239,36 +270,7 @@ export default class CardOptimization extends React.Component {
         true
       );
 
-      // To Server
       /*
-
-
-    custom_options_data jsonb,
-  ->input_summary_data jsonb,
-    status smallint,
-    result_data jsonb,
-    status_message text COLLATE pg_catalog."default",
-    team_list jsonb,
-    game_list jsonb,
-    player_list jsonb,
-    lineup_type integer,
-    optimizer_type integer,
-    override_data jsonb,
-
-        {
-          playerIds: [],
-          teamIds: [],
-          gameIds: [],
-          overrideData: { S: [], S: [] }
-          lineupType: #
-          optimizer: #
-          customOptionsData: {}
-        }
-      */
-
-      /*
-
-
       // Filter out any deleted teams or games (since these can get out of sync)
       // TODO: Shouldn't this move to the server side?
       const filteredTeamList = teamIds.filter((teamId) =>
@@ -366,6 +368,123 @@ export default class CardOptimization extends React.Component {
       buttonDiv.classList.remove('disabled');
       buttonDiv.innerHTML = 'Start Simulation';
     }.bind(this);
+
+    let debounce = function (fn, delay) {
+      let timer = 0;
+      let isFetching = false;
+      let controller = new AbortController();
+
+      return function () {
+        // Cancel existing requests and don't send any new ones
+        clearTimeout(timer);
+        console.log('Stopping pending request');
+
+        if (isFetching) {
+          isFetching = false;
+          controller.abort();
+          console.log('Stopping in progress request');
+        }
+        controller = new AbortController();
+
+        timer = setTimeout(() => {
+          console.log('Starting request');
+          isFetching = true;
+          fn(controller);
+        }, delay);
+      };
+    };
+
+    let handleEstimation = async function (controller) {
+      // Don't do anything if optimizerData isn't loaded
+      if (!this.state.optimizerData) {
+        dialog.show_notification(
+          `Optimizations can't be run if optimizer data isn't loaded from the network, try again soon`
+        );
+        return;
+      }
+
+      // Set custom options - Read and prep default optimizer options
+      let optimizer = this.props.optimization.optimizerType;
+      let optimizerOptions = this.state.optimizerData[optimizer].options;
+      let defaultOptions = {};
+      for (let option of optimizerOptions) {
+        if (option.uiVisibility !== 'HIDDEN') {
+          defaultOptions[option.longLabel] = option.defaultValue;
+        }
+      }
+
+      // Set custom options - Delete any options that are undefined, and merge default and supplied options
+      let parsedCustomOptionsData = JSON.parse(
+        this.props.optimization.customOptionsData
+      );
+      for (let key in defaultOptions) {
+        if (parsedCustomOptionsData[key] !== undefined) {
+          defaultOptions[key] = parsedCustomOptionsData[key];
+        }
+      }
+      state.setOptimizationField(
+        this.props.optimization.id,
+        'customOptionsData',
+        defaultOptions,
+        true
+      );
+
+      // Be sure the server has our optimization details before it tries to run the optimization
+      await state.sync();
+
+      let body = JSON.stringify({
+        optimizationId: this.props.optimization.id,
+      });
+      let response = await state.request(
+        'POST',
+        'server/estimate-optimization',
+        body,
+        controller
+      );
+      if (response.status === 204 || response.status === 200) {
+        dialog.show_notification('Sent estimation request.');
+        let responseBody = response.body;
+        console.log('ESTIMATION RESPONSE', response);
+        console.log('ESTIMATION BODY', responseBody);
+        let timeRemaining =
+          responseBody.elapsedTimeMs + responseBody.estimatedTimeRemainingMs;
+        console.log('ESTIMATED TIME REMAINING', timeRemaining);
+        console.log(
+          'ESTIMATED TIME REMAINING',
+          `Approximately ${SharedLib.commonUtils.secondsToString(
+            timeRemaining
+          )} to complete`
+        );
+
+        // Do a sync, since the call succeeded, the server has updated the optimization's status on it's end
+        //await state.sync();
+        //buttonDiv.classList.remove('disabled');
+        // nvmd, we'll just use the data directly since it's just temporary data
+        return;
+      } else if (response.status === 403) {
+        dialog.show_notification(
+          <div>
+            You must be logged in to run a lineup simulation. Please{' '}
+            <a href="/menu/login">Login </a> or{' '}
+            <a href="/menu/signup">Signup</a>.
+          </div>
+        );
+      } else if (response.status === -1) {
+        dialog.show_notification(
+          'The network is offline. Try again when you have an internet connection.'
+        );
+      } else {
+        dialog.show_notification(
+          'Something went wrong. ' +
+            response.status +
+            ' ' +
+            JSON.stringify(response.body)
+        );
+      }
+    }.bind(this);
+
+    // Use the debounced version of the estimation function
+    this.handleEstimation = debounce(handleEstimation, 3000);
   }
 
   componentWillUnmount() {
@@ -468,7 +587,14 @@ export default class CardOptimization extends React.Component {
     }
 
     Promise.all(prom).then((values) => {
-      values = values.map((v) => v.body);
+      values = values.map((v) => v.body).filter((v) => v.length !== 0);
+
+      // No data found, may be offline
+      if (values.length == 0) {
+        return;
+      }
+      console.log('OUTPUT', values, values.length);
+
       // Convert optimizer data array to an object
       let optData = {};
       for (let i = 0; i < values.length; i++) {
@@ -874,7 +1000,6 @@ export default class CardOptimization extends React.Component {
           aria-hidden="true"
         >
           <div id="result-accordion-content">
-            {console.log('RESULT', JSON.parse(optimization.resultData))}
             {SharedLib.commonOptimizationResults.getResultsAsJsx(
               optimization.resultData,
               optimization.inputSummaryData
@@ -905,13 +1030,31 @@ export default class CardOptimization extends React.Component {
       emailCheckboxDisabled = false;
       toggleButtonHandler = this.handleStartClick.bind(this);
 
-      if (optimization.customOptionsData) {
-        let estimatedTimeInSeconds = 0;
-        estimatedTime = `(Estimated Completion Time: ${SharedLib.commonUtils.secondsToString(
-          estimatedTimeInSeconds
-        )})`;
+      if (this.state.estimatedCompletionTimeSec === undefined) {
+        // We have not received the estimate yet, show a spinner
+        estimatedTime = (
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <div>(Estimated Completion Time: </div>
+            <Loading
+              style={{ display: 'inline-block', width: '2%', height: '2%' }}
+            ></Loading>
+            )
+          </div>
+        );
+      } else if (this.state.estimatedCompletionTimeSec === null) {
+        // We received the estimate response, but it was an error
+        estimatedTime = <div>(Estimated Completion Time: -)</div>;
       } else {
-        estimatedTime = `(Estimated Completion Time: N/A)`;
+        // We received the estimate, and it can be displayed
+        estimatedTime = (
+          <div>
+            (Estimated Completion Time: $
+            {SharedLib.commonUtils.secondsToString(
+              this.state.estimatedCompletionTimeSec
+            )}
+            )`
+          </div>
+        );
       }
     } else if (
       optimization.status ===
@@ -948,6 +1091,13 @@ export default class CardOptimization extends React.Component {
           onClick={toggleButtonHandler}
         >
           {toggleButtonText}
+        </div>
+        <div
+          id="estimation-button"
+          className={'edit-button button confirm-button'}
+          onClick={this.handleEstimation}
+        >
+          {'Estimate!'}
         </div>
       </div>
     ) : (

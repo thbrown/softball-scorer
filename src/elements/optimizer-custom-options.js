@@ -113,10 +113,10 @@ export default class OptimizerCustomOptions extends React.Component {
                   <input
                     type="radio"
                     name={value.longLabel}
-                    value="true"
+                    value={true}
                     id={'id-true-' + value.longLabel}
-                    onClick={this.onChangeLiteral(value.longLabel, 'true')}
-                    defaultChecked={currentValue === 'true'}
+                    onClick={this.onChangeLiteral(value.longLabel, true)}
+                    defaultChecked={currentValue === true}
                     disabled={this.props.disabled}
                   />
                   <label htmlFor={'id-true-' + value.longLabel}>True</label>
@@ -125,10 +125,10 @@ export default class OptimizerCustomOptions extends React.Component {
                   <input
                     type="radio"
                     name={value.longLabel}
-                    value="false"
+                    value={false}
                     id={'id-false-' + value.longLabel}
-                    onClick={this.onChangeLiteral(value.longLabel, 'false')}
-                    defaultChecked={currentValue !== 'true'}
+                    onClick={this.onChangeLiteral(value.longLabel, false)}
+                    defaultChecked={currentValue !== true}
                     disabled={this.props.disabled}
                   />
                   <label htmlFor={'id-false-' + value.longLabel}>False</label>

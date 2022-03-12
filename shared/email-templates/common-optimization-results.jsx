@@ -89,19 +89,58 @@ const getResultsAsJsx = function (result, inputSummaryData) {
               ' ' +
               playerStats.battingAverage.padStart(5) +
               ' ' +
-              playerStats.sluggingPercentage}
+              playerStats.sluggingPercentage /*+ 
+              ' ' +
+              playerStats.hits +
+              ' ' +
+              playerStats.atBats +
+              ' ' +
+              playerStats.outs +
+              ' ' +
+              playerStats.directOuts+
+              ' ' +
+              playerStats.FCs +
+              ' ' +
+              playerStats.strikeouts +
+              ' ' +
+              playerStats.reachedOnError +
+              ' ' +
+              playerStats.hits +
+              ' ' + 
+              playerStats.singles+
+              ' ' +
+              playerStats.doubles+
+              ' ' +
+              playerStats.triples+
+              ' ' +
+            playerStats.homeruns*/}
             <br />
+            {console.log((playerStats))}
           </div>
         );
       }
     }
   }
+  /*
+          + StringUtils.formatDecimal(this.hitCount, 3) + " "
+        + StringUtils.formatDecimal(this.atBatCount, 3) + " "
+        + StringUtils.formatDecimal(this.getOutCount(), 3) + " "
+        + StringUtils.formatDecimal(this.directOutCount, 3) + " "
+        + StringUtils.formatDecimal(this.fcCount, 3) + " "
+        + StringUtils.formatDecimal(this.strikeoutCount, 3) + " "
+        + StringUtils.formatDecimal(this.errorCount, 3) + " "
+        + StringUtils.formatDecimal(this.hitCount, 3) + " "
+        + StringUtils.formatDecimal(this.singleCount, 3) + " "
+        + StringUtils.formatDecimal(this.doubleCount, 3) + " "
+        + StringUtils.formatDecimal(this.tripleCount, 3) + " "
+        + StringUtils.formatDecimal(this.homerunCount, 3) + " ";
+        */
 
   return (
     <div id="content">
       <b>Optimal Lineup Score:</b>
       <br />
-      {bestScore}
+      {typeof bestScore === "number" ? bestScore.toFixed(2) + " runs per game" : bestScore}
       <br />
       <br />
       <b>Optimal Lineup:</b>

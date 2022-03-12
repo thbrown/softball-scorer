@@ -93,7 +93,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
 
     if (
       this.props.optimization.status !==
-      sharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+      SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
     ) {
       return DOM.div(
         {

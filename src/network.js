@@ -12,18 +12,17 @@ exp.requestCrossOrigin = async function (method, fullUrl, body) {
   return await requestInternal(method, fullUrl, body);
 };
 
-exp.request = async function (method, url, body) {
+exp.request = async function (method, url, body, controller) {
   url = exp.getServerUrl(url);
-  return await requestInternal(method, url, body);
+  return await requestInternal(method, url, body, controller);
 };
 export const request = exp.request;
 
 exp.getServerUrl = function (path) {
   return window.location.origin + '/' + path;
 };
-export const getServerUrl = exp.getServerUrl;
 
-requestInternal = async function (method, url, body) {
+requestInternal = async function (method, url, body, controller) {
   const response = {};
 
   if ('fetch' in window) {
@@ -39,12 +38,27 @@ requestInternal = async function (method, url, body) {
             'content-type': 'application/json', // TODO: accept gzip?
           },
           body: body,
+          signal: controller?.signal,
         });
         setTimeout(() => resolve(reqResp), NETWORK_DELAY);
       } catch (err) {
-        reject(
-          new Error('Something went wrong during the request: ' + err, err)
-        );
+        if (err.name == 'AbortError') {
+          // Canceled Request (TODO: not sure the best way to handle this yet)
+          alert('Aborted!');
+          resolve(
+            -4
+          ); /*
+          reject(
+            new Error(
+              'Something went wrong during the request (canceled): ' + err,
+              err
+            )
+          );*/
+        } else {
+          reject(
+            new Error('Something went wrong during the request: ' + err, err)
+          );
+        }
       } finally {
         clearTimeout(timeout);
       }
@@ -63,37 +77,7 @@ requestInternal = async function (method, url, body) {
 
     state.setStatusBasedOnHttpResponse(response.status);
   } else {
-    console.log('xhr', new XMLHttpRequest());
-    // TODO: This is untested and probably doesn't work
-    const request = await new Promise(function (resolve, reject) {
-      const xhr = new XMLHttpRequest();
-      xhr.open(method, url, true);
-      xhr.setRequestHeader('Content-type', 'application/json');
-      xhr.onload = function () {
-        if (this.status >= 200 && this.status < 300) {
-          resolve(xhr.response);
-        } else {
-          reject({
-            status: this.status,
-            statusText: xhr.statusText,
-            response: xhr.response,
-          });
-        }
-      };
-      xhr.onerror = function () {
-        reject({
-          status: this.status,
-          statusText: xhr.statusText,
-        });
-      };
-      xhr.send(JSON.stringify(body));
-    });
-    response.status = request.status;
-    if (response.status !== 204) {
-      response.body = request.response;
-    }
-
-    state.setStatusBasedOnHttpResponse(response.status);
+    throw new Error('Unsupported Browser');
   }
   console.log('[NET] Request Complete', url, response.status, response.body);
   return response;

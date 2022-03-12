@@ -16,7 +16,7 @@ const ALL_RESULTS = [
 ];
 const HIT_RESULTS = ['1B', '2B', '3B', 'HRi', 'HRo'];
 const NO_HIT_RESULTS = ['Out', 'E', 'FC', 'K', 'SAC'];
-const NO_AT_BAT_RESULTS = ['BB'];
+const NO_AT_BAT_RESULTS = ['BB', 'SAC'];
 
 exp.getAllResults = function () {
   return ALL_RESULTS;

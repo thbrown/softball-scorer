@@ -1,3 +1,5 @@
+# Note: most of this does not apply anymore. TODO: remove almost everything.
+
 # GCP Compute
 
 This directory contains instructions and a start up script for running optimizations on gcp compute instances. These

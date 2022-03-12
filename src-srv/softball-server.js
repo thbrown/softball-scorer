@@ -681,7 +681,20 @@ module.exports = class SoftballServer {
 
             // We can pass the clean patch to the database to persist
             await this.databaseCalls.patchState(cleanPatch, accountId);
+            let oldHash = SharedLib.commonUtils.getHash(state);
             state = await this.databaseCalls.getState(accountId);
+            logger.log(
+              accountId,
+              'Old',
+              oldHash,
+              'new',
+              SharedLib.commonUtils.getHash(state),
+              JSON.stringify(
+                state.optimizations[state.optimizations.length - 1],
+                null,
+                2
+              ) // [AID] or ADI?
+            );
 
             // Useful for debuging
             /*logger.log(
@@ -696,7 +709,7 @@ module.exports = class SoftballServer {
             logger.log(accountId, 'No updates from client');
           }
 
-          // Calculate the checksum current state
+          // Calculate the checksum of the current state
           state = state || (await this.databaseCalls.getState(accountId));
           let checksum = SharedLib.commonUtils.getHash(state);
 
@@ -718,17 +731,21 @@ module.exports = class SoftballServer {
             );
             logger.log(
               accountId,
-              'Retrieving ancestor'
-              //JSON.stringify(serverAncestor, null, 2)
+              'Retrieving ancestor',
+              JSON.stringify(
+                serverAncestor.optimizations[state.optimizations.length - 1],
+                null,
+                2
+              )
             );
             if (data.type === 'any' && serverAncestor) {
               // Yes we have an ancestor!
               logger.log(accountId, 'performing patch sync w/ ancestor');
 
-              // Apply the client's patch to the ancestor
+              // Apply the client's patch to the ancestor (this prevents us from sending back the change the client just sent us)
               SharedLib.objectMerge.patch(serverAncestor, data.patch, true);
 
-              // Diff the ancestor and the localState (dbState) to get the patch we need to send back to the server
+              // Diff the ancestor and the localState (dbState) to get the patch we need to send back to the client
               let serverPatch = SharedLib.objectMerge.diff(
                 serverAncestor,
                 state
@@ -812,6 +829,7 @@ module.exports = class SoftballServer {
 
         try {
           // This lock is just to make sure we don't get two optimizations running at the same time
+          // TODO: re-evaluate, we can run two at the same time
           await lockAccount(accountId);
 
           // Is there another optimization state IN_PROGRESS (or in ALLOCATING_RESOURCES)
@@ -862,17 +880,13 @@ module.exports = class SoftballServer {
 
           // Build the stats object
           let statsData = await this.databaseCalls.getState(accountId);
+          statsData = processStatsData(statsData, optimization);
+          //logger.log(null, JSON.stringify(statsData, null, 2));
 
-          // Stats object should not include account or optimizer information
-          delete statsData.account;
-          delete statsData.optimizations;
-          logger.log(null, 'PREP STATS DATA');
-
-          // TODO: Add overrides to a new game
-          // TODO: Find and replace player ids that have overrides
           // TODO: Filter options string from selections (is this necessary?)
+          // TODO: Filter overrides that don't apply to a player in the lineup
 
-          // Options for all optimizers
+          // Common options that apply to all optimizers invoked from softball.app
           let standardOptions = {
             '-o': optimization.optimizerType,
             '-t': optimization.lineupType,
@@ -890,11 +904,7 @@ module.exports = class SoftballServer {
             }))
           );
 
-          let softballSimFlags = Object.assign(
-            prefixedCustomOptions,
-            standardOptions
-          );
-          logger.log(accountId, 'Final flags ', softballSimFlags);
+          // Example flags:
           /*
             "-o": "0",
             "-i": "quebec",
@@ -905,35 +915,13 @@ module.exports = class SoftballServer {
             "-f": true,
             "-e": false,
             "PASSWORD": "<your_pwd>",
-            "data": {
+            "data": { ... }
           */
-
-          // Stats object should include overrides as games.
-          /*
-          for (let overridePlayerId in optimization.overrideData) {
-            statsData.teams.push({
-              id: SharedLib.idUtils.serverIdToClientId(uuidv4()),
-              name: 'Overrides',
-              //publicId: 'BhOVxvmOKKs4k91e',
-              //publicIdEnabled: false,
-              games: [
-                {
-                  plateAppearances: optimization.overrideData[overridePlayerId],
-                  id: SharedLib.idUtils.serverIdToClientId(uuidv4()),
-                  opponent: 'Overrides',
-                  date: new Date().getTime(),
-                  //park: '',
-                  lineupType: 0,
-                  scoreUs: 0,
-                  scoreThem: 0,
-                  lineup: [overridePlayerId],
-                },
-              ],
-            });
-          }
-        
-
-          */
+          let softballSimFlags = Object.assign(
+            prefixedCustomOptions,
+            standardOptions
+          );
+          logger.log(accountId, 'Final flags ', softballSimFlags);
 
           // Now we can start the actual optimization
           try {
@@ -1006,6 +994,7 @@ module.exports = class SoftballServer {
                 );
                 setTimeout(monitor, MONITORING_INTERVAL);
               } else {
+                /*
                 logger.log(
                   accountId,
                   'MONITOR: Complete ',
@@ -1015,22 +1004,16 @@ module.exports = class SoftballServer {
                   ],
                   result.status,
                   Object.keys(result)
-                );
+                );*/
 
                 // Send success email!
-                logger.log(
-                  accountId,
-                  'Input data',
-                  optimization.inputSummaryData
-                );
-
                 if (optimization.sendEmail && account.verifiedEmail) {
                   let emailAddress = extractSessionInfo(req, 'email');
                   let email = configAccessor.getEmailService();
                   email.sendMessage(
                     accountId,
                     emailAddress,
-                    `Softball.app Optimization ${optimization.name} has Completed!`,
+                    `Lineup Optimization ${optimization.name} Complete!`,
                     JSON.stringify(result, null, 2),
                     optimizationCompleteEmailHtml(
                       SharedLib.commonOptimizationResults.getResultsAsHtml(
@@ -1120,27 +1103,92 @@ module.exports = class SoftballServer {
         }
 
         let accountId = extractSessionInfo(req, 'accountId');
-        try {
-          // Convert client optimization id to the server one
-          let serverOptimizationId = SharedLib.idUtils.clientIdToServerId(
-            req.body.optimizationId,
-            accountId
-          );
+        logger.log(accountId, `Starting optimization estimate`);
 
-          let response = this.optimizationCompute.estimate(
+        // Convert client optimization id to the server one
+        let serverOptimizationId = SharedLib.idUtils.clientIdToServerId(
+          req.body.optimizationId,
+          accountId
+        );
+
+        let result = {};
+        try {
+          // TODO: do we need this?
+          await lockAccount(accountId);
+
+          //let account = await this.databaseCalls.getAccountById(accountId);
+          let optimization = await this.databaseCalls.getOptimizationDetails(
             accountId,
             serverOptimizationId
           );
 
-          res.status(200).send(response);
-        } catch (error) {
-          logger.log(
-            accountId,
-            'An error occurred while running an optimization estimate',
-            error
+          // Build the stats object
+          let statsData = await this.databaseCalls.getState(accountId);
+
+          statsData = processStatsData(statsData, optimization);
+
+          // TODO: Filter options string from selections (is this necessary?)
+          // TODO: Filter overrides that don't apply to a player in the lineup
+
+          // Common options that apply to all optimizers invoked from softball.app
+          let standardOptions = {
+            '-o': optimization.optimizerType,
+            '-t': optimization.lineupType,
+            '-l': optimization.playerList.join(),
+            '-u': 5000,
+            '-f': true,
+            '-e': true, // estimate enabled
+          };
+
+          // Options for the selected optimizer (prefix with double dash)
+          let prefixedCustomOptions = Object.assign(
+            {},
+            ...Object.keys(optimization.customOptionsData).map((key) => ({
+              ['--' + key]: optimization.customOptionsData[key],
+            }))
           );
+
+          let softballSimFlags = Object.assign(
+            prefixedCustomOptions,
+            standardOptions
+          );
+          logger.log(accountId, 'Final flags est ', softballSimFlags);
+
+          // Now we can start the actual optimization
+          try {
+            // Start the computer that will run the optimization
+            result = await this.optimizationCompute.estimate(
+              accountId,
+              serverOptimizationId,
+              statsData,
+              softballSimFlags
+            );
+          } catch (error) {
+            // Transition status to ERROR
+            logger.error(
+              accountId,
+              serverOptimizationId,
+              'Setting optimization status to error in compute start',
+              error
+            );
+            await this.databaseCalls.setOptimizationStatus(
+              accountId,
+              serverOptimizationId,
+              SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
+              error
+            );
+            throw error;
+          }
+        } catch (error) {
+          logger.log(accountId, 'Error during estimate', error);
           throw error;
+        } finally {
+          // Now unlock the account
+          await unlockAccount(accountId);
         }
+
+        // Return success
+        res.status(200).send(result);
       })
     );
 
@@ -1396,6 +1444,82 @@ module.exports = class SoftballServer {
         logger.error(account.account_id, 'ERROR', e);
         res.status(500).send();
       }
+    }
+
+    /**
+     * Taylor the stats data so that it only contains information we need to run the optimization
+     * This logic needs to be used both by the normal and the estimate optimization runs.
+     */
+    function processStatsData(statsData, optimization) {
+      // Stats object should not include account or optimizer information
+      delete statsData.account;
+      delete statsData.optimizations;
+      logger.log(null, 'PREP STATS DATA');
+
+      // Stats object should not include games from teams that aren't selected
+      let teamIdSet = new Set(optimization.teamList);
+      for (let team of statsData.teams) {
+        if (!teamIdSet.has(team.id)) {
+          statsData.teams = statsData.teams.filter(function (el) {
+            return el.id != team.id;
+          });
+          logger.log(null, 'REMOVING ' + team.name);
+        } else {
+          logger.log(null, 'KEEPING ' + team.name);
+        }
+      }
+
+      // Overrides - Modifying the stats object such that the optimization respects overrides requires two steps:
+      // 1) Hide old PAs: Replace the player id of all the overridden player's plate appearances with a new
+      //    "Ghost" player so they will no longer factor in to the overridden player's stats.
+      // 2) Add new PAs: Any overrides are added as new games where only the overridden player bats
+      for (let overridePlayerId in optimization.overrideData) {
+        // Overrides - Get a new id for the ghost player id
+        let ghostPlayerId = SharedLib.idUtils.serverIdToClientId(uuidv4());
+
+        // Overrides - Insert ghost player - a copy of the player that's being overridden
+        let overriddenPlayer = statsData.players.reduce((prev, curr) => {
+          return curr.id === overridePlayerId ? curr : prev;
+        }, null);
+        let ghostPlayer = JSON.parse(JSON.stringify(overriddenPlayer));
+        ghostPlayer.id = ghostPlayerId;
+        ghostPlayer.name = ghostPlayer.name + ' Ghost'; // Unnecessary but helps show whats going on
+        statsData.players.push(ghostPlayer);
+
+        // Overrides - Attribute all PAs of our overridenPlayer to our new ghost player
+        for (let team of statsData.teams) {
+          for (let game of team.games) {
+            for (let pa of game.plateAppearances) {
+              if (pa.player_id === overridePlayerId) {
+                pa.player_id = ghostPlayerId;
+              }
+            }
+          }
+        }
+
+        // Overrides - Insert new PAs for our overridden player under a new team and game
+        statsData.teams.push({
+          id: SharedLib.idUtils.serverIdToClientId(uuidv4()),
+          name: 'Overrides' + overridePlayerId,
+          //publicId: 'BhOVxvmOKKs4k91e',
+          //publicIdEnabled: false,
+          games: [
+            {
+              plateAppearances: optimization.overrideData[overridePlayerId],
+              id: SharedLib.idUtils.serverIdToClientId(uuidv4()),
+              opponent: 'Overrides ' + overridePlayerId,
+              date: new Date().getTime(),
+              //park: '',
+              lineupType: 0,
+              scoreUs: 0,
+              scoreThem: 0,
+              lineup: [overridePlayerId],
+            },
+          ],
+        });
+      }
+
+      return statsData;
     }
 
     const extractSessionInfo = function (req, field) {

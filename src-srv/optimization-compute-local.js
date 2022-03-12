@@ -5,8 +5,6 @@ const SharedLib = require('../shared-lib').default;
 
 var https = require('https');
 
-const optimizationCompleteEmailHtml = require('./email/optimization-complete-email-html');
-
 const ROOT = __dirname + '/optimizations-temp';
 const STATS_PATH = ROOT + '/stats';
 const RESULTS_PATH = ROOT + '/results';
@@ -106,59 +104,77 @@ module.exports = class OptimizationComputeLocal {
         });
       });
     };
+
+    this.doCommonProcessing = async function (
+      accountId,
+      optimizationId,
+      stats,
+      options
+    ) {
+      // Write to stats file system
+      fs.writeFileSync(
+        STATS_PATH + '/' + optimizationId,
+        JSON.stringify(stats)
+      );
+
+      // Clear any ctrl flags and options files
+      if (fs.existsSync(CTRL_FLAGS + '/' + optimizationId)) {
+        fs.unlinkSync(CTRL_FLAGS + '/' + optimizationId);
+      }
+
+      // Clear any results flags and options files
+      if (fs.existsSync(RESULTS_PATH + '/' + optimizationId)) {
+        fs.unlinkSync(RESULTS_PATH + '/' + optimizationId);
+      }
+
+      // Get the optimization jar if necessary
+      await this.download(
+        'https://github.com/thbrown/softball-sim/releases/download/v1.2/softball-sim.jar',
+        JAR_FILE_PATH
+      );
+
+      // Verify java version
+      let javaVersion = await this.javaversion();
+      logger.log(accountId, 'Java version is ' + javaVersion);
+
+      let versionArray = javaVersion.split('.');
+      if (versionArray[0] < 11) {
+        logger.warn(
+          accountId,
+          `WARNING: installed version of Java (${javaVersion}) may not be compatible with jar build`
+        );
+      }
+
+      // Convert options map to an array of args that can be passed to the cli
+      let optionsArray = [];
+      for (let option in options) {
+        if (options[option] === false) {
+          // Add nothing
+        } else if (options[option] === true) {
+          // Boolean flag, add only the flag
+          optionsArray.push(option);
+        } else {
+          // Value flag, add the flag and the value
+          optionsArray.push(option);
+          optionsArray.push(options[option]);
+        }
+      }
+      return optionsArray;
+    };
   }
 
   async start(accountId, optimizationId, stats, options) {
     // Instruct the compute service to start the optimization
     logger.log(accountId, 'Starting local optimization');
 
-    // Write to stats file system
-    fs.writeFileSync(STATS_PATH + '/' + optimizationId, JSON.stringify(stats));
-
-    // Clear any ctrl flags and options files
-    if (fs.existsSync(CTRL_FLAGS + '/' + optimizationId)) {
-      fs.unlinkSync(CTRL_FLAGS + '/' + optimizationId);
-    }
-
-    // Clear any results flags and options files
-    if (fs.existsSync(RESULTS_PATH + '/' + optimizationId)) {
-      fs.unlinkSync(RESULTS_PATH + '/' + optimizationId);
-    }
-
-    // Get the optimization jar if necessary
-    await this.download(
-      'https://github.com/thbrown/softball-sim/releases/download/v1.2/softball-sim.jar',
-      JAR_FILE_PATH
+    let optionsArray = await this.doCommonProcessing(
+      accountId,
+      optimizationId,
+      stats,
+      options
     );
 
-    // Convert options map to an array of args that can be passed to the cli
-    let optionsArray = [];
-    for (let option in options) {
-      if (options[option] === false) {
-        // Add nothing
-      } else if (options[option] === true) {
-        // Boolean flag, add only the flag
-        optionsArray.push(option);
-      } else {
-        // Value flag, add the flag and the value
-        optionsArray.push(option);
-        optionsArray.push(options[option]);
-      }
-    }
-
-    // Verify java version
-    let javaVersion = await this.javaversion();
-    logger.log(accountId, 'Java version is ' + javaVersion);
-
-    let versionArray = javaVersion.split('.');
-    if (versionArray[0] < 11) {
-      logger.warn(
-        accountId,
-        `WARNING: installed version of Java (${javaVersion}) may not be compatible with jar build`
-      );
-    }
-
-    logger.log(accountId, 'Invoking optimization jar');
+    logger.log(accountId, 'Invoking optimization jar', optionsArray.join(' '));
 
     // Enable file logging for the process we are about to start
     // TODO: why doesn't this work?
@@ -185,7 +201,7 @@ module.exports = class OptimizationComputeLocal {
         RESULTS_PATH + '/' + optimizationId,
       ].concat(optionsArray),
       {
-        // We must 'ignore' output (in particular stdout) or else some buffer will fill up
+        // We must 'ignore' or 'pipe' output (in particular stdout) or else some buffer will fill up
         // and prevent the jvm from writing to stdout during logging. This causes the
         // execution to pause indefinitely, this took forever to figure out
         // https://stackoverflow.com/questions/5843809/system-out-println-eventually-blocks
@@ -193,9 +209,18 @@ module.exports = class OptimizationComputeLocal {
         stdio: ['ignore', 'pipe', 'pipe'],
       }
     );
-    process.stderr.on('data', function (data) {
-      logger.error(accountId, data.toString());
-    });
+    process.stderr.on(
+      'data',
+      async function (data) {
+        logger.error(accountId, data.toString());
+        await this.databaseCalls.setOptimizationStatus(
+          accountId,
+          optimizationId,
+          SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
+          data.toString()
+        );
+      }.bind(this)
+    );
     process.stdout.on('data', function (data) {
       logger.log(accountId, data.toString());
     });
@@ -220,21 +245,6 @@ module.exports = class OptimizationComputeLocal {
       optimizationId,
       SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSING
     );
-
-    /*
-    // FIXME: this is a bit sketchy, what if it fails to terminate? Doesn't matter much for local compute though.
-    // Give it about 10 seconds to terminate then set the status to paused
-    setTimeout(
-      function () {
-        this.databaseCalls.setOptimizationStatus(
-          accountId,
-          optimizationId,
-          SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSED
-        );
-      }.bind(this),
-      10000
-    );
-    */
   }
 
   async query(accountId, optimizationId) {
@@ -250,18 +260,57 @@ module.exports = class OptimizationComputeLocal {
     }
   }
 
-  async estimate(accountId, optimizationId) {
+  async estimate(accountId, optimizationId, stats, options) {
     // Instruct the compute service to start the optimization
-    logger.log(accountId, 'Pausing local optimization');
+    logger.log(accountId, 'Starting local optimization estimate');
 
-    // This works only in node 15?
-    optimizationProcess.abort();
-
-    // Set optimization status to PAUSED
-    await this.databaseCalls.setOptimizationStatus(
+    // Run common stuff
+    let optionsArray = await this.doCommonProcessing(
       accountId,
       optimizationId,
-      SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSED
+      stats,
+      options
     );
+
+    // Start the jar
+    let self = this;
+    return await new Promise((resolve, reject) => {
+      let process = require('child_process').spawn(
+        'java',
+        [
+          '-XX:+HeapDumpOnOutOfMemoryError',
+          '-jar',
+          JAR_FILE_PATH,
+          '-p',
+          STATS_PATH + '/' + optimizationId,
+          '-x',
+          CTRL_FLAGS + '/' + optimizationId,
+          '-z',
+          RESULTS_PATH + '/' + optimizationId,
+        ].concat(optionsArray),
+        {
+          // We must 'ignore' or 'pipe' output (otherwise full buffer will block execution)
+          // stdin, stdout, and stderr
+          stdio: ['ignore', 'ignore', 'pipe'],
+        }
+      );
+
+      process.stderr.on(
+        'data',
+        async function (data) {
+          logger.error(accountId, data.toString());
+        }.bind(this)
+      );
+      /*
+      process.stdout.on('data', function (data) {
+        logger.log(accountId, data.toString());
+      });
+      */
+      process.on('close', function (code) {
+        //Result of the estimate has been written to the file system, read that out and return it
+        let result = self.query(accountId, optimizationId);
+        resolve(result);
+      });
+    });
   }
 };

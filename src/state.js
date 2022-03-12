@@ -104,10 +104,6 @@ exp.syncStateToSyncStateName = function (syncState) {
   return '';
 };
 
-exp.getServerUrl = function (path) {
-  return window.location.href + path;
-};
-
 // HTTP standard status codes plus:
 // -1 network issue
 // -2 failed on fullSync = false
@@ -195,7 +191,7 @@ exp.sync = async function (fullSync) {
       );
       if (ancestorHash !== serverState.checksum) {
         if (fullSync) {
-          // Something went wrong after trying a full sync, we probaly can't do anything about it!
+          // Something went wrong after trying a full sync, we probably can't do anything about it!
           // serverState.base should have contained a verbatium copy of what the server has, so this is weird.
           console.log(
             '[SYNC] Yikes! Something went wrong while attempting full sync'
@@ -533,6 +529,9 @@ exp.setOptimizationField = function (
   const optimization = exp.getOptimization(optimizationId);
   if (isJson) {
     optimization[fieldName] = JSON.stringify(fieldValue);
+    if (fieldName === 'customOptionsData') {
+      console.log('New Options data (whole)', optimization.customOptionsData);
+    }
   } else {
     optimization[fieldName] = fieldValue;
   }
@@ -553,6 +552,7 @@ exp.setOptimizationCustomOptionsDataField = function (
     delete customOptionsData[fieldName];
   }
   optimization.customOptionsData = JSON.stringify(customOptionsData);
+  console.log('New Options data (solo)', optimization.customOptionsData);
   onEdit();
 };
 
@@ -1220,11 +1220,14 @@ exp.buildStatsObject = function (playerId, plateAppearances) {
   stats.singles = 0;
   stats.doubles = 0;
   stats.triples = 0;
-  stats.insideTheParkHR = 0;
-  stats.outsideTheParkHR = 0;
+  stats.insideTheParkHRs = 0;
+  stats.outsideTheParkHRs = 0;
   stats.reachedOnError = 0;
   stats.walks = 0;
-  stats.fieldersChoice = 0;
+  stats.FCs = 0;
+  stats.SACs = 0;
+  stats.strikeouts = 0;
+  stats.directOuts = 0;
 
   plateAppearances.forEach((pa) => {
     if (pa.result) {
@@ -1242,13 +1245,13 @@ exp.buildStatsObject = function (playerId, plateAppearances) {
       } else if (pa.result === 'E') {
         stats.reachedOnError++;
       } else if (pa.result === 'FC') {
-        stats.fieldersChoice++;
-      } else if (
-        pa.result === 'Out' ||
-        pa.result === 'SAC' ||
-        pa.result === 'K'
-      ) {
-        // Intentionally blank
+        stats.FCs++;
+      } else if (pa.result === 'Out') {
+        stats.directOuts++;
+      } else if (pa.result === 'SAC') {
+        stats.SACs++;
+      } else if (pa.result === 'K') {
+        stats.strikeouts++;
       } else if (pa.result === '1B') {
         stats.singles++;
         stats.totalBasesByHit++;
@@ -1259,10 +1262,10 @@ exp.buildStatsObject = function (playerId, plateAppearances) {
         stats.triples++;
         stats.totalBasesByHit += 3;
       } else if (pa.result === 'HRi') {
-        stats.insideTheParkHR++;
+        stats.insideTheParkHRs++;
         stats.totalBasesByHit += 4;
       } else if (pa.result === 'HRo') {
-        stats.outsideTheParkHR++;
+        stats.outsideTheParkHRs++;
         stats.totalBasesByHit += 4;
       } else {
         console.log(
@@ -1289,8 +1292,7 @@ exp.buildStatsObject = function (playerId, plateAppearances) {
 
   // Derived stats
   stats.outs = stats.atBats - stats.hits;
-  stats.singles = stats.singles + stats.walks;
-  stats.homeruns = stats.insideTheParkHR + stats.outsideTheParkHR;
+  stats.homeruns = stats.insideTheParkHRs + stats.outsideTheParkHRs;
 
   return stats;
 };
@@ -1458,9 +1460,9 @@ exp.getPreventScreenLock = function () {
  * Perform a network request, and update the state (online, authentication status, etc...)
  * based on the response
  */
-exp.request = async function (method, url, body) {
+exp.request = async function (method, url, body, controller) {
   try {
-    let response = await network.request(method, url, body);
+    let response = await network.request(method, url, body, controller);
     state.setStatusBasedOnHttpResponse(response.status);
     return response;
   } catch (err) {

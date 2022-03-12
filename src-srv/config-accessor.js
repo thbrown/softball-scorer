@@ -87,7 +87,7 @@ module.exports.getEmailService = function () {
 
   if (config.email && config.email.apiKey && config.email.domain) {
     if (config.email.restrictEmailsToDomain === false) {
-      // If you want to allow emails to be sent outside of the softball.app domain, you must spicifically supply false in the config
+      // If you want to allow emails to be sent outside of the softball.app domain, you must specifically supply false in the config
       email = new EmailMailgun(config.email.apiKey, config.email.domain, false);
     } else if (config.email.restrictEmailsToDomain) {
       email = new EmailMailgun(
@@ -118,15 +118,21 @@ module.exports.getOptimizationComputeService = function (
     return optimizationCompute;
   }
 
-  const computeMode = config.compute ? config.optimizationCompute.mode : null;
+  const computeMode = config.optimizationCompute
+    ? config.optimizationCompute.mode
+    : null;
   if (computeMode === 'local' || !computeMode) {
-    logger.warn(null, 'Warning: running with local optimization compute');
+    logger.warn(
+      null,
+      'Warning: running with local optimization compute ' +
+        config.optimizationCompute.mode
+    );
     optimizationCompute = new OptimizationComputeLocal(
       databaseService,
       emailService
     );
   } else if (computeMode === 'gcp') {
-    const gcpParams = config.compute.params;
+    const gcpParams = config.optimizationCompute.params;
     optimizationCompute = new OptimizationComputeGcp(
       databaseService,
       emailService,
@@ -163,6 +169,7 @@ module.exports.getOptimizerDefinitionUrl = function (optimizerId) {
   let url =
     (config.optimizerGallery && config.optimizerGallery.definitionsUrl) ||
     'https://optimizers.softball.app/definitions';
+  console.log(url);
   return url + '/' + optimizerId + '.json';
 };
 
