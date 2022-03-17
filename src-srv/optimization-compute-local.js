@@ -180,35 +180,35 @@ module.exports = class OptimizationComputeLocal {
     // TODO: why doesn't this work?
     //process.env.APP_WRITE_LOG_TO_FILE = true;
 
+    const argsArray = [
+      '-XX:+HeapDumpOnOutOfMemoryError',
+      // Specify mem usage
+      //"-Xms2048m",
+      //"-Xmx2048m",
+      // For remote debug (prevents running more than 1 optimization at a time because of conflicts on debug port)
+      //'-Xdebug',
+      //'-Xrunjdwp:transport=dt_socket,address=8889,server=y,suspend=n',
+      '-jar',
+      JAR_FILE_PATH,
+      '-p',
+      STATS_PATH + '/' + optimizationId,
+      '-x',
+      CTRL_FLAGS + '/' + optimizationId,
+      '-z',
+      RESULTS_PATH + '/' + optimizationId,
+    ].concat(optionsArray);
+
+    logger.log(accountId, argsArray);
+
     // Start the jar
-    let process = require('child_process').spawn(
-      'java',
-      [
-        '-XX:+HeapDumpOnOutOfMemoryError',
-        // Specify mem usage
-        //"-Xms2048m",
-        //"-Xmx2048m",
-        // For remote debug (prevents running more than 1 optimization at a time because of conflicts on debug port)
-        //'-Xdebug',
-        //'-Xrunjdwp:transport=dt_socket,address=8889,server=y,suspend=n',
-        '-jar',
-        JAR_FILE_PATH,
-        '-p',
-        STATS_PATH + '/' + optimizationId,
-        '-x',
-        CTRL_FLAGS + '/' + optimizationId,
-        '-z',
-        RESULTS_PATH + '/' + optimizationId,
-      ].concat(optionsArray),
-      {
-        // We must 'ignore' or 'pipe' output (in particular stdout) or else some buffer will fill up
-        // and prevent the jvm from writing to stdout during logging. This causes the
-        // execution to pause indefinitely, this took forever to figure out
-        // https://stackoverflow.com/questions/5843809/system-out-println-eventually-blocks
-        // stdin, stdout, and stderr
-        stdio: ['ignore', 'pipe', 'pipe'],
-      }
-    );
+    let process = require('child_process').spawn('java', argsArray, {
+      // We must 'ignore' or 'pipe' output (in particular stdout) or else some buffer will fill up
+      // and prevent the jvm from writing to stdout during logging. This causes the
+      // execution to pause indefinitely, this took forever to figure out
+      // https://stackoverflow.com/questions/5843809/system-out-println-eventually-blocks
+      // stdin, stdout, and stderr
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
     process.stderr.on(
       'data',
       async function (data) {
@@ -272,28 +272,26 @@ module.exports = class OptimizationComputeLocal {
       options
     );
 
+    const argsArray = [
+      '-XX:+HeapDumpOnOutOfMemoryError',
+      '-jar',
+      JAR_FILE_PATH,
+      '-p',
+      STATS_PATH + '/' + optimizationId,
+      '-x',
+      CTRL_FLAGS + '/' + optimizationId,
+      '-z',
+      RESULTS_PATH + '/' + optimizationId,
+    ].concat(optionsArray);
+
     // Start the jar
     let self = this;
     return await new Promise((resolve, reject) => {
-      let process = require('child_process').spawn(
-        'java',
-        [
-          '-XX:+HeapDumpOnOutOfMemoryError',
-          '-jar',
-          JAR_FILE_PATH,
-          '-p',
-          STATS_PATH + '/' + optimizationId,
-          '-x',
-          CTRL_FLAGS + '/' + optimizationId,
-          '-z',
-          RESULTS_PATH + '/' + optimizationId,
-        ].concat(optionsArray),
-        {
-          // We must 'ignore' or 'pipe' output (otherwise full buffer will block execution)
-          // stdin, stdout, and stderr
-          stdio: ['ignore', 'ignore', 'pipe'],
-        }
-      );
+      let process = require('child_process').spawn('java', argsArray, {
+        // We must 'ignore' or 'pipe' output (otherwise full buffer will block execution)
+        // stdin, stdout, and stderr
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
 
       process.stderr.on(
         'data',
@@ -301,11 +299,11 @@ module.exports = class OptimizationComputeLocal {
           logger.error(accountId, data.toString());
         }.bind(this)
       );
-      /*
+
       process.stdout.on('data', function (data) {
         logger.log(accountId, data.toString());
       });
-      */
+
       process.on('close', function (code) {
         //Result of the estimate has been written to the file system, read that out and return it
         let result = self.query(accountId, optimizationId);

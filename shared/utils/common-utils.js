@@ -91,7 +91,7 @@ exports.getObjectString = function (data) {
     coerce: false,
     enc: 'base64',
   });
-  // Don't compute the hash, insted get the string that would be hashed
+  // Don't compute the hash, instead get the string that would be hashed
   return objectHasher.sortObject(data);
 };
 
@@ -102,14 +102,4 @@ exports.merge = function (array1, array2) {
 
 exports.truncate = function (str, n) {
   return str.length > n ? str.substr(0, n - 1) : str;
-};
-
-// Accepts a Javascript object and orders it's keys alphabetical order
-exports.order = function (unordered) {
-  return Object.keys(unordered)
-    .sort()
-    .reduce((obj, key) => {
-      obj[key] = unordered[key];
-      return obj;
-    }, {});
 };

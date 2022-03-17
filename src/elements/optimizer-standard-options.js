@@ -32,6 +32,7 @@ export default class OptimizerStandardOptions extends React.Component {
     }.bind(this);
 
     this.onLineupChange = function (value) {
+      this.props.onChange();
       state.setOptimizationField(
         this.props.optimizationId,
         'lineupType',
@@ -40,6 +41,7 @@ export default class OptimizerStandardOptions extends React.Component {
     }.bind(this);
 
     this.onOptimizerChange = function (newOptimizerId) {
+      this.props.onChange();
       state.setOptimizationField(
         this.props.optimizationId,
         'optimizerType',

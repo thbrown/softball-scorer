@@ -23,13 +23,26 @@ module.exports = class OptimizationComputeLocal {
     options['data'] = stats;
     options['PASSWORD'] = this.configParams.password;
 
-    // Begin the estimate and wait for to finish
-    await got.post(
-      `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-start`,
-      {
-        json: options,
+    try {
+      // Begin the optimizer and wait for to finish
+      await got.post(
+        `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-start`,
+        {
+          json: options,
+        }
+      );
+    } catch (error) {
+      let errorMessage = error?.response?.body;
+      try {
+        errorMessage = errorMessage
+          ? JSON.parse(errorMessage)?.message
+          : 'Unknown Problem';
+        throw new Error(errorMessage);
+      } catch (error) {
+        // Not a json error object for some reason
+        throw new Error(errorMessage);
       }
-    );
+    }
 
     await this.databaseCalls.setOptimizationStatus(
       accountId,
@@ -46,7 +59,7 @@ module.exports = class OptimizationComputeLocal {
     const queryResponse = await got.post(
       `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-pause`,
       {
-        json: { i: optimizationId },
+        json: { i: optimizationId, PASSWORD: this.configParams.password },
       }
     );
 
@@ -67,7 +80,7 @@ module.exports = class OptimizationComputeLocal {
       const queryResponse = await got.post(
         `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-query`,
         {
-          json: { i: optimizationId },
+          json: { i: optimizationId, PASSWORD: this.configParams.password },
         }
       );
       return queryResponse.body;
@@ -88,19 +101,32 @@ module.exports = class OptimizationComputeLocal {
     options['PASSWORD'] = this.configParams.password;
 
     // Begin the estimate and wait for to finish
-    const startResponse = await got.post(
-      `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-start`,
-      {
-        json: options,
+    try {
+      const startResponse = await got.post(
+        `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-start`,
+        {
+          json: options,
+        }
+      );
+      logger.log(
+        accountId,
+        'Estimation Response',
+        startResponse.statusCode,
+        startResponse.body
+      );
+      return startResponse.body;
+    } catch (error) {
+      let errorMessage = error?.response?.body;
+      try {
+        errorMessage = errorMessage
+          ? JSON.parse(errorMessage)?.message
+          : 'Unknown Problem';
+        throw new Error(errorMessage);
+      } catch (error) {
+        // Not a json error object for some reason
+        throw new Error(errorMessage);
       }
-    );
-    logger.log(
-      accountId,
-      'Estimation Response',
-      startResponse.statusCode,
-      startResponse.body
-    );
-    return startResponse.body;
+    }
     /*
     `curl -X POST "https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-query" -N -H "Content-Type:application/json" --data '{"i":"quebec","PASSWORD":"27QQgTVnAX5PzaAAVfdywM9pvSkbb6"}'`
     

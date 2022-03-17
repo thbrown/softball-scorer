@@ -43,8 +43,8 @@ requestInternal = async function (method, url, body, controller) {
         setTimeout(() => resolve(reqResp), NETWORK_DELAY);
       } catch (err) {
         if (err.name == 'AbortError') {
+          console.log('Network request canceled');
           // Canceled Request (TODO: not sure the best way to handle this yet)
-          alert('Aborted!');
           resolve(
             -4
           ); /*
@@ -65,17 +65,19 @@ requestInternal = async function (method, url, body, controller) {
     });
 
     response.status = res.status;
-    if (response.status !== 204) {
+    if (response.status === undefined) {
+      // This can happen if request is canceled via AbortController, just ignore it
+    } else if (response.status !== 204) {
       let data;
       try {
         data = await res.text();
         response.body = data ? JSON.parse(data) : undefined;
       } catch (e) {
-        console.log(e, data);
+        console.log(e, data, response.status, response);
       }
     }
 
-    state.setStatusBasedOnHttpResponse(response.status);
+    state.setStatusBasedOnHttpResponse(response.status); // Can't we remove this to remove circular reference?
   } else {
     throw new Error('Unsupported Browser');
   }

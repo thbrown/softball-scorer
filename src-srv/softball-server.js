@@ -666,8 +666,8 @@ module.exports = class SoftballServer {
           if (data.patch && Object.keys(data.patch).length !== 0) {
             logger.log(
               accountId,
-              'client has updates',
-              JSON.stringify(data.patch, null, 2)
+              'client has updates'
+              //JSON.stringify(data.patch, null, 2)
             );
 
             state = state || (await this.databaseCalls.getState(accountId));
@@ -683,18 +683,6 @@ module.exports = class SoftballServer {
             await this.databaseCalls.patchState(cleanPatch, accountId);
             let oldHash = SharedLib.commonUtils.getHash(state);
             state = await this.databaseCalls.getState(accountId);
-            logger.log(
-              accountId,
-              'Old',
-              oldHash,
-              'new',
-              SharedLib.commonUtils.getHash(state),
-              JSON.stringify(
-                state.optimizations[state.optimizations.length - 1],
-                null,
-                2
-              ) // [AID] or ADI?
-            );
 
             // Useful for debuging
             /*logger.log(
@@ -731,12 +719,12 @@ module.exports = class SoftballServer {
             );
             logger.log(
               accountId,
-              'Retrieving ancestor',
-              JSON.stringify(
+              'Retrieving ancestor'
+              /*JSON.stringify(
                 serverAncestor.optimizations[state.optimizations.length - 1],
                 null,
                 2
-              )
+              )*/
             );
             if (data.type === 'any' && serverAncestor) {
               // Yes we have an ancestor!
@@ -886,13 +874,54 @@ module.exports = class SoftballServer {
           // TODO: Filter options string from selections (is this necessary?)
           // TODO: Filter overrides that don't apply to a player in the lineup
 
+          /*
+      // Filter out any deleted teams or games (since these can get out of sync)
+      // TODO: Shouldn't this move to the server side?
+      const filteredTeamList = teamIds.filter((teamId) =>
+        state.getTeam(teamId)
+      );
+      state.setOptimizationField(
+        this.props.optimization.id,
+        'teamList',
+        filteredTeamList,
+        true
+      );
+
+      const filteredGameList = gameIds.filter((gameId) =>
+        state.getTeam(gameId)
+      );
+      state.setOptimizationField(
+        this.props.optimization.id,
+        'gameList',
+        filteredGameList,
+        true
+      );
+
+      // Filter out any overrides that don't belong to a player in the playerList
+      const overridePlayerIds = Object.keys(overrideData);
+      const filteredOverrides = {};
+      for (let i = 0; i < overridePlayerIds.length; i++) {
+        if (playerIds.includes(overridePlayerIds[i])) {
+          filteredOverrides[overridePlayerIds[i]] =
+            overrideData[overridePlayerIds[i]];
+        }
+      }
+      state.setOptimizationField(
+        this.props.optimization.id,
+        'overrideData',
+        filteredOverrides,
+        true
+      );
+
+      */
+
           // Common options that apply to all optimizers invoked from softball.app
           let standardOptions = {
             '-o': optimization.optimizerType,
             '-t': optimization.lineupType,
             '-l': optimization.playerList.join(),
             '-u': 5000,
-            '-f': true,
+            '-f': req.body.unpause ? false : true,
             '-e': false,
           };
 
@@ -1020,7 +1049,7 @@ module.exports = class SoftballServer {
                         JSON.stringify(result),
                         JSON.stringify(optimization.inputSummaryData)
                       ),
-                      `https://softball.app/optimizations/${req.body.optimizationId}` // We want the client id here
+                      `https://softball.app/optimizations/${req.body.optimizationId}`
                     )
                   );
                   logger.log(accountId, 'Completion Email sent');
@@ -1040,7 +1069,7 @@ module.exports = class SoftballServer {
               accountId,
               serverOptimizationId,
               SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
-              error
+              error.message
             );
             throw error;
           }
@@ -1050,7 +1079,7 @@ module.exports = class SoftballServer {
             accountId,
             serverOptimizationId,
             SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
-            error
+            error.message
           );
           throw error;
         } finally {
@@ -1113,17 +1142,23 @@ module.exports = class SoftballServer {
 
         let result = {};
         try {
-          // TODO: do we need this?
-          await lockAccount(accountId);
+          let statsData = undefined;
+          let optimization = undefined;
+          try {
+            // Lock while we access the db, so we are guaranteed consistent data
+            await lockAccount(accountId);
 
-          //let account = await this.databaseCalls.getAccountById(accountId);
-          let optimization = await this.databaseCalls.getOptimizationDetails(
-            accountId,
-            serverOptimizationId
-          );
+            optimization = await this.databaseCalls.getOptimizationDetails(
+              accountId,
+              serverOptimizationId
+            );
 
-          // Build the stats object
-          let statsData = await this.databaseCalls.getState(accountId);
+            // Build the stats object
+            statsData = await this.databaseCalls.getState(accountId);
+          } finally {
+            // Now unlock the account
+            await unlockAccount(accountId);
+          }
 
           statsData = processStatsData(statsData, optimization);
 
@@ -1154,37 +1189,15 @@ module.exports = class SoftballServer {
           );
           logger.log(accountId, 'Final flags est ', softballSimFlags);
 
-          // Now we can start the actual optimization
-          try {
-            // Start the computer that will run the optimization
-            result = await this.optimizationCompute.estimate(
-              accountId,
-              serverOptimizationId,
-              statsData,
-              softballSimFlags
-            );
-          } catch (error) {
-            // Transition status to ERROR
-            logger.error(
-              accountId,
-              serverOptimizationId,
-              'Setting optimization status to error in compute start',
-              error
-            );
-            await this.databaseCalls.setOptimizationStatus(
-              accountId,
-              serverOptimizationId,
-              SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
-              error
-            );
-            throw error;
-          }
+          // Start the computer that will run the optimization
+          result = await this.optimizationCompute.estimate(
+            accountId,
+            serverOptimizationId,
+            statsData,
+            softballSimFlags
+          );
         } catch (error) {
-          logger.log(accountId, 'Error during estimate', error);
-          throw error;
-        } finally {
-          // Now unlock the account
-          await unlockAccount(accountId);
+          logger.error(accountId, 'Error during estimate', error);
         }
 
         // Return success
@@ -1333,8 +1346,8 @@ module.exports = class SoftballServer {
         res
           .status(500)
           .send({ message: `Internal Server Error. Error id: ${errorId}.` });
-        logger.error(accountId, `SERVER ERROR ${errorId} - ${accountId}`, {
-          message: [error.message],
+        logger.error(accountId, `SERVER ERROR ${errorId}`, {
+          message: error.message,
         });
         logger.error(accountId, `Error`, error);
       }
@@ -1454,7 +1467,6 @@ module.exports = class SoftballServer {
       // Stats object should not include account or optimizer information
       delete statsData.account;
       delete statsData.optimizations;
-      logger.log(null, 'PREP STATS DATA');
 
       // Stats object should not include games from teams that aren't selected
       let teamIdSet = new Set(optimization.teamList);
@@ -1463,9 +1475,6 @@ module.exports = class SoftballServer {
           statsData.teams = statsData.teams.filter(function (el) {
             return el.id != team.id;
           });
-          logger.log(null, 'REMOVING ' + team.name);
-        } else {
-          logger.log(null, 'KEEPING ' + team.name);
         }
       }
 

@@ -115,7 +115,6 @@ const getResultsAsJsx = function (result, inputSummaryData) {
               ' ' +
             playerStats.homeruns*/}
             <br />
-            {console.log((playerStats))}
           </div>
         );
       }

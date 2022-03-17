@@ -11,6 +11,7 @@ export default class OptimizerCustomOptions extends React.Component {
 
     this.onChange = function (longLabel) {
       return function (value) {
+        this.props.onChange();
         state.setOptimizationCustomOptionsDataField(
           this.props.optimizationId,
           longLabel,
@@ -21,6 +22,7 @@ export default class OptimizerCustomOptions extends React.Component {
 
     this.onChangeLiteral = function (longLabel, value) {
       return function () {
+        this.props.onChange();
         state.setOptimizationCustomOptionsDataField(
           this.props.optimizationId,
           longLabel,

@@ -23,8 +23,6 @@ export default class CardOptimization extends React.Component {
     };
 
     this.previousOptimizationStatus = undefined;
-    this.previousOptimizationHash = undefined;
-    this.previousOptimizationString = undefined;
 
     this.pieTimer = React.createRef();
 
@@ -72,34 +70,6 @@ export default class CardOptimization extends React.Component {
     this.onRenderUpdateOrMount = function () {
       // Setup
       let optimization = this.props.optimization;
-
-      // Only request a new completion time estimate if there is a change to the optimization
-      let currentHash = SharedLib.commonUtils.getHash(optimization);
-      if (
-        this.previousOptimizationHash === undefined ||
-        this.previousOptimizationHash !== currentHash
-      ) {
-        ///* // Debug
-        console.log(
-          'RE_ESTIMATE',
-          this.previousOptimizationHash === undefined
-            ? 'undefined'
-            : this.previousOptimizationHash,
-          this.previousOptimizationHash === undefined ? '' : currentHash
-        );
-        console.log(
-          'RE_ESTIMATE deets',
-          this.previousOptimizationString,
-          JSON.stringify(optimization)
-        );
-        this.previousOptimizationHash = currentHash;
-        this.previousOptimizationString = JSON.stringify(optimization);
-
-        //*/
-        this.handleEstimation();
-      } else {
-        console.log('Skipping estimate');
-      }
 
       // Update Result and Player accordion heights, this is dynamic (thus gets overridden by an !important CSS property on accordion collapse)
       document.getElementById('accordion4').style.maxHeight =
@@ -149,6 +119,7 @@ export default class CardOptimization extends React.Component {
           true
         );
       }
+      this.handleEstimation();
     }.bind(this);
 
     this.handleSendEmailCheckbox = function () {
@@ -214,10 +185,12 @@ export default class CardOptimization extends React.Component {
     };
 
     this.handleStartClick = async function () {
+      console.log('START CLICK PRESSED');
+
       // Don't do anything if optimizerData isn't loaded
       if (!this.state.optimizerData) {
         dialog.show_notification(
-          `Optimizations can't be run if optimizer data isn't loaded from the network, try again soon`
+          `Optimizations can't be run if optimizer data isn't loaded from the network, wait a few seconds then try again`
         );
         return;
       }
@@ -270,52 +243,23 @@ export default class CardOptimization extends React.Component {
         true
       );
 
-      /*
-      // Filter out any deleted teams or games (since these can get out of sync)
-      // TODO: Shouldn't this move to the server side?
-      const filteredTeamList = teamIds.filter((teamId) =>
-        state.getTeam(teamId)
-      );
-      state.setOptimizationField(
-        this.props.optimization.id,
-        'teamList',
-        filteredTeamList,
-        true
-      );
-
-      const filteredGameList = gameIds.filter((gameId) =>
-        state.getTeam(gameId)
-      );
-      state.setOptimizationField(
-        this.props.optimization.id,
-        'gameList',
-        filteredGameList,
-        true
-      );
-
-      // Filter out any overrides that don't belong to a player in the playerList
-      const overridePlayerIds = Object.keys(overrideData);
-      const filteredOverrides = {};
-      for (let i = 0; i < overridePlayerIds.length; i++) {
-        if (playerIds.includes(overridePlayerIds[i])) {
-          filteredOverrides[overridePlayerIds[i]] =
-            overrideData[overridePlayerIds[i]];
-        }
-      }
-      state.setOptimizationField(
-        this.props.optimization.id,
-        'overrideData',
-        filteredOverrides,
-        true
-      );
-
-      */
-
       // Be sure the server has our optimization details before it tries to run the optimization
       await state.sync();
 
+      let isUnpause =
+        this.props.optimization.status ===
+        SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSED;
+
+      console.log(
+        'isUnpause',
+        isUnpause,
+        this.props.optimization.status,
+        SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSED
+      );
+
       let body = JSON.stringify({
         optimizationId: this.props.optimization.id,
+        unpause: isUnpause,
       });
       let response = await state.request(
         'POST',
@@ -332,7 +276,7 @@ export default class CardOptimization extends React.Component {
       } else if (response.status === 403) {
         dialog.show_notification(
           <div>
-            You must be logged in to run a lineup simulation. Please{' '}
+            You must be logged in to run a lineup optimization. Please{' '}
             <a href="/menu/login">Login </a> or{' '}
             <a href="/menu/signup">Signup</a>.
           </div>
@@ -369,37 +313,72 @@ export default class CardOptimization extends React.Component {
       buttonDiv.innerHTML = 'Start Simulation';
     }.bind(this);
 
-    let debounce = function (fn, delay) {
+    let estimateDebounce = function (fn, delay) {
       let timer = 0;
       let isFetching = false;
       let controller = new AbortController();
 
-      return function () {
-        // Cancel existing requests and don't send any new ones
-        clearTimeout(timer);
-        console.log('Stopping pending request');
+      return {
+        debounced: function () {
+          // Set the estimation time to undefined
+          this.setState({
+            estimatedCompletionTimeSec: undefined,
+          });
 
-        if (isFetching) {
-          isFetching = false;
-          controller.abort();
-          console.log('Stopping in progress request');
-        }
-        controller = new AbortController();
+          // Cancel existing requests and send a new one
+          clearTimeout(timer);
 
-        timer = setTimeout(() => {
-          console.log('Starting request');
-          isFetching = true;
-          fn(controller);
-        }, delay);
+          if (isFetching) {
+            isFetching = false;
+            controller.abort();
+          }
+          controller = new AbortController();
+
+          timer = setTimeout(() => {
+            isFetching = true;
+            fn(controller);
+          }, delay);
+        }.bind(this),
+        cancel: function () {
+          // Cancel existing requests and don't send any new ones
+          clearTimeout(timer);
+
+          if (isFetching) {
+            isFetching = false;
+            controller.abort();
+          }
+        },
       };
-    };
+    }.bind(this);
 
     let handleEstimation = async function (controller) {
+      // Only request a new completion time estimate if optimization status is NOT_STARTED OR ERROR
+      let optimization = this.props.optimization;
+      if (
+        optimization.status !==
+          SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED &&
+        optimization.status !==
+          SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR
+      ) {
+        this.setState({
+          estimatedCompletionTimeSec: null,
+        });
+        return;
+      }
+
+      // Only request a new completion time estimate if there is at least one player in playerList
+      if (JSON.parse(optimization.playerList).length === 0) {
+        this.setState({
+          estimatedCompletionTimeSec: null,
+        });
+        return;
+      }
+
       // Don't do anything if optimizerData isn't loaded
       if (!this.state.optimizerData) {
-        dialog.show_notification(
-          `Optimizations can't be run if optimizer data isn't loaded from the network, try again soon`
-        );
+        this.setState({
+          estimatedCompletionTimeSec: null,
+        });
         return;
       }
 
@@ -432,6 +411,7 @@ export default class CardOptimization extends React.Component {
       // Be sure the server has our optimization details before it tries to run the optimization
       await state.sync();
 
+      // Now send the actual request
       let body = JSON.stringify({
         optimizationId: this.props.optimization.id,
       });
@@ -441,54 +421,54 @@ export default class CardOptimization extends React.Component {
         body,
         controller
       );
-      if (response.status === 204 || response.status === 200) {
-        dialog.show_notification('Sent estimation request.');
-        let responseBody = response.body;
-        console.log('ESTIMATION RESPONSE', response);
-        console.log('ESTIMATION BODY', responseBody);
-        let timeRemaining =
-          responseBody.elapsedTimeMs + responseBody.estimatedTimeRemainingMs;
-        console.log('ESTIMATED TIME REMAINING', timeRemaining);
-        console.log(
-          'ESTIMATED TIME REMAINING',
-          `Approximately ${SharedLib.commonUtils.secondsToString(
-            timeRemaining
-          )} to complete`
-        );
+      if (response.status === 200) {
+        //dialog.show_notification('Received estimation result.');
+        try {
+          let responseBody = response.body;
+          console.log('ESTIMATION RESPONSE', response);
+          console.log('ESTIMATION BODY', responseBody);
+          let timeRemaining =
+            responseBody.elapsedTimeMs + responseBody.estimatedTimeRemainingMs;
+          console.log('ESTIMATED TIME REMAINING', timeRemaining);
+          console.log(
+            'ESTIMATED TIME REMAINING',
+            `Approximately ${SharedLib.commonUtils.secondsToString(
+              timeRemaining / 1000
+            )} to complete`
+          );
 
-        // Do a sync, since the call succeeded, the server has updated the optimization's status on it's end
-        //await state.sync();
-        //buttonDiv.classList.remove('disabled');
-        // nvmd, we'll just use the data directly since it's just temporary data
-        return;
-      } else if (response.status === 403) {
-        dialog.show_notification(
-          <div>
-            You must be logged in to run a lineup simulation. Please{' '}
-            <a href="/menu/login">Login </a> or{' '}
-            <a href="/menu/signup">Signup</a>.
-          </div>
-        );
-      } else if (response.status === -1) {
-        dialog.show_notification(
-          'The network is offline. Try again when you have an internet connection.'
-        );
+          this.setState({
+            estimatedCompletionTimeSec: timeRemaining / 1000,
+          });
+        } catch (error) {
+          console.log(
+            'Something went wrong while reading estimate response ',
+            error
+          );
+          this.setState({
+            estimatedCompletionTimeSec: null,
+          });
+        }
+      } else if (response.status === undefined) {
+        // This happens when a network request gets canceled, just ignore it
       } else {
-        dialog.show_notification(
-          'Something went wrong. ' +
-            response.status +
-            ' ' +
-            JSON.stringify(response.body)
-        );
+        // We wont report estimation errors to the user, we'll just put them in the logs
+        console.log('Something went wrong with the estimate ', response.status);
+        this.setState({
+          estimatedCompletionTimeSec: null,
+        });
       }
     }.bind(this);
 
     // Use the debounced version of the estimation function
-    this.handleEstimation = debounce(handleEstimation, 3000);
+    let deboucned = estimateDebounce(handleEstimation, 3000);
+    this.handleEstimation = deboucned.debounced;
+    this.cancelHandleEstimation = deboucned.cancel;
   }
 
   componentWillUnmount() {
     this.disableAutoSync();
+    this.cancelHandleEstimation();
   }
 
   componentDidUpdate() {
@@ -497,6 +477,8 @@ export default class CardOptimization extends React.Component {
 
   componentDidMount() {
     this.onRenderUpdateOrMount();
+
+    this.handleEstimation();
 
     this.skipClickDelay = function (e) {
       e.preventDefault();
@@ -593,7 +575,6 @@ export default class CardOptimization extends React.Component {
       if (values.length == 0) {
         return;
       }
-      console.log('OUTPUT', values, values.length);
 
       // Convert optimizer data array to an object
       let optData = {};
@@ -908,7 +889,7 @@ export default class CardOptimization extends React.Component {
                     alt=">"
                     className="chevron"
                   />
-                  <NoSelect>Simulation Options</NoSelect>
+                  <NoSelect>Optimization Options</NoSelect>
                 </div>
               </div>
             </dt>
@@ -931,11 +912,17 @@ export default class CardOptimization extends React.Component {
                     lineupType={optimization.lineupType}
                     selectedOptimizerId={optimization.optimizerType}
                     optimizerData={this.state.optimizerData}
+                    onChange={this.handleEstimation}
                   ></StandardOptions>
                 </fieldset>
                 <fieldset style={{ padding: '5px' }} className="group">
                   <legend className="group-legend" style={{ color: 'black' }}>
-                    Optimizer Parameters
+                    {optimization.optimizerType !== undefined &&
+                    this.state.optimizerData
+                      ? this.state.optimizerData[optimization.optimizerType]
+                          .name
+                      : 'Optimizer'}{' '}
+                    Parameters
                   </legend>
                   <CustomOptions
                     disabled={
@@ -945,6 +932,7 @@ export default class CardOptimization extends React.Component {
                     optimizationId={optimization.id}
                     selectedOptimizerId={optimization.optimizerType}
                     optimizerData={this.state.optimizerData}
+                    onChange={this.handleEstimation}
                   ></CustomOptions>
                 </fieldset>
               </div>
@@ -1025,8 +1013,8 @@ export default class CardOptimization extends React.Component {
       toggleButtonText =
         optimization.status ===
         SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR
-          ? 'Restart Simulation '
-          : 'Start Simulation';
+          ? 'Restart Optimization '
+          : 'Start Optimization';
       emailCheckboxDisabled = false;
       toggleButtonHandler = this.handleStartClick.bind(this);
 
@@ -1036,23 +1024,23 @@ export default class CardOptimization extends React.Component {
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <div>(Estimated Completion Time: </div>
             <Loading
-              style={{ display: 'inline-block', width: '2%', height: '2%' }}
+              style={{ display: 'inline-block', width: '17px', height: '2%' }}
             ></Loading>
             )
           </div>
         );
       } else if (this.state.estimatedCompletionTimeSec === null) {
         // We received the estimate response, but it was an error
-        estimatedTime = <div>(Estimated Completion Time: -)</div>;
+        estimatedTime = <div>(Estimated Completion Time: ⚠)</div>;
       } else {
         // We received the estimate, and it can be displayed
         estimatedTime = (
           <div>
-            (Estimated Completion Time: $
+            (Estimated Completion Time:{' '}
             {SharedLib.commonUtils.secondsToString(
               this.state.estimatedCompletionTimeSec
             )}
-            )`
+            )
           </div>
         );
       }
@@ -1062,14 +1050,14 @@ export default class CardOptimization extends React.Component {
       optimization.status ===
         SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
     ) {
-      toggleButtonText = 'Pause Simulation';
+      toggleButtonText = 'Pause Optimization';
       emailCheckboxDisabled = false;
       toggleButtonHandler = this.handlePauseClick.bind(this);
     } else if (
       optimization.status ===
       SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSED
     ) {
-      toggleButtonText = 'Resume Simulation';
+      toggleButtonText = 'Resume Optimization';
       emailCheckboxDisabled = false;
       toggleButtonHandler = this.handleStartClick.bind(this);
     } else if (
@@ -1091,13 +1079,6 @@ export default class CardOptimization extends React.Component {
           onClick={toggleButtonHandler}
         >
           {toggleButtonText}
-        </div>
-        <div
-          id="estimation-button"
-          className={'edit-button button confirm-button'}
-          onClick={this.handleEstimation}
-        >
-          {'Estimate!'}
         </div>
       </div>
     ) : (

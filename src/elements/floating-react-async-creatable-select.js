@@ -75,7 +75,6 @@ export default class FloatingReactAsyncCreatableSelect extends React.Component {
             this.setState({ active: true });
           }}
           onBlur={() => {
-            console.log('HEY', this.state.value.value);
             if (!this.state.value.value) {
               this.setState({ active: false });
             }

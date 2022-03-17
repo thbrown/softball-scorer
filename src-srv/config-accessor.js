@@ -169,7 +169,6 @@ module.exports.getOptimizerDefinitionUrl = function (optimizerId) {
   let url =
     (config.optimizerGallery && config.optimizerGallery.definitionsUrl) ||
     'https://optimizers.softball.app/definitions';
-  console.log(url);
   return url + '/' + optimizerId + '.json';
 };
 

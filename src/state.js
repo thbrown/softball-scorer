@@ -529,9 +529,6 @@ exp.setOptimizationField = function (
   const optimization = exp.getOptimization(optimizationId);
   if (isJson) {
     optimization[fieldName] = JSON.stringify(fieldValue);
-    if (fieldName === 'customOptionsData') {
-      console.log('New Options data (whole)', optimization.customOptionsData);
-    }
   } else {
     optimization[fieldName] = fieldValue;
   }
@@ -552,7 +549,6 @@ exp.setOptimizationCustomOptionsDataField = function (
     delete customOptionsData[fieldName];
   }
   optimization.customOptionsData = JSON.stringify(customOptionsData);
-  console.log('New Options data (solo)', optimization.customOptionsData);
   onEdit();
 };
 
@@ -1407,7 +1403,7 @@ exp.scheduleSync = function (time = SYNC_DELAY_MS) {
     setSyncState(SYNC_STATUS_ENUM.PENDING);
   }
 
-  // console.log('[SYNC] Sync scheduled');
+  console.log('[SYNC] Sync scheduled');
   clearTimeout(syncTimer);
   syncTimerTimestamp = Date.now();
 
