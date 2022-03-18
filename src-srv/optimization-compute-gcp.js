@@ -85,7 +85,12 @@ module.exports = class OptimizationComputeLocal {
       );
       return queryResponse.body;
     } catch (e) {
-      logger.warn(accountId, 'No result available for ', optimizationId, e);
+      logger.warn(
+        accountId,
+        'No result available for ',
+        optimizationId,
+        e.message
+      );
       return null;
     }
   }
@@ -100,7 +105,7 @@ module.exports = class OptimizationComputeLocal {
     options['data'] = stats;
     options['PASSWORD'] = this.configParams.password;
 
-    // Begin the estimate and wait for to finish
+    // Begin the estimate and wait for it to finish
     try {
       const startResponse = await got.post(
         `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-start`,
@@ -112,9 +117,27 @@ module.exports = class OptimizationComputeLocal {
         accountId,
         'Estimation Response',
         startResponse.statusCode,
-        startResponse.body
+        startResponse.body,
+        options['-o'],
+        SharedLib.constants.OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXHAUSTIVE
       );
-      return startResponse.body;
+
+      let body = JSON.parse(startResponse.body);
+
+      // A bit messy but we'll half the estimate since is came from a compute with half the CPU cores
+      // Only for MONTE_CARLO_EXHAUSTIVE and MONTE_CARLO_ADAPTIVE since MONTE_CARLO_ANNEALING is fixed time
+      if (
+        parseInt(options['-o']) ===
+          SharedLib.constants.OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXHAUSTIVE ||
+        parseInt(options['-o']) ===
+          SharedLib.constants.OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_ADAPTIVE
+      ) {
+        if (startResponse.body) {
+          body.estimatedTimeRemainingMs = body.estimatedTimeRemainingMs / 2;
+        }
+      }
+
+      return JSON.stringify(body);
     } catch (error) {
       let errorMessage = error?.response?.body;
       try {

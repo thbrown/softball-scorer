@@ -250,13 +250,6 @@ export default class CardOptimization extends React.Component {
         this.props.optimization.status ===
         SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSED;
 
-      console.log(
-        'isUnpause',
-        isUnpause,
-        this.props.optimization.status,
-        SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSED
-      );
-
       let body = JSON.stringify({
         optimizationId: this.props.optimization.id,
         unpause: isUnpause,
@@ -427,8 +420,7 @@ export default class CardOptimization extends React.Component {
           let responseBody = response.body;
           console.log('ESTIMATION RESPONSE', response);
           console.log('ESTIMATION BODY', responseBody);
-          let timeRemaining =
-            responseBody.elapsedTimeMs + responseBody.estimatedTimeRemainingMs;
+          let timeRemaining = responseBody.estimatedTimeRemainingMs;
           console.log('ESTIMATED TIME REMAINING', timeRemaining);
           console.log(
             'ESTIMATED TIME REMAINING',

@@ -825,6 +825,7 @@ module.exports = class SoftballServer {
           let inProgressCount = await this.databaseCalls.getNumberOfOptimizationsInProgress(
             accountId
           );
+          // Disabled for now
           if (inProgressCount === -1) {
             res
               .status(400)
@@ -960,6 +961,16 @@ module.exports = class SoftballServer {
               SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
             );
 
+            // Get any existing result
+            let recentHash = SharedLib.commonUtils.getHash(
+              JSON.parse(
+                await this.optimizationCompute.query(
+                  accountId,
+                  serverOptimizationId
+                )
+              )
+            );
+
             // Start the computer that will run the optimization
             await this.optimizationCompute.start(
               accountId,
@@ -968,75 +979,67 @@ module.exports = class SoftballServer {
               softballSimFlags
             );
 
+            const MONITOR_NO_CHANGE_TIMEOUT = 60; // With a 5 sec interval this is 5 minutes
+            let noChangeCounter = 0;
+
             // Retrieve the results of the optimization on an interval, update the db
             let monitor = async function () {
-              // Copy the results into the database
+              // Get the latest optimization result
               let result = JSON.parse(
                 await this.optimizationCompute.query(
                   accountId,
                   serverOptimizationId
                 )
               );
-              logger.log(accountId, 'MONITOR: Got result ');
-              if (result !== null) {
+              let resultHash = SharedLib.commonUtils.getHash(result);
+
+              // Has anything changed?
+              if (resultHash !== recentHash) {
+                logger.log(accountId, 'MONITOR: Got different result ');
+                // Something changed, reset the timeout counter
+                noChangeCounter = 0;
+
+                // TODO: Lock account??
+
+                // Save the new status to the db
+                // TODO: Don't let anything other than PAUSED override PAUSING, it's confusing
+                // The "Pausing" state comes from the client, never from the server
+                //if (
+                //  SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status] ==
+                //  SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSING // This will never be true
+                //) {
+                // Wait how can we find the old result?
+                // Read
+                //}
+
+                // Log
+                logger.log(
+                  accountId,
+                  'Updating optimization result/status',
+                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
+                );
+
+                // Save the new result to the db
                 await this.databaseCalls.setOptimizationResultData(
                   accountId,
                   serverOptimizationId,
                   result
                 );
-                logger.log(
+
+                // Save the status to the db
+                await this.databaseCalls.setOptimizationStatus(
                   accountId,
-                  'Status set ',
+                  serverOptimizationId,
                   SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
                 );
+
+                // Send success email! - if complete
                 if (
-                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
+                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status] ==
+                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM.COMPLETE &&
+                  optimization.sendEmail &&
+                  account.verifiedEmail
                 ) {
-                  // TODO: Don't let IN_PROGRESS override PAUSING
-                  await this.databaseCalls.setOptimizationStatus(
-                    accountId,
-                    serverOptimizationId,
-                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
-                  );
-                }
-                logger.log(
-                  accountId,
-                  'Saving result to db '
-                  //result,
-                  //result.status,
-                  //SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
-                );
-              }
-
-              // Check again in the future if the optimization has not finished
-              if (
-                result === null ||
-                result.status ===
-                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
-                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS
-                  ]
-              ) {
-                logger.log(
-                  accountId,
-                  'MONITOR: Checking again in ',
-                  MONITORING_INTERVAL
-                );
-                setTimeout(monitor, MONITORING_INTERVAL);
-              } else {
-                /*
-                logger.log(
-                  accountId,
-                  'MONITOR: Complete ',
-                  result === null,
-                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
-                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS
-                  ],
-                  result.status,
-                  Object.keys(result)
-                );*/
-
-                // Send success email!
-                if (optimization.sendEmail && account.verifiedEmail) {
                   let emailAddress = extractSessionInfo(req, 'email');
                   let email = configAccessor.getEmailService();
                   email.sendMessage(
@@ -1054,6 +1057,50 @@ module.exports = class SoftballServer {
                   );
                   logger.log(accountId, 'Completion Email sent');
                 }
+              } else {
+                // No changes detected
+                noChangeCounter++;
+              }
+
+              // Don't keep monitoring if we've hit the timeout, transition to error
+              if (noChangeCounter > MONITOR_NO_CHANGE_TIMEOUT) {
+                logger.error(
+                  accountId,
+                  'Monitor Timeout',
+                  MONITOR_NO_CHANGE_TIMEOUT
+                );
+
+                await this.databaseCalls.setOptimizationStatus(
+                  accountId,
+                  serverOptimizationId,
+                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
+                  'Monitor Timeout'
+                );
+                return;
+              }
+
+              // Keep monitoring if status is IN_PROGRESS or if there was no change
+              if (
+                (result != null &&
+                  // Not accounting for ALLOCATING_RESOURCES or PAUSING here since those are assigned by the client and will never come back from the opt result
+                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status] ==
+                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS) ||
+                resultHash === recentHash
+              ) {
+                logger.log(
+                  accountId,
+                  'MONITOR: Checking again in ',
+                  MONITORING_INTERVAL
+                );
+                setTimeout(monitor, MONITORING_INTERVAL);
+              } else {
+                logger.log(
+                  accountId,
+                  'Monitor halting, reached terminal status ',
+                  result.status,
+                  resultHash,
+                  recentHash
+                );
               }
             }.bind(this);
             monitor(accountId, serverOptimizationId);

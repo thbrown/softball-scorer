@@ -20,12 +20,7 @@ const SYNC_STATUS_ENUM = Object.freeze({
   IN_PROGRESS_AND_PENDING: 5,
   UNKNOWN: 6,
 });
-const OPTIMIZATION_TYPE_ENUM = Object.freeze({
-  MONTE_CARLO_EXHAUSTIVE: 0,
-  MONTE_CARLO_ADAPTIVE: 1,
-  MONTE_CARLO_ANNEALING: 2,
-  EXPECTED_VALUE: 3,
-});
+
 exp.LINEUP_TYPE_ENUM = Object.freeze({
   NORMAL: 0,
   ALTERNATING_GENDER: 1,
@@ -696,7 +691,8 @@ exp.addOptimization = function (name) {
     gameList: JSON.stringify([]),
     playerList: JSON.stringify([]),
     lineupType: 1,
-    optimizerType: OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXHAUSTIVE,
+    optimizerType:
+      SharedLib.constants.OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXHAUSTIVE,
     inputSummaryData: JSON.stringify({}),
   };
   new_state.optimizations.push(optimization);

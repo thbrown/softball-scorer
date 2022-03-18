@@ -18,8 +18,9 @@ export default class OptimizerStandardOptions extends React.Component {
             lots of games to try to select the highest scoring one. This can
             take a long time. There are lots of other ways to choose the optimal
             lineup and there often exists a trade off between solution quality
-            vs speed. You can view and select other optimizers by clicking the
-            search icon to the right of the this help button.
+            and optimization execution time. You can view and select other
+            optimizers by clicking the search icon to the right of the this help
+            button.
           </div>
           <div></div>
           <b>{this.selectedOptimizerName}</b>

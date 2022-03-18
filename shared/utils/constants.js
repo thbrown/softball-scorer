@@ -8,6 +8,13 @@ exports.OPTIMIZATION_STATUS_ENUM = Object.freeze({
   PAUSING: 6,
 });
 
+exports.OPTIMIZATION_TYPE_ENUM = Object.freeze({
+  MONTE_CARLO_EXHAUSTIVE: 0,
+  MONTE_CARLO_ADAPTIVE: 1,
+  MONTE_CARLO_ANNEALING: 2,
+  EXPECTED_VALUE: 3,
+});
+
 // Flip enums for reverse lookups
 let optStatuses = Object.keys(exports.OPTIMIZATION_STATUS_ENUM);
 let inverse = {};
