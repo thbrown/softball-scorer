@@ -121,8 +121,11 @@ function mapResultToHitType(result) {
     case 'Out':
     case 'SAC':
     case 'FC':
-    case 'K':
     case 'E':
+    case 'K':
+    case 'Ʞ':
+    case 'DP':
+    case 'TP':
       return 0;
     case '1B':
     case 'BB':

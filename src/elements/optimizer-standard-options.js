@@ -13,13 +13,14 @@ export default class OptimizerStandardOptions extends React.Component {
         <div>
           <b>Optimizers</b>
           <div style={{ margin: '1rem' }}>
-            The optimizer is the algorithm used to select the optimal the
-            batting lineup. By default, the app intelligently selects lineups
-            and simulates millions of games to try to select the highest scoring
-            one. There are lots of other ways to choose the optimal lineup and
-            there often exists a trade off between solution quality vs speed.
-            You can view and select other optimizers by clicking the search icon
-            to the right of the this help button.
+            The optimizer is the algorithm used to select the optimal batting
+            lineup. By default, the app tests all possible lineups and simulates
+            lots of games to try to select the highest scoring one. This can
+            take a long time. There are lots of other ways to choose the optimal
+            lineup and there often exists a trade off between solution quality
+            and optimization execution time. You can view and select other
+            optimizers by clicking the search icon to the right of the this help
+            button.
           </div>
           <div></div>
           <b>{this.selectedOptimizerName}</b>
@@ -28,6 +29,24 @@ export default class OptimizerStandardOptions extends React.Component {
           </div>
         </div>,
         undefined
+      );
+    }.bind(this);
+
+    this.onLineupChange = function (value) {
+      this.props.onChange();
+      state.setOptimizationField(
+        this.props.optimizationId,
+        'lineupType',
+        value
+      );
+    }.bind(this);
+
+    this.onOptimizerChange = function (newOptimizerId) {
+      this.props.onChange();
+      state.setOptimizationField(
+        this.props.optimizationId,
+        'optimizerType',
+        newOptimizerId
       );
     }.bind(this);
 
@@ -40,16 +59,16 @@ export default class OptimizerStandardOptions extends React.Component {
 
   render() {
     // Process info about all available optimizers
-    this.options = {};
+    let optimizerOptions = {};
     for (const id in this.props.optimizerData) {
-      this.options[id] = this.props.optimizerData[id].name;
+      optimizerOptions[id] = this.props.optimizerData[id].name;
     }
 
     // Process info about the selected optimizer
     this.selectedOptimizerName = '';
     this.selectedOptimizerDescription =
       'No optimizer selected. To see a description for a specific optimizer please select one from the drop down menu.';
-    if (this.props.selectedOptimizerId) {
+    if (this.props.optimizerData) {
       let id = this.props.selectedOptimizerId;
       this.selectedOptimizerName = this.props.optimizerData[id].name;
       this.selectedOptimizerDescription = this.props.optimizerData[
@@ -57,7 +76,8 @@ export default class OptimizerStandardOptions extends React.Component {
       ].shortDescription;
     }
 
-    return (
+    // Main content
+    let content = (
       <div className="loading-container">
         <div
           className={`loading ${this.props.optimizerData ? 'gone' : ''}`}
@@ -71,15 +91,15 @@ export default class OptimizerStandardOptions extends React.Component {
             selectId="lineupType"
             label="Lineup Type"
             initialValue={this.props.lineupType}
-            onChange={this.props.onOptionChange}
+            onChange={this.onLineupChange}
             values={{
-              1: 'Normal',
-              2: 'Alternating Gender',
-              3: 'No Consecutive Females',
+              0: 'Normal',
+              1: 'Alternating Gender',
+              2: 'No Consecutive Females',
             }}
             disabled={this.props.disabled}
           />
-          <div className="icon-button" style={{ backgroundColor: 'black' }}>
+          <div className="icon-button">
             <img
               alt="help"
               className="help-icon"
@@ -92,12 +112,12 @@ export default class OptimizerStandardOptions extends React.Component {
           <FloatingSelect
             selectId="optimizer"
             label="Optimizer"
-            initialValue={this.props.optimizer}
-            onChange={this.props.onOptimizerChange}
-            values={this.options}
+            initialValue={this.props.selectedOptimizerId}
+            onChange={this.onOptimizerChange}
+            values={optimizerOptions}
             disabled={this.props.disabled}
           />
-          <div className="icon-button" style={{ backgroundColor: 'black' }}>
+          <div className="icon-button">
             <img
               alt="help"
               className="help-icon"
@@ -108,5 +128,22 @@ export default class OptimizerStandardOptions extends React.Component {
         </div>
       </div>
     );
+
+    // Decide if we should show the loading component or the main content
+    if (!this.props.optimizerData) {
+      // Show the loading page if there is no optimizer data
+      content = (
+        <div style={{ height: '100px' }}>
+          <div className={`loading`}>
+            <div id="loading" style={{ opacity: 0.9, zIndex: 1 }}>
+              <Loading style={{ width: '85px', height: '85px' }}></Loading>
+            </div>
+            <div style={{ height: '103px' }}></div>
+          </div>
+        </div>
+      );
+    }
+
+    return <div class="loading-container">{content}</div>;
   }
 }

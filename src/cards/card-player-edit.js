@@ -266,6 +266,7 @@ export default class CardPlayerEdit extends React.Component {
   }
 
   componentDidMount() {
+    // TODO: can we use defaultChecked instead?
     if (this.state.playerGender === 'F') {
       document.getElementById('femaleGenderChoice').checked = true;
     } else {

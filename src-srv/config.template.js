@@ -47,7 +47,7 @@ module.exports = {
     port: null,
   },
 
-  compute: {
+  optimizationCompute: {
     mode: 'local',
     params: null,
   },

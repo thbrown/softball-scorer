@@ -305,8 +305,17 @@ routes = {
     }
     return (
       <CardPlateAppearance
-        team={team}
-        game={game}
+        remove={function () {
+          state.removePlateAppearance(plateAppearance.id, game.id);
+        }}
+        replace={function (newPa) {
+          state.replacePlateAppearance(
+            plateAppearance.id,
+            game.id,
+            team.id,
+            newPa
+          );
+        }}
         player={player}
         plateAppearance={plateAppearance}
         plateAppearances={plateAppearances}
@@ -451,6 +460,60 @@ routes = {
       <CardOptimizationStatsOverride
         player={player}
         optimization={optimization}
+      />
+    );
+  },
+  [`${ROUTE_PREFIX}/optimizations/:optimizationId/overrides/:playerId/plateAppearances/:plateAppearanceId`]: ({
+    optimizationId,
+    playerId,
+    plateAppearanceId,
+    search: { isNew },
+  }) => {
+    const optimization = state.getOptimization(optimizationId);
+    const player = state.getPlayer(playerId);
+
+    // TODO: getting both a plate appearance and the plate appearances results in unnecessary parsing and un-parsing of json
+    const plateAppearances = state.getParsedOptimizationOverridePlateAppearances(
+      optimizationId,
+      playerId
+    );
+
+    const plateAppearance = state.getParsedOptimizationOverridePlateAppearance(
+      optimizationId,
+      playerId,
+      plateAppearanceId
+    );
+
+    const { valid, errors } = assertStateObjects(
+      optimization,
+      player,
+      plateAppearance
+    );
+    if (!valid) {
+      console.warn(errors);
+      return <CardNotFound />;
+    }
+    return (
+      <CardPlateAppearance
+        remove={function () {
+          state.removeOptimizationOverridePlateAppearance(
+            optimizationId,
+            playerId,
+            plateAppearanceId
+          );
+        }}
+        replace={function (newPa) {
+          state.replaceOptimizationOverridePlateAppearance(
+            optimizationId,
+            playerId,
+            newPa.id,
+            newPa
+          );
+        }}
+        player={player}
+        plateAppearance={plateAppearance}
+        plateAppearances={plateAppearances}
+        isNew={isNew}
       />
     );
   },

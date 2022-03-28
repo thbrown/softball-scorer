@@ -15,7 +15,7 @@ export default class RightHeaderButton extends React.Component {
         }
       }
       if (props.showBlogLink) {
-        window.open('https://blog.softball.app', '_blank');
+        window.open('https://endlesswips.com/softball-app', '_blank');
       } else {
         setRoute('/menu');
       }

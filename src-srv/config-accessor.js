@@ -1,11 +1,12 @@
 const DatabaseCallsPostgres = require('./database-calls-postgres');
 const DatabaseCallsStatic = require('./database-calls-static');
+
 const CacheCallsRedis = require('./cache-calls-redis');
 const CacheCallsLocal = require('./cache-calls-local');
-const ComputeGCP = require('./compute-gcp');
 
-const ComputeLocal = require('./compute-local');
-const ComputeNone = require('./compute-none');
+const OptimizationComputeLocal = require('./optimization-compute-local');
+const OptimizationComputeGcp = require('./optimization-compute-gcp');
+
 const EmailLogOnly = require('./email-log-only');
 const EmailMailgun = require('./email-mailgun');
 
@@ -25,7 +26,7 @@ try {
 let database;
 let cache;
 let email;
-let compute;
+let optimizationCompute;
 
 /**
  * Accessor utility for config values. This is responsible for setting defaults and handling nested json extraction.
@@ -86,7 +87,7 @@ module.exports.getEmailService = function () {
 
   if (config.email && config.email.apiKey && config.email.domain) {
     if (config.email.restrictEmailsToDomain === false) {
-      // If you want to allow emails to be sent outside of the softball.app domain, you must spicifically supply false in the config
+      // If you want to allow emails to be sent outside of the softball.app domain, you must specifically supply false in the config
       email = new EmailMailgun(config.email.apiKey, config.email.domain, false);
     } else if (config.email.restrictEmailsToDomain) {
       email = new EmailMailgun(
@@ -109,27 +110,40 @@ module.exports.getEmailService = function () {
   return email;
 };
 
-module.exports.getComputeService = function () {
-  if (compute) {
-    return compute;
+module.exports.getOptimizationComputeService = function (
+  databaseService,
+  emailService
+) {
+  if (optimizationCompute) {
+    return optimizationCompute;
   }
 
-  const computeMode = config.compute ? config.compute.mode : null;
+  const computeMode = config.optimizationCompute
+    ? config.optimizationCompute.mode
+    : null;
   if (computeMode === 'local' || !computeMode) {
-    logger.warn(null, 'Warning: running with local compute');
-    compute = new ComputeLocal();
-  } else if (computeMode === 'none') {
-    logger.warn(null, 'Warning: running with no-op compute');
-    compute = new ComputeNone();
+    logger.warn(
+      null,
+      'Warning: running with local optimization compute ' +
+        config.optimizationCompute.mode
+    );
+    optimizationCompute = new OptimizationComputeLocal(
+      databaseService,
+      emailService
+    );
   } else if (computeMode === 'gcp') {
-    const gcpParams = config.compute.params;
-    compute = new ComputeGCP(gcpParams);
+    const gcpParams = config.optimizationCompute.params;
+    optimizationCompute = new OptimizationComputeGcp(
+      databaseService,
+      emailService,
+      gcpParams
+    );
   } else {
     throw new Error(
-      `Invalid compute mode specified in src-srv/config.js: ${compute}`
+      `Invalid optimizationCompute mode specified in src-srv/config.js: ${compute}`
     );
   }
-  return compute;
+  return optimizationCompute;
 };
 
 module.exports.getAppServerPort = function () {

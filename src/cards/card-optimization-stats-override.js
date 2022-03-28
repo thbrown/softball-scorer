@@ -1,11 +1,10 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
-import state from 'state';
 import dialog from 'dialog';
-import FloatingInput from 'elements/floating-input';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
-import { goBack } from 'actions/route';
+import state from 'state';
+import Card from 'elements/card';
+import ListButton from 'elements/list-button';
+import { goBack, goHome, setRoute } from 'actions/route';
+import SharedLib from '/../shared-lib';
 
 export default class CardOptimizationStatsOverride extends React.Component {
   constructor(props) {
@@ -13,45 +12,43 @@ export default class CardOptimizationStatsOverride extends React.Component {
 
     this.state = {};
 
-    let parseIntWithDefault = function (toParse, defaultValue) {
-      let parsedInt = parseInt(toParse);
-      return isNaN(parsedInt) ? defaultValue : parsedInt;
-    };
+    this.homeOrBack = function () {};
 
-    let buildOverride = function () {
-      return {
-        outs: parseIntWithDefault(document.getElementById('outs').value, 0),
-        singles: parseIntWithDefault(document.getElementById('1b').value, 0),
-        doubles: parseIntWithDefault(document.getElementById('2b').value, 0),
-        triples: parseIntWithDefault(document.getElementById('3b').value, 0),
-        homeruns: parseIntWithDefault(document.getElementById('hr').value, 0),
-      };
-    };
-
-    this.homeOrBack = function () {
-      let newOverride = buildOverride();
-      let allOverrides = JSON.parse(props.optimization.overrideData);
-      allOverrides[props.player.id] = newOverride;
-      state.setOptimizationField(
-        props.optimization.id,
-        'overrideData',
-        allOverrides,
-        true
+    this.handleNewPaClick = function () {
+      let newPa = state.addOptimizationOverridePlateAppearance(
+        this.props.optimization.id,
+        this.props.player.id
+      );
+      setRoute(
+        `/optimizations/${this.props.optimization.id}/overrides/${this.props.player.id}/plateAppearances/${newPa.id}?isNew=true`
       );
     };
 
-    this.handleConfirmClick = function () {
-      this.homeOrBack();
-      goBack();
-    }.bind(this);
+    this.handleExistingPaClick = function (paId) {
+      setRoute(
+        `/optimizations/${this.props.optimization.id}/overrides/${this.props.player.id}/plateAppearances/${paId}`
+      );
+    };
 
-    this.handleCancelClick = function () {
-      goBack();
+    this.getHelpFunction = function () {
+      return function () {
+        dialog.show_notification(
+          <div>
+            <b style={{ textTransform: 'capitalize' }}>{'PA Overrides'}</b>
+            <div
+              style={{ margin: '1rem' }}
+            >{`You can add additional plate appearances for any player that only
+                  apply to this optimization. This is useful for cases when you have a
+                  player who doesn't have any historical hitting data (such
+                  as a sub).`}</div>
+          </div>
+        );
+      };
     };
 
     this.handleDeleteClick = function () {
       dialog.show_confirm(
-        'Are you sure you want to delete this stat override for player "' +
+        'Are you sure you want to delete all stat overrides for player "' +
           props.player.name +
           '"?',
         () => {
@@ -67,220 +64,133 @@ export default class CardOptimizationStatsOverride extends React.Component {
         }
       );
     };
-
-    this.handleOutsChange = function () {};
-
-    this.handle1BChange = function () {};
-
-    this.handle2BChange = function () {};
-
-    this.handle3BChange = function () {};
-
-    this.handleHrChange = function () {};
   }
 
   componentDidMount() {}
 
-  renderOverridePlayerStats(existingOverride) {
+  renderSaveOptions(overrides) {
+    return (
+      <>
+        {overrides.length <= 0 ? null : (
+          <ListButton id="delete" onClick={this.handleDeleteClick}>
+            <img
+              className="edit-button-icon"
+              src="/server/assets/delete.svg"
+              alt="delete"
+            />
+            <span className="edit-button-icon">Delete All</span>
+          </ListButton>
+        )}
+      </>
+    );
+  }
+
+  renderPage() {
+    // Get the existing override for this player in this optimization (if it exists)
+    let existingOverride = JSON.parse(this.props.optimization.overrideData)[
+      this.props.player.id
+    ];
+
     if (
       this.props.optimization.status !==
-      state.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+      SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
     ) {
       return DOM.div(
         {
           className: 'auth-input-container',
         },
         'This page is only available when optimization status is NOT_STARTED. Status is currently ' +
-          state.OPTIMIZATION_STATUS_ENUM_INVERSE[this.props.optimization.status]
+          constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
+            this.props.optimization.status
+          ]
       );
     } else {
-      return DOM.div(
-        {
-          className: 'auth-input-container',
-        },
-        [
-          React.createElement(FloatingInput, {
-            key: 'outs',
-            inputId: 'outs',
-            label: 'Outs',
-            type: 'number',
-            maxLength: '50',
-            onChange: this.handleOutsChange.bind(this),
-            defaultValue: existingOverride ? existingOverride.outs : undefined,
-          }),
-        ],
-        [
-          React.createElement(FloatingInput, {
-            key: '1b',
-            inputId: '1b',
-            label: '1B',
-            type: 'number',
-            maxLength: '50',
-            onChange: this.handle1BChange.bind(this),
-            defaultValue: existingOverride
-              ? existingOverride.singles
-              : undefined,
-          }),
-        ],
-        [
-          React.createElement(FloatingInput, {
-            key: '2b',
-            inputId: '2b',
-            label: '2B',
-            type: 'number',
-            maxLength: '50',
-            onChange: this.handle2BChange.bind(this),
-            defaultValue: existingOverride
-              ? existingOverride.doubles
-              : undefined,
-          }),
-        ],
-        [
-          React.createElement(FloatingInput, {
-            key: '3b',
-            inputId: '3b',
-            label: '3B',
-            type: 'number',
-            maxLength: '50',
-            onChange: this.handle3BChange.bind(this),
-            defaultValue: existingOverride
-              ? existingOverride.triples
-              : undefined,
-          }),
-        ],
-        [
-          React.createElement(FloatingInput, {
-            key: 'hr',
-            inputId: 'hr',
-            label: 'HR',
-            type: 'number',
-            maxLength: '50',
-            onChange: this.handleHrChange.bind(this),
-            defaultValue: existingOverride
-              ? existingOverride.homeruns
-              : undefined,
-          }),
-        ],
-        this.renderSaveOptions(existingOverride)
+      let overrides = state.getParsedOptimizationOverridePlateAppearances(
+        this.props.optimization.id,
+        this.props.player.id
+      );
+      let paDisplayList = [];
+      for (let pa in overrides) {
+        let paObject = overrides[pa];
+        paDisplayList.push(
+          <div
+            id={'pa-' + paObject.id}
+            key={`box${paObject.id}`}
+            onClick={this.handleExistingPaClick.bind(this, paObject.id)}
+            className="lineup-box"
+          >
+            <span className="no-select">{paObject.result || ''}</span>
+          </div>
+        );
+      }
+      paDisplayList.push(
+        <div
+          id={'newPa'}
+          key={`newPa`}
+          onClick={
+            this.handleNewPaClick.bind(this)
+            /*this.handleNewPlateAppearanceClick.bind(
+        this,
+        player,
+        this.props.game.id,
+        this.props.team.id
+        )*/
+          }
+          className="lineup-box"
+        >
+          <span className="no-select">+</span>
+        </div>
+      );
+
+      return (
+        <div>
+          <div
+            style={{
+              display: 'flex',
+              fontSize: '14pt',
+              padding: '10px 10px 0px 20px',
+            }}
+          >
+            <div>Additional Plate Appearances for {this.props.player.name}</div>
+            <div
+              className="icon-button"
+              style={{
+                backgroundColor: 'black',
+              }}
+            >
+              <img
+                alt="help"
+                className="help-icon"
+                src="/server/assets/help.svg"
+                onClick={this.getHelpFunction()}
+              />
+            </div>
+          </div>
+
+          <div>
+            <div
+              className="plate-appearance-list-container"
+              style={{ padding: '25px', display: 'flex' }}
+            >
+              {paDisplayList}
+            </div>
+          </div>
+          <div></div>
+          <div>{this.renderSaveOptions(overrides)}</div>
+        </div>
       );
     }
-  }
-
-  renderSaveOptions(existingOverride) {
-    // We don't need an isNew prop here because the override doesn't have an id as it can be described (for url purposes)
-    // by a combination of the optimization id and the player id. So we'll just detemine whether or not it's new
-    // based on the data inside the state.
-    let isNew = false;
-    if (existingOverride === undefined) {
-      isNew = true;
-    }
-
-    let buttons = [];
-
-    buttons.push(
-      DOM.div(
-        {
-          key: 'confirm',
-          className: 'edit-button button confirm-button',
-          // TODO - Make this a component and fix the style there with CSS.
-          style: {
-            marginLeft: '0',
-            marginRight: '0',
-          },
-          onClick: this.handleConfirmClick,
-        },
-        DOM.img({
-          className: 'edit-button-icon',
-          src: '/server/assets/check.svg',
-        }),
-        'Save'
-      )
-    );
-
-    buttons.push(
-      DOM.div(
-        {
-          key: 'cancel',
-          className: 'edit-button button cancel-button',
-          // TODO - Make this a component and fix the style there with CSS.
-          style: {
-            marginLeft: '0',
-            marginRight: '0',
-          },
-          onClick: this.handleCancelClick,
-        },
-        DOM.img({
-          className: 'edit-button-icon',
-          src: '/server/assets/cancel.svg',
-        }),
-        'Cancel'
-      )
-    );
-
-    if (!isNew) {
-      buttons.push(
-        DOM.div(
-          {
-            key: 'delete',
-            className: 'edit-button button cancel-button',
-            // TODO - Make this a component and fix the style there with CSS.
-            style: {
-              marginLeft: '0',
-              marginRight: '0',
-            },
-            onClick: this.handleDeleteClick,
-          },
-          DOM.img({
-            className: 'edit-button-icon',
-            src: '/server/assets/delete.svg',
-          }),
-          'Delete'
-        )
-      );
-    }
-
-    return DOM.div(
-      {
-        key: 'saveOptions',
-      },
-      buttons
-    );
   }
 
   render() {
-    // Get the existing override for this player in this optimization (if it exists)
-    let existingOverride = JSON.parse(this.props.optimization.overrideData)[
-      this.props.player.id
-    ];
-
-    return DOM.div(
-      {
-        className: 'card',
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {
-          onPress: this.homeOrBack,
-        }),
-        DOM.div(
-          {
-            className: 'card-title-text-with-arrow',
-          },
-          'Override ' + this.props.player.name
-        ),
-        React.createElement(RightHeaderButton, {
-          onPress: this.homeOrBack,
-        })
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderOverridePlayerStats(existingOverride)
-      )
+    return (
+      <Card
+        title="PA Override"
+        leftHeaderProps={{ onClick: this.homeOrBack('back') }}
+        rightHeaderProps={{ onClick: this.homeOrBack('home') }}
+      >
+        {this.renderPage()}
+      </Card>
     );
   }
 }

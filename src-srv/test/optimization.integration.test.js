@@ -4,7 +4,6 @@
 const logger = require('../logger.js');
 
 const configAccessor = require('../config-accessor.js');
-const OptimizationServer = require('../optimization-server');
 
 describe('optimization', () => {
   let compute;

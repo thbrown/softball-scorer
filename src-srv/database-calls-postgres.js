@@ -1,9 +1,9 @@
 const { Pool } = require('pg');
 
 const HandledError = require('./handled-error.js');
-const idUtils = require('../id-utils.js');
 const logger = require('./logger.js');
 const sqlGen = require('./sql-gen.js');
+const SharedLib = require('../shared-lib').default;
 
 /**
  * This implementation uses postgres db as the persistance layer. Connection info and credentials can be supplied in the server side config.
@@ -56,17 +56,19 @@ module.exports = class DatabaseCalls {
 
     this.processAccount = function (account) {
       if (account.length === 1) {
-        account[0].optimizers = JSON.stringify(account[0].optimizers);
-        return account[0];
+        let outputAccount = {};
+        outputAccount.optimizers = JSON.stringify(account[0].optimizers_list);
+        outputAccount.ballance = account.ballance;
+        return outputAccount;
       } else {
-        logger.log('sys', account);
+        logger.error('sys', account);
         throw new Error('An incorrect number of accounts were returned');
       }
     };
 
     this.processPlayers = function (players) {
       for (let i = 0; i < players.length; i++) {
-        players[i].id = idUtils.serverIdToClientId(players[i].id);
+        players[i].id = SharedLib.idUtils.serverIdToClientId(players[i].id);
         players[i].song_link = players[i].song_link
           ? players[i].song_link
           : null;
@@ -81,15 +83,14 @@ module.exports = class DatabaseCalls {
       let outputOptimizations = [];
       for (let i = 0; i < optimizations.length; i++) {
         outputOptimizations.push({});
-        outputOptimizations[i].id = idUtils.serverIdToClientId(
+        outputOptimizations[i].id = SharedLib.idUtils.serverIdToClientId(
           optimizations[i].id
         );
 
         outputOptimizations[i].name = optimizations[i].name;
-        outputOptimizations[i].type = optimizations[i].type;
-
-        outputOptimizations[i].customData = optimizations[i].custom_data
-          ? JSON.stringify(optimizations[i].custom_data)
+        outputOptimizations[i].customOptionsData = optimizations[i]
+          .custom_options_data
+          ? JSON.stringify(optimizations[i].custom_options_data)
           : '{}';
         outputOptimizations[i].overrideData = optimizations[i].override_data
           ? JSON.stringify(optimizations[i].override_data)
@@ -110,7 +111,11 @@ module.exports = class DatabaseCalls {
           ? JSON.stringify(optimizations[i].player_list)
           : '[]';
         outputOptimizations[i].lineupType = optimizations[i].lineup_type;
-        outputOptimizations[i].optimizer = optimizations[i].optimizer;
+        outputOptimizations[i].optimizerType = optimizations[i].optimizer_type;
+        outputOptimizations[i].inputSummaryData = optimizations[i]
+          .input_summary_data
+          ? JSON.stringify(optimizations[i].input_summary_data)
+          : '{}';
       }
       return outputOptimizations;
     };
@@ -128,9 +133,13 @@ module.exports = class DatabaseCalls {
         ) {
           const newTeam = {};
           newTeam.games = [];
-          newTeam.id = idUtils.serverIdToClientId(plateAppearance.team_id);
+          newTeam.id = SharedLib.idUtils.serverIdToClientId(
+            plateAppearance.team_id
+          );
           newTeam.name = plateAppearance.team_name;
-          newTeam.publicId = idUtils.hexToBase62(plateAppearance.public_id);
+          newTeam.publicId = SharedLib.idUtils.hexToBase62(
+            plateAppearance.public_id
+          );
           newTeam.publicIdEnabled = plateAppearance.public_id_enabled;
           outputTeams.push(newTeam);
           parentIdLookupTable[plateAppearance.team_id] = {};
@@ -150,7 +159,9 @@ module.exports = class DatabaseCalls {
         ) {
           var newGame = {};
           newGame.plateAppearances = [];
-          newGame.id = idUtils.serverIdToClientId(plateAppearance.game_id);
+          newGame.id = SharedLib.idUtils.serverIdToClientId(
+            plateAppearance.game_id
+          );
           newGame.opponent = plateAppearance.game_opponent;
           newGame.date = plateAppearance.game_date;
           newGame.park = plateAppearance.game_park;
@@ -160,7 +171,7 @@ module.exports = class DatabaseCalls {
           if (plateAppearance.lineup) {
             newGame.lineup = plateAppearance.lineup
               .split(',')
-              .map((v) => idUtils.serverIdToClientId(v.trim()));
+              .map((v) => SharedLib.idUtils.serverIdToClientId(v.trim()));
           } else {
             newGame.lineup = [];
           }
@@ -187,10 +198,10 @@ module.exports = class DatabaseCalls {
 
         if (plateAppearance.plate_appearance_id) {
           var newPlateAppearance = {};
-          newPlateAppearance.id = idUtils.serverIdToClientId(
+          newPlateAppearance.id = SharedLib.idUtils.serverIdToClientId(
             plateAppearance.plate_appearance_id
           );
-          newPlateAppearance.player_id = idUtils.serverIdToClientId(
+          newPlateAppearance.player_id = SharedLib.idUtils.serverIdToClientId(
             plateAppearance.player_id
           );
           newPlateAppearance.result = plateAppearance.result;
@@ -313,7 +324,7 @@ module.exports = class DatabaseCalls {
               account = this.parameterizedQueryPromise(
                 `
                 SELECT 
-                  optimizers as optimizers,
+                  optimizers_list as optimizers_list,
                   balance as balance
                 FROM account
                 WHERE account_id = $1
@@ -355,8 +366,7 @@ module.exports = class DatabaseCalls {
                 SELECT 
                   id as id,
                   name as name,
-                  type as type,
-                  custom_data as custom_data,
+                  custom_options_data as custom_options_data,
                   override_data as override_data,
                   status as status,
                   result_data as result_data,
@@ -366,7 +376,8 @@ module.exports = class DatabaseCalls {
                   game_list as game_list,
                   player_list as player_list,
                   lineup_type as lineup_type,
-                  optimizer as optimizer
+                  optimizer_type as optimizer_type,
+                  input_summary_data as input_summary_data
                 FROM optimization
                 WHERE account_id = $1
                 ORDER BY 
@@ -530,11 +541,11 @@ module.exports = class DatabaseCalls {
         // First check to see if the info we need exists in cache, if not look in db
         let cachedPlayersProm = this.cacheService.getCache(
           `acct:${accountId}:players-for-team`,
-          idUtils.serverIdToClientId(teamId)
+          SharedLib.idUtils.serverIdToClientId(teamId)
         );
         let cachedTeamsProm = this.cacheService.getCache(
           `acct:${accountId}:team`,
-          idUtils.serverIdToClientId(teamId)
+          SharedLib.idUtils.serverIdToClientId(teamId)
         );
 
         Promise.all([cachedPlayersProm, cachedTeamsProm]).then(
@@ -638,7 +649,7 @@ module.exports = class DatabaseCalls {
                   this.cacheService.setCache(
                     JSON.stringify(state.players),
                     `acct:${accountId}:players-for-team`,
-                    idUtils.serverIdToClientId(teamId)
+                    SharedLib.idUtils.serverIdToClientId(teamId)
                   );
                 }
 
@@ -648,7 +659,7 @@ module.exports = class DatabaseCalls {
                   this.cacheService.setCache(
                     JSON.stringify(state.teams),
                     `acct:${accountId}:team`,
-                    idUtils.serverIdToClientId(teamId)
+                    SharedLib.idUtils.serverIdToClientId(teamId)
                   );
                 }
 
@@ -693,7 +704,7 @@ module.exports = class DatabaseCalls {
         // Check field length before saving
         for (var j = 0; j < sqlToRun[i].values.length; j++) {
           if (sqlToRun[i].values[j]) {
-            // Default field limit is 50 characters unless otherwise overriden
+            // Default field limit is 50 characters unless otherwise overridden
             if (
               sqlToRun[i].limits !== undefined &&
               sqlToRun[i].limits[j + 1] !== undefined
@@ -709,11 +720,11 @@ module.exports = class DatabaseCalls {
                   )}`
                 );
               }
-            } else if (sqlToRun[i].values[j].length > 50) {
+            } else if (sqlToRun[i].values[j].length > 5000) {
               throw new HandledError(
                 accountId,
                 400,
-                'Field was larger than 50 characters ' +
+                'Field was larger than 5000 characters ' +
                   sqlToRun[i].values[j] +
                   ' -- ' +
                   JSON.stringify(sqlToRun[i])
@@ -765,8 +776,8 @@ module.exports = class DatabaseCalls {
   async signup(email, passwordHash, passwordTokenHash) {
     let result = await this.parameterizedQueryPromise(
       `
-        INSERT INTO account (email, password_hash, password_token_hash, password_token_expiration, status, optimizers, balance)
-        VALUES ($1, $2, $3, now() + interval '1' hour, 'TRIAL', [0], 0)
+        INSERT INTO account (email, password_hash, password_token_hash, password_token_expiration, status, optimizers_list, balance)
+        VALUES ($1, $2, $3, now() + interval '1' hour, 'TRIAL', '[0]', 0)
         RETURNING account_id, email
       `,
       [email, passwordHash, passwordTokenHash]
@@ -775,7 +786,7 @@ module.exports = class DatabaseCalls {
   }
 
   async getAccountFromTokenHash(passwordTokenHash) {
-    logger.log(null, 'Seraching for', passwordTokenHash.trim());
+    logger.log(null, 'Searching for', passwordTokenHash.trim());
     let results = await this.parameterizedQueryPromise(
       `
         SELECT account_id, email, password_hash, verified_email
@@ -789,7 +800,7 @@ module.exports = class DatabaseCalls {
       throw new HandledError(
         'N/A',
         500,
-        `An error occured while retrieving account information`,
+        `An error occurred while retrieving account information`,
         `A strange number of accounts were returned: hash=${passwordTokenHash} rows=${JSON.stringify(
           result.rows,
           null,
@@ -825,7 +836,7 @@ module.exports = class DatabaseCalls {
       throw new HandledError(
         'N/A',
         500,
-        `An error occured while retrieving account details`,
+        `An error occurred while retrieving account details`,
         `A strange number of accounts were returned: email=${email} rows=${JSON.stringify(
           result.rows,
           null,
@@ -851,7 +862,7 @@ module.exports = class DatabaseCalls {
       throw new HandledError(
         'N/A',
         500,
-        `An error occured while retrieving account id information`,
+        `An error occurred while retrieving account id information`,
         `A strange number of accounts were returned: id=${id} rows=${JSON.stringify(
           result.rows,
           null,
@@ -863,7 +874,7 @@ module.exports = class DatabaseCalls {
   }
 
   async getAccountAndTeamByTeamPublicId(publicId) {
-    publicId = idUtils.base62ToHex(publicId);
+    publicId = SharedLib.idUtils.base62ToHex(publicId);
     const result = await this.parameterizedQueryPromise(
       'SELECT account_id, id AS team_id FROM teams WHERE public_id = $1 AND public_id_enabled = true',
       [publicId]
@@ -878,7 +889,7 @@ module.exports = class DatabaseCalls {
       throw new HandledError(
         'N/A',
         500,
-        `An error occured while retrieving team information`,
+        `An error occurred while retrieving team information`,
         `A strange number of teams were returned: public_id=${publicId} rows=${JSON.stringify(
           result.rows,
           null,
@@ -922,15 +933,14 @@ module.exports = class DatabaseCalls {
     );
   }
 
-  // TODO: tie the states that count as 'in progress' to the enum in state.java so we don't have two sources of truth
-  // The states ALLOCATING_RESOURCES, IN_PROGRESS, and PAUSING are considered in progress for this purpose
+  // The states ALLOCATING_RESOURCES, IN_PROGRESS, PAUSING, and PREEMPTED are considered in progress for this purpose
   async getNumberOfOptimizationsInProgress(accountId) {
     logger.log(accountId, 'getting optimization in progress count');
     let result = await this.parameterizedQueryPromise(
       `
       SELECT COUNT(*)
       FROM optimization
-      WHERE account_id = $1 AND status IN (1,2,6);
+      WHERE account_id = $1 AND status IN (1,2,6,7);
       `,
       [accountId]
     );
@@ -940,7 +950,7 @@ module.exports = class DatabaseCalls {
       throw new HandledError(
         accountId,
         500,
-        `An error occured while retrieving optimization information`,
+        `An error occurred while retrieving optimization information`,
         `A strange number of results were returned: accountId=${accountId} rows=${JSON.stringify(
           result.rows,
           null,
@@ -961,7 +971,7 @@ module.exports = class DatabaseCalls {
     logger.log(
       accountId,
       'changing optimization status to ',
-      newStatus,
+      SharedLib.constants.OPTIMIZATION_STATUS_ENUM_INVERSE[newStatus],
       optionalMessage,
       optionalPreviousStatus
     );
@@ -1039,7 +1049,7 @@ module.exports = class DatabaseCalls {
       throw new HandledError(
         accountId,
         500,
-        `An error occured while retrieving optimization status information`,
+        `An error occurred while retrieving optimization status information`,
         `A strange number of optimization result datas were returned: ${optimizationId} rows=${JSON.stringify(
           result.rows,
           null,
@@ -1065,7 +1075,7 @@ module.exports = class DatabaseCalls {
       throw new HandledError(
         accountId,
         500,
-        `An error occured while retrieving optimization result information`,
+        `An error occurred while retrieving optimization result information`,
         `A strange number of optimization result datas were returned: ${optimizationId} rows=${JSON.stringify(
           result.rows,
           null,
@@ -1079,7 +1089,7 @@ module.exports = class DatabaseCalls {
   async getOptimizationDetails(accountId, optimizationId) {
     let result = await this.parameterizedQueryPromise(
       `
-        SELECT name, send_email
+        SELECT name, send_email, optimizer_type, player_list, lineup_type, override_data, optimizer_type, custom_options_data, team_list, input_summary_data
         FROM optimization
         WHERE id = $1 AND account_id = $2
       `,
@@ -1090,13 +1100,20 @@ module.exports = class DatabaseCalls {
       let newObject = {};
       newObject.name = object.name;
       newObject.sendEmail = object.send_email;
+      newObject.playerList = object.player_list;
+      newObject.lineupType = object.lineup_type;
+      newObject.overrideData = object.override_data;
+      newObject.optimizerType = object.optimizer_type;
+      newObject.customOptionsData = object.custom_options_data;
+      newObject.teamList = object.team_list;
+      newObject.inputSummaryData = object.input_summary_data;
       return newObject;
     } else if (result.rowCount !== 0) {
       throw new HandledError(
         accountId,
         500,
-        `An error occured while retrieving optimization detail information`,
-        `A strange number of optimization result datas were returned: ${optimizationId} rows=${JSON.stringify(
+        `An error occurred while retrieving optimization detail information`,
+        `A strange number of optimization result data were returned: ${optimizationId} rows=${JSON.stringify(
           result.rows,
           null,
           2
@@ -1106,6 +1123,7 @@ module.exports = class DatabaseCalls {
     return undefined;
   }
 
+  /*
   async setOptimizationExecutionData(
     accountId,
     optimizationId,
@@ -1122,7 +1140,9 @@ module.exports = class DatabaseCalls {
     // We don't need to invalidate cache here because
     // this information is not used by the client
   }
+  */
 
+  /*
   async getOptimizationExecutionData(accountId, optimizationId) {
     let result = await this.parameterizedQueryPromise(
       `
@@ -1138,7 +1158,7 @@ module.exports = class DatabaseCalls {
       throw new HandledError(
         accountId,
         500,
-        `An error occured while retrieving optimization execution data information`,
+        `An error occurred while retrieving optimization execution data information`,
         `A strange number of optimization execution datas were returned: ${optimizationId} rows=${JSON.stringify(
           result.rows,
           null,
@@ -1148,4 +1168,5 @@ module.exports = class DatabaseCalls {
     }
     return undefined;
   }
+  */
 };

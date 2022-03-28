@@ -1,7 +1,7 @@
 const baseX = require('base-x');
 const BASE62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const bs62 = baseX(BASE62);
-const buffer = require('buffer/').Buffer;
+const buffer = require('buffer').Buffer;
 
 // Client ids are 14 chars base 62 (e.g. 1CHDaeMNJlrvWW)
 exports.clientIdToServerId = function (clientId, accountId) {
@@ -14,7 +14,7 @@ exports.clientIdToServerId = function (clientId, accountId) {
 };
 
 // Server ids are 32 char base 16 and are uuids, the first 8 characters represent the
-// account id of the account this eneity belongs to (e.g. 000000010000d3d7203977664fdb23cf)
+// account id of the account this entity belongs to (e.g. 000000010000d3d7203977664fdb23cf)
 exports.serverIdToClientId = function (serverId) {
   return bs62
     .encode(buffer.from(serverId.replace(/-/g, '').substr(12), 'hex'))

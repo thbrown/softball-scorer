@@ -46,6 +46,7 @@ class CardPlateAppearance extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      resultOptionsPage: 0,
       paResult: props.plateAppearance.result,
       paLocationX: props.plateAppearance.location
         ? props.plateAppearance.location.x
@@ -76,48 +77,45 @@ class CardPlateAppearance extends React.Component {
         // then goes back immediately. This should be cleaned up after we figure out out
         // back button philosophy. This problem also exists on other pages
         // (teams, games, players) but it happens silently so we don't notice
-        state.removePlateAppearance(props.plateAppearance.id, props.game.id);
+        this.props.remove();
       } else {
-        state.replacePlateAppearance(
-          props.plateAppearance.id,
-          props.game.id,
-          props.team.id,
-          newPa
-        );
+        this.props.replace(newPa);
       }
-    };
+    }.bind(this);
 
     this.handleConfirmClick = () => {
       const newPa = buildPlateAppearance();
-      state.replacePlateAppearance(
-        props.plateAppearance.id,
-        props.game.id,
-        props.team.id,
-        newPa
-      );
+      this.props.replace(newPa);
       goBack();
     };
 
     this.handleCancelClick = function () {
       goBack();
       if (props.isNew) {
-        state.removePlateAppearance(props.plateAppearance.id, props.game.id);
+        this.props.remove();
       }
-    };
+    }.bind(this);
 
     this.handleDeleteClick = function () {
       dialog.show_confirm(
         'Are you sure you want to delete this plate appearance?',
         () => {
           goBack();
-          state.removePlateAppearance(props.plateAppearance.id, props.game.id);
+          this.props.remove();
         }
       );
-    };
+    }.bind(this);
 
     this.handleButtonClick = function (result) {
       this.setState({
         paResult: result,
+      });
+    };
+
+    this.handleToggleResultOptions = function () {
+      let update = this.state.resultOptionsPage === 0 ? 1 : 0;
+      this.setState({
+        resultOptionsPage: update,
       });
     };
 
@@ -224,19 +222,19 @@ class CardPlateAppearance extends React.Component {
   }
 
   renderButtonList() {
-    if (
-      !this.props.game ||
-      !this.props.team ||
-      !this.props.player ||
-      !this.props.plateAppearance
-    ) {
+    if (!this.props.player || !this.props.plateAppearance) {
       return DOM.div(
         { className: 'page-error' },
         'PlateAppearance: No game or team or player or PlateAppearance exists.'
       );
     }
 
-    let elems = results.getAllResults().map((result, i) => {
+    let visibleOptions =
+      this.state.resultOptionsPage === 0
+        ? results.getFirstPage()
+        : results.getSecondPage();
+
+    let elems = visibleOptions.map((result, i) => {
       return (
         <div
           id={'result-' + result}
@@ -253,6 +251,18 @@ class CardPlateAppearance extends React.Component {
         </div>
       );
     });
+
+    // Add the '...' button to access different PA results
+    elems.push(
+      <div
+        id={'result-toggle'}
+        key={`result-toggle`}
+        className={this.props.classes.classes.button}
+        onClick={this.handleToggleResultOptions.bind(this)}
+      >
+        <span className="no-select">...</span>
+      </div>
+    );
 
     return (
       <div>

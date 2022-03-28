@@ -6,7 +6,7 @@ const SoftballServer = require('./softball-server');
 const configAccessor = require('./config-accessor');
 const logger = require('./logger.js');
 
-// Log on inturruptions
+// Log on interruptions
 process.on('SIGINT', function () {
   logger.log('sys', 'SIGINT');
   process.exit(0);
@@ -20,13 +20,19 @@ process.on('exit', function () {
 });
 
 // Inject the cache service based on config values
-const cacheCalls = configAccessor.getCacheService();
+const cacheService = configAccessor.getCacheService();
 
 // Inject the database service based on config values
-const databaseCalls = configAccessor.getDatabaseService(cacheCalls);
+const databaseService = configAccessor.getDatabaseService(cacheService);
+
+// Inject the email service based on config values
+const emailService = configAccessor.getEmailService();
 
 // Inject the compute service (for running optimizations)
-const compute = configAccessor.getComputeService();
+const optimizationCompute = configAccessor.getOptimizationComputeService(
+  databaseService,
+  emailService
+);
 
 // Specify the ports
 let appPort = configAccessor.getAppServerPort();
@@ -36,8 +42,8 @@ let optPort = configAccessor.getOptimizationServerPort();
 const softballServer = new SoftballServer(
   appPort,
   optPort,
-  databaseCalls,
-  cacheCalls,
-  compute
+  databaseService,
+  cacheService,
+  optimizationCompute
 );
 softballServer.start();

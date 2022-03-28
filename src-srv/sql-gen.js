@@ -2,8 +2,8 @@
 const stable = require('stable');
 
 const HandledError = require('./handled-error.js');
-const idUtils = require('../id-utils.js');
 const logger = require('./logger.js');
+const SharedLib = require('../shared-lib').default;
 
 /*
  * This class contains the logic for translating the json structure applicationData on client side to sql statements on the server.
@@ -35,14 +35,12 @@ const jsonValueToSqlTableName = {
 
 let jsonValueToSqlColName = {
   // account columns
-  optimizers: 'optimizers',
+  optimizers: 'optimizers_list',
   balance: 'balance',
 
   // optimization columns
-  type: 'type',
-  customData: 'custom_data',
+  customOptionsData: 'custom_options_data',
   overrideData: 'override_data',
-  status: 'status',
   resultData: 'result_data',
   statusMessage: 'statusMessage',
   teamList: 'team_list',
@@ -50,7 +48,8 @@ let jsonValueToSqlColName = {
   gameList: 'game_list',
   sendEmail: 'send_email',
   lineupType: 'lineup_type',
-  optimizer: 'optimizer',
+  optimizerType: 'optimizer_type',
+  inputSummaryData: 'input_summary_data',
 
   // games columns
   date: 'date',
@@ -119,7 +118,6 @@ const JSON_BLOB_MAX_CHARS = 5000;
 const JSON_LIST_MAX_CHARS = 500; // Can hold just under 30 ids (TODO: this is too small for game list [which we haven't implemented yet], and maybe too small for team list [or maybe not? 30 teams is a lot])
 
 let getSqlFromPatch = function (patch, accountId) {
-  logger.log(accountId, 'Converting patch to sql');
   let result = [];
   getSqlFromPatchInternal(patch, [], result, accountId);
 
@@ -207,7 +205,7 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
             query:
               'DELETE FROM players_games WHERE game_id IN (SELECT id FROM games WHERE team_id IN ($1) AND account_id IN ($2)) AND account_id IN ($2)',
             values: [
-              idUtils.clientIdToServerId(value.key, accountId),
+              SharedLib.idUtils.clientIdToServerId(value.key, accountId),
               accountId,
             ],
             order: {
@@ -220,7 +218,7 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
             query:
               'DELETE FROM plate_appearances WHERE team_id IN ($1) AND account_id IN ($2)',
             values: [
-              idUtils.clientIdToServerId(value.key, accountId),
+              SharedLib.idUtils.clientIdToServerId(value.key, accountId),
               accountId,
             ],
             order: {
@@ -233,7 +231,7 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
             query:
               'DELETE FROM games WHERE team_id IN ($1) AND account_id IN ($2)',
             values: [
-              idUtils.clientIdToServerId(value.key, accountId),
+              SharedLib.idUtils.clientIdToServerId(value.key, accountId),
               accountId,
             ],
             order: {
@@ -251,7 +249,7 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
             query:
               'DELETE FROM players_games WHERE game_id IN ($1) AND account_id IN ($2)',
             values: [
-              idUtils.clientIdToServerId(value.key, accountId),
+              SharedLib.idUtils.clientIdToServerId(value.key, accountId),
               accountId,
             ],
             order: {
@@ -268,7 +266,7 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
             query:
               'DELETE FROM plate_appearances WHERE game_id IN ($1) AND account_id IN ($2)',
             values: [
-              idUtils.clientIdToServerId(value.key, accountId),
+              SharedLib.idUtils.clientIdToServerId(value.key, accountId),
               accountId,
             ],
             order: {
@@ -295,8 +293,8 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
             query:
               'UPDATE players_games SET lineup_index = lineup_index - 1 WHERE lineup_index >= (SELECT lineup_index FROM players_games WHERE game_id = $2 AND player_id = $1 AND account_id = $3) AND game_id = $2 AND account_id = $3',
             values: [
-              idUtils.clientIdToServerId(value.key, accountId),
-              idUtils.clientIdToServerId(
+              SharedLib.idUtils.clientIdToServerId(value.key, accountId),
+              SharedLib.idUtils.clientIdToServerId(
                 getIdFromPath(path, 'games'),
                 accountId
               ),
@@ -312,8 +310,8 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
             query:
               'DELETE FROM players_games WHERE player_id IN ($1) AND game_id IN ($2) AND account_id IN ($3)',
             values: [
-              idUtils.clientIdToServerId(value.key, accountId),
-              idUtils.clientIdToServerId(
+              SharedLib.idUtils.clientIdToServerId(value.key, accountId),
+              SharedLib.idUtils.clientIdToServerId(
                 getIdFromPath(path, 'games'),
                 accountId
               ),
@@ -337,7 +335,7 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
               applicableTable + // Sanitized, this value must be on the hard coded list of tables in this class
               ' WHERE id IN ($1) AND account_id IN ($2)',
             values: [
-              idUtils.clientIdToServerId(value.key, accountId),
+              SharedLib.idUtils.clientIdToServerId(value.key, accountId),
               accountId,
             ],
             order: {
@@ -394,7 +392,10 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
          */
         let reOrderQuery = `UPDATE players_games AS pg SET lineup_index = c.lineup_index FROM (values`;
         let values = [
-          idUtils.clientIdToServerId(getIdFromPath(path, 'games'), accountId),
+          SharedLib.idUtils.clientIdToServerId(
+            getIdFromPath(path, 'games'),
+            accountId
+          ),
           accountId,
         ];
         for (let entry = 0; entry < oldOrder.length; entry++) {
@@ -406,8 +407,12 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
           if (entry !== oldOrder.length - 1) {
             reOrderQuery += ',';
           }
-          values.push(idUtils.clientIdToServerId(newOrder[entry], accountId));
-          values.push(idUtils.clientIdToServerId(oldOrder[entry], accountId));
+          values.push(
+            SharedLib.idUtils.clientIdToServerId(newOrder[entry], accountId)
+          );
+          values.push(
+            SharedLib.idUtils.clientIdToServerId(oldOrder[entry], accountId)
+          );
         }
         reOrderQuery += `) AS c(game_id, player_id, lineup_index) WHERE uuid(c.player_id) = pg.player_id AND uuid(c.game_id) = pg.game_id AND account_id = $2;`;
 
@@ -431,7 +436,10 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
               'UPDATE games SET date = to_timestamp($1) WHERE id IN ($2) AND account_id IN ($3);',
             values: [
               value.param2,
-              idUtils.clientIdToServerId(getIdFromPath(path), accountId),
+              SharedLib.idUtils.clientIdToServerId(
+                getIdFromPath(path),
+                accountId
+              ),
               accountId,
             ],
             order: {
@@ -449,8 +457,11 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
             query:
               'UPDATE plate_appearances SET player_id = $1 WHERE id IN ($2) AND account_id IN ($3);',
             values: [
-              idUtils.clientIdToServerId(value.param2, accountId),
-              idUtils.clientIdToServerId(getIdFromPath(path), accountId),
+              SharedLib.idUtils.clientIdToServerId(value.param2, accountId),
+              SharedLib.idUtils.clientIdToServerId(
+                getIdFromPath(path),
+                accountId
+              ),
               accountId,
             ],
             order: {
@@ -466,7 +477,7 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
         } else if (applicableTable === 'account') {
           // Special case: changes to the account table can be done directly
           let limit = undefined; // default limit is 50 chars
-          if (columnName === 'optimizers') {
+          if (columnName === 'optimizer_list') {
             limit = JSON_LIST_MAX_CHARS;
           }
 
@@ -488,10 +499,10 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
         } else {
           let limit = undefined; // defaults to 50 chars
 
-          // customData, snapshtotData, teams, games, players, and results fields on the optimization table contain potentially longer stringified JSON
+          // customOptionsData, teams, games, players, and results fields on the optimization table contain potentially longer stringified JSON
           if (applicableTable === 'optimization') {
             if (
-              columnName === 'custom_data' ||
+              columnName === 'custom_options_data' ||
               columnName === 'override_data' ||
               columnName === 'result_data'
             ) {
@@ -500,7 +511,7 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
               columnName === 'team_list' ||
               columnName === 'game_list' ||
               columnName === 'player_list' ||
-              columnName === 'optimizers'
+              columnName === 'optimizers_list'
             ) {
               limit = JSON_LIST_MAX_CHARS;
             }
@@ -516,7 +527,10 @@ let getSqlFromPatchInternal = function (patch, path, result, accountId) {
               ' = $1 WHERE id IN ($2) AND account_id IN ($3);',
             values: [
               value.param2,
-              idUtils.clientIdToServerId(getIdFromPath(path), accountId),
+              SharedLib.idUtils.clientIdToServerId(
+                getIdFromPath(path),
+                accountId
+              ),
               accountId,
             ],
             limits: {
@@ -576,7 +590,7 @@ let printInsertStatementsFromPatch = function (
       query:
         'INSERT INTO players (id, name, gender, song_link, song_start, account_id) VALUES($1, $2, $3, $4, $5, $6)',
       values: [
-        idUtils.clientIdToServerId(obj.players.id, accountId),
+        SharedLib.idUtils.clientIdToServerId(obj.players.id, accountId),
         obj.players.name,
         obj.players.gender,
         obj.players.song_link,
@@ -602,12 +616,11 @@ let printInsertStatementsFromPatch = function (
     }
     result.push({
       query:
-        'INSERT INTO optimization (id, name, type, custom_data, override_data, status, result_data, status_message, send_email, team_list, game_list, player_list, lineup_type, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)',
+        'INSERT INTO optimization (id, name, custom_options_data, override_data, status, result_data, status_message, send_email, team_list, game_list, player_list, lineup_type, optimizer_type, input_summary_data, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)',
       values: [
-        idUtils.clientIdToServerId(obj.optimizations.id, accountId),
+        SharedLib.idUtils.clientIdToServerId(obj.optimizations.id, accountId),
         obj.optimizations.name,
-        obj.optimizations.type,
-        obj.optimizations.customData,
+        obj.optimizations.customOptionsData,
         obj.optimizations.overrideData,
         modifiedState,
         obj.optimizations.resultData,
@@ -617,6 +630,8 @@ let printInsertStatementsFromPatch = function (
         obj.optimizations.gameList,
         obj.optimizations.playerList,
         obj.optimizations.lineupType,
+        obj.optimizations.optimizerType,
+        obj.optimizations.inputSummaryData,
         accountId,
       ],
       limits: {
@@ -638,7 +653,7 @@ let printInsertStatementsFromPatch = function (
     result.push({
       query: 'INSERT INTO teams (id, name, account_id) VALUES($1, $2, $3)',
       values: [
-        idUtils.clientIdToServerId(obj.teams.id, accountId),
+        SharedLib.idUtils.clientIdToServerId(obj.teams.id, accountId),
         obj.teams.name,
         accountId,
       ],
@@ -664,13 +679,13 @@ let printInsertStatementsFromPatch = function (
       query:
         'INSERT INTO games (id, date, opponent, park, score_us, score_them, team_id, lineup_type, account_id) VALUES($1, to_timestamp($2), $3, $4, $5, $6, $7, $8, $9)',
       values: [
-        idUtils.clientIdToServerId(obj.games.id, accountId),
+        SharedLib.idUtils.clientIdToServerId(obj.games.id, accountId),
         obj.games.date,
         obj.games.opponent,
         obj.games.park,
         obj.games.scoreUs,
         obj.games.scoreThem,
-        idUtils.clientIdToServerId(parents.teamId, accountId),
+        SharedLib.idUtils.clientIdToServerId(parents.teamId, accountId),
         obj.games.lineupType,
         accountId,
       ],
@@ -704,7 +719,11 @@ let printInsertStatementsFromPatch = function (
         'UPDATE players_games SET lineup_index = lineup_index + 1 WHERE lineup_index >= $1 AND game_id = $2 AND account_id = $3',
       values: [
         obj.position + 1, // lineup oredering starts at 1 not 0
-        idUtils.clientIdToServerId(parents.gameId, accountId, parents.teamId),
+        SharedLib.idUtils.clientIdToServerId(
+          parents.gameId,
+          accountId,
+          parents.teamId
+        ),
         accountId,
       ],
       order: {
@@ -717,8 +736,8 @@ let printInsertStatementsFromPatch = function (
       query:
         'INSERT INTO players_games (player_id, game_id, lineup_index, account_id) VALUES($1, $2, $3, $4)',
       values: [
-        idUtils.clientIdToServerId(obj.lineup, accountId),
-        idUtils.clientIdToServerId(parents.gameId, accountId),
+        SharedLib.idUtils.clientIdToServerId(obj.lineup, accountId),
+        SharedLib.idUtils.clientIdToServerId(parents.gameId, accountId),
         obj.position + 1, // lineup ordering starts at 1 not 0
         accountId,
       ],
@@ -741,11 +760,17 @@ let printInsertStatementsFromPatch = function (
       query:
         'INSERT INTO plate_appearances (id, result, player_id, game_id, team_id, hit_location_x, hit_location_y, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;',
       values: [
-        idUtils.clientIdToServerId(obj.plateAppearances.id, accountId),
+        SharedLib.idUtils.clientIdToServerId(
+          obj.plateAppearances.id,
+          accountId
+        ),
         obj.plateAppearances.result,
-        idUtils.clientIdToServerId(obj.plateAppearances.player_id, accountId),
-        idUtils.clientIdToServerId(parents.gameId, accountId),
-        idUtils.clientIdToServerId(parents.teamId, accountId),
+        SharedLib.idUtils.clientIdToServerId(
+          obj.plateAppearances.player_id,
+          accountId
+        ),
+        SharedLib.idUtils.clientIdToServerId(parents.gameId, accountId),
+        SharedLib.idUtils.clientIdToServerId(parents.teamId, accountId),
         x,
         y,
         accountId,
@@ -781,7 +806,7 @@ let printInsertStatementsFromRaw = function (obj, parents, result, accountId) {
         query:
           'INSERT INTO players (id, name, gender, song_link, song_start, account_id) VALUES($1, $2, $3, $4, $5, $6) RETURNING id;',
         values: [
-          idUtils.clientIdToServerId(obj.players[i].id, accountId),
+          SharedLib.idUtils.clientIdToServerId(obj.players[i].id, accountId),
           obj.players[i].name,
           obj.players[i].gender,
           obj.players[i].song_link,
@@ -802,12 +827,14 @@ let printInsertStatementsFromRaw = function (obj, parents, result, accountId) {
     for (let i = 0; i < obj.players.length; i++) {
       result.push({
         query:
-          'INSERT INTO optimization (id, name, type, custom_data, override_data, status, result_data, status_message, send_email, team_list, game_list, player_list, lineup_type, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING id;',
+          'INSERT INTO optimization (id, name, custom_options_data, override_data, status, result_data, status_message, send_email, team_list, game_list, player_list, lineup_type, input_summary_data, optimizer_type, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING id;',
         values: [
-          idUtils.clientIdToServerId(obj.optimizations[i].id, accountId),
+          SharedLib.idUtils.clientIdToServerId(
+            obj.optimizations[i].id,
+            accountId
+          ),
           obj.optimizations[i].name,
-          obj.optimizations[i].type,
-          obj.optimizations[i].customData,
+          obj.optimizations[i].customOptionsData,
           obj.optimizations[i].overrideData,
           obj.optimizations[i].status,
           obj.optimizations[i].resultData,
@@ -817,6 +844,8 @@ let printInsertStatementsFromRaw = function (obj, parents, result, accountId) {
           obj.optimizations[i].gameList,
           obj.optimizations[i].playerList,
           obj.optimizations[i].lineupType,
+          obj.optimizations[i].optimizerType,
+          obj.optimizations[i].inputSummaryData,
           accountId,
         ],
         limits: {
@@ -842,7 +871,7 @@ let printInsertStatementsFromRaw = function (obj, parents, result, accountId) {
         query:
           'INSERT INTO teams (id, name, account_id) VALUES($1, $2) RETURNING id;',
         values: [
-          idUtils.clientIdToServerId(obj.teams[i].id, accountId),
+          SharedLib.idUtils.clientIdToServerId(obj.teams[i].id, accountId),
           obj.teams[i].name,
           accountId,
         ],
@@ -869,13 +898,13 @@ let printInsertStatementsFromRaw = function (obj, parents, result, accountId) {
         query:
           'INSERT INTO games (id, date, opponent, park, score_us, score_them, team_id, lineup_type, account_id) VALUES($1, to_timestamp($2), $3, $4, $5, $6, $7, $8, $9) RETURNING id;',
         values: [
-          idUtils.clientIdToServerId(obj.games[i].id, accountId),
+          SharedLib.idUtils.clientIdToServerId(obj.games[i].id, accountId),
           obj.games[i].date,
           obj.games[i].opponent,
           obj.games[i].park,
           obj.games[i].scoreUs,
           obj.games[i].scoreThem,
-          idUtils.clientIdToServerId(parents.teamId, accountId),
+          SharedLib.idUtils.clientIdToServerId(parents.teamId, accountId),
           obj.games[i].lineupType,
           accountId,
         ],
@@ -910,8 +939,8 @@ let printInsertStatementsFromRaw = function (obj, parents, result, accountId) {
         query:
           'INSERT INTO players_games (player_id, game_id, lineup_index, account_id) VALUES($1, $2, $3, $4)',
         values: [
-          idUtils.clientIdToServerId(obj.lineup[i], accountId),
-          idUtils.clientIdToServerId(parents.gameId, accountId),
+          SharedLib.idUtils.clientIdToServerId(obj.lineup[i], accountId),
+          SharedLib.idUtils.clientIdToServerId(parents.gameId, accountId),
           i + 1,
           accountId,
         ],
@@ -936,14 +965,17 @@ let printInsertStatementsFromRaw = function (obj, parents, result, accountId) {
         query:
           'INSERT INTO plate_appearances (id, result, player_id, game_id, team_id, hit_location_x, hit_location_y, account_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;',
         values: [
-          idUtils.clientIdToServerId(obj.plateAppearances[i].id, accountId),
+          SharedLib.idUtils.clientIdToServerId(
+            obj.plateAppearances[i].id,
+            accountId
+          ),
           obj.plateAppearances[i].result,
-          idUtils.clientIdToServerId(
+          SharedLib.idUtils.clientIdToServerId(
             obj.plateAppearances[i].player_id,
             accountId
           ),
-          idUtils.clientIdToServerId(parents.gameId, accountId),
-          idUtils.clientIdToServerId(parents.teamId, accountId),
+          SharedLib.idUtils.clientIdToServerId(parents.gameId, accountId),
+          SharedLib.idUtils.clientIdToServerId(parents.teamId, accountId),
           x,
           y,
           accountId,

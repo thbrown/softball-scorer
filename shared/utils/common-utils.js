@@ -66,20 +66,21 @@ exports.secondsToString = function (seconds) {
   }
   var seconds = seconds % 60;
   if (seconds) {
-    return seconds + ' second' + numberEnding(seconds);
+    return seconds.toFixed(0) + ' second' + numberEnding(seconds);
   }
   return 'less than a second';
 };
 
 // Calculate the hash of the data and return the result as a base64 string
-exports.getHash = function (data) {
-  // I've tried other hashes here (like javascript xxHash) but md5 is faster in the browser and much faster in the server.
+exports.getHash = function (data, logger) {
+  // I've tried other hashes here (like javascript xxHash) but md5 is faster in the browser and much faster on the server.
   var objectHasher = hasher({
     alg: 'md5',
     sort: true,
     coerce: false,
     enc: 'base64',
   });
+
   return objectHasher.hash(data).slice(0, -2); // Remove trailing '=='
 };
 
@@ -91,6 +92,15 @@ exports.getObjectString = function (data) {
     coerce: false,
     enc: 'base64',
   });
-  // Don't compute the hash, insted get the string that would be hashed
+  // Don't compute the hash, instead get the string that would be hashed
   return objectHasher.sortObject(data);
+};
+
+// Concatenate arrays and remove duplicates
+exports.merge = function (array1, array2) {
+  return [...new Set([...array1, ...array2])];
+};
+
+exports.truncate = function (str, n) {
+  return str.length > n ? str.substr(0, n - 1) : str;
 };

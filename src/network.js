@@ -12,25 +12,33 @@ exp.requestCrossOrigin = async function (method, fullUrl, body) {
   return await requestInternal(method, fullUrl, body);
 };
 
-exp.request = async function (method, url, body) {
+exp.request = async function (method, url, body, controller, overrideTimeout) {
   url = exp.getServerUrl(url);
-  return await requestInternal(method, url, body);
+  return await requestInternal(method, url, body, controller, overrideTimeout);
 };
 export const request = exp.request;
 
 exp.getServerUrl = function (path) {
   return window.location.origin + '/' + path;
 };
-export const getServerUrl = exp.getServerUrl;
 
-requestInternal = async function (method, url, body) {
+requestInternal = async function (
+  method,
+  url,
+  body,
+  controller,
+  overrideTimeout
+) {
   const response = {};
 
   if ('fetch' in window) {
     const res = await new Promise(async function (resolve, reject) {
-      const timeout = setTimeout(function () {
-        reject(new Error('Request timed out'));
-      }, FETCH_TIMEOUT);
+      const timeout = setTimeout(
+        function () {
+          reject(new Error('Request timed out'));
+        },
+        overrideTimeout ? overrideTimeout : FETCH_TIMEOUT
+      );
       try {
         let reqResp = await fetch(url, {
           method: method,
@@ -39,61 +47,48 @@ requestInternal = async function (method, url, body) {
             'content-type': 'application/json', // TODO: accept gzip?
           },
           body: body,
+          signal: controller?.signal,
         });
         setTimeout(() => resolve(reqResp), NETWORK_DELAY);
       } catch (err) {
-        reject(
-          new Error('Something went wrong during the request: ' + err, err)
-        );
+        if (err.name == 'AbortError') {
+          console.log('Network request canceled');
+          // Canceled Request (TODO: not sure the best way to handle this yet)
+          resolve(
+            -4
+          ); /*
+          reject(
+            new Error(
+              'Something went wrong during the request (canceled): ' + err,
+              err
+            )
+          );*/
+        } else {
+          reject(
+            new Error('Something went wrong during the request: ' + err, err)
+          );
+        }
       } finally {
         clearTimeout(timeout);
       }
     });
 
     response.status = res.status;
-    if (response.status !== 204) {
+    if (response.status === undefined) {
+      // This can happen if request is canceled via AbortController, just ignore it
+    } else if (response.status !== 204) {
       let data;
       try {
         data = await res.text();
         response.body = data ? JSON.parse(data) : undefined;
       } catch (e) {
-        console.log(e, data);
+        console.log(e, data, response.status, response);
       }
     }
 
-    state.setStatusBasedOnHttpResponse(response.status);
+    state.setStatusBasedOnHttpResponse(response.status); // Can't we remove this to remove circular reference?
   } else {
-    console.log('xhr', new XMLHttpRequest());
-    // TODO: This is untested and probably doesn't work
-    const request = await new Promise(function (resolve, reject) {
-      const xhr = new XMLHttpRequest();
-      xhr.open(method, url, true);
-      xhr.setRequestHeader('Content-type', 'application/json');
-      xhr.onload = function () {
-        if (this.status >= 200 && this.status < 300) {
-          resolve(xhr.response);
-        } else {
-          reject({
-            status: this.status,
-            statusText: xhr.statusText,
-            response: xhr.response,
-          });
-        }
-      };
-      xhr.onerror = function () {
-        reject({
-          status: this.status,
-          statusText: xhr.statusText,
-        });
-      };
-      xhr.send(JSON.stringify(body));
-    });
-    response.status = request.status;
-    if (response.status !== 204) {
-      response.body = request.response;
-    }
-
-    state.setStatusBasedOnHttpResponse(response.status);
+    throw new Error('Unsupported Browser');
   }
   console.log('[NET] Request Complete', url, response.status, response.body);
   return response;

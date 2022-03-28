@@ -13,10 +13,37 @@ const ALL_RESULTS = [
   'FC',
   'SAC',
   'K',
+  'DP',
+  'TP',
+  'HBP',
 ];
 const HIT_RESULTS = ['1B', '2B', '3B', 'HRi', 'HRo'];
-const NO_HIT_RESULTS = ['Out', 'E', 'FC', 'K', 'SAC'];
-const NO_AT_BAT_RESULTS = ['BB'];
+const NO_HIT_RESULTS = ['Out', 'E', 'FC', 'K', 'SAC', 'DP', 'TP', 'HBP'];
+const NO_AT_BAT_RESULTS = ['BB', 'SAC'];
+const FIRST_PAGE = [
+  null,
+  'Out',
+  '1B',
+  '2B',
+  '3B',
+  'HRi',
+  'HRo',
+  'BB',
+  'E',
+  'FC',
+  'SAC',
+];
+const SECOND_PAGE = ['Ʞ', 'K', 'DP', 'TP']; //  'HBP', 'CI'
+
+exp.getFirstPage = function () {
+  return FIRST_PAGE;
+};
+export const getFirstPage = exp.getFirstPage;
+
+exp.getSecondPage = function () {
+  return SECOND_PAGE;
+};
+export const getSecondPage = exp.getSecondPage;
 
 exp.getAllResults = function () {
   return ALL_RESULTS;

@@ -20,4 +20,5 @@ softball-sim.jar
 java.log
 cred.json
 .gradle
+src-svr/optimizations-temp
 shared-lib.js

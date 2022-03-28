@@ -1,6 +1,6 @@
 import React from 'react';
 import dialog from 'dialog';
-import objectMerge from '/../object-merge.js';
+import SharedLib from '/../shared-lib';
 import state from 'state';
 import Card from 'elements/card';
 import CardSection from 'elements/card-section';
@@ -77,9 +77,12 @@ const CardImport = () => {
         }
 
         if (loadType === 'Merge') {
-          const diff = objectMerge.diff(state.getLocalState(), parsedData);
+          const diff = SharedLib.objectMerge.diff(
+            state.getLocalState(),
+            parsedData
+          );
           const stateCopy = JSON.parse(JSON.stringify(state.getLocalState()));
-          objectMerge.patch(stateCopy, diff, true, true);
+          SharedLib.objectMerge.patch(stateCopy, diff, true, true);
           state.setLocalState(stateCopy);
           dialog.show_notification(
             'Your data has successfully been merged with the existing data.'
