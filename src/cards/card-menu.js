@@ -172,12 +172,14 @@ class CardMenu extends Component {
           showBlogLink: true,
         }}
       >
-        <div>{'Status: ' + (state.isOnline() ? 'Online' : 'Offline')}</div>
-        <div>
-          {'Current User: ' +
-            (state.getActiveUser() == null ? 'Guest' : state.getActiveUser())}
+        <div style={{ margin: '5px', marginLeft: '15px' }}>
+          <div>{'Status: ' + (state.isOnline() ? 'Online' : 'Offline')}</div>
+          <div>
+            {'Current User: ' +
+              (state.getActiveUser() == null ? 'Guest' : state.getActiveUser())}
+          </div>
+          <div>{/*'Time Till Sync: ' + state.getTimeTillSync()*/}</div>
         </div>
-        <div>{'Time Till Sync: ' + state.getTimeTillSync()}</div>
         <HrTitle title="Application"></HrTitle>
         <ListButton
           id="teams"
@@ -206,29 +208,6 @@ class CardMenu extends Component {
         >
           Optimizations
         </ListButton>
-        <HrTitle title="Account"></HrTitle>
-        {state.isSessionValid() ? (
-          <ListButton
-            id="logout"
-            onClick={this.handleLogoutClick.bind(this)}
-            style={{
-              backgroundColor: css.colors.BG,
-            }}
-          >
-            Logout
-          </ListButton>
-        ) : (
-          <ListButton
-            id="login"
-            className={'list-item'}
-            onClick={this.handleLoginClick.bind(this)}
-            style={{
-              backgroundColor: css.colors.BG,
-            }}
-          >
-            Login/Signup
-          </ListButton>
-        )}
         <HrTitle title="Data"></HrTitle>
         {state.isSessionValid() ? (
           <ListButton
@@ -264,7 +243,30 @@ class CardMenu extends Component {
         >
           Import From File...
         </ListButton>
-        <HrTitle title="Site"></HrTitle>
+        <HrTitle title="Account"></HrTitle>
+        {state.isSessionValid() ? (
+          <ListButton
+            id="logout"
+            onClick={this.handleLogoutClick.bind(this)}
+            style={{
+              backgroundColor: css.colors.BG,
+            }}
+          >
+            Logout
+          </ListButton>
+        ) : (
+          <ListButton
+            id="login"
+            className={'list-item'}
+            onClick={this.handleLoginClick.bind(this)}
+            style={{
+              backgroundColor: css.colors.BG,
+            }}
+          >
+            Login/Signup
+          </ListButton>
+        )}
+        {state.getAddToHomescreenPrompt() && <HrTitle title="Site"></HrTitle>}
         {state.getAddToHomescreenPrompt() && (
           <ListButton
             id="addToHomescreen"

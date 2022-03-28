@@ -971,7 +971,7 @@ module.exports = class DatabaseCalls {
     logger.log(
       accountId,
       'changing optimization status to ',
-      newStatus,
+      SharedLib.constants.OPTIMIZATION_STATUS_ENUM_INVERSE[newStatus],
       optionalMessage,
       optionalPreviousStatus
     );

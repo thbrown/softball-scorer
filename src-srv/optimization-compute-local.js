@@ -230,6 +230,8 @@ module.exports = class OptimizationComputeLocal {
       optimizationId,
       SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
     );
+
+    return true;
   }
 
   async pause(accountId, optimizationId) {

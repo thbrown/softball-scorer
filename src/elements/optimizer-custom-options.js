@@ -81,7 +81,7 @@ export default class OptimizerCustomOptions extends React.Component {
               defaultValue={currentValue}
               disabled={this.props.disabled}
             />
-            <div className="icon-button" style={{ backgroundColor: 'black' }}>
+            <div className="icon-button">
               <img
                 alt="help"
                 className="help-icon"
@@ -137,7 +137,7 @@ export default class OptimizerCustomOptions extends React.Component {
                 </div>
               </fieldset>
             </div>
-            <div className="icon-button" style={{ backgroundColor: 'black' }}>
+            <div className="icon-button">
               <img
                 alt="help"
                 className="help-icon"
@@ -172,7 +172,7 @@ export default class OptimizerCustomOptions extends React.Component {
               values={options}
               disabled={this.props.disabled}
             ></FloatingSelect>
-            <div className="icon-button" style={{ backgroundColor: 'black' }}>
+            <div className="icon-button">
               <img
                 alt="help"
                 className="help-icon"
@@ -202,7 +202,7 @@ export default class OptimizerCustomOptions extends React.Component {
               defaultValue={currentValue}
               disabled={this.props.disabled}
             />
-            <div className="icon-button" style={{ backgroundColor: 'black' }}>
+            <div className="icon-button">
               <img
                 alt="help"
                 className="help-icon"

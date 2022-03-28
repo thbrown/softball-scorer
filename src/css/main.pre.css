@@ -281,7 +281,7 @@ svg rect{
 .lineup-score-text {
   padding-left: 8px;
   padding-top: 2px;
-  color: $css.colors.TEXT_GREY;
+  color: $css.colors.TEXT_DARK;
 }
 
 .secondary {
@@ -702,6 +702,9 @@ Scrolling is ~10-20x smoother.
 .icon-button {
   width: 48px;
   height: 48px;
+  border-radius: 8px;
+  margin-left: 3px;
+  background-color: $css.colors.PRIMARY_DARK;
   text-align: center;
 }
 

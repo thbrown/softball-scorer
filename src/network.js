@@ -12,9 +12,9 @@ exp.requestCrossOrigin = async function (method, fullUrl, body) {
   return await requestInternal(method, fullUrl, body);
 };
 
-exp.request = async function (method, url, body, controller) {
+exp.request = async function (method, url, body, controller, overrideTimeout) {
   url = exp.getServerUrl(url);
-  return await requestInternal(method, url, body, controller);
+  return await requestInternal(method, url, body, controller, overrideTimeout);
 };
 export const request = exp.request;
 
@@ -22,14 +22,23 @@ exp.getServerUrl = function (path) {
   return window.location.origin + '/' + path;
 };
 
-requestInternal = async function (method, url, body, controller) {
+requestInternal = async function (
+  method,
+  url,
+  body,
+  controller,
+  overrideTimeout
+) {
   const response = {};
 
   if ('fetch' in window) {
     const res = await new Promise(async function (resolve, reject) {
-      const timeout = setTimeout(function () {
-        reject(new Error('Request timed out'));
-      }, FETCH_TIMEOUT);
+      const timeout = setTimeout(
+        function () {
+          reject(new Error('Request timed out'));
+        },
+        overrideTimeout ? overrideTimeout : FETCH_TIMEOUT
+      );
       try {
         let reqResp = await fetch(url, {
           method: method,

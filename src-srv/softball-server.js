@@ -962,40 +962,48 @@ module.exports = class SoftballServer {
             );
 
             // Get any existing result
+            let queryResponse = await this.optimizationCompute.query(
+              accountId,
+              serverOptimizationId
+            );
+            logger.log(accountId, 'QUERY RESPONSE ', queryResponse);
             let recentHash = SharedLib.commonUtils.getHash(
-              JSON.parse(
-                await this.optimizationCompute.query(
-                  accountId,
-                  serverOptimizationId
-                )
-              )
+              queryResponse ? JSON.parse(queryResponse) : queryResponse
             );
 
             // Start the computer that will run the optimization
-            await this.optimizationCompute.start(
+            let startMonitor = await this.optimizationCompute.start(
               accountId,
               serverOptimizationId,
               statsData,
               softballSimFlags
             );
+            logger.log(accountId, 'MONITOR: Starting? ', startMonitor);
 
-            const MONITOR_NO_CHANGE_TIMEOUT = 60; // With a 5 sec interval this is 5 minutes
-            let noChangeCounter = 0;
+            if (!startMonitor) {
+              return;
+            }
 
             // Retrieve the results of the optimization on an interval, update the db
+            const MONITOR_NO_CHANGE_TIMEOUT = 60; // With a 5 sec interval this is 5 minutes
+            let noChangeCounter = 0;
             let monitor = async function () {
               // Get the latest optimization result
-              let result = JSON.parse(
-                await this.optimizationCompute.query(
-                  accountId,
-                  serverOptimizationId
-                )
+              let queryResponse = await this.optimizationCompute.query(
+                accountId,
+                serverOptimizationId
               );
+              logger.log(accountId, 'QUERY RESPONSE ', queryResponse);
+              let result = queryResponse
+                ? JSON.parse(queryResponse)
+                : queryResponse;
               let resultHash = SharedLib.commonUtils.getHash(result);
 
               // Has anything changed?
-              if (resultHash !== recentHash) {
-                logger.log(accountId, 'MONITOR: Got different result ');
+              let somethingChanged = resultHash !== recentHash;
+              recentHash = resultHash;
+
+              if (result != null && somethingChanged) {
                 // Something changed, reset the timeout counter
                 noChangeCounter = 0;
 
@@ -1012,13 +1020,6 @@ module.exports = class SoftballServer {
                 // Read
                 //}
 
-                // Log
-                logger.log(
-                  accountId,
-                  'Updating optimization result/status',
-                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
-                );
-
                 // Save the new result to the db
                 await this.databaseCalls.setOptimizationResultData(
                   accountId,
@@ -1030,7 +1031,8 @@ module.exports = class SoftballServer {
                 await this.databaseCalls.setOptimizationStatus(
                   accountId,
                   serverOptimizationId,
-                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
+                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status],
+                  result.statusMessage
                 );
 
                 // Send success email! - if complete
@@ -1081,11 +1083,16 @@ module.exports = class SoftballServer {
 
               // Keep monitoring if status is IN_PROGRESS or if there was no change
               if (
-                (result != null &&
-                  // Not accounting for ALLOCATING_RESOURCES or PAUSING here since those are assigned by the client and will never come back from the opt result
-                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status] ==
-                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS) ||
-                resultHash === recentHash
+                (result !== null &&
+                  // Not accounting for PAUSING here since that is assigned by the client and will never come back from the opt result
+                  [
+                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS,
+                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM
+                      .ALLOCATING_RESOURCES,
+                  ].includes(
+                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
+                  )) ||
+                somethingChanged
               ) {
                 logger.log(
                   accountId,
@@ -1093,11 +1100,18 @@ module.exports = class SoftballServer {
                   MONITORING_INTERVAL
                 );
                 setTimeout(monitor, MONITORING_INTERVAL);
+              } else if (result === null) {
+                logger.log(
+                  accountId,
+                  'MONITOR: Null, checking again in ',
+                  MONITORING_INTERVAL
+                );
+                setTimeout(monitor, MONITORING_INTERVAL);
               } else {
                 logger.log(
                   accountId,
                   'Monitor halting, reached terminal status ',
-                  result.status,
+                  result ? result.status : result,
                   resultHash,
                   recentHash
                 );
@@ -1245,6 +1259,10 @@ module.exports = class SoftballServer {
           );
         } catch (error) {
           logger.error(accountId, 'Error during estimate', error);
+          let responseData = {};
+          responseData.message = extractSessionInfo(req, error.message);
+          res.status(400).send();
+          return;
         }
 
         // Return success

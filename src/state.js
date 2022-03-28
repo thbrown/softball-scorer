@@ -690,7 +690,7 @@ exp.addOptimization = function (name) {
     teamList: JSON.stringify([]),
     gameList: JSON.stringify([]),
     playerList: JSON.stringify([]),
-    lineupType: 1,
+    lineupType: 0,
     optimizerType:
       SharedLib.constants.OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXHAUSTIVE,
     inputSummaryData: JSON.stringify({}),
@@ -1238,11 +1238,15 @@ exp.buildStatsObject = function (playerId, plateAppearances) {
         stats.reachedOnError++;
       } else if (pa.result === 'FC') {
         stats.FCs++;
-      } else if (pa.result === 'Out') {
+      } else if (
+        pa.result === 'Out' ||
+        pa.result === 'TP' ||
+        pa.result === 'DP'
+      ) {
         stats.directOuts++;
       } else if (pa.result === 'SAC') {
         stats.SACs++;
-      } else if (pa.result === 'K') {
+      } else if (pa.result === 'K' || pa.result === 'Ʞ') {
         stats.strikeouts++;
       } else if (pa.result === '1B') {
         stats.singles++;
@@ -1452,9 +1456,15 @@ exp.getPreventScreenLock = function () {
  * Perform a network request, and update the state (online, authentication status, etc...)
  * based on the response
  */
-exp.request = async function (method, url, body, controller) {
+exp.request = async function (method, url, body, controller, overrideTimeout) {
   try {
-    let response = await network.request(method, url, body, controller);
+    let response = await network.request(
+      method,
+      url,
+      body,
+      controller,
+      overrideTimeout
+    );
     state.setStatusBasedOnHttpResponse(response.status);
     return response;
   } catch (err) {

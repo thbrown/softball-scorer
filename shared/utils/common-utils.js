@@ -72,14 +72,15 @@ exports.secondsToString = function (seconds) {
 };
 
 // Calculate the hash of the data and return the result as a base64 string
-exports.getHash = function (data) {
-  // I've tried other hashes here (like javascript xxHash) but md5 is faster in the browser and much faster in the server.
+exports.getHash = function (data, logger) {
+  // I've tried other hashes here (like javascript xxHash) but md5 is faster in the browser and much faster on the server.
   var objectHasher = hasher({
     alg: 'md5',
     sort: true,
     coerce: false,
     enc: 'base64',
   });
+
   return objectHasher.hash(data).slice(0, -2); // Remove trailing '=='
 };
 

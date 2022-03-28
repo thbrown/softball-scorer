@@ -112,7 +112,7 @@ export default class CardGameEdit extends React.Component {
             <FloatingSelect
               selectId="lineupType"
               label="Lineup Type"
-              initialValue={this.props.game.lineupType || 2}
+              initialValue={this.props.game.lineupType || 0}
               onChange={this.handleLineupTypeChange}
               values={{
                 0: 'Normal',

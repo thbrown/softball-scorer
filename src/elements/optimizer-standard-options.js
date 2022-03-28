@@ -99,7 +99,7 @@ export default class OptimizerStandardOptions extends React.Component {
             }}
             disabled={this.props.disabled}
           />
-          <div className="icon-button" style={{ backgroundColor: 'black' }}>
+          <div className="icon-button">
             <img
               alt="help"
               className="help-icon"
@@ -117,7 +117,7 @@ export default class OptimizerStandardOptions extends React.Component {
             values={optimizerOptions}
             disabled={this.props.disabled}
           />
-          <div className="icon-button" style={{ backgroundColor: 'black' }}>
+          <div className="icon-button">
             <img
               alt="help"
               className="help-icon"

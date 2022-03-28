@@ -92,9 +92,13 @@ export default class CardOptimization extends React.Component {
           optimization.status ===
             SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSING
         ) {
+          console.log('ENABLE AUTO SYNC');
           this.enableAutoSync();
+          console.log(this.activeTime);
         } else {
+          console.log('DISABLE AUTO SYNC');
           this.disableAutoSync();
+          console.log(this.activeTime);
         }
       }
     };
@@ -197,7 +201,7 @@ export default class CardOptimization extends React.Component {
 
       // Disable button in the UI
       const buttonDiv = this.toggleOptimizationButtonRef.current;
-      buttonDiv.innerHTML = 'Starting...';
+      buttonDiv.innerHTML = 'Starting... (may take up to 30 seconds)';
       buttonDiv.classList.add('disabled');
 
       // Set custom options - Read and prep default optimizer options
@@ -257,7 +261,9 @@ export default class CardOptimization extends React.Component {
       let response = await state.request(
         'POST',
         'server/start-optimization',
-        body
+        body,
+        null,
+        60000 // 1 minute timeout
       );
       if (response.status === 204 || response.status === 200) {
         dialog.show_notification('Sent start request.');
@@ -415,7 +421,6 @@ export default class CardOptimization extends React.Component {
         controller
       );
       if (response.status === 200) {
-        //dialog.show_notification('Received estimation result.');
         try {
           let responseBody = response.body;
           console.log('ESTIMATION RESPONSE', response);
@@ -428,7 +433,6 @@ export default class CardOptimization extends React.Component {
               timeRemaining / 1000
             )} to complete`
           );
-
           this.setState({
             estimatedCompletionTimeSec: timeRemaining / 1000,
           });
@@ -556,7 +560,12 @@ export default class CardOptimization extends React.Component {
     );
     for (let i = 0; i < optimizerIds.length; i++) {
       prom.push(
-        network.request('GET', 'server/optimizer-definition/' + optimizerIds[i])
+        network.request(
+          'GET',
+          'server/optimizer-definition/' + optimizerIds[i],
+          null,
+          60000 // 1 minute timeout
+        )
       );
     }
 
@@ -996,8 +1005,12 @@ export default class CardOptimization extends React.Component {
     let toggleButtonHandler;
     let showToggleButton = true;
     let estimatedTime = false;
+    let disabled = false;
 
-    if (
+    if (!this.state.optimizerData) {
+      toggleButtonText = 'Loading...';
+      disabled = true;
+    } else if (
       optimization.status ===
         SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ||
       optimization.status === SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR
@@ -1067,7 +1080,9 @@ export default class CardOptimization extends React.Component {
         <div
           ref={this.toggleOptimizationButtonRef}
           id="toggle-optimization-button"
-          className={'edit-button button confirm-button'}
+          className={`edit-button button confirm-button ${
+            disabled ? 'disabled' : ''
+          }`}
           onClick={toggleButtonHandler}
         >
           {toggleButtonText}

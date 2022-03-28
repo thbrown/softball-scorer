@@ -1,6 +1,6 @@
 exports.OPTIMIZATION_STATUS_ENUM = Object.freeze({
   NOT_STARTED: 0, // In softball-sim
-  ALLOCATING_RESOURCES: 1,
+  ALLOCATING_RESOURCES: 1, // In softball-sim
   IN_PROGRESS: 2, // In softball-sim
   COMPLETE: 3, // In softball-sim
   PAUSED: 4, // In softball-sim
