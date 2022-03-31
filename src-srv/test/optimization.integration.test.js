@@ -8,7 +8,7 @@ const configAccessor = require('../config-accessor.js');
 describe('optimization', () => {
   let compute;
   beforeAll(async () => {
-    compute = configAccessor.getComputeService();
+    compute = configAccessor.getOptimizationComputeService();
   });
 
   test('Do nothing', async () => {});

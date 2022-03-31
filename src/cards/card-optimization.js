@@ -72,10 +72,17 @@ export default class CardOptimization extends React.Component {
       let optimization = this.props.optimization;
 
       // Update Result and Player accordion heights, this is dynamic (thus gets overridden by an !important CSS property on accordion collapse)
-      document.getElementById('accordion4').style.maxHeight =
-        document.getElementById('result-accordion-content').offsetHeight + 'px';
-      document.getElementById('accordion1').style.maxHeight =
-        document.getElementById('player-accordion-content').offsetHeight + 'px';
+      if (
+        document.getElementById('accordion4') &&
+        document.getElementById('accordion1')
+      ) {
+        document.getElementById('accordion4').style.maxHeight =
+          document.getElementById('result-accordion-content').offsetHeight +
+          'px';
+        document.getElementById('accordion1').style.maxHeight =
+          document.getElementById('player-accordion-content').offsetHeight +
+          'px';
+      }
 
       // Frequently perform syncs on this page to check for server updates to the optimization object
       // Only enable/disable auto sync if there is a change of status OR this is the first update

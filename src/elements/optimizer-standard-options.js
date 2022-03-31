@@ -148,6 +148,6 @@ export default class OptimizerStandardOptions extends React.Component {
       );
     }
 
-    return <div class="loading-container">{content}</div>;
+    return <div className="loading-container">{content}</div>;
   }
 }

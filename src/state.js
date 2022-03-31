@@ -9,7 +9,14 @@ import dialog from 'dialog';
 const exp = {};
 
 // Constants
-const INITIAL_STATE = { teams: [], players: [], optimizations: [] };
+const INITIAL_STATE = {
+  account: {
+    optimizers: '[0,1,2]',
+  },
+  teams: [],
+  players: [],
+  optimizations: [],
+};
 const CURRENT_LS_SCHEMA_VERSION = '6';
 const SYNC_DELAY_MS = 10000;
 const SYNC_STATUS_ENUM = Object.freeze({

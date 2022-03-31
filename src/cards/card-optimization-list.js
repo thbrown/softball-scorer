@@ -55,7 +55,7 @@ const CardOptimizationList = (props) => (
           <NoSelect className="prevent-overflow">
             <div style={{ display: 'flex' }}>
               <div>{optimization.name}</div>
-              <div class="secondary" style={{ marginLeft: '5px' }}>
+              <div className="secondary" style={{ marginLeft: '5px' }}>
                 {'['}
                 {
                   SharedLib.constants.OPTIMIZATION_STATUS_ENUM_INVERSE[

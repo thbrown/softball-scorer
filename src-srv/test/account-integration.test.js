@@ -4,7 +4,6 @@
 const configAccessor = require('../config-accessor.js');
 const SoftballServer = require('../softball-server');
 const utils = require('./test-utils.js');
-const objectMerge = require('../../object-merge.js');
 
 describe('sync', () => {
   let databaseCalls;
@@ -17,7 +16,7 @@ describe('sync', () => {
     const optPort = configAccessor.getOptimizationServerPort();
     cache = configAccessor.getCacheService();
     databaseCalls = configAccessor.getDatabaseService(cache);
-    compute = configAccessor.getComputeService();
+    compute = configAccessor.getOptimizationComputeService();
     server = new SoftballServer(port, optPort, databaseCalls, cache, compute);
     server.start();
     done();

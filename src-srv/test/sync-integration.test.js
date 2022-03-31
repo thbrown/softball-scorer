@@ -21,7 +21,7 @@ describe('sync', () => {
     const optPort = configAccessor.getOptimizationServerPort();
     cache = configAccessor.getCacheService();
     databaseCalls = configAccessor.getDatabaseService(cache);
-    compute = configAccessor.getComputeService();
+    compute = configAccessor.getOptimizationComputeService();
     server = new SoftballServer(port, optPort, databaseCalls, cache, compute);
     server.start();
 
@@ -42,7 +42,7 @@ describe('sync', () => {
       await utils.deleteAccount(sessionCookies);
       await server.stop();
 
-      // This isn't currenlty working for some reason (is this causing the open file handles after tests run?)
+      // This isn't currently working for some reason (is this causing the open file handles after tests run?)
       await databaseCalls.disconnect();
     } catch (err) {
       console.log(`Something went wrong in afterAll ${err}`);

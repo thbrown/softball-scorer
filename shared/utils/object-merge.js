@@ -326,10 +326,10 @@ let patch = function (
       } else {
         if (!skipOperationOnNonExistant) {
           throw new Error(
-            "This patch can not be applied: Can't find key " +
+            "This patch can not be applied : Can't find key " +
               key +
               ' in ' +
-              toPatch
+              JSON.stringify(toPatch, null, 2)
           );
         } else {
           // Partial patches are allowed, don't apply this part

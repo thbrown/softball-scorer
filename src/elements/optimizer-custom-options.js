@@ -237,6 +237,6 @@ export default class OptimizerCustomOptions extends React.Component {
       content = <div>{inputElements}</div>;
     }
 
-    return <div class="loading-container">{content}</div>;
+    return <div className="loading-container">{content}</div>;
   }
 }

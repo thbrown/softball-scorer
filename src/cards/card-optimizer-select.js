@@ -45,9 +45,12 @@ export default class CardOptimizerSelect extends expose.Component {
   render() {
     return (
       <Card title="Add/Remove Optimizers">
-        <div class="loading-container" style={{ height: 'calc(100vh - 49px)' }}>
+        <div
+          className="loading-container"
+          style={{ height: 'calc(100vh - 49px)' }}
+        >
           <div
-            class="loading"
+            className="loading"
             id="loading"
             style={{ backgroundColor: 'gray', opacity: 0.9 }}
           >
