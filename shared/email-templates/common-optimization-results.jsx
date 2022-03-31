@@ -51,72 +51,74 @@ const getResultsAsJsx = function (result, inputSummaryData) {
       );
     }
 
-    // Format lineup, we want names and stats, not ids
-    const PLAYER_DELETED_MSG = '<Player was deleted>';
-    const PLAYER_NAME_MAX_LENGTH = 25;
-    let maxNameLength = Math.max.apply(
-      Math,
-      resultData.flatLineup.map(function (id) {
-        return inputSummaryData[id]
-          ? inputSummaryData[id].name.length
-          : PLAYER_DELETED_MSG.length;
-      })
-    );
-    maxNameLength = Math.min(maxNameLength, PLAYER_NAME_MAX_LENGTH);
+    if(resultData.flatLineup) {
+      // Format lineup, we want names and stats, not ids
+      const PLAYER_DELETED_MSG = '<Player was deleted>';
+      const PLAYER_NAME_MAX_LENGTH = 25;
+      let maxNameLength = Math.max.apply(
+        Math,
+        resultData.flatLineup.map(function (id) {
+          return inputSummaryData[id]
+            ? inputSummaryData[id].name.length
+            : PLAYER_DELETED_MSG.length;
+        })
+      );
+      maxNameLength = Math.min(maxNameLength, PLAYER_NAME_MAX_LENGTH);
 
-    bestPlayers.push(
-      <div key={'header'}>
-        <i>{'Player '.padEnd(maxNameLength) + '   AVG   SLG'}</i>
-        <br />
-      </div>
-    );
-    for (let i = 0; i < resultData.flatLineup.length; i++) {
-      let playerStats = stats[resultData.flatLineup[i]];
-      if (!playerStats) {
-        bestPlayers.push(
-          <div key={i}>
-            {PLAYER_DELETED_MSG}
-            <br />
-          </div>
-        );
-      } else {
-        bestPlayers.push(
-          <div key={i}>
-            {CommonUtils.truncate(
-              playerStats.name.padEnd(maxNameLength),
-              PLAYER_NAME_MAX_LENGTH + 1
-            ) +
-              ' ' +
-              playerStats.battingAverage.padStart(5) +
-              ' ' +
-              playerStats.sluggingPercentage /*+ 
-              ' ' +
-              playerStats.hits +
-              ' ' +
-              playerStats.atBats +
-              ' ' +
-              playerStats.outs +
-              ' ' +
-              playerStats.directOuts+
-              ' ' +
-              playerStats.FCs +
-              ' ' +
-              playerStats.strikeouts +
-              ' ' +
-              playerStats.reachedOnError +
-              ' ' +
-              playerStats.hits +
-              ' ' + 
-              playerStats.singles+
-              ' ' +
-              playerStats.doubles+
-              ' ' +
-              playerStats.triples+
-              ' ' +
-            playerStats.homeruns*/}
-            <br />
-          </div>
-        );
+      bestPlayers.push(
+        <div key={'header'}>
+          <i>{'Player '.padEnd(maxNameLength) + '   AVG   SLG'}</i>
+          <br />
+        </div>
+      );
+      for (let i = 0; i < resultData.flatLineup.length; i++) {
+        let playerStats = stats[resultData.flatLineup[i]];
+        if (!playerStats) {
+          bestPlayers.push(
+            <div key={i}>
+              {PLAYER_DELETED_MSG}
+              <br />
+            </div>
+          );
+        } else {
+          bestPlayers.push(
+            <div key={i}>
+              {CommonUtils.truncate(
+                playerStats.name.padEnd(maxNameLength),
+                PLAYER_NAME_MAX_LENGTH + 1
+              ) +
+                ' ' +
+                playerStats.battingAverage.padStart(5) +
+                ' ' +
+                playerStats.sluggingPercentage /*+ 
+                ' ' +
+                playerStats.hits +
+                ' ' +
+                playerStats.atBats +
+                ' ' +
+                playerStats.outs +
+                ' ' +
+                playerStats.directOuts+
+                ' ' +
+                playerStats.FCs +
+                ' ' +
+                playerStats.strikeouts +
+                ' ' +
+                playerStats.reachedOnError +
+                ' ' +
+                playerStats.hits +
+                ' ' + 
+                playerStats.singles+
+                ' ' +
+                playerStats.doubles+
+                ' ' +
+                playerStats.triples+
+                ' ' +
+              playerStats.homeruns*/}
+              <br />
+            </div>
+          );
+        }
       }
     }
   }

@@ -37,7 +37,7 @@ export default class CardVerifyEmail extends React.Component {
       } else if (response.status === 404) {
         dialog.show_notification(
           <div>
-            We were unable to verify your email. The token may have expired. Try
+            We were unable to verify your email. The token may have expired. Try{' '}
             <a href="/account">resending the validation email</a>.
           </div>,
           function () {

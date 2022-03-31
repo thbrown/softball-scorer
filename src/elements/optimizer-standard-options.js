@@ -68,11 +68,15 @@ export default class OptimizerStandardOptions extends React.Component {
     this.selectedOptimizerName = '';
     this.selectedOptimizerDescription =
       'No optimizer selected. To see a description for a specific optimizer please select one from the drop down menu.';
-    if (this.props.optimizerData) {
-      let id = this.props.selectedOptimizerId;
-      this.selectedOptimizerName = this.props.optimizerData[id].name;
+    let optId = this.props.selectedOptimizerId;
+    if (
+      this.props.optimizerData &&
+      optId !== undefined &&
+      this.props.optimizerData[optId] !== undefined
+    ) {
+      this.selectedOptimizerName = this.props.optimizerData[optId].name;
       this.selectedOptimizerDescription = this.props.optimizerData[
-        id
+        optId
       ].shortDescription;
     }
 

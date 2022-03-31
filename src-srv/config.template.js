@@ -1,6 +1,6 @@
 /**
  * This is the server side configuration template. To use a custom configuration, please copy this file and rename it to 'config.js'
- * If there is no config.js file present during the build, the build porocess will copy this one for you.
+ * If there is no config.js file present during the build, the build process will copy this one for you.
  **/
 module.exports = {
   app: {
@@ -23,7 +23,7 @@ module.exports = {
     password: null,
   },
 
-  // If you enable redis, but don't reset this, your sessions wont persist across app server restarts
+  // If you enable redis, but don't set this, your sessions wont persist across app server restarts
   session: {
     secretkey: null,
   },

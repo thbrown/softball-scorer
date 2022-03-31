@@ -921,7 +921,7 @@ export default class CardOptimization extends React.Component {
                     {optimization.optimizerType !== undefined &&
                     this.state.optimizerData
                       ? this.state.optimizerData[optimization.optimizerType]
-                          .name
+                          ?.name
                       : 'Optimizer'}{' '}
                     Parameters
                   </legend>
@@ -1008,7 +1008,12 @@ export default class CardOptimization extends React.Component {
     let disabled = false;
 
     if (!this.state.optimizerData) {
-      toggleButtonText = 'Loading...';
+      if (state.isOnline()) {
+        toggleButtonText = 'Loading...';
+      } else {
+        toggleButtonText =
+          'App is offline, try again when you have a connection';
+      }
       disabled = true;
     } else if (
       optimization.status ===
@@ -1055,9 +1060,11 @@ export default class CardOptimization extends React.Component {
       optimization.status ===
         SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
     ) {
-      toggleButtonText = 'Pause Optimization';
-      emailCheckboxDisabled = false;
-      toggleButtonHandler = this.handlePauseClick.bind(this);
+      // Disabling pause feature for now, it errors out if you pause and unpause too quickly because of gcp instance name conflicts
+      //toggleButtonText = 'Pause Optimization';
+      //emailCheckboxDisabled = false;
+      //toggleButtonHandler = this.handlePauseClick.bind(this);
+      showToggleButton = false;
     } else if (
       optimization.status ===
       SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSED

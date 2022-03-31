@@ -777,7 +777,7 @@ module.exports = class DatabaseCalls {
     let result = await this.parameterizedQueryPromise(
       `
         INSERT INTO account (email, password_hash, password_token_hash, password_token_expiration, status, optimizers_list, balance)
-        VALUES ($1, $2, $3, now() + interval '1' hour, 'TRIAL', '[0]', 0)
+        VALUES ($1, $2, $3, now() + interval '1' hour, 'TRIAL', '[0,1,2]', 0)
         RETURNING account_id, email
       `,
       [email, passwordHash, passwordTokenHash]

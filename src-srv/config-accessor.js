@@ -124,8 +124,7 @@ module.exports.getOptimizationComputeService = function (
   if (computeMode === 'local' || !computeMode) {
     logger.warn(
       null,
-      'Warning: running with local optimization compute ' +
-        config.optimizationCompute.mode
+      'Warning: running with local optimization compute ' + computeMode
     );
     optimizationCompute = new OptimizationComputeLocal(
       databaseService,

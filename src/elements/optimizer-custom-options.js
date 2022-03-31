@@ -46,7 +46,7 @@ export default class OptimizerCustomOptions extends React.Component {
 
   render() {
     const selectedOptimizerCustomOptions = this.props.optimizerData
-      ? this.props.optimizerData[this.props.selectedOptimizerId].options
+      ? this.props.optimizerData[this.props.selectedOptimizerId]?.options
       : null;
 
     // If an optimizer has been selected and optimizer data is present, build the
