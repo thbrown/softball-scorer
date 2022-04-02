@@ -423,6 +423,10 @@ exp.setTeamPublicIdEnabled = function (teamId, isEnabled) {
   onEdit();
 };
 
+exp.getAllTeams = function () {
+  return getShallowCopy(exp.getLocalState().teams);
+};
+
 // PLAYER
 
 exp.getPlayer = function (player_id, state) {

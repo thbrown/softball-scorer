@@ -15,8 +15,8 @@ const STATS_NAMES = [
   'atBats',
   'doubles',
   'triples',
-  'insideTheParkHR',
-  'outsideTheParkHR',
+  'insideTheParkHRs',
+  'outsideTheParkHRs',
   'walks',
   'reachedOnError',
 ];
@@ -28,8 +28,8 @@ const STAT_ALIASES = {
   atBats: 'AB',
   doubles: '2B',
   triples: '3B',
-  insideTheParkHR: 'HRI',
-  outsideTheParkHR: 'HRO',
+  insideTheParkHRs: 'HRi',
+  outsideTheParkHRs: 'HRo',
   walks: 'BB',
   reachedOnError: 'ROE',
 };

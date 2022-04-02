@@ -19,8 +19,8 @@ const TeamList = () => {
     setRoute(`/teams/${team.id}/edit?isNew=true`);
   };
 
-  const s = state.getLocalState();
-  const elems = getShallowCopy(s.teams)
+  const elems = state
+    .getAllTeams()
     .reverse()
     .map((team) => {
       return (

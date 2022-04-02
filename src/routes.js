@@ -17,6 +17,7 @@ import CardPlateAppearance from 'cards/card-plate-appearance';
 import CardPlayerList from 'cards/card-player-list';
 import CardPlayerEdit from 'cards/card-player-edit';
 import CardPlayerSelect from 'cards/card-player-select';
+import CardPlayerStats from 'cards/card-player-stats';
 import CardReset from 'cards/card-reset';
 import CardSignup from 'cards/card-signup';
 import CardSpray from 'cards/card-spray';
@@ -331,18 +332,12 @@ routes = {
   },
   [`${ROUTE_PREFIX}/players/:playerId`]: ({ playerId }) => {
     const player = state.getPlayer(playerId);
-    const playerPlateAppearances = state.getPlateAppearancesForPlayer(playerId);
-    const { valid, errors } = assertStateObjects(
-      player,
-      playerPlateAppearances
-    );
+    const { valid, errors } = assertStateObjects(player);
     if (!valid) {
       console.warn(errors);
       return <CardNotFound />;
     }
-    return (
-      <CardSpray player={player} plateAppearances={playerPlateAppearances} />
-    );
+    return <CardPlayerStats player={player} />;
   },
   [`${ROUTE_PREFIX}/players/:playerId/edit`]: ({
     playerId,
