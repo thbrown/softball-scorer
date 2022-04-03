@@ -13,7 +13,7 @@ export default class CardSignup extends React.Component {
     this.state = {};
     this.recapchaId = {};
 
-    this.handleSubmitClick = async function() {
+    this.handleSubmitClick = async function () {
       let email = document.getElementById('email');
       let password = document.getElementById('password');
       let passwordConfirm = document.getElementById('passwordConfirm');
@@ -31,7 +31,7 @@ export default class CardSignup extends React.Component {
           'Confirm Password': passwordConfirm.value,
           reCAPTCHA: recapchaResult,
         };
-        let missingFields = Object.keys(map).filter(field => {
+        let missingFields = Object.keys(map).filter((field) => {
           return !map[field];
         });
         dialog.show_notification(
@@ -81,7 +81,7 @@ export default class CardSignup extends React.Component {
             email by clicking the activation link in the welcome email sent to{' '}
             {email.value}. This link will expire after 24 hours.
           </div>,
-          function() {
+          function () {
             setRoute('/menu');
           }
         );
@@ -93,11 +93,11 @@ export default class CardSignup extends React.Component {
       }
     };
 
-    this.showRecapcha = function() {
+    this.showRecapcha = function () {
       showRecapchaInternal();
     };
 
-    let showRecapchaInternal = function() {
+    let showRecapchaInternal = function () {
       if (
         typeof grecaptcha !== 'undefined' &&
         window.grecaptcha &&
@@ -114,7 +114,7 @@ export default class CardSignup extends React.Component {
           box.hidden = true;
         }
       } else {
-        setTimeout(function() {
+        setTimeout(function () {
           showRecapchaInternal();
         }, 500);
       }
@@ -205,7 +205,7 @@ export default class CardSignup extends React.Component {
         {
           key: 'submit',
           id: 'submit',
-          className: 'button confirm-button',
+          className: 'button primary-button',
           onClick: this.handleSubmitClick.bind(this),
           style: {
             marginLeft: '0',

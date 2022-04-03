@@ -44,8 +44,7 @@ const useLineupListStyles = makeStyles((theme) => ({
     textAlign: 'center',
     color: theme.colors.TEXT_LIGHT,
     padding: theme.spacing.xSmall,
-    backgroundColor: theme.colors.SECONDARY_DARK,
-    borderTop: '5px solid ' + theme.colors.PRIMARY_LIGHT,
+    backgroundColor: theme.colors.PRIMARY,
     boxShadow: '0px 2px 5px 5px rgba(0,0,0,0.5)',
     marginBottom: theme.spacing.small,
   },
@@ -117,9 +116,8 @@ const LineupList = (props) => {
         />
         <div className={classes.actionButtonContainer}>
           <div
-            id="confirm"
             className={
-              'button edit-button confirm-button ' + classes.actionButton
+              'button edit-button primary-button ' + classes.actionButton
             }
             onClick={function wrapper(ev) {
               return props.handleConfirmClick(ev, props.team, props.game);
@@ -130,9 +128,8 @@ const LineupList = (props) => {
         </div>
         <div className={classes.actionButtonContainer}>
           <div
-            id="cancel"
             className={
-              'button edit-button confirm-button ' + classes.actionButton
+              'button edit-button secondary-button ' + classes.actionButton
             }
             onClick={props.handleCancelClick}
           >

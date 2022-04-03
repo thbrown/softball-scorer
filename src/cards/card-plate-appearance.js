@@ -10,6 +10,7 @@ import WalkupSong from 'component-walkup-song';
 import { normalize } from 'utils/functions';
 import { goBack } from 'actions/route';
 import { makeStyles } from 'css/helpers';
+import css from 'css';
 
 const LOCATION_DENOMINATOR = 32767;
 
@@ -24,7 +25,7 @@ const useStyles = makeStyles((theme) => ({
   button: {
     cursor: 'default',
     padding: '12px',
-    color: theme.colors.TEXT_LIGHT,
+    color: theme.colors.TEXT_DARK,
     border: `2px solid ${theme.colors.SECONDARY}`,
     borderRadius: '4px',
     textAlign: 'center',
@@ -38,6 +39,7 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   buttonSelected: {
+    color: theme.colors.TEXT_LIGHT,
     backgroundColor: theme.colors.SECONDARY,
   },
 }));
@@ -481,6 +483,7 @@ class CardPlateAppearance extends React.Component {
         DOM.div(
           {
             style: {
+              backgroundColor: css.colors.PRIMARY_LIGHT,
               display: 'flex',
               justifyContent: 'space-between',
             },

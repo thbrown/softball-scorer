@@ -170,7 +170,6 @@ export default class CardStats extends React.Component {
         key="header"
         style={{
           cursor: 'default',
-          color: 'white',
           display: 'flex',
           fontWeight: 'bold',
         }}
@@ -199,7 +198,7 @@ export default class CardStats extends React.Component {
     return (
       <Row
         key={playerStats.name}
-        style={{ cursor: 'default', color: 'white', display: 'flex' }}
+        style={{ cursor: 'default', display: 'flex' }}
       >
         {elems}
       </Row>

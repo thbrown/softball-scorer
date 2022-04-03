@@ -444,8 +444,8 @@ exp.replacePlayer = function (playerId, newPlayer) {
   onEdit();
 };
 
-exp.getAllPlayers = function (state) {
-  return (state || exp.getLocalState()).players;
+exp.getAllPlayers = function () {
+  return getShallowCopy(exp.getLocalState()).players;
 };
 
 exp.getAllPlayersAlphabetically = function () {
@@ -503,7 +503,7 @@ exp.getOptimization = function (optimizationId) {
 };
 
 exp.getAllOptimizations = function () {
-  return exp.getLocalState().optimizations;
+  return getShallowCopy(exp.getLocalState().optimizations);
 };
 
 exp.replaceOptimization = function (optimizationId, newOptimization) {
@@ -667,7 +667,8 @@ exp.duplicateOptimization = function (optimizationId) {
 
   // Reset the any status fields and de-duplicate unique fields
   duplicatedOptimization.id = getNextId();
-  duplicatedOptimization.name = 'Duplicate of ' + duplicatedOptimization.name;
+  let newName = 'Duplicate of ' + duplicatedOptimization.name;
+  duplicatedOptimization.name = newName.substring(0, 49); // Prevent the name form being too long
   duplicatedOptimization.status =
     SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED;
   duplicatedOptimization.resultData = JSON.stringify({});

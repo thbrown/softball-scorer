@@ -80,7 +80,7 @@ export default class InputDialog extends React.Component {
             },
             DOM.div(
               {
-                className: 'button confirm-button',
+                className: 'button primary-button',
                 onClick: this.handleConfirmClick,
               },
               DOM.span(

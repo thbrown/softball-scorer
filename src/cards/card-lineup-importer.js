@@ -9,27 +9,8 @@ const LineupPicker = ({ gameId, teamId }) => {
   const handleItemClick = (item) => {
     const opt = state.getOptimization(item.id);
     try {
-      const results = JSON.parse(opt.resultData);
-      let newLineup = [];
-      if (results.lineup.GroupA && results.lineup.GroupB) {
-        for (
-          let i = 0;
-          i <
-          Math.max(results.lineup.GroupA.length, results.lineup.GroupB.length);
-          i++
-        ) {
-          const aId = results.lineup.GroupA[i];
-          const bId = results.lineup.GroupB[i];
-          if (aId) {
-            newLineup.push(aId);
-          }
-          if (bId) {
-            newLineup.push(bId);
-          }
-        }
-      } else if (results.lineup.GroupA) {
-        newLineup = [...results.lineup.GroupA];
-      }
+      const optResult = JSON.parse(opt.resultData);
+      let newLineup = [...optResult.flatLineup];
       const game = state.getGame(gameId);
       state.replaceGame(gameId, teamId, {
         ...game,

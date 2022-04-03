@@ -41,7 +41,7 @@ const useCardTeamEditStyles = makeStyles((css) => ({
     transition: 'transition: all 0.5s ease-out',
   },
   publicLinkContainer: {
-    backgroundColor: css.colors.PRIMARY_DARK,
+    backgroundColor: css.colors.PRIMARY,
     borderRadius: css.spacing.xSmall,
     display: 'flex',
     justifyContent: 'flex-start',
@@ -211,7 +211,7 @@ const CardTeamEdit = (props) => {
           </CardSection>
         </>
       )}
-      <ListButton id="save" onClick={handleConfirmClick}>
+      <ListButton type="edit-button" onClick={handleConfirmClick}>
         <img
           className="edit-button-icon"
           src="/server/assets/check.svg"
@@ -220,7 +220,7 @@ const CardTeamEdit = (props) => {
         <span className="edit-button-icon"> Save </span>
       </ListButton>
       <ListButton
-        id="cancel"
+        type="edit-button"
         className="edit-button button cancel-button"
         onClick={handleCancelClick}
       >
@@ -232,7 +232,7 @@ const CardTeamEdit = (props) => {
         <span className="edit-button-icon"> Cancel </span>
       </ListButton>
       {!props.isNew && (
-        <ListButton id="delete" onClick={handleDeleteClick}>
+        <ListButton type="edit-button" onClick={handleDeleteClick}>
           <img
             className="edit-button-icon"
             src="/server/assets/delete.svg"

@@ -31,22 +31,17 @@ const TeamList = () => {
           className={'list-item'}
           onClick={() => handleTeamClick(team)}
         >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div className="prevent-overflow">{team.name}</div>
-            <div>
-              <img
-                id={'team-' + team.id + '-edit'}
-                src={'/server/assets/edit.svg'}
-                alt={'edit'}
-                className={'list-button'}
-                onClick={handleEditClick.bind(this, team)}
-              />
+          <div className="centered-row">
+            <div className="prevent-overflow">
+              <span style={{ fontSize: '12px' }}>VS. </span>
+              {team.name}
             </div>
+            <img
+              src="/server/assets/edit.svg"
+              alt="edit"
+              id={'team-' + team.id + '-edit'}
+              onClick={handleEditClick.bind(this, team)}
+            />
           </div>
         </ListButton>
       );
@@ -56,7 +51,7 @@ const TeamList = () => {
     <ListButton
       key={'newTeam'}
       id={'newTeam'}
-      type="secondary"
+      type="tertiary-button"
       onClick={handleCreateClick}
     >
       + Add New Team

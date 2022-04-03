@@ -26,21 +26,16 @@ const GameList = (props) => {
         onClick={handleGameClick.bind(this, game)}
       >
         <div className="centered-row">
-          <div
-            className="prevent-overflow"
-            style={{
-              maxWidth: 'calc(100% - 100px)',
-            }}
-          >
+          <div className="prevent-overflow">
             <span style={{ fontSize: '12px' }}>VS. </span>
             {game.opponent}
           </div>
-          <div className="centered-row">
+          <div style={{ display: 'flex' }}>
             <div
               style={{
                 fontSize: '12px',
                 marginRight: '10px',
-                marginTop: '4px',
+                marginTop: '5px',
               }}
             >
               {toClientDate(game.date)}
@@ -48,9 +43,6 @@ const GameList = (props) => {
             <img
               src="/server/assets/edit.svg"
               alt="edit"
-              style={{
-                float: 'right',
-              }}
               id={'game-' + game.id + '-edit'}
               onClick={(ev) => {
                 handleEditClick(game);
@@ -68,7 +60,7 @@ const GameList = (props) => {
     <ListButton
       id="newGame"
       key="newGame"
-      type="secondary"
+      type="tertiary-button"
       onClick={handleCreateClick}
     >
       + Add New Game

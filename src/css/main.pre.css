@@ -1,5 +1,5 @@
 body {
-  background: $css.colors.PRIMARY;
+  background: $css.colors.BACKGROUND;
   color: $css.colors.TEXT_DARK;
   position: absolute;
   width: 100%;
@@ -16,11 +16,6 @@ hr {
   background: #333;
 }
 
-svg path,
-svg rect{
-  fill: #FFF;
-}
-
 @font-face {
   font-family: 'score_boardregular';
   src: url('/server/assets/scoreboard-webfont.woff2') format('woff2'),
@@ -29,8 +24,10 @@ svg rect{
   font-style: normal;
 }
 
-.card {
-
+.background-text {
+  text-align: center;
+  font-size: 14px;
+  margin: 10px
 }
 
 .centered-row {
@@ -115,13 +112,8 @@ svg rect{
   font-size: 20px;
 }
 
-.list-item:hover,
-.list-item:active {
-  background-color: $css.colors.SECONDARY_LIGHT;
-}
-
 .add-list-item {
-  background-color: $css.colors.PRIMARY_DARK;
+  background-color: $css.colors.PRIMARY;
   color: $css.colors.TEXT_LIGHT;
 }
 
@@ -134,18 +126,20 @@ svg rect{
   border-bottom: 1px solid $css.colors.PRIMARY_LIGHT;
 }
 .table-cell {
-  border-right: 1px solid $css.colors.PRIMARY_LIGHT;
-  border-bottom: 1px solid $css.colors.PRIMARY_LIGHT;
+  border-right: 1px solid $css.colors.SECONDARY_LIGHT;
+  border-bottom: 1px solid $css.colors.SECONDARY_LIGHT;
   padding: 7px;
   min-width: 50px;
   height:24px;
   line-height: 1.7;
 }
 .table-cell-header {
+  color: $css.colors.TEXT_DARK;
   padding: 7px;
 }
 .table-cell-header-label {
-  background-color: $css.colors.PRIMARY_DARK;
+  color: $css.colors.TEXT_LIGHT;
+  background-color: $css.colors.PRIMARY;
 }
 
 .name-stat-cell {
@@ -154,7 +148,8 @@ svg rect{
   height:24px;
   text-overflow: ellipsis;
   overflow: hidden;
-  background-color: $css.colors.PRIMARY_DARK;
+  color: $css.colors.TEXT_LIGHT;
+  background-color: $css.colors.PRIMARY;
 }
 
 .number-stat-cell {
@@ -181,7 +176,7 @@ svg rect{
 
 .lineup-row {
   touch-action: initial !important;
-  background-color: $css.colors.SECONDARY;
+  background-color: $css.colors.SECONDARY_DARK;
   border-radius: 4px;
   color: $css.colors.TEXT_LIGHT;
   display: flex;
@@ -267,7 +262,9 @@ svg rect{
 }
 
 .lineup-box:hover,
-.lineup-box:active {
+.lineup-box:active,
+.list-item:hover, 
+.list-item:active {
   filter: brightness(75%);
 }
 
@@ -284,7 +281,15 @@ svg rect{
   color: $css.colors.TEXT_DARK;
 }
 
-.secondary {
+.dark-text {
+  color: $css.colors.TEXT_DARK;
+}
+
+.light-text {
+  color: $css.colors.TEXT_LIGHT;
+}
+
+.grey-text {
   color: $css.colors.TEXT_GREY;
 }
 
@@ -311,11 +316,11 @@ svg rect{
 }
 
 .group {
-  border: 1px #795548 solid;
+  border: 1px $css.colors.SECONDARY_DARK solid;
   border-radius: 4px;
   padding: 0px;
   margin-bottom: 8px;
-  color: $css.colors.TEXT_LIGHT;
+  color: $css.colors.TEXT_DARK;
 }
 
 .group-legend {
@@ -336,7 +341,7 @@ svg rect{
 }
 
 .song-label {
-  color: $css.colors.TEXT_LIGHT;
+  color: $css.colors.TEXT_DARK;
   font-size: 12px;
   padding: 0 16px 8px 0;
   margin-left: 2px;
@@ -360,6 +365,7 @@ svg rect{
   padding-left: 10px;
   font-size: 18px;
   border-radius: 4px;
+  margin: 2px;
 }
 
 .react-autosuggest__input--focused {
@@ -412,7 +418,7 @@ svg rect{
   left: 50%;
   transform: translateX(-50%);
   max-width: 960px;
-  background-color: $css.colors.PRIMARY_LIGHT;
+  background-color: $css.colors.BACKGROUND;
   border-radius: 8px;
   color: $css.colors.TEXT_DARK;
   box-shadow: 0px 9px 25px 10px rgba(0,0,0,0.5);
@@ -435,16 +441,24 @@ svg rect{
   width: calc(100% - 18px);
 }
 
+.flex-center-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+}
+
 .button {
   border-radius: 4px;
   cursor: pointer;
   font-size: 18px;
-  margin: 24px 8px 0 8px;
+  margin: 10px;
   padding: 12px;
   text-align: center;
   min-width: 52px;
   -webkit-tap-highlight-color: rgba(0,0,0,0);
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .button:active {
@@ -458,25 +472,24 @@ svg rect{
   }
 }
 
-.flex-center-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: row;
-}
-
-.confirm-button {
-  background-color: $css.colors.SECONDARY;
+.primary-button {
+  background-color: $css.colors.PRIMARY;
   color: $css.colors.TEXT_LIGHT;
 }
 
 .secondary-button {
-  background-color: $css.colors.PRIMARY_DARK;
-  color: $css.colors.TEXT_LIGHT;
+  background-color: $css.colors.PRIMARY_LIGHT;
+  color: $css.colors.TEXT_DARK;
+}
+
+.tertiary-button {
+  background-color: $css.colors.BACKGROUND;
+  color: $css.colors.TEXT_DARK;
+  border: solid 1px;
 }
 
 .cancel-button {
-  background-color: $css.colors.SECONDARY_LIGHT;
+  background-color: $css.colors.PRIMARY_LIGHT;
   color: $css.colors.TEXT_LIGHT;
 }
 
@@ -485,7 +498,16 @@ svg rect{
   color: $css.colors.TEXT_LIGHT;
 }
 
+.list-button {
+  background-color: $css.colors.PRIMARY;
+  color: $css.colors.TEXT_LIGHT;
+  margin: 10px;
+  width: auto;
+}
+
 .edit-button {
+  background-color: $css.colors.PRIMARY;
+  color: $css.colors.TEXT_LIGHT;
   width: auto;
   margin: 10px;
 }
@@ -807,13 +829,13 @@ Scrolling is ~10-20x smoother.
 
 .accordion dl,
 .accordion-list {
-  border: 1px solid $css.colors.PRIMARY_LIGHT;
+  border: 1px solid $css.colors.BACKGROUND;
   border-bottom: none;
 }
 
 .accordion dd,
 .accordion__panel {
-  background-color: $css.colors.PRIMARY_LIGHT;
+  background-color: $css.colors.BACKGROUND;
   font-size: 1em;
   margin-inline-start: 0px;
 }
@@ -823,18 +845,17 @@ Scrolling is ~10-20x smoother.
 
 .accordion {
   position: relative;
-  background-color: $css.colors.PRIMARY_LIGHT;
+  background-color: $css.colors.BACKGROUND;
 }
-.accordionContainer {
-}
+
 .accordionTitle,
 .accordion__Heading {
-  background-color: $css.colors.PRIMARY;
+  background-color: $css.colors.BACKGROUND;
   font-size: 20px;
   display: block;
-  color: $css.colors.TEXT_LIGHT;
+  color: $css.colors.TEXT_DARK;
   transition: background-color 0.25s ease-in-out;
-  border-bottom: 1px solid;
+  border-top: 1px solid;
 }
 
 .accordionTitleActive,
@@ -917,13 +938,14 @@ Scrolling is ~10-20x smoother.
 
 #gamesMenu label {
   display: block;
-  border: 1px solid black;
+  /* border: 1px solid black; */
+  font-size: $css.typography.size.medium;
   border-bottom: none;
-  padding: 15px;
+  padding: 14px;
 }
-#gamesMenu label:last-child {
+/* #gamesMenu label:last-child {
   border-bottom: 1px solid black;
-}
+} */
 
 #gamesMenu input {
   width: 13px;
@@ -936,6 +958,11 @@ Scrolling is ~10-20x smoother.
   *overflow: hidden;
 }
 
+#gamesMenu input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
 #footer {
   text-align: center;
 }
@@ -945,7 +972,7 @@ Scrolling is ~10-20x smoother.
 }
 
 .pie-timer {
-  background: -webkit-linear-gradient(left, $css.colors.PRIMARY 50%, #795548 50%); /* $css.colors.SECONDARY doesn't get substituted here, so I'm hardcoding #4caf50 */
+  background: -webkit-linear-gradient(left, $css.colors.PRIMARY 50%, #F5F5F5 50%); /* $css.colors.BACKGROUND doesn't get substituted here, so I'm hardcoding #F5F5F5 */
   border-radius: 100%;
   height: 25px; /* Height and width */
   position: relative;
@@ -979,12 +1006,12 @@ Scrolling is ~10-20x smoother.
 }
 @-webkit-keyframes pie-mask {
   0% {
-      background: $css.colors.SECONDARY; /* Background colour */
+      background: $css.colors.BACKGROUND; /* Background colour */
       -webkit-transform: rotate(0deg);
       transform: rotate(0deg);
   }
   50% {
-      background: $css.colors.SECONDARY; /* Background colour */
+      background: $css.colors.BACKGROUND; /* Background colour */
       -webkit-transform: rotate(-180deg);
       transform: rotate(-180deg);
   }

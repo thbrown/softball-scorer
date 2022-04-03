@@ -13,9 +13,8 @@ class CardPlayerList extends React.Component {
       setRoute(`/players/${player.id}`);
     };
 
-    this.handleEditClick = function (player, ev) {
+    this.handleEditClick = function (player) {
       setRoute(`/players/${player.id}/edit`);
-      ev.stopPropagation();
     };
 
     this.handleCreateClick = function () {
@@ -30,7 +29,7 @@ class CardPlayerList extends React.Component {
         <ListButton
           id="newPlayer"
           key="newPlayer"
-          type="secondary"
+          type="secondary-button"
           onClick={this.handleCreateClick}
         >
           <div className="prevent-overflow">+ Add New Player</div>
@@ -45,20 +44,18 @@ class CardPlayerList extends React.Component {
                 key={'player-' + player.id}
                 onClick={this.handlePlayerClick.bind(this, player)}
               >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                  }}
-                >
+                <div className="centered-row">
                   <div className="prevent-overflow">{player.name}</div>
-                  <div>
+                  <div style={{ display: 'flex' }}>
                     <img
+                      src="/server/assets/edit.svg"
+                      alt="edit"
                       id={'player-' + player.id + '-edit'}
-                      src={'/server/assets/edit.svg'}
-                      alt={'edit'}
-                      className={'list-button'}
-                      onClick={this.handleEditClick.bind(this, player)}
+                      onClick={(ev) => {
+                        console.log('PRESSED EDIT');
+                        ev.stopPropagation();
+                        this.handleEditClick.bind(this, player)();
+                      }}
                     />
                   </div>
                 </div>

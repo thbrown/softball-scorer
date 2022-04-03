@@ -31,7 +31,7 @@ const CardOptimizationList = (props) => (
     <ListButton
       id="new-optimization"
       onClick={props.handleCreateClick}
-      type="secondary"
+      type="tertiary-button"
     >
       <NoSelect className="prevent-overflow">+ Add New Optimization</NoSelect>
     </ListButton>
@@ -70,8 +70,7 @@ const CardOptimizationList = (props) => (
             <img
               id={'edit-optimization-' + optimization.id}
               alt="edit"
-              src="/server/assets/edit.svg"
-              className="list-button"
+              src="/server/assets/more.svg"
               onClick={props.handleEditClick(optimization)}
             />
           </div>

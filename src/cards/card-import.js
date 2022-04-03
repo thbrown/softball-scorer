@@ -131,7 +131,9 @@ const CardImport = () => {
                 onChange={handleRadioClick}
                 checked={loadType === 'Merge'}
               />
-              <label htmlFor="mergeChoice">Merge</label>
+              <label className="dark-text" htmlFor="mergeChoice">
+                Merge
+              </label>
             </div>
             <div className="radio-button-option">
               <input
@@ -142,14 +144,16 @@ const CardImport = () => {
                 onChange={handleRadioClick}
                 checked={loadType === 'Overwrite'}
               />
-              <label htmlFor="overwriteChoice">Overwrite</label>
+              <label className="dark-text" htmlFor="overwriteChoice">
+                Overwrite
+              </label>
             </div>
           </div>
           <div className={classes.fileInputContainer}>
             <div
               id="load"
               className={
-                'button confirm-button ' +
+                'button primary-button ' +
                 (fileName ? classes.loadButton : classes.loadButtonDisabled)
               }
               onClick={handleLoadClick}

@@ -23,6 +23,14 @@ const useListPickerStyles = makeStyles((theme) => ({
 
 const ListPicker = (props) => {
   const { classes } = useListPickerStyles();
+
+  if (props.items.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', margin: '10px', fontSize: '14pt' }}>
+        No options available
+      </div>
+    );
+  }
   return (
     <div>
       {props.items.map((item, i) => (

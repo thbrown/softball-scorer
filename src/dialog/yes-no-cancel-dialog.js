@@ -45,7 +45,7 @@ export default class YesNoCancelDialog extends React.Component {
             },
             DOM.div(
               {
-                className: 'button confirm-button',
+                className: 'button primary-button',
                 onClick: this.handleYesClick,
               },
               DOM.span(
@@ -57,7 +57,7 @@ export default class YesNoCancelDialog extends React.Component {
             ),
             DOM.div(
               {
-                className: 'button confirm-button',
+                className: 'button primary-button',
                 onClick: this.handleNoClick,
               },
               DOM.span(

@@ -199,7 +199,7 @@ export default class CardAuth extends React.Component {
         {
           key: 'submit',
           id: 'submit',
-          className: 'button confirm-button',
+          className: 'button primary-button',
           style: {
             width: 'auto',
             margin: '10px',
@@ -230,7 +230,7 @@ export default class CardAuth extends React.Component {
           {
             key: 'signup',
             id: 'signup',
-            className: 'button confirm-button',
+            className: 'button primary-button',
             style: {
               width: 'auto',
               margin: '10px',
@@ -243,7 +243,7 @@ export default class CardAuth extends React.Component {
           {
             key: 'passwordReset',
             id: 'passwordReset',
-            className: 'button confirm-button',
+            className: 'button primary-button',
             style: {
               width: 'auto',
               margin: '10px',

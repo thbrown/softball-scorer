@@ -24,7 +24,7 @@ export default class ConfirmDialog extends React.Component {
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <div
                 id="dialog-confirm"
-                className="button confirm-button"
+                className="button primary-button"
                 onClick={this.handleConfirmClick}
               >
                 <span className="no-select">Yes</span>

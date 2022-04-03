@@ -275,7 +275,7 @@ const enhance = compose(
     filterButton: {
       '-webkitTapHighlightColor': 'rgba(0,0,0,0)',
       cursor: 'pointer',
-      backgroundColor: theme.colors.SECONDARY,
+      backgroundColor: theme.colors.PRIMARY,
       padding: theme.spacing.xSmall,
       fontSize: theme.typography.size.small,
       borderRadius: theme.spacing.small,
@@ -288,7 +288,7 @@ const enhance = compose(
     filterButtonActive: {
       '-webkitTapHighlightColor': 'rgba(0,0,0,0)',
       cursor: 'pointer',
-      backgroundColor: theme.colors.SECONDARY_LIGHT,
+      backgroundColor: theme.colors.PRIMARY_LIGHT,
       padding: theme.spacing.xSmall,
       fontSize: theme.typography.size.small,
       borderRadius: theme.spacing.small,

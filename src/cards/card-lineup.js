@@ -6,6 +6,7 @@ import dialog from 'dialog';
 import Button from 'elements/list-button';
 import Draggable from 'react-draggable';
 import { setRoute } from 'actions/route';
+import css from 'css';
 
 // Enum for player tile render options
 const FULL_EDIT = 'fullEdit';
@@ -220,9 +221,9 @@ export default class CardLineup extends React.Component {
 
   getUiTextForLockButton() {
     if (this.locked) {
-      return 'Unlock';
+      return 'Unlock Lineup Order';
     } else {
-      return 'Lock';
+      return 'Lock Lineup Order';
     }
   }
 
@@ -298,7 +299,7 @@ export default class CardLineup extends React.Component {
           DOM.div(
             {
               style: {
-                backgroundColor: '#DDD',
+                backgroundColor: css.colors.SECONDARY_LIGHT,
               },
             },
             <span className="no-select">+</span>
@@ -359,6 +360,14 @@ export default class CardLineup extends React.Component {
 
     let pageElems = [];
 
+    if (this.props.game.lineup.length === 0) {
+      pageElems = pageElems.concat(
+        <div className="background-text">
+          There are currently no players in this lineup, add some by clicking
+          the button below.
+        </div>
+      );
+    }
     pageElems = pageElems.concat(
       this.props.game.lineup
         .map((playerId, index) => {
@@ -412,18 +421,6 @@ export default class CardLineup extends React.Component {
       )
     );
 
-    pageElems.push(
-      DOM.div(
-        {
-          id: 'lock',
-          key: 'lock',
-          className: 'list-item add-list-item',
-          onClick: this.handleLockToggle,
-        },
-        this.getUiTextForLockButton()
-      )
-    );
-
     if (this.props.game.plateAppearances.length === 0) {
       pageElems.push(
         <Button
@@ -435,8 +432,21 @@ export default class CardLineup extends React.Component {
             );
           }}
         >
-          Import from Optimization
+          Import Lineup From Optimization
         </Button>
+      );
+    }
+
+    if (this.props.game.lineup.length !== 0) {
+      pageElems.push(
+        <div
+          id="lock"
+          key="lock"
+          className="list-item add-list-item"
+          onClick={this.handleLockToggle}
+        >
+          {this.getUiTextForLockButton()}
+        </div>
       );
     }
 
@@ -465,15 +475,9 @@ export default class CardLineup extends React.Component {
     if (nonLineupPlateAppearances.length !== 0) {
       pageElems.push(DOM.hr());
       pageElems.push(
-        DOM.div(
-          {
-            style: {
-              textAlign: 'center',
-              fontSize: '21px',
-            },
-          },
-          'Players with plate appearances who are not in the lineup'
-        )
+        <div className="background-text">
+          Players with plate appearances who are not in the lineup
+        </div>
       );
 
       // Get unique player ids

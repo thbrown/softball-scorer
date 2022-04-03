@@ -138,7 +138,7 @@ export default class CardGameEdit extends React.Component {
   renderSaveOptions() {
     return (
       <>
-        <ListButton id="save" onClick={this.handleConfirmClick}>
+        <ListButton type="edit-button" onClick={this.handleConfirmClick}>
           <img
             className="edit-button-icon"
             src="/server/assets/check.svg"
@@ -146,7 +146,7 @@ export default class CardGameEdit extends React.Component {
           />
           <span className="edit-button-icon">Save</span>
         </ListButton>
-        <ListButton id="cancel" onClick={this.handleCancelClick}>
+        <ListButton type="edit-button" onClick={this.handleCancelClick}>
           <img
             className="edit-button-icon"
             src="/server/assets/cancel.svg"
@@ -155,7 +155,7 @@ export default class CardGameEdit extends React.Component {
           <span className="edit-button-icon">Cancel</span>
         </ListButton>
         {this.props.isNew ? null : (
-          <ListButton id="delete" onClick={this.handleDeleteClick}>
+          <ListButton type="edit-button" onClick={this.handleDeleteClick}>
             <img
               className="edit-button-icon"
               src="/server/assets/delete.svg"

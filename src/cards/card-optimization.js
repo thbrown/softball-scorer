@@ -425,7 +425,8 @@ export default class CardOptimization extends React.Component {
         'POST',
         'server/estimate-optimization',
         body,
-        controller
+        controller,
+        60000 // Give it a full minute to estimate the time
       );
       if (response.status === 200) {
         try {
@@ -849,7 +850,7 @@ export default class CardOptimization extends React.Component {
                 SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ? (
                   <div
                     id="edit-players"
-                    className="edit-button button confirm-button"
+                    className="edit-button button tertiary-button"
                     onClick={this.handleAddPlayerClick}
                   >
                     + Add/Remove Players
@@ -881,6 +882,7 @@ export default class CardOptimization extends React.Component {
               className="accordion-content accordionItem is-collapsed"
               id="accordion2"
               aria-hidden="true"
+              style={{ paddingTop: '0px', paddingBottom: '0px' }}
             >
               <div id="gamesMenu">{teamsCheckboxes}</div>
             </dd>
@@ -1094,7 +1096,7 @@ export default class CardOptimization extends React.Component {
         <div
           ref={this.toggleOptimizationButtonRef}
           id="toggle-optimization-button"
-          className={`edit-button button confirm-button ${
+          className={`edit-button button primary-button ${
             disabled ? 'disabled' : ''
           }`}
           onClick={toggleButtonHandler}
@@ -1106,8 +1108,16 @@ export default class CardOptimization extends React.Component {
       false
     );
 
-    return (
-      <div id="footer">
+    let emailCheckbox = undefined;
+    if (
+      optimization.status ===
+        SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS ||
+      optimization.status ===
+        SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES ||
+      optimization.status ===
+        SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+    ) {
+      emailCheckbox = (
         <label>
           <input
             type="checkbox"
@@ -1117,6 +1127,12 @@ export default class CardOptimization extends React.Component {
           />
           Send me an email when the simulation is complete.
         </label>
+      );
+    }
+
+    return (
+      <div id="footer">
+        {emailCheckbox}
         {toggleButton}
       </div>
     );

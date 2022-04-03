@@ -5,7 +5,12 @@ import Card from 'elements/card';
 export default ({ message }) => {
   return (
     <Card title="Not Found" enableLeftHeader={false}>
-      <Section message={message} isCentered={true} />
+      <div
+        style={{ textAlign: 'center', margin: '10px' }}
+        className="backgroundText"
+      >
+        {message}
+      </div>
     </Card>
   );
 };

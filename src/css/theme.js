@@ -2,15 +2,19 @@
 // https://material.io/tools/color/#!/?view.left=0&view.right=0&primary.color=4caf50&secondary.color=775447
 
 const theme = {
+  // e8e8e8 - grey
+  // 0a7f23 - dark green
+  // 164c09 - darker green
   colors: {
-    PRIMARY: '#4caf50',
-    PRIMARY_LIGHT: '#80e27e',
-    PRIMARY_DARK: '#087f23',
-    SECONDARY: '#795548',
-    SECONDARY_LIGHT: '#a98274',
-    SECONDARY_DARK: '#4b2c20',
+    PRIMARY: '#388e3c',
+    PRIMARY_LIGHT: '#6abf69',
+    PRIMARY_DARK: '#00600f',
+    SECONDARY: '#757575',
+    SECONDARY_LIGHT: '#a4a4a4',
+    SECONDARY_DARK: '#494949',
+    BACKGROUND: '#F5F5F5',
     TEXT_LIGHT: '#FFFFFF',
-    TEXT_GREY: '#919191',
+    TEXT_GREY: '#A4A4A4',
     TEXT_DARK: '#000000',
     CANCEL: '#B72A2A',
     DELETE: '#B72A2A',

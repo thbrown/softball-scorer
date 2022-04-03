@@ -14,11 +14,11 @@ export const ListButtonContentIcon = ({ children, icon }) => {
   );
 };
 
-const ListButton = ({ children, fullWidth, type, onClick }) => {
+const ListButton = ({ children, type, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className={`${fullWidth ? 'edit-button ' : ''}${type}-button button`}
+      className={`${type ? type + '' : 'list-button'} button`}
       style={{
         textAlign: 'left',
       }}
@@ -29,8 +29,7 @@ const ListButton = ({ children, fullWidth, type, onClick }) => {
 };
 
 ListButton.defaultProps = {
-  type: 'confirm',
-  fullWidth: true,
+  type: undefined,
   onClick: function () {},
 };
 

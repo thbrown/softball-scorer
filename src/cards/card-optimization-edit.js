@@ -92,7 +92,7 @@ const CardOptimizationEdit = (props) => {
           onChange={(value) => handleOptimizationNameChange(value)}
         />
       </div>
-      <ListButton id="save" onClick={handleConfirmClick}>
+      <ListButton type="edit-button" onClick={handleConfirmClick}>
         <img
           className="edit-button-icon"
           src="/server/assets/check.svg"
@@ -101,7 +101,7 @@ const CardOptimizationEdit = (props) => {
         <span className="edit-button-icon"> Save </span>
       </ListButton>
       <ListButton
-        id="cancel"
+        type="edit-button"
         className="edit-button button cancel-button"
         onClick={handleCancelClick}
       >
@@ -113,7 +113,7 @@ const CardOptimizationEdit = (props) => {
         <span className="edit-button-icon"> Cancel </span>
       </ListButton>
       {!props.isNew && (
-        <ListButton id="delete" onClick={handleDeleteClick}>
+        <ListButton type="edit-button" onClick={handleDeleteClick}>
           <img
             className="edit-button-icon"
             src="/server/assets/delete.svg"
@@ -123,7 +123,7 @@ const CardOptimizationEdit = (props) => {
         </ListButton>
       )}
       {!props.isNew && (
-        <ListButton id="duplicate" onClick={handleDuplicateClick}>
+        <ListButton type="edit-button" onClick={handleDuplicateClick}>
           <img
             className="edit-button-icon"
             src="/server/assets/duplicate.svg"

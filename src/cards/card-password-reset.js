@@ -109,7 +109,7 @@ export default class CardPasswordReset extends React.Component {
       {
         key: 'submit',
         id: 'submit',
-        className: 'button confirm-button',
+        className: 'button primary-button',
         onClick: this.handleSubmitClick.bind(this),
         style: {
           marginLeft: '0',
