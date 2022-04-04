@@ -1,5 +1,4 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 import dialog from 'dialog';
 import Draggable from 'react-draggable';
 import LeftHeaderButton from 'component-left-header-button';
@@ -225,9 +224,11 @@ class CardPlateAppearance extends React.Component {
 
   renderButtonList() {
     if (!this.props.player || !this.props.plateAppearance) {
-      return DOM.div(
-        { className: 'page-error' },
-        'PlateAppearance: No game or team or player or PlateAppearance exists.'
+      return (
+        <div className="page-error">
+          'PlateAppearance: No game or team or player or PlateAppearance
+          exists.'
+        </div>
       );
     }
 
@@ -318,125 +319,135 @@ class CardPlateAppearance extends React.Component {
 
       if (value.location && x && y) {
         indicators.push(
-          DOM.img({
-            key: value.id,
-            src: imageSrc,
-            alt: 'previous result',
-            style: {
+          <img
+            key={value.id}
+            src={imageSrc}
+            alt="previous result"
+            style={{
               position: 'absolute',
               width: '20px',
               left: new_x + 'px',
               top: new_y + 'px',
-            },
-          })
+            }}
+          ></img>
         );
       }
     });
 
-    return DOM.div(
-      {
-        id: 'ballfield',
-        style: {
+    return (
+      <div
+        id="ballfield"
+        style={{
           position: 'relative',
           borderTop: '1px solid white',
           borderBottom: '1px solid white',
           width: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + 'px',
           height: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + 'px',
           overflow: 'hidden',
-        },
-      },
-      DOM.img({
-        draggable: true,
-        src: '/server/assets/ballfield2.png',
-        alt: 'ballfield',
-        style: {
-          width: '100%',
-        },
-      }),
-      indicators
+        }}
+      >
+        <img
+          draggable={true}
+          src="/server/assets/ballfield2.png"
+          alt="ballfield"
+          style={{
+            width: '100%',
+          }}
+        ></img>
+        {indicators}
+      </div>
     );
   }
 
   renderBaseball(imageSrcForCurrentPa) {
-    return React.createElement(
-      Draggable,
-      {
-        key: 'baseball',
-        axis: 'both',
-        allowAnyClick: true,
-        position: { x: 0, y: 0 },
-        grid: [1, 1],
-        onStart: this.handleDragStart.bind(this),
-        onStop: this.handleDragStop.bind(this),
-      },
-      DOM.img({
-        id: 'baseball',
-        draggable: false,
-        src: imageSrcForCurrentPa,
-        alt: 'ball',
-        className: 'plate-appearance-baseball',
-        style: {
-          touchAction: 'none',
-          transform: 'translate(0px, 0px)',
-        },
-      })
+    return (
+      <Draggable
+        key="baseball"
+        axis="both"
+        allowAnyClick={true}
+        position={{ x: 0, y: 0 }}
+        grid={[1, 1]}
+        onStart={this.handleDragStart.bind(this)}
+        onStop={this.handleDragStop.bind(this)}
+      >
+        <img
+          id="baseball"
+          draggable={false}
+          src={imageSrcForCurrentPa}
+          alt="ball"
+          className="plate-appearance-baseball"
+          style={{
+            touchAction: 'none',
+            transform: 'translate(0px, 0px)',
+          }}
+        ></img>
+      </Draggable>
     );
   }
 
   renderActionsButtons() {
     let buttons = [];
-    let confirm = DOM.img({
-      id: 'pa-confirm',
-      key: 'confirm',
-      src: '/server/assets/check.svg',
-      onClick: this.handleConfirmClick,
-      alt: 'confirm',
-      className: 'plate-appearance-card-actions',
-    });
+    let confirm = (
+      <img
+        id="pa-confirm"
+        key="confirm"
+        src="/server/assets/check.svg"
+        alt="confirm"
+        className="plate-appearance-card-actions"
+        onClick={this.handleConfirmClick}
+      ></img>
+    );
     buttons.push(confirm);
 
-    let cancel = DOM.img({
-      id: 'pa-cancel',
-      key: 'cancel',
-      src: '/server/assets/cancel.svg',
-      onClick: this.handleCancelClick,
-      alt: 'cancel',
-      className: 'plate-appearance-card-actions',
-    });
+    let cancel = (
+      <img
+        id="pa-cancel"
+        key="cancel"
+        src="/server/assets/cancel.svg"
+        alt="cancel"
+        className="plate-appearance-card-actions"
+        onClick={this.handleCancelClick}
+      ></img>
+    );
     buttons.push(cancel);
 
     if (!this.props.isNew) {
-      let trash = DOM.img({
-        id: 'pa-delete',
-        key: 'delete',
-        src: '/server/assets/delete.svg',
-        onClick: this.handleDeleteClick,
-        alt: 'delete',
-        className: 'plate-appearance-card-actions',
-      });
+      let trash = (
+        <img
+          id="pa-delete"
+          key="delete"
+          src="/server/assets/delete.svg"
+          alt="delete"
+          className="plate-appearance-card-actions"
+          onClick={this.handleDeleteClick}
+        ></img>
+      );
       buttons.push(trash);
     }
 
-    return DOM.div(
-      {
-        id: 'options-buttons',
-        style: {
+    return (
+      <div
+        id="options-buttons"
+        style={{
           position: 'relative',
           display: 'flex',
           overflow: 'hidden',
-        },
-      },
-      buttons
+        }}
+      >
+        {buttons}
+      </div>
     );
   }
 
   renderWalkupSong() {
-    return React.createElement(WalkupSong, {
-      songLink: this.props.player.song_link,
-      songStart: this.props.player.song_start,
-      width: 48,
-      height: 48,
-    });
+    return (
+      <WalkupSong
+        songLink={this.props.player.song_link}
+        songStart={this.props.player.song_start}
+        width={48}
+        height={48}
+      ></WalkupSong>
+    );
   }
 
   render() {
@@ -445,68 +456,53 @@ class CardPlateAppearance extends React.Component {
       .includes(this.state.paResult)
       ? '/server/assets/baseball-out.svg'
       : '/server/assets/baseball-hit.svg';
-    return DOM.div(
-      {
-        className: 'card',
-        style: {
+    return (
+      <div
+        className="card"
+        style={{
           position: 'relative',
-        },
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-          style: {},
-        },
-        React.createElement(LeftHeaderButton, {
-          onClick: this.homeOrBack,
-        }),
-        DOM.div(
-          {
-            className: 'prevent-overflow card-title-text-with-arrow',
-          },
-          this.props.player.name
-        ),
-        React.createElement(RightHeaderButton, {
-          onClick: this.homeOrBack,
-        })
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-          style: {
+        }}
+      >
+        <div className="card-title">
+          <LeftHeaderButton onClick={this.homeOrBack}></LeftHeaderButton>
+          <div className="prevent-overflow card-title-text-with-arrow">
+            {this.props.player.name}
+          </div>
+          <RightHeaderButton onClick={this.homeOrBack}></RightHeaderButton>
+        </div>
+        <div
+          className="card-body"
+          style={{
             maxWidth: BALLFIELD_MAX_WIDTH + 'px',
-          },
-        },
-
-        this.renderButtonList(),
-        this.renderField(imageSrcForCurrentPa),
-        DOM.div(
-          {
-            style: {
+          }}
+        >
+          {this.renderButtonList()}
+          {this.renderField(imageSrcForCurrentPa)}
+          <div
+            style={{
               backgroundColor: css.colors.PRIMARY_LIGHT,
               display: 'flex',
               justifyContent: 'space-between',
-            },
-          },
-          DOM.div(
-            {
-              style: {
-                paddingLeft: '24px',
-              },
-            },
-            this.renderBaseball(imageSrcForCurrentPa)
-          ),
-          this.renderActionsButtons(),
-          DOM.div(
-            {
-              style: {
+            }}
+          >
+            <div
+              style={{
                 paddingRight: '24px',
-              },
-            },
-            this.renderWalkupSong()
-          )
-        )
-      )
+              }}
+            >
+              {this.renderBaseball(imageSrcForCurrentPa)}
+            </div>
+            {this.renderActionsButtons()}
+            <div
+              style={{
+                paddingRight: '24px',
+              }}
+            >
+              {this.renderWalkupSong()}
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 }
