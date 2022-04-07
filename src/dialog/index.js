@@ -118,15 +118,40 @@ exp.is_visible = function () {
 
 export const Dialog = ({ type, ...props }) => {
   if (type === 'confirm') {
-    return <ConfirmDialog {...props} />;
+    return (
+      <div id="dialog-bg" className="dialog-bg">
+        <ConfirmDialog {...props} />
+      </div>
+    );
   } else if (type === 'yesNoCancel') {
-    return <YesNoCancelDialog {...props} />;
+    return (
+      <div id="dialog-bg" className="dialog-bg">
+        <YesNoCancelDialog {...props} />
+      </div>
+    );
   } else if (type === 'input') {
-    return <InputDialog {...props} />;
+    return (
+      <div id="dialog-bg" className="dialog-bg">
+        <InputDialog {...props} />
+      </div>
+    );
   } else if (type === 'notification') {
-    return <NotificationDialog {...props} />;
+    return (
+      <div id="dialog-bg" className="dialog-bg">
+        <NotificationDialog {...props} />
+      </div>
+    );
   } else {
-    return <div id="dialog" />;
+    return (
+      <div
+        id="dialog-bg"
+        style={{
+          pointerEvents: 'none',
+        }}
+      >
+        <div id="dialog" />
+      </div>
+    );
   }
 };
 

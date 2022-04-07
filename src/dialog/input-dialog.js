@@ -28,9 +28,8 @@ export default class InputDialog extends React.Component {
   componentDidMount() {
     document.getElementById('InputDialog-input').focus();
     if (this.props.startingValue) {
-      document.getElementById(
-        'InputDialog-input'
-      ).value = this.props.startingValue;
+      document.getElementById('InputDialog-input').value =
+        this.props.startingValue;
       this.setState({
         value: this.props.startingValue,
       });
@@ -48,66 +47,57 @@ export default class InputDialog extends React.Component {
 
   render() {
     return DOM.div(
-      {},
+      {
+        className: 'dialog',
+      },
       DOM.div(
-        {},
+        {
+          className: 'dialog-text',
+        },
+        this.getNodeOrDefaultText()
+      ),
+      DOM.textarea({
+        id: 'InputDialog-input',
+        onChange: this.handleInputChange,
+        placeholder: this.getNodeOrDefaultText(),
+        className: 'dialog-input-box',
+        style: {
+          whiteSpace: this.props.whiteSpace ? 'pre' : '',
+          height: this.props.node ? '360px' : '36px',
+        },
+      }),
+      DOM.div(
+        {
+          style: {
+            display: 'flex',
+            justifyContent: 'flex-end',
+          },
+        },
         DOM.div(
           {
-            className: 'dialog',
+            className: 'button primary-button',
+            onClick: this.handleConfirmClick,
           },
-          DOM.div(
+          DOM.span(
             {
-              className: 'dialog-text',
+              className: 'no-select',
             },
-            this.getNodeOrDefaultText()
-          ),
-          DOM.textarea({
-            id: 'InputDialog-input',
-            onChange: this.handleInputChange,
-            placeholder: this.getNodeOrDefaultText(),
-            className: 'dialog-input-box',
-            style: {
-              whiteSpace: this.props.whiteSpace ? 'pre' : '',
-              height: this.props.node ? '360px' : '36px',
-            },
-          }),
-          DOM.div(
+            'Submit'
+          )
+        ),
+        DOM.div(
+          {
+            className: 'button cancel-button',
+            onClick: this.handleCancelClick,
+          },
+          DOM.span(
             {
-              style: {
-                display: 'flex',
-                justifyContent: 'flex-end',
-              },
+              className: 'no-select',
             },
-            DOM.div(
-              {
-                className: 'button primary-button',
-                onClick: this.handleConfirmClick,
-              },
-              DOM.span(
-                {
-                  className: 'no-select',
-                },
-                'Submit'
-              )
-            ),
-            DOM.div(
-              {
-                className: 'button cancel-button',
-                onClick: this.handleCancelClick,
-              },
-              DOM.span(
-                {
-                  className: 'no-select',
-                },
-                'Cancel'
-              )
-            )
+            'Cancel'
           )
         )
-      ),
-      DOM.div({
-        className: 'overlay',
-      })
+      )
     );
   }
 }

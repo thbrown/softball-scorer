@@ -6,6 +6,7 @@ import { compose, withHandlers } from 'recompose';
 import NoSelect from 'elements/no-select';
 import ListButton from 'elements/list-button';
 import SharedLib from '/../shared-lib';
+import IconButton from 'elements/icon-button';
 
 const enhance = compose(
   withHandlers({
@@ -52,6 +53,7 @@ const CardOptimizationList = (props) => (
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+            width: '100%',
           }}
         >
           <NoSelect className="prevent-overflow">
@@ -69,11 +71,12 @@ const CardOptimizationList = (props) => (
             </div>
           </NoSelect>
           <div>
-            <img
+            <IconButton
               id={'edit-optimization-' + optimization.id}
               alt="edit"
               src="/server/assets/more.svg"
               onClick={props.handleEditClick(optimization)}
+              invert
             />
           </div>
         </div>

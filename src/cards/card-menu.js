@@ -250,7 +250,7 @@ class CardMenu extends Component {
             backgroundColor: css.colors.BG,
           }}
         >
-          Import From File...
+          Import From File
         </ListButton>
         <HrTitle title="Account"></HrTitle>
         {state.isSessionValid() ? (

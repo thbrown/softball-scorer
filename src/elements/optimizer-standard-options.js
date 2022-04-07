@@ -129,7 +129,7 @@ export default class OptimizerStandardOptions extends React.Component {
           <IconButton
             alt="help"
             className="help-icon"
-            src="/server/assets/help.svg"
+            src="/server/assets/search.svg"
             onClick={this.handleOptimizerSearch}
             invert
             style={{

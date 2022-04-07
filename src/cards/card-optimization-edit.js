@@ -80,11 +80,7 @@ const CardOptimizationEdit = (props) => {
   };
 
   return (
-    <Card
-      title="Edit Optimization"
-      leftHeaderProps={{ onClick: () => homeOrBack('back') }}
-      rightHeaderProps={{ onClick: () => homeOrBack('home') }}
-    >
+    <Card title="Edit Optimization">
       <div className="auth-input-container">
         <FloatingInput
           inputId="optimizationName"

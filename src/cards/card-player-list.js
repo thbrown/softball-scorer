@@ -3,6 +3,7 @@ import state from 'state';
 import { setRoute } from 'actions/route';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
+import IconButton from 'elements/icon-button';
 
 class CardPlayerList extends React.Component {
   constructor(props) {
@@ -47,15 +48,15 @@ class CardPlayerList extends React.Component {
                 <div className="centered-row">
                   <div className="prevent-overflow">{player.name}</div>
                   <div style={{ display: 'flex' }}>
-                    <img
+                    <IconButton
                       src="/server/assets/edit.svg"
                       alt="edit"
                       id={'player-' + player.id + '-edit'}
                       onClick={(ev) => {
-                        console.log('PRESSED EDIT');
                         ev.stopPropagation();
                         this.handleEditClick.bind(this, player)();
                       }}
+                      invert
                     />
                   </div>
                 </div>
