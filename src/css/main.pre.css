@@ -971,6 +971,59 @@ Scrolling is ~10-20x smoother.
   padding: 8px;
 }
 
+/* THE SPEECH BUBBLE */
+
+.triangle-border {
+  /*position:relative;*/
+  padding: 9px;
+  /*margin:1em 0 3em;*/
+  border: 5px solid $css.colors.PRIMARY;
+  color: $css.colors.BACKGROUND;
+  background:#fff;
+  border-radius:10px;
+  text-align:center;
+  width: 100px;
+}
+
+.triangle-border:before {
+  content:"";
+  position:absolute;
+  bottom:-20px;
+  left:40px; /* controls horizontal position */
+  border-width:20px 20px 0;
+  border-style:solid;
+  border-color:$css.colors.PRIMARY transparent;
+  /* reduce the damage in FF3.0 */
+  display:block;
+  width:0;
+}
+
+/* creates the smaller  triangle */
+.triangle-border:after {
+  content:"";
+  position:absolute;
+  bottom:-13px;
+  left:47px; /* value = (:before left) + (:before border-left) - (:after border-left) */
+  border-width:13px 13px 0;
+  border-style:solid;
+  border-color:$css.colors.BACKGROUND transparent;
+  /* reduce the damage in FF3.0 */
+  display:block;
+  width:0;
+}
+
+.player-location {
+  position: absolute;
+  border: solid;
+  border-radius: 26px;
+}
+
+.player-location-highlight {
+  color: red;
+}
+
+/* Pie optimization IN_PROGRESS svg */
+
 .pie-timer {
   background: -webkit-linear-gradient(left, $css.colors.PRIMARY 50%, #F5F5F5 50%); /* $css.colors.BACKGROUND doesn't get substituted here, so I'm hardcoding #F5F5F5 */
   border-radius: 100%;

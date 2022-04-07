@@ -27,3 +27,8 @@ export const getShallowCopy = function (array) {
 export const toClientDate = function (serverDate) {
   return new Date(serverDate * 1000).toISOString().substring(0, 10);
 };
+
+export const distance = function (x1, y1, x2, y2) {
+  let result = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+  return result;
+};

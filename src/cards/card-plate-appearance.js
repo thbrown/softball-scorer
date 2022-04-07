@@ -6,7 +6,7 @@ import RightHeaderButton from 'component-right-header-button';
 import results from 'plate-appearance-results';
 import state from 'state';
 import WalkupSong from 'component-walkup-song';
-import { normalize } from 'utils/functions';
+import { normalize, distance } from 'utils/functions';
 import { goBack } from 'actions/route';
 import { makeStyles } from 'css/helpers';
 import css from 'css';
@@ -14,6 +14,8 @@ import css from 'css';
 const LOCATION_DENOMINATOR = 32767;
 
 const BALLFIELD_MAX_WIDTH = 500;
+
+const PLAYER_LOCATION_SIZE = 48;
 
 const useStyles = makeStyles((theme) => ({
   buttonRow: {
@@ -42,6 +44,15 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.colors.SECONDARY,
   },
 }));
+
+// Locations of the bases (from the upper left of teh image in px) while the image is full sized
+const BASE_COORDINATES = {
+  '1B': { top: 375, left: 352 },
+  '2B': { top: 277, left: 246 },
+  '3B': { top: 375, left: 145 },
+  Scored: { top: 473, left: 247 },
+  Out: { top: 410, left: 55 },
+};
 
 class CardPlateAppearance extends React.Component {
   constructor(props) {
@@ -153,6 +164,94 @@ class CardPlateAppearance extends React.Component {
         event.preventDefault();
       }
     };
+
+    this.baseRefs = {
+      '1B': React.createRef(),
+      '2B': React.createRef(),
+      '3B': React.createRef(),
+      Scored: React.createRef(),
+      Out: React.createRef(),
+    };
+
+    this.getClosestBase = function (xCoord, yCoord, adjBaseCoordinates) {
+      let candidates = {
+        '1B': {
+          dist: distance(
+            xCoord,
+            yCoord,
+            adjBaseCoordinates['1B'].left,
+            adjBaseCoordinates['1B'].top
+          ),
+          ref: this.baseRefs['1B'],
+        },
+        '2B': {
+          dist: distance(
+            xCoord,
+            yCoord,
+            adjBaseCoordinates['2B'].left,
+            adjBaseCoordinates['2B'].top
+          ),
+          ref: this.baseRefs['2B'],
+        },
+        '3B': {
+          dist: distance(
+            xCoord,
+            yCoord,
+            adjBaseCoordinates['3B'].left,
+            adjBaseCoordinates['3B'].top
+          ),
+          ref: this.baseRefs['3B'],
+        },
+        Scored: {
+          dist: distance(
+            xCoord,
+            yCoord,
+            adjBaseCoordinates['Scored'].left,
+            adjBaseCoordinates['Scored'].top
+          ),
+          ref: this.baseRefs['Scored'],
+        },
+        Out: {
+          dist: distance(
+            xCoord,
+            yCoord,
+            adjBaseCoordinates['Out'].left,
+            adjBaseCoordinates['Out'].top
+          ),
+          ref: this.baseRefs['Out'],
+        },
+      };
+
+      // Return the first one
+      let minEntry = { dist: 999999999 };
+      for (let entry in candidates) {
+        if (candidates[entry].dist < minEntry.dist) {
+          minEntry = candidates[entry];
+        }
+      }
+      return minEntry.ref;
+    };
+
+    this.onPlayerDrag = function (
+      adjustedBaseCoords,
+      mouseEvent,
+      draggableData
+    ) {
+      // Un-highlight all base locations
+      for (let entry in this.baseRefs) {
+        this.baseRefs[entry].current.classList.remove(
+          'player-location-highlight'
+        );
+      }
+
+      // Highlight the closest base location
+      let ref = this.getClosestBase(
+        draggableData.x,
+        draggableData.y,
+        adjustedBaseCoords
+      );
+      ref.current.classList.add('player-location-highlight');
+    }.bind(this);
   }
 
   componentDidMount() {
@@ -280,6 +379,29 @@ class CardPlateAppearance extends React.Component {
   }
 
   renderField(imageSrcForCurrentPa) {
+    // Update base coordinates (so they are correct when the image is re-sized)
+    let adjBaseCoordinates = JSON.parse(JSON.stringify(BASE_COORDINATES));
+    for (let base in BASE_COORDINATES) {
+      adjBaseCoordinates[base].left = Math.floor(
+        normalize(
+          BASE_COORDINATES[base].left,
+          0,
+          BALLFIELD_MAX_WIDTH,
+          0,
+          Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH)
+        )
+      );
+      adjBaseCoordinates[base].top = Math.floor(
+        normalize(
+          BASE_COORDINATES[base].top,
+          0,
+          BALLFIELD_MAX_WIDTH,
+          0,
+          Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH)
+        )
+      );
+    }
+
     let indicators = [];
 
     // Add the indicators for all plate appearances for this player,
@@ -334,6 +456,97 @@ class CardPlateAppearance extends React.Component {
       }
     });
 
+    let runnerObjects = (
+      <div>
+        <Draggable
+          //style={{ top: '-300px', left: '300px', position: 'absolute' }}
+          onDrag={this.onPlayerDrag.bind(this, adjBaseCoordinates)}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              color: 'black',
+              marginLeft: -64,
+              marginTop: -50,
+            }}
+            className="triangle-border"
+          >
+            Lauren B
+          </div>
+        </Draggable>
+        <div
+          ref={this.baseRefs['1B']}
+          style={{
+            top: `${adjBaseCoordinates['1B'].top}px`,
+            left: `${adjBaseCoordinates['1B'].left}px`,
+            marginLeft: -PLAYER_LOCATION_SIZE / 2,
+            marginTop: -PLAYER_LOCATION_SIZE / 2,
+            width: PLAYER_LOCATION_SIZE,
+            height: PLAYER_LOCATION_SIZE,
+          }}
+          className="player-location"
+        >
+          <div>1B</div>
+        </div>
+        <div
+          ref={this.baseRefs['2B']}
+          style={{
+            top: `${adjBaseCoordinates['2B'].top}px`,
+            left: `${adjBaseCoordinates['2B'].left}px`,
+            marginLeft: -PLAYER_LOCATION_SIZE / 2,
+            marginTop: -PLAYER_LOCATION_SIZE / 2,
+            width: PLAYER_LOCATION_SIZE,
+            height: PLAYER_LOCATION_SIZE,
+          }}
+          className="player-location"
+        >
+          <div>2B</div>
+        </div>
+        <div
+          ref={this.baseRefs['3B']}
+          style={{
+            top: `${adjBaseCoordinates['3B'].top}px`,
+            left: `${adjBaseCoordinates['3B'].left}px`,
+            marginLeft: -PLAYER_LOCATION_SIZE / 2,
+            marginTop: -PLAYER_LOCATION_SIZE / 2,
+            width: PLAYER_LOCATION_SIZE,
+            height: PLAYER_LOCATION_SIZE,
+          }}
+          className="player-location"
+        >
+          <div>3B</div>
+        </div>
+        <div
+          ref={this.baseRefs['Scored']}
+          style={{
+            top: `${adjBaseCoordinates['Scored'].top}px`,
+            left: `${adjBaseCoordinates['Scored'].left}px`,
+            marginLeft: -PLAYER_LOCATION_SIZE / 2,
+            marginTop: -PLAYER_LOCATION_SIZE / 2,
+            width: PLAYER_LOCATION_SIZE,
+            height: PLAYER_LOCATION_SIZE,
+          }}
+          className="player-location"
+        >
+          <div>Scored</div>
+        </div>
+        <div
+          ref={this.baseRefs['Out']}
+          style={{
+            top: `${adjBaseCoordinates['Out'].top}px`,
+            left: `${adjBaseCoordinates['Out'].left}px`,
+            marginLeft: -PLAYER_LOCATION_SIZE / 2,
+            marginTop: -PLAYER_LOCATION_SIZE / 2,
+            width: PLAYER_LOCATION_SIZE,
+            height: PLAYER_LOCATION_SIZE,
+          }}
+          className="player-location"
+        >
+          <div>Out</div>
+        </div>
+      </div>
+    );
+
     return (
       <div
         id="ballfield"
@@ -346,6 +559,7 @@ class CardPlateAppearance extends React.Component {
           overflow: 'hidden',
         }}
       >
+        {runnerObjects}
         <img
           draggable={true}
           src="/server/assets/ballfield2.png"
