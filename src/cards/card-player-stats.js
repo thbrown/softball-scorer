@@ -6,10 +6,6 @@ import state from 'state';
 import css from 'css';
 
 export default class CardPlayerStats extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     // Generate season stats section
     let playerStatsByTeam = [];
@@ -106,6 +102,7 @@ export default class CardPlayerStats extends React.Component {
             color: css.colors.TEXT_LIGHT,
             backgroundColor: css.colors.PRIMARY_DARK,
             borderRadius: '9px',
+            marginBottom: '100px',
           }}
         >
           <div
