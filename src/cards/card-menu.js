@@ -7,6 +7,7 @@ import Card from 'elements/card';
 import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
 import HrTitle from 'elements/hr-title';
+import Chip from 'elements/chip';
 
 class CardMenu extends Component {
   constructor(props) {
@@ -172,13 +173,21 @@ class CardMenu extends Component {
           showBlogLink: true,
         }}
       >
-        <div style={{ margin: '5px', marginLeft: '15px' }}>
-          <div>{'Status: ' + (state.isOnline() ? 'Online' : 'Offline')}</div>
-          <div>
-            {'Current User: ' +
-              (state.getActiveUser() == null ? 'Guest' : state.getActiveUser())}
-          </div>
-          <div>{/*'Time Till Sync: ' + state.getTimeTillSync()*/}</div>
+        <div
+          style={{
+            margin: '0px 10px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <Chip type={state.isOnline() ? 'SUCCESS' : 'WARNING'}>
+            {state.isOnline() ? 'Online' : 'Offline'}
+          </Chip>
+          <Chip>
+            {state.getActiveUser() == null ? 'Guest' : state.getActiveUser()}
+          </Chip>
+          {/* <div>'Time Till Sync: ' + state.getTimeTillSync()</div> */}
         </div>
         <HrTitle title="Application"></HrTitle>
         <ListButton

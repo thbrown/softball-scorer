@@ -1,6 +1,4 @@
 /*eslint no-process-exit:*/
-'use strict';
-
 const SoftballServer = require('./softball-server');
 
 const configAccessor = require('./config-accessor');

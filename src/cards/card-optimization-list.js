@@ -31,7 +31,7 @@ const CardOptimizationList = (props) => (
     <ListButton
       id="new-optimization"
       onClick={props.handleCreateClick}
-      type="tertiary-button"
+      type="primary-button"
     >
       <NoSelect className="prevent-overflow">+ Add New Optimization</NoSelect>
     </ListButton>
@@ -44,12 +44,14 @@ const CardOptimizationList = (props) => (
         style={{
           display: 'flex',
           justifyContent: 'space-between',
+          alignItems: 'center',
         }}
       >
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
+            alignItems: 'center',
           }}
         >
           <NoSelect className="prevent-overflow">

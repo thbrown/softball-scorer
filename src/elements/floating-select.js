@@ -33,6 +33,9 @@ export default class FloatingSelect extends React.Component {
           className="select"
           disabled={this.props.disabled}
           value={this.state.value}
+          style={{
+            width: this.props.fullWidth ? '100%' : undefined,
+          }}
           onChange={(e) => {
             this.props.onChange(e.target.value);
             this.setState({ value: e.target.value });
@@ -52,4 +55,5 @@ FloatingSelect.defaultProps = {
   disabled: false,
   onChange: () => {},
   values: {},
+  fullWidth: false,
 };

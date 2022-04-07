@@ -72,7 +72,7 @@ const SprayTooltip = withStyles((theme) => ({
   tooltip: {
     position: 'absolute',
     color: theme.colors.TEXT_DARK,
-    backgroundColor: theme.colors.PRIMARY_LIGHT,
+    backgroundColor: theme.colors.BACKGROUND,
     border: '1px solid ' + theme.colors.SECONDARY_LIGHT,
     borderRadius: theme.spacing.medium,
     padding: TOOLTIP_PADDING + 'px',

@@ -4,6 +4,7 @@ import FloatingSelect from 'elements/floating-select';
 import Loading from '../elements/loading';
 import dialog from 'dialog';
 import state from 'state';
+import IconButton from './icon-button';
 
 export default class OptimizerCustomOptions extends React.Component {
   constructor(props) {
@@ -70,7 +71,11 @@ export default class OptimizerCustomOptions extends React.Component {
       if (value.type === 'String') {
         inputElements.push(
           <div
-            style={{ display: 'flex', textTransform: 'capitalize' }}
+            style={{
+              display: 'flex',
+              textTransform: 'capitalize',
+              alignItems: 'flex-start',
+            }}
             key={value.longLabel}
           >
             <FloatingInput
@@ -80,18 +85,18 @@ export default class OptimizerCustomOptions extends React.Component {
               onChange={this.onChange(value.longLabel)}
               defaultValue={currentValue}
               disabled={this.props.disabled}
+              fullWidth
             />
-            <div className="icon-button">
-              <img
-                alt="help"
-                className="help-icon"
-                src="/server/assets/help.svg"
-                onClick={this.getHelpFunction(
-                  value.longLabel,
-                  value.description
-                )}
-              />
-            </div>
+            <IconButton
+              alt="help"
+              className="help-icon"
+              src="/server/assets/help.svg"
+              onClick={this.getHelpFunction(value.longLabel, value.description)}
+              style={{
+                marginLeft: '6px',
+              }}
+              invert
+            />
           </div>
         );
       } else if (value.type === 'Boolean') {
@@ -101,6 +106,7 @@ export default class OptimizerCustomOptions extends React.Component {
             style={{
               display: 'flex',
               textTransform: 'capitalize',
+              alignItems: 'flex-start',
               width: '100%',
             }}
             key={value.longLabel}
@@ -137,17 +143,16 @@ export default class OptimizerCustomOptions extends React.Component {
                 </div>
               </fieldset>
             </div>
-            <div className="icon-button">
-              <img
-                alt="help"
-                className="help-icon"
-                src="/server/assets/help.svg"
-                onClick={this.getHelpFunction(
-                  value.longLabel,
-                  value.description
-                )}
-              />
-            </div>
+            <IconButton
+              alt="help"
+              className="help-icon"
+              src="/server/assets/help.svg"
+              onClick={this.getHelpFunction(value.longLabel, value.description)}
+              style={{
+                marginLeft: '6px',
+              }}
+              invert
+            />
           </div>
         );
       } else if (value.type === 'Enumeration') {
@@ -172,23 +177,26 @@ export default class OptimizerCustomOptions extends React.Component {
               values={options}
               disabled={this.props.disabled}
             ></FloatingSelect>
-            <div className="icon-button">
-              <img
-                alt="help"
-                className="help-icon"
-                src="/server/assets/help.svg"
-                onClick={this.getHelpFunction(
-                  value.longLabel,
-                  value.description
-                )}
-              />
-            </div>
+            <IconButton
+              alt="help"
+              className="help-icon"
+              src="/server/assets/help.svg"
+              onClick={this.getHelpFunction(value.longLabel, value.description)}
+              style={{
+                marginLeft: '6px',
+              }}
+              invert
+            />
           </div>
         );
       } else if (value.type === 'Number') {
         inputElements.push(
           <div
-            style={{ display: 'flex', textTransform: 'capitalize' }}
+            style={{
+              display: 'flex',
+              textTransform: 'capitalize',
+              alignItems: 'flex-start',
+            }}
             key={value.longLabel}
           >
             <FloatingInput
@@ -202,17 +210,17 @@ export default class OptimizerCustomOptions extends React.Component {
               defaultValue={currentValue}
               disabled={this.props.disabled}
             />
-            <div className="icon-button">
-              <img
-                alt="help"
-                className="help-icon"
-                src="/server/assets/help.svg"
-                onClick={this.getHelpFunction(
-                  value.longLabel,
-                  value.description
-                )}
-              />
-            </div>
+
+            <IconButton
+              alt="help"
+              className="help-icon"
+              src="/server/assets/help.svg"
+              onClick={this.getHelpFunction(value.longLabel, value.description)}
+              style={{
+                marginLeft: '6px',
+              }}
+              invert
+            />
           </div>
         );
       }

@@ -29,7 +29,7 @@ class CardPlayerList extends React.Component {
         <ListButton
           id="newPlayer"
           key="newPlayer"
-          type="secondary-button"
+          type="primary-button"
           onClick={this.handleCreateClick}
         >
           <div className="prevent-overflow">+ Add New Player</div>

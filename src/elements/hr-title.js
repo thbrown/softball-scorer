@@ -1,31 +1,42 @@
 import React from 'react';
+import { colors } from '../css/theme';
 
 export default class HrTitle extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     return (
-      <h4
+      <div
         style={{
           display: 'flex',
-          width: '100%',
-          margin: '5px 0px',
+          width: 'calc(100% - 20px)',
+          margin: '10px',
+          alignItems: 'center',
         }}
       >
-        <hr
+        <div
           style={{
+            borderBottom: '2px solid ' + colors.PRIMARY,
+            borderTop: '2px solid transparent',
             width: '5%',
           }}
         />
-        {this.props.title}
-        <hr
+        <div
           style={{
-            width: '75%',
+            width: '100px',
+            textAlign: 'center',
+            fontWeight: 'bold',
+          }}
+        >
+          {this.props.title}
+          {this.props.children}
+        </div>
+        <div
+          style={{
+            borderBottom: '2px solid ' + colors.PRIMARY,
+            borderTop: '2px solid transparent',
+            width: 'calc(100% - 5% - 100px)',
           }}
         />
-      </h4>
+      </div>
     );
   }
 }

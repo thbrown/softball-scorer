@@ -7,6 +7,7 @@ import Button from 'elements/list-button';
 import Draggable from 'react-draggable';
 import { setRoute } from 'actions/route';
 import css from 'css';
+import IconButton from '../elements/icon-button';
 
 // Enum for player tile render options
 const FULL_EDIT = 'fullEdit';
@@ -157,9 +158,7 @@ export default class CardLineup extends React.Component {
     };
 
     this.handleLockToggle = function () {
-      let lockButton = document.getElementById('lock');
       this.locked = !this.locked;
-      lockButton.textContent = this.getUiTextForLockButton();
       expose.set_state('main', {
         render: true,
       });
@@ -221,9 +220,57 @@ export default class CardLineup extends React.Component {
 
   getUiTextForLockButton() {
     if (this.locked) {
-      return 'Unlock Lineup Order';
+      return (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <IconButton
+            src="/server/assets/padlock.svg"
+            alt=""
+            invert
+            style={{
+              width: '18px',
+            }}
+          />
+          <span
+            style={{
+              marginLeft: '4px',
+            }}
+          >
+            Lineup Order Locked
+          </span>
+        </div>
+      );
     } else {
-      return 'Lock Lineup Order';
+      return (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <IconButton
+            src="/server/assets/padlock-open.svg"
+            alt=""
+            invert
+            style={{
+              width: '18px',
+            }}
+          />
+          <span
+            style={{
+              marginLeft: '4px',
+            }}
+          >
+            Lineup Order Unlocked
+          </span>
+        </div>
+      );
     }
   }
 
@@ -270,12 +317,15 @@ export default class CardLineup extends React.Component {
   renderPlateAppearanceBoxes(player, plateAppearances, editable) {
     let pas = plateAppearances.map((pa, i) => {
       pa = pa || {};
+
+      let className = 'lineup-box-beginning';
+
       return (
         <div
           id={'pa-' + pa.id}
           key={`box${i}`}
           onClick={this.handleBoxClick.bind(this, pa.id)}
-          className="lineup-box"
+          className={className}
         >
           <span className="no-select">{pa.result || ''}</span>
         </div>
@@ -299,7 +349,7 @@ export default class CardLineup extends React.Component {
           DOM.div(
             {
               style: {
-                backgroundColor: css.colors.SECONDARY_LIGHT,
+                backgroundColor: css.colors.PRIMARY_LIGHT,
               },
             },
             <span className="no-select">+</span>
@@ -414,7 +464,8 @@ export default class CardLineup extends React.Component {
         {
           id: 'newPlayer',
           key: 'newplayer',
-          className: 'list-item add-list-item',
+          // className: 'list-item add-list-item',
+          className: 'primary-button button',
           onClick: this.handleCreateClick,
         },
         '+ Add/Remove Players'
@@ -426,6 +477,9 @@ export default class CardLineup extends React.Component {
         <Button
           id="import"
           key="import"
+          style={{
+            textAlign: 'center',
+          }}
           onClick={() => {
             setRoute(
               `/teams/${this.props.team.id}/games/${this.props.game.id}/import`
@@ -442,7 +496,7 @@ export default class CardLineup extends React.Component {
         <div
           id="lock"
           key="lock"
-          className="list-item add-list-item"
+          className="list-button button"
           onClick={this.handleLockToggle}
         >
           {this.getUiTextForLockButton()}
@@ -520,7 +574,6 @@ export default class CardLineup extends React.Component {
               style={{
                 width: '24px',
                 height: '24px',
-                fill: 'white',
                 margin: '-10px',
               }}
               viewBox="0 0 24 24"
@@ -562,6 +615,7 @@ export default class CardLineup extends React.Component {
             paddingBottom: '20px',
             marginLeft: '0',
             marginRight: '-8px',
+            filter: 'invert(1)',
           },
           onClick: this.handleRemoveClick.bind(this, player),
         })
@@ -603,21 +657,12 @@ export default class CardLineup extends React.Component {
   }
 
   render() {
-    return DOM.div(
-      {
-        className: 'card',
-        style: {
-          marginTop: '10px',
-        },
-      },
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderLineupScore(),
-        this.renderLineupPlayerList(),
-        this.renderNonLineupAtBats()
-      )
+    return (
+      <div>
+        {this.renderLineupScore()}
+        {this.renderLineupPlayerList()}
+        {this.renderNonLineupAtBats()}
+      </div>
     );
   }
 }

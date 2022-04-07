@@ -59,13 +59,14 @@ module.exports = {
     }),
   ],
   devServer: {
-    contentBase: path.join(__dirname, 'build'),
+    // contentBase: path.join(__dirname, 'build'),
     compress: true,
-    hot: true,
+    watchFiles: ['./src/**/*'],
     liveReload: true,
     open: true,
-    openPage: '',
-    publicPath: '',
+    static: {
+      directory: path.join(__dirname, './'),
+    },
     historyApiFallback: true,
     port: 8889,
     proxy: {

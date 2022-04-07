@@ -94,6 +94,9 @@ routes = {
   [`${ROUTE_PREFIX}/index.html`]: () => {
     return <CardMenu />;
   },
+  [`${ROUTE_PREFIX}/index.dev.html`]: () => {
+    return <CardMenu />;
+  },
   [`${ROUTE_PREFIX}/menu`]: isSameRouteAs('/'),
   [`${ROUTE_PREFIX}/menu/login`]: () => {
     return <CardAuth />;
@@ -279,54 +282,51 @@ routes = {
     }
     return <CardGameEdit team={team} game={game} isNew={isNew} />;
   },
-  [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/lineup/plateAppearances/:plateAppearanceId`]: ({
-    teamId,
-    gameId,
-    plateAppearanceId,
-    search: { isNew },
-  }) => {
-    const team = state.getTeam(teamId);
-    const game = state.getGame(gameId);
-    const plateAppearance = state.getPlateAppearance(plateAppearanceId);
-    const plateAppearances = state.getPlateAppearancesForPlayerInGame(
-      plateAppearance?.player_id,
-      gameId
-    );
-    const player = state.getPlayer(plateAppearance?.player_id);
-    const { valid, errors } = assertStateObjects(
-      team,
-      game,
-      plateAppearance,
-      plateAppearances,
-      player
-    );
-    if (!valid) {
-      console.warn(errors);
-      return <CardNotFound />;
-    }
-    return (
-      <CardPlateAppearance
-        remove={function () {
-          state.removePlateAppearance(plateAppearance.id, game.id);
-        }}
-        replace={function (newPa) {
-          state.replacePlateAppearance(
-            plateAppearance.id,
-            game.id,
-            team.id,
-            newPa
-          );
-        }}
-        player={player}
-        plateAppearance={plateAppearance}
-        plateAppearances={plateAppearances}
-        isNew={isNew}
-      />
-    );
-  },
-  [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/scorer/plateAppearances/:plateAppearanceId`]: isSameRouteAs(
-    '/teams/:teamId/games/:gameId/lineup/plateAppearances/:plateAppearanceId'
-  ),
+  [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/lineup/plateAppearances/:plateAppearanceId`]:
+    ({ teamId, gameId, plateAppearanceId, search: { isNew } }) => {
+      const team = state.getTeam(teamId);
+      const game = state.getGame(gameId);
+      const plateAppearance = state.getPlateAppearance(plateAppearanceId);
+      const plateAppearances = state.getPlateAppearancesForPlayerInGame(
+        plateAppearance?.player_id,
+        gameId
+      );
+      const player = state.getPlayer(plateAppearance?.player_id);
+      const { valid, errors } = assertStateObjects(
+        team,
+        game,
+        plateAppearance,
+        plateAppearances,
+        player
+      );
+      if (!valid) {
+        console.warn(errors);
+        return <CardNotFound />;
+      }
+      return (
+        <CardPlateAppearance
+          remove={function () {
+            state.removePlateAppearance(plateAppearance.id, game.id);
+          }}
+          replace={function (newPa) {
+            state.replacePlateAppearance(
+              plateAppearance.id,
+              game.id,
+              team.id,
+              newPa
+            );
+          }}
+          player={player}
+          plateAppearance={plateAppearance}
+          plateAppearances={plateAppearances}
+          isNew={isNew}
+        />
+      );
+    },
+  [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/scorer/plateAppearances/:plateAppearanceId`]:
+    isSameRouteAs(
+      '/teams/:teamId/games/:gameId/lineup/plateAppearances/:plateAppearanceId'
+    ),
   [`${ROUTE_PREFIX}/players`]: () => {
     return <CardPlayerList />;
   },
@@ -458,60 +458,58 @@ routes = {
       />
     );
   },
-  [`${ROUTE_PREFIX}/optimizations/:optimizationId/overrides/:playerId/plateAppearances/:plateAppearanceId`]: ({
-    optimizationId,
-    playerId,
-    plateAppearanceId,
-    search: { isNew },
-  }) => {
-    const optimization = state.getOptimization(optimizationId);
-    const player = state.getPlayer(playerId);
+  [`${ROUTE_PREFIX}/optimizations/:optimizationId/overrides/:playerId/plateAppearances/:plateAppearanceId`]:
+    ({ optimizationId, playerId, plateAppearanceId, search: { isNew } }) => {
+      const optimization = state.getOptimization(optimizationId);
+      const player = state.getPlayer(playerId);
 
-    // TODO: getting both a plate appearance and the plate appearances results in unnecessary parsing and un-parsing of json
-    const plateAppearances = state.getParsedOptimizationOverridePlateAppearances(
-      optimizationId,
-      playerId
-    );
+      // TODO: getting both a plate appearance and the plate appearances results in unnecessary parsing and un-parsing of json
+      const plateAppearances =
+        state.getParsedOptimizationOverridePlateAppearances(
+          optimizationId,
+          playerId
+        );
 
-    const plateAppearance = state.getParsedOptimizationOverridePlateAppearance(
-      optimizationId,
-      playerId,
-      plateAppearanceId
-    );
+      const plateAppearance =
+        state.getParsedOptimizationOverridePlateAppearance(
+          optimizationId,
+          playerId,
+          plateAppearanceId
+        );
 
-    const { valid, errors } = assertStateObjects(
-      optimization,
-      player,
-      plateAppearance
-    );
-    if (!valid) {
-      console.warn(errors);
-      return <CardNotFound />;
-    }
-    return (
-      <CardPlateAppearance
-        remove={function () {
-          state.removeOptimizationOverridePlateAppearance(
-            optimizationId,
-            playerId,
-            plateAppearanceId
-          );
-        }}
-        replace={function (newPa) {
-          state.replaceOptimizationOverridePlateAppearance(
-            optimizationId,
-            playerId,
-            newPa.id,
-            newPa
-          );
-        }}
-        player={player}
-        plateAppearance={plateAppearance}
-        plateAppearances={plateAppearances}
-        isNew={isNew}
-      />
-    );
-  },
+      const { valid, errors } = assertStateObjects(
+        optimization,
+        player,
+        plateAppearance
+      );
+      if (!valid) {
+        console.warn(errors);
+        return <CardNotFound />;
+      }
+      return (
+        <CardPlateAppearance
+          remove={function () {
+            state.removeOptimizationOverridePlateAppearance(
+              optimizationId,
+              playerId,
+              plateAppearanceId
+            );
+          }}
+          replace={function (newPa) {
+            state.replaceOptimizationOverridePlateAppearance(
+              optimizationId,
+              playerId,
+              newPa.id,
+              newPa
+            );
+          }}
+          player={player}
+          plateAppearance={plateAppearance}
+          plateAppearances={plateAppearances}
+          isNew={isNew}
+        />
+      );
+    },
   [`${ROUTE_PREFIX}/account`]: () => {
     return <CardAccount />;
   },
@@ -563,7 +561,7 @@ routes = {
       );
     });
   },
-  [`${ROUTE_PREFIX}/account/select-optimizers`]: ({}) => {
+  [`${ROUTE_PREFIX}/account/select-optimizers`]: () => {
     return <CardOptimizerSelect />;
   },
 };

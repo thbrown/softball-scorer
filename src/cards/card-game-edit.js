@@ -6,6 +6,7 @@ import ListButton from 'elements/list-button';
 import { goBack, goHome } from 'actions/route';
 import FloatingInput from 'elements/floating-input';
 import FloatingSelect from 'elements/floating-select';
+import IconButton from '../elements/icon-button';
 
 export default class CardGameEdit extends React.Component {
   constructor(props) {
@@ -119,15 +120,15 @@ export default class CardGameEdit extends React.Component {
                 1: 'Alternating Gender',
                 2: 'No Consecutive Females',
               }}
+              fullWidth
             />
-            <div className="icon-button">
-              <img
-                className="help-icon"
-                src="/server/assets/help.svg"
-                alt="help"
-                onClick={this.handleLineupTypeHelpClick}
-              />
-            </div>
+            <IconButton
+              className="help-icon"
+              src="/server/assets/help.svg"
+              alt="help"
+              onClick={this.handleLineupTypeHelpClick}
+              invert
+            />
           </div>
         </div>
         {this.renderSaveOptions()}
@@ -138,30 +139,57 @@ export default class CardGameEdit extends React.Component {
   renderSaveOptions() {
     return (
       <>
-        <ListButton type="edit-button" onClick={this.handleConfirmClick}>
-          <img
-            className="edit-button-icon"
-            src="/server/assets/check.svg"
-            alt="save"
-          />
-          <span className="edit-button-icon">Save</span>
+        <ListButton type="primary-button" onClick={this.handleConfirmClick}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <IconButton src="/server/assets/check.svg" alt="save" />
+            <span
+              style={{
+                marginLeft: '4px',
+              }}
+            >
+              Save
+            </span>
+          </div>
         </ListButton>
         <ListButton type="edit-button" onClick={this.handleCancelClick}>
-          <img
-            className="edit-button-icon"
-            src="/server/assets/cancel.svg"
-            alt="cancel"
-          />
-          <span className="edit-button-icon">Cancel</span>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <IconButton src="/server/assets/cancel.svg" alt="cancel" invert />
+            <span
+              style={{
+                marginLeft: '4px',
+              }}
+            >
+              Cancel
+            </span>
+          </div>
         </ListButton>
         {this.props.isNew ? null : (
-          <ListButton type="edit-button" onClick={this.handleDeleteClick}>
-            <img
-              className="edit-button-icon"
-              src="/server/assets/delete.svg"
-              alt="delete"
-            />
-            <span className="edit-button-icon">Delete</span>
+          <ListButton type="delete-button" onClick={this.handleDeleteClick}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <IconButton src="/server/assets/delete.svg" alt="delete" />
+              <span
+                style={{
+                  marginLeft: '4px',
+                }}
+              >
+                Delete
+              </span>
+            </div>
           </ListButton>
         )}
       </>

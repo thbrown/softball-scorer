@@ -31,7 +31,7 @@ export default class ConfirmDialog extends React.Component {
               </div>
               <div
                 id="dialog-cancel"
-                className="button cancel-button"
+                className="button tertiary-button"
                 onClick={this.handleCancelClick}
               >
                 <span className="no-select">Cancel</span>

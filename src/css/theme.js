@@ -19,8 +19,10 @@ const theme = {
     CANCEL: '#B72A2A',
     DELETE: '#B72A2A',
     WHITE: '#FFFFFF',
+    BLACK: '#000000',
     INVISIBLE: 'rgba(0, 0, 0, 0)',
     DISABLED: '#aaa',
+    SEMI_TRANSPARENT: 'rgba(0, 0, 0, 0.25)',
   },
   sizes: {
     ICON: '24px',
@@ -37,6 +39,7 @@ const theme = {
       xLarge: '32px',
     },
   },
+  border: '2px solid rgba(0, 0, 0, 0.10)',
   borderRadius: {
     small: '5px',
   },

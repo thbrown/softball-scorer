@@ -39,13 +39,12 @@ const useLineupListStyles = makeStyles((theme) => ({
   title: {
     position: 'sticky',
     left: '0px',
-    top: '48px',
     fontSize: theme.typography.size.xLarge,
     textAlign: 'center',
-    color: theme.colors.TEXT_LIGHT,
+    color: theme.colors.TEXT_DARK,
     padding: theme.spacing.xSmall,
-    backgroundColor: theme.colors.PRIMARY,
-    boxShadow: '0px 2px 5px 5px rgba(0,0,0,0.5)',
+    backgroundColor: theme.colors.BACKGROUND,
+    // boxShadow: '0px 2px 5px 5px rgba(0,0,0,0.5)',
     marginBottom: theme.spacing.small,
   },
   itemCustom: {
@@ -116,9 +115,7 @@ const LineupList = (props) => {
         />
         <div className={classes.actionButtonContainer}>
           <div
-            className={
-              'button edit-button primary-button ' + classes.actionButton
-            }
+            className={'button primary-button ' + classes.actionButton}
             onClick={function wrapper(ev) {
               return props.handleConfirmClick(ev, props.team, props.game);
             }}

@@ -10,6 +10,7 @@
     "build": "node build.js build",
     "watch": "rm -rf build/*hot-update.json build/*.hot-update.js && concurrently -n srv,webpack \"node src-srv\" \"node_modules/.bin/webpack serve --env development --config webpack.dev.js --progress\"",
     "build-css": "node build.js build-css",
+    "build-shared": "node --cwd shared build",
     "update-service-worker": "node build.js update-service-worker",
     "clean": "node build.js clean",
     "test": "jest --runInBand --detectOpenHandles --bail --verbose=false --forceExit",

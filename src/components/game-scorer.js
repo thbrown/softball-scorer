@@ -25,9 +25,7 @@ const useScorePaperStyles = makeStyles((css) => ({
     alignItems: 'center',
     borderRadius: css.borderRadius.small,
     padding: css.spacing.small,
-    backgroundColor: css.colors.SECONDARY,
     color: css.colors.TEXT_LIGHT,
-    boxShadow: css.boxShadow.paper,
   },
   teamName: {
     fontSize: '1rem',

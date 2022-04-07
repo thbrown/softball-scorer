@@ -33,6 +33,7 @@ const App = (props) => {
         return (
           <RouteContainer routes={routes}>
             {(routeProps) => {
+              console.log('route props', routeProps);
               return (
                 <MainContainer
                   main={Main}
