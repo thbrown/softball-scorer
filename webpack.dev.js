@@ -58,23 +58,11 @@ module.exports = {
       process: 'process/browser',
     }),
   ],
-  // watchOptions: {
-  //   //Files or folders that are not monitored
-  //   ignored: /node_modules/,
-  //   //After listening to the change, it will wait for 300ms to execute the action, so as to prevent the file from being updated too fast, resulting in too high recompilation frequency
-  //   aggregateTimeout: 300,
-  //   //To judge whether the file has changed or not is realized by constantly asking the system whether the specified file has changed or not
-  //   poll: 1000,
-  // },
   devServer: {
-    // contentBase: path.join(__dirname, 'build'),
     compress: true,
-    // watchFiles: ['./src/**/*'],
-    // liveReload: false,
-    // hot: false,
     open: true,
     static: {
-      directory: path.join(__dirname, './'),
+      directory: path.join(__dirname, './build'),
     },
     historyApiFallback: true,
     port: 8889,
