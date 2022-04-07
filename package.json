@@ -62,6 +62,9 @@
     ]
   },
   "homepage": "https://github.com/thbrown/softball-scorer#readme",
+  "resolutions": {
+    "node-fetch": "^2.6.7"
+  },
   "dependencies": {
     "acorn": "^8.0.4",
     "base-x": "^3.0.6",
