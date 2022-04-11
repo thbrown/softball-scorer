@@ -40,7 +40,7 @@ self.addEventListener('install', function (event) {
         '/server/assets/spinner.gif',
         '/server/assets/scoreboard-webfont.woff',
         '/server/assets/scoreboard-webfont.woff2',
-        '/server/build/main.js',
+        '/main.js',
         '/server/simulation-worker',
       ]);
     })
@@ -62,7 +62,8 @@ self.addEventListener('fetch', function (event) {
       pathArray.length < 2 ||
       (pathArray[1] !== 'server' &&
         pathArray[1] !== 'service-worker' &&
-        pathArray[1] !== 'robots.txt'))
+        pathArray[1] !== 'robots.txt' &&
+        pathArray[1] !== 'main.js'))
   ) {
     console.log(`[ServiceWorker] redirecting ${event.request.url} to base url`);
     requestToProcess = new Request('/');
