@@ -64,6 +64,7 @@ export default class InputDialog extends React.Component {
         style: {
           whiteSpace: this.props.whiteSpace ? 'pre' : '',
           height: this.props.node ? '360px' : '36px',
+          lineHeight: this.props.node ? undefined : '36px',
         },
       }),
       DOM.div(
@@ -87,7 +88,7 @@ export default class InputDialog extends React.Component {
         ),
         DOM.div(
           {
-            className: 'button cancel-button',
+            className: 'button tertiary-button',
             onClick: this.handleCancelClick,
           },
           DOM.span(

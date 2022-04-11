@@ -180,11 +180,12 @@ export default class CardOptimizationStatsOverride extends React.Component {
               <span
                 style={{
                   color: colors.PRIMARY_DARK,
-                  textDecoration: 'underline',
+                  fontWeight: 'bold',
                 }}
               >
                 {this.props.player.name}
               </span>
+              .
             </div>
             <IconButton
               alt="help"

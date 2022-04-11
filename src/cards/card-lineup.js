@@ -319,6 +319,9 @@ export default class CardLineup extends React.Component {
       pa = pa || {};
 
       let className = 'lineup-box-beginning';
+      if (editable === NO_EDIT && i === plateAppearances.length - 1) {
+        className = 'lineup-box';
+      }
 
       return (
         <div
