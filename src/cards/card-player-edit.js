@@ -7,8 +7,8 @@ import Card from 'elements/card';
 import ListButton from 'elements/list-button';
 import { goBack, goHome } from 'actions/route';
 import network from 'network';
-import AsyncSelect from 'react-select/async';
 import FloatingReactAsyncCreatableSelect from 'elements/floating-react-async-creatable-select';
+import IconButton from 'elements/icon-button';
 
 export default class CardPlayerEdit extends React.Component {
   constructor(props) {
@@ -54,7 +54,7 @@ export default class CardPlayerEdit extends React.Component {
       }
       console.log('YoutubeResults', results);
       return results;
-    }.bind(this);
+    };
 
     this.formatOptionLabel = ({ value, label, thumbnail }, { context }) => {
       if (context === 'value') {
@@ -90,7 +90,7 @@ export default class CardPlayerEdit extends React.Component {
     this.onYouTubeSelect = function () {
       let timeout;
       return async function (query) {
-        if (query.length == 0) {
+        if (query.length === 0) {
           return new Promise((resolve) => {
             resolve([]);
           });
@@ -234,7 +234,7 @@ export default class CardPlayerEdit extends React.Component {
 
     this.isValidYouTubeVideoLink = function (url) {
       let result = url.match(
-        /(?:https?:\/\/)?(?:youtu\.be\/|(?:www\.|m\.)?youtube\.com\/(?:watch|v|embed)(?:\.php)?(?:\?.*v=|\/))([a-zA-Z0-9\_-]{11})/
+        /(?:https?:\/\/)?(?:youtu\.be\/|(?:www\.|m\.)?youtube\.com\/(?:watch|v|embed)(?:\.php)?(?:\?.*v=|\/))([a-zA-Z0-9_-]{11})/
       );
       return result == null ? false : true;
     };
@@ -254,10 +254,10 @@ export default class CardPlayerEdit extends React.Component {
             Clips can be played from the player's plate appearance page.
           </div>
           <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <img
+            <IconButton
               alt="Plate appearance scoring screenshot"
               src="/server/assets/help-walkup.svg"
-            ></img>
+            ></IconButton>
           </div>
         </div>,
         undefined
@@ -347,14 +347,13 @@ export default class CardPlayerEdit extends React.Component {
                 width={128}
                 height={128}
               ></WalkupSong>
-              <div className="icon-button">
-                <img
-                  alt="help"
-                  className="help-icon"
-                  src="/server/assets/help.svg"
-                  onClick={this.handleSongHelpClick}
-                />
-              </div>
+              <IconButton
+                alt="help"
+                className="help-icon"
+                src="/server/assets/help.svg"
+                onClick={this.handleSongHelpClick}
+                invert
+              />
             </div>
           </fieldset>
         </div>
@@ -367,30 +366,57 @@ export default class CardPlayerEdit extends React.Component {
     return (
       <>
         <>
-          <ListButton type="edit-button" onClick={this.handleConfirmClick}>
-            <img
-              className="edit-button-icon"
-              src="/server/assets/check.svg"
-              alt="save"
-            />
-            <span className="edit-button-icon">Save</span>
+          <ListButton type="primary-button" onClick={this.handleConfirmClick}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <IconButton src="/server/assets/check.svg" alt="save" />
+              <span
+                style={{
+                  marginLeft: '4px',
+                }}
+              >
+                Save
+              </span>
+            </div>
           </ListButton>
           <ListButton type="edit-button" onClick={this.handleCancelClick}>
-            <img
-              className="edit-button-icon"
-              src="/server/assets/cancel.svg"
-              alt="cancel"
-            />
-            <span className="edit-button-icon">Cancel</span>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <IconButton src="/server/assets/cancel.svg" alt="cancel" invert />
+              <span
+                style={{
+                  marginLeft: '4px',
+                }}
+              >
+                Cancel
+              </span>
+            </div>
           </ListButton>
           {this.props.isNew ? null : (
-            <ListButton type="edit-button" onClick={this.handleDeleteClick}>
-              <img
-                className="edit-button-icon"
-                src="/server/assets/delete.svg"
-                alt="delete"
-              />
-              <span className="edit-button-icon">Delete</span>
+            <ListButton type="delete-button" onClick={this.handleDeleteClick}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <IconButton src="/server/assets/delete.svg" alt="delete" />
+                <span
+                  style={{
+                    marginLeft: '4px',
+                  }}
+                >
+                  Delete
+                </span>
+              </div>
             </ListButton>
           )}
         </>

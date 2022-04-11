@@ -850,7 +850,7 @@ export default class CardOptimization extends React.Component {
                 SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ? (
                   <div
                     id="edit-players"
-                    className="edit-button button tertiary-button"
+                    className="button button"
                     onClick={this.handleAddPlayerClick}
                   >
                     + Add/Remove Players
@@ -1096,9 +1096,7 @@ export default class CardOptimization extends React.Component {
         <div
           ref={this.toggleOptimizationButtonRef}
           id="toggle-optimization-button"
-          className={`edit-button button primary-button ${
-            disabled ? 'disabled' : ''
-          }`}
+          className={`button primary-button ${disabled ? 'disabled' : ''}`}
           onClick={toggleButtonHandler}
         >
           {toggleButtonText}
@@ -1118,14 +1116,29 @@ export default class CardOptimization extends React.Component {
         SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
     ) {
       emailCheckbox = (
-        <label>
+        <label
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
           <input
             type="checkbox"
             onChange={this.handleSendEmailCheckbox}
             checked={optimization.sendEmail}
             disabled={emailCheckboxDisabled}
+            style={{
+              transform: 'scale(1.2)',
+            }}
           />
-          Send me an email when the simulation is complete.
+          <span
+            style={{
+              marginLeft: '4px',
+            }}
+          >
+            Send me an email when the simulation is complete.
+          </span>
         </label>
       );
     }

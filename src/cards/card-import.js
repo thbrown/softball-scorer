@@ -16,8 +16,9 @@ const useStyles = makeStyles((theme) => {
       position: 'relative',
     },
     fileInputButton: {
-      backgroundColor: theme.colors.PRIMARY_DARK,
       width: '100%',
+      color: theme.colors.TEXT_DARK,
+      background: theme.colors.BACKGROUND,
       border: '2px dotted ' + theme.colors.PRIMARY_LIGHT,
     },
     fileInput: {
@@ -34,6 +35,7 @@ const useStyles = makeStyles((theme) => {
       justifyContent: 'center',
       flexDirection: 'row',
       marginTop: theme.spacing.small,
+      margin: '1rem',
     },
     loadButton: {
       width: '120px',
@@ -118,7 +120,7 @@ const CardImport = () => {
               htmlFor="fileData"
               className={'button ' + classes.fileInputButton}
             >
-              {fileName ? fileName : 'Choose a File'}
+              {fileName ? fileName : 'Tap to chose a file or drag one here.'}
             </label>
           </div>
           <div className={classes.radioButtonsContainer}>

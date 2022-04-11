@@ -174,6 +174,10 @@ module.exports = class SoftballServer {
         path.join(__dirname + '/../src/workers/service-worker.js').normalize()
       )
     );
+    app.use(
+      '/main.js',
+      express.static(path.join(__dirname + '/../build/main.js').normalize())
+    );
     // Robots.txt is served from the root by convention
     app.use(
       '/robots.txt',
@@ -292,9 +296,10 @@ module.exports = class SoftballServer {
       '/server/team-stats/:publicTeamId',
       wrapForErrorProcessing(async (req, res) => {
         const { publicTeamId } = req.params;
-        const account = await this.databaseCalls.getAccountAndTeamByTeamPublicId(
-          publicTeamId
-        );
+        const account =
+          await this.databaseCalls.getAccountAndTeamByTeamPublicId(
+            publicTeamId
+          );
         if (account) {
           const { accountId, teamId } = account;
           await lockAccount(accountId);
@@ -822,9 +827,10 @@ module.exports = class SoftballServer {
 
           // Is there another optimization state IN_PROGRESS (or in ALLOCATING_RESOURCES)
           // If so, don't start another one
-          let inProgressCount = await this.databaseCalls.getNumberOfOptimizationsInProgress(
-            accountId
-          );
+          let inProgressCount =
+            await this.databaseCalls.getNumberOfOptimizationsInProgress(
+              accountId
+            );
           // Disabled for now
           if (inProgressCount === -1) {
             res

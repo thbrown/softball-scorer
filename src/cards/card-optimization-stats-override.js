@@ -5,6 +5,10 @@ import Card from 'elements/card';
 import ListButton from 'elements/list-button';
 import { goBack, goHome, setRoute } from 'actions/route';
 import SharedLib from '/../shared-lib';
+import IconButton from '../elements/icon-button';
+import { colors } from '../css/theme';
+
+const constants = SharedLib.constants;
 
 export default class CardOptimizationStatsOverride extends React.Component {
   constructor(props) {
@@ -72,13 +76,26 @@ export default class CardOptimizationStatsOverride extends React.Component {
     return (
       <>
         {overrides.length <= 0 ? null : (
-          <ListButton id="delete" onClick={this.handleDeleteClick}>
-            <img
-              className="edit-button-icon"
-              src="/server/assets/delete.svg"
-              alt="delete"
-            />
-            <span className="edit-button-icon">Delete All</span>
+          <ListButton
+            id="delete"
+            type="delete-button"
+            onClick={this.handleDeleteClick}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <IconButton src="/server/assets/delete.svg" alt="delete" />
+              <span
+                style={{
+                  marginLeft: '4px',
+                }}
+              >
+                Delete All
+              </span>
+            </div>
           </ListButton>
         )}
       </>
@@ -95,14 +112,13 @@ export default class CardOptimizationStatsOverride extends React.Component {
       this.props.optimization.status !==
       SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
     ) {
-      return DOM.div(
-        {
-          className: 'auth-input-container',
-        },
-        'This page is only available when optimization status is NOT_STARTED. Status is currently ' +
-          constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
-            this.props.optimization.status
-          ]
+      return (
+        <div className="auth-input-container">
+          {'This page is only available when optimization status is NOT_STARTED. Status is currently ' +
+            constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
+              this.props.optimization.status
+            ]}
+        </div>
       );
     } else {
       let overrides = state.getParsedOptimizationOverridePlateAppearances(
@@ -117,7 +133,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
             id={'pa-' + paObject.id}
             key={`box${paObject.id}`}
             onClick={this.handleExistingPaClick.bind(this, paObject.id)}
-            className="lineup-box"
+            className="lineup-box-beginning"
           >
             <span className="no-select">{paObject.result || ''}</span>
           </div>
@@ -138,7 +154,13 @@ export default class CardOptimizationStatsOverride extends React.Component {
           }
           className="lineup-box"
         >
-          <span className="no-select">+</span>
+          <div
+            style={{
+              backgroundColor: colors.PRIMARY_LIGHT,
+            }}
+          >
+            <span className="no-select">+</span>
+          </div>
         </div>
       );
 
@@ -149,25 +171,37 @@ export default class CardOptimizationStatsOverride extends React.Component {
               display: 'flex',
               fontSize: '14pt',
               padding: '10px 10px 0px 20px',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
             }}
           >
-            <div>Additional Plate Appearances for {this.props.player.name}</div>
-            <div
-              className="icon-button"
-              style={{
-                backgroundColor: 'black',
-              }}
-            >
-              <img
-                alt="help"
-                className="help-icon"
-                src="/server/assets/help.svg"
-                onClick={this.getHelpFunction()}
-              />
+            <div>
+              Additional Plate Appearances for{' '}
+              <span
+                style={{
+                  color: colors.PRIMARY_DARK,
+                  fontWeight: 'bold',
+                }}
+              >
+                {this.props.player.name}
+              </span>
+              .
             </div>
+            <IconButton
+              alt="help"
+              className="help-icon"
+              src="/server/assets/help.svg"
+              onClick={this.getHelpFunction()}
+              invert
+            />
           </div>
 
-          <div>
+          <div
+            style={{
+              background: colors.BACKGROUND,
+              margin: '20px 0',
+            }}
+          >
             <div
               className="plate-appearance-list-container"
               style={{ padding: '25px', display: 'flex' }}

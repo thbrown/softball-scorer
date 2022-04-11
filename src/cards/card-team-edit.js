@@ -7,13 +7,14 @@ import CardSection from 'elements/card-section';
 import ListButton from 'elements/list-button';
 import { goBack, goHome } from 'actions/route';
 import { makeStyles } from 'css/helpers';
+import IconButton from '../elements/icon-button';
 
 const useCardTeamEditStyles = makeStyles((css) => ({
   publicLink: {
     fontSize: css.typography.size.xSmall,
     padding: css.spacing.xxSmall,
     backgroundColor: css.colors.INVISIBLE,
-    color: css.colors.TEXT_LIGHT,
+    color: css.colors.TEXT_DARK,
     border: '0px',
     resize: 'none',
     whiteSpace: 'unset',
@@ -41,7 +42,8 @@ const useCardTeamEditStyles = makeStyles((css) => ({
     transition: 'transition: all 0.5s ease-out',
   },
   publicLinkContainer: {
-    backgroundColor: css.colors.PRIMARY,
+    color: css.colors.TEXT_DARK,
+    backgroundColor: css.colors.BACKGROUND,
     borderRadius: css.spacing.xSmall,
     display: 'flex',
     justifyContent: 'flex-start',
@@ -58,10 +60,8 @@ const useCardTeamEditStyles = makeStyles((css) => ({
 
 const CardTeamEdit = (props) => {
   const [team, setTeam] = React.useState(props.team);
-  const [
-    copiedNotificationVisible,
-    setCopiedNotificationVisible,
-  ] = React.useState(false);
+  const [copiedNotificationVisible, setCopiedNotificationVisible] =
+    React.useState(false);
   const publicLinkRef = React.useRef(null);
   let isPristine = props.isNew ? false : true;
 
@@ -189,11 +189,12 @@ const CardTeamEdit = (props) => {
                 <div style={styles.publicLinkContainer}>
                   <div style={styles.publicLinkLineItem}>
                     <span>
-                      <img
+                      <IconButton
                         onClick={handleCopyClick}
                         style={styles.publicLinkCopyButton}
                         src="/server/assets/copy.svg"
                         alt="copy"
+                        invert
                       />
                     </span>
                   </div>
@@ -211,34 +212,48 @@ const CardTeamEdit = (props) => {
           </CardSection>
         </>
       )}
-      <ListButton type="edit-button" onClick={handleConfirmClick}>
-        <img
-          className="edit-button-icon"
-          src="/server/assets/check.svg"
-          alt=""
-        />
-        <span className="edit-button-icon"> Save </span>
+      <ListButton type="primary-button" onClick={handleConfirmClick}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <IconButton src="/server/assets/check.svg" alt="" hideBackground />
+          <span style={{ marginLeft: '8px' }}> Save </span>
+        </div>
       </ListButton>
       <ListButton
-        type="edit-button"
-        className="edit-button button cancel-button"
+        // type="secondary-button"
+        className="edit-button button"
         onClick={handleCancelClick}
       >
-        <img
-          className="edit-button-icon"
-          src="/server/assets/cancel.svg"
-          alt=""
-        />
-        <span className="edit-button-icon"> Cancel </span>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <IconButton
+            src="/server/assets/cancel.svg"
+            alt=""
+            hideBackground
+            invert
+          />
+          <span style={{ marginLeft: '8px' }}> Cancel </span>
+        </div>
       </ListButton>
       {!props.isNew && (
-        <ListButton type="edit-button" onClick={handleDeleteClick}>
-          <img
-            className="edit-button-icon"
-            src="/server/assets/delete.svg"
-            alt=""
-          />
-          <span className="edit-button-icon"> Delete </span>
+        <ListButton type="delete-button" onClick={handleDeleteClick}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <IconButton src="/server/assets/delete.svg" alt="" hideBackground />
+            <span style={{ marginLeft: '8px' }}> Delete </span>
+          </div>
         </ListButton>
       )}
     </Card>

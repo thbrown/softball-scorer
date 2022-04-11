@@ -3,6 +3,8 @@ import FloatingSelect from 'elements/floating-select';
 import dialog from 'dialog';
 import { setRoute } from 'actions/route';
 import Loading from '../elements/loading';
+import state from 'state';
+import IconButton from './icon-button';
 
 export default class OptimizerStandardOptions extends React.Component {
   constructor(props) {
@@ -75,9 +77,8 @@ export default class OptimizerStandardOptions extends React.Component {
       this.props.optimizerData[optId] !== undefined
     ) {
       this.selectedOptimizerName = this.props.optimizerData[optId].name;
-      this.selectedOptimizerDescription = this.props.optimizerData[
-        optId
-      ].shortDescription;
+      this.selectedOptimizerDescription =
+        this.props.optimizerData[optId].shortDescription;
     }
 
     // Main content
@@ -90,7 +91,7 @@ export default class OptimizerStandardOptions extends React.Component {
         >
           <Loading style={{ width: '85px', height: '85px' }}></Loading>
         </div>
-        <div style={{ display: 'flex' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
           <FloatingSelect
             selectId="lineupType"
             label="Lineup Type"
@@ -102,17 +103,20 @@ export default class OptimizerStandardOptions extends React.Component {
               2: 'No Consecutive Females',
             }}
             disabled={this.props.disabled}
+            fullWidth
           />
-          <div className="icon-button">
-            <img
-              alt="help"
-              className="help-icon"
-              src="/server/assets/help.svg"
-              onClick={this.handleOptimizerHelp}
-            />
-          </div>
+          <IconButton
+            alt="help"
+            className="help-icon"
+            src="/server/assets/help.svg"
+            onClick={this.handleOptimizerHelp}
+            invert
+            style={{
+              marginLeft: '6px',
+            }}
+          />
         </div>
-        <div style={{ display: 'flex' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
           <FloatingSelect
             selectId="optimizer"
             label="Optimizer"
@@ -120,15 +124,18 @@ export default class OptimizerStandardOptions extends React.Component {
             onChange={this.onOptimizerChange}
             values={optimizerOptions}
             disabled={this.props.disabled}
+            fullWidth
           />
-          <div className="icon-button">
-            <img
-              alt="help"
-              className="help-icon"
-              src="/server/assets/search.svg"
-              onClick={this.handleOptimizerSearch}
-            />
-          </div>
+          <IconButton
+            alt="help"
+            className="help-icon"
+            src="/server/assets/search.svg"
+            onClick={this.handleOptimizerSearch}
+            invert
+            style={{
+              marginLeft: '6px',
+            }}
+          />
         </div>
       </div>
     );

@@ -4,10 +4,6 @@ import { setRoute } from 'actions/route';
 import Spray from '../components/spray';
 
 export default class CardSpray extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     return (
       <Card

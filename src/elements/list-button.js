@@ -14,13 +14,14 @@ export const ListButtonContentIcon = ({ children, icon }) => {
   );
 };
 
-const ListButton = ({ children, type, onClick }) => {
+const ListButton = ({ children, type, onClick, style }) => {
   return (
     <div
       onClick={onClick}
       className={`${type ? type + '' : 'list-button'} button`}
       style={{
         textAlign: 'left',
+        ...style,
       }}
     >
       {children}
@@ -31,6 +32,7 @@ const ListButton = ({ children, type, onClick }) => {
 ListButton.defaultProps = {
   type: undefined,
   onClick: function () {},
+  style: {},
 };
 
 export default ListButton;

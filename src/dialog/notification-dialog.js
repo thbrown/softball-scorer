@@ -14,42 +14,36 @@ export default class NotificationDialog extends React.Component {
 
   render() {
     return DOM.div(
-      {},
+      {
+        className: 'dialog',
+      },
       DOM.div(
         {
-          className: 'dialog',
+          className: 'dialog-text',
+          style: { maxHeight: '70vh', overflow: 'auto' },
+        },
+        this.props.text
+      ),
+      DOM.div(
+        {
+          style: {
+            display: 'flex',
+            justifyContent: 'flex-end',
+          },
         },
         DOM.div(
           {
-            className: 'dialog-text',
-            style: { maxHeight: '70vh', overflow: 'auto' },
+            className: 'button primary-button',
+            onClick: this.handleConfirmClick,
           },
-          this.props.text
-        ),
-        DOM.div(
-          {
-            style: {
-              display: 'flex',
-              justifyContent: 'flex-end',
-            },
-          },
-          DOM.div(
+          DOM.span(
             {
-              className: 'button primary-button',
-              onClick: this.handleConfirmClick,
+              className: 'no-select',
             },
-            DOM.span(
-              {
-                className: 'no-select',
-              },
-              'Got it'
-            )
+            'Got it'
           )
         )
-      ),
-      DOM.div({
-        className: 'overlay',
-      })
+      )
     );
   }
 }

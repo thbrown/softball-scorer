@@ -43,7 +43,7 @@ module.exports = {
     rules: [
       {
         test: /\.(js|jsx)$/,
-        exclude: /node_modules/,
+        exclude: /node_modules|src-srv/,
         use: ['babel-loader'],
       },
     ],
@@ -59,13 +59,11 @@ module.exports = {
     }),
   ],
   devServer: {
-    contentBase: path.join(__dirname, 'build'),
     compress: true,
-    hot: true,
-    liveReload: true,
     open: true,
-    openPage: '',
-    publicPath: '',
+    static: {
+      directory: path.join(__dirname, './build'),
+    },
     historyApiFallback: true,
     port: 8889,
     proxy: {

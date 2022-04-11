@@ -11,6 +11,7 @@ const Card = ({
   rightHeaderProps,
   titleProps,
   noFade,
+  style,
 }) => {
   return (
     <div className={noFade ? '' : 'card'}>
@@ -38,7 +39,9 @@ const Card = ({
           {...rightHeaderProps}
         />
       </div>
-      <div className="card-body">{children}</div>
+      <div className="card-body" style={style}>
+        {children}
+      </div>
     </div>
   );
 };

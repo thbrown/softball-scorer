@@ -270,6 +270,8 @@ export default class CardStats extends React.Component {
           style={{
             height: window.innerHeight - 48 + 'px',
             width: '100%',
+            display: 'flex',
+            justifyContent: 'center',
           }}
         >
           <StickyTable stickyHeaderCount={1}>{tableElems}</StickyTable>

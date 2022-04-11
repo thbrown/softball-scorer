@@ -185,19 +185,14 @@ export default class CardPlayerSelect extends React.Component {
         <div id="spacer" style={{ transition: 'height .25s' }} />
         <div>
           <ListButton
-            style={{ marginLeft: '16px' }}
             onClick={this.handleConfirmClick.bind(this)}
+            type="primary-button"
           >
             Confirm Selection
           </ListButton>
         </div>
         <div>
-          <ListButton
-            style={{ marginLeft: '16px' }}
-            onClick={this.handleCancelClick}
-          >
-            Cancel
-          </ListButton>
+          <ListButton onClick={this.handleCancelClick}>Cancel</ListButton>
         </div>
         <ListButton id="import" onClick={this.props.onImportClick}>
           Import From Another Game

@@ -15,11 +15,18 @@ import css from 'css';
 const LOCATION_DENOMINATOR = 32767;
 
 const BALLFIELD_MAX_WIDTH = 500;
+const RESULT_OPTIONS_DEFAULT = 0;
+const RESULT_OPTIONS_EXTRA = 1;
 
 const useStyles = makeStyles((theme) => ({
   buttonRow: {
     display: 'flex',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
+    margin: '4px',
+  },
+  buttonRowExtra: {
+    display: 'flex',
+    justifyContent: 'flex-start',
     margin: '4px',
   },
   button: {
@@ -27,6 +34,7 @@ const useStyles = makeStyles((theme) => ({
     padding: '12px',
     color: theme.colors.TEXT_DARK,
     border: `2px solid ${theme.colors.SECONDARY}`,
+    background: theme.colors.WHITE,
     borderRadius: '4px',
     textAlign: 'center',
     fontSize: '18px',
@@ -40,7 +48,8 @@ const useStyles = makeStyles((theme) => ({
   },
   buttonSelected: {
     color: theme.colors.TEXT_LIGHT,
-    backgroundColor: theme.colors.SECONDARY,
+    backgroundColor: theme.colors.PRIMARY_DARK,
+    borderColor: theme.colors.PRIMARY_DARK,
   },
 }));
 
@@ -115,7 +124,10 @@ class CardPlateAppearance extends React.Component {
     };
 
     this.handleToggleResultOptions = function () {
-      let update = this.state.resultOptionsPage === 0 ? 1 : 0;
+      let update =
+        this.state.resultOptionsPage === RESULT_OPTIONS_DEFAULT
+          ? RESULT_OPTIONS_EXTRA
+          : RESULT_OPTIONS_DEFAULT;
       this.setState({
         resultOptionsPage: update,
       });
@@ -232,7 +244,7 @@ class CardPlateAppearance extends React.Component {
     }
 
     let visibleOptions =
-      this.state.resultOptionsPage === 0
+      this.state.resultOptionsPage === RESULT_OPTIONS_DEFAULT
         ? results.getFirstPage()
         : results.getSecondPage();
 
@@ -268,10 +280,22 @@ class CardPlateAppearance extends React.Component {
 
     return (
       <div>
-        <div className={this.props.classes.classes.buttonRow}>
+        <div
+          className={
+            this.state.resultOptionsPage === RESULT_OPTIONS_DEFAULT
+              ? this.props.classes.classes.buttonRow
+              : this.props.classes.classes.buttonRowExtra
+          }
+        >
           {elems.slice(0, elems.length / 2)}
         </div>
-        <div className={this.props.classes.classes.buttonRow}>
+        <div
+          className={
+            this.state.resultOptionsPage === RESULT_OPTIONS_DEFAULT
+              ? this.props.classes.classes.buttonRow
+              : this.props.classes.classes.buttonRowExtra
+          }
+        >
           {elems.slice(elems.length / 2, elems.length)}
         </div>
       </div>
@@ -378,6 +402,9 @@ class CardPlateAppearance extends React.Component {
         style: {
           touchAction: 'none',
           transform: 'translate(0px, 0px)',
+          filter: `drop-shadow(rgba(0, 0, 0, ${
+            imageSrcForCurrentPa.match('baseball-out') ? 0.5 : 0.95
+          }) 0px 0px 8px)`,
         },
       })
     );
@@ -421,6 +448,7 @@ class CardPlateAppearance extends React.Component {
       {
         id: 'options-buttons',
         style: {
+          filter: 'invert(1)',
           position: 'relative',
           display: 'flex',
           overflow: 'hidden',
@@ -448,14 +476,10 @@ class CardPlateAppearance extends React.Component {
     return DOM.div(
       {
         className: 'card',
-        style: {
-          position: 'relative',
-        },
       },
       DOM.div(
         {
           className: 'card-title',
-          style: {},
         },
         React.createElement(LeftHeaderButton, {
           onClick: this.homeOrBack,
@@ -475,6 +499,9 @@ class CardPlateAppearance extends React.Component {
           className: 'card-body',
           style: {
             maxWidth: BALLFIELD_MAX_WIDTH + 'px',
+            backgroundColor: 'unset',
+            background: 'unset',
+            boxShadow: 'unset',
           },
         },
 
@@ -483,7 +510,6 @@ class CardPlateAppearance extends React.Component {
         DOM.div(
           {
             style: {
-              backgroundColor: css.colors.PRIMARY_LIGHT,
               display: 'flex',
               justifyContent: 'space-between',
             },

@@ -3,6 +3,7 @@ import state from 'state';
 import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
 import { toClientDate } from 'utils/functions';
+import IconButton from '../elements/icon-button';
 
 const GameList = (props) => {
   const handleGameClick = function (game) {
@@ -30,7 +31,7 @@ const GameList = (props) => {
             <span style={{ fontSize: '12px' }}>VS. </span>
             {game.opponent}
           </div>
-          <div style={{ display: 'flex' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <div
               style={{
                 fontSize: '12px',
@@ -40,7 +41,7 @@ const GameList = (props) => {
             >
               {toClientDate(game.date)}
             </div>
-            <img
+            <IconButton
               src="/server/assets/edit.svg"
               alt="edit"
               id={'game-' + game.id + '-edit'}
@@ -49,6 +50,7 @@ const GameList = (props) => {
                 ev.preventDefault();
                 ev.stopPropagation();
               }}
+              invert
             />
           </div>
         </div>
@@ -60,18 +62,14 @@ const GameList = (props) => {
     <ListButton
       id="newGame"
       key="newGame"
-      type="tertiary-button"
+      type="primary-button"
       onClick={handleCreateClick}
     >
       + Add New Game
     </ListButton>
   );
 
-  return (
-    <div className="card">
-      <div className="card-body">{elems}</div>
-    </div>
-  );
+  return <div>{elems}</div>;
 };
 
 export default GameList;
