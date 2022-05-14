@@ -477,12 +477,10 @@ export default class CardLineup extends React.Component {
 
     if (this.props.game.plateAppearances.length === 0) {
       pageElems.push(
-        <Button
+        <div
           id="import"
           key="import"
-          style={{
-            textAlign: 'center',
-          }}
+          className="list-button button"
           onClick={() => {
             setRoute(
               `/teams/${this.props.team.id}/games/${this.props.game.id}/import`
@@ -490,7 +488,7 @@ export default class CardLineup extends React.Component {
           }}
         >
           Import Lineup From Optimization
-        </Button>
+        </div>
       );
     }
 

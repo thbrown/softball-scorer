@@ -704,7 +704,7 @@ exp.addOptimization = function (name) {
     playerList: JSON.stringify([]),
     lineupType: 0,
     optimizerType:
-      SharedLib.constants.OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXHAUSTIVE,
+      SharedLib.constants.OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_ADAPTIVE,
     inputSummaryData: JSON.stringify({}),
   };
   new_state.optimizations.push(optimization);

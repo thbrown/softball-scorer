@@ -18,9 +18,9 @@ const ListButton = ({ children, type, onClick, style }) => {
   return (
     <div
       onClick={onClick}
-      className={`${type ? type + '' : 'list-button'} button`}
+      className={`${type ? type + '' : 'list-button'} button left`}
       style={{
-        textAlign: 'left',
+        //textAlign: 'left',
         ...style,
       }}
     >

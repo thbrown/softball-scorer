@@ -254,6 +254,31 @@ export default class CardOptimization extends React.Component {
         true
       );
 
+      // Don't run optimizations if there are no players or if any players don't have an PA
+      let inadequateData = false;
+      for (let playerId of playerIds) {
+        if (stats[playerId].plateAppearances === 0) {
+          inadequateData = true;
+          break;
+        }
+      }
+      if (playerIds.length === 0) {
+        dialog.show_notification(
+          `Failed to start optimization: the players list must have at least one player.`
+        );
+        buttonDiv.classList.remove('disabled');
+        buttonDiv.innerHTML = 'Start Simulation';
+        return;
+      }
+      if (playerIds.length === 0 || inadequateData) {
+        dialog.show_notification(
+          `Failed to start optimization: all players in the lineup must have at least one plate appearance.`
+        );
+        buttonDiv.classList.remove('disabled');
+        buttonDiv.innerHTML = 'Start Simulation';
+        return;
+      }
+
       // Be sure the server has our optimization details before it tries to run the optimization
       await state.sync();
 
@@ -850,7 +875,7 @@ export default class CardOptimization extends React.Component {
                 SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED ? (
                   <div
                     id="edit-players"
-                    className="button button"
+                    className="list-button button"
                     onClick={this.handleAddPlayerClick}
                   >
                     + Add/Remove Players

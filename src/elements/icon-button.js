@@ -18,8 +18,12 @@ const IconButton = (props) => {
         filter: invert ? 'invert(1)' : undefined,
         display: 'flex',
         alignItems: 'center',
-        padding: '2px',
+        width: '48px', // Minimum accessible tap target size
+        height: '48px',
         borderRadius: '16px',
+        alignItems: 'center',
+        justifyContent: 'center',
+        alignContent: 'center',
       }}
     >
       <img alt="img" {...rest} />

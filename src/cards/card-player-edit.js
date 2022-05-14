@@ -254,10 +254,10 @@ export default class CardPlayerEdit extends React.Component {
             Clips can be played from the player's plate appearance page.
           </div>
           <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <IconButton
+            <img
               alt="Plate appearance scoring screenshot"
               src="/server/assets/help-walkup.svg"
-            ></IconButton>
+            ></img>
           </div>
         </div>,
         undefined

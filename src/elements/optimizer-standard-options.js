@@ -34,6 +34,28 @@ export default class OptimizerStandardOptions extends React.Component {
       );
     }.bind(this);
 
+    // TODO: this is duplicated from card-game-edit
+    this.handleLineupTypeHelpClick = () => {
+      dialog.show_notification(
+        <div>
+          <b>Lineup Type</b> is used by the lineup simulator to determine what
+          lineups are valid. Some leagues have restrictions on which players can
+          bat in which slots. Softball.app supports three types of lineups:
+          <div style={{ margin: '1rem' }}>
+            <b>- Normal</b> Any batter is allowed to bat anywhere in the lineup.
+          </div>
+          <div style={{ margin: '1rem' }}>
+            <b>- Alternating Gender</b> Consecutive batters must have different
+            genders.
+          </div>
+          <div style={{ margin: '1rem' }}>
+            <b>- No Consecutive Females</b> Females may not bat back-to-back.
+          </div>
+        </div>,
+        undefined
+      );
+    };
+
     this.onLineupChange = function (value) {
       this.props.onChange();
       state.setOptimizationField(
@@ -77,8 +99,9 @@ export default class OptimizerStandardOptions extends React.Component {
       this.props.optimizerData[optId] !== undefined
     ) {
       this.selectedOptimizerName = this.props.optimizerData[optId].name;
-      this.selectedOptimizerDescription =
-        this.props.optimizerData[optId].shortDescription;
+      this.selectedOptimizerDescription = this.props.optimizerData[
+        optId
+      ].shortDescription;
     }
 
     // Main content
@@ -109,7 +132,7 @@ export default class OptimizerStandardOptions extends React.Component {
             alt="help"
             className="help-icon"
             src="/server/assets/help.svg"
-            onClick={this.handleOptimizerHelp}
+            onClick={this.handleLineupTypeHelpClick}
             invert
             style={{
               marginLeft: '6px',
@@ -125,6 +148,16 @@ export default class OptimizerStandardOptions extends React.Component {
             values={optimizerOptions}
             disabled={this.props.disabled}
             fullWidth
+          />
+          <IconButton
+            alt="help"
+            className="help-icon"
+            src="/server/assets/help.svg"
+            onClick={this.handleOptimizerHelp}
+            invert
+            style={{
+              marginLeft: '6px',
+            }}
           />
           <IconButton
             alt="help"

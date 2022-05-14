@@ -34,6 +34,8 @@ hr {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-grow: 1;
+  max-width: 100%;
 }
 
 .fade-out {
@@ -77,7 +79,6 @@ hr {
 }
 
 .list-button {
-  padding: 8px;
   margin: -12px;
 }
 
@@ -458,7 +459,6 @@ hr {
 
 .dialog-text {
   font-size: 18px;
-  margin: 32px 0;
   color: $css.colors.TEXT_DARK;
 }
 
@@ -468,7 +468,6 @@ hr {
   color: $css.colors.TEXT_DARK;
   font-size: 18px;
   margin-top: 24px;
-  padding: 8px;
   width: calc(100% - 18px);
 }
 
@@ -484,12 +483,23 @@ hr {
   cursor: pointer;
   font-size: 18px;
   margin: 10px;
-  padding: 12px;
   text-align: center;
   min-width: 52px;
   -webkit-tap-highlight-color: rgba(0,0,0,0);
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  height: 48px;
+  padding-left: 10px;
+  padding-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button.left {
+  display: flex;
+  align-items: center;
+  justify-content: left;
 }
 
 .button:active {
@@ -546,6 +556,7 @@ hr {
   border: $css.border;
   width: auto;
   margin: 10px;
+  justify-content: left;
 }
 
 .edit-button-icon {
@@ -770,7 +781,6 @@ Scrolling is ~10-20x smoother.
 
 .help-icon {
   position: relative;
-  top: calc(50% - 12px);
   cursor: pointer;
 }
 
@@ -889,7 +899,7 @@ Scrolling is ~10-20x smoother.
 
 .accordionTitle,
 .accordion__Heading {
-  background-color: $css.colors.BACKGROUND;
+  background-color: $css.colors.WHITE;
   font-size: 20px;
   display: block;
   color: $css.colors.TEXT_DARK;
