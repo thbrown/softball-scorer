@@ -897,18 +897,27 @@ exp.getPlateAppearance = function (pa_id, state) {
   return null;
 };
 
-const getClientPlateAppearance = (pa, game) => ({
-  ...pa,
-  game,
-  date: game.date,
-});
+exp.getAllPlateAppearancesForPlayer = function (playerId) {
+  let allPAs = [];
+  let allTeams = state.getAllTeams();
+  for (let team of allTeams) {
+    let playerPAsOnTeam = exp.getPlateAppearancesForPlayerOnTeam(
+      playerId,
+      team.id
+    );
+    for (let pa of playerPAsOnTeam) {
+      allPAs.push(pa);
+    }
+  }
+  return allPAs;
+};
 
 exp.getPlateAppearancesForGame = function (gameId, state) {
   const game = exp.getGame(gameId, state);
   if (!game) {
     return null;
   }
-  return game.plateAppearances.map((pa) => getClientPlateAppearance(pa, game));
+  return game.plateAppearances;
 };
 
 exp.getPlateAppearancesForPlayerInGame = function (player_id, game_id, state) {
@@ -920,7 +929,17 @@ exp.getPlateAppearancesForPlayerInGame = function (player_id, game_id, state) {
   return game.plateAppearances.filter((pa) => pa.player_id === player_id);
 };
 
-exp.getPlateAppearancesForPlayerOnTeam = function (player_id, team_id, state) {
+const decoratePlateAppearance = (pa, game) => ({
+  ...pa,
+  game,
+  date: game.date,
+});
+
+exp.getDecoratedPlateAppearancesForPlayerOnTeam = function (
+  player_id,
+  team_id,
+  state
+) {
   const team =
     typeof team_id === 'string' ? exp.getTeam(team_id, state) : team_id;
   let plateAppearances = [];
@@ -931,8 +950,26 @@ exp.getPlateAppearancesForPlayerOnTeam = function (player_id, team_id, state) {
         const plateAppearancesThisGame = game.plateAppearances
           .filter((pa) => player_id === pa.player_id)
           .map((pa) => {
-            return getClientPlateAppearance(pa, game);
+            return decoratePlateAppearance(pa, game);
           });
+        plateAppearances = plateAppearances.concat(plateAppearancesThisGame);
+      }
+    });
+  }
+  return plateAppearances;
+};
+
+exp.getPlateAppearancesForPlayerOnTeam = function (player_id, team_id, state) {
+  const team =
+    typeof team_id === 'string' ? exp.getTeam(team_id, state) : team_id;
+  let plateAppearances = [];
+
+  if (team && team.games) {
+    team.games.forEach((game) => {
+      if (game.plateAppearances) {
+        const plateAppearancesThisGame = game.plateAppearances.filter(
+          (pa) => player_id === pa.player_id
+        );
         plateAppearances = plateAppearances.concat(plateAppearancesThisGame);
       }
     });
@@ -976,10 +1013,34 @@ exp.getPlateAppearancesForPlayer = function (player_id, state) {
       if (team.games) {
         team.games.forEach((game) => {
           if (game.plateAppearances) {
+            const plateAppearancesThisGame = game.plateAppearances.filter(
+              (pa) => player_id === pa.player_id
+            );
+            plateAppearances = plateAppearances.concat(
+              plateAppearancesThisGame
+            );
+          }
+        });
+      }
+    });
+  }
+  return plateAppearances;
+};
+
+exp.getDecoratedPlateAppearancesForPlayer = function (player_id, state) {
+  let localState = state || exp.getLocalState();
+  let teams = localState.teams;
+  let plateAppearances = [];
+
+  if (teams) {
+    teams.forEach((team) => {
+      if (team.games) {
+        team.games.forEach((game) => {
+          if (game.plateAppearances) {
             const plateAppearancesThisGame = game.plateAppearances
               .filter((pa) => player_id === pa.player_id)
               .map((pa) => {
-                return getClientPlateAppearance(pa, game);
+                return decoratePlateAppearance(pa, game);
               });
             plateAppearances = plateAppearances.concat(
               plateAppearancesThisGame

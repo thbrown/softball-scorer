@@ -158,7 +158,7 @@ const enhanceField = compose(
 );
 
 const Field = enhanceField((props) => {
-  const indicators = props.plateAppearances
+  const indicators = props.decoratedPlateAppearances
     .map((plateAppearance) => {
       const { x, y } = getHitPosition(plateAppearance);
       if (plateAppearance.location && x && y) {
@@ -305,21 +305,24 @@ const Spray = ({
   setPastGamesFilter,
   setPlateAppearanceTypeFilter,
   filter,
-  plateAppearances,
+  decoratedPlateAppearances,
 }) => {
   if (filter.pastGames) {
-    plateAppearances = filterByLastGames(plateAppearances, filter.pastGames);
+    decoratedPlateAppearances = filterByLastGames(
+      decoratedPlateAppearances,
+      filter.pastGames
+    );
   }
   if (filter.plateAppearanceType) {
-    plateAppearances = filterByHitType(
-      plateAppearances,
+    decoratedPlateAppearances = filterByHitType(
+      decoratedPlateAppearances,
       filter.plateAppearanceType
     );
   }
 
   return (
     <div className={'sprayBody ' + classes.sprayBody}>
-      <Field plateAppearances={plateAppearances} />
+      <Field decoratedPlateAppearances={decoratedPlateAppearances} />
       <div className={classes.filterArea}>
         <div className={classes.subtitle}>Hits</div>
         <div className={classes.filterGroup}>
@@ -401,7 +404,7 @@ const Spray = ({
 };
 
 Spray.defaultProps = {
-  plateAppearances: [],
+  decoratedPlateAppearances: [],
   backNavUrl: '',
 };
 

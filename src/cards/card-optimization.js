@@ -583,6 +583,15 @@ export default class CardOptimization extends React.Component {
       if (queryObject[ACCORDION_QUERY_PARAM_PREFIX + i] === 'true') {
         accordionToggles[i].click();
       }
+
+      // Always show the results tab if status is COMPLETE
+      if (
+        this.props.optimization.status ===
+          SharedLib.constants.OPTIMIZATION_STATUS_ENUM.COMPLETE &&
+        i === 3
+      ) {
+        accordionToggles[3].click();
+      }
     }
 
     // Get optimizer info, tested to 300 calls, seems to work okay

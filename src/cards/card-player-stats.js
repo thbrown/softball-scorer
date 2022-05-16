@@ -91,7 +91,7 @@ export default class CardPlayerStats extends React.Component {
         <Spray
           //team={this.props.team}
           //player={this.props.player}
-          plateAppearances={state.getPlateAppearancesForPlayer(
+          decoratedPlateAppearances={state.getDecoratedPlateAppearancesForPlayer(
             this.props.player.id
           )}
         ></Spray>

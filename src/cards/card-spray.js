@@ -20,7 +20,7 @@ export default class CardSpray extends React.Component {
         <Spray
           team={this.props.team}
           player={this.props.player}
-          plateAppearances={this.props.plateAppearances}
+          decoratedPlateAppearances={this.props.decoratedPlateAppearances}
         ></Spray>
       </Card>
     );

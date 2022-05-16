@@ -38,17 +38,43 @@ export default class CardOptimizationStatsOverride extends React.Component {
       return function () {
         dialog.show_notification(
           <div>
-            <b style={{ textTransform: 'capitalize' }}>{'PA Overrides'}</b>
+            <b style={{ textTransform: 'capitalize' }}>
+              {'Plate Appearance (PA) Overrides'}
+            </b>
             <div
               style={{ margin: '1rem' }}
-            >{`You can add additional plate appearances for any player that only
+            >{`You can add plate appearances for any player that only
                   apply to this optimization. This is useful for cases when you have a
                   player who doesn't have any historical hitting data (such
-                  as a sub).`}</div>
+                  as a sub). If you add PAs here, they will be used by the optimizer instead of any PAs indicated on the optimization menu.`}</div>
           </div>
         );
       };
     };
+
+    this.handleAddAllPa = function () {
+      let toAdd = state.getAllPlateAppearancesForPlayer(this.props.player.id);
+
+      let allOverrides = JSON.parse(props.optimization.overrideData);
+      let overridesForPlayer =
+        allOverrides[props.player.id] === undefined
+          ? []
+          : allOverrides[props.player.id];
+
+      // Add all the new PAs
+      for (let pa of toAdd) {
+        overridesForPlayer.push(pa);
+      }
+      allOverrides[props.player.id] = overridesForPlayer;
+
+      // Set it in the state
+      state.setOptimizationField(
+        props.optimization.id,
+        'overrideData',
+        allOverrides,
+        true
+      );
+    }.bind(this);
 
     this.handleDeleteClick = function () {
       dialog.show_confirm(
@@ -103,11 +129,6 @@ export default class CardOptimizationStatsOverride extends React.Component {
   }
 
   renderPage() {
-    // Get the existing override for this player in this optimization (if it exists)
-    let existingOverride = JSON.parse(this.props.optimization.overrideData)[
-      this.props.player.id
-    ];
-
     if (
       this.props.optimization.status !==
       SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
@@ -120,100 +141,118 @@ export default class CardOptimizationStatsOverride extends React.Component {
             ]}
         </div>
       );
-    } else {
-      let overrides = state.getParsedOptimizationOverridePlateAppearances(
-        this.props.optimization.id,
-        this.props.player.id
-      );
-      let paDisplayList = [];
-      for (let pa in overrides) {
-        let paObject = overrides[pa];
-        paDisplayList.push(
-          <div
-            id={'pa-' + paObject.id}
-            key={`box${paObject.id}`}
-            onClick={this.handleExistingPaClick.bind(this, paObject.id)}
-            className="lineup-box-beginning"
-          >
-            <span className="no-select">{paObject.result || ''}</span>
-          </div>
-        );
-      }
+    }
+
+    let overrides = state.getParsedOptimizationOverridePlateAppearances(
+      this.props.optimization.id,
+      this.props.player.id
+    );
+    let overrideStats = state.buildStatsObject(this.props.player.id, overrides);
+    let paDisplayList = [];
+    for (let pa in overrides) {
+      let paObject = overrides[pa];
       paDisplayList.push(
         <div
-          id={'newPa'}
-          key={`newPa`}
-          onClick={
-            this.handleNewPaClick.bind(this)
-            /*this.handleNewPlateAppearanceClick.bind(
+          id={'pa-' + paObject.id}
+          key={`box${paObject.id}`}
+          onClick={this.handleExistingPaClick.bind(this, paObject.id)}
+          className="lineup-box"
+        >
+          <span className="no-select">{paObject.result || ''}</span>
+        </div>
+      );
+    }
+    paDisplayList.push(
+      <div
+        id={'newPa'}
+        key={`newPa`}
+        onClick={
+          this.handleNewPaClick.bind(this)
+          /*this.handleNewPlateAppearanceClick.bind(
         this,
         player,
         this.props.game.id,
         this.props.team.id
         )*/
-          }
-          className="lineup-box"
+        }
+        className="lineup-box"
+      >
+        <div
+          style={{
+            backgroundColor: colors.PRIMARY_LIGHT,
+          }}
         >
-          <div
-            style={{
-              backgroundColor: colors.PRIMARY_LIGHT,
-            }}
-          >
-            <span className="no-select">+</span>
-          </div>
+          <span className="no-select">+</span>
         </div>
-      );
+      </div>
+    );
 
-      return (
-        <div>
-          <div
-            style={{
-              display: 'flex',
-              fontSize: '14pt',
-              padding: '10px 10px 0px 20px',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
-            }}
-          >
-            <div>
-              Additional Plate Appearances for{' '}
-              <span
-                style={{
-                  color: colors.PRIMARY_DARK,
-                  fontWeight: 'bold',
-                }}
-              >
-                {this.props.player.name}
-              </span>
-              .
-            </div>
-            <IconButton
-              alt="help"
-              className="help-icon"
-              src="/server/assets/help.svg"
-              onClick={this.getHelpFunction()}
-              invert
-            />
-          </div>
-
-          <div
-            style={{
-              background: colors.BACKGROUND,
-              margin: '20px 0',
-            }}
-          >
-            <div
-              className="plate-appearance-list-container"
-              style={{ padding: '25px', display: 'flex' }}
+    return (
+      <div>
+        <div
+          style={{
+            display: 'flex',
+            fontSize: '14pt',
+            padding: '10px 10px 0px 20px',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+          }}
+        >
+          <div>
+            Plate Appearances for{' '}
+            <span
+              style={{
+                color: colors.PRIMARY_DARK,
+                fontWeight: 'bold',
+              }}
             >
-              {paDisplayList}
-            </div>
+              {this.props.player.name}
+            </span>
+            .
           </div>
-          <div></div>
-          <div>{this.renderSaveOptions(overrides)}</div>
+          <IconButton
+            alt="help"
+            className="help-icon"
+            src="/server/assets/help.svg"
+            onClick={this.getHelpFunction()}
+            invert
+          />
         </div>
-      );
-    }
+
+        <div
+          style={{
+            background: colors.BACKGROUND,
+            margin: '20px 0',
+          }}
+        >
+          <div style={{ padding: '25px', display: 'flex', flexWrap: 'wrap' }}>
+            {paDisplayList}
+          </div>
+        </div>
+        <div
+          style={{
+            margin: '20px',
+            display: 'flex',
+            justifyContent: 'space-evenly',
+          }}
+        >
+          <div>
+            <b>PAs</b> {overrideStats.plateAppearances}
+          </div>
+          <div>
+            <b>Avg</b> {overrideStats.battingAverage}
+          </div>
+          <div>
+            <b>Slg</b> {overrideStats.sluggingPercentage}
+          </div>
+        </div>
+        <div onClick={this.handleAddAllPa} className="button list-button">
+          Add All Available PA (
+          {state.getAllPlateAppearancesForPlayer(this.props.player.id).length})
+        </div>
+        <div>{this.renderSaveOptions(overrides)}</div>
+      </div>
+    );
   }
 
   render() {
