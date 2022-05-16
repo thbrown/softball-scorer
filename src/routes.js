@@ -161,7 +161,7 @@ routes = {
     const { valid, errors } = assertStateObjects(
       team,
       player,
-      playerPlateAppearances
+      decoratedPlayerPlateAppearances
     );
     if (!valid) {
       console.warn(errors);
