@@ -12,6 +12,8 @@ export default class CardSignup extends React.Component {
     super(props);
     this.state = {};
     this.recapchaId = {};
+    this.submitButton = React.createRef();
+    this.submitButtonSpinner = React.createRef();
 
     this.handleSubmitClick = async function () {
       let email = document.getElementById('email');
@@ -51,7 +53,10 @@ export default class CardSignup extends React.Component {
         return;
       }
 
-      // TODO: Disable button
+      // Disable button
+      let submitButton = this.submitButton.current;
+      this.submitButton.current.classList.add('disabled');
+      this.submitButtonSpinner.current.classList.remove('gone');
 
       // TODO: logout existing account before we can signup a new one (menu button is disabled, but user can still access this page via url)
 
@@ -91,6 +96,9 @@ export default class CardSignup extends React.Component {
         );
         console.log(response);
       }
+
+      this.submitButton.current.classList.remove('disabled');
+      this.submitButtonSpinner.current.classList.add('gone');
     };
 
     this.showRecapcha = function () {
@@ -201,18 +209,28 @@ export default class CardSignup extends React.Component {
     }
 
     toRender.push(
-      DOM.div(
-        {
-          key: 'submit',
-          id: 'submit',
-          className: 'button primary-button',
-          onClick: this.handleSubmitClick.bind(this),
-          style: {
-            marginLeft: '0',
-          },
-        },
-        'Submit'
-      )
+      <div
+        key="submit"
+        id="submit"
+        className="button primary-button"
+        onClick={this.handleSubmitClick.bind(this)}
+        style={{
+          marginLeft: '0',
+        }}
+        ref={this.submitButton}
+      >
+        <img
+          id="score-spinner"
+          src="/server/assets/spinner.gif"
+          className="gone"
+          style={{
+            visibility: 'unset',
+            paddingRight: '10px',
+          }}
+          ref={this.submitButtonSpinner}
+        ></img>{' '}
+        Submit
+      </div>
     );
 
     return toRender;

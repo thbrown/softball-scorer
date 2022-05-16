@@ -1,4 +1,6 @@
-const mailgun = require('mailgun.js');
+const formData = require('form-data');
+const Mailgun = require('mailgun.js');
+const mailgun = new Mailgun(formData);
 const logger = require('./logger.js');
 
 // This email service sends emails using a configured MailGun account (https://www.mailgun.com/)

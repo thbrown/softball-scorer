@@ -83,7 +83,7 @@
     "got": "^11.8.0",
     "helmet": "^4.2.0",
     "lz-string": "^1.4.4",
-    "mailgun.js": "^2.0.6",
+    "mailgun.js": "^6.0.1",
     "node-object-hash": "^2.0.0",
     "object-hash": "^2.0.0",
     "passport": "^0.4.0",
