@@ -8,6 +8,7 @@ import Draggable from 'react-draggable';
 import { setRoute } from 'actions/route';
 import css from 'css';
 import IconButton from '../elements/icon-button';
+import HrTitle from 'elements/hr-title';
 
 // Enum for player tile render options
 const FULL_EDIT = 'fullEdit';
@@ -162,6 +163,23 @@ export default class CardLineup extends React.Component {
       expose.set_state('main', {
         render: true,
       });
+    }.bind(this);
+
+    this.handleCreateOptimization = function () {
+      dialog.show_confirm(
+        `This will take you to a page for setting up and running an "Optimization" for this lineup. After your optimization is done running, you can import the optimized lineup into this game by pressing "Import Lineup From Optimization".`,
+        () => {
+          const optimization = state.addOptimization(
+            `vs ${this.props.game.opponent}`,
+            JSON.stringify(this.props.game.lineup),
+            JSON.stringify([this.props.team.id]),
+            this.props.game.lineupType
+          );
+          setRoute(
+            `/optimizations/${optimization.id}?acc0=true&acc1=true&acc2=true`
+          ); //edit?isNew=true
+        }
+      );
     }.bind(this);
 
     // Prevent ios from scrolling while dragging
@@ -475,7 +493,43 @@ export default class CardLineup extends React.Component {
       )
     );
 
-    if (this.props.game.plateAppearances.length === 0) {
+    if (this.props.game.lineup.length !== 0) {
+      pageElems.push(
+        <div
+          id="lock"
+          key="lock"
+          className="list-button button"
+          onClick={this.handleLockToggle}
+        >
+          {this.getUiTextForLockButton()}
+        </div>
+      );
+    }
+
+    let showOptLineupButton =
+      this.props.game.plateAppearances.length === 0 &&
+      this.props.game.lineup.length > 0;
+    let showImportOptLineupButton =
+      this.props.game.plateAppearances.length === 0 &&
+      state.getAllOptimizations().length > 0;
+    if (showOptLineupButton || showImportOptLineupButton) {
+      pageElems.push(<HrTitle title="Optimization"></HrTitle>);
+    }
+
+    if (showOptLineupButton) {
+      pageElems.push(
+        <div
+          id="opt"
+          key="opt"
+          className="list-button button"
+          onClick={this.handleCreateOptimization}
+        >
+          Optimize Lineup...
+        </div>
+      );
+    }
+
+    if (showImportOptLineupButton) {
       pageElems.push(
         <div
           id="import"
@@ -488,19 +542,6 @@ export default class CardLineup extends React.Component {
           }}
         >
           Import Lineup From Optimization
-        </div>
-      );
-    }
-
-    if (this.props.game.lineup.length !== 0) {
-      pageElems.push(
-        <div
-          id="lock"
-          key="lock"
-          className="list-button button"
-          onClick={this.handleLockToggle}
-        >
-          {this.getUiTextForLockButton()}
         </div>
       );
     }

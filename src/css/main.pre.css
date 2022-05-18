@@ -1085,3 +1085,21 @@ Scrolling is ~10-20x smoother.
   border-radius: 32px;
   cursor: default;
 }
+
+.storage-container {
+  padding: 10px;
+  max-width: 300px;
+}
+
+.storage-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.storage-label {
+  padding-left: 30px;
+}
+
+.storage-value {
+  font-weight: 1000;
+}

@@ -29,6 +29,10 @@ class CardMenu extends Component {
       setRoute('/optimizations');
     };
 
+    this.handleDetailsClick = function () {
+      setRoute('/account');
+    };
+
     this.handleLogoutClick = async function () {
       dialog.show_confirm('Are you sure you want to log out?', async () => {
         // Do a sync if necessary
@@ -253,6 +257,16 @@ class CardMenu extends Component {
           Import From File
         </ListButton>
         <HrTitle title="Account"></HrTitle>
+        <ListButton
+          id="details"
+          className={'list-item'}
+          onClick={this.handleDetailsClick.bind(this)}
+          style={{
+            backgroundColor: css.colors.BG,
+          }}
+        >
+          Settings
+        </ListButton>
         {state.isSessionValid() ? (
           <ListButton
             id="logout"

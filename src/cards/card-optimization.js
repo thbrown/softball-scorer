@@ -733,7 +733,7 @@ export default class CardOptimization extends React.Component {
       }
 
       for (let i = 0; i < allTeams.length; i++) {
-        let team = allTeams[i];
+        let team = allTeams[allTeams.length - 1 - i]; // List teams in reverse order
         teamsCheckboxes.push(
           <label key={team.name + 'checkboxLabel' + i}>
             <input

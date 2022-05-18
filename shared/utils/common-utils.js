@@ -104,3 +104,19 @@ exports.merge = function (array1, array2) {
 exports.truncate = function (str, n) {
   return str.length > n ? str.substr(0, n - 1) : str;
 };
+
+exports.round = function (toRound, decimalPlaces) {
+  decimalPlaces = decimalPlaces ? decimalPlaces : 0;
+  return (
+    Math.round(toRound * Math.pow(10, decimalPlaces)) /
+    Math.pow(10, decimalPlaces)
+  );
+};
+
+exports.formatPercentage = function (value, decimalPlaces) {
+  decimalPlaces = decimalPlaces ? decimalPlaces : 0;
+  if (isNaN(value)) {
+    return '-%';
+  }
+  return (parseFloat(value) * 100).toFixed(decimalPlaces) + '%';
+};

@@ -54,7 +54,6 @@ export default class CardSignup extends React.Component {
       }
 
       // Disable button
-      let submitButton = this.submitButton.current;
       this.submitButton.current.classList.add('disabled');
       this.submitButtonSpinner.current.classList.remove('gone');
 

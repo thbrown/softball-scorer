@@ -4,6 +4,8 @@ import state from 'state';
 import Card from 'elements/card';
 import dialog from 'dialog';
 import { setRoute } from 'actions/route';
+import SharedLib from '/../shared-lib';
+import HrTitle from 'elements/hr-title';
 
 export default class CardAccount extends Component {
   constructor(props) {
@@ -40,9 +42,54 @@ export default class CardAccount extends Component {
     };
   }
 
+  // TODO: only have this if account email is not verified
   render() {
+    const MAX_LOCAL_STORAGE = 5000; // To keep cross-browser behavior consistent, we'll lock this at 5MB, some browsers can do more
+    let localStorageUsage = state.getLocalStorageUsage();
+    console.log(localStorageUsage);
     return (
       <Card title="Account">
+        <HrTitle title="Storage"></HrTitle>
+        <div className="storage-container">
+          <div className="storage-row">
+            <div style={{ paddingLeft: '0px' }} className="storage-label">
+              Total Usage (
+              {SharedLib.commonUtils.formatPercentage(
+                localStorageUsage.total / MAX_LOCAL_STORAGE
+              )}{' '}
+              full)
+            </div>{' '}
+            <div className="storage-value">
+              {SharedLib.commonUtils.round(localStorageUsage.total, 2)} KiB
+            </div>
+          </div>
+          <div className="storage-row">
+            <div className="storage-label">Players:</div>{' '}
+            <div className="storage-value">
+              {SharedLib.commonUtils.round(localStorageUsage.players, 2)} KiB
+            </div>
+          </div>
+          <div className="storage-row">
+            <div className="storage-label">Teams:</div>
+            <div className="storage-value">
+              {SharedLib.commonUtils.round(localStorageUsage.teams, 2)} KiB
+            </div>
+          </div>
+          <div className="storage-row">
+            <div className="storage-label">Optimizations:</div>
+            <div className="storage-value">
+              {SharedLib.commonUtils.round(localStorageUsage.optimizations, 2)}{' '}
+              KiB
+            </div>
+          </div>
+          <div className="storage-row">
+            <div className="storage-label">System:</div>
+            <div className="storage-value">
+              {SharedLib.commonUtils.round(localStorageUsage.system, 2)} KiB
+            </div>
+          </div>
+        </div>
+        <HrTitle title="Email"></HrTitle>
         <div
           id="email-validation"
           className="list-button button left"

@@ -714,10 +714,8 @@ module.exports = class DatabaseCalls {
                   accountId,
                   400,
                   `Field was larger than overridden limit ${
-                    sqlToRun.limits[i + 1]
-                  } characters ${sqlToRun[i].values[j]} -- ${JSON.stringify(
-                    sqlToRun[i]
-                  )}`
+                    sqlToRun[i].limits[j + 1]
+                  } characters ${sqlToRun[i].values[j].length}`
                 );
               }
             } else if (sqlToRun[i].values[j].length > 5000) {

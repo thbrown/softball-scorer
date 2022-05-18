@@ -114,7 +114,7 @@ for (let i = 0; i < opSortOrder.length; i++) {
   opOrdering[opSortOrder[i]] = i;
 }
 
-const JSON_BLOB_MAX_CHARS = 5000;
+const JSON_BLOB_MAX_CHARS = 10000;
 const JSON_LIST_MAX_CHARS = 500; // Can hold just under 30 ids (TODO: this is too small for game list [which we haven't implemented yet], and maybe too small for team list [or maybe not? 30 teams is a lot])
 
 let getSqlFromPatch = function (patch, accountId) {

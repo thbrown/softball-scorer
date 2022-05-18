@@ -687,7 +687,7 @@ exp.removeOptimization = function (optimizationId) {
   onEdit();
 };
 
-exp.addOptimization = function (name) {
+exp.addOptimization = function (name, playerList, teamList, lineupType) {
   const id = getNextId();
   let new_state = exp.getLocalState();
   let optimization = {
@@ -699,10 +699,12 @@ exp.addOptimization = function (name) {
     resultData: JSON.stringify({}),
     statusMessage: null,
     sendEmail: false,
-    teamList: JSON.stringify([]),
+    teamList: teamList
+      ? teamList
+      : JSON.stringify(exp.getAllTeams().map((t) => t.id)),
     gameList: JSON.stringify([]),
-    playerList: JSON.stringify([]),
-    lineupType: 0,
+    playerList: playerList ? playerList : JSON.stringify([]),
+    lineupType: lineupType === undefined ? 0 : lineupType,
     optimizerType:
       SharedLib.constants.OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_ADAPTIVE,
     inputSummaryData: JSON.stringify({}),
@@ -1523,6 +1525,62 @@ exp.setPreventScreenLock = function (value) {
 
 exp.getPreventScreenLock = function () {
   return this.preventScreenLock;
+};
+
+exp.getLocalStorageUsage = function () {
+  let total = 0;
+  let players = 0;
+  let teams = 0;
+  let optimizations = 0;
+  let xLen = 0;
+  let x = 0;
+  for (x in localStorage) {
+    if (!localStorage.hasOwnProperty(x)) {
+      continue;
+    }
+    xLen = (localStorage[x].length + x.length) * 2;
+
+    if (x === 'LOCAL_DB_STATE') {
+      let appState = JSON.parse(localStorage['LOCAL_DB_STATE']);
+      for (let y in appState) {
+        let yLen = (JSON.stringify(appState[y]).length + y.length) * 2;
+        if (y === 'players') {
+          players += yLen;
+        } else if (y === 'teams') {
+          teams += yLen;
+        } else if (y === 'optimizations') {
+          optimizations += yLen;
+        }
+      }
+    }
+    total += xLen;
+    //console.log(x.substr(0, 50) + ' = ' + (xLen / 1024).toFixed(2) + ' KB');
+  }
+
+  // We multiply by 2 twice because:
+  // 1) UTF-16 requires 2 bytes per character
+  // 2) We need to stor each character twice, both in local an ancestor
+  return {
+    players: (players / 1024) * 2,
+    teams: (teams / 1024) * 2,
+    optimizations: (optimizations / 1024) * 2,
+    system: ((total - teams * 2 - players * 2 - optimizations * 2) / 1024) * 2,
+    total: (total / 1024) * 2,
+  };
+  /*
+  console.log('Playe = ' + ((players / 1024) * 2).toFixed(2) + ' KB');
+  console.log('Teams = ' + ((teams / 1024) * 2).toFixed(2) + ' KB');
+  console.log('Optim = ' + ((optimizations / 1024) * 2).toFixed(2) + ' KB');
+  console.log(
+    'Syste = ' +
+      (
+        ((total - teams * 2 - players * 2 - optimizations * 2) / 1024) *
+        2
+      ).toFixed(2) +
+      ' KB'
+  );
+  console.log('Total = ' + (total / 1024).toFixed(2) + ' KB');
+  */
 };
 
 /**
