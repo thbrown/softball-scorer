@@ -153,8 +153,7 @@ module.exports = class OptimizationComputeLocal {
         'Estimation Response',
         startResponse.statusCode,
         startResponse.body,
-        options['-o'],
-        SharedLib.constants.OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXHAUSTIVE
+        options['-o']
       );
 
       let body = JSON.parse(startResponse.body);

@@ -13,6 +13,7 @@ exports.OPTIMIZATION_TYPE_ENUM = Object.freeze({
   MONTE_CARLO_ADAPTIVE: 1,
   MONTE_CARLO_ANNEALING: 2,
   EXPECTED_VALUE: 3,
+  SORT_BY_AVERAGE: 4,
 });
 
 // Flip enums for reverse lookups

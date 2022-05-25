@@ -32,6 +32,7 @@ exp.LINEUP_TYPE_ENUM = Object.freeze({
   NORMAL: 0,
   ALTERNATING_GENDER: 1,
   NO_CONSECUTIVE_FEMALES: 2,
+  NO_CONSECUTIVE_FEMALES_AND_NO_THREE_CONSECUTIVE_MALES: 3,
 });
 exp.LINEUP_ORDER_ENUM = Object.freeze({
   StandardBattingLineup: 'StandardBattingLineup',
@@ -510,9 +511,8 @@ exp.replaceOptimization = function (optimizationId, newOptimization) {
   const localState = exp.getLocalState();
   const oldOptimization = exp.getOptimization(optimizationId);
 
-  const oldOptimizationIndex = localState.optimizations.indexOf(
-    oldOptimization
-  );
+  const oldOptimizationIndex =
+    localState.optimizations.indexOf(oldOptimization);
   localState.optimizations[oldOptimizationIndex] = newOptimization;
   onEdit();
 };

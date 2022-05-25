@@ -119,6 +119,7 @@ export default class CardGameEdit extends React.Component {
                 0: 'Normal',
                 1: 'Alternating Gender',
                 2: 'No Consecutive Females',
+                3: 'No Consecutive Females and No Three Consecutive Males',
               }}
               fullWidth
             />

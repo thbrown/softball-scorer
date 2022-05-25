@@ -99,9 +99,8 @@ export default class OptimizerStandardOptions extends React.Component {
       this.props.optimizerData[optId] !== undefined
     ) {
       this.selectedOptimizerName = this.props.optimizerData[optId].name;
-      this.selectedOptimizerDescription = this.props.optimizerData[
-        optId
-      ].shortDescription;
+      this.selectedOptimizerDescription =
+        this.props.optimizerData[optId].shortDescription;
     }
 
     // Main content
@@ -124,6 +123,7 @@ export default class OptimizerStandardOptions extends React.Component {
               0: 'Normal',
               1: 'Alternating Gender',
               2: 'No Consecutive Females',
+              3: 'No Consecutive Females and No Three Consecutive Males',
             }}
             disabled={this.props.disabled}
             fullWidth
