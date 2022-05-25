@@ -76,6 +76,33 @@ export default class CardOptimizationStatsOverride extends React.Component {
       );
     }.bind(this);
 
+    this.handleAddTeamPas = function (teamId) {
+      let toAdd = state.getPlateAppearancesForPlayerOnTeam(
+        this.props.player.id,
+        teamId
+      );
+
+      let allOverrides = JSON.parse(props.optimization.overrideData);
+      let overridesForPlayer =
+        allOverrides[props.player.id] === undefined
+          ? []
+          : allOverrides[props.player.id];
+
+      // Add all the new PAs
+      for (let pa of toAdd) {
+        overridesForPlayer.push(pa);
+      }
+      allOverrides[props.player.id] = overridesForPlayer;
+
+      // Set it in the state
+      state.setOptimizationField(
+        props.optimization.id,
+        'overrideData',
+        allOverrides,
+        true
+      );
+    }.bind(this);
+
     this.handleDeleteClick = function () {
       dialog.show_confirm(
         'Are you sure you want to delete all stat overrides for player "' +
@@ -187,6 +214,28 @@ export default class CardOptimizationStatsOverride extends React.Component {
       </div>
     );
 
+    let teamAtBatButtons = [];
+    for (let team of state.getAllTeams()) {
+      let teamPAs = state.getPlateAppearancesForPlayerOnTeam(
+        this.props.player.id,
+        team.id
+      );
+      if (teamPAs.length > 0) {
+        teamAtBatButtons.push(
+          <div
+            onClick={this.handleAddTeamPas.bind(this, team.id)}
+            className="button list-button"
+          >
+            Use All
+            <b style={{ paddingLeft: '3px', paddingRight: '3px' }}>
+              {team.name}
+            </b>
+            PAs ({teamPAs.length})
+          </div>
+        );
+      }
+    }
+
     return (
       <div>
         <div
@@ -247,9 +296,10 @@ export default class CardOptimizationStatsOverride extends React.Component {
           </div>
         </div>
         <div onClick={this.handleAddAllPa} className="button list-button">
-          Add All Available PA (
+          Use All Available PA (
           {state.getAllPlateAppearancesForPlayer(this.props.player.id).length})
         </div>
+        <div>{teamAtBatButtons}</div>
         <div>{this.renderSaveOptions(overrides)}</div>
       </div>
     );
