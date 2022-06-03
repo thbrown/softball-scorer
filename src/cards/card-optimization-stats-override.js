@@ -52,14 +52,9 @@ export default class CardOptimizationStatsOverride extends React.Component {
       };
     };
 
-    this.handleAddAllPa = function () {
-      let toAdd = state.getAllPlateAppearancesForPlayer(this.props.player.id);
-
+    this.handleAddPas = function (toAdd) {
       let allOverrides = JSON.parse(props.optimization.overrideData);
-      let overridesForPlayer =
-        allOverrides[props.player.id] === undefined
-          ? []
-          : allOverrides[props.player.id];
+      let overridesForPlayer = [];
 
       // Add all the new PAs
       for (let pa of toAdd) {
@@ -74,34 +69,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
         allOverrides,
         true
       );
-    }.bind(this);
-
-    this.handleAddTeamPas = function (teamId) {
-      let toAdd = state.getPlateAppearancesForPlayerOnTeam(
-        this.props.player.id,
-        teamId
-      );
-
-      let allOverrides = JSON.parse(props.optimization.overrideData);
-      let overridesForPlayer =
-        allOverrides[props.player.id] === undefined
-          ? []
-          : allOverrides[props.player.id];
-
-      // Add all the new PAs
-      for (let pa of toAdd) {
-        overridesForPlayer.push(pa);
-      }
-      allOverrides[props.player.id] = overridesForPlayer;
-
-      // Set it in the state
-      state.setOptimizationField(
-        props.optimization.id,
-        'overrideData',
-        allOverrides,
-        true
-      );
-    }.bind(this);
+    };
 
     this.handleDeleteClick = function () {
       dialog.show_confirm(
@@ -223,7 +191,13 @@ export default class CardOptimizationStatsOverride extends React.Component {
       if (teamPAs.length > 0) {
         teamAtBatButtons.push(
           <div
-            onClick={this.handleAddTeamPas.bind(this, team.id)}
+            onClick={this.handleAddPas.bind(
+              this,
+              state.getPlateAppearancesForPlayerOnTeam(
+                this.props.player.id,
+                team.id
+              )
+            )}
             className="button list-button"
           >
             Use All
@@ -295,7 +269,13 @@ export default class CardOptimizationStatsOverride extends React.Component {
             <b>Slg</b> {overrideStats.sluggingPercentage}
           </div>
         </div>
-        <div onClick={this.handleAddAllPa} className="button list-button">
+        <div
+          onClick={this.handleAddPas.bind(
+            this,
+            state.getAllPlateAppearancesForPlayer(this.props.player.id)
+          )}
+          className="button list-button"
+        >
           Use All Available PA (
           {state.getAllPlateAppearancesForPlayer(this.props.player.id).length})
         </div>

@@ -1384,7 +1384,7 @@ exp.getActiveStatsForAllPlayers = function (overrideData, playerIds, teamIds) {
 
     let plateAppearances = [];
     let existingOverride = overrideData[player.id];
-    if (existingOverride) {
+    if (existingOverride && existingOverride.length !== 0) {
       // If there are stats overrides, use those
       plateAppearances = existingOverride;
     } else {

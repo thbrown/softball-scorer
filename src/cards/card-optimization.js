@@ -254,6 +254,8 @@ export default class CardOptimization extends React.Component {
         true
       );
 
+      // TODO: remove any zero-length override data arrays
+
       // Don't run optimizations if there are no players or if any players don't have an PA
       let inadequateData = false;
       for (let playerId of playerIds) {
@@ -670,7 +672,7 @@ export default class CardOptimization extends React.Component {
       Object.assign(displayPlayer, stats[playerIds[i]]);
 
       const existingOverride = overrideData[playerIds[i]];
-      if (existingOverride) {
+      if (existingOverride && existingOverride.length !== 0) {
         displayPlayer.isOverride = true;
       } else {
         displayPlayer.isOverride = false;
