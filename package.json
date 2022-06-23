@@ -80,7 +80,7 @@
     "file-saver": "^2.0.0-rc.3",
     "folder-hash": "^4.0.0",
     "googleapis": "^66.0.0",
-    "got": "^11.8.0",
+    "got": "^11.8.5",
     "helmet": "^4.2.0",
     "lz-string": "^1.4.4",
     "mailgun.js": "^6.0.1",
