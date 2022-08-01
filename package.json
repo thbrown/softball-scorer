@@ -17,7 +17,8 @@
     "test:ui": "jest --watch ./src/tests/*",
     "analyze": "webpack --config webpack.prod.js --profile --json > build/stats.json && webpack-bundle-analyzer build/stats.json",
     "fix": "npm i --package-lock-only && npm audit fix && rm yarn.lock && yarn import && rm package-lock.json",
-    "fmt": "prettier src src-srv --write"
+    "fmt": "prettier src src-srv --write",
+    "fmt:check": "prettier src src-srv --check"
   },
   "repository": {
     "type": "git",
