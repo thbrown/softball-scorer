@@ -54,9 +54,7 @@ requestInternal = async function (
         if (err.name == 'AbortError') {
           console.log('Network request canceled');
           // Canceled Request (TODO: not sure the best way to handle this yet)
-          resolve(
-            -4
-          ); /*
+          resolve(-4); /*
           reject(
             new Error(
               'Something went wrong during the request (canceled): ' + err,

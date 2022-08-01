@@ -46,10 +46,11 @@ module.exports = class OptimizationServer {
             );
 
             // Get all the info we need to run the optimization
-            let executionData = await databaseCalls.getOptimizationExecutionData(
-              sock.accountId,
-              sock.optimizationId
-            );
+            let executionData =
+              await databaseCalls.getOptimizationExecutionData(
+                sock.accountId,
+                sock.optimizationId
+              );
 
             let optimizationData = executionData;
 

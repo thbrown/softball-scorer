@@ -19,7 +19,7 @@ hr {
 @font-face {
   font-family: 'score_boardregular';
   src: url('/server/assets/scoreboard-webfont.woff2') format('woff2'),
-       url('/server/assets/scoreboard-webfont.woff') format('woff');
+    url('/server/assets/scoreboard-webfont.woff') format('woff');
   font-weight: normal;
   font-style: normal;
 }
@@ -27,7 +27,7 @@ hr {
 .background-text {
   text-align: center;
   font-size: 14px;
-  margin: 10px
+  margin: 10px;
 }
 
 .centered-row {
@@ -39,11 +39,11 @@ hr {
 }
 
 .fade-out {
-  -webkit-animation: fadeout 3.0s;
-  -moz-animation: fadeout 3.0s;
-  -ms-animation: fadeout 3.0s;
-  -o-animation: fadeout 3.0s;
-  animation: fadeout 3.0s;
+  -webkit-animation: fadeout 3s;
+  -moz-animation: fadeout 3s;
+  -ms-animation: fadeout 3s;
+  -o-animation: fadeout 3s;
+  animation: fadeout 3s;
 }
 
 .card-body {
@@ -102,7 +102,7 @@ hr {
 }
 
 .card-textbox {
-  padding: .75rem .25rem;
+  padding: 0.75rem 0.25rem;
   color: $css.colors.TEXT_LIGHT;
 }
 
@@ -141,7 +141,7 @@ hr {
   border-bottom: 1px solid $css.colors.SECONDARY_LIGHT;
   padding: 7px;
   min-width: 50px;
-  height:24px;
+  height: 24px;
   line-height: 1.7;
 }
 .table-cell-header {
@@ -156,7 +156,7 @@ hr {
 .name-stat-cell {
   width: 80px;
   text-align: left;
-  height:24px;
+  height: 24px;
   text-overflow: ellipsis;
   overflow: hidden;
   color: $css.colors.TEXT_LIGHT;
@@ -261,7 +261,6 @@ hr {
   padding: 10px 16px;
 }
 
-
 .lineup-box-beginning,
 .lineup-box-end,
 .lineup-box {
@@ -284,7 +283,7 @@ hr {
 
 .lineup-box:hover,
 .lineup-box:active,
-.list-item:hover, 
+.list-item:hover,
 .list-item:active {
   filter: brightness(75%);
 }
@@ -449,7 +448,7 @@ hr {
   background-color: $css.colors.BACKGROUND;
   border-radius: 8px;
   color: $css.colors.TEXT_DARK;
-  box-shadow: 0px 9px 25px 10px rgba(0,0,0,0.5);
+  box-shadow: 0px 9px 25px 10px rgba(0, 0, 0, 0.5);
   padding: 16px;
   margin: 32px;
   z-index: 2001;
@@ -485,7 +484,7 @@ hr {
   margin: 10px;
   text-align: center;
   min-width: 52px;
-  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   height: 48px;
@@ -507,7 +506,7 @@ hr {
 }
 
 @media (hover: hover) {
-  .button:active, 
+  .button:active,
   .button:hover {
     filter: brightness(95%);
   }
@@ -857,12 +856,19 @@ Scrolling is ~10-20x smoother.
 }
 
 .floating-react-select input,
-.floating-react-select > div:first-of-type > div:first-of-type > div:first-of-type,
-.floating-react-select > div:first-of-type > div:first-of-type > div:first-of-type > div:first-of-type {
+.floating-react-select
+  > div:first-of-type
+  > div:first-of-type
+  > div:first-of-type,
+.floating-react-select
+  > div:first-of-type
+  > div:first-of-type
+  > div:first-of-type
+  > div:first-of-type {
   width: 100% !important;
 }
 
-.floating-react-select div[class*="indicatorContainer"] {
+.floating-react-select div[class*='indicatorContainer'] {
   display: none !important;
 }
 
@@ -1008,7 +1014,7 @@ Scrolling is ~10-20x smoother.
   *overflow: hidden;
 }
 
-#gamesMenu input[type="checkbox"] {
+#gamesMenu input[type='checkbox'] {
   width: 16px;
   height: 16px;
 }
@@ -1022,7 +1028,11 @@ Scrolling is ~10-20x smoother.
 }
 
 .pie-timer {
-  background: -webkit-linear-gradient(left, $css.colors.PRIMARY 50%, #F5F5F5 50%); /* $css.colors.BACKGROUND doesn't get substituted here, so I'm hardcoding #F5F5F5 */
+  background: -webkit-linear-gradient(
+    left,
+    $css.colors.PRIMARY 50%,
+    #f5f5f5 50%
+  ); /* $css.colors.BACKGROUND doesn't get substituted here, so I'm hardcoding #F5F5F5 */
   border-radius: 100%;
   height: 25px; /* Height and width */
   position: relative;
@@ -1049,31 +1059,31 @@ Scrolling is ~10-20x smoother.
   height: 25px;
 }
 @-webkit-keyframes time {
-  100% { 
-      -webkit-transform: rotate(360deg);
-      transform: rotate(360deg);
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
   }
 }
 @-webkit-keyframes pie-mask {
   0% {
-      background: $css.colors.BACKGROUND; /* Background colour */
-      -webkit-transform: rotate(0deg);
-      transform: rotate(0deg);
+    background: $css.colors.BACKGROUND; /* Background colour */
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
   }
   50% {
-      background: $css.colors.BACKGROUND; /* Background colour */
-      -webkit-transform: rotate(-180deg);
-      transform: rotate(-180deg);
+    background: $css.colors.BACKGROUND; /* Background colour */
+    -webkit-transform: rotate(-180deg);
+    transform: rotate(-180deg);
   }
   50.01% {
-      background: $css.colors.PRIMARY; /* Foreground colour */
-      -webkit-transform: rotate(0deg);
-      transform: rotate(0deg);
+    background: $css.colors.PRIMARY; /* Foreground colour */
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
   }
   100% {
-      background: $css.colors.PRIMARY; /* Foreground colour */
-      -webkit-transform: rotate(-180deg);
-      transform: rotate(-180deg);
+    background: $css.colors.PRIMARY; /* Foreground colour */
+    -webkit-transform: rotate(-180deg);
+    transform: rotate(-180deg);
   }
 }
 
