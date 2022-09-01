@@ -1,4 +1,5 @@
-import { sortObjectsByDate, toClientDate } from './functions';
+import { sortObjectsByDate } from './functions';
+import state from 'state';
 
 export const HIT_TYPE_FILTERS = {
   HITS: 'hits',
@@ -65,3 +66,37 @@ export function filterByLastGames(plateAppearances, lastNGames) {
   }
   return ret;
 }
+
+/**
+ * convert a 1d list of plate appearances to a list of players with each plate appearance
+ * added to a list on the player object
+ */
+export const convertPlateAppearanceListToPlayerPlateAppearanceList = (
+  plateAppearances
+) => {
+  const ret = [];
+  plateAppearances.forEach((pa) => {
+    let playerInList = ret.find(
+      (playerInList) => playerInList.id === pa.player_id
+    );
+
+    if (!ret.find((p) => p.id === pa.player_id)) {
+      const player = state.getPlayer(pa.player_id);
+      if (!player) {
+        throw new Error(
+          'No player with id ' + pa.player_id + ' could be found.'
+        );
+      }
+
+      playerInList = {
+        ...player,
+        plateAppearances: [],
+      };
+      ret.push(playerInList);
+    }
+
+    playerInList.plateAppearances.push(pa);
+  });
+
+  return ret;
+};

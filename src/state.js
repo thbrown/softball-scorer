@@ -931,6 +931,9 @@ exp.getPlateAppearancesForPlayerInGame = function (player_id, game_id, state) {
   return game.plateAppearances.filter((pa) => pa.player_id === player_id);
 };
 
+/**
+ * Returns a plate appearance with the game object it's from.
+ */
 const decoratePlateAppearance = (pa, game) => ({
   ...pa,
   game,
@@ -1053,6 +1056,10 @@ exp.getDecoratedPlateAppearancesForPlayer = function (player_id, state) {
     });
   }
   return plateAppearances;
+};
+
+exp.getDecoratedPlateAppearancesForGame = function (game, state) {
+  return game.plateAppearances.map((pa) => decoratePlateAppearance(pa, game));
 };
 
 exp.updatePlateAppearanceResult = function (plateAppearance, result) {

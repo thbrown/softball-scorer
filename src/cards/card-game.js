@@ -13,16 +13,15 @@ export default class CardGame extends expose.Component {
     super(props);
     this.exposeOverwrite('game');
 
-    this.handleTabClick = function (newTab) {
+    this.handleTabClick = (newTab) => {
       setRoute(
         `/teams/${this.props.team.id}/games/${this.props.game.id}/${newTab}`
       );
-    }.bind(this);
+    };
   }
 
   render() {
     let tab = this.props.tab || defaultTab;
-
     return (
       <Card
         title={
@@ -38,6 +37,15 @@ export default class CardGame extends expose.Component {
           />
         }
       >
+        <div
+          className="primary-button button"
+          onClick={() => this.handleTabClick('spray')}
+          style={{
+            marginTop: '0px',
+          }}
+        >
+          View Game Stats
+        </div>
         {tab === 'scorer' ? (
           <GameScorer teamId={this.props.team.id} gameId={this.props.game.id} />
         ) : null}

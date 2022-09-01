@@ -2,7 +2,7 @@ import React from 'react';
 import dialog from 'dialog';
 import state from 'state';
 import FloatingInput from 'elements/floating-input';
-import WalkupSong from 'component-walkup-song';
+import WalkupSong from 'components/walkup-song';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
 import { goBack, goHome } from 'actions/route';

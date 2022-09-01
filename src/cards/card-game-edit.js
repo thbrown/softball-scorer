@@ -115,12 +115,16 @@ export default class CardGameEdit extends React.Component {
               label="Lineup Type"
               initialValue={this.props.game.lineupType || 0}
               onChange={this.handleLineupTypeChange}
-              values={{
-                0: 'Normal',
-                1: 'Alternating Gender',
-                2: 'No Consecutive Females',
-                3: 'No Consecutive Females and No Three Consecutive Males',
-              }}
+              values={[
+                { label: 'Normal', value: '0' },
+                { label: 'Alternating Gender', value: '1' },
+                { label: 'No Consecutive Females', value: '2' },
+                {
+                  label:
+                    'No Consecutive Females and No Three Consecutive Males',
+                  value: '3',
+                },
+              ]}
               fullWidth
             />
             <IconButton

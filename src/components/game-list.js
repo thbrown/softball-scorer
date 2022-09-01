@@ -2,7 +2,7 @@ import React from 'react';
 import state from 'state';
 import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
-import { toClientDate } from 'utils/functions';
+import { sortObjectsByDate, toClientDate } from 'utils/functions';
 import IconButton from '../elements/icon-button';
 
 const GameList = (props) => {
@@ -19,7 +19,9 @@ const GameList = (props) => {
     setRoute(`/teams/${props.team.id}/games/${game.id}/edit?isNew=true`);
   };
 
-  const elems = [...props.team.games].reverse().map((game) => {
+  const games = sortObjectsByDate(props.team.games, { isAsc: false });
+
+  const elems = games.map((game) => {
     return (
       <ListButton
         key={'game-' + game.id}

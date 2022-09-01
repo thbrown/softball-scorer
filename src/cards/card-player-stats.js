@@ -4,14 +4,14 @@ import { setRoute } from 'actions/route';
 import Spray from '../components/spray';
 import state from 'state';
 import css from 'css';
+import InnerSection from 'elements/inner-section';
 
 export default class CardPlayerStats extends React.Component {
-  render() {
-    // Generate season stats section
-    let playerStatsByTeam = [];
-    let allTeams = state.getAllTeams();
-    for (let team of allTeams) {
-      let playerPAsOnTeam = state.getPlateAppearancesForPlayerOnTeam(
+  getSeasonalStats() {
+    const playerStatsByTeam = [];
+    const allTeams = state.getAllTeams();
+    for (const team of allTeams) {
+      const playerPAsOnTeam = state.getPlateAppearancesForPlayerOnTeam(
         this.props.player.id,
         team.id
       );
@@ -22,8 +22,14 @@ export default class CardPlayerStats extends React.Component {
         });
       }
     }
+    return playerStatsByTeam;
+  }
 
-    let seasonStats = [
+  render() {
+    // Generate season stats section
+    const playerStatsByTeam = this.getSeasonalStats();
+
+    const seasonStats = [
       <tr key={'season-headers'} style={{ textAlign: 'right' }}>
         <th style={{ textAlign: 'left' }}>Team Name</th>
         <th>PA</th>
@@ -48,8 +54,8 @@ export default class CardPlayerStats extends React.Component {
       );
     }
 
-    let allPAs = state.getPlateAppearancesForPlayer(this.props.player.id);
-    let allTimeStats = state.buildStatsObject(this.props.player.id, allPAs);
+    const allPAs = state.getPlateAppearancesForPlayer(this.props.player.id);
+    const allTimeStats = state.buildStatsObject(this.props.player.id, allPAs);
     seasonStats.push(
       <tr key={'season-alltime'} style={{ textAlign: 'right' }}>
         <td style={{ textAlign: 'left' }}>
@@ -88,17 +94,25 @@ export default class CardPlayerStats extends React.Component {
           },
         }}
       >
+        <div
+          style={{
+            margin: 'auto',
+            maxWidth: '500px',
+            padding: '0.25rem',
+            textAlign: 'center',
+            color: css.colors.TEXT_GREY,
+          }}
+        >
+          Tap a location to see information about the plate appearance.
+        </div>
         <Spray
-          //team={this.props.team}
-          //player={this.props.player}
           decoratedPlateAppearances={state.getDecoratedPlateAppearancesForPlayer(
             this.props.player.id
           )}
         ></Spray>
-        <div
+        <InnerSection
           style={{
             margin: '7px auto',
-            maxWidth: '500px',
             color: css.colors.TEXT_LIGHT,
             backgroundColor: css.colors.PRIMARY_DARK,
             borderRadius: '9px',
@@ -116,9 +130,9 @@ export default class CardPlayerStats extends React.Component {
             Stats
           </div>
           <table style={{ width: '100%', padding: '1rem' }}>
-            {seasonStats}
+            <tbody>{seasonStats}</tbody>
           </table>
-        </div>
+        </InnerSection>
       </Card>
     );
   }

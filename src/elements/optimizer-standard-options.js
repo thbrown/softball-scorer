@@ -83,9 +83,12 @@ export default class OptimizerStandardOptions extends React.Component {
 
   render() {
     // Process info about all available optimizers
-    let optimizerOptions = {};
+    const optimizerOptions = [];
     for (const id in this.props.optimizerData) {
-      optimizerOptions[id] = this.props.optimizerData[id].name;
+      optimizerOptions.push({
+        label: this.props.optimizerData[id].name,
+        value: id,
+      });
     }
 
     // Process info about the selected optimizer
@@ -119,12 +122,15 @@ export default class OptimizerStandardOptions extends React.Component {
             label="Lineup Type"
             initialValue={this.props.lineupType}
             onChange={this.onLineupChange}
-            values={{
-              0: 'Normal',
-              1: 'Alternating Gender',
-              2: 'No Consecutive Females',
-              3: 'No Consecutive Females and No Three Consecutive Males',
-            }}
+            values={[
+              { label: 'Normal', value: '0' },
+              { label: 'Alternating Gender', value: '1' },
+              { label: 'No Consecutive Females', value: '2' },
+              {
+                label: 'No Consecutive Females and No Three Consecutive Males',
+                value: '3',
+              },
+            ]}
             disabled={this.props.disabled}
             fullWidth
           />

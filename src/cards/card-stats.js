@@ -5,6 +5,7 @@ import CardSection from 'elements/card-section';
 import { StickyTable, Row, Cell } from 'react-sticky-table';
 import { setRoute } from 'actions/route';
 import css from 'css';
+import InnerSection from 'elements/inner-section';
 
 const DSC_CHAR = '▼'; //'\25bc';
 const ASC_CHAR = '▲'; //'\25be';
@@ -280,11 +281,36 @@ export default class CardStats extends React.Component {
     } else {
       return (
         <Card title={`${this.props?.team?.name} Stats`}>
+          <InnerSection
+            style={{
+              padding: '0.25rem',
+              textAlign: 'center',
+              color: css.colors.TEXT_GREY,
+            }}
+          >
+            Tap a player name for a comprehensive hit spray chart.
+          </InnerSection>
+          <InnerSection
+            style={{
+              padding: '0.25rem',
+              textAlign: 'center',
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              color: css.colors.TEXT_GREY,
+            }}
+            onClick={() => {
+              setRoute(
+                `/public-teams/${team.publicId}/games/${this.props.team.games[0].id}`
+              );
+            }}
+          >
+            Tap here for stats per game.
+          </InnerSection>
           <div
             style={{
               display: 'flex',
               justifyContent: 'space-around',
-              marginTop: css.spacing.xSmall,
+              marginTop: '0.75rem',
             }}
           >
             <StickyTable>{tableElems}</StickyTable>

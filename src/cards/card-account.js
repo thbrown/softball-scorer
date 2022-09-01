@@ -4,7 +4,7 @@ import state from 'state';
 import Card from 'elements/card';
 import dialog from 'dialog';
 import { setRoute } from 'actions/route';
-import SharedLib from '/../shared-lib';
+import SharedLib from '../../shared-lib';
 import HrTitle from 'elements/hr-title';
 
 export default class CardAccount extends Component {

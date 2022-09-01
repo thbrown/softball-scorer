@@ -5,12 +5,11 @@ import Draggable from 'react-draggable';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import results from 'plate-appearance-results';
-import state from 'state';
-import WalkupSong from 'component-walkup-song';
+import WalkupSong from 'components/walkup-song';
 import { normalize } from 'utils/functions';
 import { goBack } from 'actions/route';
 import { makeStyles } from 'css/helpers';
-import css from 'css';
+import BallFieldSvg from '../components/ball-field-svg';
 
 const LOCATION_DENOMINATOR = 32767;
 
@@ -21,13 +20,13 @@ const RESULT_OPTIONS_EXTRA = 1;
 const useStyles = makeStyles((theme) => ({
   buttonRow: {
     display: 'flex',
-    justifyContent: 'space-between',
-    margin: '4px',
+    justifyContent: 'flex-start',
+    margin: '4px 10px',
   },
   buttonRowExtra: {
     display: 'flex',
     justifyContent: 'flex-start',
-    margin: '4px',
+    margin: '4px 10px',
   },
   button: {
     cursor: 'default',
@@ -123,7 +122,7 @@ class CardPlateAppearance extends React.Component {
       });
     };
 
-    this.handleToggleResultOptions = function () {
+    this.handleToggleResultOptions = () => {
       let update =
         this.state.resultOptionsPage === RESULT_OPTIONS_DEFAULT
           ? RESULT_OPTIONS_EXTRA
@@ -133,15 +132,17 @@ class CardPlateAppearance extends React.Component {
       });
     };
 
-    this.handleDragStart = function (ev) {
+    this.handleDragStart = (ev) => {
       var element = document.getElementById('baseball');
-      element.classList.remove('pulse-animation');
+      if (element) {
+        element.classList.remove('pulse-animation');
+      }
       this.setState({
         dragging: true,
       });
     };
 
-    this.handleDragStop = function () {
+    this.handleDragStop = () => {
       // lame way to make this run after the mouseup event
       setTimeout(() => {
         let new_x = Math.floor(
@@ -369,14 +370,7 @@ class CardPlateAppearance extends React.Component {
           overflow: 'hidden',
         },
       },
-      DOM.img({
-        draggable: true,
-        src: '/server/assets/ballfield2.png',
-        alt: 'ballfield',
-        style: {
-          width: '100%',
-        },
-      }),
+      React.createElement(BallFieldSvg),
       indicators
     );
   }
@@ -517,7 +511,7 @@ class CardPlateAppearance extends React.Component {
           DOM.div(
             {
               style: {
-                paddingLeft: '24px',
+                paddingLeft: '18px',
               },
             },
             this.renderBaseball(imageSrcForCurrentPa)

@@ -1,0 +1,243 @@
+import React from 'react';
+import Card from 'elements/card';
+import Spray from 'components/spray';
+import state from 'state';
+import { makeStyles } from 'css/helpers';
+import { sortObjectsByDate, toClientDate } from 'utils/functions';
+import { convertPlateAppearanceListToPlayerPlateAppearanceList } from 'utils/plateAppearanceFilters';
+import IconButton from 'elements/icon-button';
+import theme from 'css/theme';
+import { setRoute } from 'actions/route';
+import InnerSection from 'elements/inner-section';
+import FloatingSelect from 'elements/floating-select';
+import css from 'css';
+
+const useStyles = makeStyles((css) => {
+  return {
+    headingRow: {
+      textAlign: 'center',
+      margin: '8px',
+      textTransform: 'uppercase',
+      fontSize: '1rem',
+    },
+    statRow: {
+      display: 'flex',
+    },
+    statCell: {
+      marginRight: '0.5rem',
+      width: '40px',
+      whiteSpace: 'pre',
+      textOverflow: 'ellipsis',
+      overflow: 'hidden',
+    },
+    publicLink: {
+      fontSize: css.typography.size.xSmall,
+      backgroundColor: css.colors.INVISIBLE,
+      color: css.colors.TEXT_DARK,
+      border: '0px',
+      resize: 'none',
+      whiteSpace: 'unset',
+      overflowWrap: 'unset',
+      overflow: 'hidden',
+    },
+    publicLinkLabelBox: {
+      fontSize: css.typography.size.large,
+      display: 'flex',
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+    },
+    publicLinkLabel: {
+      paddingRight: css.spacing.xxSmall,
+    },
+    publicLinkLineItem: {
+      padding: css.spacing.xxSmall,
+    },
+    publicLinkCopyButton: {
+      width: css.sizes.ICON,
+      cursor: 'pointer',
+    },
+    publicLinkCopiedText: {
+      opacity: 1,
+      transition: 'transition: all 0.5s ease-out',
+    },
+    publicLinkContainer: {
+      color: css.colors.TEXT_DARK,
+      backgroundColor: css.colors.BACKGROUND,
+      borderRadius: css.spacing.xSmall,
+      display: 'flex',
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      marginTop: css.spacing.xxSmall,
+      marginBottom: css.spacing.xxSmall,
+      overflow: 'hidden',
+    },
+    description: {
+      padding: '1rem',
+      textAlign: 'center',
+      color: theme.colors.TEXT_GREY,
+    },
+  };
+});
+
+const CardGameStats = ({ game, team, isPublic, backNavUrl }) => {
+  const { classes, styles } = useStyles({});
+  const [copiedNotificationVisible, setCopiedNotificationVisible] =
+    React.useState(false);
+  const publicLinkRef = React.useRef(null);
+  const publicIdEnabled = team.publicIdEnabled;
+  const publicLink = `${window.location.host}/public-teams/${team.publicId}/games/${game.id}`;
+
+  const handleCopyClick = () => {
+    const copyText = publicLinkRef.current;
+    copyText.select();
+    document.execCommand('copy');
+    setCopiedNotificationVisible(true);
+    setTimeout(() => {
+      setCopiedNotificationVisible(false);
+    }, 2999);
+    window.getSelection().removeAllRanges();
+    copyText.blur();
+  };
+
+  const handleGameSelectChange = (gameId) => {
+    setRoute(`/public-teams/${team.publicId}/games/${gameId}`);
+  };
+
+  const playerPaList = convertPlateAppearanceListToPlayerPlateAppearanceList(
+    game.plateAppearances
+  );
+
+  const games = sortObjectsByDate(team.games, { isAsc: false });
+
+  return (
+    <Card
+      title="Game Stats"
+      leftHeaderProps={{
+        onClick: () => {
+          if (backNavUrl) {
+            setRoute(backNavUrl);
+            return true;
+          }
+        },
+      }}
+    >
+      {isPublic ? (
+        <InnerSection>
+          <div
+            style={{
+              padding: '0.25rem',
+              textAlign: 'center',
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              color: css.colors.TEXT_GREY,
+              margin: '8px',
+            }}
+            onClick={() => {
+              setRoute(`/public-teams/${team.publicId}/stats`);
+            }}
+          >
+            Tap here for season stats.
+          </div>
+          <FloatingSelect
+            selectId="gameId"
+            label="Game"
+            initialValue={game.id}
+            onChange={handleGameSelectChange}
+            values={games.map((game) => {
+              return {
+                label: `Vs. ${game.opponent}, ${toClientDate(game.date)}`,
+                value: game.id,
+              };
+            })}
+            selectStyle={{
+              width: '100%',
+            }}
+          />
+        </InnerSection>
+      ) : (
+        <>
+          <div className={classes.headingRow}>
+            {team.name + ' VS. ' + game.opponent}
+          </div>
+          <div className={classes.headingRow}>{toClientDate(game.date)}</div>
+          {publicIdEnabled ? (
+            <InnerSection
+              className={classes.description}
+              style={{
+                padding: '6px',
+                color: theme.colors.TEXT_GREY,
+              }}
+            >
+              Link to this game!
+            </InnerSection>
+          ) : null}
+          <InnerSection>
+            {copiedNotificationVisible && (
+              <span style={styles.publicLinkCopiedText} className="fade-out">
+                Link copied
+              </span>
+            )}
+            {publicIdEnabled && (
+              <div style={styles.publicLinkContainer}>
+                <div style={styles.publicLinkLineItem}>
+                  <span>
+                    <IconButton
+                      onClick={handleCopyClick}
+                      style={styles.publicLinkCopyButton}
+                      src="/server/assets/copy.svg"
+                      alt="copy"
+                      invert
+                    />
+                  </span>
+                </div>
+                <input
+                  id="publicLink"
+                  ref={publicLinkRef}
+                  readOnly
+                  size={publicLink.length}
+                  value={publicLink}
+                  style={styles.publicLink}
+                />
+              </div>
+            )}
+          </InnerSection>
+        </>
+      )}
+      <InnerSection className={classes.description}>
+        Tap a location to see information about the plate appearance.
+      </InnerSection>
+      <Spray
+        decoratedPlateAppearances={state.getDecoratedPlateAppearancesForGame(
+          game
+        )}
+        hideFilter={true}
+      />
+      <InnerSection>
+        <h2>Results</h2>
+        {playerPaList.map((player) => {
+          return (
+            <div className={classes.statRow} key={player.id}>
+              <div
+                className={classes.statCell}
+                style={{
+                  width: '120px',
+                }}
+              >
+                {player.name}
+              </div>
+              {player.plateAppearances.map((pa) => {
+                return (
+                  <div key={pa.id} className={classes.statCell}>
+                    {pa.result}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </InnerSection>
+    </Card>
+  );
+};
+
+export default CardGameStats;

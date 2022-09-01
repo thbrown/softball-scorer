@@ -67,6 +67,9 @@ const ScoreChanger = ({ onScoreChange }) => {
           ev.preventDefault();
         }}
         className={classes.scoreIncrementButton + ' button'}
+        style={{
+          height: 'unset',
+        }}
       >
         +1
       </div>
@@ -78,6 +81,7 @@ const ScoreChanger = ({ onScoreChange }) => {
         className={classes.scoreIncrementButton + ' button'}
         style={{
           borderColor: css.colors.CANCEL,
+          height: 'unset',
         }}
       >
         -1

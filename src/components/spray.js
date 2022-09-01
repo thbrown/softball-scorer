@@ -10,6 +10,8 @@ import {
   filterByHitType,
   filterByLastGames,
 } from 'utils/plateAppearanceFilters';
+import BallFieldSvg from './ball-field-svg';
+import state from 'state';
 
 const LOCATION_DENOMINATOR = 32767;
 const BALL_FIELD_MAX_WIDTH = 500;
@@ -106,12 +108,22 @@ const SprayTooltip = withStyles((theme) => ({
   const rows = [];
   const game = plateAppearance.game;
 
+  const player = state.getPlayer(plateAppearance.player_id);
+
   rows.push(
     <div key="result" className={classes.tooltipRow}>
       <span className={classes.tooltipLabel}>Result:</span>
       {plateAppearance.result}
     </div>
   );
+
+  if (player) {
+    rows.push(
+      <div key="player" className={classes.tooltipRow}>
+        <span className={classes.tooltipLabel}>Player:</span> {player.name}
+      </div>
+    );
+  }
 
   if (game) {
     rows.push(
@@ -209,12 +221,7 @@ const Field = enhanceField((props) => {
         height: Math.min(window.innerWidth, BALL_FIELD_MAX_WIDTH) + 'px',
       }}
     >
-      <img
-        draggable={true}
-        src="/server/assets/ballfield2.png"
-        style={{ width: '100%' }}
-        alt=""
-      />
+      <BallFieldSvg />
       {indicators}
       {props.paTooltip ? (
         <SprayTooltip plateAppearance={props.paTooltip} />
@@ -306,14 +313,15 @@ const Spray = ({
   setPlateAppearanceTypeFilter,
   filter,
   decoratedPlateAppearances,
+  hideFilter,
 }) => {
-  if (filter.pastGames) {
+  if (!hideFilter && filter.pastGames) {
     decoratedPlateAppearances = filterByLastGames(
       decoratedPlateAppearances,
       filter.pastGames
     );
   }
-  if (filter.plateAppearanceType) {
+  if (!hideFilter && filter.plateAppearanceType) {
     decoratedPlateAppearances = filterByHitType(
       decoratedPlateAppearances,
       filter.plateAppearanceType
@@ -323,82 +331,84 @@ const Spray = ({
   return (
     <div className={'sprayBody ' + classes.sprayBody}>
       <Field decoratedPlateAppearances={decoratedPlateAppearances} />
-      <div className={classes.filterArea}>
-        <div className={classes.subtitle}>Hits</div>
-        <div className={classes.filterGroup}>
-          <div
-            id="filter-hits"
-            className={
-              filter.plateAppearanceType === HIT_TYPE_FILTERS.HITS
-                ? classes.filterButtonActive
-                : classes.filterButton
-            }
-            onClick={setPlateAppearanceTypeFilter(HIT_TYPE_FILTERS.HITS)}
-          >
-            <NoSelect> Only Hits </NoSelect>
+      {hideFilter ? null : (
+        <div className={classes.filterArea}>
+          <div className={classes.subtitle}>Hits</div>
+          <div className={classes.filterGroup}>
+            <div
+              id="filter-hits"
+              className={
+                filter.plateAppearanceType === HIT_TYPE_FILTERS.HITS
+                  ? classes.filterButtonActive
+                  : classes.filterButton
+              }
+              onClick={setPlateAppearanceTypeFilter(HIT_TYPE_FILTERS.HITS)}
+            >
+              <NoSelect> Only Hits </NoSelect>
+            </div>
+            <div
+              id="filter-extra-hits"
+              className={
+                filter.plateAppearanceType === HIT_TYPE_FILTERS.EXTRA_BASE_HITS
+                  ? classes.filterButtonActive
+                  : classes.filterButton
+              }
+              onClick={setPlateAppearanceTypeFilter(
+                HIT_TYPE_FILTERS.EXTRA_BASE_HITS
+              )}
+            >
+              <NoSelect> Only Extra Base Hits </NoSelect>
+            </div>
+            <div
+              id="filter-outs"
+              className={
+                filter.plateAppearanceType === HIT_TYPE_FILTERS.OUTS
+                  ? classes.filterButtonActive
+                  : classes.filterButton
+              }
+              onClick={setPlateAppearanceTypeFilter(HIT_TYPE_FILTERS.OUTS)}
+            >
+              <NoSelect> Only Outs </NoSelect>
+            </div>
           </div>
-          <div
-            id="filter-extra-hits"
-            className={
-              filter.plateAppearanceType === HIT_TYPE_FILTERS.EXTRA_BASE_HITS
-                ? classes.filterButtonActive
-                : classes.filterButton
-            }
-            onClick={setPlateAppearanceTypeFilter(
-              HIT_TYPE_FILTERS.EXTRA_BASE_HITS
-            )}
-          >
-            <NoSelect> Only Extra Base Hits </NoSelect>
-          </div>
-          <div
-            id="filter-outs"
-            className={
-              filter.plateAppearanceType === HIT_TYPE_FILTERS.OUTS
-                ? classes.filterButtonActive
-                : classes.filterButton
-            }
-            onClick={setPlateAppearanceTypeFilter(HIT_TYPE_FILTERS.OUTS)}
-          >
-            <NoSelect> Only Outs </NoSelect>
+          <div className={classes.subtitle}>Games</div>
+          <div className={classes.filterGroup}>
+            <div
+              id="filter-past3"
+              className={
+                filter.pastGames === 3
+                  ? classes.filterButtonActive
+                  : classes.filterButton
+              }
+              onClick={setPastGamesFilter(3)}
+            >
+              <NoSelect> Past 3 Games </NoSelect>
+            </div>
+            <div
+              id="filter-past5"
+              className={
+                filter.pastGames === 5
+                  ? classes.filterButtonActive
+                  : classes.filterButton
+              }
+              onClick={setPastGamesFilter(5)}
+            >
+              <NoSelect> Past 5 Games </NoSelect>
+            </div>
+            <div
+              id="filter-past10"
+              className={
+                filter.pastGames === 10
+                  ? classes.filterButtonActive
+                  : classes.filterButton
+              }
+              onClick={setPastGamesFilter(10)}
+            >
+              <NoSelect> Past 10 Games </NoSelect>
+            </div>
           </div>
         </div>
-        <div className={classes.subtitle}>Games</div>
-        <div className={classes.filterGroup}>
-          <div
-            id="filter-past3"
-            className={
-              filter.pastGames === 3
-                ? classes.filterButtonActive
-                : classes.filterButton
-            }
-            onClick={setPastGamesFilter(3)}
-          >
-            <NoSelect> Past 3 Games </NoSelect>
-          </div>
-          <div
-            id="filter-past5"
-            className={
-              filter.pastGames === 5
-                ? classes.filterButtonActive
-                : classes.filterButton
-            }
-            onClick={setPastGamesFilter(5)}
-          >
-            <NoSelect> Past 5 Games </NoSelect>
-          </div>
-          <div
-            id="filter-past10"
-            className={
-              filter.pastGames === 10
-                ? classes.filterButtonActive
-                : classes.filterButton
-            }
-            onClick={setPastGamesFilter(10)}
-          >
-            <NoSelect> Past 10 Games </NoSelect>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
