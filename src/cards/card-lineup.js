@@ -432,7 +432,7 @@ export default class CardLineup extends React.Component {
 
     if (this.props.game.lineup.length === 0) {
       pageElems = pageElems.concat(
-        <div className="background-text">
+        <div key="no-players-notice" className="background-text">
           There are currently no players in this lineup, add some by clicking
           the button below.
         </div>
@@ -512,7 +512,9 @@ export default class CardLineup extends React.Component {
       this.props.game.plateAppearances.length === 0 &&
       state.getAllOptimizations().length > 0;
     if (showOptLineupButton || showImportOptLineupButton) {
-      pageElems.push(<HrTitle title="Optimization"></HrTitle>);
+      pageElems.push(
+        <HrTitle key="optimization" title="Optimization"></HrTitle>
+      );
     }
 
     if (showOptLineupButton) {

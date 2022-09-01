@@ -212,7 +212,7 @@ const CardTeamEdit = (props) => {
           </CardSection>
         </>
       )}
-      <ListButton type="primary-button" onClick={handleConfirmClick}>
+      <ListButton id="save" type="primary-button" onClick={handleConfirmClick}>
         <div
           style={{
             display: 'flex',
@@ -244,7 +244,11 @@ const CardTeamEdit = (props) => {
         </div>
       </ListButton>
       {!props.isNew && (
-        <ListButton type="delete-button" onClick={handleDeleteClick}>
+        <ListButton
+          id="delete"
+          type="delete-button"
+          onClick={handleDeleteClick}
+        >
           <div
             style={{
               display: 'flex',

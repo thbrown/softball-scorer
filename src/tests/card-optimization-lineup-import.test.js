@@ -22,16 +22,22 @@ describe('[UI] Optimization', () => {
     optimizationId = createOptimizationUI(wrapper).id;
   });
 
-  it('A user can access navigate to the optimization player select card', () => {
-    wrapper.find('#optimization-' + optimizationId).simulate('click');
-    wrapper.find('#edit-players').simulate('click');
-    wrapper.find('#import').simulate('click');
-  });
-
   it('A user can import a lineup from a game through the player list editor', () => {
-    wrapper.find('#list-' + TEAM_ID).simulate('click');
-    wrapper.find('#list-' + GAME_ID).simulate('click');
-    wrapper.find('#confirm').simulate('click');
+    wrapper
+      .find('#optimization-' + optimizationId)
+      .hostNodes()
+      .simulate('click');
+    wrapper.find('#edit-players').hostNodes().simulate('click');
+    wrapper.find('#import').hostNodes().simulate('click');
+    wrapper
+      .find('#list-' + TEAM_ID)
+      .hostNodes()
+      .simulate('click');
+    wrapper
+      .find('#list-' + GAME_ID)
+      .hostNodes()
+      .simulate('click');
+    wrapper.find('#confirm').hostNodes().simulate('click');
     const { playerList, teamList } = state.getOptimization(optimizationId);
     expect(JSON.parse(playerList).length).toEqual(10);
   });

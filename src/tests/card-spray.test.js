@@ -19,8 +19,8 @@ describe('[UI] Spray', () => {
   });
 
   it('A user can access a spray chart from the players list', () => {
-    wrapper.find(`#players`).simulate('click');
-    wrapper.find(`#player-1ajppp381cecS7`).simulate('click');
+    wrapper.find(`#players`).hostNodes().simulate('click');
+    wrapper.find(`#player-1ajppp381cecS7`).hostNodes().simulate('click');
     expect(wrapper.exists('#spray-field')).toEqual(true);
   });
 

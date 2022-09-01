@@ -1485,7 +1485,7 @@ exp.scheduleSync = function (time = SYNC_DELAY_MS) {
     setSyncState(SYNC_STATUS_ENUM.PENDING);
   }
 
-  console.log('[SYNC] Sync scheduled');
+  // console.log('[SYNC] Sync scheduled');
   clearTimeout(syncTimer);
   syncTimerTimestamp = Date.now();
 

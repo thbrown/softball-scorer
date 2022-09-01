@@ -10,8 +10,8 @@ state.setOffline();
 describe('[UI] Load from file', () => {
   it('A user can import data', () => {
     const { wrapper } = getPageWrapper();
-    wrapper.find(`#load`).simulate('click');
-    wrapper.find(`#overwriteChoice`).simulate('click');
+    wrapper.find(`#load`).hostNodes().simulate('click');
+    wrapper.find(`#overwriteChoice`).hostNodes().simulate('click');
     state.setLocalState(mockData);
   });
 });

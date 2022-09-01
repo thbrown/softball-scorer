@@ -317,6 +317,8 @@ routes = {
       }
       return (
         <CardPlateAppearance
+          team={team}
+          game={game}
           remove={function () {
             state.removePlateAppearance(plateAppearance.id, game.id);
           }}

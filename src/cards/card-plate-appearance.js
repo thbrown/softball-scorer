@@ -7,7 +7,7 @@ import RightHeaderButton from 'component-right-header-button';
 import results from 'plate-appearance-results';
 import WalkupSong from 'components/walkup-song';
 import { normalize } from 'utils/functions';
-import { goBack } from 'actions/route';
+import { goBack, setRoute } from 'actions/route';
 import { makeStyles } from 'css/helpers';
 import BallFieldSvg from '../components/ball-field-svg';
 
@@ -96,7 +96,7 @@ class CardPlateAppearance extends React.Component {
     this.handleConfirmClick = () => {
       const newPa = buildPlateAppearance();
       this.props.replace(newPa);
-      goBack();
+      setRoute(`/teams/${props.team.id}/games/${props.game.id}`);
     };
 
     this.handleCancelClick = function () {
