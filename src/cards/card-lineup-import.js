@@ -52,7 +52,6 @@ const useLineupListStyles = makeStyles((theme) => ({
     textAlign: 'center',
   },
   itemText: {
-    // width: 'calc(100% - 80px)',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'pre',
