@@ -1280,13 +1280,13 @@ exp.editQueryObject = function (fieldName, value) {
   );
 };
 
-exp.buildStatsObject = function (playerId, plateAppearances) {
+exp.buildStatsObject = function (plateAppearances, playerId) {
   const player =
     typeof playerId === 'string' ? state.getPlayer(playerId) : playerId;
 
   const stats = {};
-  stats.id = player.id;
-  stats.name = player.name;
+  stats.id = player ? player.id : undefined;
+  stats.name = player ? player.name : undefined;
   stats.plateAppearances = 0;
   stats.totalBasesByHit = 0;
   stats.atBats = 0;
@@ -1404,7 +1404,7 @@ exp.getActiveStatsForAllPlayers = function (overrideData, playerIds, teamIds) {
     }
 
     // Gather the stats required for the optimization
-    let fullStats = exp.buildStatsObject(player.id, plateAppearances);
+    let fullStats = exp.buildStatsObject(plateAppearances, player.id);
     activeStats[player.id] = fullStats;
   }
   return activeStats;

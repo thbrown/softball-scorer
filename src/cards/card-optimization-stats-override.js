@@ -142,7 +142,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
       this.props.optimization.id,
       this.props.player.id
     );
-    let overrideStats = state.buildStatsObject(this.props.player.id, overrides);
+    let overrideStats = state.buildStatsObject(overrides, this.props.player.id);
     let paDisplayList = [];
     for (let pa in overrides) {
       let paObject = overrides[pa];

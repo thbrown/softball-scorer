@@ -1,7 +1,5 @@
 import React from 'react';
-import Card from 'elements/card';
 import Spray from 'components/spray';
-import state from 'state';
 import { makeStyles } from 'css/helpers';
 import { sortObjectsByDate, toClientDate } from 'utils/functions';
 import { convertPlateAppearanceListToPlayerPlateAppearanceList } from 'utils/plateAppearanceFilters';
@@ -11,6 +9,7 @@ import { setRoute } from 'actions/route';
 import InnerSection from 'elements/inner-section';
 import FloatingSelect from 'elements/floating-select';
 import css from 'css';
+import CardSection from 'elements/card-section';
 
 const useStyles = makeStyles((css) => {
   return {
@@ -79,13 +78,29 @@ const useStyles = makeStyles((css) => {
   };
 });
 
-const CardGameStats = ({ game, team, isPublic, backNavUrl }) => {
+const CardStatsGame = ({
+  game,
+  team,
+  showGame,
+  inputState,
+  isPublic,
+  backNavUrl,
+}) => {
+  console.log('Input', inputState);
+  if (!game) {
+    return (
+      <CardSection isCentered={true}>
+        No games have been scored for this team yet!
+      </CardSection>
+    );
+  }
+
   const { classes, styles } = useStyles({});
   const [copiedNotificationVisible, setCopiedNotificationVisible] =
     React.useState(false);
   const publicLinkRef = React.useRef(null);
   const publicIdEnabled = team.publicIdEnabled;
-  const publicLink = `${window.location.host}/public-teams/${team.publicId}/games/${game.id}`;
+  const publicLink = `${window.location.origin}/public-teams/${team.publicId}/games/${game.id}`;
 
   const handleCopyClick = () => {
     const copyText = publicLinkRef.current;
@@ -100,109 +115,36 @@ const CardGameStats = ({ game, team, isPublic, backNavUrl }) => {
   };
 
   const handleGameSelectChange = (gameId) => {
-    setRoute(`/public-teams/${team.publicId}/games/${gameId}`);
+    showGame(gameId);
   };
 
   const playerPaList = convertPlateAppearanceListToPlayerPlateAppearanceList(
-    game.plateAppearances
+    game.plateAppearances,
+    inputState
   );
 
   const games = sortObjectsByDate(team.games, { isAsc: false });
 
   return (
-    <Card
-      title="Game Stats"
-      leftHeaderProps={{
-        onClick: () => {
-          if (backNavUrl) {
-            setRoute(backNavUrl);
-            return true;
-          }
-        },
-      }}
-    >
-      {isPublic ? (
-        <InnerSection>
-          <div
-            style={{
-              padding: '0.25rem',
-              textAlign: 'center',
-              textDecoration: 'underline',
-              cursor: 'pointer',
-              color: css.colors.TEXT_GREY,
-              margin: '8px',
-            }}
-            onClick={() => {
-              setRoute(`/public-teams/${team.publicId}/stats`);
-            }}
-          >
-            Tap here for season stats.
-          </div>
-          <FloatingSelect
-            selectId="gameId"
-            label="Game"
-            initialValue={game.id}
-            onChange={handleGameSelectChange}
-            values={games.map((game) => {
-              return {
-                label: `Vs. ${game.opponent}, ${toClientDate(game.date)}`,
-                value: game.id,
-              };
-            })}
-            selectStyle={{
-              width: '100%',
-            }}
-          />
-        </InnerSection>
-      ) : (
-        <>
-          <div className={classes.headingRow}>
-            {team.name + ' VS. ' + game.opponent}
-          </div>
-          <div className={classes.headingRow}>{toClientDate(game.date)}</div>
-          {publicIdEnabled ? (
-            <InnerSection
-              className={classes.description}
-              style={{
-                padding: '6px',
-                color: theme.colors.TEXT_GREY,
-              }}
-            >
-              Link to this game!
-            </InnerSection>
-          ) : null}
-          <InnerSection>
-            {copiedNotificationVisible && (
-              <span style={styles.publicLinkCopiedText} className="fade-out">
-                Link copied
-              </span>
-            )}
-            {publicIdEnabled && (
-              <div style={styles.publicLinkContainer}>
-                <div style={styles.publicLinkLineItem}>
-                  <span>
-                    <IconButton
-                      onClick={handleCopyClick}
-                      style={styles.publicLinkCopyButton}
-                      src="/server/assets/copy.svg"
-                      alt="copy"
-                      invert
-                    />
-                  </span>
-                </div>
-                <input
-                  id="publicLink"
-                  ref={publicLinkRef}
-                  readOnly
-                  size={publicLink.length}
-                  value={publicLink}
-                  style={styles.publicLink}
-                />
-              </div>
-            )}
-          </InnerSection>
-        </>
-      )}
+    <div>
+      <InnerSection>
+        <FloatingSelect
+          selectId="gameId"
+          label="Game"
+          initialValue={game.id}
+          onChange={handleGameSelectChange}
+          values={games.map((game) => {
+            return {
+              label: `Vs. ${game.opponent}, ${toClientDate(game.date)}`,
+              value: game.id,
+            };
+          })}
+          selectStyle={{
+            width: '100%',
+          }}
+        />
+      </InnerSection>
+
       <InnerSection className={classes.description}>
         Tap a location to see information about the plate appearance.
       </InnerSection>
@@ -236,8 +178,53 @@ const CardGameStats = ({ game, team, isPublic, backNavUrl }) => {
           );
         })}
       </InnerSection>
-    </Card>
+
+      {/* Conditionally show the link*/}
+      {!isPublic && publicIdEnabled ? (
+        <>
+          <InnerSection
+            className={classes.description}
+            style={{
+              padding: '6px',
+              color: theme.colors.TEXT_GREY,
+            }}
+          >
+            Public link to this game!
+          </InnerSection>
+
+          <InnerSection>
+            {copiedNotificationVisible && (
+              <span style={styles.publicLinkCopiedText} className="fade-out">
+                Link copied
+              </span>
+            )}
+
+            <div style={styles.publicLinkContainer}>
+              <div style={styles.publicLinkLineItem}>
+                <span>
+                  <IconButton
+                    onClick={handleCopyClick}
+                    style={styles.publicLinkCopyButton}
+                    src="/server/assets/copy.svg"
+                    alt="copy"
+                    invert
+                  />
+                </span>
+              </div>
+              <input
+                id="publicLink"
+                ref={publicLinkRef}
+                readOnly
+                size={publicLink.length}
+                value={publicLink}
+                style={styles.publicLink}
+              />
+            </div>
+          </InnerSection>
+        </>
+      ) : null}
+    </div>
   );
 };
 
-export default CardGameStats;
+export default CardStatsGame;

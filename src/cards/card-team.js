@@ -1,5 +1,5 @@
 import React from 'react';
-import CardStats from 'cards/card-stats';
+import CardStatsPrivate from 'cards/card-stats-private';
 import GameList from 'components/game-list';
 import Card from 'elements/card';
 import HeaderTabs from 'elements/header-tabs';
@@ -9,7 +9,11 @@ export default class CardTeam extends React.Component {
   constructor(props) {
     super(props);
     this.handleTabClick = (tab) => {
-      setRoute(window?.location?.pathname + '?tab=' + tab);
+      if (this.props.tab === 'stats') {
+        setRoute(`/teams/${this.props.team.id}/games`);
+      } else {
+        setRoute(`/teams/${this.props.team.id}/stats`);
+      }
     };
   }
 
@@ -30,7 +34,11 @@ export default class CardTeam extends React.Component {
         }
       >
         {this.props.tab === 'stats' ? (
-          <CardStats team={this.props.team} routingMethod="app" />
+          <CardStatsPrivate
+            team={this.props.team}
+            tab={this.props.subtab}
+            game={this.props.game}
+          />
         ) : (
           <GameList team={this.props.team} />
         )}

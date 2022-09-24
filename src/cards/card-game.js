@@ -37,16 +37,6 @@ export default class CardGame extends expose.Component {
           />
         }
       >
-        <div
-          className="primary-button button"
-          id="view-stats"
-          onClick={() => this.handleTabClick('spray')}
-          style={{
-            marginTop: '0px',
-          }}
-        >
-          View Game Stats
-        </div>
         {tab === 'scorer' ? (
           <GameScorer teamId={this.props.team.id} gameId={this.props.game.id} />
         ) : null}

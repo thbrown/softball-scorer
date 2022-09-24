@@ -5,6 +5,7 @@ const useHeaderTabsStyles = makeStyles((css) => ({
   tabContainer: {
     display: 'flex',
     justifyContent: 'space-between',
+    textAlign: 'center',
   },
   headerTab: {
     width: '45%',

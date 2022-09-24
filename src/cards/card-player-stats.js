@@ -18,7 +18,7 @@ export default class CardPlayerStats extends React.Component {
       if (playerPAsOnTeam.length !== 0) {
         playerStatsByTeam.push({
           teamName: team.name,
-          stats: state.buildStatsObject(this.props.player.id, playerPAsOnTeam),
+          stats: state.buildStatsObject(playerPAsOnTeam, this.props.player.id),
         });
       }
     }
@@ -55,7 +55,7 @@ export default class CardPlayerStats extends React.Component {
     }
 
     const allPAs = state.getPlateAppearancesForPlayer(this.props.player.id);
-    const allTimeStats = state.buildStatsObject(this.props.player.id, allPAs);
+    const allTimeStats = state.buildStatsObject(allPAs, this.props.player.id);
     seasonStats.push(
       <tr key={'season-alltime'} style={{ textAlign: 'right' }}>
         <td style={{ textAlign: 'left' }}>

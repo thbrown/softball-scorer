@@ -72,7 +72,8 @@ export function filterByLastGames(plateAppearances, lastNGames) {
  * added to a list on the player object
  */
 export const convertPlateAppearanceListToPlayerPlateAppearanceList = (
-  plateAppearances
+  plateAppearances,
+  inputState
 ) => {
   const ret = [];
   plateAppearances.forEach((pa) => {
@@ -81,7 +82,8 @@ export const convertPlateAppearanceListToPlayerPlateAppearanceList = (
     );
 
     if (!ret.find((p) => p.id === pa.player_id)) {
-      const player = state.getPlayer(pa.player_id);
+      const player = state.getPlayer(pa.player_id, inputState);
+      console.log('Looking for', pa.player_id, inputState);
       if (!player) {
         throw new Error(
           'No player with id ' + pa.player_id + ' could be found.'

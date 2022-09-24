@@ -21,15 +21,15 @@ import CardPlayerStats from 'cards/card-player-stats';
 import CardReset from 'cards/card-reset';
 import CardSignup from 'cards/card-signup';
 import CardSpray from 'cards/card-spray';
+import CardStatsPrivate from 'cards/card-stats-private';
+import CardStatsPublic from 'cards/card-stats-public';
 import CardTeam from 'cards/card-team';
 import CardTeamEdit from 'cards/card-team-edit';
 import CardTeams from 'cards/card-teams';
 import CardVerifyEmail from 'cards/card-verify-email';
-import CardStats from 'cards/card-stats';
 import CardLineupImport from 'cards/card-lineup-import';
 import CardLineupImporter from 'cards/card-lineup-importer';
 import CardOptimizerSelect from 'cards/card-optimizer-select';
-import CardGameStats from 'cards/card-game-stats';
 import { goBack, setRoute } from 'actions/route';
 
 // possibility to add '/app/' here?
@@ -121,14 +121,13 @@ routes = {
     return <CardTeams />;
   },
   [`${ROUTE_PREFIX}/teams/:teamId`]: ({ teamId, search }) => {
-    const tab = search.tab;
     const team = state.getTeam(teamId);
     const { valid, errors } = assertStateObjects(team);
     if (!valid) {
       console.warn(errors);
       return <CardNotFound />;
     }
-    return <CardTeam team={team} tab={tab || 'games'} />;
+    return <CardTeam team={team} tab={'games'} />;
   },
   [`${ROUTE_PREFIX}/teams/:teamId/games`]: isSameRouteAs('/teams/:teamId'),
   [`${ROUTE_PREFIX}/teams/:teamId/edit`]: ({ teamId, search: { isNew } }) => {
@@ -147,7 +146,18 @@ routes = {
       console.warn(errors);
       return <CardNotFound />;
     }
-    return <CardTeam team={team} tab="stats" />;
+    return (
+      <CardTeam team={team} tab="stats" subtab={CardStatsPrivate.SEASON_TAB} />
+    );
+  },
+  [`${ROUTE_PREFIX}/teams/:teamId/stats/:subtab`]: ({ teamId, subtab }) => {
+    const team = state.getTeam(teamId);
+    const { valid, errors } = assertStateObjects(team);
+    if (!valid) {
+      console.warn(errors);
+      return <CardNotFound />;
+    }
+    return <CardTeam team={team} tab="stats" subtab={subtab} />;
   },
   [`${ROUTE_PREFIX}/teams/:teamId/stats/player/:playerId`]: ({
     teamId,
@@ -200,7 +210,7 @@ routes = {
     }
     return <CardGame team={team} game={game} tab="scorer" />;
   },
-  [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/spray`]: ({
+  [`${ROUTE_PREFIX}/teams/:teamId/stats/games/:gameId`]: ({
     teamId,
     gameId,
   }) => {
@@ -211,7 +221,14 @@ routes = {
       console.warn(errors);
       return <CardNotFound />;
     }
-    return <CardGameStats team={team} game={game} />;
+    return (
+      <CardTeam
+        team={team}
+        tab="stats"
+        subtab={CardStatsPrivate.GAME_STATS_TAB}
+        game={game}
+      />
+    );
   },
   [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/import`]: ({
     teamId,
@@ -535,12 +552,67 @@ routes = {
     teamId,
   }) => {
     return renderWhileLoading({ loading, error })(() => {
+      const team = data.teams[0];
+      const { valid, errors } = assertStateObjects(team);
+      if (!valid) {
+        console.warn(errors);
+        return <CardNotFound />;
+      }
       return (
-        <CardStats
-          state={data}
-          team={data.teams[0]}
-          routingMethod="statsPage"
-          publicTeamId={publicTeamId}
+        <CardStatsPublic
+          team={team}
+          tab={CardStatsPublic.SEASON_TAB}
+          inputState={data}
+        />
+      );
+    });
+  },
+  [`${ROUTE_PREFIX}/public-teams/:publicTeamId/stats/season`]: ({
+    data,
+    loading,
+    error,
+    publicTeamId,
+    teamId,
+    tab,
+  }) => {
+    return renderWhileLoading({ loading, error })(() => {
+      const team = data.teams[0];
+      const { valid, errors } = assertStateObjects(team);
+      if (!valid) {
+        console.warn(errors);
+        return <CardNotFound />;
+      }
+      return (
+        <CardStatsPublic
+          team={team}
+          tab={CardStatsPublic.SEASON_TAB}
+          inputState={data}
+        />
+      );
+    });
+  },
+  [`${ROUTE_PREFIX}/public-teams/:publicTeamId/stats/games`]: ({
+    data,
+    loading,
+    error,
+    publicTeamId,
+    teamId,
+    tab,
+  }) => {
+    return renderWhileLoading({ loading, error })(() => {
+      const team = data.teams[0];
+      const game = team.games[0];
+      const { valid, errors } = assertStateObjects(team); // Game can be undefined
+      if (!valid) {
+        console.warn(errors);
+        return <CardNotFound />;
+      }
+      return (
+        <CardStatsPublic
+          team={team}
+          tab={CardStatsPublic.GAME_STATS_TAB}
+          game={game}
+          inputState={data}
         />
       );
     });
@@ -576,7 +648,7 @@ routes = {
       );
     });
   },
-  [`${ROUTE_PREFIX}/public-teams/:publicTeamId/games/:gameId`]: ({
+  [`${ROUTE_PREFIX}/public-teams/:publicTeamId/stats/games/:gameId`]: ({
     data,
     loading,
     error,
@@ -585,19 +657,18 @@ routes = {
   }) => {
     return renderWhileLoading({ loading, error })(() => {
       const team = data.teams[0];
-      const game = state.getGame(gameId);
+      const game = state.getGame(gameId, data);
       const { valid, errors } = assertStateObjects(team, game);
       if (!valid) {
         console.warn(errors);
         return <CardNotFound />;
       }
-
       return (
-        <CardGameStats
+        <CardStatsPublic
           team={team}
+          tab={CardStatsPublic.GAME_STATS_TAB}
           game={game}
-          isPublic={true}
-          backNavUrl={`/public-teams/${publicTeamId}/stats`}
+          inputState={data}
         />
       );
     });
