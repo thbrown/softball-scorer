@@ -4,6 +4,7 @@ import CardStatsGame from 'cards/card-stats-game';
 import CardStatsSharing from 'cards/card-stats-sharing';
 import CardStatsSeason from 'cards/card-stats-season';
 import HeaderTabs from 'elements/header-tabs';
+import Card from 'elements/card';
 
 export default class CardStatsPublic extends React.Component {
   static SEASON_TAB = 'season';
@@ -55,7 +56,12 @@ export default class CardStatsPublic extends React.Component {
     }
 
     return (
-      <div>
+      <Card
+        title={`Stats for ${this.props.team.name}`}
+        rightHeaderProps={{
+          showBlogLink: true,
+        }}
+      >
         <div
           style={{ fontSize: '19px', cursor: 'pointer', userSelect: 'none' }}
         >
@@ -71,7 +77,7 @@ export default class CardStatsPublic extends React.Component {
           />
         </div>
         <div style={{ marginTop: '6px' }}>{tabToShow}</div>
-      </div>
+      </Card>
     );
   }
 }
