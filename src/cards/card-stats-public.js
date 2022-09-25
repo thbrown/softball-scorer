@@ -75,6 +75,8 @@ export default class CardStatsPublic extends React.Component {
           style={{
             marginBottom: '16px',
             fontSize: '20px',
+            marginLeft: '8px',
+            marginRight: '8px',
           }}
           tabStyle={{
             height: '28px',
