@@ -1,5 +1,4 @@
 import React from 'react';
-import Card from 'elements/card';
 import { setRoute } from 'actions/route';
 import CardStatsGame from 'cards/card-stats-game';
 import CardStatsSharing from 'cards/card-stats-sharing';
@@ -54,21 +53,25 @@ export default class CardStatsPrivate extends React.Component {
 
     return (
       <div>
-        <div
-          style={{ fontSize: '19px', cursor: 'pointer', userSelect: 'none' }}
-        >
-          <HeaderTabs
-            handleTabClick={(tabValue) => {
-              this.handleTabClick(tabValue);
-            }}
-            tab={this.props.tab}
-            tabNames={[
-              { value: CardStatsPrivate.SEASON_TAB, label: 'Season' },
-              { value: CardStatsPrivate.GAME_STATS_TAB, label: 'Games' },
-              { value: CardStatsPrivate.SHARING_TAB, label: 'Sharing' },
-            ]}
-          />
-        </div>
+        <HeaderTabs
+          handleTabClick={(tabValue) => {
+            this.handleTabClick(tabValue);
+          }}
+          tab={this.props.tab}
+          tabNames={[
+            { value: CardStatsPrivate.SEASON_TAB, label: 'Season' },
+            { value: CardStatsPrivate.GAME_STATS_TAB, label: 'Games' },
+            { value: CardStatsPrivate.SHARING_TAB, label: 'Sharing' },
+          ]}
+          invert={true}
+          style={{
+            marginBottom: '16px',
+            fontSize: '20px',
+          }}
+          tabStyle={{
+            height: '28px',
+          }}
+        />
         <div style={{ marginTop: '6px' }}>{tabToShow}</div>
       </div>
     );

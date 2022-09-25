@@ -83,7 +83,6 @@ export const convertPlateAppearanceListToPlayerPlateAppearanceList = (
 
     if (!ret.find((p) => p.id === pa.player_id)) {
       const player = state.getPlayer(pa.player_id, inputState);
-      console.log('Looking for', pa.player_id, inputState);
       if (!player) {
         throw new Error(
           'No player with id ' + pa.player_id + ' could be found.'

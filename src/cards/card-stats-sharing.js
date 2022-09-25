@@ -5,6 +5,7 @@ import CardSection from 'elements/card-section';
 import { goBack, goHome } from 'actions/route';
 import { makeStyles } from 'css/helpers';
 import IconButton from '../elements/icon-button';
+import css from 'css';
 
 const useCardTeamEditStyles = makeStyles((css) => ({
   publicLink: {
@@ -60,31 +61,6 @@ const CardStatsSharing = (props) => {
   const [copiedNotificationVisible, setCopiedNotificationVisible] =
     React.useState(false);
   const publicLinkRef = React.useRef(null);
-  let isPristine = props.isNew ? false : true;
-
-  const homeOrBack = (type, cb) => {
-    if (!isPristine) {
-      dialog.show_confirm(
-        props.isNew
-          ? 'Are you sure you wish to discard team?'
-          : 'Are you sure you wish to discard changes to team?',
-        () => {
-          if (props.isNew) {
-            state.removeTeam(props.team.id);
-          }
-          if (type === 'home') {
-            goHome();
-          } else {
-            goBack();
-          }
-        }
-      );
-      return true;
-    }
-    if (cb) {
-      cb();
-    }
-  };
 
   const handlePublicLinkEnabledClicked = (ev) => {
     setTeam({
@@ -115,14 +91,30 @@ const CardStatsSharing = (props) => {
     content = (
       <div className="auth-input-container">
         <div
-          style={{ textAlign: 'left', fontSize: '13pt', marginBottom: '38px' }}
+          style={{
+            textAlign: 'left',
+            fontSize: css.typography.size.medium,
+            marginBottom: '32px',
+          }}
         >
-          <p>
-            <b>Share team stats with others.</b> Check the "Public Link"
-            checkbox below to generate link you can share with others
-            (teammates, fans, etc...) that will allow them to view team
-            statistics. Public page is updated live and can be hidden at any
-            time by unchecking the checkbox below.
+          <p
+            style={{
+              textTransform: 'uppercase',
+              // textAlign: 'center',
+              fontWeight: 'unset',
+            }}
+          >
+            Share team stats with others
+          </p>
+          <p
+            style={{
+              color: css.colors.TEXT_DESC,
+            }}
+          >
+            Check the "Public Link" checkbox below to generate link you can
+            share with others (teammates, fans, etc...) that will allow them to
+            view team statistics. Public page is updated live and can be hidden
+            at any time by unchecking the checkbox below.
           </p>
         </div>
         <div style={styles.publicLinkLabelBox}>
@@ -176,7 +168,15 @@ const CardStatsSharing = (props) => {
     );
   }
 
-  return <CardSection isCentered={true}>{content}</CardSection>;
+  return (
+    <div
+      style={{
+        margin: '0px ' + css.spacing.xxSmall,
+      }}
+    >
+      {content}
+    </div>
+  );
 };
 
 export default CardStatsSharing;
