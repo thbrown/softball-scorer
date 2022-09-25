@@ -172,9 +172,7 @@ export default class CardStatsSeason extends React.Component {
   }
 
   renderPlayerRow(playerStats) {
-    console.log('ALSDHJALSDJH', playerStats);
     const elems = ['name'].concat(STATS_NAMES).map((statName, i) => {
-      console.log(statName, playerStats[statName]);
       return (
         <Cell key={statName}>
           <div
