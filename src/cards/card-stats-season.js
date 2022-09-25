@@ -1,9 +1,7 @@
 import React from 'react';
 import state from 'state';
-import Card from 'elements/card';
 import CardSection from 'elements/card-section';
 import { StickyTable, Row, Cell } from 'react-sticky-table';
-import { setRoute } from 'actions/route';
 import css from 'css';
 import InnerSection from 'elements/inner-section';
 
@@ -212,11 +210,9 @@ export default class CardStatsSeason extends React.Component {
     // on each render
     const s = inputState || state.getLocalState();
 
-    console.log('PIZZA', team, inputState);
     if (!team) {
       return this.renderNoTable();
     }
-    console.log('Something interesting');
 
     const playerStatsList = s.players
       .filter((player) => {
