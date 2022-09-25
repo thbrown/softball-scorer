@@ -91,6 +91,16 @@ const CardStatsGame = ({
     React.useState(false);
   const publicLinkRef = React.useRef(null);
   const publicIdEnabled = team.publicIdEnabled;
+
+  const games = sortObjectsByDate(team.games, { isAsc: false });
+  if (!game) {
+    return (
+      <CardSection isCentered={true}>
+        No games have been scored for this team yet!
+      </CardSection>
+    );
+  }
+
   const publicLink = `${window.location.origin}/public-teams/${team.publicId}/stats/games/${game.id}`;
 
   const handleCopyClick = () => {
@@ -113,16 +123,6 @@ const CardStatsGame = ({
     game.plateAppearances,
     inputState
   );
-
-  const games = sortObjectsByDate(team.games, { isAsc: false });
-
-  if (!game) {
-    return (
-      <CardSection isCentered={true}>
-        No games have been scored for this team yet!
-      </CardSection>
-    );
-  }
 
   return (
     <div>
