@@ -8,6 +8,7 @@ import theme from 'css/theme';
 import InnerSection from 'elements/inner-section';
 import FloatingSelect from 'elements/floating-select';
 import state from 'state';
+import CardSection from 'elements/card-section';
 
 const useStyles = makeStyles((css) => {
   return {
@@ -114,6 +115,14 @@ const CardStatsGame = ({
   );
 
   const games = sortObjectsByDate(team.games, { isAsc: false });
+
+  if (!game) {
+    return (
+      <CardSection isCentered={true}>
+        No games have been scored for this team yet!
+      </CardSection>
+    );
+  }
 
   return (
     <div>

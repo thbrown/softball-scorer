@@ -100,7 +100,6 @@ const CardStatsSharing = (props) => {
           <p
             style={{
               textTransform: 'uppercase',
-              // textAlign: 'center',
               fontWeight: 'unset',
             }}
           >
