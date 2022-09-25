@@ -103,7 +103,7 @@ hr {
 
 .card-textbox {
   padding: .75rem .25rem;
-  color: $css.colors.TEXT_LIGHT;
+  color: $css.colors.TEXT_DARK;
 }
 
 .card {

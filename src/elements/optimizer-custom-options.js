@@ -157,9 +157,12 @@ export default class OptimizerCustomOptions extends React.Component {
         );
       } else if (value.type === 'Enumeration') {
         // Build values object
-        let options = {};
-        for (let index in value.values) {
-          options[value.values[index]] = value.values[index];
+        const options = [];
+        for (const index in value.values) {
+          options.push({
+            label: value.values[index],
+            value: value.values[index],
+          });
         }
 
         inputElements.push(

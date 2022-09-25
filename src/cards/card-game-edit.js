@@ -3,7 +3,7 @@ import dialog from 'dialog';
 import state from 'state';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
-import { goBack, goHome } from 'actions/route';
+import { goBack, goHome, setRoute } from 'actions/route';
 import FloatingInput from 'elements/floating-input';
 import FloatingSelect from 'elements/floating-select';
 import IconButton from '../elements/icon-button';
@@ -44,7 +44,7 @@ export default class CardGameEdit extends React.Component {
 
     this.handleConfirmClick = () => {
       state.replaceGame(props.game.id, props.team.id, { ...this.state });
-      goBack();
+      setRoute(`/teams/${props.team.id}`);
     };
 
     this.handleCancelClick = () => {
@@ -115,12 +115,16 @@ export default class CardGameEdit extends React.Component {
               label="Lineup Type"
               initialValue={this.props.game.lineupType || 0}
               onChange={this.handleLineupTypeChange}
-              values={{
-                0: 'Normal',
-                1: 'Alternating Gender',
-                2: 'No Consecutive Females',
-                3: 'No Consecutive Females and No Three Consecutive Males',
-              }}
+              values={[
+                { label: 'Normal', value: '0' },
+                { label: 'Alternating Gender', value: '1' },
+                { label: 'No Consecutive Females', value: '2' },
+                {
+                  label:
+                    'No Consecutive Females and No Three Consecutive Males',
+                  value: '3',
+                },
+              ]}
               fullWidth
             />
             <IconButton
@@ -140,7 +144,11 @@ export default class CardGameEdit extends React.Component {
   renderSaveOptions() {
     return (
       <>
-        <ListButton type="primary-button" onClick={this.handleConfirmClick}>
+        <ListButton
+          id="save"
+          type="primary-button"
+          onClick={this.handleConfirmClick}
+        >
           <div
             style={{
               display: 'flex',
@@ -157,7 +165,11 @@ export default class CardGameEdit extends React.Component {
             </span>
           </div>
         </ListButton>
-        <ListButton type="edit-button" onClick={this.handleCancelClick}>
+        <ListButton
+          id="cancel"
+          type="edit-button"
+          onClick={this.handleCancelClick}
+        >
           <div
             style={{
               display: 'flex',
@@ -175,7 +187,11 @@ export default class CardGameEdit extends React.Component {
           </div>
         </ListButton>
         {this.props.isNew ? null : (
-          <ListButton type="delete-button" onClick={this.handleDeleteClick}>
+          <ListButton
+            id="delete"
+            type="delete-button"
+            onClick={this.handleDeleteClick}
+          >
             <div
               style={{
                 display: 'flex',

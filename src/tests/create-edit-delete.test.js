@@ -16,13 +16,19 @@ for (let i = 0; i < 10; i++) {
 }
 
 export const createTeamUI = (wrapper) => {
+  // Enzyme 3 doesn't automatically re-render when modifying external state without an event
+  // so you must manually tell it to update.
   setRoute(`/`);
-  wrapper.find('#teams').simulate('click');
-  wrapper.find('#newTeam').simulate('click');
+  wrapper.update();
+
+  wrapper.find('#teams').hostNodes().simulate('click');
+  wrapper.find('#newTeam').hostNodes().simulate('click');
   wrapper
     .find('input')
+    .hostNodes()
     .simulate('change', { target: { value: TEST_TEAM_NAME } });
-  wrapper.find('#save').simulate('click');
+  wrapper.find('#save').hostNodes().simulate('click');
+  wrapper.update();
 
   // when the Save button is pressed, the team should be in the state as the first team
   const teams = state.getLocalState().teams;
@@ -35,18 +41,27 @@ export const createTeamUI = (wrapper) => {
 };
 
 export const createGameUI = (wrapper, teamId) => {
+  // Enzyme 3 doesn't automatically re-render when modifying external state without an event
+  // so you must manually tell it to update.
   setRoute(`/teams`);
-  wrapper.find(`#team-${teamId}`).simulate('click');
-  wrapper.find('#newGame').simulate('click');
+  wrapper.update();
+
+  wrapper.find(`#team-${teamId}`).hostNodes().simulate('click');
+  wrapper.find('#newGame').hostNodes().simulate('click');
   wrapper
     .find('input#opponentName')
+    .hostNodes()
     .simulate('change', { target: { value: TEST_GAME_NAME } });
-  wrapper.find('#lineupType').simulate('change', { target: { value: 1 } });
-  wrapper.find('#save').simulate('click');
+  wrapper
+    .find('#lineupType')
+    .hostNodes()
+    .simulate('change', { target: { value: 1 } });
+  wrapper.find('#save').hostNodes().simulate('click');
+  wrapper.update();
 
   // the last game in the list for this team should be the newly-created game
   const games = state.getTeam(teamId).games;
-  const newGame = games[games.length - 1];
+  const newGame = games.find((g) => g.opponent === TEST_GAME_NAME);
   expect(newGame).toBeTruthy();
   expect(newGame.opponent).toEqual(TEST_GAME_NAME);
   expect(newGame.lineupType).toEqual(1);
@@ -55,14 +70,20 @@ export const createGameUI = (wrapper, teamId) => {
 };
 
 export const createOptimizationUI = (wrapper) => {
+  // Enzyme 3 doesn't automatically re-render when modifying external state without an event
+  // so you must manually tell it to update.
   setRoute(`/`);
-  wrapper.find('#optimizations').simulate('click');
-  wrapper.find('#new-optimization').simulate('click');
+  wrapper.update();
+
+  wrapper.find('#optimizations').hostNodes().simulate('click');
+  wrapper.find('#new-optimization').hostNodes().simulate('click');
   wrapper
     .find('input#optimizationName')
+    .hostNodes()
     .simulate('change', { target: { value: TEST_OPTIMIZATION_NAME } });
 
-  wrapper.find('#save').simulate('click');
+  wrapper.find('#save').hostNodes().simulate('click');
+  wrapper.update();
 
   const optimizations = state.getLocalState().optimizations;
   const newOptimization = optimizations[optimizations.length - 1];
@@ -86,9 +107,9 @@ describe('[UI] Create/Edit/Delete', () => {
     it('A user can create, edit, and delete a team', () => {
       const { wrapper } = getPageWrapper();
       const newTeam = createTeamUI(wrapper);
-      wrapper.find(`#team-${newTeam.id}-edit`).simulate('click');
-      wrapper.find(`#delete`).simulate('click');
-      wrapper.find('#dialog-confirm').simulate('click');
+      wrapper.find(`#team-${newTeam.id}-edit`).hostNodes().simulate('click');
+      wrapper.find(`#delete`).hostNodes().simulate('click');
+      wrapper.find('#dialog-confirm').hostNodes().simulate('click');
 
       expect(state.getLocalState().teams.length).toEqual(0);
     });
@@ -99,10 +120,10 @@ describe('[UI] Create/Edit/Delete', () => {
       const { wrapper } = getPageWrapper();
       const teamId = createTeamUI(wrapper).id;
       const newGame = createGameUI(wrapper, teamId);
-      wrapper.find(`#game-${newGame.id}-edit`).simulate('click');
-      wrapper.find(`#delete`).simulate('click');
-
-      wrapper.find('#dialog-confirm').simulate('click');
+      wrapper.update();
+      wrapper.find(`#game-${newGame.id}-edit`).hostNodes().simulate('click');
+      wrapper.find(`#delete`).hostNodes().simulate('click');
+      wrapper.find('#dialog-confirm').hostNodes().simulate('click');
       expect(state.getTeam(teamId).games.length).toEqual(0);
     });
   });
@@ -112,7 +133,7 @@ describe('[UI] Create/Edit/Delete', () => {
       const { wrapper } = getPageWrapper();
       const teamId = createTeamUI(wrapper).id;
       const newGame = createGameUI(wrapper, teamId);
-      wrapper.find(`#game-${newGame.id}-edit`).simulate('click');
+      wrapper.find(`#game-${newGame.id}-edit`).hostNodes().simulate('click');
       /*
       TEST_PLAYERS.forEach((playerName) => {
         wrapper.find('#newPlayer').simulate('click');
@@ -147,15 +168,24 @@ describe('[UI] Create/Edit/Delete', () => {
     it('A user can create, edit, and delete an optimization', () => {
       const { wrapper } = getPageWrapper();
       const optimizationId = createOptimizationUI(wrapper).id;
+      wrapper.update();
 
-      wrapper.find(`#optimization-${optimizationId}`).simulate('click');
-      wrapper.find('#accordion-players').simulate('click');
-      wrapper.find('#accordion-games').simulate('click');
-      wrapper.find('#accordion-options').simulate('click');
-      wrapper.find('#back-button').simulate('click');
-      wrapper.find(`#edit-optimization-${optimizationId}`).simulate('click');
-      wrapper.find('#delete').simulate('click');
-      wrapper.find('#dialog-confirm').simulate('click');
+      wrapper
+        .find(`#optimization-${optimizationId}`)
+        .hostNodes()
+        .simulate('click');
+      wrapper.find('#accordion-players').hostNodes().simulate('click');
+      wrapper.find('#accordion-games').hostNodes().simulate('click');
+      wrapper.find('#accordion-options').hostNodes().simulate('click');
+      // wrapper.find('#back-button').hostNodes().simulate('click');
+      setRoute('/optimizations');
+      wrapper.update();
+      wrapper
+        .find(`#edit-optimization-${optimizationId}`)
+        .hostNodes()
+        .simulate('click');
+      wrapper.find('#delete').hostNodes().simulate('click');
+      wrapper.find('#dialog-confirm').hostNodes().simulate('click');
 
       expect(state.getLocalState().optimizations.length).toEqual(0);
     });
