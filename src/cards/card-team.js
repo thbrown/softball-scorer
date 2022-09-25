@@ -9,11 +9,7 @@ export default class CardTeam extends React.Component {
   constructor(props) {
     super(props);
     this.handleTabClick = (tab) => {
-      if (this.props.tab === 'stats') {
-        setRoute(`/teams/${this.props.team.id}/games`);
-      } else {
-        setRoute(`/teams/${this.props.team.id}/stats`);
-      }
+      setRoute(`/teams/${this.props.team.id}/${tab}`);
     };
   }
 
