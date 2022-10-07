@@ -69,8 +69,11 @@ module.exports.getCacheService = function () {
   if (cache) {
     return cache;
   }
-  const { host: redisHost, port: redisPort, password: redisPassword } =
-    config.cache || {};
+  const {
+    host: redisHost,
+    port: redisPort,
+    password: redisPassword,
+  } = config.cache || {};
   if (redisHost && redisPort && redisPassword) {
     cache = new CacheCallsRedis(redisHost, redisPort, redisPassword);
   } else {

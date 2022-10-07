@@ -15,6 +15,7 @@ const crypto = require('crypto');
 const got = require('got');
 const { v4: uuidv4 } = require('uuid');
 const querystring = require('querystring');
+const BucketSessionStore = require('gcp-bucket-session-store');
 
 const configAccessor = require('./config-accessor');
 const HandledError = require('./handled-error');
@@ -203,7 +204,7 @@ module.exports = class SoftballServer {
     );
     app.use(
       passportSession({
-        store: this.cacheCalls.getSessionStore(),
+        store: this.cacheCalls.getSessionStore(), // new BucketSessionStore({ bucketName: 'test-session-bucket' })
         secret: configAccessor.getSessionSecretKey(),
         resave: false,
         saveUninitialized: false,
@@ -234,7 +235,7 @@ module.exports = class SoftballServer {
               `Logging out user due to token mismatch expected ${cookieToken} to be ${sessionToken}`
             );
             await new Promise((resolve, reject) => {
-              req.logout();
+              req.logout(function () {});
               req.session.destroy(function (err) {
                 if (err) {
                   reject(err);
@@ -347,7 +348,7 @@ module.exports = class SoftballServer {
         }
         let accountId = extractSessionInfo(req, 'accountId');
         logger.log(accountId, 'Logging out');
-        req.logout();
+        req.logout(function () {});
         res.status(204).send();
       })
     );
