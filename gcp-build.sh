@@ -16,6 +16,7 @@ PROJECT=$(gcloud config list --format 'value(core.project)' 2>/dev/null)
 echo "Building Project ${PROJECT}"
 gcloud builds submit --config cloudbuild.yml
 
+## TODO: this does not copy over the webworker files from build directory. Change this to copy the whole build directory.
 echo "Pulling build artifacts from storage bucket"
 gsutil cp "gs://${PROJECT}_cloudbuild/build/index.html" ./build
 gsutil cp "gs://${PROJECT}_cloudbuild/build/main.js" ./build

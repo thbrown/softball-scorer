@@ -194,7 +194,9 @@ export default class CardLineup extends React.Component {
     if (this.simWorker) {
       this.simWorker.terminate();
     }
-    this.simWorker = new Worker('/server/simulation-worker');
+
+    let workerUrl = new URL('../workers/simulation-worker.js', import.meta.url);
+    this.simWorker = new Worker(workerUrl);
     this.simWorker.onmessage = function (e) {
       let data = JSON.parse(e.data);
       let elem = this.scoreTextRef.current;

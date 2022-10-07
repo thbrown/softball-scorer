@@ -9,12 +9,12 @@ const passport = require('passport');
 const passportSession = require('express-session');
 const LocalStrategy = require('passport-local').Strategy;
 const bodyParser = require('body-parser');
-const favicon = require('serve-favicon');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const got = require('got');
 const { v4: uuidv4 } = require('uuid');
 const querystring = require('querystring');
+const fs = require('fs');
 
 const configAccessor = require('./config-accessor');
 const HandledError = require('./handled-error');
@@ -158,43 +158,9 @@ module.exports = class SoftballServer {
     );
     //app.use(helmet.referrerPolicy({ policy: "same-origin" })); // This breaks embeded youtube on ios safari
 
-    app.use(favicon(__dirname + '/../assets/icons/favicon.ico'));
-    app.use(
-      '/server/build',
-      express.static(path.join(__dirname + '/../build').normalize())
-    );
-    app.use(
-      '/server/assets',
-      express.static(path.join(__dirname + '/../assets').normalize())
-    );
-    // Service worker must be served at project root to intercept all fetches
-    app.use(
-      '/service-worker',
-      express.static(
-        path.join(__dirname + '/../src/workers/service-worker.js').normalize()
-      )
-    );
-    app.use(
-      '/main.js',
-      express.static(path.join(__dirname + '/../build/main.js').normalize())
-    );
-    // Robots.txt is served from the root by convention
-    app.use(
-      '/robots.txt',
-      express.static(path.join(__dirname + '/../robots.txt').normalize())
-    );
-    app.use(
-      '/server/manifest',
-      express.static(path.join(__dirname + '/../manifest.json').normalize())
-    );
-    app.use(
-      '/server/simulation-worker',
-      express.static(
-        path
-          .join(__dirname + '/../src/workers/simulation-worker.js')
-          .normalize()
-      )
-    );
+    // Server everything in the build directory
+    app.use(express.static('build'));
+
     app.use(
       bodyParser.json({
         limit: '3mb',

@@ -1,5 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: './src/index.js',
@@ -16,7 +17,9 @@ module.exports = {
   },
   output: {
     filename: 'main.js',
-    path: path.resolve(__dirname, 'build'),
+    path: path.resolve(__dirname, 'build/server'),
+    publicPath: '/server/',
+    clean: true,
   },
   module: {
     rules: [
@@ -30,6 +33,30 @@ module.exports = {
   plugins: [
     new webpack.ProvidePlugin({
       process: 'process/browser',
+    }),
+    new CopyPlugin({
+      patterns: [
+        // We want to server things from the 'server' directory if possible
+        /*
+        {
+          from: path.join(__dirname, './build'),
+          to: path.join(__dirname, './build/server'),
+        },
+        */
+        // Root files
+        {
+          from: path.join(__dirname, './public-root'),
+          to: path.join(__dirname, './build'),
+        },
+        // Assets
+        {
+          from: path.join(__dirname, './assets'),
+          to: path.join(__dirname, './build/server/assets'),
+        },
+      ],
+      options: {
+        concurrency: 100,
+      },
     }),
   ],
 };
