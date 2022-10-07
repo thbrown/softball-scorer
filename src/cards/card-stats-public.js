@@ -62,20 +62,27 @@ export default class CardStatsPublic extends React.Component {
           showBlogLink: true,
         }}
       >
-        <div
-          style={{ fontSize: '19px', cursor: 'pointer', userSelect: 'none' }}
-        >
-          <HeaderTabs
-            handleTabClick={(tabValue) => {
-              this.handleTabClick(tabValue);
-            }}
-            tab={this.props.tab}
-            tabNames={[
-              { value: CardStatsPublic.SEASON_TAB, label: 'Season' },
-              { value: CardStatsPublic.GAME_STATS_TAB, label: 'Games' },
-            ]}
-          />
-        </div>
+        <HeaderTabs
+          handleTabClick={(tabValue) => {
+            this.handleTabClick(tabValue);
+          }}
+          tab={this.props.tab}
+          tabNames={[
+            { value: CardStatsPublic.SEASON_TAB, label: 'Season' },
+            { value: CardStatsPublic.GAME_STATS_TAB, label: 'Games' },
+          ]}
+          invert={true}
+          style={{
+            marginBottom: '16px',
+            fontSize: '20px',
+            marginLeft: '8px',
+            marginRight: '8px',
+          }}
+          tabStyle={{
+            height: '28px',
+          }}
+        />
+
         <div style={{ marginTop: '6px' }}>{tabToShow}</div>
       </Card>
     );

@@ -5,10 +5,9 @@ import { sortObjectsByDate, toClientDate } from 'utils/functions';
 import { convertPlateAppearanceListToPlayerPlateAppearanceList } from 'utils/plateAppearanceFilters';
 import IconButton from 'elements/icon-button';
 import theme from 'css/theme';
-import { setRoute } from 'actions/route';
 import InnerSection from 'elements/inner-section';
 import FloatingSelect from 'elements/floating-select';
-import css from 'css';
+import state from 'state';
 import CardSection from 'elements/card-section';
 
 const useStyles = makeStyles((css) => {
@@ -69,6 +68,7 @@ const useStyles = makeStyles((css) => {
       marginTop: css.spacing.xxSmall,
       marginBottom: css.spacing.xxSmall,
       overflow: 'hidden',
+      paddingRight: css.spacing.xxSmall,
     },
     description: {
       padding: '1rem',
@@ -86,7 +86,13 @@ const CardStatsGame = ({
   isPublic,
   backNavUrl,
 }) => {
-  console.log('Input', inputState);
+  const { classes, styles } = useStyles({});
+  const [copiedNotificationVisible, setCopiedNotificationVisible] =
+    React.useState(false);
+  const publicLinkRef = React.useRef(null);
+  const publicIdEnabled = team.publicIdEnabled;
+
+  const games = sortObjectsByDate(team.games, { isAsc: false });
   if (!game) {
     return (
       <CardSection isCentered={true}>
@@ -95,12 +101,7 @@ const CardStatsGame = ({
     );
   }
 
-  const { classes, styles } = useStyles({});
-  const [copiedNotificationVisible, setCopiedNotificationVisible] =
-    React.useState(false);
-  const publicLinkRef = React.useRef(null);
-  const publicIdEnabled = team.publicIdEnabled;
-  const publicLink = `${window.location.origin}/public-teams/${team.publicId}/games/${game.id}`;
+  const publicLink = `${window.location.origin}/public-teams/${team.publicId}/stats/games/${game.id}`;
 
   const handleCopyClick = () => {
     const copyText = publicLinkRef.current;
@@ -122,8 +123,6 @@ const CardStatsGame = ({
     game.plateAppearances,
     inputState
   );
-
-  const games = sortObjectsByDate(team.games, { isAsc: false });
 
   return (
     <div>
@@ -150,11 +149,16 @@ const CardStatsGame = ({
       </InnerSection>
       <Spray
         decoratedPlateAppearances={state.getDecoratedPlateAppearancesForGame(
-          game
+          game,
+          inputState
         )}
         hideFilter={true}
       />
-      <InnerSection>
+      <InnerSection
+        style={{
+          marginBottom: '16px',
+        }}
+      >
         <h2>Results</h2>
         {playerPaList.map((player) => {
           return (
