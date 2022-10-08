@@ -14,14 +14,7 @@ const crypto = require('crypto');
 const got = require('got');
 const { v4: uuidv4 } = require('uuid');
 const querystring = require('querystring');
-<<<<<<< HEAD
 const BucketSessionStore = require('gcp-bucket-session-store');
-=======
-const fs = require('fs');
->>>>>>> 6cb95524f17a78480e203111b83a4806ee2ffa2c
-const BucketSessionStore = require('gcp-bucket-session-store');const BucketSessionStore = require('gcp-bucket-session-store');
-const BucketSessionStore = require('gcp-bucket-session-store');
-const fs = require('fs');
 
 const configAccessor = require('./config-accessor');
 const HandledError = require('./handled-error');
