@@ -59,7 +59,7 @@ const rules = {
         try {
           await _executeAsync('webpack --config webpack.prod.js');
           await _executeAsync(
-            'terser --compress --mangle -o build/main.js -- build/main.js'
+            'terser --compress --mangle -o build/server/main.js -- build/server/main.js'
           );
           updateServiceWorker(cb);
         } catch (e) {
@@ -213,7 +213,7 @@ function updateServiceWorker(cb) {
         '// Changes made in that file will be reflected here. \r\n' +
         `let autoGenCacheName = 'softball-${hashObj.hash}'; \r\n`;
 
-      fs.writeFileSync('./src/workers/service-worker.js', edit + contents);
+      fs.writeFileSync('./build/service-worker.js', edit + contents);
       cb();
     })
     .catch((error) => {

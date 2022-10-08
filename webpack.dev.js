@@ -1,6 +1,7 @@
 const path = require('path');
 const srvUrl = 'http://localhost:8888';
 const WebpackBeforeBuildPlugin = require('before-build-webpack');
+const CopyPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack');
 
 const exec = require('child_process').exec;
@@ -37,7 +38,9 @@ module.exports = {
   },
   output: {
     filename: 'main.js',
-    path: path.resolve(__dirname, 'build'),
+    path: path.resolve(__dirname, 'build/'),
+    publicPath: '/server/',
+    clean: true,
   },
   module: {
     rules: [
@@ -57,6 +60,23 @@ module.exports = {
     new webpack.ProvidePlugin({
       process: 'process/browser',
     }),
+    new CopyPlugin({
+      patterns: [
+        // Root
+        {
+          from: path.join(__dirname, './public'),
+          to: path.join(__dirname, './build'),
+        },
+        // Assets
+        {
+          from: path.join(__dirname, './assets'),
+          to: path.join(__dirname, './build/server/assets'),
+        },
+      ],
+      options: {
+        concurrency: 100,
+      },
+    }),
   ],
   devServer: {
     compress: true,
@@ -68,9 +88,10 @@ module.exports = {
     port: 8889,
     proxy: {
       '/server/*': srvUrl,
-      '/service-worker': srvUrl,
+      '/service-worker.js': srvUrl,
       '/favicon.ico': srvUrl,
       '/robots.txt': srvUrl,
+      '/manifest.json': srvUrl,
     },
   },
 };
