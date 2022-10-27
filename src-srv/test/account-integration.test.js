@@ -13,11 +13,10 @@ describe('sync', () => {
 
   beforeAll(async (done) => {
     const port = configAccessor.getAppServerPort();
-    const optPort = configAccessor.getOptimizationServerPort();
     cache = configAccessor.getCacheService();
     databaseCalls = configAccessor.getDatabaseService(cache);
     compute = configAccessor.getOptimizationComputeService();
-    server = new SoftballServer(port, optPort, databaseCalls, cache, compute);
+    server = new SoftballServer(port, databaseCalls, cache, compute);
     server.start();
     done();
   });

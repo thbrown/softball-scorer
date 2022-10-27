@@ -28,18 +28,11 @@ const SharedLib = require('../shared-lib').default;
 const MONITORING_INTERVAL = 5000;
 
 module.exports = class SoftballServer {
-  constructor(
-    appPort,
-    optimizationPort,
-    databaseCalls,
-    cacheCalls,
-    optimizationCompute
-  ) {
+  constructor(appPort, databaseCalls, cacheCalls, optimizationCompute) {
     this.databaseCalls = databaseCalls;
     this.cacheCalls = cacheCalls;
     this.optimizationCompute = optimizationCompute;
     this.port = appPort;
-    this.optimizationPort = optimizationPort;
   }
 
   start() {
@@ -62,19 +55,19 @@ module.exports = class SoftballServer {
             );
 
             let isValid = false;
-            if (accountInfo && accountInfo.password_hash && email) {
+            if (accountInfo && accountInfo.passwordHash && email) {
               isValid = await bcrypt.compare(
                 password,
-                accountInfo.password_hash
+                accountInfo.passwordHash
               );
             }
 
             if (isValid) {
               let sessionInfo = {
-                accountId: accountInfo.account_id,
+                accountId: accountInfo.accountId,
                 email: email,
               };
-              logger.log(accountInfo.account_id, 'Login accepted');
+              logger.log(accountInfo.accountId, 'Login accepted');
               cb(null, sessionInfo);
             } else {
               cb(null, false);
@@ -297,7 +290,7 @@ module.exports = class SoftballServer {
           }
           req.logIn(accountInfo, function () {
             initSecondAuthToken(req, res);
-            logger.log(accountInfo.account_id, 'Login Successful!');
+            logger.log(accountInfo.accountId, 'Login Successful!');
             res.status(204).send();
           });
         })(req, res, next);
@@ -358,23 +351,30 @@ module.exports = class SoftballServer {
           }
         }
 
+        // Email verification token and it's hash
+        let token = await generateToken();
+        let tokenHash = crypto
+          .createHash('sha256')
+          .update(token)
+          .digest('base64')
+          .replace(/\//g, '_');
+
         let hashedPassword = await bcrypt.hash(req.body.password, 12);
         let account = await this.databaseCalls.signup(
           req.body.email,
-          hashedPassword
+          hashedPassword,
+          tokenHash
         );
 
-        let tokenHash = await sendEmailValidationEmail(
-          account.account_id,
-          req.body.email
+        await sendEmailValidationEmail(
+          account.accountId,
+          req.body.email,
+          token,
+          tokenHash
         );
-        this.databaseCalls.setPasswordTokenHash(account.account_id, tokenHash);
 
-        logger.log(
-          account.account_id,
-          'Authenticating after successful signup'
-        );
-        logIn(account, req, res);
+        logger.log(account.accountId, 'Authenticating after successful signup');
+        await logIn(account, req, res);
 
         res.status(204).send();
       })
@@ -393,17 +393,18 @@ module.exports = class SoftballServer {
           let tokenHash = crypto
             .createHash('sha256')
             .update(token)
-            .digest('base64');
+            .digest('base64')
+            .replace(/\//g, '_');
 
           await this.databaseCalls.setPasswordTokenHash(
-            account.account_id,
+            account.accountId,
             tokenHash
           );
 
           configAccessor
             .getEmailService()
             .sendMessage(
-              account.account_id,
+              account.accountId,
               req.body.email,
               'Softball.app Password Reset',
               `Sombody tried to reset the password for the softball.app (https://softball.app) account associated with this email address. Please click this link to reset the password: https://softball.app/account/password-reset/${token} If you did not request this message or if you no longer want to reset your password, please ignore this email. This reset link will expire in 24 hours.`,
@@ -436,30 +437,36 @@ module.exports = class SoftballServer {
         let tokenHash = crypto
           .createHash('sha256')
           .update(token)
-          .digest('base64');
+          .digest('base64')
+          .replace(/\//g, '_');
         let account = await this.databaseCalls.getAccountFromTokenHash(
           tokenHash
         );
         if (account) {
           logger.log(
-            account.account_id,
+            account.accountId,
             'Password update received. Token',
             req.body.token
           );
-          // If the user reset their passowrd, the email address is confirmed
-          await this.databaseCalls.confirmEmail(account.account_id);
+          // If the user reset their password, the email address is confirmed
+          await this.databaseCalls.confirmEmail(account.accountId);
 
           let hashedPassword = await bcrypt.hash(req.body.password, 12);
           await this.databaseCalls.setPasswordHashAndExpireToken(
-            account.account_id,
+            account.accountId,
             hashedPassword
           );
 
-          logger.log(null, 'Password successfully reset', req.body.token);
+          logger.log(
+            null,
+            'Password successfully reset',
+            req.body.token,
+            hashedPassword
+          );
 
           // If an attacker somehow guesses the reset token and resets the password, they still don't know the email.
           // So, we wont log the password resetter in automatically. We can change this if we think it really affects
-          // usability but I think it's okay. If users are resetting their passwords they are probably aready engaged.
+          // usability but I think it's okay. If users are resetting their passwords they are probably already engaged.
           // logIn(account, req, res);
           res.status(204).send();
         } else {
@@ -481,17 +488,19 @@ module.exports = class SoftballServer {
         let tokenHash = crypto
           .createHash('sha256')
           .update(token)
-          .digest('base64');
+          .digest('base64')
+          .replace(/\//g, '_');
+        console.log('token', token);
         let account = await this.databaseCalls.getAccountFromTokenHash(
           tokenHash
         );
         if (account) {
           logger.log(
-            account.account_id,
+            account.accountId,
             'Email verification received. Token',
             req.body.token
           );
-          await this.databaseCalls.confirmEmail(account.account_id);
+          await this.databaseCalls.confirmEmail(account.accountId);
 
           // Don't log in automatically (for security over usability, is this woth the tradeoff?)
           // logIn(account, req, res);
@@ -530,10 +539,17 @@ module.exports = class SoftballServer {
             accountId,
             `Sending account verification email per user request`
           );
-          let tokenHash = await sendEmailValidationEmail(
-            accountId,
-            accountInfo.email
-          );
+
+          // Email verification token
+          let token = await generateToken();
+          await sendEmailValidationEmail(accountId, accountInfo.email, token);
+
+          // Save the token's hash to the db so we can verify it after the link in the email is clicked
+          let tokenHash = crypto
+            .createHash('sha256')
+            .update(token)
+            .digest('base64')
+            .replace(/\//g, '_');
           this.databaseCalls.setPasswordTokenHash(accountId, tokenHash);
           res.status(204).send();
         }
@@ -641,21 +657,18 @@ module.exports = class SoftballServer {
               //JSON.stringify(data.patch, null, 2)
             );
 
-            state = state || (await this.databaseCalls.getState(accountId));
-            let stateCopy = JSON.parse(JSON.stringify(state)); // Deep copy
-
-            // Apply the patch that was supplied by the client, passing true allows us to ignore any changes that were applied to deleted entries or additions of things that already exist
-            SharedLib.objectMerge.patch(state, data.patch, true);
-
+            // Note: I don't think we need this any more, it was useful with postgres, but now we can rely on the diffing lib to do the same thing
+            //SharedLib.objectMerge.patch(state, data.patch, true);
+            //let stateCopy = JSON.parse(JSON.stringify(state)); // Deep copy
             // Now we'll diff the patched version against our original copied version, this gives us a patch without any edits to deleted entries or additions of things that already exist
-            let cleanPatch = SharedLib.objectMerge.diff(stateCopy, state);
+            //let cleanPatch = SharedLib.objectMerge.diff(stateCopy, state);
 
-            // We can pass the clean patch to the database to persist
-            await this.databaseCalls.patchState(cleanPatch, accountId);
+            // Pass the client's patch to the database to persist its changes
+            await this.databaseCalls.patchState(data.patch, accountId);
             let oldHash = SharedLib.commonUtils.getHash(state);
             state = await this.databaseCalls.getState(accountId);
 
-            // Useful for debuging
+            // Useful for debugging
             /*logger.log(
               accountId,
               "updatedState",
@@ -714,17 +727,15 @@ module.exports = class SoftballServer {
                 'Server Patch',
                 JSON.stringify(serverPatch, null, 2)
               );
-
-              // Array for historical reasons, no reason this can't be a single object
-              responseData.patches = [serverPatch];
+              responseData.patch = serverPatch;
             } else {
-              // No we have no ancestor OR sync status is full, send back the whole state
-              logger.warn(
+              // No we have no ancestor OR sync status is 'full', send back the whole state
+              logger.log(
                 accountId,
                 'performing full sync',
                 'Requested Sync Type:',
                 data.type,
-                'Ansestor present:',
+                'Ancestor present?:',
                 !!serverAncestor
               );
 
@@ -781,10 +792,7 @@ module.exports = class SoftballServer {
         logger.log(accountId, `Starting optimization`);
 
         // Convert client optimization id to the server one
-        let serverOptimizationId = SharedLib.idUtils.clientIdToServerId(
-          req.body.optimizationId,
-          accountId
-        );
+        let optimizationId = req.body.optimizationId;
 
         try {
           // This lock is just to make sure we don't get two optimizations running at the same time
@@ -793,6 +801,7 @@ module.exports = class SoftballServer {
 
           // Is there another optimization state IN_PROGRESS (or in ALLOCATING_RESOURCES)
           // If so, don't start another one
+          /*
           let inProgressCount =
             await this.databaseCalls.getNumberOfOptimizationsInProgress(
               accountId
@@ -804,6 +813,7 @@ module.exports = class SoftballServer {
               .send({ message: `There is already an optimization running.` });
             return;
           }
+          */
 
           // TODO: Do some validation?
           // minimum players (this should be on the client side too)
@@ -828,7 +838,7 @@ module.exports = class SoftballServer {
           let account = await this.databaseCalls.getAccountById(accountId);
           let optimization = await this.databaseCalls.getOptimizationDetails(
             accountId,
-            serverOptimizationId
+            optimizationId
           );
           if (optimization.sendEmail && !account.verifiedEmail) {
             res.status(400).send({
@@ -856,8 +866,7 @@ module.exports = class SoftballServer {
       state.setOptimizationField(
         this.props.optimization.id,
         'teamList',
-        filteredTeamList,
-        true
+        filteredTeamList
       );
 
       const filteredGameList = gameIds.filter((gameId) =>
@@ -866,8 +875,7 @@ module.exports = class SoftballServer {
       state.setOptimizationField(
         this.props.optimization.id,
         'gameList',
-        filteredGameList,
-        true
+        filteredGameList
       );
 
       // Filter out any overrides that don't belong to a player in the playerList
@@ -882,8 +890,7 @@ module.exports = class SoftballServer {
       state.setOptimizationField(
         this.props.optimization.id,
         'overrideData',
-        filteredOverrides,
-        true
+        filteredOverrides
       );
 
       */
@@ -929,14 +936,14 @@ module.exports = class SoftballServer {
           try {
             await this.databaseCalls.setOptimizationStatus(
               accountId,
-              serverOptimizationId,
+              optimizationId,
               SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
             );
 
             // Get any existing result
             let queryResponse = await this.optimizationCompute.query(
               accountId,
-              serverOptimizationId
+              optimizationId
             );
             logger.log(accountId, 'QUERY RESPONSE ', queryResponse);
             let recentHash = SharedLib.commonUtils.getHash(
@@ -946,7 +953,7 @@ module.exports = class SoftballServer {
             // Start the computer that will run the optimization
             let startMonitor = await this.optimizationCompute.start(
               accountId,
-              serverOptimizationId,
+              optimizationId,
               statsData,
               softballSimFlags
             );
@@ -963,7 +970,7 @@ module.exports = class SoftballServer {
               // Get the latest optimization result
               let queryResponse = await this.optimizationCompute.query(
                 accountId,
-                serverOptimizationId
+                optimizationId
               );
               logger.log(accountId, 'QUERY RESPONSE ', queryResponse);
               let result = queryResponse
@@ -995,14 +1002,14 @@ module.exports = class SoftballServer {
                 // Save the new result to the db
                 await this.databaseCalls.setOptimizationResultData(
                   accountId,
-                  serverOptimizationId,
+                  optimizationId,
                   result
                 );
 
                 // Save the status to the db
                 await this.databaseCalls.setOptimizationStatus(
                   accountId,
-                  serverOptimizationId,
+                  optimizationId,
                   SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status],
                   result.statusMessage
                 );
@@ -1046,7 +1053,7 @@ module.exports = class SoftballServer {
 
                 await this.databaseCalls.setOptimizationStatus(
                   accountId,
-                  serverOptimizationId,
+                  optimizationId,
                   SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
                   'Monitor Timeout'
                 );
@@ -1089,18 +1096,18 @@ module.exports = class SoftballServer {
                 );
               }
             }.bind(this);
-            monitor(accountId, serverOptimizationId);
+            monitor(accountId, optimizationId);
           } catch (error) {
             // Transition status to ERROR
             logger.error(
               accountId,
-              serverOptimizationId,
+              optimizationId,
               'Setting optimization status to error in compute start',
               error
             );
             await this.databaseCalls.setOptimizationStatus(
               accountId,
-              serverOptimizationId,
+              optimizationId,
               SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
               error.message
             );
@@ -1110,7 +1117,7 @@ module.exports = class SoftballServer {
           logger.log(accountId, 'Setting optimization status to error', error);
           await this.databaseCalls.setOptimizationStatus(
             accountId,
-            serverOptimizationId,
+            optimizationId,
             SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
             error.message
           );
@@ -1136,12 +1143,9 @@ module.exports = class SoftballServer {
         let accountId = extractSessionInfo(req, 'accountId');
         try {
           // Convert client optimization id to the server one
-          let serverOptimizationId = SharedLib.idUtils.clientIdToServerId(
-            req.body.optimizationId,
-            accountId
-          );
+          let optimizationId = req.body.optimizationId;
 
-          await this.optimizationCompute.pause(accountId, serverOptimizationId);
+          await this.optimizationCompute.pause(accountId, optimizationId);
 
           // Return success
           res.status(204).send();
@@ -1165,13 +1169,9 @@ module.exports = class SoftballServer {
         }
 
         let accountId = extractSessionInfo(req, 'accountId');
-        logger.log(accountId, `Starting optimization estimate`);
 
         // Convert client optimization id to the server one
-        let serverOptimizationId = SharedLib.idUtils.clientIdToServerId(
-          req.body.optimizationId,
-          accountId
-        );
+        let optimizationId = req.body.optimizationId;
 
         let result = {};
         try {
@@ -1183,7 +1183,7 @@ module.exports = class SoftballServer {
 
             optimization = await this.databaseCalls.getOptimizationDetails(
               accountId,
-              serverOptimizationId
+              optimizationId
             );
 
             // Build the stats object
@@ -1225,7 +1225,7 @@ module.exports = class SoftballServer {
           // Start the computer that will run the optimization
           result = await this.optimizationCompute.estimate(
             accountId,
-            serverOptimizationId,
+            optimizationId,
             statsData,
             softballSimFlags
           );
@@ -1464,36 +1464,31 @@ module.exports = class SoftballServer {
     }
 
     async function logIn(account, req, res) {
-      logger.log(account.account_id, 'Logging in', account);
-      try {
-        await new Promise(function (resolve, reject) {
-          req.logIn(account, function () {
-            // We need to serialize some info to the session
-            let sessionInfo = {
-              accountId: account.account_id,
-              email: account.email,
-            };
-            var doneWrapper = function (req) {
-              var done = function (err, user) {
-                if (err) {
-                  reject(err);
-                  return;
-                }
-                req._passport.session.user = sessionInfo;
+      logger.log(account.accountId, 'Logging in', account);
+      await new Promise(function (resolve, reject) {
+        req.logIn(account, function () {
+          // We need to serialize some info to the session
+          let sessionInfo = {
+            accountId: account.accountId,
+            email: account.email,
+          };
+          var doneWrapper = function (req) {
+            var done = function (err, user) {
+              if (err) {
+                reject(err);
                 return;
-              };
-              return done;
+              }
+              req.session.passport.user = sessionInfo;
+              return;
             };
-            req._passport.instance.serializeUser(sessionInfo, doneWrapper(req));
-            initSecondAuthToken(req, res);
-            resolve();
-          });
+            return done;
+          };
+          passport.serializeUser(sessionInfo, doneWrapper(req));
+          initSecondAuthToken(req, res);
+          resolve();
         });
-        logger.log(account.account_id, 'Login Successful -- backdoor!');
-      } catch (e) {
-        logger.error(account.account_id, 'ERROR', e);
-        res.status(500).send();
-      }
+      });
+      logger.log(account.accountId, 'Login Successful -- backdoor!');
     }
 
     /**
@@ -1536,8 +1531,8 @@ module.exports = class SoftballServer {
         for (let team of statsData.teams) {
           for (let game of team.games) {
             for (let pa of game.plateAppearances) {
-              if (pa.player_id === overridePlayerId) {
-                pa.player_id = ghostPlayerId;
+              if (pa.playerId === overridePlayerId) {
+                pa.playerId = ghostPlayerId;
               }
             }
           }
@@ -1609,13 +1604,7 @@ module.exports = class SoftballServer {
       await self.cacheCalls.unlockAccount(accountId);
     };
 
-    const sendEmailValidationEmail = async function (accountId, email) {
-      let token = await generateToken();
-      let tokenHash = crypto
-        .createHash('sha256')
-        .update(token)
-        .digest('base64');
-
+    const sendEmailValidationEmail = async function (accountId, email, token) {
       configAccessor
         .getEmailService()
         .sendMessage(
@@ -1625,8 +1614,6 @@ module.exports = class SoftballServer {
           `Thank you for signing up for an account on https://softball.app. Please click this activation link to verify your email address: https://softball.app/account/verify-email/${token}`,
           welcomeEmailHtml(`https://softball.app/account/verify-email/${token}`)
         );
-
-      return tokenHash;
     };
   }
 

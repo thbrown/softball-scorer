@@ -20,7 +20,7 @@ const addPlateAppearance = (wrapper, gameId, playerIndex) => {
 
   const pas = state.getGame(gameId).plateAppearances;
   const pa = pas[pas.length - 1];
-  expect(pa.player_id).toEqual(lineup[playerIndex]);
+  expect(pa.playerId).toEqual(lineup[playerIndex]);
   expect(pa.result).toEqual('Out');
 };
 
@@ -47,7 +47,7 @@ describe('[UI] Modify Game (add plate appearances)', () => {
     wrapper.find('#pa-confirm').simulate('click');
 
     const pa = state.getGame(gameId).plateAppearances[0];
-    expect(pa.player_id).toEqual(lineup[0]);
+    expect(pa.playerId).toEqual(lineup[0]);
     expect(pa.result).toEqual('Out');
   });
 
@@ -63,7 +63,7 @@ describe('[UI] Modify Game (add plate appearances)', () => {
     wrapper.find('#back-button').simulate('click');
 
     const pa = state.getGame(gameId).plateAppearances[1];
-    expect(pa.player_id).toEqual(lineup[1]);
+    expect(pa.playerId).toEqual(lineup[1]);
     expect(pa.result).toEqual('Out');
   });
 
@@ -84,7 +84,7 @@ describe('[UI] Modify Game (add plate appearances)', () => {
     wrapper.find('#pa-confirm').simulate('click');
 
     const newPa = state.getGame(gameId).plateAppearances[0];
-    expect(newPa.player_id).toEqual(lineup[0]);
+    expect(newPa.playerId).toEqual(lineup[0]);
     expect(newPa.result).toEqual('1B');
   });
 

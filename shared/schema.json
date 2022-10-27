@@ -38,7 +38,7 @@
       "items": {
         "type": "object",
         "description": "Array of players",
-        "required": ["id", "name", "gender", "song_link", "song_start"],
+        "required": ["id", "name", "gender", "songLink", "songStart"],
         "properties": {
           "id": {
             "type": "string",
@@ -46,13 +46,13 @@
           },
           "name": { "type": "string", "description": "Name of the player" },
           "gender": { "type": "string", "description": "Gender of the player" },
-          "song_link": {
+          "songLink": {
             "type": "string",
-            "description": "Walkup song YouTube link. TODO: camelCase"
+            "description": "Walkup song YouTube link."
           },
-          "song_start": {
+          "songStart": {
             "type": "string",
-            "description": "Walkup song start time in seconds. TODO: camelCase"
+            "description": "Walkup song start time in seconds."
           }
         }
       }
@@ -78,7 +78,7 @@
             "description": "Whether or not the stats for the team should be available at a public web address"
           },
           "publicId": {
-            "type": "sting",
+            "type": "string",
             "description": "The unique identifier used to construct the public web address for this teams stats (if enabled)"
           },
           "games": {
@@ -128,13 +128,13 @@
                   "items": {
                     "type": "object",
                     "description": "Array of plate appearances",
-                    "required": ["id", "player_id", "result", "location"],
+                    "required": ["id", "playerId", "result", "location"],
                     "properties": {
                       "id": {
                         "type": "string",
                         "description": "Globally unique identifier for the plate appearance"
                       },
-                      "player_id": {
+                      "playerId": {
                         "type": "string",
                         "description": "The id of the player who is the batter during the plate appearance"
                       },
@@ -146,13 +146,15 @@
                         "type": "object",
                         "description": "The outcome of the plate appearance for the batter (e.g. BB, E, 1B, etc.)",
                         "required": ["x", "y"],
-                        "x": {
-                          "type": "integer",
-                          "description": "X coordinate of where the ball was fielded (or where the ball ended at the end of the plate appearance if not fielded). Expressed as 32767ths of the field image from the left"
-                        },
-                        "y": {
-                          "type": "integer",
-                          "description": "Y coordinate of where the ball was fielded (or where the ball ended at the end of the plate appearance if not fielded). Expressed as 32767ths of the field image from the top"
+                        "properties": {
+                          "x": {
+                            "type": "integer",
+                            "description": "X coordinate of where the ball was fielded (or where the ball ended at the end of the plate appearance if not fielded). Expressed as 32767ths of the field image from the left"
+                          },
+                          "y": {
+                            "type": "integer",
+                            "description": "Y coordinate of where the ball was fielded (or where the ball ended at the end of the plate appearance if not fielded). Expressed as 32767ths of the field image from the top"
+                          }
                         }
                       }
                     }
@@ -196,8 +198,11 @@
             "description": "Human identifier, could be a nickname or a number. This may not be unique."
           },
           "customOptionsData": {
-            "type": "string",
-            "description": "Serialized JSON representing parameters required by the selected optimizerType"
+            "type": "object",
+            "description": "Object representing parameters required by the selected optimizerType",
+            "additionalProperties": {
+              "type": ["integer", "string", "boolean", "null", "array"]
+             }
           },
           "overrideData": {
             "type": "string",
@@ -208,8 +213,8 @@
             "description": "Indicates what state the optimization is currently in e.g. NOT_STARTED, IN_PROGRESS, COMPLETE etc."
           },
           "resultData": {
-            "type": "string",
-            "description": "Serialized JSON containing the results of a simulation. Results can be partial (if the simulation is not in a terminal state) or final. "
+            "type": "object",
+            "description": "Object containing the results of a simulation. Results can be partial (if the simulation is not in a terminal state) or final. "
           },
           "statusMessage": {
             "type": "string",
@@ -220,16 +225,16 @@
             "description": "Whether or not the user would like to receive an email with the results ofter the optimization completes."
           },
           "teamList": {
-            "type": "string",
-            "description": "Serialized JSON containing an array of team ids for which data will be used by the optimizer"
+            "type": "array",
+            "description": "Array containing an array of team ids for which data will be used by the optimizer"
           },
           "gameList": {
-            "type": "string",
-            "description": "Serialized JSON containing an array of game ids for which data will be used by the optimizer"
+            "type": "array",
+            "description": "Array containing an array of game ids for which data will be used by the optimizer"
           },
           "playerList": {
-            "type": "string",
-            "description": "Serialized JSON containing an array of player ids that should be turned into an optimal lineup by the optimizer"
+            "type": "array",
+            "description": "Array containing an array of player ids that should be turned into an optimal lineup by the optimizer"
           },
           "lineupType": {
             "type": "integer",
@@ -240,8 +245,8 @@
             "description": "The type of optimizer that should be used for this optimization. A list of optimizers and their descriptions can be found at https://optimizers.softball.app/"
           },
           "input_summary_data": {
-            "type": "string",
-            "description": "Serialized JSON that contains a snapshot summary of the data that was sent to the optimizer when the optimization was started. Once the snapshot is taken, it does not change as the app's data changes."
+            "type": "object",
+            "description": "object that contains a snapshot summary of the data that was sent to the optimizer when the optimization was started. Once the snapshot is taken, it does not change as the app's data changes."
           }
         }
       }

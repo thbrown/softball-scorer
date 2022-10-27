@@ -317,10 +317,10 @@ routes = {
       const game = state.getGame(gameId);
       const plateAppearance = state.getPlateAppearance(plateAppearanceId);
       const plateAppearances = state.getPlateAppearancesForPlayerInGame(
-        plateAppearance?.player_id,
+        plateAppearance?.playerId,
         gameId
       );
-      const player = state.getPlayer(plateAppearance?.player_id);
+      const player = state.getPlayer(plateAppearance?.playerId);
       const { valid, errors } = assertStateObjects(
         team,
         game,
@@ -425,15 +425,10 @@ routes = {
     }
     return (
       <CardPlayerSelect
-        selected={JSON.parse(optimization.playerList)}
+        selected={optimization.playerList}
         players={state.getAllPlayersAlphabetically()}
         onComplete={(players) => {
-          state.setOptimizationField(
-            optimization.id,
-            'playerList',
-            players,
-            true
-          );
+          state.setOptimizationField(optimization.id, 'playerList', players);
         }}
         onImportClick={function () {
           setRoute(`/optimizations/${optimization.id}/import-lineup`);
@@ -451,12 +446,7 @@ routes = {
       return <CardNotFound />;
     }
     let onConfirm = (ev, team, game) => {
-      state.setOptimizationField(
-        optimization.id,
-        'playerList',
-        game.lineup,
-        true
-      );
+      state.setOptimizationField(optimization.id, 'playerList', game.lineup);
       goBack(2);
     };
 
@@ -495,18 +485,16 @@ routes = {
       const player = state.getPlayer(playerId);
 
       // TODO: getting both a plate appearance and the plate appearances results in unnecessary parsing and un-parsing of json
-      const plateAppearances =
-        state.getParsedOptimizationOverridePlateAppearances(
-          optimizationId,
-          playerId
-        );
+      const plateAppearances = state.getOptimizationOverridesForPlayer(
+        optimizationId,
+        playerId
+      );
 
-      const plateAppearance =
-        state.getParsedOptimizationOverridePlateAppearance(
-          optimizationId,
-          playerId,
-          plateAppearanceId
-        );
+      const plateAppearance = state.getOptimizationOverridePlateAppearance(
+        optimizationId,
+        playerId,
+        plateAppearanceId
+      );
 
       const { valid, errors } = assertStateObjects(
         optimization,

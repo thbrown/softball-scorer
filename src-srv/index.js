@@ -34,12 +34,10 @@ const optimizationCompute = configAccessor.getOptimizationComputeService(
 
 // Specify the ports
 let appPort = configAccessor.getAppServerPort();
-let optPort = configAccessor.getOptimizationServerPort();
 
 // Start the server!
 const softballServer = new SoftballServer(
   appPort,
-  optPort,
   databaseService,
   cacheService,
   optimizationCompute

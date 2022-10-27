@@ -454,8 +454,8 @@ class CardPlateAppearance extends React.Component {
 
   renderWalkupSong() {
     return React.createElement(WalkupSong, {
-      songLink: this.props.player.song_link,
-      songStart: this.props.player.song_start,
+      songLink: this.props.player.songLink,
+      songStart: this.props.player.songStart,
       width: 48,
       height: 48,
     });

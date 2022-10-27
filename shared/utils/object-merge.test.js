@@ -1,449 +1,151 @@
 const objectMerge = require('./object-merge.js');
+const utils = require('./common-utils');
 
-let baseState = {
-  players: [
-    {
-      id: 1,
-      name: 'Thomas',
-      gender: 'M',
-      picture: null,
-    },
-    {
-      id: 2,
-      name: 'Benjamin',
-      gender: 'M',
-      picture: null,
-    },
-    {
-      id: 3,
-      name: 'Lauren',
-      gender: 'F',
-      picture: null,
-    },
-    {
-      id: 4,
-      name: 'Katelyn',
-      gender: 'F',
-      picture: null,
-    },
-    {
-      id: 5,
-      name: 'Katie',
-      gender: 'F',
-      picture: null,
-    },
-  ],
-  teams: [
-    {
-      games: [
-        {
-          plateAppearances: [
-            {
-              id: 35,
-              player_id: 3,
-              result: 'E',
-              location: {
-                x: 0.57772,
-                y: 0.520725,
-              },
-              plateAppearanceIndex: 1,
-            },
-            {
-              id: 36,
-              player_id: 1,
-              result: '1B',
-              location: {
-                x: 0.632124,
-                y: 0.336788,
-              },
-              plateAppearanceIndex: 2,
-            },
-            {
-              id: 37,
-              player_id: 4,
-              result: '1B',
-              location: {
-                x: 0.297927,
-                y: 0.349741,
-              },
-              plateAppearanceIndex: 3,
-            },
-          ],
-          id: 10,
-          opponent: 'Upper Deckers',
-          date: 1521609321600,
-          park: 'Stazio',
-          score_us: 0,
-          score_them: 0,
-          lineup_type: 2,
-          lineup: [3, 4, 5, 8, 1, 2],
-        },
-      ],
-      id: 123,
-      name: 'T^2',
-      roster: [],
-    },
-  ],
-};
+test('MERGE: Documents are merged when deletes are disabled', () => {
+  var documentA = [{ id: 1 }, { id: 2 }, { id: 3 }];
+  var documentB = [{ id: 3 }, { id: 4 }, { id: 5 }];
+  var patch = objectMerge.diff(documentA, documentB);
 
-test('Edit - diff and patch', () => {
-  let stateA = JSON.parse(JSON.stringify(baseState)); // deep copy
-  let stateB = JSON.parse(JSON.stringify(baseState));
-  stateB.players[0].name = 'Jamal';
-  stateB.teams[0].games[0].plateAppearances[2].location.x = 0.12344;
-  let patch = objectMerge.diff(stateA, stateB);
-
-  let expectedPatch = {
-    players: {
-      1: {
-        name: {
-          op: 'Edit',
-          key: 'name',
-          param1: 'Thomas',
-          param2: 'Jamal',
-        },
-      },
-    },
-    teams: {
-      123: {
-        games: {
-          10: {
-            plateAppearances: {
-              37: {
-                location: {
-                  x: {
-                    op: 'Edit',
-                    key: 'x',
-                    param1: 0.297927,
-                    param2: 0.12344,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  };
-
-  expect(patch).toEqual(expectedPatch);
-
-  let newObject = objectMerge.patch(stateA, patch);
-  expect(newObject).toEqual(stateB);
+  let document = objectMerge.patch(documentA, patch, false, true);
+  expect(document.length).toEqual(5);
 });
 
-test('ArrayAdd - diff and patch', () => {
-  let stateA = JSON.parse(JSON.stringify(baseState));
-  let stateB = JSON.parse(JSON.stringify(baseState)); // deep copy
-  stateB.players.push({
-    id: 6,
-    name: 'Jamal',
-    gender: 'M',
-  });
-  stateB.teams[0].games[0].plateAppearances.push({
-    id: 38,
-    player_id: 3,
-    result: 'E',
-    location: {
-      x: 0.57772,
-      y: 0.520725,
-    },
-    plateAppearanceIndex: 1,
-  });
-  let patch = objectMerge.diff(stateA, stateB);
-
-  let expectedPatch = {
-    players: {
-      'Slj0t9wxasivr0z/oKASIA': {
-        op: 'ArrayAdd',
-        key: 'Slj0t9wxasivr0z/oKASIA',
-        param1: '{"id":6,"name":"Jamal","gender":"M"}',
-        param2: 5,
-      },
-    },
-    teams: {
-      123: {
-        games: {
-          10: {
-            plateAppearances: {
-              '09mmtStsxZf7BwWVLm2uzw': {
-                op: 'ArrayAdd',
-                key: '09mmtStsxZf7BwWVLm2uzw',
-                param1:
-                  '{"id":38,"player_id":3,"result":"E","location":{"x":0.57772,"y":0.520725},"plateAppearanceIndex":1}',
-                param2: 3,
-              },
-            },
-          },
-        },
-      },
-    },
+test('DELETION: Tolerate edits on objects that do not exist (these should be NO-OPs not errors)', () => {
+  var documentA = {
+    1: { name: 'bill' },
+    2: { name: 'hill' },
+    3: { name: 'boys' },
   };
-
-  expect(patch).toEqual(expectedPatch);
-
-  let newObject = objectMerge.patch(stateA, patch);
-  expect(newObject).toEqual(stateB);
+  var documentB = {
+    1: { name: 'bill' },
+    2: { name: 'hill' },
+    3: { name: 'bois' },
+  };
+  var documentC = { 1: { name: 'bill' }, 2: { name: 'hill' } };
+  var patch = objectMerge.diff(documentA, documentB);
+  let result = objectMerge.patch(documentC, patch, true);
+  expect(result).toEqual(documentC);
 });
 
-test('Add - diff and patch', () => {
-  let stateA = JSON.parse(JSON.stringify(baseState));
-  let stateB = JSON.parse(JSON.stringify(baseState)); // deep copy
-
-  // Add
-  stateB.players[2].walkup_song = 'https://www.youtube.com/watch?v=RMR5zf1J1Hs';
-
-  let patch = objectMerge.diff(stateA, stateB);
-
-  let expectedPatch = {
-    players: {
-      3: {
-        walkup_song: {
-          op: 'Add',
-          key: 'walkup_song',
-          param1: 'https://www.youtube.com/watch?v=RMR5zf1J1Hs',
-        },
-      },
-    },
+test('ADDITION: Tolerate adds of elements that already exist (these should be NO-OPs not errors)', () => {
+  var documentA = {
+    1: { name: 'bill' },
+    2: { name: 'hill' },
   };
-
-  expect(patch).toEqual(expectedPatch);
-
-  let newObject = objectMerge.patch(stateA, patch);
-  expect(newObject).toEqual(stateB);
+  var documentB = {
+    1: { name: 'bill' },
+    2: { name: 'hill' },
+    3: { name: 'boys' },
+  };
+  var documentC = {
+    1: { name: 'bill' },
+    2: { name: 'hill' },
+    3: { name: 'boys' },
+  };
+  var patch = objectMerge.diff(documentA, documentB);
+  let result = objectMerge.patch(documentC, patch, true);
+  expect(result).toEqual(documentC);
 });
 
-test('Re-Order - diff and patch', () => {
-  let stateA = JSON.parse(JSON.stringify(baseState));
-  let stateB = JSON.parse(JSON.stringify(baseState)); // deep copy
-
-  // Re-order
-  stateB.teams[0].games[0].lineup = [4, 3, 5, 1, 2, 8];
-
-  let patch = objectMerge.diff(stateA, stateB);
-
-  let expectedPatch = {
-    teams: {
-      123: {
-        games: {
-          10: {
-            lineup: {
-              ReOrder: {
-                op: 'ReOrder',
-                key: 'ReOrder',
-                param1: '[3,4,5,8,1,2]',
-                param2: '[4,3,5,1,2,8]',
-              },
-            },
-          },
-        },
-      },
-    },
-  };
-
-  expect(patch).toEqual(expectedPatch);
-
-  let newObject = objectMerge.patch(stateA, patch);
-  expect(newObject).toEqual(stateB);
-});
-
-test('Delete - diff and patch', () => {
-  let stateA = JSON.parse(JSON.stringify(baseState));
-  let stateB = JSON.parse(JSON.stringify(baseState)); // deep copy
-  stateB.players.splice(3, 1);
-  let patch = objectMerge.diff(stateA, stateB);
-
-  let expectedPatch = {
-    players: {
-      4: {
-        op: 'Delete',
-        key: 4,
-      },
-    },
-  };
-
-  expect(patch).toEqual(expectedPatch);
-
-  let newObject = objectMerge.patch(stateA, patch);
-  expect(newObject).toEqual(stateB);
-});
-
-test('Reorder, ArrayAdd, Delete - diff and patch', () => {
-  let stateA = JSON.parse(JSON.stringify(baseState));
-  let stateB = JSON.parse(JSON.stringify(baseState)); // deep copy
-
-  // Re-order
-  stateB.teams[0].games[0].lineup = [11, 4, 16, 17, 3, 5, 1, 18];
-
-  let patch = objectMerge.diff(stateA, stateB);
-
-  let expectedPatch = {
-    teams: {
-      123: {
-        games: {
-          10: {
-            lineup: {
-              2: {
-                op: 'Delete',
-                key: 2,
-              },
-              8: {
-                op: 'Delete',
-                key: 8,
-              },
-              11: {
-                op: 'ArrayAdd',
-                key: '11',
-                param1: '11',
-                param2: 0,
-              },
-              16: {
-                op: 'ArrayAdd',
-                key: '16',
-                param1: '16',
-                param2: 2,
-              },
-              17: {
-                op: 'ArrayAdd',
-                key: '17',
-                param1: '17',
-                param2: 3,
-              },
-              18: {
-                op: 'ArrayAdd',
-                key: '18',
-                param1: '18',
-                param2: 7,
-              },
-              ReOrder: {
-                op: 'ReOrder',
-                key: 'ReOrder',
-                param1: '[3,4,5,1]',
-                param2: '[4,3,5,1]',
-              },
-            },
-          },
-        },
-      },
-    },
-  };
-
-  expect(patch).toEqual(expectedPatch);
-
-  let newObject = objectMerge.patch(stateA, patch);
-  expect(newObject).toEqual(stateB);
-});
-
-test('Partial Patches -- Edit something that has already been deleted with and without partial patches', () => {
-  let stateA = JSON.parse(JSON.stringify(baseState));
-  let stateB = JSON.parse(JSON.stringify(baseState)); // deep copy
-
-  // Edit a game
-  stateB.teams[0].games[0].plateAppearances[2].location.x = 0.12344;
-
-  let patch = objectMerge.diff(stateA, stateB);
-
-  // Delete the game we just edited
-  stateA.teams[0].games.splice(0, 1);
-
-  // Without partial patches we expect an error
-  expect(() => {
-    objectMerge.patch(stateA, patch);
-  }).toThrow('This patch can not be applied');
-
-  // With partial patches we expect no changes
-  let newObject = objectMerge.patch(stateA, patch, true);
-
-  expect(newObject).toEqual(stateA);
-});
-
-test('Partial Patches -- Add something that already exists with and without partial patches', () => {
-  let stateA = JSON.parse(JSON.stringify(baseState));
-  let stateB = JSON.parse(JSON.stringify(baseState)); // deep copy
-  let stateC = JSON.parse(JSON.stringify(baseState)); // deep copy
-
-  // Modify a game
-  stateA.teams[0].games[0] = {
-    plateAppearances: [
-      {
-        id: 37,
-        player_id: 4,
-        result: '2B',
-        location: {
-          x: 0.297927,
-          y: 0.349741,
-        },
-        plateAppearanceIndex: 3,
-      },
-    ],
-    id: 10,
-    opponent: 'Modified Opponent',
-    date: 1521609321600,
-    park: 'Stazio',
-    score_us: 0,
-    score_them: 0,
-    lineup_type: 2,
-    newProperty: 'pizza',
-    lineup: [3, 4, 5, 8, 2, 1],
-  };
-
-  // Delete the game we just edited in a state A so we can get a patch that adds it back
-  stateB.teams[0].games.splice(0, 1);
-  let patch = objectMerge.diff(stateB, stateA);
-
-  // Attempting to apply that patch (with an arrayAdd) to a state that already has that object without partial patches we expect an error
-  expect(() => {
-    objectMerge.patch(stateC, patch);
-  }).toThrow('This patch can not be applied');
-
-  console.log(stateC.teams[0].games[0]);
-
-  // With partial patches we expect the objects to be merge. The first patch's edits should win in case of conflict but no unmodified entries should be deleted.
-  objectMerge.patch(stateC, patch, true);
-
+test('Create RFC6902 compatible document', () => {
+  let input = [
+    { id: 321, name: 'Matthew' },
+    { id: 427, name: 'Mark' },
+    { id: 112, name: 'Luke' },
+    { id: 314, name: 'John' },
+  ];
   let expected = {
-    plateAppearances: [
-      {
-        id: 35,
-        player_id: 3,
-        result: 'E',
-        location: {
-          x: 0.57772,
-          y: 0.520725,
-        },
-        plateAppearanceIndex: 1,
-      },
-      {
-        id: 36,
-        player_id: 1,
-        result: '1B',
-        location: {
-          x: 0.632124,
-          y: 0.336788,
-        },
-        plateAppearanceIndex: 2,
-      },
-      {
-        id: 37,
-        player_id: 4,
-        result: '2B',
-        location: {
-          x: 0.297927,
-          y: 0.349741,
-        },
-        plateAppearanceIndex: 3,
-      },
-    ],
-    id: 10,
-    opponent: 'Modified Opponent',
-    date: 1521609321600,
-    park: 'Stazio',
-    score_us: 0,
-    score_them: 0,
-    lineup_type: 2,
-    newProperty: 'pizza',
-    lineup: [3, 4, 5, 8, 2, 1],
+    '#321': { _name: 'Matthew' },
+    '#427': { _name: 'Mark' },
+    '#112': { _name: 'Luke' },
+    '#314': { _name: 'John' },
   };
 
-  expect(stateC.teams[0].games[0]).toEqual(expected);
+  let output = objectMerge.toRFC6902(input);
+  expect(utils.sortJson(output)).toEqual(utils.sortJson(expected));
+});
+
+test('Restore from RFC6902 compatible document', () => {
+  let input = {
+    '#321': { _name: 'Matthew', _synoptic: true },
+    '#427': { _name: 'Mark', _synoptic: true },
+    '#112': { _name: 'Luke', _synoptic: true },
+    '#314': { _name: 'John', _synoptic: false },
+  };
+
+  let expected = [
+    { id: 321, name: 'Matthew', synoptic: true },
+    { id: 427, name: 'Mark', synoptic: true },
+    { id: 112, name: 'Luke', synoptic: true },
+    { id: 314, name: 'John', synoptic: false },
+  ];
+
+  let output = objectMerge.fromRFC6902(input);
+  expect(utils.sortJson(output)).toEqual(utils.sortJson(expected));
+});
+
+test('Create and restore RFC6902 compatible nested document', () => {
+  let input = [
+    {
+      id: 321,
+      names: [
+        { id: 'A', name: 'Matt' },
+        { id: 'B', name: 'Matthew' },
+      ],
+      404: false,
+    },
+    {
+      id: 427,
+      names: [{ id: 'A', name: 'Mark' }],
+      404: false,
+    },
+    {
+      id: 112,
+      names: [{ id: 'A', name: 'Luke' }],
+      404: false,
+    },
+    {
+      id: 314,
+      names: [
+        { id: 'A', name: 'John' },
+        { id: 'B', name: 'Johnny' },
+        { id: 'C', name: 'Johnny Boy' },
+      ],
+      404: false,
+    },
+  ];
+  let expected = {
+    '#321': {
+      _names: {
+        $A: { _name: 'Matt' },
+        $B: { _name: 'Matthew' },
+      },
+      '*404': false,
+    },
+    '#427': {
+      _names: {
+        $A: { _name: 'Mark' },
+      },
+      '*404': false,
+    },
+    '#112': {
+      _names: {
+        $A: { _name: 'Luke' },
+      },
+      '*404': false,
+    },
+    '#314': {
+      _names: {
+        $A: { _name: 'John' },
+        $B: { _name: 'Johnny' },
+        $C: { _name: 'Johnny Boy' },
+      },
+      '*404': false,
+    },
+  };
+
+  let output = objectMerge.toRFC6902(input);
+  expect(utils.sortJson(output)).toEqual(utils.sortJson(expected));
+  output = objectMerge.fromRFC6902(output);
+  expect(utils.sortJson(output)).toEqual(utils.sortJson(input));
 });

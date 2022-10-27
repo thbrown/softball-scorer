@@ -111,23 +111,21 @@ export default class CardOptimization extends React.Component {
     };
 
     this.handleTeamCheckboxClick = function (team) {
-      let parsedTeams = JSON.parse(this.props.optimization.teamList);
+      let parsedTeams = this.props.optimization.teamList;
       let newSet = new Set(parsedTeams);
       if (parsedTeams.includes(team.id)) {
         newSet.delete(team.id);
         state.setOptimizationField(
           this.props.optimization.id,
           'teamList',
-          Array.from(newSet),
-          true
+          Array.from(newSet)
         );
       } else {
         newSet.add(team.id);
         state.setOptimizationField(
           this.props.optimization.id,
           'teamList',
-          Array.from(newSet),
-          true
+          Array.from(newSet)
         );
       }
       this.handleEstimation();
@@ -135,17 +133,9 @@ export default class CardOptimization extends React.Component {
 
     this.handleSendEmailCheckbox = function () {
       if (this.props.optimization.sendEmail) {
-        state.setOptimizationField(
-          this.props.optimization.id,
-          'sendEmail',
-          false
-        );
+        state.setOptimizationField(this.props.optimization.id, 'sendEmail');
       } else {
-        state.setOptimizationField(
-          this.props.optimization.id,
-          'sendEmail',
-          true
-        );
+        state.setOptimizationField(this.props.optimization.id, 'sendEmail');
       }
     }.bind(this);
 
@@ -222,9 +212,7 @@ export default class CardOptimization extends React.Component {
       }
 
       // Set custom options - Delete any options that are undefined, and merge default and supplied options
-      let parsedCustomOptionsData = JSON.parse(
-        this.props.optimization.customOptionsData
-      );
+      let parsedCustomOptionsData = this.props.optimization.customOptionsData;
       for (let key in defaultOptions) {
         if (parsedCustomOptionsData[key] !== undefined) {
           defaultOptions[key] = parsedCustomOptionsData[key];
@@ -233,15 +221,14 @@ export default class CardOptimization extends React.Component {
       state.setOptimizationField(
         this.props.optimization.id,
         'customOptionsData',
-        defaultOptions,
-        true
+        defaultOptions
       );
 
       // Set inputSummaryData. For display purposes, keep a snapshot of the player's name and stats at the moment
       // the optimization was started. This protects us from future stat updates and player deletions.
-      const playerIds = JSON.parse(this.props.optimization.playerList);
-      const teamIds = JSON.parse(this.props.optimization.teamList);
-      const overrideData = JSON.parse(this.props.optimization.overrideData);
+      const playerIds = this.props.optimization.playerList;
+      const teamIds = this.props.optimization.teamList;
+      const overrideData = this.props.optimization.overrideData;
       const stats = state.getActiveStatsForAllPlayers(
         overrideData,
         playerIds,
@@ -250,8 +237,7 @@ export default class CardOptimization extends React.Component {
       state.setOptimizationField(
         this.props.optimization.id,
         'inputSummaryData',
-        stats,
-        true
+        stats
       );
 
       // TODO: remove any zero-length override data arrays
@@ -400,7 +386,7 @@ export default class CardOptimization extends React.Component {
       }
 
       // Only request a new completion time estimate if there is at least one player in playerList
-      if (JSON.parse(optimization.playerList).length === 0) {
+      if (optimization.playerList.length === 0) {
         this.setState({
           estimatedCompletionTimeSec: null,
         });
@@ -426,9 +412,7 @@ export default class CardOptimization extends React.Component {
       }
 
       // Set custom options - Delete any options that are undefined, and merge default and supplied options
-      let parsedCustomOptionsData = JSON.parse(
-        this.props.optimization.customOptionsData
-      );
+      let parsedCustomOptionsData = this.props.optimization.customOptionsData;
       for (let key in defaultOptions) {
         if (parsedCustomOptionsData[key] !== undefined) {
           defaultOptions[key] = parsedCustomOptionsData[key];
@@ -437,8 +421,7 @@ export default class CardOptimization extends React.Component {
       state.setOptimizationField(
         this.props.optimization.id,
         'customOptionsData',
-        defaultOptions,
-        true
+        defaultOptions
       );
 
       // Be sure the server has our optimization details before it tries to run the optimization
@@ -658,9 +641,9 @@ export default class CardOptimization extends React.Component {
     );
 
     const displayPlayers = [];
-    const playerIds = JSON.parse(optimization.playerList);
-    const teamIds = JSON.parse(optimization.teamList);
-    const overrideData = JSON.parse(optimization.overrideData);
+    const playerIds = optimization.playerList;
+    const teamIds = optimization.teamList;
+    const overrideData = optimization.overrideData;
 
     const stats = state.getActiveStatsForAllPlayers(
       overrideData,
@@ -724,7 +707,7 @@ export default class CardOptimization extends React.Component {
     // Build teams checkboxes
     const allTeams = state.getLocalState().teams;
     const teamsCheckboxes = [];
-    const selectedTeams = JSON.parse(optimization.teamList);
+    const selectedTeams = optimization.teamList;
     const selectedTeamsSet = new Set(selectedTeams);
     if (isInNotStartedState) {
       // What if there are not games/teams selected?
@@ -780,7 +763,7 @@ export default class CardOptimization extends React.Component {
     }
 
     // TODO: can we avoid parsing this each time we need it?
-    let resultData = JSON.parse(optimization.resultData);
+    let resultData = optimization.resultData;
 
     // Remaining time (if necessary)
     let remainingTime = false;

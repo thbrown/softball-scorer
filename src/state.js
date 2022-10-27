@@ -8,10 +8,17 @@ import dialog from 'dialog';
 
 const exp = {};
 
+/*
+ * NOTE: Because we want all changes to the state to be done via the functions in this class
+ * (as opposed to mutating objects that were returned from getters) we should consider deep
+ * copying all objects returned by the getters, then recursively freezing them so the app
+ * will throw an error when updates are done outside of this class.
+ */
+
 // Constants
 const INITIAL_STATE = {
   account: {
-    optimizers: '[0,1,2]',
+    optimizers: [0, 1, 2],
   },
   teams: [],
   players: [],
@@ -87,7 +94,7 @@ exp.getNewPlateAppearance = function (playerId) {
   const id = getNextId();
   return {
     id: id,
-    player_id: playerId,
+    playerId: playerId,
     result: null,
     location: {
       x: null,
@@ -170,17 +177,19 @@ exp.sync = async function (fullSync) {
       if (serverState.base) {
         // The entire state was sent, we can just save it directly
         state.setAncestorState(serverState.base);
-      } else if (serverState.patches) {
-        // Patches were sent, apply all patches to a copy of the local state
-        console.log(`[SYNC] Applying patches `);
+      } else if (serverState.patch) {
+        // Patch was sent, apply the patch to a copy of the local state
+        console.log(`[SYNC] Applying patch (${serverState.patch.length})`);
 
-        serverState.patches.forEach((patch) => {
-          SharedLib.objectMerge.patch(localStateCopyPreRequest, patch);
-        });
+        SharedLib.objectMerge.patch(
+          localStateCopyPreRequest,
+          serverState.patch
+        );
+
         // The local state with the server updates is the new ancestor
         state.setAncestorState(localStateCopyPreRequest);
       } else {
-        console.log('[SYNC] No updates recieved from server');
+        console.log('[SYNC] No updates received from server');
         state.setAncestorState(localStateCopyPreRequest);
       }
 
@@ -213,17 +222,17 @@ exp.sync = async function (fullSync) {
           state.setAncestorState(ancestorStateCopy);
           throw new Error(-3);
         } else {
-          // Something went wrong with the patch based sync, perhaps the server's cached data was incorrect
+          // Something went wrong with the patch-based sync, perhaps the server's cached data was incorrect
           // We should be able to repeat the request with type "full" so we'll get the whole state back, not just the patches
-          console.log(
+          console.warn(
             '[SYNC] Something went wrong while attempting patch sync'
           );
-          console.log(
+          console.warn(
             SharedLib.commonUtils.getHash(state.getLocalState),
             serverState.checksum
           );
 
-          console.log(
+          console.warn(
             SharedLib.commonUtils.getObjectString(state.getLocalState)
           );
 
@@ -344,7 +353,7 @@ exp.resetState = function () {
   exp.saveDbStateToLocalStorage();
 };
 
-exp.deleteAllLocalData = function () {
+exp.deleteAllData = function () {
   LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
   onEdit();
 };
@@ -430,9 +439,9 @@ exp.getAllTeams = function () {
 
 // PLAYER
 
-exp.getPlayer = function (player_id, state) {
+exp.getPlayer = function (playerId, state) {
   return (state || LOCAL_DB_STATE).players.reduce((prev, curr) => {
-    return curr.id === player_id ? curr : prev;
+    return curr.id === playerId ? curr : prev;
   }, null);
 };
 
@@ -487,8 +496,8 @@ exp.addPlayer = function (playerName, gender) {
     id: id,
     name: playerName,
     gender: gender,
-    song_link: null,
-    song_start: null,
+    songLink: null,
+    songStart: null,
   };
   new_state.players.push(player);
   onEdit();
@@ -526,18 +535,9 @@ exp.getUsedOptimizers = function () {
 };
 
 // Set a field on the specified optimization object
-exp.setOptimizationField = function (
-  optimizationId,
-  fieldName,
-  fieldValue,
-  isJson
-) {
+exp.setOptimizationField = function (optimizationId, fieldName, fieldValue) {
   const optimization = exp.getOptimization(optimizationId);
-  if (isJson) {
-    optimization[fieldName] = JSON.stringify(fieldValue);
-  } else {
-    optimization[fieldName] = fieldValue;
-  }
+  optimization[fieldName] = fieldValue;
   onEdit();
 };
 
@@ -548,39 +548,33 @@ exp.setOptimizationCustomOptionsDataField = function (
   fieldValue
 ) {
   const optimization = exp.getOptimization(optimizationId);
-  const customOptionsData = JSON.parse(optimization.customOptionsData);
+  const customOptionsData = optimization.customOptionsData;
   if (fieldValue) {
     customOptionsData[fieldName] = fieldValue;
   } else {
     delete customOptionsData[fieldName];
   }
-  optimization.customOptionsData = JSON.stringify(customOptionsData);
+  optimization.customOptionsData = customOptionsData;
   onEdit();
 };
 
-exp.getParsedOptimizationOverridePlateAppearances = function (
-  optimizationId,
-  playerId
-) {
+exp.getOptimizationOverridesForPlayer = function (optimizationId, playerId) {
   let optimization = exp.getOptimization(optimizationId);
   // TODO: do we consistently protect against undefined ?
   if (optimization.overrideData) {
-    let allOverrides = JSON.parse(optimization.overrideData);
+    let allOverrides = optimization.overrideData;
     return allOverrides[playerId] ? allOverrides[playerId] : [];
   } else {
     return [];
   }
 };
 
-exp.getParsedOptimizationOverridePlateAppearance = function (
+exp.getOptimizationOverridePlateAppearance = function (
   optimizationId,
   playerId,
   paId
 ) {
-  let pas = exp.getParsedOptimizationOverridePlateAppearances(
-    optimizationId,
-    playerId
-  );
+  let pas = exp.getOptimizationOverridesForPlayer(optimizationId, playerId);
   let result = pas.find((pa) => {
     return pa.id === paId;
   });
@@ -592,7 +586,7 @@ exp.addOptimizationOverridePlateAppearance = function (
   playerId
 ) {
   let optimization = exp.getOptimization(optimizationId);
-  let allOverrides = JSON.parse(optimization.overrideData);
+  let allOverrides = optimization.overrideData;
 
   let playerOverrides = allOverrides[playerId];
   let addedPa = this.getNewPlateAppearance(playerId);
@@ -602,7 +596,7 @@ exp.addOptimizationOverridePlateAppearance = function (
     allOverrides[playerId].push(addedPa);
   }
 
-  optimization.overrideData = JSON.stringify(allOverrides);
+  optimization.overrideData = allOverrides;
   onEdit();
   return addedPa;
 };
@@ -613,7 +607,7 @@ exp.removeOptimizationOverridePlateAppearance = function (
   paId
 ) {
   let optimization = exp.getOptimization(optimizationId);
-  let allOverrides = JSON.parse(optimization.overrideData);
+  let allOverrides = optimization.overrideData;
 
   let playerOverrides = allOverrides[playerId];
 
@@ -626,7 +620,7 @@ exp.removeOptimizationOverridePlateAppearance = function (
     delete allOverrides[playerId];
   }
 
-  optimization.overrideData = JSON.stringify(allOverrides);
+  optimization.overrideData = allOverrides;
   onEdit();
 };
 
@@ -637,7 +631,7 @@ exp.replaceOptimizationOverridePlateAppearance = function (
   paToAdd
 ) {
   let optimization = exp.getOptimization(optimizationId);
-  let allOverrides = JSON.parse(optimization.overrideData);
+  let allOverrides = optimization.overrideData;
   let playerOverrides = allOverrides[playerId];
 
   for (let i = 0; i < playerOverrides.length; i++) {
@@ -647,7 +641,7 @@ exp.replaceOptimizationOverridePlateAppearance = function (
       break;
     }
   }
-  optimization.overrideData = JSON.stringify(allOverrides);
+  optimization.overrideData = allOverrides;
   onEdit();
 };
 
@@ -656,7 +650,7 @@ exp.getOptimizationCustomOptionsDataField = function (
   fieldName
 ) {
   const optimization = exp.getOptimization(optimizationId);
-  const customOptionsData = JSON.parse(optimization.customOptionsData);
+  const customOptionsData = optimization.customOptionsData;
   return customOptionsData[fieldName];
 };
 
@@ -671,9 +665,9 @@ exp.duplicateOptimization = function (optimizationId) {
   duplicatedOptimization.name = newName.substring(0, 49); // Prevent the name form being too long
   duplicatedOptimization.status =
     SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED;
-  duplicatedOptimization.resultData = JSON.stringify({});
+  duplicatedOptimization.resultData = {};
   duplicatedOptimization.statusMessage = null;
-  duplicatedOptimization.inputSummaryData = JSON.stringify({});
+  duplicatedOptimization.inputSummaryData = {};
 
   localState.optimizations.push(duplicatedOptimization);
   onEdit();
@@ -693,21 +687,19 @@ exp.addOptimization = function (name, playerList, teamList, lineupType) {
   let optimization = {
     id: id,
     name: name,
-    customOptionsData: JSON.stringify({}),
-    overrideData: JSON.stringify({}),
+    customOptionsData: {},
+    overrideData: {},
     status: SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
-    resultData: JSON.stringify({}),
+    resultData: {},
     statusMessage: null,
     sendEmail: false,
-    teamList: teamList
-      ? teamList
-      : JSON.stringify(exp.getAllTeams().map((t) => t.id)),
-    gameList: JSON.stringify([]),
-    playerList: playerList ? playerList : JSON.stringify([]),
+    teamList: teamList ? teamList : exp.getAllTeams().map((t) => t.id),
+    gameList: [],
+    playerList: playerList ? playerList : [],
     lineupType: lineupType === undefined ? 0 : lineupType,
     optimizerType:
       SharedLib.constants.OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_ADAPTIVE,
-    inputSummaryData: JSON.stringify({}),
+    inputSummaryData: {},
   };
   new_state.optimizations.push(optimization);
   onEdit();
@@ -794,8 +786,8 @@ exp.setGameLineup = function (gameId, newLineup) {
   onEdit();
 };
 
-exp.addPlayerToLineup = function (lineup, player_id) {
-  lineup.push(player_id);
+exp.addPlayerToLineup = function (lineup, playerId) {
+  lineup.push(playerId);
   onEdit();
 };
 
@@ -806,8 +798,8 @@ exp.updateLineup = function (lineup, playerId, newIndex) {
   onEdit();
 };
 
-exp.removePlayerFromLineup = function (lineup, player_id) {
-  const index = lineup.indexOf(player_id);
+exp.removePlayerFromLineup = function (lineup, playerId) {
+  const index = lineup.indexOf(playerId);
   lineup.splice(index, 1);
   onEdit();
 };
@@ -875,7 +867,7 @@ exp.replacePlateAppearance = function (paId, gameId, teamId, newPa) {
   }
   appearances.splice(i, 1, {
     id: newPa.id,
-    player_id: newPa.player_id,
+    playerId: newPa.playerId,
     result: newPa.result,
     location: {
       x: newPa?.location?.x,
@@ -922,13 +914,13 @@ exp.getPlateAppearancesForGame = function (gameId, state) {
   return game.plateAppearances;
 };
 
-exp.getPlateAppearancesForPlayerInGame = function (player_id, game_id, state) {
+exp.getPlateAppearancesForPlayerInGame = function (playerId, game_id, state) {
   const game = exp.getGame(game_id, state);
-  const player = exp.getPlayer(player_id, state);
+  const player = exp.getPlayer(playerId, state);
   if (!game || !player) {
     return null;
   }
-  return game.plateAppearances.filter((pa) => pa.player_id === player_id);
+  return game.plateAppearances.filter((pa) => pa.playerId === playerId);
 };
 
 /**
@@ -941,7 +933,7 @@ const decoratePlateAppearance = (pa, game) => ({
 });
 
 exp.getDecoratedPlateAppearancesForPlayerOnTeam = function (
-  player_id,
+  playerId,
   team_id,
   state
 ) {
@@ -953,7 +945,7 @@ exp.getDecoratedPlateAppearancesForPlayerOnTeam = function (
     team.games.forEach((game) => {
       if (game.plateAppearances) {
         const plateAppearancesThisGame = game.plateAppearances
-          .filter((pa) => player_id === pa.player_id)
+          .filter((pa) => playerId === pa.playerId)
           .map((pa) => {
             return decoratePlateAppearance(pa, game);
           });
@@ -964,7 +956,7 @@ exp.getDecoratedPlateAppearancesForPlayerOnTeam = function (
   return plateAppearances;
 };
 
-exp.getPlateAppearancesForPlayerOnTeam = function (player_id, team_id, state) {
+exp.getPlateAppearancesForPlayerOnTeam = function (playerId, team_id, state) {
   const team =
     typeof team_id === 'string' ? exp.getTeam(team_id, state) : team_id;
   let plateAppearances = [];
@@ -973,7 +965,7 @@ exp.getPlateAppearancesForPlayerOnTeam = function (player_id, team_id, state) {
     team.games.forEach((game) => {
       if (game.plateAppearances) {
         const plateAppearancesThisGame = game.plateAppearances.filter(
-          (pa) => player_id === pa.player_id
+          (pa) => playerId === pa.playerId
         );
         plateAppearances = plateAppearances.concat(plateAppearancesThisGame);
       }
@@ -1008,7 +1000,7 @@ exp.getPlateAppearancesForPlayerInGameOrOnTeam = function (
   return plateAppearances;
 };
 
-exp.getPlateAppearancesForPlayer = function (player_id, state) {
+exp.getPlateAppearancesForPlayer = function (playerId, state) {
   let localState = state || exp.getLocalState();
   let teams = localState.teams;
   let plateAppearances = [];
@@ -1019,7 +1011,7 @@ exp.getPlateAppearancesForPlayer = function (player_id, state) {
         team.games.forEach((game) => {
           if (game.plateAppearances) {
             const plateAppearancesThisGame = game.plateAppearances.filter(
-              (pa) => player_id === pa.player_id
+              (pa) => playerId === pa.playerId
             );
             plateAppearances = plateAppearances.concat(
               plateAppearancesThisGame
@@ -1032,7 +1024,7 @@ exp.getPlateAppearancesForPlayer = function (player_id, state) {
   return plateAppearances;
 };
 
-exp.getDecoratedPlateAppearancesForPlayer = function (player_id, state) {
+exp.getDecoratedPlateAppearancesForPlayer = function (playerId, state) {
   let localState = state || exp.getLocalState();
   let teams = localState.teams;
   let plateAppearances = [];
@@ -1043,7 +1035,7 @@ exp.getDecoratedPlateAppearancesForPlayer = function (player_id, state) {
         team.games.forEach((game) => {
           if (game.plateAppearances) {
             const plateAppearancesThisGame = game.plateAppearances
-              .filter((pa) => player_id === pa.player_id)
+              .filter((pa) => playerId === pa.playerId)
               .map((pa) => {
                 return decoratePlateAppearance(pa, game);
               });
@@ -1086,7 +1078,7 @@ exp.removePlateAppearance = function (plateAppearance_id, game_id) {
 
 exp.getAccountOptimizersList = function () {
   if (exp.getLocalState().account) {
-    return JSON.parse(exp.getLocalState().account.optimizers);
+    return exp.getLocalState().account.optimizers;
   } else {
     return [];
   }
@@ -1094,13 +1086,12 @@ exp.getAccountOptimizersList = function () {
 
 exp.setAccountOptimizersList = function (newOptimizersArray) {
   if (exp.getLocalState().account) {
-    exp.getLocalState().account.optimizers = JSON.stringify(newOptimizersArray);
+    exp.getLocalState().account.optimizers = newOptimizersArray;
     onEdit();
   }
 };
 
 // LOCAL STORAGE
-
 exp.saveDbStateToLocalStorage = function () {
   if (typeof Storage !== 'undefined') {
     /*
@@ -1566,7 +1557,7 @@ exp.getLocalStorageUsage = function () {
 
   // We multiply by 2 twice because:
   // 1) UTF-16 requires 2 bytes per character
-  // 2) We need to stor each character twice, both in local an ancestor
+  // 2) We need to store each character twice, both in local an ancestor
   return {
     players: (players / 1024) * 2,
     teams: (teams / 1024) * 2,

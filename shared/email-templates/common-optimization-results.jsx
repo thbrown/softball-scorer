@@ -6,8 +6,8 @@ import React from 'react';
  * We want to re-use the HTML we use for the results accordion in the optimization complete email. This file contains the common logic.
  */
 const getResultsAsJsx = function (result, inputSummaryData) {
-  let resultData = result ? JSON.parse(result) : undefined;
-  let stats = inputSummaryData ? JSON.parse(inputSummaryData) : {};
+  let resultData = result ? result : undefined;
+  let stats = inputSummaryData ? inputSummaryData : {};
 
   let optimizer = '-';
   let humanDetails = '-';

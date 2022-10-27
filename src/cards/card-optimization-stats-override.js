@@ -66,8 +66,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
       state.setOptimizationField(
         props.optimization.id,
         'overrideData',
-        allOverrides,
-        true
+        allOverrides
       );
     };
 
@@ -82,8 +81,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
           state.setOptimizationField(
             props.optimization.id,
             'overrideData',
-            allOverrides,
-            true
+            allOverrides
           );
           goBack();
         }
@@ -138,7 +136,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
       );
     }
 
-    let overrides = state.getParsedOptimizationOverridePlateAppearances(
+    let overrides = state.getOptimizationOverridesForPlayer(
       this.props.optimization.id,
       this.props.player.id
     );

@@ -285,6 +285,11 @@ module.exports = class OptimizationComputeLocal {
       '-z',
       RESULTS_PATH + '/' + optimizationId,
     ].concat(optionsArray);
+    logger.log(
+      accountId,
+      'Starting local optimization estimate',
+      argsArray.join(' ')
+    );
 
     // Start the jar
     let self = this;
