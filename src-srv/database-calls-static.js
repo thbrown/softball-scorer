@@ -299,7 +299,7 @@ let databaseCalls = class DatabaseCalls {
     return undefined;
   }
 
-  async getAccountAndTeamByTeamPublicId(publicId) {
+  async getAccountAndTeamIdsByTeamPublicId(publicId) {
     //TODO implement this for testing purposes
     return undefined;
   }

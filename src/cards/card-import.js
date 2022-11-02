@@ -70,7 +70,24 @@ const CardImport = () => {
       reader.onload = function (e) {
         let parsedData;
         try {
-          parsedData = JSON.parse(e.target.result); // TODO: additional verification of object structure
+          parsedData = JSON.parse(e.target.result);
+
+          // Update the schema
+          let result = SharedLib.schemaMigration.updateSchema(
+            null,
+            parsedData,
+            'export'
+          );
+
+          if (result === 'ERROR') {
+            throw new Error(`Invalid file format`);
+          }
+
+          // Now validate the schema
+          SharedLib.schemaValidation.validateSchema(
+            parsedData,
+            'top-level-export'
+          );
         } catch (exception) {
           dialog.show_notification(
             'There was an error while parsing file input: ' + exception.message
@@ -83,8 +100,16 @@ const CardImport = () => {
             state.getLocalState(),
             parsedData
           );
-          const stateCopy = JSON.parse(JSON.stringify(state.getLocalState()));
-          SharedLib.objectMerge.patch(stateCopy, diff, true, true);
+          console.log('DIFF', diff);
+          let stateCopy = JSON.parse(JSON.stringify(state.getLocalState()));
+          let something = SharedLib.objectMerge.patch(
+            stateCopy,
+            diff,
+            true,
+            true
+          );
+          console.log(something);
+          stateCopy = something; // TODO: we shouldn't have to do this?
           state.setLocalState(stateCopy);
           dialog.show_notification(
             'Your data has successfully been merged with the existing data.'

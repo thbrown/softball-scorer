@@ -133,9 +133,17 @@ export default class CardOptimization extends React.Component {
 
     this.handleSendEmailCheckbox = function () {
       if (this.props.optimization.sendEmail) {
-        state.setOptimizationField(this.props.optimization.id, 'sendEmail');
+        state.setOptimizationField(
+          this.props.optimization.id,
+          'sendEmail',
+          false
+        );
       } else {
-        state.setOptimizationField(this.props.optimization.id, 'sendEmail');
+        state.setOptimizationField(
+          this.props.optimization.id,
+          'sendEmail',
+          true
+        );
       }
     }.bind(this);
 

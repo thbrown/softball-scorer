@@ -194,8 +194,8 @@ function updateServiceWorker(cb) {
 
   // https://www.npmjs.com/package/folder-hash
   const options = {
-    folders: { exclude: ['node_modules', 'build'] },
-    files: { exclude: ['service-worker.js'] },
+    folders: { include: ['assets', 'src', 'shared'] },
+    files: { include: ['index.html'] },
   };
 
   hashElement('.', options)

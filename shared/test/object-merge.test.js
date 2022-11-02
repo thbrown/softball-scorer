@@ -1,5 +1,5 @@
-const objectMerge = require('./object-merge.js');
-const utils = require('./common-utils');
+const objectMerge = require('../utils/object-merge.js');
+const utils = require('../utils/common-utils');
 
 test('MERGE: Documents are merged when deletes are disabled', () => {
   var documentA = [{ id: 1 }, { id: 2 }, { id: 3 }];
@@ -61,7 +61,7 @@ test('Create RFC6902 compatible document', () => {
     '#314': { _name: 'John' },
   };
 
-  let output = objectMerge.toRFC6902(input);
+  let output = objectMerge._toRFC6902(input);
   expect(utils.sortJson(output)).toEqual(utils.sortJson(expected));
 });
 
@@ -80,7 +80,7 @@ test('Restore from RFC6902 compatible document', () => {
     { id: 314, name: 'John', synoptic: false },
   ];
 
-  let output = objectMerge.fromRFC6902(input);
+  let output = objectMerge._fromRFC6902(input);
   expect(utils.sortJson(output)).toEqual(utils.sortJson(expected));
 });
 
@@ -144,8 +144,95 @@ test('Create and restore RFC6902 compatible nested document', () => {
     },
   };
 
-  let output = objectMerge.toRFC6902(input);
+  let output = objectMerge._toRFC6902(input);
   expect(utils.sortJson(output)).toEqual(utils.sortJson(expected));
-  output = objectMerge.fromRFC6902(output);
+  output = objectMerge._fromRFC6902(output);
   expect(utils.sortJson(output)).toEqual(utils.sortJson(input));
+});
+
+test('Forbidden keys are detected in patch path', () => {
+  let forbidden = new Set(['passw/ord', 'email']);
+
+  let original = {
+    Account: {
+      'passw/ord': '123456',
+      email: 'noreply@softball.app',
+      nickname: 'Bilbo',
+    },
+  };
+
+  let changeOne = {
+    Account: {
+      'passw/ord': '123456',
+      email: 'noreply@softball.app',
+      nickname: 'Bilbo Baggins',
+    },
+  };
+
+  let changeTwo = {
+    Account: {
+      'passw/ord': '234567',
+      email: 'noreply@softball.app',
+      nickname: 'Bilbo',
+    },
+  };
+
+  let goodPatch = objectMerge.diff(original, changeOne);
+  let badPatch = objectMerge.diff(original, changeTwo);
+
+  let filteredGoodPatch = objectMerge.filterPatch(goodPatch, forbidden);
+  let filteredBadPatch = objectMerge.filterPatch(badPatch, forbidden);
+
+  expect(filteredGoodPatch.length).toEqual(goodPatch.length);
+  expect(filteredBadPatch.length).not.toEqual(badPatch.length);
+});
+
+test('Forbidden keys are detected in patch value', () => {
+  let forbidden = new Set(['passw~ord', 'email', 'frodo']);
+
+  let original = [
+    {
+      id: 1,
+      'passw~ord': '123456',
+      email: 'noreply@softball.app',
+      nickname: 'Bilbo',
+    },
+  ];
+
+  let changeOne = [
+    {
+      id: 1,
+      'passw~ord': '123456',
+      email: 'noreply@softball.app',
+      nickname: 'Bilbo',
+    },
+    {
+      id: 2,
+      nickname: 'Frodo',
+    },
+  ];
+
+  let changeTwo = [
+    {
+      id: 1,
+      'passw~ord': '123456',
+      email: 'noreply@softball.app',
+      nickname: 'Bilbo',
+    },
+    {
+      id: 2,
+      'passw~ord': '123456',
+      email: 'noreply@softball.app',
+      nickname: 'Frodo',
+    },
+  ];
+
+  let goodPatch = objectMerge.diff(original, changeOne);
+  let badPatch = objectMerge.diff(original, changeTwo);
+
+  let filteredGoodPatch = objectMerge.filterPatch(goodPatch, forbidden);
+  let filteredBadPatch = objectMerge.filterPatch(badPatch, forbidden);
+
+  expect(filteredGoodPatch.length).toEqual(goodPatch.length);
+  expect(filteredBadPatch.length).not.toEqual(badPatch.length);
 });

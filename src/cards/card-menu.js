@@ -133,6 +133,9 @@ class CardMenu extends Component {
       const blob = new Blob([JSON.stringify(state.getLocalState(), null, 2)], {
         type: 'text/plain;charset=utf-8',
       });
+
+      // TODO: Pizza convert to export and validate
+
       FileSaver.saveAs(blob, 'save' + today + '.json');
     };
 

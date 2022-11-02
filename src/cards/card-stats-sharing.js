@@ -87,7 +87,7 @@ const CardStatsSharing = (props) => {
   const publicLink = `${window.location.origin}/public-teams/${publicId}/stats`;
 
   let content = null;
-  if (publicId && state.isSessionValid()) {
+  if (state.isSessionValid()) {
     content = (
       <div className="auth-input-container">
         <div

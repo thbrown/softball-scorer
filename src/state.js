@@ -70,7 +70,6 @@ exp.getNewTeam = function (teamName) {
     id: id,
     name: teamName,
     games: [],
-    publicIdEnabled: false,
   };
 };
 
@@ -129,7 +128,7 @@ exp.sync = async function (fullSync) {
     console.log(
       '[SYNC] waiting for in progress sync to finish ' + exp.getSyncState()
     );
-    await sleep(500);
+    await sleep(500); // TODO: debounce
   }
   // Kill any scheduled syncs
   clearTimeout(syncTimer);
@@ -428,9 +427,13 @@ exp.removeTeam = function (team_id) {
 };
 
 exp.setTeamPublicIdEnabled = function (teamId, isEnabled) {
-  const team = exp.getTeam(teamId);
-  team.publicIdEnabled = isEnabled;
-  onEdit();
+  // TODO
+  throw new Error(
+    'This should be done via a direct database call, not set in the state and sent to server vis patch'
+  );
+  //const team = exp.getTeam(teamId);
+  //team.publicIdEnabled = isEnabled;
+  //onEdit();
 };
 
 exp.getAllTeams = function () {

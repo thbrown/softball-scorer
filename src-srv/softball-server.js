@@ -224,7 +224,7 @@ module.exports = class SoftballServer {
         await lockAccount(accountId);
         let state;
         try {
-          state = await this.databaseCalls.getState(accountId);
+          state = await this.databaseCalls.getClientState(accountId);
         } finally {
           await unlockAccount(accountId);
         }
@@ -243,7 +243,7 @@ module.exports = class SoftballServer {
         await lockAccount(accountId);
         let state;
         try {
-          state = await this.databaseCalls.getState(accountId);
+          state = await this.databaseCalls.getClientState(accountId);
         } finally {
           await unlockAccount(accountId);
         }
@@ -255,16 +255,18 @@ module.exports = class SoftballServer {
       '/server/team-stats/:publicTeamId',
       wrapForErrorProcessing(async (req, res) => {
         const { publicTeamId } = req.params;
-        const account =
-          await this.databaseCalls.getAccountAndTeamByTeamPublicId(
-            publicTeamId
-          );
-        if (account) {
-          const { accountId, teamId } = account;
+        const ids = await this.databaseCalls.getAccountAndTeamIdsByTeamPublicId(
+          publicTeamId
+        );
+        if (ids) {
+          const { accountId, teamId } = ids;
           await lockAccount(accountId);
           let state;
           try {
-            state = await this.databaseCalls.getStateForTeam(accountId, teamId);
+            state = await this.databaseCalls.getClientStateForTeam(
+              accountId,
+              teamId
+            );
           } finally {
             await unlockAccount(accountId);
           }
@@ -570,7 +572,7 @@ module.exports = class SoftballServer {
         await lockAccount(accountId);
         try {
           // First delete all the data
-          let state = await this.databaseCalls.getState(accountId);
+          let state = await this.databaseCalls.getClientState(accountId);
           let deletePatch = SharedLib.objectMerge.diff(state, {
             teams: [],
             players: [],
@@ -588,7 +590,7 @@ module.exports = class SoftballServer {
         } catch (error) {
           logger.error(
             accountId,
-            'An error occured while deleting the account'
+            'An error occurred while deleting the account'
           );
           throw error;
         } finally {
@@ -650,10 +652,10 @@ module.exports = class SoftballServer {
 
         try {
           // Check if the client sent updates to the server
-          if (data.patch && Object.keys(data.patch).length !== 0) {
+          if (data.patch && data.patch.length !== 0) {
             logger.log(
               accountId,
-              'client has updates'
+              'Client has updates'
               //JSON.stringify(data.patch, null, 2)
             );
 
@@ -664,9 +666,10 @@ module.exports = class SoftballServer {
             //let cleanPatch = SharedLib.objectMerge.diff(stateCopy, state);
 
             // Pass the client's patch to the database to persist its changes
+            logger.log(accountId, 'Client patch ', data.patch);
             await this.databaseCalls.patchState(data.patch, accountId);
             let oldHash = SharedLib.commonUtils.getHash(state);
-            state = await this.databaseCalls.getState(accountId);
+            state = await this.databaseCalls.getClientState(accountId);
 
             // Useful for debugging
             /*logger.log(
@@ -682,7 +685,7 @@ module.exports = class SoftballServer {
           }
 
           // Calculate the checksum of the current state
-          state = state || (await this.databaseCalls.getState(accountId));
+          state = state || (await this.databaseCalls.getClientState(accountId));
           let checksum = SharedLib.commonUtils.getHash(state);
 
           // Compare the calculated checksum with the checksum provided by the client to determine if the server has updates for the client.
@@ -750,7 +753,7 @@ module.exports = class SoftballServer {
               }
 
               responseData.base =
-                state || (await this.databaseCalls.getState(accountId));
+                state || (await this.databaseCalls.getClientState(accountId));
             }
 
             anyChangesMade = true;
@@ -850,7 +853,7 @@ module.exports = class SoftballServer {
           }
 
           // Build the stats object
-          let statsData = await this.databaseCalls.getState(accountId);
+          let statsData = await this.databaseCalls.getClientState(accountId);
           statsData = processStatsData(statsData, optimization);
           //logger.log(null, JSON.stringify(statsData, null, 2));
 
@@ -1187,7 +1190,7 @@ module.exports = class SoftballServer {
             );
 
             // Build the stats object
-            statsData = await this.databaseCalls.getState(accountId);
+            statsData = await this.databaseCalls.getClientState(accountId);
           } finally {
             // Now unlock the account
             await unlockAccount(accountId);
@@ -1464,7 +1467,7 @@ module.exports = class SoftballServer {
     }
 
     async function logIn(account, req, res) {
-      logger.log(account.accountId, 'Logging in', account);
+      logger.log(account.accountId, 'Logging in');
       await new Promise(function (resolve, reject) {
         req.logIn(account, function () {
           // We need to serialize some info to the session

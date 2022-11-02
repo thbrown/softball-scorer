@@ -51,10 +51,15 @@ const jsonpointer = require('jsonpointer');
  *
  *  We solve this by removing any "remove" operations from the resultant patch array before applying them.
  *
+ * TODO: Think about making this an interface. I don't know what other implementation we would used here but it's a nice abstraction.
  */
 
 let diff = function (mine, theirs) {
-  return jsonpatch.compare(this.toRFC6902(mine), this.toRFC6902(theirs), false);
+  return jsonpatch.compare(
+    this._toRFC6902(mine),
+    this._toRFC6902(theirs),
+    false
+  );
 };
 
 let patch = function (
@@ -65,12 +70,11 @@ let patch = function (
 ) {
   // Empty patch indicates no changes
   if (patchObj === null || patchObj === undefined) {
-    console.log('EMPTY PATCH APPLIED');
     return toPatch;
   }
 
   // Convert to RFC6902 compatible document
-  toPatch = this.toRFC6902(toPatch, patchObj, toPatch);
+  toPatch = this._toRFC6902(toPatch, patchObj, toPatch);
 
   if (skipDeletes) {
     let updatedPatch = [];
@@ -79,7 +83,7 @@ let patch = function (
       if (patchStep.op !== 'remove') {
         updatedPatch.push(patchStep);
       }
-      // TODO: to we need to look for "replace" as well?
+      // TODO: do we need to look for "replace" as well?
     }
 
     patchObj = updatedPatch;
@@ -88,6 +92,11 @@ let patch = function (
   if (skipOperationOnNonExistent) {
     let updatedPatch = [];
     for (let patchStep of patchObj) {
+      // Keep any add operations
+      if (patchStep.op === 'add') {
+        updatedPatch.push(patchStep);
+      }
+      // Keep other things if their targets exist
       if (jsonpointer.get(toPatch, patchStep.path)) {
         updatedPatch.push(patchStep);
       }
@@ -96,17 +105,101 @@ let patch = function (
   }
 
   const patched = jsonpatch.applyPatch(toPatch, patchObj, false);
-  return this.fromRFC6902(patched.newDocument);
+  return this._fromRFC6902(patched.newDocument);
 };
 
 /**
- * Keys are prefixed in output, this is required for converting back via fromRFC6902(...) (prefix - description):
+ * Checks if a patch is modifying anything in the forbiddenKeySet and filters out any offending parts of the patch.
+ *
+ * @returns the patch with any forbidden operations removed
+ */
+let filterPatch = function (
+  patch,
+  forbiddenKeySet,
+  accountId,
+  logger = {
+    warn: function (...val) {
+      console.log(...val);
+    },
+  }
+) {
+  let filteredPatch = [];
+
+  for (let patchElement of patch) {
+    // First, find any patches that have forbidden keys in their path
+    let badToken = undefined;
+    let tokens = patchElement.path.split('/');
+    for (let token of tokens) {
+      let nonPrefixedToken = token.substring(1); // Remove prefix ($, #, _, or *)
+      nonPrefixedToken = jsonpatch.unescapePathComponent(nonPrefixedToken); // Unescape "/" and "~"
+      if (forbiddenKeySet.has(nonPrefixedToken)) {
+        badToken = token;
+        break;
+      }
+    }
+    if (badToken !== undefined) {
+      logger.warn(
+        accountId,
+        'User tried to patch forbidden key. Forbidden key exists in patch path.',
+        badToken,
+        patchElement
+      );
+    }
+
+    // Second, find any patches that have forbidden keys in their values attribute
+    let isValidValue = _isValueValid(patchElement.value, forbiddenKeySet);
+    if (!isValidValue) {
+      logger.warn(
+        accountId,
+        'User tried to patch forbidden key. Forbidden key exists in patch value.',
+        patchElement
+      );
+    }
+
+    // Build the filtered patch if everything looks good
+    if (badToken === undefined && isValidValue) {
+      filteredPatch.push(patchElement);
+    }
+  }
+
+  return filteredPatch;
+};
+
+let _isValueValid = function (toCheck, forbiddenKeySet) {
+  if (toCheck === null || typeof toCheck !== 'object') {
+    // Primitives are okay
+    return true;
+  } else if (Array.isArray(toCheck)) {
+    // Arrays need to be searched
+    for (let arrayElement of toCheck) {
+      if (_isValueValid(arrayElement, forbiddenKeySet) === false) {
+        return false;
+      }
+    }
+    return true;
+  } else {
+    // Object's values need to be searched, and the object's keys need to be checked
+    for (let key of Object.keys(toCheck)) {
+      let nonPrefixedKey = key.substring(1); // Remove prefix ($, #, _, or *) - no need to un-escape "/" and "~"
+      if (forbiddenKeySet.has(nonPrefixedKey)) {
+        return false;
+      }
+      if (_isValueValid(toCheck[key], forbiddenKeySet) === false) {
+        return false;
+      }
+    }
+    return true;
+  }
+};
+
+/**
+ * Keys are prefixed in output, this is required for converting back via _fromRFC6902(...) (prefix - description):
  * $ - converted from an array to object
  * # - converted from an array to object w/ numeric key
  * _ - kept as an object
  * * - kept as an object w/ numeric key
  */
-let toRFC6902 = function (input) {
+let _toRFC6902 = function (input) {
   if (input === undefined || input === null) {
     return input;
   } else if (Array.isArray(input)) {
@@ -117,7 +210,7 @@ let toRFC6902 = function (input) {
       // This is an array of primitives, arrays, or an array without an id, keep it as an array
       let outputArray = [];
       for (let element of input) {
-        outputArray.push(this.toRFC6902(element));
+        outputArray.push(this._toRFC6902(element));
       }
       return outputArray;
     } else {
@@ -125,7 +218,7 @@ let toRFC6902 = function (input) {
       let outputObject = {};
       for (let element of input) {
         let id = (isNaN(element.id) ? '$' : '#') + element.id;
-        outputObject[id] = this.toRFC6902(element);
+        outputObject[id] = this._toRFC6902(element);
         delete outputObject[id]['_id'];
       }
       return outputObject;
@@ -138,7 +231,7 @@ let toRFC6902 = function (input) {
     let outputObject = {};
     for (let key of keys) {
       let idKey = (isNaN(key) ? '_' : '*') + key;
-      outputObject[idKey] = this.toRFC6902(input[key]);
+      outputObject[idKey] = this._toRFC6902(input[key]);
     }
     return outputObject;
   } else {
@@ -146,14 +239,14 @@ let toRFC6902 = function (input) {
   }
 };
 
-let fromRFC6902 = function (input) {
+let _fromRFC6902 = function (input) {
   if (input === undefined || input === null) {
     return input;
   } else if (Array.isArray(input)) {
     // Arrays stay the same
     let outputArray = [];
     for (let element of input) {
-      outputArray.push(this.fromRFC6902(element));
+      outputArray.push(this._fromRFC6902(element));
     }
     return outputArray;
   } else if (typeof input === 'object') {
@@ -173,7 +266,7 @@ let fromRFC6902 = function (input) {
           );
         }
         let rest = key.substring(1);
-        let object = this.fromRFC6902(input[key]);
+        let object = this._fromRFC6902(input[key]);
         object.id = first === '#' ? parseFloat(rest) : rest;
         outputArray.push(object);
       }
@@ -189,7 +282,7 @@ let fromRFC6902 = function (input) {
         }
         let rest = key.substring(1);
         outputObject[first === '*' ? parseFloat(rest) : rest] =
-          this.fromRFC6902(input[key]);
+          this._fromRFC6902(input[key]);
       }
       return outputObject;
     } else {
@@ -205,6 +298,7 @@ let fromRFC6902 = function (input) {
 module.exports = {
   diff,
   patch,
-  toRFC6902,
-  fromRFC6902,
+  _toRFC6902, // Exposed for testing only
+  _fromRFC6902, // Exposed for testing only
+  filterPatch,
 };

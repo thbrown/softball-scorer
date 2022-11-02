@@ -1,322 +1,111 @@
-const { v4: uuidv4 } = require('uuid');
-
-const HandledError = require('./handled-error.js');
-const logger = require('./logger.js');
+const DatabaseCallsAbstractBlob = require('./database-calls-abstract-blob');
+const { BlobLocation } = require('./database-calls-abstract-blob-types');
 const SharedLib = require('../shared-lib').default;
+const logger = require('./logger.js');
 
 const Ajv = require('ajv/dist/2020');
 
 const fs = require('fs');
 const path = require('path');
-
-let databaseCalls = class DatabaseCalls {
+let databaseCallsFileSystem = class DatabaseCallsFileSystem extends DatabaseCallsAbstractBlob {
   constructor(rootDirectory) {
+    super();
     // Make the root directory (if it doesn't exist)
     if (!fs.existsSync(rootDirectory)) {
       fs.mkdirSync(rootDirectory);
     }
+
     // Make data directory (if it doesn't exist)
     this.dataDir = path.join(rootDirectory, 'data');
     if (!fs.existsSync(this.dataDir)) {
       fs.mkdirSync(this.dataDir);
     }
+
     // Make email-lookup directory (if it doesn't exist)
     this.emailLookupDir = path.join(rootDirectory, 'email-lookup');
     if (!fs.existsSync(this.emailLookupDir)) {
       fs.mkdirSync(this.emailLookupDir);
     }
+
     // Make token-lookup directory (if it doesn't exist)
     this.tokenLookupDir = path.join(rootDirectory, 'token-lookup');
     if (!fs.existsSync(this.tokenLookupDir)) {
       fs.mkdirSync(this.tokenLookupDir);
     }
+
     // Make public-id-lookup directory (if it doesn't exist)
     this.publicIdLookupDir = path.join(rootDirectory, 'public-id-lookup');
     if (!fs.existsSync(this.publicIdLookupDir)) {
       fs.mkdirSync(this.publicIdLookupDir);
     }
 
-    const ajv = new Ajv();
-    this.validateSchema = ajv.compile(SharedLib.schema);
+    // Create a lookup table for these locations
+    this.blobMap = {};
+    this.blobMap[BlobLocation.DATA] = this.dataDir;
+    this.blobMap[BlobLocation.EMAIL_LOOKUP] = this.emailLookupDir;
+    this.blobMap[BlobLocation.TOKEN_LOOKUP] = this.tokenLookupDir;
+    this.blobMap[BlobLocation.PUBLIC_ID_LOOKUP] = this.publicIdLookupDir;
   }
 
-  async signup(email, passwordHash, passwordTokenHash) {
-    let accountId = SharedLib.hexToBase62(uuidv4());
-    const newAccount = {
-      accountId: accountId,
-      email: email,
-      optimizers: [0],
-      balance: 0,
-      emailConfirmed: false,
-      passwordHash: passwordHash,
-      passwordTokenHash: passwordTokenHash,
-      passwordTokenExpiration: Date.now() + 3600000,
-    };
-    const newData = {
-      teams: [],
-      players: [],
-      optimizations: [],
-      account: newAccount,
-    };
-
-    // TODO: verify that there are no existing accounts with same email address
-    if (fs.existsSync(path.join(this.emailLookupDir, email))) {
-      throw new HandledError('N/A', 400, 'Account already exists'); // TODO consider just sending an email to the user instead
+  async writeBlob(accountId, location, blobName, content, generation) {
+    // Map location to file
+    let targetLocation = this.blobMap[location];
+    // Validate schema before write
+    if (location === BlobLocation.DATA) {
+      SharedLib.schemaValidation.validateSchema(content, 'top-level-full');
     }
-
+    // Now write the actual file
     fs.writeFileSync(
-      path.join(this.dataDir, accountId),
-      JSON.stringify(newData)
+      path.join(targetLocation, blobName),
+      JSON.stringify(content, null, 2)
     );
-    fs.writeFileSync(
-      path.join(this.tokenLookupDir, passwordTokenHash),
-      JSON.stringify({ accountId })
-    );
-
-    // Do this last so we can retry signup on failure. If this succeeds duplicate signups will be blocked.
-    fs.writeFileSync(
-      path.join(this.emailLookupDir, email),
-      JSON.stringify({ accountId })
-    );
-
-    logger.log(accountId, 'Account signup completed');
-    return newAccount;
   }
 
-  async getAccountFromEmail(email) {
-    let emailLookupJSONString = fs.readFileSync(
-      path.join(this.emailLookupDir, email)
+  async readBlob(accountId, location, blobName) {
+    // Map location to file
+    let targetLocation = this.blobMap[location];
+    // Now read the actual file
+    let content = JSON.parse(
+      fs.readFileSync(path.join(targetLocation, blobName))
     );
-    return this.getAccountById(JSON.parse(emailLookupJSONString).accountId);
-  }
 
-  async getAccountById(accountId) {
-    let accountDataJSONString = fs.readFileSync(
-      path.join(this.dataDir, accountId)
-    );
-    return JSON.parse(accountDataJSONString).account;
-  }
-
-  // Returns undefined if data does not exist
-  async getAccountAndTeamByTeamPublicId(publicId) {
-    try {
-      let publicIdLookupJSONString = fs.readFileSync(
-        path.join(this.publicIdLookupDir, accountId)
+    // Schema validation for data blob. TODO: should we have JSON schema for all blobs, not just data?
+    if (location === BlobLocation.DATA) {
+      let result = SharedLib.schemaMigration.updateSchema(
+        accountId,
+        content,
+        'full',
+        logger
       );
-      return JSON.parse(publicIdLookupJSONString).account;
-    } catch (err) {
-      if (err.code === 'ENOENT') {
-        return undefined;
-      } else {
-        throw err;
+
+      if (result === 'UPDATED') {
+        // Check if a schema update is needed, if the schema has been upgraded, write the new data before progressing
+        await this.writeBlob(location, blobName, content, null);
+        logger.log(accountId, 'Updated schema write-back successful');
       }
-    }
-  }
 
-  getState(accountId) {
-    let accountDataJSONString = fs.readFileSync(
-      path.join(this.dataDir, accountId)
-    );
-    return JSON.parse(accountDataJSONString);
-  }
-
-  setState(accountId, value) {
-    let accountDataJSONString = fs.readFileSync(
-      path.join(this.dataDir, accountId)
-    );
-    return JSON.parse(accountDataJSONString);
-  }
-
-  // returns nothing
-  async patchState(patch, accountId) {
-    let currentState = this.getState(accountId);
-    let newState = SharedLib.objectMerge.patch(currentState, patch);
-    this.validateSchema(newState);
-    fs.writeFileSync(
-      path.join(this.dataDir, accountId),
-      JSON.stringify(newState, null, 2)
-    );
-  }
-
-  async getAccountFromTokenHash(passwordTokenHash) {
-    let tokenLookupJSONString = fs.readFileSync(
-      path.join(this.tokenLookupDir, passwordTokenHash)
-    );
-    let data = this.getState(JSON.parse(tokenLookupJSONString).accountId);
-    return data.account;
-  }
-
-  async confirmEmail(accountId) {
-    let state = this.getState(accountId);
-    state.account.emailConfirmed = true;
-    fs.writeFileSync(
-      path.join(this.dataDir, accountId),
-      JSON.stringify(state, null, 2)
-    );
-  }
-
-  async setPasswordHashAndExpireToken(accountId, newPasswordHash) {
-    let state = this.getState(accountId);
-    let account = state.account;
-    account.passwordHash = newPasswordHash;
-    account.passwordTokenExpiration = Date.now();
-    fs.writeFileSync(
-      path.join(this.dataDir, accountId),
-      JSON.stringify(state, null, 2)
-    );
-  }
-
-  async setPasswordTokenHash(accountId, tokenHash) {
-    let state = this.getState(accountId);
-
-    let account = state.account;
-    let oldTokenDir = path.join(this.tokenLookupDir, account.passwordTokenHash);
-    account.passwordTokenHash = tokenHash;
-    account.passwordTokenExpiration = Date.now() + 3600000;
-
-    fs.writeFileSync(
-      path.join(this.dataDir, accountId),
-      JSON.stringify(state, null, 2)
-    );
-    fs.writeFileSync(
-      path.join(this.tokenLookupDir, tokenHash),
-      JSON.stringify({ accountId })
-    );
-    fs.unlinkSync(oldTokenDir);
-  }
-
-  async deleteAccount(accountId) {
-    let data = this.getState(accountId);
-
-    let emailLookupDir = path.join(this.emailLookupDir, data.email);
-    fs.unlinkSync(emailLookupDir);
-
-    let tokenLookupDir = path.join(this.tokenLookupDir, data.tokenHash);
-    fs.unlinkSync(tokenLookupDir);
-
-    for (let team of data.teams) {
-      let publicIdLookupDir = path.join(this.publicIdLookupDir, team.publicId);
-      fs.unlinkSync(publicIdLookupDir);
+      // Validate schema after read
+      SharedLib.schemaValidation.validateSchema(content, 'top-level-full');
     }
 
-    // Delete this last so we can retry delete if it fails
-    let dataDir = path.join(this.dataDir, accountId);
-    fs.unlinkSync(dataDir);
+    return {
+      content: content,
+      generation: undefined, // unused by this implementation
+    };
   }
 
-  async getNumberOfOptimizationsInProgress(accountId) {
-    throw new HandledError(accountId, 500, 'NOT YET IMPLEMENTED');
+  async deleteBlob(accountId, location, blobName) {
+    // Map location to file
+    let targetLocation = this.blobMap[location];
+    // Now delete the actual file
+    fs.unlinkSync(path.join(targetLocation, blobName));
   }
 
-  async setOptimizationStatus(
-    accountId,
-    optimizationId,
-    newStatus,
-    optionalMessage,
-    optionalPreviousStatus
-  ) {
-    logger.log(
-      accountId,
-      'setting optimization status',
-      newStatus,
-      optionalMessage,
-      optionalPreviousStatus
-    );
-
-    let message = optionalMessage ? optionalMessage : null;
-    let state = this.getState(accountId);
-    for (let i = 0; i < state.optimizations.length; i++) {
-      if (state.optimizations[i].id === optimizationId) {
-        if (optionalPreviousStatus === undefined) {
-          state.optimizations[i].status = newStatus;
-          state.optimizations[i].statusMessage = message;
-          fs.writeFileSync(
-            path.join(this.dataDir, accountId),
-            JSON.stringify(state, null, 2)
-          );
-          return true;
-        } else if (state.optimizations[i].status === optionalPreviousStatus) {
-          state.optimizations[i].status = newStatus;
-          state.optimizations[i].statusMessage = message;
-          fs.writeFileSync(
-            path.join(this.dataDir, accountId),
-            JSON.stringify(state, null, 2)
-          );
-          return true;
-        }
-        return false;
-      }
-    }
-    throw new Error(
-      'Optimization not found 5 ' +
-        optimizationId +
-        ' ' +
-        JSON.stringify(state.optimizations, null, 2)
-    );
-  }
-
-  async setOptimizationResultData(accountId, optimizationId, newResults) {
-    logger.log(accountId, 'setting optimization result data', newResults);
-    let state = this.getState(accountId);
-    for (let i = 0; i < state.optimizations.length; i++) {
-      if (state.optimizations[i].id === optimizationId) {
-        // Postgres converts to stringified data on read, there is no such logic for static, so we'll just store it as a stringified object.
-        // No need to stringify execution data because that stays on the server side.
-        state.optimizations[i].resultData = newResults;
-        fs.writeFileSync(
-          path.join(this.dataDir, accountId),
-          JSON.stringify(state, null, 2)
-        );
-        return;
-      }
-    }
-    throw new Error(
-      'Optimization not found 4 ' +
-        optimizationId +
-        ' ' +
-        JSON.stringify(state.optimizations, null, 2)
-    );
-  }
-
-  async getOptimizationStatus(accountId, optimizationId) {
-    logger.log(accountId, 'getting optimization status');
-    let state = this.getState(accountId);
-    for (let i = 0; i < state.optimizations.length; i++) {
-      if (state.optimizations[i].id === optimizationId) {
-        return state.optimizations[i].status;
-      }
-    }
-    logger.warn(accountId, 'no optimization found - getOptimizationStatus');
-  }
-
-  async getOptimizationResultData(accountId, optimizationId) {
-    logger.log(accountId, 'getting optimization result data');
-    let state = this.getState(accountId);
-    for (let i = 0; i < state.optimizations.length; i++) {
-      if (state.optimizations[i].id === optimizationId) {
-        return state.optimizations[i].resultData;
-      }
-    }
-    logger.warn(accountId, 'no optimization found - getOptimizationResultData');
-  }
-
-  async getOptimizationDetails(accountId, optimizationId) {
-    logger.log(accountId, 'getting optimization result data');
-    let state = this.getState(accountId);
-    for (let i = 0; i < state.optimizations.length; i++) {
-      if (state.optimizations[i].id === optimizationId) {
-        return state.optimizations[i];
-      }
-    }
-    logger.warn(
-      accountId,
-      `no optimization found - getOptimizationDetails ${optimizationId}`
-    );
-  }
-
-  disconnect() {
-    logger.log(null, 'disconnecting from file system db (NO-OP)');
+  async exists(accountId, location, blobName) {
+    // Map location to file
+    let targetLocation = this.blobMap[location];
+    // Now check if the file exists
+    return fs.existsSync(path.join(targetLocation, blobName));
   }
 };
-
-module.exports = databaseCalls;
+module.exports = databaseCallsFileSystem;

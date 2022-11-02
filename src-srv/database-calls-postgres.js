@@ -58,7 +58,7 @@ module.exports = class DatabaseCalls {
       if (account.length === 1) {
         let outputAccount = {};
         outputAccount.optimizers = JSON.stringify(account[0].optimizers_list);
-        outputAccount.ballance = account.ballance;
+        outputAccount.balance = account.balance;
         return outputAccount;
       } else {
         logger.error('sys', account);
@@ -871,7 +871,7 @@ module.exports = class DatabaseCalls {
     return undefined;
   }
 
-  async getAccountAndTeamByTeamPublicId(publicId) {
+  async getAccountAndTeamIdsByTeamPublicId(publicId) {
     publicId = SharedLib.idUtils.base62ToHex(publicId);
     const result = await this.parameterizedQueryPromise(
       'SELECT account_id, id AS team_id FROM teams WHERE public_id = $1 AND public_id_enabled = true',
