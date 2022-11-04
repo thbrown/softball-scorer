@@ -161,7 +161,9 @@ Each of the top-level schemas described above contain a metadata property at the
 1. Make your changes to the json schema files located in `./shared/schema`.
 1. Define how existing JSON documents should be updated to match your new schema in `./shared/schema/schema-migration.js`
 1. Increment `CURRENT_VERSION` at the top of `./shared/schema/schema-migration.js`
-1. Write your code to use your new schema
+1. If you've added read-only or private fields you may need to write code to convert between different schema types in `./shared/schema/schema-validation.js`
+1. If you've added read-only or private fields you may need to write code to prevent insecure patches in `./src-srv/patch-manager.js`
+1. Write your code to use your new schema!
 
 ### Format/Lint
 

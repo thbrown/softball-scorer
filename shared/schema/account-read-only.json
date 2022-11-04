@@ -1,9 +1,9 @@
 {
   "$id": "http://softball.app/schemas/account-read-only",
   "title": "Account - Read Only",
-  "description": "Account info that can be sent to the frontend/browser/client",
+  "description": "Account info that the frontend/browser/client can't modify through sync/patch",
   "type": "object",
-  "required": ["accountId", "email","emailConfirmed","balance"],
+  "required": ["accountId", "email", "emailConfirmed","balance"],
   "properties": {
     "accountId": {
       "type": "string",

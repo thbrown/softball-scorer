@@ -55,7 +55,7 @@ const useStyles = makeStyles((theme) => {
 const CardImport = () => {
   const { classes } = useStyles();
   const [fileName, setFileName] = React.useState(null);
-  const [loadType, setLoadType] = React.useState('Merge');
+  const [loadType, setLoadType] = React.useState('mine');
   const fileInputRef = React.useRef(null);
   const handleFileInputChange = (ev) => {
     setFileName(ev.target.files[0].name);
@@ -95,27 +95,33 @@ const CardImport = () => {
           return;
         }
 
-        if (loadType === 'Merge') {
-          const diff = SharedLib.objectMerge.diff(
+        if (loadType === 'mine') {
+          const patchToLocal = SharedLib.objectMerge.diff(
+            parsedData,
+            state.getLocalState()
+          );
+          const localToPatch = SharedLib.objectMerge.diff(
             state.getLocalState(),
             parsedData
           );
-          console.log('DIFF', diff);
-          let stateCopy = JSON.parse(JSON.stringify(state.getLocalState()));
-          let something = SharedLib.objectMerge.patch(
-            stateCopy,
-            diff,
+          let copy = JSON.parse(JSON.stringify(parsedData));
+          let patched = SharedLib.objectMerge.patch(
+            copy,
+            patchToLocal,
             true,
             true
           );
-          console.log(something);
-          stateCopy = something; // TODO: we shouldn't have to do this?
-          state.setLocalState(stateCopy);
+          console.log(parsedData);
+          console.log('patchToLocal', patchToLocal);
+          console.log('localToPatch', localToPatch);
+          console.log(patched);
+
+          state.setLocalState(patched);
           dialog.show_notification(
             'Your data has successfully been merged with the existing data.'
           );
           setRoute('/teams');
-        } else if (loadType === 'Overwrite') {
+        } else if (loadType === 'theirs') {
           state.setLocalState(parsedData);
           dialog.show_notification(`Your data has successfully been loaded.`);
           setRoute('/teams');
@@ -132,6 +138,18 @@ const CardImport = () => {
     <Card title="Load from File">
       <CardSection isCentered="true">
         <div style={{ maxWidth: '500px' }}>
+          <div>
+            <b>
+              <div>
+                Import data data that's been downloaded from softball.app's
+                export feature.
+              </div>
+              <div>
+                Any data imported here will be merged with your existing data.
+              </div>
+            </b>
+          </div>
+          <br></br>
           <div className={classes.fileInputContainer}>
             <input
               className={classes.fileInput}
@@ -145,37 +163,41 @@ const CardImport = () => {
               htmlFor="fileData"
               className={'button ' + classes.fileInputButton}
             >
-              {fileName ? fileName : 'Tap to chose a file or drag one here.'}
+              {fileName
+                ? fileName
+                : 'First, tap to choose a file or click-and-drag one here.'}
             </label>
           </div>
+          <div>Next, select what happens in case of a merge conflict:</div>
           <div className={classes.radioButtonsContainer}>
             <div className="radio-button-option">
               <input
-                id="mergeChoice"
+                id="myChoice"
                 type="radio"
                 name="loadType"
-                value="Merge"
+                value="mine"
                 onChange={handleRadioClick}
-                checked={loadType === 'Merge'}
+                checked={loadType === 'mine'}
               />
-              <label className="dark-text" htmlFor="mergeChoice">
-                Merge
+              <label className="dark-text" htmlFor="myChoice">
+                My changes win
               </label>
             </div>
             <div className="radio-button-option">
               <input
-                id="overwriteChoice"
+                id="theirChoice"
                 type="radio"
                 name="loadType"
-                value="Overwrite"
+                value="theirs"
                 onChange={handleRadioClick}
-                checked={loadType === 'Overwrite'}
+                checked={loadType === 'theirs'}
               />
-              <label className="dark-text" htmlFor="overwriteChoice">
-                Overwrite
+              <label className="dark-text" htmlFor="theirChoice">
+                Their changes win
               </label>
             </div>
           </div>
+          <div>Lastly, click the load button to make it official:</div>
           <div className={classes.fileInputContainer}>
             <div
               id="load"

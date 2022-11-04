@@ -571,16 +571,7 @@ module.exports = class SoftballServer {
 
         await lockAccount(accountId);
         try {
-          // First delete all the data
-          let state = await this.databaseCalls.getClientState(accountId);
-          let deletePatch = SharedLib.objectMerge.diff(state, {
-            teams: [],
-            players: [],
-            optimizations: [],
-          });
-          await this.databaseCalls.patchState(deletePatch, accountId);
-
-          // Then delete the account
+          // Delete the account
           await this.databaseCalls.deleteAccount(accountId);
 
           // TODO: Invalidate session somehow?
@@ -1363,8 +1354,13 @@ module.exports = class SoftballServer {
     );
 
     // 404 on unrecognized routes
-    app.use(function () {
-      throw new HandledError('N/A', 404, 'Resource not found');
+    app.use(function (req) {
+      throw new HandledError(
+        'N/A',
+        404,
+        'Resource not found',
+        JSON.stringify(req, null, 2)
+      );
     });
 
     app.use(function (error, req, res, next) {

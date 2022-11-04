@@ -49,6 +49,10 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
       players: [],
       optimizations: [],
       account: newAccount,
+      metadata: {
+        version: SharedLib.schemaMigration.CURRENT_VERSION,
+        scope: 'full',
+      },
     };
     // Verify that there are no existing accounts with same email address
     if (await this.exists(accountId, BlobLocation.EMAIL_LOOKUP, email)) {
@@ -107,26 +111,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
   async getClientState(accountId) {
     let stateBlob = await this._getFullStateBlob(accountId);
     let content = stateBlob.content;
-
-    // Dev schema validation just to see what it looks like
-    content.metadata.scope = 'client';
-    let result = SharedLib.schemaValidation.validateSchemaNoThrow(
-      content,
-      'top-level-client'
-    );
-    logger.dev('n/a', result);
-
-    // TODO: find a way to get these fields automatically from account-private
-    // Maybe we just do a schema validation, loop over the validations and resolve those?
-    delete content.account.passwordHash;
-    delete content.account.passwordTokenHash;
-    delete content.account.passwordTokenExpiration;
-    content.metadata.scope = 'client';
-
-    // Now validate the schema
-    SharedLib.schemaValidation.validateSchema(content, 'top-level-client');
-
-    return content;
+    return SharedLib.schemaValidation.convertDocumentToClient(content);
   }
 
   async _getFullStateBlob(accountId) {

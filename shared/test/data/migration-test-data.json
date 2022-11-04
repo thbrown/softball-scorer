@@ -1,6 +1,13 @@
 {
   "account": {
-    "optimizers": "[2,0,1,4]"
+    "optimizers": "[2,0,1,4]",
+    "accountId": "dh282h3",
+    "email" : "test@softball.app",
+    "emailConfirmed" : true,
+    "balance" : 123,
+    "passwordHash" : "adhlkasfhdajklsdhfkjalhsdf",
+    "passwordTokenHash" : "iewuryhncvkBNSdfiobhasidkfhk",
+    "passwordTokenExpiration" : 1238789450
   },
   "players": [
     {

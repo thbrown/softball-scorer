@@ -2,27 +2,108 @@ const objectMerge = require('../utils/object-merge.js');
 const utils = require('../utils/common-utils');
 
 test('MERGE: Documents are merged when deletes are disabled', () => {
-  var documentA = [{ id: 1 }, { id: 2 }, { id: 3 }];
-  var documentB = [{ id: 3 }, { id: 4 }, { id: 5 }];
-  var patch = objectMerge.diff(documentA, documentB);
+  let documentA = [{ id: 1 }, { id: 2 }, { id: 3 }];
+  let documentB = [{ id: 3 }, { id: 4 }, { id: 5 }];
+  let patch = objectMerge.diff(documentA, documentB);
 
-  let document = objectMerge.patch(documentA, patch, false, true);
+  let document = objectMerge.patch(documentA, patch, true, true);
   expect(document.length).toEqual(5);
 });
 
+test('MERGE: Patch fields win on collision', () => {
+  let documentA = [
+    { id: 1, name: 'Harry' },
+    { id: 2, name: 'Ron' },
+    { id: 3, name: 'Hermione' },
+  ];
+  let documentB = [
+    { id: 3, name: 'Millicent' },
+    { id: 4, name: 'Crab' },
+    { id: 5, name: 'Goyle' },
+  ];
+  let patch = objectMerge.diff(documentA, documentB);
+
+  let document = objectMerge.patch(documentA, patch, true, true);
+  expect(document.length).toEqual(5);
+  expect(document[2].name).toEqual('Millicent');
+});
+
+test('MERGE: Array w/ ids - nested - without existing members', () => {
+  let documentA = { slytherins: [] };
+  let documentB = {
+    slytherins: [
+      { id: 3, name: 'Millicent' },
+      { id: 4, name: 'Crab' },
+      { id: 5, name: 'Goyle' },
+    ],
+  };
+  let patch = objectMerge.diff(documentA, documentB);
+
+  let document = objectMerge.patch(documentA, patch, true, true);
+  expect(Object.keys(document.slytherins).length).toEqual(3);
+});
+
+test('MERGE: Array w/ ids - nested - without existing members - reverse', () => {
+  let documentA = {
+    slytherins: [
+      { id: 3, name: 'Millicent' },
+      { id: 4, name: 'Crab' },
+      { id: 5, name: 'Goyle' },
+    ],
+  };
+  let documentB = { slytherins: [] };
+
+  let patch = objectMerge.diff(documentA, documentB);
+
+  let document = objectMerge.patch(documentA, patch, true, true);
+  expect(Object.keys(document.slytherins).length).toEqual(3);
+});
+
+// Adding to populated array with ids
+// Merging array without ids
+test('MERGE: Array w/ ids - root - without existing members [Empty array bug]', () => {
+  let documentA = [];
+  let documentB = [
+    { id: '~/~3', name: 'Millicent' },
+    { id: '~/~4', name: 'Crab' },
+    { id: '~/~5', name: 'Goyle' },
+  ];
+  let patch = objectMerge.diff(documentA, documentB);
+
+  let document = objectMerge.patch(documentA, patch, true, true);
+  expect(document.length).toEqual(3);
+});
+
+test('MERGE: Existing objects still exist after merge [Empty array bug - merge only]', () => {
+  let documentA = {
+    slytherins: [
+      { id: 3, name: 'Millicent' },
+      { id: 4, name: 'Crab' },
+      { id: 5, name: 'Goyle' },
+    ],
+  };
+  let documentB = {
+    slytherins: [],
+  };
+  let patch = objectMerge.diff(documentA, documentB);
+
+  let document = objectMerge.patch(documentA, patch, true, true);
+  expect(Object.keys(document.slytherins).length).toEqual(3);
+});
+
 test('DELETION: Tolerate edits on objects that do not exist (these should be NO-OPs not errors)', () => {
-  var documentA = {
+  let documentA = {
     1: { name: 'bill' },
     2: { name: 'hill' },
     3: { name: 'boys' },
   };
-  var documentB = {
+  let documentB = {
     1: { name: 'bill' },
     2: { name: 'hill' },
     3: { name: 'bois' },
   };
-  var documentC = { 1: { name: 'bill' }, 2: { name: 'hill' } };
-  var patch = objectMerge.diff(documentA, documentB);
+  let documentC = { 1: { name: 'bill' }, 2: { name: 'hill' } };
+  let patch = objectMerge.diff(documentA, documentB);
   let result = objectMerge.patch(documentC, patch, true);
   expect(result).toEqual(documentC);
 });
@@ -120,19 +201,19 @@ test('Create and restore RFC6902 compatible nested document', () => {
         $A: { _name: 'Matt' },
         $B: { _name: 'Matthew' },
       },
-      '*404': false,
+      _404: false,
     },
     '#427': {
       _names: {
         $A: { _name: 'Mark' },
       },
-      '*404': false,
+      _404: false,
     },
     '#112': {
       _names: {
         $A: { _name: 'Luke' },
       },
-      '*404': false,
+      _404: false,
     },
     '#314': {
       _names: {
@@ -140,12 +221,12 @@ test('Create and restore RFC6902 compatible nested document', () => {
         $B: { _name: 'Johnny' },
         $C: { _name: 'Johnny Boy' },
       },
-      '*404': false,
+      _404: false,
     },
   };
 
   let output = objectMerge._toRFC6902(input);
-  expect(utils.sortJson(output)).toEqual(utils.sortJson(expected));
+  expect(utils.sortJson(expected)).toEqual(utils.sortJson(output));
   output = objectMerge._fromRFC6902(output);
   expect(utils.sortJson(output)).toEqual(utils.sortJson(input));
 });

@@ -3,10 +3,9 @@ const { BlobLocation } = require('./database-calls-abstract-blob-types');
 const SharedLib = require('../shared-lib').default;
 const logger = require('./logger.js');
 
-const Ajv = require('ajv/dist/2020');
-
 const fs = require('fs');
 const path = require('path');
+
 let databaseCallsFileSystem = class DatabaseCallsFileSystem extends DatabaseCallsAbstractBlob {
   constructor(rootDirectory) {
     super();
@@ -80,7 +79,7 @@ let databaseCallsFileSystem = class DatabaseCallsFileSystem extends DatabaseCall
 
       if (result === 'UPDATED') {
         // Check if a schema update is needed, if the schema has been upgraded, write the new data before progressing
-        await this.writeBlob(location, blobName, content, null);
+        await this.writeBlob(accountId, location, blobName, content, null);
         logger.log(accountId, 'Updated schema write-back successful');
       }
 

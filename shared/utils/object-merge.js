@@ -1,6 +1,6 @@
 const commonUtils = require('./common-utils');
 const jsonpatch = require('fast-json-patch');
-const jsonpointer = require('jsonpointer');
+const jsonPointer = require('jsonPointer');
 
 /**
  * JSON patch spec RFC6902 doesn't quite work for us because we are not necessarily applying the patch to the objects we diffed.
@@ -43,6 +43,8 @@ const jsonpointer = require('jsonpointer');
  *
  *  Then we can apply RFC6902 patches, then convert back.
  *
+ *  Note: The difficulty of identifying whether an empty array should be converted to an object or not results in a few special cases described in the code below.
+ *
  * 3) We need to be fault tolerant when applying patches that affect objects that have been deleted.
  *
  *  We solve this by checking all paths in the patch array and removing any operations on paths that that don't exist.
@@ -76,17 +78,27 @@ let patch = function (
   // Convert to RFC6902 compatible document
   toPatch = this._toRFC6902(toPatch, patchObj, toPatch);
 
-  if (skipDeletes) {
-    let updatedPatch = [];
-    // Only perform operations on json elements that exist
-    for (let patchStep of patchObj) {
-      if (patchStep.op !== 'remove') {
-        updatedPatch.push(patchStep);
+  // It's impossible for _toRFC6902(...) to determine if the array is an array of objects with ids or just a regular array, so the function assumes the array is a regular array.
+  // If, in any patch, we are attempting to add properties to an array, we know _toRFC6902(...) made the wrong assumption. So we'll correct that here.
+  for (let patchStep of patchObj) {
+    if (patchStep.op === 'add') {
+      let splitPath = patchStep.path.split('/');
+      let oneUpPath = splitPath.slice(0, -1).join('/');
+      let thingAtPointer = jsonPointer.get(toPatch, oneUpPath);
+      if (Array.isArray(thingAtPointer) && thingAtPointer.length === 0) {
+        let lastPathElement = splitPath[splitPath.length - 1];
+        let firstChar = lastPathElement.substring(0, 1);
+        // These prefixes indicate we should be working with a object (that should have been converted from an array by _toRFC6902(...))
+        if (firstChar === '#' || firstChar === '$') {
+          // It's actually an array of id'd objects! That's represented as an object in RFC6902 format. Fix it.
+          if (oneUpPath.trim() === '') {
+            toPatch = {}; // JSON pointer cant set the root
+          } else {
+            jsonPointer.set(toPatch, oneUpPath, {});
+          }
+        }
       }
-      // TODO: do we need to look for "replace" as well?
     }
-
-    patchObj = updatedPatch;
   }
 
   if (skipOperationOnNonExistent) {
@@ -95,15 +107,69 @@ let patch = function (
       // Keep any add operations
       if (patchStep.op === 'add') {
         updatedPatch.push(patchStep);
+        continue;
       }
+
       // Keep other things if their targets exist
-      if (jsonpointer.get(toPatch, patchStep.path)) {
+      if (jsonPointer.get(toPatch, patchStep.path)) {
         updatedPatch.push(patchStep);
+        continue;
       }
     }
     patchObj = updatedPatch;
   }
 
+  if (skipDeletes) {
+    let updatedPatch = [];
+    // Only perform operations on json elements that exist
+    for (let patchStep of patchObj) {
+      // Don't do any removal or replacements
+      if (patchStep.op === 'remove') {
+        continue;
+      }
+
+      // Same problem as above - It's impossible for _toRFC6902(...) to determine if the array is an array of objects with ids or
+      // just a regular array, so the function assumes the array is a regular array. If we are merging two documents, one with an
+      // array of objects w/ ids and another with an empty array, _toRFC6902(...) will guess wrong and the patch will attempt to
+      // replace our objects with an array. This will get through the merger because the operation is a replace, not a remove.
+      // To solve this, we'll ignore any "replace" op that's trying to put an empty array over an object with $ or # keys.
+      console.log(
+        'FIRST CRITERIA',
+        patchStep,
+        patchStep.op === 'replace',
+        Array.isArray(patchStep.value),
+        patchStep.value.length === 0
+      );
+      if (
+        patchStep.op === 'replace' &&
+        Array.isArray(patchStep.value) &&
+        patchStep.value.length === 0
+      ) {
+        // We'll fail if this doesn't exist, there are no current use cases for skipOperationOnNonExistent=false && skipDeletes=true
+        let destination = jsonPointer.get(toPatch, patchStep.path);
+        let keys = Object.keys(destination);
+        console.log(
+          'SECOND CRITERIA',
+          toPatch,
+          destination,
+          keys,
+          keys.length > 0
+        );
+        if (keys.length > 0) {
+          // Just check the first key. All keys sent through _toRFC6902(...) should have a prefix so this should never fail.
+          if (keys[0][0] === '$' || keys[0][0] === '#') {
+            continue; // No, do not delete my data
+          }
+        }
+      }
+
+      // Everything else is okay
+      updatedPatch.push(patchStep);
+    }
+    patchObj = updatedPatch;
+  }
+
+  console.log('PATCH TO BE APPLIED', patchObj, toPatch);
   const patched = jsonpatch.applyPatch(toPatch, patchObj, false);
   return this._fromRFC6902(patched.newDocument);
 };
@@ -197,7 +263,7 @@ let _isValueValid = function (toCheck, forbiddenKeySet) {
  * $ - converted from an array to object
  * # - converted from an array to object w/ numeric key
  * _ - kept as an object
- * * - kept as an object w/ numeric key
+ * * - kept as an object w/ numeric key [This is a unicorn, keys can not be numeric in JSON, they are all strings]
  */
 let _toRFC6902 = function (input) {
   if (input === undefined || input === null) {
@@ -217,7 +283,7 @@ let _toRFC6902 = function (input) {
       // This is an array of objects with ids, convert the array to an object
       let outputObject = {};
       for (let element of input) {
-        let id = (isNaN(element.id) ? '$' : '#') + element.id;
+        let id = (typeof element.id === 'number' ? '#' : '$') + element.id;
         outputObject[id] = this._toRFC6902(element);
         delete outputObject[id]['_id'];
       }
@@ -230,7 +296,7 @@ let _toRFC6902 = function (input) {
     }
     let outputObject = {};
     for (let key of keys) {
-      let idKey = (isNaN(key) ? '_' : '*') + key;
+      let idKey = (typeof key === 'number' ? '*' : '_') + key; // TODO: remove this, it will always be a string
       outputObject[idKey] = this._toRFC6902(input[key]);
     }
     return outputObject;

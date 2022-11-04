@@ -77,6 +77,7 @@ let updateSchema = function (
           optimization.customOptionsData
         );
         optimization.resultData = JSON.parse(optimization.resultData);
+        optimization.overrideData = JSON.parse(optimization.overrideData);
         optimization.teamList = JSON.parse(optimization.teamList);
         optimization.gameList = JSON.parse(optimization.gameList);
         optimization.playerList = JSON.parse(optimization.playerList);
@@ -85,14 +86,6 @@ let updateSchema = function (
         );
         if (optimization.sendEmail === undefined) {
           optimization.sendEmail = false;
-        }
-      }
-
-      // Update teams (remove read only publicId and publicLinkEnabled for export)
-      if (inputScope === 'export') {
-        for (let team of inputJson.teams) {
-          delete team.publicId;
-          delete team.publicIdEnabled;
         }
       }
 
@@ -105,6 +98,7 @@ let updateSchema = function (
           if (game.scoreThem === null) {
             game.scoreThem = 0;
           }
+          delete game.park;
         }
       }
 
@@ -119,7 +113,22 @@ let updateSchema = function (
         }
       }
 
-      // Update account based on scope (export does not contain any account info)
+      // Update teams (remove read only publicId and publicLinkEnabled for export)
+      if (inputScope === 'export') {
+        for (let team of inputJson.teams) {
+          delete team.publicId;
+          delete team.publicIdEnabled;
+        }
+      }
+
+      // No private info in client
+      if (inputScope === 'client') {
+        delete inputJson.account.passwordHash;
+        delete inputJson.account.passwordTokenHash;
+        delete inputJson.account.passwordTokenExpiration;
+      }
+
+      // No account info at all in export
       if (inputScope === 'export') {
         delete inputJson.account;
       }
@@ -166,4 +175,5 @@ let updateSchema = function (
 
 module.exports = module.exports = {
   updateSchema,
+  CURRENT_VERSION,
 };

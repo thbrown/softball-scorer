@@ -34,6 +34,13 @@
       "type": "integer",
       "description": "Number of runs scored by this team's opponent in this game"
     },
+    "lineup": {
+      "type": "array",
+      "description": "Batting lineup for this game",
+      "items": { 
+        "type": "string"
+      }
+    },
     "lineupType": {
       "type": "integer",
       "description": "The type of the lineup used for this game. Typically this is a team-wide setting but specifying it under games allows for exceptions (e.g. tournaments w/ different rules). Different lineup types have different rules about what makes them valid (e.g. ALTERNATING_GENDER lineup must never bat two males or two females in a row)"
@@ -41,7 +48,11 @@
     "plateAppearances": {
       "type": "array",
       "description": "All plate appearances that occurred during this game",
-      "items": { "$ref": "http://softball.app/schemas/plate-appearance" }
+      "items": { 
+        "type": "object",
+        "unevaluatedProperties": false,
+        "$ref": "http://softball.app/schemas/plate-appearance" 
+      }
     }
   }
 }

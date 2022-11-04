@@ -15,7 +15,11 @@
     "games": {
       "type": "array",
       "description": "All games played by this team",
-      "items": { "$ref": "http://softball.app/schemas/game" }
+      "items": { 
+        "type": "object",
+        "unevaluatedProperties": false,
+        "$ref": "http://softball.app/schemas/game" 
+      }
     }
   }
 }

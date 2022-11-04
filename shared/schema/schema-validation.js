@@ -11,6 +11,7 @@ import * as schemaOptimization from './optimization.json';
 import * as schemaAccount from './account.json';
 import * as schemaAccountPrivate from './account-private.json';
 import * as schemaAccountReadOnly from './account-read-only.json';
+import * as jsonPointer from 'jsonPointer';
 
 const ajv = new Ajv({
   allowUnionTypes: true,
@@ -31,31 +32,86 @@ const ajv = new Ajv({
 });
 
 let validateSchemaNoThrow = function (inputJson, schemaId) {
-  let validateSchema = ajv.getSchema(`http://softball.app/schemas/${schemaId}`);
+  let validateSchemaObj = ajv.getSchema(
+    `http://softball.app/schemas/${schemaId}`
+  );
 
-  if (!validateSchema) {
+  if (!validateSchemaObj) {
     throw new Error('The specified schema does not exist: ' + schemaId);
   }
 
-  const result = validateSchema(inputJson);
+  const result = validateSchemaObj(inputJson);
   if (result == true) {
     return { result: true };
   } else {
-    return { result: false, errors: validateSchema.errors };
+    return { result: false, errors: validateSchemaObj.errors };
   }
 };
 
 let validateSchema = function (inputJson, schemaId) {
   let result = validateSchemaNoThrow(inputJson, schemaId);
-  if (result.errors && result.length > 0) {
-    throw new Error(
-      'Encountered errors during document validation: ' +
-        JSON.stringify(validateSchema.errors)
-    );
+  if (result.errors && result.errors.length > 0) {
+    console.log('Validation result', result);
+    let errorMessage = `Encountered errors during validation on schema ${schemaId}:`;
+
+    // Adding the value at instancePath helps a lot in debugging
+    for (let error of result.errors) {
+      let path = error.instancePath;
+      let valueAtPath = jsonPointer.get(inputJson, path);
+      errorMessage =
+        errorMessage +
+        '\n' +
+        JSON.stringify(error, null, 2) +
+        '\nValue at instancePath: ' +
+        valueAtPath;
+    }
+
+    throw new Error(errorMessage);
   }
+};
+
+let convertDocumentToClient = function (inputJson) {
+  if (inputJson.metadata.scope !== 'full') {
+    throw new Error('Invalid inputJson ' + inputJson.metadata.scope);
+  }
+
+  inputJson.metadata.scope = 'client';
+
+  // No private info in client
+  delete inputJson.account.passwordHash;
+  delete inputJson.account.passwordTokenHash;
+  delete inputJson.account.passwordTokenExpiration;
+
+  validateSchema(inputJson, 'top-level-client');
+  return inputJson;
+};
+
+let convertDocumentToExport = function (inputJson) {
+  if (
+    inputJson.metadata.scope !== 'full' &&
+    inputJson.metadata.scope !== 'client'
+  ) {
+    throw new Error('Invalid inputJson ' + inputJson.metadata.scope);
+  }
+
+  inputJson.metadata.scope = 'export';
+
+  // No read-only fields in team
+  for (let team of inputJson.teams) {
+    delete team.publicId;
+    delete team.publicIdEnabled;
+  }
+
+  // No account info at all in export
+  delete inputJson.account;
+
+  validateSchema(inputJson, 'top-level-export');
+  return inputJson;
 };
 
 module.exports = module.exports = {
   validateSchema,
   validateSchemaNoThrow,
+  convertDocumentToExport,
+  convertDocumentToClient,
 };

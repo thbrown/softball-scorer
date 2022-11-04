@@ -5,6 +5,7 @@ import results from 'plate-appearance-results';
 import { getShallowCopy } from 'utils/functions';
 
 import dialog from 'dialog';
+import { version } from 'process';
 
 const exp = {};
 
@@ -23,7 +24,12 @@ const INITIAL_STATE = {
   teams: [],
   players: [],
   optimizations: [],
+  metadata: {
+    scope: 'client',
+    version: SharedLib.schemaMigration.CURRENT_VERSION,
+  },
 };
+
 const CURRENT_LS_SCHEMA_VERSION = '6';
 const SYNC_DELAY_MS = 10000;
 const SYNC_STATUS_ENUM = Object.freeze({
@@ -366,11 +372,13 @@ exp.getLocalStateChecksum = function () {
 };
 
 exp.setLocalState = function (newState) {
+  SharedLib.schemaValidation.validateSchema(newState, 'top-level-client');
   LOCAL_DB_STATE = newState;
   onEdit();
 };
 
 let setLocalStateNoSideEffects = function (newState) {
+  SharedLib.schemaValidation.validateSchema(newState, 'top-level-client');
   LOCAL_DB_STATE = newState;
 };
 
