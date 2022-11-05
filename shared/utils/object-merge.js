@@ -133,13 +133,6 @@ let patch = function (
       // array of objects w/ ids and another with an empty array, _toRFC6902(...) will guess wrong and the patch will attempt to
       // replace our objects with an array. This will get through the merger because the operation is a replace, not a remove.
       // To solve this, we'll ignore any "replace" op that's trying to put an empty array over an object with $ or # keys.
-      console.log(
-        'FIRST CRITERIA',
-        patchStep,
-        patchStep.op === 'replace',
-        Array.isArray(patchStep.value),
-        patchStep.value.length === 0
-      );
       if (
         patchStep.op === 'replace' &&
         Array.isArray(patchStep.value) &&
@@ -148,13 +141,6 @@ let patch = function (
         // We'll fail if this doesn't exist, there are no current use cases for skipOperationOnNonExistent=false && skipDeletes=true
         let destination = jsonPointer.get(toPatch, patchStep.path);
         let keys = Object.keys(destination);
-        console.log(
-          'SECOND CRITERIA',
-          toPatch,
-          destination,
-          keys,
-          keys.length > 0
-        );
         if (keys.length > 0) {
           // Just check the first key. All keys sent through _toRFC6902(...) should have a prefix so this should never fail.
           if (keys[0][0] === '$' || keys[0][0] === '#') {
@@ -169,7 +155,7 @@ let patch = function (
     patchObj = updatedPatch;
   }
 
-  console.log('PATCH TO BE APPLIED', patchObj, toPatch);
+  //console.log('PATCH TO BE APPLIED', patchObj, toPatch);
   const patched = jsonpatch.applyPatch(toPatch, patchObj, false);
   return this._fromRFC6902(patched.newDocument);
 };

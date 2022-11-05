@@ -30,7 +30,10 @@
       "allOf": [
         { "$ref": "http://softball.app/schemas/account" },
         { "$ref": "http://softball.app/schemas/account-private" },
-        { "$ref": "http://softball.app/schemas/account-read-only" }
+        { 
+          "$ref": "http://softball.app/schemas/account-read-only",
+          "required": ["accountId", "email", "emailConfirmed","balance"]
+        }
       ]
     },
     "players": {

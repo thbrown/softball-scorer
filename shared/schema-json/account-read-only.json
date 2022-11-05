@@ -3,7 +3,6 @@
   "title": "Account - Read Only",
   "description": "Account info that the frontend/browser/client can't modify through sync/patch",
   "type": "object",
-  "required": ["accountId", "email", "emailConfirmed","balance"],
   "properties": {
     "accountId": {
       "type": "string",

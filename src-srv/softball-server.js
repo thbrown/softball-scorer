@@ -657,7 +657,11 @@ module.exports = class SoftballServer {
             //let cleanPatch = SharedLib.objectMerge.diff(stateCopy, state);
 
             // Pass the client's patch to the database to persist its changes
-            logger.log(accountId, 'Client patch ', data.patch);
+            logger.log(
+              accountId,
+              'Client patch. Number of patches: ',
+              data.patch.length
+            );
             await this.databaseCalls.patchState(data.patch, accountId);
             let oldHash = SharedLib.commonUtils.getHash(state);
             state = await this.databaseCalls.getClientState(accountId);

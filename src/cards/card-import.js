@@ -100,10 +100,6 @@ const CardImport = () => {
             parsedData,
             state.getLocalState()
           );
-          const localToPatch = SharedLib.objectMerge.diff(
-            state.getLocalState(),
-            parsedData
-          );
           let copy = JSON.parse(JSON.stringify(parsedData));
           let patched = SharedLib.objectMerge.patch(
             copy,
@@ -111,25 +107,35 @@ const CardImport = () => {
             true,
             true
           );
-          console.log(parsedData);
-          console.log('patchToLocal', patchToLocal);
-          console.log('localToPatch', localToPatch);
-          console.log(patched);
 
           state.setLocalState(patched);
-          dialog.show_notification(
-            'Your data has successfully been merged with the existing data.'
-          );
-          setRoute('/teams');
         } else if (loadType === 'theirs') {
-          state.setLocalState(parsedData);
-          dialog.show_notification(`Your data has successfully been loaded.`);
-          setRoute('/teams');
+          const localToPatch = SharedLib.objectMerge.diff(
+            state.getLocalState(),
+            parsedData
+          );
+          let copy = JSON.parse(JSON.stringify(state.getLocalState()));
+          let patched = SharedLib.objectMerge.patch(
+            copy,
+            localToPatch,
+            true,
+            true
+          );
+
+          // Changes in the patch win, so we need changes this from "export" to "client" manually
+          patched.metadata.scope = 'client';
+
+          state.setLocalState(patched);
         } else {
           dialog.show_notification(
             'Please select load type option before clicking "Load".'
           );
+          return;
         }
+        dialog.show_notification(
+          'Your data has successfully been merged with the existing data.'
+        );
+        setRoute('/teams');
       };
       reader.readAsText(file);
     }

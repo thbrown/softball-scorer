@@ -1,16 +1,16 @@
 import Ajv from 'ajv/dist/2020';
-import * as schemaFull from './top-level-full.json';
-import * as schemaClient from './top-level-client.json';
-import * as schemaExport from './top-level-export.json';
-import * as schemaPlayer from './player.json';
-import * as schemaTeam from './team.json';
-import * as schemaTeamReadOnly from './team-read-only.json';
-import * as schemaGame from './game.json';
-import * as schemaPlateAppearance from './plate-appearance.json';
-import * as schemaOptimization from './optimization.json';
-import * as schemaAccount from './account.json';
-import * as schemaAccountPrivate from './account-private.json';
-import * as schemaAccountReadOnly from './account-read-only.json';
+import * as schemaFull from '../schema-json/top-level-full.json';
+import * as schemaClient from '../schema-json/top-level-client.json';
+import * as schemaExport from '../schema-json/top-level-export.json';
+import * as schemaPlayer from '../schema-json/player.json';
+import * as schemaTeam from '../schema-json/team.json';
+import * as schemaTeamReadOnly from '../schema-json/team-read-only.json';
+import * as schemaGame from '../schema-json/game.json';
+import * as schemaPlateAppearance from '../schema-json/plate-appearance.json';
+import * as schemaOptimization from '../schema-json/optimization.json';
+import * as schemaAccount from '../schema-json/account.json';
+import * as schemaAccountPrivate from '../schema-json/account-private.json';
+import * as schemaAccountReadOnly from '../schema-json/account-read-only.json';
 import * as jsonPointer from 'jsonPointer';
 
 const ajv = new Ajv({

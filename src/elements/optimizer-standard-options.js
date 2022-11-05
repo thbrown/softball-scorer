@@ -61,7 +61,7 @@ export default class OptimizerStandardOptions extends React.Component {
       state.setOptimizationField(
         this.props.optimizationId,
         'lineupType',
-        value
+        parseInt(value)
       );
     }.bind(this);
 
@@ -70,7 +70,7 @@ export default class OptimizerStandardOptions extends React.Component {
       state.setOptimizationField(
         this.props.optimizationId,
         'optimizerType',
-        newOptimizerId
+        parseInt(newOptimizerId)
       );
     }.bind(this);
 
@@ -87,7 +87,7 @@ export default class OptimizerStandardOptions extends React.Component {
     for (const id in this.props.optimizerData) {
       optimizerOptions.push({
         label: this.props.optimizerData[id].name,
-        value: id,
+        value: parseInt(id),
       });
     }
 
@@ -123,12 +123,12 @@ export default class OptimizerStandardOptions extends React.Component {
             initialValue={this.props.lineupType}
             onChange={this.onLineupChange}
             values={[
-              { label: 'Normal', value: '0' },
-              { label: 'Alternating Gender', value: '1' },
-              { label: 'No Consecutive Females', value: '2' },
+              { label: 'Normal', value: 0 },
+              { label: 'Alternating Gender', value: 1 },
+              { label: 'No Consecutive Females', value: 2 },
               {
                 label: 'No Consecutive Females and No Three Consecutive Males',
-                value: '3',
+                value: 3,
               },
             ]}
             disabled={this.props.disabled}
