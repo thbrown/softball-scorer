@@ -251,6 +251,32 @@ module.exports = class SoftballServer {
       })
     );
 
+    app.post(
+      '/server/team-stats/edit',
+      wrapForErrorProcessing(async (req, res, next) => {
+        checkRequiredField(req.body.value, 'value');
+        checkRequiredField(req.body.teamId, 'teamId');
+        if (!req.isAuthenticated()) {
+          res.status(403).send();
+          return;
+        }
+        let accountId = extractSessionInfo(req, 'accountId');
+        logger.log(
+          accountId,
+          'Updating team publicId info',
+          req.body.teamId,
+          req.body.value
+        );
+
+        await this.databaseCalls.togglePublicTeam(
+          accountId,
+          req.body.teamId,
+          req.body.value
+        );
+        res.status(204).send();
+      })
+    );
+
     app.get(
       '/server/team-stats/:publicTeamId',
       wrapForErrorProcessing(async (req, res) => {
@@ -483,37 +509,41 @@ module.exports = class SoftballServer {
     );
 
     app.post(
-      '/server/account/verify-email',
+      '/server/account/send-verification-email',
       wrapForErrorProcessing(async (req, res, next) => {
-        checkFieldLength(req.body.token, 320);
-        let token = req.body.token;
-        let tokenHash = crypto
-          .createHash('sha256')
-          .update(token)
-          .digest('base64')
-          .replace(/\//g, '_');
-        console.log('token', token);
-        let account = await this.databaseCalls.getAccountFromTokenHash(
-          tokenHash
-        );
-        if (account) {
-          logger.log(
-            account.accountId,
-            'Email verification received. Token',
-            req.body.token
-          );
-          await this.databaseCalls.confirmEmail(account.accountId);
+        if (!req.isAuthenticated()) {
+          res.status(403).send();
+          return;
+        }
 
-          // Don't log in automatically (for security over usability, is this woth the tradeoff?)
-          // logIn(account, req, res);
-          res.status(204).send();
-        } else {
-          logger.warn(
-            null,
-            'Could not find account from reset token',
-            req.body.token
+        let accountId = extractSessionInfo(req, 'accountId');
+        let accountInfo = await this.databaseCalls.getAccountById(accountId);
+        let emailHasBeenValidated = accountInfo.verifiedEmail;
+
+        if (emailHasBeenValidated) {
+          logger.log(
+            accountId,
+            `Not sending account verification email because email has already been verified`
           );
-          res.status(404).send();
+          res.status(400).send();
+        } else {
+          logger.log(
+            accountId,
+            `Sending account verification email per user request`
+          );
+
+          // Email verification token
+          let token = await generateToken();
+          await sendEmailValidationEmail(accountId, accountInfo.email, token);
+
+          // Save the token's hash to the db so we can verify it after the link in the email is clicked
+          let tokenHash = crypto
+            .createHash('sha256')
+            .update(token)
+            .digest('base64')
+            .replace(/\//g, '_');
+          this.databaseCalls.setPasswordTokenHash(accountId, tokenHash);
+          res.status(204).send();
         }
       })
     );
@@ -743,7 +773,8 @@ module.exports = class SoftballServer {
                 logger.warn(
                   accountId,
                   'State',
-                  SharedLib.commonUtils.getObjectString(state.getLocalState)
+                  SharedLib.commonUtils.getObjectString(state),
+                  JSON.stringify(state, null, 2)
                 );
               }
 
@@ -1363,7 +1394,25 @@ module.exports = class SoftballServer {
         'N/A',
         404,
         'Resource not found',
-        JSON.stringify(req, null, 2)
+        JSON.stringify(
+          {
+            headers: req.headers,
+            method: req.method,
+            url: req.url,
+            httpVersion: req.httpVersion,
+            body: req.body,
+            //cookies: req.cookies,
+            path: req.path,
+            protocol: req.protocol,
+            query: req.query,
+            hostname: req.hostname,
+            ip: req.ip,
+            originalUrl: req.originalUrl,
+            params: req.params,
+          },
+          null,
+          2
+        )
       );
     });
 
@@ -1457,7 +1506,7 @@ module.exports = class SoftballServer {
     }
 
     function checkRequiredField(field, fieldName) {
-      if (!field || field.trim().length === 0) {
+      if (field === undefined || field.toString().trim().length === 0) {
         throw new HandledError(
           'N/A',
           400,

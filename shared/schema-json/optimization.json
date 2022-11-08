@@ -37,7 +37,16 @@
     },
     "overrideData": {
       "type": "object",
-      "description": "Synthetic game data that will be used by the optimization instead of a players historical data. This is useful for when there is a new player without any historical data. "
+      "description": "Synthetic game data that will be used by the optimization instead of a players historical data. This is useful for when there is a new player without any historical data. ",
+      "additionalProperties": {
+        "type": "array",
+        "description": "Plate appearances for a particular player",
+        "items": { 
+          "type": "object",
+          "unevaluatedProperties": false,
+          "$ref": "http://softball.app/schemas/plate-appearance" 
+        }
+      }
     },
     "status": {
       "type": "integer",

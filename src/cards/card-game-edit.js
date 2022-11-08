@@ -92,6 +92,11 @@ export default class CardGameEdit extends React.Component {
           <div style={{ margin: '1rem' }}>
             <b>- No Consecutive Females</b> Females may not bat back-to-back.
           </div>
+          <div style={{ margin: '1rem' }}>
+            <b>- No Consecutive Females and No Three Consecutive Males</b>{' '}
+            Females may not bat back-to-back and three males may not bat in a
+            row.
+          </div>
         </div>,
         undefined
       );

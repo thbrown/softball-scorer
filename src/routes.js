@@ -484,7 +484,7 @@ routes = {
       const optimization = state.getOptimization(optimizationId);
       const player = state.getPlayer(playerId);
 
-      // TODO: getting both a plate appearance and the plate appearances results in unnecessary parsing and un-parsing of json
+      // TODO: getting both a plate appearance and the plate appearances results is unnecessary parsing and un-parsing of json
       const plateAppearances = state.getOptimizationOverridesForPlayer(
         optimizationId,
         playerId

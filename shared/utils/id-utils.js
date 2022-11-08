@@ -36,11 +36,11 @@ exports.base62ToHex = function (hex) {
   return bs62.decode(hex).toString('hex');
 };
 
-exports.random64BitId = async function () {
+exports.randomNBitId = async function (n = 64) {
   return new Promise((resolve, reject) => {
     // 64 bits should allow us 100s of millions of non-colliding ids
     // https://preshing.com/20110504/hash-collision-probabilities/
-    crypto.randomBytes(8, function (err, buffer) {
+    crypto.randomBytes(n / 8, function (err, buffer) {
       resolve(bs62.encode(buffer));
     });
   });

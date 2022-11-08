@@ -721,7 +721,9 @@ export default class CardOptimization extends React.Component {
       // What if there are not games/teams selected?
       if (allTeams.length === 0) {
         teamsCheckboxes.push(
-          <i key="no-games">You haven't added any teams yet!</i>
+          <div style={{ padding: '8px' }}>
+            <i key="no-games">You haven't scored any games yet!</i>
+          </div>
         );
       }
 

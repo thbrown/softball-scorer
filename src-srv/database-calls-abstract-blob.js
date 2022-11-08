@@ -1,6 +1,8 @@
 const HandledError = require('./handled-error.js');
 const logger = require('./logger.js');
 const SharedLib = require('../shared-lib').default;
+const TLSchemas = require('../shared-lib').default.schemaValidation.TLSchemas;
+
 const { BlobLocation } = require('./database-calls-abstract-blob-types');
 const PatchManager = require('./patch-manager');
 
@@ -33,7 +35,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
   }
 
   async signup(email, passwordHash, passwordTokenHash) {
-    let accountId = await SharedLib.idUtils.random64BitId();
+    let accountId = await SharedLib.idUtils.randomNBitId();
     const newAccount = {
       accountId: accountId,
       email: email,
@@ -77,7 +79,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
 
   async getAccountFromEmail(email) {
     let emailLookupBlob = await this.readBlob(
-      accountId,
+      null, // We don't know
       BlobLocation.EMAIL_LOOKUP,
       email
     );
@@ -88,11 +90,12 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     let dataBlob = await this.readBlob(accountId, BlobLocation.DATA, accountId);
     return dataBlob.content.account;
   }
+
   // Returns undefined if data does not exist
   async getAccountAndTeamIdsByTeamPublicId(publicId) {
     try {
       let publicIdLookupBlob = await this.readBlob(
-        accountId,
+        null, // We don't know
         BlobLocation.PUBLIC_ID_LOOKUP,
         publicId
       );
@@ -112,6 +115,56 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     let stateBlob = await this._getFullStateBlob(accountId);
     let content = stateBlob.content;
     return SharedLib.schemaValidation.convertDocumentToClient(content);
+  }
+
+  /**
+   * Get the client state for a particular team, used for the public stats page.
+   *
+   * Result construction is deliberately additive, so we don't expose unnecessary information as we add new things.
+   */
+  async getClientStateForTeam(accountId, teamId) {
+    // This result might be worth caching
+    // TODO: We are leaking schema details here, creating more places that may need to change if the schema changes
+    // We may need a common way to get empty shells for each top-level schema we have
+    let result = {
+      account: {
+        optimizers: [],
+      }, // TODO: we don't need account info here. Perhaps this requires a different top-level schema?
+      players: [],
+      teams: [],
+      optimizations: [],
+    };
+    let wholeClientState = await this.getClientState(accountId);
+
+    // Copy metadata
+    result.metadata = wholeClientState.metadata;
+
+    // Copy target team
+    let targetTeam = null;
+    for (let team of wholeClientState.teams) {
+      if (team.id === teamId) {
+        targetTeam = team;
+        break;
+      }
+    }
+    result.teams.push(targetTeam);
+
+    // Copy over all players who have had at least one plate appearance for a game on this team
+    let playerSet = new Set();
+    for (let game of targetTeam.games) {
+      for (let pa of game.plateAppearances) {
+        playerSet.add(pa.playerId);
+      }
+    }
+    for (let player of wholeClientState.players) {
+      if (playerSet.has(player.id)) {
+        result.players.push(player);
+      }
+    }
+
+    // Validate and return
+    SharedLib.schemaValidation.validateSchema(result, TLSchemas.CLIENT);
+    return result;
   }
 
   async _getFullStateBlob(accountId) {
@@ -140,7 +193,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
 
   async getAccountFromTokenHash(passwordTokenHash) {
     let tokenLookupJSONString = await this.readBlob(
-      accountId,
+      null, // We don't know
       BlobLocation.TOKEN_LOOKUP,
       passwordTokenHash
     );
@@ -281,8 +334,6 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     let state = stateBlob.content;
     for (let i = 0; i < state.optimizations.length; i++) {
       if (state.optimizations[i].id === optimizationId) {
-        // Postgres converts to stringified data on read, there is no such logic for static, so we'll just store it as a stringified object.
-        // No need to stringify execution data because that stays on the server side.
         state.optimizations[i].resultData = newResults;
         await this.writeBlob(
           accountId,
@@ -339,6 +390,38 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
       accountId,
       `no optimization found - getOptimizationDetails ${optimizationId}`
     );
+  }
+
+  async togglePublicTeam(accountId, teamId, value) {
+    logger.log(accountId, 'toggling public team', teamId, value);
+    let stateBlob = await this._getFullStateBlob(accountId);
+    let state = stateBlob.content;
+    for (let i = 0; i < state.teams.length; i++) {
+      let team = state.teams[i];
+      if (team.id === teamId) {
+        team.publicIdEnabled = value;
+        // Generate an id if needed
+        if (team.publicId === undefined) {
+          logger.log(accountId, 'generating team public id', teamId, value);
+          let generatedPublicId = await SharedLib.idUtils.randomNBitId(128);
+          await this.writeBlob(
+            accountId,
+            BlobLocation.PUBLIC_ID_LOOKUP,
+            generatedPublicId,
+            { accountId, teamId }
+          );
+          team.publicId = generatedPublicId;
+        }
+        await this.writeBlob(
+          accountId,
+          BlobLocation.DATA,
+          accountId,
+          state,
+          stateBlob.generation
+        );
+        return;
+      }
+    }
   }
 
   disconnect() {

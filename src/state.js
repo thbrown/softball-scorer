@@ -5,7 +5,7 @@ import results from 'plate-appearance-results';
 import { getShallowCopy } from 'utils/functions';
 
 import dialog from 'dialog';
-import { version } from 'process';
+const TLSchemas = SharedLib.schemaValidation.TLSchemas;
 
 const exp = {};
 
@@ -186,7 +186,7 @@ exp.sync = async function (fullSync) {
         // Patch was sent, apply the patch to a copy of the local state
         console.log(`[SYNC] Applying patch (${serverState.patch.length})`);
 
-        SharedLib.objectMerge.patch(
+        localStateCopyPreRequest = SharedLib.objectMerge.patch(
           localStateCopyPreRequest,
           serverState.patch
         );
@@ -209,19 +209,21 @@ exp.sync = async function (fullSync) {
       if (ancestorHash !== serverState.checksum) {
         if (fullSync) {
           // Something went wrong after trying a full sync, we probably can't do anything about it!
-          // serverState.base should have contained a verbatium copy of what the server has, so this is weird.
+          // serverState.base should have contained a verbatim copy of what the server has, so this is weird.
           console.log(
             '[SYNC] Yikes! Something went wrong while attempting full sync'
           );
           console.log(
+            'Client calculated',
             SharedLib.commonUtils.getHash(state.getAncestorState()),
+            'Server has',
             SharedLib.commonUtils.getHash(serverState.base)
           );
 
+          console.log(JSON.stringify(state.getAncestorState(), null, 2));
           console.log(
             SharedLib.commonUtils.getObjectString(state.getAncestorState())
           );
-          console.log(SharedLib.commonUtils.getObjectString(serverState.base));
 
           // Set the state back to what it was when we first did a sync
           state.setAncestorState(ancestorStateCopy);
@@ -233,12 +235,14 @@ exp.sync = async function (fullSync) {
             '[SYNC] Something went wrong while attempting patch sync'
           );
           console.warn(
-            SharedLib.commonUtils.getHash(state.getLocalState),
+            SharedLib.commonUtils.getHash(state.getLocalState()),
             serverState.checksum
           );
 
           console.warn(
-            SharedLib.commonUtils.getObjectString(state.getLocalState)
+            SharedLib.commonUtils.getObjectString(
+              JSON.stringify(state.getLocalState(), null, 2)
+            )
           );
 
           // Set the state back to what it was when we first did a sync
@@ -255,7 +259,7 @@ exp.sync = async function (fullSync) {
       let newLocalState = JSON.parse(JSON.stringify(state.getAncestorState()));
 
       // Apply any changes that were made during the request to the new local state (Presumably this will be a no-op most times)
-      SharedLib.objectMerge.patch(
+      newLocalState = SharedLib.objectMerge.patch(
         newLocalState,
         localChangesDuringRequest,
         true
@@ -372,13 +376,13 @@ exp.getLocalStateChecksum = function () {
 };
 
 exp.setLocalState = function (newState) {
-  SharedLib.schemaValidation.validateSchema(newState, 'top-level-client');
+  SharedLib.schemaValidation.validateSchema(newState, TLSchemas.CLIENT);
   LOCAL_DB_STATE = newState;
   onEdit();
 };
 
 let setLocalStateNoSideEffects = function (newState) {
-  SharedLib.schemaValidation.validateSchema(newState, 'top-level-client');
+  SharedLib.schemaValidation.validateSchema(newState, TLSchemas.CLIENT);
   LOCAL_DB_STATE = newState;
 };
 
@@ -432,16 +436,6 @@ exp.removeTeam = function (team_id) {
     return team.id !== team_id;
   });
   onEdit();
-};
-
-exp.setTeamPublicIdEnabled = function (teamId, isEnabled) {
-  // TODO
-  throw new Error(
-    'This should be done via a direct database call, not set in the state and sent to server vis patch'
-  );
-  //const team = exp.getTeam(teamId);
-  //team.publicIdEnabled = isEnabled;
-  //onEdit();
 };
 
 exp.getAllTeams = function () {
@@ -1110,14 +1104,22 @@ exp.saveDbStateToLocalStorage = function () {
     let compressedLocalState = LZString.compress(
       JSON.stringify(LOCAL_DB_STATE)
     );
-    let compressedAncesorState = LZString.compress(
+    let compressedAncestorState = LZString.compress(
       JSON.stringify(ANCESTOR_DB_STATE)
     );
 
     localStorage.setItem("SCHEMA_VERSION", CURRENT_LS_SCHEMA_VERSION);
     localStorage.setItem("LOCAL_DB_STATE", compressedLocalState);
-    localStorage.setItem("ANCESTOR_DB_STATE", compressedAncesorState);
+    localStorage.setItem("ANCESTOR_DB_STATE", compressedAncestorState);
     */
+    console.log(
+      'VALIDATING',
+      SharedLib.schemaValidation.validateSchemaNoThrow(
+        LOCAL_DB_STATE,
+        TLSchemas.CLIENT
+      )
+    );
+    SharedLib.schemaValidation.validateSchema(LOCAL_DB_STATE, TLSchemas.CLIENT);
 
     localStorage.setItem('SCHEMA_VERSION', CURRENT_LS_SCHEMA_VERSION);
     localStorage.setItem('LOCAL_DB_STATE', JSON.stringify(LOCAL_DB_STATE));
@@ -1140,22 +1142,13 @@ exp.saveApplicationStateToLocalStorage = function () {
   }
 };
 
-exp.loadStateFromLocalStorage = function () {
+exp.loadStateFromLocalStorage = function (
+  local = true,
+  ancestor = true,
+  app = true
+) {
   if (typeof Storage !== 'undefined') {
     // These statements define local storage schema migrations
-    // TODO: this logic also needs to be executed when importing a file
-    if (localStorage.getItem('SCHEMA_VERSION') === '5') {
-      // Added optimizations
-      console.log('Upgrading localstorage from version 5 to version 6');
-      let localState = JSON.parse(localStorage.getItem('LOCAL_DB_STATE'));
-      localState['optimizations'] = [];
-      let ancestorState = JSON.parse(localStorage.getItem('ANCESTOR_DB_STATE'));
-      ancestorState['optimizations'] = [];
-      localStorage.setItem('SCHEMA_VERSION', '6');
-      localStorage.setItem('LOCAL_DB_STATE', JSON.stringify(localState));
-      localStorage.setItem('ANCESTOR_DB_STATE', JSON.stringify(ancestorState));
-    }
-
     if (localStorage.getItem('SCHEMA_VERSION') !== CURRENT_LS_SCHEMA_VERSION) {
       console.log(
         `Removing invalid localStorage data ${localStorage.getItem(
@@ -1168,33 +1161,33 @@ exp.loadStateFromLocalStorage = function () {
     }
 
     let localDbState = localStorage.getItem('LOCAL_DB_STATE');
-    if (localDbState) {
-      // LOCAL_DB_STATE = JSON.parse(LZString.decompress(localDbState));
+    if (local && localDbState) {
       LOCAL_DB_STATE = JSON.parse(localDbState);
     }
 
     let ancestorDbState = localStorage.getItem('ANCESTOR_DB_STATE');
-    if (ancestorDbState) {
-      // ANCESTOR_DB_STATE = JSON.parse(LZString.decompress(ancestorDbState));
+    if (ancestor && ancestorDbState) {
       ANCESTOR_DB_STATE = JSON.parse(ancestorDbState);
     }
 
-    let applicationState = JSON.parse(
-      localStorage.getItem('APPLICATION_STATE')
-    );
-    if (applicationState) {
-      online = applicationState.online ? applicationState.online : true;
-      sessionValid = applicationState.sessionValid
-        ? applicationState.sessionValid
-        : false;
-      activeUser = applicationState.activeUser
-        ? applicationState.activeUser
-        : null;
-    } else {
-      console.log('Tried to load null, falling back to defaults');
-      online = true;
-      sessionValid = false;
-      activeUser = null;
+    if (app) {
+      let applicationState = JSON.parse(
+        localStorage.getItem('APPLICATION_STATE')
+      );
+      if (applicationState) {
+        online = applicationState.online ? applicationState.online : true;
+        sessionValid = applicationState.sessionValid
+          ? applicationState.sessionValid
+          : false;
+        activeUser = applicationState.activeUser
+          ? applicationState.activeUser
+          : null;
+      } else {
+        console.log('Tried to load null, falling back to defaults');
+        online = true;
+        sessionValid = false;
+        activeUser = null;
+      }
     }
   }
 
@@ -1210,7 +1203,13 @@ exp.clearLocalStorage = function () {
 
 function onEdit() {
   reRender();
-  exp.saveDbStateToLocalStorage();
+  try {
+    exp.saveDbStateToLocalStorage();
+  } catch (e) {
+    console.warn('Could not persist edit locally, restoring. ', e);
+    exp.loadStateFromLocalStorage(true, false, false);
+    reRender();
+  }
   exp.scheduleSync();
 }
 

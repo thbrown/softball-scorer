@@ -2,6 +2,7 @@ const DatabaseCallsAbstractBlob = require('./database-calls-abstract-blob');
 const { BlobLocation } = require('./database-calls-abstract-blob-types');
 const SharedLib = require('../shared-lib').default;
 const logger = require('./logger.js');
+const TLSchemas = SharedLib.schemaValidation.TLSchemas;
 
 const fs = require('fs');
 const path = require('path');
@@ -51,7 +52,7 @@ let databaseCallsFileSystem = class DatabaseCallsFileSystem extends DatabaseCall
     let targetLocation = this.blobMap[location];
     // Validate schema before write
     if (location === BlobLocation.DATA) {
-      SharedLib.schemaValidation.validateSchema(content, 'top-level-full');
+      SharedLib.schemaValidation.validateSchema(content, TLSchemas.FULL);
     }
     // Now write the actual file
     fs.writeFileSync(
@@ -84,7 +85,7 @@ let databaseCallsFileSystem = class DatabaseCallsFileSystem extends DatabaseCall
       }
 
       // Validate schema after read
-      SharedLib.schemaValidation.validateSchema(content, 'top-level-full');
+      SharedLib.schemaValidation.validateSchema(content, TLSchemas.FULL);
     }
 
     return {

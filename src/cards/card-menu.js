@@ -8,6 +8,7 @@ import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
 import HrTitle from 'elements/hr-title';
 import Chip from 'elements/chip';
+import SharedLib from '../../shared-lib';
 
 class CardMenu extends Component {
   constructor(props) {
@@ -130,10 +131,12 @@ class CardMenu extends Component {
 
     this.handleSaveClick = function () {
       const today = new Date().getTime();
-      const blob = new Blob([JSON.stringify(state.getLocalState(), null, 2)], {
+      const clientData = state.getLocalState();
+      const exportData =
+        SharedLib.schemaValidation.convertDocumentToExport(clientData);
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
         type: 'text/plain;charset=utf-8',
       });
-      blob = SharedLib.schemaValidation.convertDocumentToExport(content);
       FileSaver.saveAs(blob, 'save' + today + '.json');
     };
 

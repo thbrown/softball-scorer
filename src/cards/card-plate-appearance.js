@@ -96,7 +96,7 @@ class CardPlateAppearance extends React.Component {
     this.handleConfirmClick = () => {
       const newPa = buildPlateAppearance();
       this.props.replace(newPa);
-      setRoute(`/teams/${props.team.id}/games/${props.game.id}`);
+      goBack();
     };
 
     this.handleCancelClick = function () {

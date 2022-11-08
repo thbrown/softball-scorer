@@ -13,6 +13,12 @@ import * as schemaAccountPrivate from '../schema-json/account-private.json';
 import * as schemaAccountReadOnly from '../schema-json/account-read-only.json';
 import * as jsonPointer from 'jsonPointer';
 
+const TLSchemas = {
+  EXPORT: 'top-level-export',
+  CLIENT: 'top-level-client',
+  FULL: 'top-level-full',
+};
+
 const ajv = new Ajv({
   allowUnionTypes: true,
   schemas: [
@@ -63,7 +69,9 @@ let validateSchema = function (inputJson, schemaId) {
         '\n' +
         JSON.stringify(error, null, 2) +
         '\nValue at instancePath: ' +
-        valueAtPath;
+        valueAtPath +
+        ' of type ' +
+        typeof valueAtPath;
     }
 
     throw new Error(errorMessage);
@@ -82,7 +90,7 @@ let convertDocumentToClient = function (inputJson) {
   delete inputJson.account.passwordTokenHash;
   delete inputJson.account.passwordTokenExpiration;
 
-  validateSchema(inputJson, 'top-level-client');
+  validateSchema(inputJson, TLSchemas.CLIENT);
   return inputJson;
 };
 
@@ -105,7 +113,7 @@ let convertDocumentToExport = function (inputJson) {
   // No account info at all in export
   delete inputJson.account;
 
-  validateSchema(inputJson, 'top-level-export');
+  validateSchema(inputJson, TLSchemas.EXPORT);
   return inputJson;
 };
 
@@ -114,4 +122,5 @@ module.exports = module.exports = {
   validateSchemaNoThrow,
   convertDocumentToExport,
   convertDocumentToClient,
+  TLSchemas,
 };

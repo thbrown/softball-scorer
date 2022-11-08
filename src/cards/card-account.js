@@ -81,7 +81,7 @@ export default class CardAccount extends Component {
           let buttonDiv = document.getElementById('delete-account');
           buttonDiv.classList.add('disabled');
 
-          let response = await state.request('DELETE', '/server/account');
+          let response = await state.request('DELETE', 'server/account');
           let message;
           if (response.status === 204) {
             message = 'Your account has been deleted.';
@@ -108,11 +108,10 @@ export default class CardAccount extends Component {
     };
   }
 
-  // TODO: only have this if account email is not verified
   render() {
     const MAX_LOCAL_STORAGE = 5000; // To keep cross-browser behavior consistent, we'll lock this at 5MB, some browsers can do more
     let localStorageUsage = state.getLocalStorageUsage();
-    console.log(localStorageUsage);
+    //console.log(localStorageUsage);
     return (
       <Card title="Account">
         <HrTitle title="Storage"></HrTitle>

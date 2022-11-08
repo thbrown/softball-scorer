@@ -1,6 +1,8 @@
 let fs = require('fs');
 const schemaValidation = require('../../shared-lib').default.schemaValidation;
 const schemaMigration = require('../../shared-lib').default.schemaMigration;
+const TLSchemas =
+  require('../../shared-lib').default.schemaValidation.TLSchemas;
 
 let deepCopy = function (input) {
   return JSON.parse(JSON.stringify(input));
@@ -24,7 +26,7 @@ describe('migration', () => {
     }
 
     // Now validate the schema
-    schemaValidation.validateSchema(content, 'top-level-export');
+    schemaValidation.validateSchema(content, TLSchemas.EXPORT);
   });
 });
 
@@ -47,7 +49,7 @@ describe('Validation', () => {
       },
       metadata: { version: 1, scope: 'full' },
     };
-    schemaValidation.validateSchema(document, 'top-level-full');
+    schemaValidation.validateSchema(document, TLSchemas.FULL);
   });
 
   test('Account must not contain extra properties', async () => {
@@ -60,7 +62,7 @@ describe('Validation', () => {
     let content = deepCopy(stringContent);
     content.account.rubbish = 1238789450;
     schemaMigration.updateSchema(null, content, 'full');
-    let r = schemaValidation.validateSchemaNoThrow(content, 'top-level-full');
+    let r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.FULL);
     expect(r.result).toEqual(false);
     expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
 
@@ -68,7 +70,7 @@ describe('Validation', () => {
     content = deepCopy(stringContent);
     content.account.rubbish = 1238789450;
     schemaMigration.updateSchema(null, content, 'client');
-    r = schemaValidation.validateSchemaNoThrow(content, 'top-level-client');
+    r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.CLIENT);
     expect(r.result).toEqual(false);
     expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
 
@@ -85,7 +87,7 @@ describe('Validation', () => {
     let content = deepCopy(stringContent);
     content.optimizations[0].rubbish = 1238789450;
     schemaMigration.updateSchema(null, content, 'full');
-    let r = schemaValidation.validateSchemaNoThrow(content, 'top-level-full');
+    let r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.FULL);
     expect(r.result).toEqual(false);
     expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
 
@@ -93,7 +95,7 @@ describe('Validation', () => {
     content = deepCopy(stringContent);
     content.optimizations[0].rubbish = 1238789450;
     schemaMigration.updateSchema(null, content, 'client');
-    r = schemaValidation.validateSchemaNoThrow(content, 'top-level-client');
+    r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.CLIENT);
     expect(r.result).toEqual(false);
     expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
 
@@ -101,7 +103,7 @@ describe('Validation', () => {
     content = deepCopy(stringContent);
     content.optimizations[0].rubbish = 1238789450;
     schemaMigration.updateSchema(null, content, 'export');
-    r = schemaValidation.validateSchemaNoThrow(content, 'top-level-export');
+    r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.EXPORT);
     expect(r.result).toEqual(false);
     expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
   });
@@ -116,7 +118,7 @@ describe('Validation', () => {
     let content = deepCopy(stringContent);
     content.teams[0].rubbish = 1238789450;
     schemaMigration.updateSchema(null, content, 'full');
-    let r = schemaValidation.validateSchemaNoThrow(content, 'top-level-full');
+    let r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.FULL);
     expect(r.result).toEqual(false);
     expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
 
@@ -124,7 +126,7 @@ describe('Validation', () => {
     content = deepCopy(stringContent);
     content.teams[0].rubbish = 1238789450;
     schemaMigration.updateSchema(null, content, 'client');
-    r = schemaValidation.validateSchemaNoThrow(content, 'top-level-client');
+    r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.CLIENT);
     expect(r.result).toEqual(false);
     expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
 
@@ -132,7 +134,7 @@ describe('Validation', () => {
     content = deepCopy(stringContent);
     content.teams[0].rubbish = 1238789450;
     schemaMigration.updateSchema(null, content, 'export');
-    r = schemaValidation.validateSchemaNoThrow(content, 'top-level-export');
+    r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.EXPORT);
     expect(r.result).toEqual(false);
     expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
   });
@@ -147,7 +149,7 @@ describe('Validation', () => {
     let content = deepCopy(stringContent);
     content.teams[0].games[0].rubbish = 1238789450;
     schemaMigration.updateSchema(null, content, 'full');
-    let r = schemaValidation.validateSchemaNoThrow(content, 'top-level-full');
+    let r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.FULL);
     expect(r.result).toEqual(false);
     expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
 
@@ -155,7 +157,7 @@ describe('Validation', () => {
     content = deepCopy(stringContent);
     content.teams[0].games[0].rubbish = 1238789450;
     schemaMigration.updateSchema(null, content, 'client');
-    r = schemaValidation.validateSchemaNoThrow(content, 'top-level-client');
+    r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.CLIENT);
     expect(r.result).toEqual(false);
     expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
 
@@ -163,7 +165,7 @@ describe('Validation', () => {
     content = deepCopy(stringContent);
     content.teams[0].games[0].rubbish = 1238789450;
     schemaMigration.updateSchema(null, content, 'export');
-    r = schemaValidation.validateSchemaNoThrow(content, 'top-level-export');
+    r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.EXPORT);
     expect(r.result).toEqual(false);
     expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
   });
@@ -178,7 +180,7 @@ describe('Validation', () => {
     let content = deepCopy(stringContent);
     content.teams[0].games[0].plateAppearances[0].rubbish = 1238789450;
     schemaMigration.updateSchema(null, content, 'full');
-    let r = schemaValidation.validateSchemaNoThrow(content, 'top-level-full');
+    let r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.FULL);
     expect(r.result).toEqual(false);
     expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
 
@@ -186,7 +188,7 @@ describe('Validation', () => {
     content = deepCopy(stringContent);
     content.teams[0].games[0].plateAppearances[0].rubbish = 1238789450;
     schemaMigration.updateSchema(null, content, 'client');
-    r = schemaValidation.validateSchemaNoThrow(content, 'top-level-client');
+    r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.CLIENT);
     expect(r.result).toEqual(false);
     expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
 
@@ -194,7 +196,7 @@ describe('Validation', () => {
     content = deepCopy(stringContent);
     content.teams[0].games[0].plateAppearances[0].rubbish = 1238789450;
     schemaMigration.updateSchema(null, content, 'export');
-    r = schemaValidation.validateSchemaNoThrow(content, 'top-level-export');
+    r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.EXPORT);
     expect(r.result).toEqual(false);
     expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
   });
@@ -207,7 +209,7 @@ describe('Conversion', () => {
       fs.readFileSync(__dirname + '/data/migration-test-data.json')
     );
     schemaMigration.updateSchema(null, content, 'full');
-    schemaValidation.validateSchema(content, 'top-level-full');
+    schemaValidation.validateSchema(content, TLSchemas.FULL);
     schemaValidation.convertDocumentToClient(content);
   });
 
@@ -217,7 +219,7 @@ describe('Conversion', () => {
       fs.readFileSync(__dirname + '/data/migration-test-data.json')
     );
     schemaMigration.updateSchema(null, content, 'full');
-    schemaValidation.validateSchema(content, 'top-level-full');
+    schemaValidation.validateSchema(content, TLSchemas.FULL);
     schemaValidation.convertDocumentToExport(content);
   });
 
@@ -227,7 +229,7 @@ describe('Conversion', () => {
       fs.readFileSync(__dirname + '/data/migration-test-data.json')
     );
     schemaMigration.updateSchema(null, content, 'client');
-    schemaValidation.validateSchema(content, 'top-level-client');
+    schemaValidation.validateSchema(content, TLSchemas.CLIENT);
     schemaValidation.convertDocumentToExport(content);
   });
 });

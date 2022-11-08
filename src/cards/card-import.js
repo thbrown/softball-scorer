@@ -7,6 +7,8 @@ import CardSection from 'elements/card-section';
 import { setRoute } from 'actions/route';
 import { makeStyles } from 'css/helpers';
 
+const TLSchemas = SharedLib.schemaValidation.TLSchemas;
+
 const useStyles = makeStyles((theme) => {
   return {
     fileInputContainer: {
@@ -86,7 +88,7 @@ const CardImport = () => {
           // Now validate the schema
           SharedLib.schemaValidation.validateSchema(
             parsedData,
-            'top-level-export'
+            TLSchemas.EXPORT
           );
         } catch (exception) {
           dialog.show_notification(
