@@ -78,14 +78,14 @@ export const convertPlateAppearanceListToPlayerPlateAppearanceList = (
   const ret = [];
   plateAppearances.forEach((pa) => {
     let playerInList = ret.find(
-      (playerInList) => playerInList.id === pa.player_id
+      (playerInList) => playerInList.id === pa.playerId
     );
 
-    if (!ret.find((p) => p.id === pa.player_id)) {
-      const player = state.getPlayer(pa.player_id, inputState);
+    if (!ret.find((p) => p.id === pa.playerId)) {
+      const player = state.getPlayer(pa.playerId, inputState);
       if (!player) {
         throw new Error(
-          'No player with id ' + pa.player_id + ' could be found.'
+          'No player with id ' + pa.playerId + ' could be found.'
         );
       }
 

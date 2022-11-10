@@ -5,6 +5,7 @@ import CardStatsSharing from 'cards/card-stats-sharing';
 import CardStatsSeason from 'cards/card-stats-season';
 import HeaderTabs from 'elements/header-tabs';
 import Card from 'elements/card';
+import state from 'state';
 
 export default class CardStatsPublic extends React.Component {
   static SEASON_TAB = 'season';
@@ -59,7 +60,7 @@ export default class CardStatsPublic extends React.Component {
       <Card
         title={`Stats for ${this.props.team.name}`}
         rightHeaderProps={{
-          showBlogLink: true,
+          showBlogLink: state.isSessionValid() ? false : true, // Show home button if user is already signed into a softball.app account, otherwise the blog link
         }}
       >
         <HeaderTabs

@@ -80,7 +80,7 @@ export default class CardScorer extends React.Component {
     let startIndex = Math.max(plateAppearances.length - 5, 0); // Show the last 5 plate apperances
     for (let i = startIndex; i < plateAppearances.length; i++) {
       let plateAppearance = plateAppearances[i];
-      let player = state.getPlayer(plateAppearance.player_id);
+      let player = state.getPlayer(plateAppearance.playerId);
 
       let player_name = DOM.div(
         {

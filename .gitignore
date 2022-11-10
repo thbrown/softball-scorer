@@ -17,4 +17,6 @@ cred.json
 .gradle
 src-srv/optimizations-temp/
 shared-lib.js
+shared-lib.js.LICENSE.txt
 yarn-error.log
+database/*

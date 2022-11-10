@@ -5,27 +5,9 @@ exports.factorial = function (n) {
     throw Error('Factorial out of range' + n);
   }
   const fact = [
-    1,
-    1,
-    2,
-    6,
-    24,
-    120,
-    720,
-    5040,
-    40320,
-    362880,
-    3628800,
-    39916800,
-    479001600,
-    6227020800,
-    87178291200,
-    1307674368000,
-    20922789888000,
-    355687428096000,
-    6402373705728000,
-    121645100408832000,
-    2432902008176640000,
+    1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600,
+    6227020800, 87178291200, 1307674368000, 20922789888000, 355687428096000,
+    6402373705728000, 121645100408832000, 2432902008176640000,
   ];
   return fact[n];
 };
@@ -119,4 +101,17 @@ exports.formatPercentage = function (value, decimalPlaces) {
     return '-%';
   }
   return (parseFloat(value) * 100).toFixed(decimalPlaces) + '%';
+};
+
+exports.sortJson = function sortJson(object) {
+  if (typeof object != 'object' || object instanceof Array)
+    // Not to sort the array
+    return object;
+  var keys = Object.keys(object);
+  keys.sort();
+  var newObject = {};
+  for (var i = 0; i < keys.length; i++) {
+    newObject[keys[i]] = sortJson(object[keys[i]]);
+  }
+  return newObject;
 };

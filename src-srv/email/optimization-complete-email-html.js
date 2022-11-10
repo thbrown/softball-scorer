@@ -296,7 +296,7 @@ module.exports = function (resultHtml, optimizationLink) {
         <td style="overflow-wrap:break-word;word-break:break-word;padding:10px;font-family:arial,helvetica,sans-serif;" align="left">
           
     <div class="v-text-align" style="color: #000000; line-height: 140%; text-align: left; word-wrap: break-word;">
-      <p style="font-size: 14px; line-height: 140%;">Your optimization has finished running! Here are the details:</p>
+      <p style="font-size: 14px; line-height: 140%;">Your optimization has finished running! Here are the results:</p>
     </div>
   
         </td>

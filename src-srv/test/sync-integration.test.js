@@ -18,11 +18,10 @@ describe('sync', () => {
   let sessionCookies;
   beforeAll(async (done) => {
     const port = configAccessor.getAppServerPort();
-    const optPort = configAccessor.getOptimizationServerPort();
     cache = configAccessor.getCacheService();
-    databaseCalls = configAccessor.getDatabaseService(cache);
+    databaseCalls = await configAccessor.getDatabaseService(cache);
     compute = configAccessor.getOptimizationComputeService();
-    server = new SoftballServer(port, optPort, databaseCalls, cache, compute);
+    server = new SoftballServer(port, databaseCalls, cache, compute);
     server.start();
 
     // Wait for services to start up (TODO: fix this)
@@ -88,7 +87,7 @@ describe('sync', () => {
   };
 
   test('Sync - Players', async () => {
-    state.deleteAllLocalData();
+    state.deleteAllData();
     await performAndValidateSync(state);
 
     // Create
@@ -107,7 +106,7 @@ describe('sync', () => {
   });
 
   test('Sync - Team', async () => {
-    state.deleteAllLocalData();
+    state.deleteAllData();
     await performAndValidateSync(state);
 
     // Create
@@ -126,7 +125,7 @@ describe('sync', () => {
   });
 
   test('Sync - Game', async () => {
-    state.deleteAllLocalData();
+    state.deleteAllData();
     await performAndValidateSync(state);
 
     // Create
@@ -145,7 +144,7 @@ describe('sync', () => {
   });
 
   test('Sync - Lineups', async () => {
-    state.deleteAllLocalData();
+    state.deleteAllData();
     await performAndValidateSync(state);
 
     let players = [];
@@ -189,7 +188,7 @@ describe('sync', () => {
   });
 
   test('Sync - Plate Appearances', async () => {
-    state.deleteAllLocalData();
+    state.deleteAllData();
     await performAndValidateSync(state);
 
     let players = [];
@@ -280,7 +279,7 @@ describe('sync', () => {
   */
 
   test('Ordering - This query includes both deletes and and insert, this tests to makes sure the resulting querys are sorted and performed in the right order', async () => {
-    state.deleteAllLocalData();
+    state.deleteAllData();
     await performAndValidateSync(state);
 
     // Add a bunch of initial data

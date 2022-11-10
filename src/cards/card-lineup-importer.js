@@ -9,7 +9,7 @@ const LineupPicker = ({ gameId, teamId }) => {
   const handleItemClick = (item) => {
     const opt = state.getOptimization(item.id);
     try {
-      const optResult = JSON.parse(opt.resultData);
+      const optResult = opt.resultData;
       let newLineup = [...optResult.flatLineup];
       const game = state.getGame(gameId);
       state.replaceGame(gameId, teamId, {

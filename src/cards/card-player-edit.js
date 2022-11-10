@@ -19,8 +19,8 @@ export default class CardPlayerEdit extends React.Component {
     this.state = {
       playerGender: props.player.gender,
       playerName: props.player.name,
-      playerSongLink: props.player.song_link,
-      playerSongStart: props.player.song_start,
+      playerSongLink: props.player.songLink,
+      playerSongStart: props.player.songStart,
       youTubeKey: 0, // Used as a react 'key' so we can reset the floating label when an a youtube search changes the field
     };
 
@@ -28,8 +28,8 @@ export default class CardPlayerEdit extends React.Component {
       const player = JSON.parse(JSON.stringify(props.player));
       player.name = this.state.playerName;
       player.gender = this.state.playerGender;
-      player.song_link = this.state.playerSongLink;
-      player.song_start = this.state.playerSongStart;
+      player.songLink = this.state.playerSongLink;
+      player.songStart = parseInt(this.state.playerSongStart);
       return player;
     };
 

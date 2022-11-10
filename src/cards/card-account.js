@@ -40,13 +40,78 @@ export default class CardAccount extends Component {
         setRoute('/menu');
       });
     };
+
+    this.handleDeleteDataClick = async function () {
+      dialog.show_input(
+        'Are you sure you want to delete all the data in your account? All your data will be permanently deleted. If you\'d like to continue deleting your account data type "delete" into the box below. Otherwise, click cancel to return the the main menu.',
+        async (input) => {
+          // Did they enter the correct thing?
+          if (input !== 'delete') {
+            dialog.show_notification(
+              `You typed '${input}' not 'delete'. Try again.`
+            );
+            return;
+          }
+
+          // Yes, okay delete the data then do a sync
+          state.deleteAllData();
+          await state.sync();
+          dialog.show_notification('Data successfully deleted', function () {
+            setRoute('/menu');
+          });
+        },
+        '',
+        ''
+      );
+    };
+
+    this.handleDeleteAccountClick = async function () {
+      dialog.show_input(
+        'Are you sure you want to delete your account? All your data will be permanently deleted. If you\'d like to continue deleting your account type "delete" into the box below. Otherwise, click cancel to return the the main menu.',
+        async (input) => {
+          // Did they enter the correct thing?
+          if (input !== 'delete') {
+            dialog.show_notification(
+              `You typed '${input}' not 'delete'. Try again.`
+            );
+            return;
+          }
+
+          // Yes, okay send the delete request
+          let buttonDiv = document.getElementById('delete-account');
+          buttonDiv.classList.add('disabled');
+
+          let response = await state.request('DELETE', 'server/account');
+          let message;
+          if (response.status === 204) {
+            message = 'Your account has been deleted.';
+          } else if (response.status === 400) {
+            message =
+              'App encountered a problem while deleting your account. Try again later.';
+          } else if (response.status === -1) {
+            message =
+              'Application is offline, try deleting your account again after getting a better internet connection.';
+          } else {
+            message = `An unexpected error occurred. Response: ${JSON.stringify(
+              response
+            )}`;
+          }
+          buttonDiv.classList.remove('disabled');
+
+          dialog.show_notification(message, function () {
+            setRoute('/menu');
+          });
+        },
+        '',
+        ''
+      );
+    };
   }
 
-  // TODO: only have this if account email is not verified
   render() {
     const MAX_LOCAL_STORAGE = 5000; // To keep cross-browser behavior consistent, we'll lock this at 5MB, some browsers can do more
     let localStorageUsage = state.getLocalStorageUsage();
-    console.log(localStorageUsage);
+    //console.log(localStorageUsage);
     return (
       <Card title="Account">
         <HrTitle title="Storage"></HrTitle>
@@ -88,6 +153,27 @@ export default class CardAccount extends Component {
               {SharedLib.commonUtils.round(localStorageUsage.system, 2)} KiB
             </div>
           </div>
+        </div>
+        <HrTitle title="Delete"></HrTitle>
+        <div
+          id="delete-data"
+          className="list-button button left"
+          onClick={this.handleDeleteDataClick.bind(this)}
+          style={{
+            backgroundColor: css.colors.BG,
+          }}
+        >
+          Delete all data
+        </div>
+        <div
+          id="delete-account"
+          className="list-button button left"
+          onClick={this.handleDeleteAccountClick.bind(this)}
+          style={{
+            backgroundColor: css.colors.BG,
+          }}
+        >
+          Delete account
         </div>
         <HrTitle title="Email"></HrTitle>
         <div

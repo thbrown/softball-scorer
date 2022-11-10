@@ -35,7 +35,7 @@ module.exports = class OptimizationComputeLocal {
       logger.log('sys', 'Creating directory', CTRL_FLAGS);
     }
 
-    logger.log('sys', 'Creating directory finished!!', ROOT);
+    logger.log('sys', 'Creating directories for local compute complete.', ROOT);
 
     this.download = function (url, dest, skipExistenceCheck) {
       if (fs.existsSync(JAR_FILE_PATH) && !skipExistenceCheck) {
@@ -285,6 +285,11 @@ module.exports = class OptimizationComputeLocal {
       '-z',
       RESULTS_PATH + '/' + optimizationId,
     ].concat(optionsArray);
+    logger.log(
+      accountId,
+      'Starting local optimization estimate',
+      argsArray.join(' ')
+    );
 
     // Start the jar
     let self = this;

@@ -96,7 +96,7 @@ class CardPlateAppearance extends React.Component {
     this.handleConfirmClick = () => {
       const newPa = buildPlateAppearance();
       this.props.replace(newPa);
-      setRoute(`/teams/${props.team.id}/games/${props.game.id}`);
+      goBack();
     };
 
     this.handleCancelClick = function () {
@@ -454,8 +454,8 @@ class CardPlateAppearance extends React.Component {
 
   renderWalkupSong() {
     return React.createElement(WalkupSong, {
-      songLink: this.props.player.song_link,
-      songStart: this.props.player.song_start,
+      songLink: this.props.player.songLink,
+      songStart: this.props.player.songStart,
       width: 48,
       height: 48,
     });

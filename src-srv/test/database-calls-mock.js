@@ -5,7 +5,7 @@ let databaseCalls = class DatabaseCalls {
     this.accountInfo = {
       id: 1,
       email: 'brutongaster@softball.app',
-      password_hash:
+      passwordHash:
         '$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2',
     };
   }
@@ -15,7 +15,7 @@ let databaseCalls = class DatabaseCalls {
     this.accountInfo = {
       id: 1,
       email: 'brutongaster@softball.app',
-      password_hash:
+      passwordHash:
         '$2b$12$pYo/XmmYN27OK08.ZyNqtealmhaFRfg6TgIHbuTJFbAiNO7M2rwb2',
     };
   }
@@ -45,7 +45,7 @@ let databaseCalls = class DatabaseCalls {
   }
 
   async signup(email, passwordTokenHash) {
-    return this.accountInfo; // TODO: return different account if here without the password_hash
+    return this.accountInfo; // TODO: return different account if here without the passwordHash
   }
 
   async setPasswordHash(accountId, newPasswordHash) {

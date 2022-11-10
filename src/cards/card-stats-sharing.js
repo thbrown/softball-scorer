@@ -6,6 +6,7 @@ import { goBack, goHome } from 'actions/route';
 import { makeStyles } from 'css/helpers';
 import IconButton from '../elements/icon-button';
 import css from 'css';
+import Loading from 'elements/loading';
 
 const useCardTeamEditStyles = makeStyles((css) => ({
   publicLink: {
@@ -58,16 +59,40 @@ const useCardTeamEditStyles = makeStyles((css) => ({
 
 const CardStatsSharing = (props) => {
   const [team, setTeam] = React.useState(props.team);
+  const [loading, setLoading] = React.useState(false);
   const [copiedNotificationVisible, setCopiedNotificationVisible] =
     React.useState(false);
   const publicLinkRef = React.useRef(null);
 
-  const handlePublicLinkEnabledClicked = (ev) => {
-    setTeam({
-      ...team,
-      publicIdEnabled: !!ev.target.checked,
-    });
-    state.setTeamPublicIdEnabled(team.id, !!ev.target.checked);
+  const handlePublicLinkEnabledClicked = async (ev) => {
+    // Show spinner
+    setLoading(true);
+
+    let body = {
+      value: !!ev.target.checked ? true : false,
+      teamId: props.team.id,
+    };
+
+    let response = await state.request(
+      'POST',
+      `server/team-stats/edit`,
+      JSON.stringify(body)
+    );
+    if (response.status === 204) {
+      await state.sync();
+    } else {
+      dialog.show_notification(
+        `Error! We were not able to toggle this team's public visibility. Please try again later. ${
+          response.body ? response.body.message : ''
+        }`,
+        function () {
+          // Do nothing
+        }
+      );
+    }
+
+    // Hide spinner
+    setLoading(false);
   };
 
   const handleCopyClick = () => {
@@ -83,11 +108,37 @@ const CardStatsSharing = (props) => {
   };
 
   const { styles } = useCardTeamEditStyles();
-  const { publicId, publicIdEnabled } = team;
+  const { publicId, publicIdEnabled } = props.team;
   const publicLink = `${window.location.origin}/public-teams/${publicId}/stats`;
 
+  // Checkbox or spinner
+  let checkboxContent = '';
+  if (loading) {
+    // Show the loading page if there is no optimizer data
+    checkboxContent = (
+      <div style={{ height: '25px' }}>
+        <div>
+          <div style={{ opacity: 0.9, zIndex: 1 }}>
+            <Loading style={{ width: '25px', height: '25px' }}></Loading>
+          </div>
+        </div>
+      </div>
+    );
+  } else {
+    // Otherwise show the selected optimizer's custom options
+    checkboxContent = (
+      <input
+        id="publicIdEnabled"
+        type="checkbox"
+        checked={!!publicIdEnabled}
+        style={styles.publicLinkCheckbox}
+        onChange={handlePublicLinkEnabledClicked}
+      />
+    );
+  }
+
   let content = null;
-  if (publicId && state.isSessionValid()) {
+  if (state.isSessionValid()) {
     content = (
       <div className="auth-input-container">
         <div
@@ -120,13 +171,7 @@ const CardStatsSharing = (props) => {
           <label htmlFor="publicIdEnabled" style={styles.publicLinkLabel}>
             Public Link
           </label>
-          <input
-            id="publicIdEnabled"
-            type="checkbox"
-            checked={!!publicIdEnabled}
-            style={styles.publicLinkCheckbox}
-            onChange={handlePublicLinkEnabledClicked}
-          />
+          {checkboxContent}
           {copiedNotificationVisible && (
             <span style={styles.publicLinkCopiedText} className="fade-out">
               Link copied
