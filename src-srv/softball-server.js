@@ -14,7 +14,6 @@ const crypto = require('crypto');
 const got = require('got');
 const { v4: uuidv4 } = require('uuid');
 const querystring = require('querystring');
-const BucketSessionStore = require('gcp-bucket-session-store');
 
 const configAccessor = require('./config-accessor');
 const HandledError = require('./handled-error');
@@ -74,7 +73,11 @@ module.exports = class SoftballServer {
               logger.log(null, 'Login rejected', email);
             }
           } catch (error) {
-            logger.log(null, error, email);
+            if (error.code === 404) {
+              logger.warn(null, 'invalid login', email);
+            } else {
+              logger.warn(null, error, email);
+            }
             cb(null, false);
           }
         }

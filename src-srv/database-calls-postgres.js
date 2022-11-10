@@ -31,6 +31,8 @@ module.exports = class DatabaseCalls {
       return parseInt(val);
     });
 
+    throw new Error();
+
     // Verify connection
     this.pool.connect(function (err) {
       if (err) {

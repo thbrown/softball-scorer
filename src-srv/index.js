@@ -20,7 +20,7 @@ async function runServer() {
   });
 
   // Inject the cache service based on config values
-  const cacheService = configAccessor.getCacheService();
+  const cacheService = await configAccessor.getCacheService();
 
   // Inject the database service based on config values
   const databaseService = await configAccessor.getDatabaseService(cacheService);
@@ -37,28 +37,7 @@ async function runServer() {
   // Specify the ports
   let appPort = configAccessor.getAppServerPort();
 
-  // DB Migration
-  // Move all data from postgres to blob store before app starts, overriding existing entries. This code needs to be deleted after migration completes.
-  // Lets just print all account ids here first
-  const DatabaseCallsPostgres = require('./database-calls-postgres');
-  let postgres = new DatabaseCallsPostgres(
-    'localhost',
-    '5432',
-    'postgres',
-    'postgres',
-    'Softball',
-    cacheService,
-    (err) => {
-      if (err) {
-        logger.error('sys', 'Encountered an error connecting to db', err);
-        process.exit(1);
-      }
-      logger.log('sys', 'Connected to db.');
-    }
-  );
-
   // Start the server!
-
   const softballServer = new SoftballServer(
     appPort,
     databaseService,

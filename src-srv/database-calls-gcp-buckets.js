@@ -157,8 +157,7 @@ let databaseCallsGcpBuckets = class DatabaseCallsGcpBuckets extends DatabaseCall
     // Now delete the actual file
     const file = targetBucket.file(blobName);
     let result = await file.exists();
-    logger.dev(accountId, 'EXISTS', result);
-    return result;
+    return result[0];
   }
 };
 module.exports = databaseCallsGcpBuckets;

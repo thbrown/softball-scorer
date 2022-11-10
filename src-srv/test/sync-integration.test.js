@@ -18,7 +18,7 @@ describe('sync', () => {
   let sessionCookies;
   beforeAll(async (done) => {
     const port = configAccessor.getAppServerPort();
-    cache = configAccessor.getCacheService();
+    cache = await configAccessor.getCacheService();
     databaseCalls = await configAccessor.getDatabaseService(cache);
     compute = configAccessor.getOptimizationComputeService();
     server = new SoftballServer(port, databaseCalls, cache, compute);

@@ -5,6 +5,7 @@ const DatabaseCallsGcpBuckets = require('./database-calls-gcp-buckets');
 
 const CacheCallsRedis = require('./cache-calls-redis');
 const CacheCallsLocal = require('./cache-calls-local');
+const CacheCallsGcpBuckets = require('./cache-calls-gcp-buckets');
 
 const OptimizationComputeLocal = require('./optimization-compute-local');
 const OptimizationComputeGcp = require('./optimization-compute-gcp');
@@ -39,20 +40,18 @@ module.exports.getDatabaseService = async function (cacheService) {
     return database;
   }
   const mode = config.database.mode;
-
-  if (!mode || mode === 'FileSystem') {
+  if (mode === 'FileSystem') {
     return new DatabaseCallsFileSystem('./database');
   } else if (mode === 'GcpBuckets') {
     const { data, emailLookup, tokenLookup, publicIdLookup } =
       config.database.bucketNames;
-    let database = new DatabaseCallsGcpBuckets(
+    database = new DatabaseCallsGcpBuckets(
       data,
       emailLookup,
       tokenLookup,
       publicIdLookup
     );
     await database.init();
-    return database;
   } else if (mode === 'Postgres') {
     const {
       host: pghost,
@@ -78,31 +77,47 @@ module.exports.getDatabaseService = async function (cacheService) {
           logger.log('sys', 'Connected to db.');
         }
       );
-      return database;
     }
+  } else {
+    logger.warn(
+      null,
+      'Warning: undefined config, running with local filesystem database'
+    );
+    return new DatabaseCallsFileSystem('./database');
   }
-
-  logger.warn('sys', 'Warning: running without database connection', mode);
-  database = new DatabaseCallsStatic();
-
   return database;
 };
 
-module.exports.getCacheService = function () {
+module.exports.getCacheService = async function () {
   if (cache) {
     return cache;
   }
-  const {
-    host: redisHost,
-    port: redisPort,
-    password: redisPassword,
-  } = config.cache || {};
-  if (redisHost && redisPort && redisPassword) {
-    cache = new CacheCallsRedis(redisHost, redisPort, redisPassword);
+
+  const mode = config.cache.mode;
+
+  if (mode === 'GcpBuckets') {
+    const { session, ancestor } = config.cache.bucketNames;
+    cache = new CacheCallsGcpBuckets(session, ancestor);
+    await cache.init();
+  } else if (mode === 'Redis') {
+    const {
+      host: redisHost,
+      port: redisPort,
+      password: redisPassword,
+    } = config.cache || {};
+    if (redisHost && redisPort && redisPassword) {
+      cache = new CacheCallsRedis(redisHost, redisPort, redisPassword);
+    } else {
+      throw new Error('Missing required redis config info');
+    }
   } else {
-    logger.warn(null, 'Warning: running with local in-memory cache');
+    logger.warn(
+      null,
+      'Warning: undefined config, running with local in-memory cache'
+    );
     cache = new CacheCallsLocal();
   }
+
   return cache;
 };
 
