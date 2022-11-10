@@ -39,7 +39,7 @@ module.exports.getDatabaseService = async function (cacheService) {
   if (database) {
     return database;
   }
-  const mode = config.database.mode;
+  const mode = config?.database?.mode;
   if (mode === 'FileSystem') {
     return new DatabaseCallsFileSystem('./database');
   } else if (mode === 'GcpBuckets') {
@@ -93,7 +93,7 @@ module.exports.getCacheService = async function () {
     return cache;
   }
 
-  const mode = config.cache.mode;
+  const mode = config?.cache?.mode;
 
   if (mode === 'GcpBuckets') {
     const { session, ancestor } = config.cache.bucketNames;

@@ -213,7 +213,9 @@ export default class CardOptimization extends React.Component {
       let optimizer = this.props.optimization.optimizerType;
       let optimizerOptions = this.state.optimizerData[optimizer].options;
       let mergedOptions = {};
+      let optionsLookup = new Set();
       for (let option of optimizerOptions) {
+        optionsLookup.add(option.longLabel);
         if (option.uiVisibility !== 'HIDDEN') {
           if (option.defaultValue !== undefined) {
             mergedOptions[option.longLabel] = option.defaultValue;
@@ -228,6 +230,14 @@ export default class CardOptimization extends React.Component {
           mergedOptions[key] = parsedCustomOptionsData[key];
         }
       }
+
+      // Delete any custom options that aren't relevant to this optimizer (otherwise we'll get unrecognized argument errors)
+      for (let key in mergedOptions) {
+        if (!optionsLookup.has(key)) {
+          delete mergedOptions[key];
+        }
+      }
+
       state.setOptimizationField(
         this.props.optimization.id,
         'customOptionsData',
@@ -411,24 +421,32 @@ export default class CardOptimization extends React.Component {
         return;
       }
 
-      // Custom options defaults - get an object of default options
+      // Set custom options - Read and prep default optimizer options
       let optimizer = this.props.optimization.optimizerType;
       let optimizerOptions = this.state.optimizerData[optimizer].options;
       let mergedOptions = {};
+      let optionsLookup = new Set();
       for (let option of optimizerOptions) {
-        if (
-          option.uiVisibility !== 'HIDDEN' &&
-          option.defaultValue !== undefined
-        ) {
-          mergedOptions[option.longLabel] = option.defaultValue;
+        optionsLookup.add(option.longLabel);
+        if (option.uiVisibility !== 'HIDDEN') {
+          if (option.defaultValue !== undefined) {
+            mergedOptions[option.longLabel] = option.defaultValue;
+          }
         }
       }
 
-      // Custom options supplied - merge default and supplied options
+      // Set custom options - Delete any options that are undefined, and merge default and supplied options
       let parsedCustomOptionsData = this.props.optimization.customOptionsData;
       for (let key in parsedCustomOptionsData) {
         if (parsedCustomOptionsData[key] !== undefined) {
           mergedOptions[key] = parsedCustomOptionsData[key];
+        }
+      }
+
+      // Delete any custom options that aren't relevant to this optimizer (otherwise we'll get unrecognized argument errors)
+      for (let key in mergedOptions) {
+        if (!optionsLookup.has(key)) {
+          delete mergedOptions[key];
         }
       }
 
