@@ -29,7 +29,7 @@ export default class CardPlayerEdit extends React.Component {
       player.name = this.state.playerName;
       player.gender = this.state.playerGender;
       player.songLink = this.state.playerSongLink;
-      player.songStart = this.state.playerSongStart;
+      player.songStart = parseInt(this.state.playerSongStart);
       return player;
     };
 

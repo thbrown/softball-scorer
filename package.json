@@ -70,6 +70,7 @@
     "node-fetch": "^2.6.7"
   },
   "dependencies": {
+    "@google-cloud/storage": "^5.8.1",
     "acorn": "^8.0.4",
     "ajv": "^8.11.0",
     "base-x": "^3.0.6",
@@ -83,7 +84,6 @@
     "express-session": "^1.15.6",
     "fast-json-patch": "^3.1.1",
     "file-saver": "^2.0.0-rc.3",
-    "folder-hash": "^4.0.0",
     "gcp-bucket-session-store": "^0.2.0",
     "googleapis": "^66.0.0",
     "got": "^11.8.0",

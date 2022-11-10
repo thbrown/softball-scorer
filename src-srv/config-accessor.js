@@ -1,6 +1,7 @@
 const DatabaseCallsPostgres = require('./database-calls-postgres');
 const DatabaseCallsStatic = require('./database-calls-static');
 const DatabaseCallsFileSystem = require('./database-calls-file-system');
+const DatabaseCallsGcpBuckets = require('./database-calls-gcp-buckets');
 
 const CacheCallsRedis = require('./cache-calls-redis');
 const CacheCallsLocal = require('./cache-calls-local');
@@ -33,14 +34,24 @@ let optimizationCompute;
 /**
  * Accessor utility for config values. This is responsible for setting defaults and handling nested json extraction.
  */
-module.exports.getDatabaseService = function (cacheService) {
+module.exports.getDatabaseService = async function (cacheService) {
   if (database) {
     return database;
   }
   const mode = config.database.mode;
 
   if (!mode || mode === 'FileSystem') {
-    database = new DatabaseCallsFileSystem('./database');
+    return new DatabaseCallsFileSystem('./database');
+  } else if (mode === 'GcpBuckets') {
+    const { data, emailLookup, tokenLookup, publicIdLookup } =
+      config.database.bucketNames;
+    let database = new DatabaseCallsGcpBuckets(
+      data,
+      emailLookup,
+      tokenLookup,
+      publicIdLookup
+    );
+    await database.init();
     return database;
   } else if (mode === 'Postgres') {
     const {
@@ -71,7 +82,7 @@ module.exports.getDatabaseService = function (cacheService) {
     }
   }
 
-  logger.warn('sys', 'Warning: running without database connection');
+  logger.warn('sys', 'Warning: running without database connection', mode);
   database = new DatabaseCallsStatic();
 
   return database;

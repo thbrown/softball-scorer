@@ -212,24 +212,26 @@ export default class CardOptimization extends React.Component {
       // Set custom options - Read and prep default optimizer options
       let optimizer = this.props.optimization.optimizerType;
       let optimizerOptions = this.state.optimizerData[optimizer].options;
-      let defaultOptions = {};
+      let mergedOptions = {};
       for (let option of optimizerOptions) {
         if (option.uiVisibility !== 'HIDDEN') {
-          defaultOptions[option.longLabel] = option.defaultValue;
+          if (option.defaultValue !== undefined) {
+            mergedOptions[option.longLabel] = option.defaultValue;
+          }
         }
       }
 
       // Set custom options - Delete any options that are undefined, and merge default and supplied options
       let parsedCustomOptionsData = this.props.optimization.customOptionsData;
-      for (let key in defaultOptions) {
+      for (let key in parsedCustomOptionsData) {
         if (parsedCustomOptionsData[key] !== undefined) {
-          defaultOptions[key] = parsedCustomOptionsData[key];
+          mergedOptions[key] = parsedCustomOptionsData[key];
         }
       }
       state.setOptimizationField(
         this.props.optimization.id,
         'customOptionsData',
-        defaultOptions
+        mergedOptions
       );
 
       // Set inputSummaryData. For display purposes, keep a snapshot of the player's name and stats at the moment
@@ -409,27 +411,31 @@ export default class CardOptimization extends React.Component {
         return;
       }
 
-      // Set custom options - Read and prep default optimizer options
+      // Custom options defaults - get an object of default options
       let optimizer = this.props.optimization.optimizerType;
       let optimizerOptions = this.state.optimizerData[optimizer].options;
-      let defaultOptions = {};
+      let mergedOptions = {};
       for (let option of optimizerOptions) {
-        if (option.uiVisibility !== 'HIDDEN') {
-          defaultOptions[option.longLabel] = option.defaultValue;
+        if (
+          option.uiVisibility !== 'HIDDEN' &&
+          option.defaultValue !== undefined
+        ) {
+          mergedOptions[option.longLabel] = option.defaultValue;
         }
       }
 
-      // Set custom options - Delete any options that are undefined, and merge default and supplied options
+      // Custom options supplied - merge default and supplied options
       let parsedCustomOptionsData = this.props.optimization.customOptionsData;
-      for (let key in defaultOptions) {
+      for (let key in parsedCustomOptionsData) {
         if (parsedCustomOptionsData[key] !== undefined) {
-          defaultOptions[key] = parsedCustomOptionsData[key];
+          mergedOptions[key] = parsedCustomOptionsData[key];
         }
       }
+
       state.setOptimizationField(
         this.props.optimization.id,
         'customOptionsData',
-        defaultOptions
+        mergedOptions
       );
 
       // Be sure the server has our optimization details before it tries to run the optimization

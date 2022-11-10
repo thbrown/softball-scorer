@@ -32,7 +32,7 @@
       "type": "object",
       "description": "Object representing parameters required by the selected optimizerType",
       "additionalProperties": {
-        "type": ["integer", "string", "boolean", "null", "array"]
+        "type": ["number", "integer", "string", "boolean", "null", "array"]
        }
     },
     "overrideData": {
@@ -54,7 +54,7 @@
     },
     "resultData": {
       "type": "object",
-      "description": "Object containing the results of a simulation. Results can be partial (if the simulation is not in a terminal state) or final. "
+      "description": "Object containing the results of a simulation. Results can be partial (if the simulation is not in a terminal state) or final."
     },
     "statusMessage": {
       "type": ["string", "null"],

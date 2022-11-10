@@ -82,7 +82,7 @@ const CardStatsSharing = (props) => {
       await state.sync();
     } else {
       dialog.show_notification(
-        `Error! We were not able toggle this team's public visibility. Please try again later. ${
+        `Error! We were not able to toggle this team's public visibility. Please try again later. ${
           response.body ? response.body.message : ''
         }`,
         function () {

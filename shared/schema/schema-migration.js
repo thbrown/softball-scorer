@@ -78,9 +78,20 @@ let updateSchema = function (
         );
         optimization.resultData = JSON.parse(optimization.resultData);
         optimization.overrideData = JSON.parse(optimization.overrideData);
+        // Overrides player_id should be playerId (this info is duplicate, but it makes the pa us simpler to include it)
+        for (let playerId in optimization.overrideData) {
+          for (let pa of optimization.overrideData[playerId]) {
+            let temp = pa.player_id;
+            delete pa.player_id;
+            pa.playerId = temp;
+          }
+        }
         optimization.teamList = JSON.parse(optimization.teamList);
         optimization.gameList = JSON.parse(optimization.gameList);
         optimization.playerList = JSON.parse(optimization.playerList);
+        optimization.optimizerType = optimization.optimizerType
+          ? optimization.optimizerType
+          : 0;
         optimization.inputSummaryData = JSON.parse(
           optimization.inputSummaryData
         );
@@ -118,6 +129,13 @@ let updateSchema = function (
         for (let team of inputJson.teams) {
           delete team.publicId;
           delete team.publicIdEnabled;
+        }
+      } else {
+        // We'll only keep publicIds of teams that are using it
+        for (let team of inputJson.teams) {
+          if (!team.publicIdEnabled) {
+            delete team.publicId;
+          }
         }
       }
 

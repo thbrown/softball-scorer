@@ -296,7 +296,12 @@ module.exports = class SoftballServer {
           } finally {
             await unlockAccount(accountId);
           }
-          res.status(200).send(state);
+          // State comes back null if publicIdEnabled has been disabled by the account for the target team
+          if (state === undefined) {
+            res.status(404).send();
+          } else {
+            res.status(200).send(state);
+          }
         } else {
           logger.warn(
             null,
@@ -518,47 +523,7 @@ module.exports = class SoftballServer {
 
         let accountId = extractSessionInfo(req, 'accountId');
         let accountInfo = await this.databaseCalls.getAccountById(accountId);
-        let emailHasBeenValidated = accountInfo.verifiedEmail;
-
-        if (emailHasBeenValidated) {
-          logger.log(
-            accountId,
-            `Not sending account verification email because email has already been verified`
-          );
-          res.status(400).send();
-        } else {
-          logger.log(
-            accountId,
-            `Sending account verification email per user request`
-          );
-
-          // Email verification token
-          let token = await generateToken();
-          await sendEmailValidationEmail(accountId, accountInfo.email, token);
-
-          // Save the token's hash to the db so we can verify it after the link in the email is clicked
-          let tokenHash = crypto
-            .createHash('sha256')
-            .update(token)
-            .digest('base64')
-            .replace(/\//g, '_');
-          this.databaseCalls.setPasswordTokenHash(accountId, tokenHash);
-          res.status(204).send();
-        }
-      })
-    );
-
-    app.post(
-      '/server/account/send-verification-email',
-      wrapForErrorProcessing(async (req, res, next) => {
-        if (!req.isAuthenticated()) {
-          res.status(403).send();
-          return;
-        }
-
-        let accountId = extractSessionInfo(req, 'accountId');
-        let accountInfo = await this.databaseCalls.getAccountById(accountId);
-        let emailHasBeenValidated = accountInfo.verifiedEmail;
+        let emailHasBeenValidated = accountInfo.emailConfirmed;
 
         if (emailHasBeenValidated) {
           logger.log(
@@ -673,7 +638,11 @@ module.exports = class SoftballServer {
 
         try {
           // Check if the client sent updates to the server
-          if (data.patch && data.patch.length !== 0) {
+          if (
+            data.patch &&
+            Array.isArray(data.patch) &&
+            data.patch.length !== 0
+          ) {
             logger.log(
               accountId,
               'Client has updates'
@@ -869,7 +838,7 @@ module.exports = class SoftballServer {
             accountId,
             optimizationId
           );
-          if (optimization.sendEmail && !account.verifiedEmail) {
+          if (optimization.sendEmail && !account.emailConfirmed) {
             res.status(400).send({
               error: 'EMAIL_NOT_VERIFIED',
               message:
@@ -1048,7 +1017,7 @@ module.exports = class SoftballServer {
                   SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status] ==
                     SharedLib.constants.OPTIMIZATION_STATUS_ENUM.COMPLETE &&
                   optimization.sendEmail &&
-                  account.verifiedEmail
+                  account.emailConfirmed
                 ) {
                   let emailAddress = extractSessionInfo(req, 'email');
                   let email = configAccessor.getEmailService();

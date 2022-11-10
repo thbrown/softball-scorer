@@ -102,7 +102,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
       let ids = publicIdLookupBlob.content;
       return ids;
     } catch (err) {
-      if (err.code === 'ENOENT') {
+      if (err.code === 'ENOENT' || err.code == '404') {
         return undefined;
       } else {
         throw err;
@@ -121,6 +121,8 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
    * Get the client state for a particular team, used for the public stats page.
    *
    * Result construction is deliberately additive, so we don't expose unnecessary information as we add new things.
+   *
+   * Also, we only want to return something here if publicIdEnabled is true
    */
   async getClientStateForTeam(accountId, teamId) {
     // This result might be worth caching
@@ -148,6 +150,11 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
       }
     }
     result.teams.push(targetTeam);
+
+    // Return undefined if publicIdEnabled is false
+    if (targetTeam.publicIdEnabled === false) {
+      return undefined;
+    }
 
     // Copy over all players who have had at least one plate appearance for a game on this team
     let playerSet = new Set();
@@ -402,7 +409,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
         team.publicIdEnabled = value;
         // Generate an id if needed
         if (team.publicId === undefined) {
-          logger.log(accountId, 'generating team public id', teamId, value);
+          logger.log(accountId, 'Generating team public id', teamId, value);
           let generatedPublicId = await SharedLib.idUtils.randomNBitId(128);
           await this.writeBlob(
             accountId,

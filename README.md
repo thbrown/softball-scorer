@@ -32,7 +32,40 @@ The app will run without any of these enabled, but you can enable these for a pr
 
 ### Cloud storage setup
 
-TODO
+1. Acquire a Google Cloud Platform (GCP) account.
+1. In the server `config.js` of this app, specify `GcpBuckets` mode and bucket names, like so:
+
+```
+database: {
+   mode: 'GcpBuckets',
+   bucketNames: {
+      data: 'sba-data',
+      emailLookup: 'sba-email-lookup',
+      tokenLookup: 'sba-token-lookup',
+      publicIdLookup: 'sba-public-id-lookup',
+   },
+},
+```
+
+1. Edit the bucket names, bucket names must be globally unique and these ones will be taken.
+
+1. Auth your machine and set proper permissions so the storage calls will succeed:
+
+If you are running from a gcp compute instance, you can set "access scope" on instance create. The "Access Scope" required to use GCP storage is read/write or full.
+
+If you are running on a local developer instance, you can auth with your Google credentials using the following command (using gcloud command line tools):
+
+````
+
+gcloud auth application-default login
+
+```
+
+You'll need to add the storage admin or editor rolls to the account you log in as.
+
+If you still get errors about permissions after setting IAM, you'll need to check to make sure the bucket names in the config are globally unique.
+
+For details and other ways to authenticate, see https://cloud.google.com/docs/authentication/provide-credentials-adc
 
 ### Redis setup (tested on version 5.0.3)
 
@@ -69,16 +102,21 @@ To run redis with own config:
 Example redis.conf
 
 ```
+
 # Require a password
+
 requirepass "JtmpasEY9wSfu27XuYeK9Q4rdDPmXXeD_change_me"
 
 # Specify the port
+
 port 6379
 
 # If memory fills up, evict the least recently used key, even if it has no expiration
+
 maxmemory-policy allkeys-lru
 
 # Optionally allow other non-localhost machines to connect (req obviously if the app server is running on another machine)
+
 ```
 
 Some other useful commands:
@@ -116,11 +154,13 @@ TODO
 Get an api key from mailgun then you put that API key in the server config file (`src-srv/config.js`) which is generated from `config-template.js` when start the app server for the first time.
 
 ```
+
 email: {
-   apiKey: 'yourapikeygoeshere',
-    domain: 'mg.softball.app', // Example domain
-    restrictEmailsToDomain: 'softball.app', // Only allow emails to softball.app (in development we don't want to email randos by accident, set to null in production)
+apiKey: 'yourapikeygoeshere',
+domain: 'mg.softball.app', // Example domain
+restrictEmailsToDomain: 'softball.app', // Only allow emails to softball.app (in development we don't want to email randos by accident, set to null in production)
 },
+
 ```
 
 ## Development:
@@ -151,7 +191,7 @@ Note: JSON schema allows for the specification of a "readOnly" keyword. We don't
 
 #### Schema metadata
 
-Each of the top-level schemas described above contain a metadata property at their root. The metadata node consists fo two properties
+Each of the top-level schemas described above contain a metadata property at their root. The metadata node consists of two properties
 
 - Version - serial integer number, used in schema migration
 - Scope - what top-level schema the document should be validated against [full, client, or export]
@@ -190,3 +230,5 @@ Note: this is broken, because the file structure has changed. Should be fixable,
 Cloud build:
 
 `./gcp-build.sh && yarn start`
+```
+````

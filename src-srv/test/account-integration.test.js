@@ -14,7 +14,7 @@ describe('sync', () => {
   beforeAll(async (done) => {
     const port = configAccessor.getAppServerPort();
     cache = configAccessor.getCacheService();
-    databaseCalls = configAccessor.getDatabaseService(cache);
+    databaseCalls = await configAccessor.getDatabaseService(cache);
     compute = configAccessor.getOptimizationComputeService();
     server = new SoftballServer(port, databaseCalls, cache, compute);
     server.start();

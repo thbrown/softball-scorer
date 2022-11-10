@@ -357,7 +357,7 @@ let databaseCalls = class DatabaseCalls {
   async confirmEmail(accountId) {
     for (let i = 0; i < this.ACCOUNTS.length; i++) {
       if (this.ACCOUNTS[i].accountId === accountId) {
-        this.ACCOUNTS[i].verifiedEmail = true;
+        this.ACCOUNTS[i].emailConfirmed = true;
       }
     }
     return undefined;

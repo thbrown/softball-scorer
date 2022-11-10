@@ -80,14 +80,13 @@ exp.getNewTeam = function (teamName) {
 };
 
 exp.getNewGame = function (opposingTeamName, lineup, lineupType) {
-  const timestamp = Math.floor(new Date().getTime() / 1000); // Postgres expects time in seconds not ms
+  const timestamp = Math.floor(new Date().getTime() / 1000); // Time in seconds not ms
   const id = getNextId();
   return {
     id: id,
     opponent: opposingTeamName,
     lineup: lineup ? lineup : [],
     date: timestamp,
-    park: null,
     scoreUs: 0,
     scoreThem: 0,
     lineupType: lineupType ? lineupType : exp.LINEUP_TYPE_ENUM.NORMAL,
@@ -554,10 +553,10 @@ exp.setOptimizationCustomOptionsDataField = function (
 ) {
   const optimization = exp.getOptimization(optimizationId);
   const customOptionsData = optimization.customOptionsData;
-  if (fieldValue) {
-    customOptionsData[fieldName] = fieldValue;
-  } else {
+  if (fieldValue === undefined) {
     delete customOptionsData[fieldName];
+  } else {
+    customOptionsData[fieldName] = fieldValue;
   }
   optimization.customOptionsData = customOptionsData;
   onEdit();
@@ -595,6 +594,7 @@ exp.addOptimizationOverridePlateAppearance = function (
 
   let playerOverrides = allOverrides[playerId];
   let addedPa = this.getNewPlateAppearance(playerId);
+
   if (!playerOverrides) {
     allOverrides[playerId] = [addedPa];
   } else {

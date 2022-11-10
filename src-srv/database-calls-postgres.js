@@ -685,6 +685,18 @@ module.exports = class DatabaseCalls {
     );
   }
 
+  // Postgres only for migration
+  async getAllAccountIds() {
+    let result = await this.parameterizedQueryPromise(
+      `
+        SELECT account_id, email, password_hash, password_token_hash, password_token_expiration, status, optimizers_list, balance, verified_email FROM
+        account
+      `,
+      []
+    );
+    return result.rows;
+  }
+
   async patchState(patch, accountId) {
     if (accountId === undefined) {
       throw new HandledError(accountId, 403, 'Please sign in first');

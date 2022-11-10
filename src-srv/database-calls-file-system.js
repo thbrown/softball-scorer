@@ -7,7 +7,7 @@ const TLSchemas = SharedLib.schemaValidation.TLSchemas;
 const fs = require('fs');
 const path = require('path');
 
-let databaseCallsFileSystem = class DatabaseCallsFileSystem extends DatabaseCallsAbstractBlob {
+let databaseGcpBuckets = class DatabaseGcpBuckets extends DatabaseCallsAbstractBlob {
   constructor(rootDirectory) {
     super();
     // Make the root directory (if it doesn't exist)
@@ -108,4 +108,4 @@ let databaseCallsFileSystem = class DatabaseCallsFileSystem extends DatabaseCall
     return fs.existsSync(path.join(targetLocation, blobName));
   }
 };
-module.exports = databaseCallsFileSystem;
+module.exports = databaseGcpBuckets;

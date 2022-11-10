@@ -169,9 +169,9 @@ export default class CardLineup extends React.Component {
         `This will take you to a page for setting up and running an "Optimization" for this lineup. After your optimization is done running, you can import the optimized lineup into this game by pressing "Import Lineup From Optimization".`,
         () => {
           const optimization = state.addOptimization(
-            `vs ${this.props.game.opponent}`,
-            JSON.stringify(this.props.game.lineup),
-            JSON.stringify([this.props.team.id]),
+            `Optimize lineup vs ${this.props.game.opponent}`,
+            JSON.parse(JSON.stringify(this.props.game.lineup)),
+            JSON.parse(JSON.stringify([this.props.team.id])),
             this.props.game.lineupType
           );
           setRoute(

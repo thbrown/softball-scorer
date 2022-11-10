@@ -53,7 +53,9 @@ export default class CardOptimizationStatsOverride extends React.Component {
     };
 
     this.handleAddPas = function (toAdd) {
-      let allOverrides = JSON.parse(props.optimization.overrideData);
+      let allOverrides = JSON.parse(
+        JSON.stringify(props.optimization.overrideData)
+      );
       let overridesForPlayer = [];
 
       // Add all the new PAs
@@ -72,11 +74,13 @@ export default class CardOptimizationStatsOverride extends React.Component {
 
     this.handleDeleteClick = function () {
       dialog.show_confirm(
-        'Are you sure you want to delete all stat overrides for player "' +
+        'Are you sure you want to delete all stat overrides for player  "' +
           props.player.name +
           '"?',
         () => {
-          let allOverrides = JSON.parse(props.optimization.overrideData);
+          let allOverrides = JSON.parse(
+            JSON.stringify(props.optimization.overrideData)
+          );
           delete allOverrides[props.player.id];
           state.setOptimizationField(
             props.optimization.id,
