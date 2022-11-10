@@ -11,7 +11,7 @@ import * as schemaOptimization from '../schema-json/optimization.json';
 import * as schemaAccount from '../schema-json/account.json';
 import * as schemaAccountPrivate from '../schema-json/account-private.json';
 import * as schemaAccountReadOnly from '../schema-json/account-read-only.json';
-import * as jsonPointer from 'jsonPointer';
+import * as jsonPointer from 'jsonpointer';
 
 const TLSchemas = {
   EXPORT: 'top-level-export',

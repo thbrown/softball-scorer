@@ -1,6 +1,6 @@
 const commonUtils = require('./common-utils');
 const jsonpatch = require('fast-json-patch');
-const jsonPointer = require('jsonPointer');
+const jsonPointer = require('jsonpointer');
 
 /**
  * JSON patch spec RFC6902 doesn't quite work for us because we are not necessarily applying the patch to the objects we diffed.
