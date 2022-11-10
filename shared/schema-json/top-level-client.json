@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://softball.app/schemas/top-level-client",
+  "title": "Top Level Client",
+  "description": "Data that gets sent the the client browser. Excludes private account info (password stuff)",
+  "type": "object",
+  "required": ["metadata", "account", "players", "optimizations", "teams"],
+  "unevaluatedProperties": false,
+  "properties": {
+    "metadata": {
+      "description": "Information about the json document itself",
+      "type": "object",
+      "required": ["version", "scope"],
+      "unevaluatedProperties": false,
+      "properties": {
+        "version": {
+          "type": "integer",
+          "description": "The version schema version of the json document"
+        },
+        "scope": {
+          "type": "string",
+          "enum": ["client"],
+          "description": "Schema for the json used on the browser. Client contains all application data and some account data, but not all account data (password hashes are excluded, for instance)."
+        }
+      }
+    },
+    "account": {
+      "type": "object",
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "http://softball.app/schemas/account" },
+        { "$ref": "http://softball.app/schemas/account-read-only" }
+      ]  
+    },
+    "players": {
+      "description": "List of all players associated with this account",
+      "type": "array",
+      "items": { 
+        "type": "object",
+        "unevaluatedProperties": false,
+        "$ref": "http://softball.app/schemas/player" 
+      }
+    },
+    "teams": {
+      "description": "List of all teams associated with this account",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "unevaluatedProperties": false,
+        "allOf": [
+          { "$ref": "http://softball.app/schemas/team-read-only" },
+          { "$ref": "http://softball.app/schemas/team" }
+        ]  
+      }
+    },
+    "optimizations": {
+      "type": "array",
+      "description": "List of all optimizations associated with this account",
+      "items": { 
+        "type": "object",
+        "unevaluatedProperties": false,
+        "$ref": "http://softball.app/schemas/optimization" 
+      }
+    }
+  }
+}

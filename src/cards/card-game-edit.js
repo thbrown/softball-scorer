@@ -92,6 +92,11 @@ export default class CardGameEdit extends React.Component {
           <div style={{ margin: '1rem' }}>
             <b>- No Consecutive Females</b> Females may not bat back-to-back.
           </div>
+          <div style={{ margin: '1rem' }}>
+            <b>- No Consecutive Females and No Three Consecutive Males</b>{' '}
+            Females may not bat back-to-back and three males may not bat in a
+            row.
+          </div>
         </div>,
         undefined
       );
@@ -116,9 +121,9 @@ export default class CardGameEdit extends React.Component {
               initialValue={this.props.game.lineupType || 0}
               onChange={this.handleLineupTypeChange}
               values={[
-                { label: 'Normal', value: '0' },
-                { label: 'Alternating Gender', value: '1' },
-                { label: 'No Consecutive Females', value: '2' },
+                { label: 'Normal', value: 0 },
+                { label: 'Alternating Gender', value: 1 },
+                { label: 'No Consecutive Females', value: 2 },
                 {
                   label:
                     'No Consecutive Females and No Three Consecutive Males',

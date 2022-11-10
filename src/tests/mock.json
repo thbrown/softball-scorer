@@ -25,7 +25,7 @@
           "plateAppearances": [
             {
               "id": "1pupriMTKbq2Se",
-              "player_id": "3XcBG4OeaNrgHs",
+              "playerId": "3XcBG4OeaNrgHs",
               "result": "1B",
               "location": {
                 "x": 10944,
@@ -34,7 +34,7 @@
             },
             {
               "id": "3jLZ4mKJGpdHkZ",
-              "player_id": "5t7RegcwU6GWQ4",
+              "playerId": "5t7RegcwU6GWQ4",
               "result": "2B",
               "location": {
                 "x": 13565,
@@ -43,7 +43,7 @@
             },
             {
               "id": "5jgJ5xQmDLalwH",
-              "player_id": "5LubX8hY1J9qbi",
+              "playerId": "5LubX8hY1J9qbi",
               "result": "Out",
               "location": {
                 "x": 11009,
@@ -52,7 +52,7 @@
             },
             {
               "id": "5iZ31SDy3uke8M",
-              "player_id": "1Z1tPWhLnGJ9Gs",
+              "playerId": "1Z1tPWhLnGJ9Gs",
               "result": "Out",
               "location": {
                 "x": 19922,
@@ -61,7 +61,7 @@
             },
             {
               "id": "29MmiYYdjdhkFH",
-              "player_id": "55DMxux2F3TvER",
+              "playerId": "55DMxux2F3TvER",
               "result": "1B",
               "location": {
                 "x": 9240,
@@ -70,7 +70,7 @@
             },
             {
               "id": "4qegIoeF0JVtXJ",
-              "player_id": "2JojDb9S2brbVF",
+              "playerId": "2JojDb9S2brbVF",
               "result": "2B",
               "location": {
                 "x": 21298,
@@ -79,7 +79,7 @@
             },
             {
               "id": "1QHrSraPIlhohK",
-              "player_id": "3hw09h7XgjfMK7",
+              "playerId": "3hw09h7XgjfMK7",
               "result": "1B",
               "location": {
                 "x": 25033,
@@ -88,7 +88,7 @@
             },
             {
               "id": "0Yf53oSrRsZmhS",
-              "player_id": "4e2viYmTSLfKFv",
+              "playerId": "4e2viYmTSLfKFv",
               "result": "E",
               "location": {
                 "x": 20446,
@@ -97,7 +97,7 @@
             },
             {
               "id": "2rE5BYIB7vWxGY",
-              "player_id": "2iTjqxkl8o92IJ",
+              "playerId": "2iTjqxkl8o92IJ",
               "result": "E",
               "location": {
                 "x": 9567,
@@ -106,7 +106,7 @@
             },
             {
               "id": "4UuyGMABG7tefx",
-              "player_id": "1ajppp381cecS7",
+              "playerId": "1ajppp381cecS7",
               "result": "2B",
               "location": {
                 "x": 24771,
@@ -115,7 +115,7 @@
             },
             {
               "id": "2IHrEOVC4hfUTI",
-              "player_id": "3XcBG4OeaNrgHs",
+              "playerId": "3XcBG4OeaNrgHs",
               "result": "1B",
               "location": {
                 "x": 8126,
@@ -124,7 +124,7 @@
             },
             {
               "id": "5ToNmeBQmSti1e",
-              "player_id": "5t7RegcwU6GWQ4",
+              "playerId": "5t7RegcwU6GWQ4",
               "result": "HRo",
               "location": {
                 "x": 7864,
@@ -133,7 +133,7 @@
             },
             {
               "id": "23sPXvkAIRlXZe",
-              "player_id": "5LubX8hY1J9qbi",
+              "playerId": "5LubX8hY1J9qbi",
               "result": "Out",
               "location": {
                 "x": 8060,
@@ -142,7 +142,7 @@
             },
             {
               "id": "2RIyFscW4D6gXS",
-              "player_id": "1Z1tPWhLnGJ9Gs",
+              "playerId": "1Z1tPWhLnGJ9Gs",
               "result": "Out",
               "location": {
                 "x": 21101,
@@ -151,7 +151,7 @@
             },
             {
               "id": "0uwbFxQ9xnCnKV",
-              "player_id": "55DMxux2F3TvER",
+              "playerId": "55DMxux2F3TvER",
               "result": "1B",
               "location": {
                 "x": 8912,
@@ -160,7 +160,7 @@
             },
             {
               "id": "4YAXgcUk3FlzfS",
-              "player_id": "2JojDb9S2brbVF",
+              "playerId": "2JojDb9S2brbVF",
               "result": "3B",
               "location": {
                 "x": 20446,
@@ -169,7 +169,7 @@
             },
             {
               "id": "5iHx971cKNqExA",
-              "player_id": "3hw09h7XgjfMK7",
+              "playerId": "3hw09h7XgjfMK7",
               "result": "SAC",
               "location": {
                 "x": 24247,
@@ -178,7 +178,7 @@
             },
             {
               "id": "0DeeqoIbunTU5H",
-              "player_id": "4e2viYmTSLfKFv",
+              "playerId": "4e2viYmTSLfKFv",
               "result": "2B",
               "location": {
                 "x": 24837,
@@ -187,7 +187,7 @@
             },
             {
               "id": "3V2jZE3wV0P1o2",
-              "player_id": "2iTjqxkl8o92IJ",
+              "playerId": "2iTjqxkl8o92IJ",
               "result": "1B",
               "location": {
                 "x": 8978,
@@ -196,7 +196,7 @@
             },
             {
               "id": "1asNvNz984Ec4f",
-              "player_id": "1ajppp381cecS7",
+              "playerId": "1ajppp381cecS7",
               "result": "1B",
               "location": {
                 "x": 7077,
@@ -205,7 +205,7 @@
             },
             {
               "id": "4XKGISwB7QtwP4",
-              "player_id": "3XcBG4OeaNrgHs",
+              "playerId": "3XcBG4OeaNrgHs",
               "result": "1B",
               "location": {
                 "x": 8388,
@@ -214,7 +214,7 @@
             },
             {
               "id": "2wpkjtTNKmHgeY",
-              "player_id": "5t7RegcwU6GWQ4",
+              "playerId": "5t7RegcwU6GWQ4",
               "result": "Out",
               "location": {
                 "x": 10616,
@@ -223,7 +223,7 @@
             },
             {
               "id": "3M2zRJuphRxieV",
-              "player_id": "5LubX8hY1J9qbi",
+              "playerId": "5LubX8hY1J9qbi",
               "result": "3B",
               "location": {
                 "x": 983,
@@ -232,7 +232,7 @@
             },
             {
               "id": "4PqM5TtfrzenYh",
-              "player_id": "1Z1tPWhLnGJ9Gs",
+              "playerId": "1Z1tPWhLnGJ9Gs",
               "result": "1B",
               "location": {
                 "x": 21888,
@@ -241,7 +241,7 @@
             },
             {
               "id": "4O1fKgSCM7utbU",
-              "player_id": "55DMxux2F3TvER",
+              "playerId": "55DMxux2F3TvER",
               "result": "HRo",
               "location": {
                 "x": 589,
@@ -250,7 +250,7 @@
             },
             {
               "id": "47Ia8L6kRxL2hK",
-              "player_id": "2JojDb9S2brbVF",
+              "playerId": "2JojDb9S2brbVF",
               "result": "Out",
               "location": {
                 "x": 17694,
@@ -259,7 +259,7 @@
             },
             {
               "id": "2mVqTjIJCX2Wsr",
-              "player_id": "3hw09h7XgjfMK7",
+              "playerId": "3hw09h7XgjfMK7",
               "result": "Out",
               "location": {
                 "x": 23985,
@@ -268,7 +268,7 @@
             },
             {
               "id": "4gJFTAgNDLVfZP",
-              "player_id": "4e2viYmTSLfKFv",
+              "playerId": "4e2viYmTSLfKFv",
               "result": "Out",
               "location": {
                 "x": 17759,
@@ -277,7 +277,7 @@
             },
             {
               "id": "0EqcVjAsXfzCXP",
-              "player_id": "2iTjqxkl8o92IJ",
+              "playerId": "2iTjqxkl8o92IJ",
               "result": "1B",
               "location": {
                 "x": 7864,
@@ -286,7 +286,7 @@
             },
             {
               "id": "39AND6zg8BSTB6",
-              "player_id": "1ajppp381cecS7",
+              "playerId": "1ajppp381cecS7",
               "result": "1B",
               "location": {
                 "x": 15466,
@@ -295,7 +295,7 @@
             },
             {
               "id": "3l0DJtEPHkBITp",
-              "player_id": "3XcBG4OeaNrgHs",
+              "playerId": "3XcBG4OeaNrgHs",
               "result": "1B",
               "location": {
                 "x": 8650,
@@ -304,7 +304,7 @@
             },
             {
               "id": "4D3O0HOJbMPT1f",
-              "player_id": "5t7RegcwU6GWQ4",
+              "playerId": "5t7RegcwU6GWQ4",
               "result": "HRo",
               "location": {
                 "x": 14548,
@@ -313,7 +313,7 @@
             },
             {
               "id": "3ulZVQNnS5t5pb",
-              "player_id": "5LubX8hY1J9qbi",
+              "playerId": "5LubX8hY1J9qbi",
               "result": "3B",
               "location": {
                 "x": 30538,
@@ -322,7 +322,7 @@
             },
             {
               "id": "1aJ8x6vAGPOp1r",
-              "player_id": "1Z1tPWhLnGJ9Gs",
+              "playerId": "1Z1tPWhLnGJ9Gs",
               "result": "Out",
               "location": {
                 "x": 20774,
@@ -331,7 +331,7 @@
             },
             {
               "id": "4dOF5sHUVBIjf8",
-              "player_id": "55DMxux2F3TvER",
+              "playerId": "55DMxux2F3TvER",
               "result": "Out",
               "location": {
                 "x": 16055,
@@ -340,7 +340,7 @@
             },
             {
               "id": "4JVeZ6CgdxyN2U",
-              "player_id": "2JojDb9S2brbVF",
+              "playerId": "2JojDb9S2brbVF",
               "result": "SAC",
               "location": {
                 "x": 10026,
@@ -349,7 +349,7 @@
             },
             {
               "id": "3LKPuPxS95sEtE",
-              "player_id": "3hw09h7XgjfMK7",
+              "playerId": "3hw09h7XgjfMK7",
               "result": "FC",
               "location": {
                 "x": 19856,
@@ -358,7 +358,7 @@
             },
             {
               "id": "4T2WaMrH62z03g",
-              "player_id": "4e2viYmTSLfKFv",
+              "playerId": "4e2viYmTSLfKFv",
               "result": "E",
               "location": {
                 "x": 14089,
@@ -367,7 +367,7 @@
             },
             {
               "id": "4cokwdCtPMUnPN",
-              "player_id": "2iTjqxkl8o92IJ",
+              "playerId": "2iTjqxkl8o92IJ",
               "result": "Out",
               "location": {
                 "x": 24640,
@@ -376,7 +376,7 @@
             },
             {
               "id": "12P8g5t4CwcxBD",
-              "player_id": "1ajppp381cecS7",
+              "playerId": "1ajppp381cecS7",
               "result": "2B",
               "location": {
                 "x": 12189,
@@ -513,85 +513,85 @@
       "id": "55DMxux2F3TvER",
       "name": "Rand",
       "gender": "M",
-      "song_link": null,
-      "song_start": null
+      "songLink": null,
+      "songStart": null
     },
     {
       "id": "5LubX8hY1J9qbi",
       "name": "Mat",
       "gender": "M",
-      "song_link": null,
-      "song_start": null
+      "songLink": null,
+      "songStart": null
     },
     {
       "id": "3hw09h7XgjfMK7",
       "name": "Perrin",
       "gender": "M",
-      "song_link": null,
-      "song_start": null
+      "songLink": null,
+      "songStart": null
     },
     {
       "id": "1Z1tPWhLnGJ9Gs",
       "name": "Egwene",
       "gender": "F",
-      "song_link": null,
-      "song_start": null
+      "songLink": null,
+      "songStart": null
     },
     {
       "id": "2JojDb9S2brbVF",
       "name": "Naenyve",
       "gender": "F",
-      "song_link": null,
-      "song_start": null
+      "songLink": null,
+      "songStart": null
     },
     {
       "id": "5t7RegcwU6GWQ4",
       "name": "Moiraine",
       "gender": "F",
-      "song_link": null,
-      "song_start": null
+      "songLink": null,
+      "songStart": null
     },
     {
       "id": "3XcBG4OeaNrgHs",
       "name": "Lan",
       "gender": "M",
-      "song_link": null,
-      "song_start": null
+      "songLink": null,
+      "songStart": null
     },
     {
       "id": "4e2viYmTSLfKFv",
       "name": "Faile",
       "gender": "F",
-      "song_link": null,
-      "song_start": null
+      "songLink": null,
+      "songStart": null
     },
     {
       "id": "4RU3Lh3zwMKAKY",
       "name": "Min",
       "gender": "F",
-      "song_link": null,
-      "song_start": null
+      "songLink": null,
+      "songStart": null
     },
     {
       "id": "1ajppp381cecS7",
       "name": "Avienda",
       "gender": "F",
-      "song_link": null,
-      "song_start": null
+      "songLink": null,
+      "songStart": null
     },
     {
       "id": "2iTjqxkl8o92IJ",
       "name": "Thom",
       "gender": "M",
-      "song_link": null,
-      "song_start": null
+      "songLink": null,
+      "songStart": null
     },
     {
       "id": "4Rcpp3gb8iP45G",
       "name": "Galad",
       "gender": "M",
-      "song_link": null,
-      "song_start": null
+      "songLink": null,
+      "songStart": null
     }
   ],
   "optimizations": []

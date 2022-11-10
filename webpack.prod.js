@@ -36,13 +36,6 @@ module.exports = {
     }),
     new CopyPlugin({
       patterns: [
-        // We want to server things from the 'server' directory if possible
-        /*
-        {
-          from: path.join(__dirname, './build'),
-          to: path.join(__dirname, './build/server'),
-        },
-        */
         // Root files
         {
           from: path.join(__dirname, './public-root'),

@@ -91,5 +91,5 @@ exports.randomId = function (length) {
 };
 
 exports.getInitialState = function () {
-  return { teams: [], players: [], optimizations: [] };
+  return { account: {}, teams: [], players: [], optimizations: [] };
 };

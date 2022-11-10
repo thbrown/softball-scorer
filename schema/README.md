@@ -1,1 +1,0 @@
-This directory includes a postgres schema dump of the softball database used by this application.

@@ -1,0 +1,92 @@
+{
+  "$id": "http://softball.app/schemas/optimization",
+  "title": "Optimization",
+  "type": "object",
+  "description": "Array of optimizations",
+  "required": [
+    "id",
+    "name",
+    "customOptionsData",
+    "overrideData",
+    "status",
+    "resultData",
+    "statusMessage",
+    "sendEmail",
+    "teamList",
+    "gameList",
+    "playerList",
+    "lineupType",
+    "optimizerType",
+    "inputSummaryData"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Random 64-bit unique identifier for this optimization"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human identifier, could be a nickname or a number. This may not be unique."
+    },
+    "customOptionsData": {
+      "type": "object",
+      "description": "Object representing parameters required by the selected optimizerType",
+      "additionalProperties": {
+        "type": ["number", "integer", "string", "boolean", "null", "array"]
+       }
+    },
+    "overrideData": {
+      "type": "object",
+      "description": "Synthetic game data that will be used by the optimization instead of a players historical data. This is useful for when there is a new player without any historical data. ",
+      "additionalProperties": {
+        "type": "array",
+        "description": "Plate appearances for a particular player",
+        "items": { 
+          "type": "object",
+          "unevaluatedProperties": false,
+          "$ref": "http://softball.app/schemas/plate-appearance" 
+        }
+      }
+    },
+    "status": {
+      "type": "integer",
+      "description": "Indicates what state the optimization is currently in e.g. NOT_STARTED, IN_PROGRESS, COMPLETE etc."
+    },
+    "resultData": {
+      "type": "object",
+      "description": "Object containing the results of a simulation. Results can be partial (if the simulation is not in a terminal state) or final."
+    },
+    "statusMessage": {
+      "type": ["string", "null"],
+      "description": "Additional information about the current status. Intended for human consumption only."
+    },
+    "sendEmail": {
+      "type": "boolean",
+      "description": "Whether or not the user would like to receive an email with the results ofter the optimization completes."
+    },
+    "teamList": {
+      "type": "array",
+      "description": "Array containing an array of team ids for which data will be used by the optimizer"
+    },
+    "gameList": {
+      "type": "array",
+      "description": "Array containing an array of game ids for which data will be used by the optimizer"
+    },
+    "playerList": {
+      "type": "array",
+      "description": "Array containing an array of player ids that should be turned into an optimal lineup by the optimizer"
+    },
+    "lineupType": {
+      "type": "integer",
+      "description": "The type of the lineup the optimizer should return. Different lineup types have different rules about what makes them valid (e.g. ALTERNATING_GENDER lineup must never bat two males or two females in a row)"
+    },
+    "optimizerType": {
+      "type": "integer",
+      "description": "The type of optimizer that should be used for this optimization. A list of optimizers and their descriptions can be found at https://optimizers.softball.app/"
+    },
+    "inputSummaryData": {
+      "type": "object",
+      "description": "object that contains a snapshot summary of the data that was sent to the optimizer when the optimization was started. Once the snapshot is taken, it does not change as the app's data changes."
+    }
+  }
+}

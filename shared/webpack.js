@@ -2,7 +2,7 @@ const path = require('path');
 
 module.exports = {
   entry: './index.js',
-  mode: 'production',
+  mode: 'development',
   performance: { hints: false },
   resolve: {
     extensions: ['*', '.js', '.jsx'],

@@ -108,7 +108,7 @@ const SprayTooltip = withStyles((theme) => ({
   const rows = [];
   const game = plateAppearance.game;
 
-  const player = state.getPlayer(plateAppearance.player_id);
+  const player = state.getPlayer(plateAppearance.playerId);
 
   rows.push(
     <div key="result" className={classes.tooltipRow}>

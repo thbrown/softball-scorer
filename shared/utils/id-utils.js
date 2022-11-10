@@ -2,6 +2,7 @@ const baseX = require('base-x');
 const BASE62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const bs62 = baseX(BASE62);
 const buffer = require('buffer').Buffer;
+const crypto = require('crypto');
 
 // Client ids are 14 chars base 62 (e.g. 1CHDaeMNJlrvWW)
 exports.clientIdToServerId = function (clientId, accountId) {
@@ -33,4 +34,14 @@ exports.hexToBase62 = function (hex) {
 
 exports.base62ToHex = function (hex) {
   return bs62.decode(hex).toString('hex');
+};
+
+exports.randomNBitId = async function (n = 64) {
+  return new Promise((resolve, reject) => {
+    // 64 bits should allow us 100s of millions of non-colliding ids
+    // https://preshing.com/20110504/hash-collision-probabilities/
+    crypto.randomBytes(n / 8, function (err, buffer) {
+      resolve(bs62.encode(buffer));
+    });
+  });
 };

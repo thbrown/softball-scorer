@@ -1,0 +1,24 @@
+{
+  "$id": "http://softball.app/schemas/account-read-only",
+  "title": "Account - Read Only",
+  "description": "Account info that the frontend/browser/client can't modify through sync/patch",
+  "type": "object",
+  "properties": {
+    "accountId": {
+      "type": "string",
+      "description": "Random 64-bit unique identifier for this game"
+    },
+    "email": {
+      "type": "string",
+      "description": "Account's associate email"
+    },
+    "emailConfirmed": {
+      "type": "boolean",
+      "description": "Whether the email validation link has been clicked or not"
+    },
+    "balance": {
+      "type": "integer",
+      "description": "Number of optimizer credits the account has remaining"
+    }
+  }
+}
