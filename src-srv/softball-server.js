@@ -1031,8 +1031,8 @@ module.exports = class SoftballServer {
                     JSON.stringify(result, null, 2),
                     optimizationCompleteEmailHtml(
                       SharedLib.commonOptimizationResults.getResultsAsHtml(
-                        JSON.stringify(result),
-                        JSON.stringify(optimization.inputSummaryData)
+                        result,
+                        optimization.inputSummaryData
                       ),
                       `https://softball.app/optimizations/${req.body.optimizationId}`
                     )

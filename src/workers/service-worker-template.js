@@ -63,8 +63,7 @@ self.addEventListener('fetch', function (event) {
       (pathArray[1] !== 'server' &&
         pathArray[1] !== 'service-worker.js' &&
         pathArray[1] !== 'robots.txt' &&
-        pathArray[1] !== 'manifest.json' &&
-        pathArray[1] !== 'main.js'))
+        pathArray[1] !== 'manifest.json'))
   ) {
     console.log(`[ServiceWorker] redirecting ${event.request.url} to base url`);
     requestToProcess = new Request('/');
