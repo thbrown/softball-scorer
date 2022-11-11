@@ -556,6 +556,11 @@ module.exports = class SoftballServer {
       })
     );
 
+    // We moved the service worker, without this re-direct, existing browsers will look in the wrong place
+    app.get('/service-worker', function (req, res) {
+      res.redirect('/service-worker.js');
+    });
+
     app.delete(
       '/server/account',
       wrapForErrorProcessing(async (req, res, next) => {
