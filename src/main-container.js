@@ -60,6 +60,7 @@ export default class MainContainer extends expose.Component {
 
       // The actual registration
       window.addEventListener('load', function () {
+        console.log('[ServiceWorker] Load event');
         navigator.serviceWorker.register('/service-worker.js');
       });
     }

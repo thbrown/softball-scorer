@@ -1,4 +1,3 @@
-const DatabaseCallsPostgres = require('./database-calls-postgres');
 const DatabaseCallsStatic = require('./database-calls-static');
 const DatabaseCallsFileSystem = require('./database-calls-file-system');
 const DatabaseCallsGcpBuckets = require('./database-calls-gcp-buckets');
@@ -52,32 +51,6 @@ module.exports.getDatabaseService = async function (cacheService) {
       publicIdLookup
     );
     await database.init();
-  } else if (mode === 'Postgres') {
-    const {
-      host: pghost,
-      port: pgport,
-      username: pgusername,
-      password: pgpassword,
-      database: pgdatabase,
-    } = config.database || {};
-
-    if (pghost && pgport && pgusername && pgpassword) {
-      database = new DatabaseCallsPostgres(
-        pghost,
-        pgport,
-        pgusername,
-        pgpassword,
-        pgdatabase,
-        cacheService,
-        (err) => {
-          if (err) {
-            logger.error('sys', 'Encountered an error connecting to db', err);
-            process.exit(1);
-          }
-          logger.log('sys', 'Connected to db.');
-        }
-      );
-    }
   } else {
     logger.warn(
       null,

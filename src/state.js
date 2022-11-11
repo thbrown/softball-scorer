@@ -30,7 +30,7 @@ const INITIAL_STATE = {
   },
 };
 
-const CURRENT_LS_SCHEMA_VERSION = '6';
+const CURRENT_LS_SCHEMA_VERSION = '7';
 const SYNC_DELAY_MS = 10000;
 const SYNC_STATUS_ENUM = Object.freeze({
   COMPLETE: 1,
@@ -1086,6 +1086,14 @@ exp.getAccountOptimizersList = function () {
     return exp.getLocalState().account.optimizers;
   } else {
     return [];
+  }
+};
+
+exp.isEmailValidated = function () {
+  if (exp.getLocalState().account) {
+    return exp.getLocalState().account.emailConfirmed;
+  } else {
+    return false;
   }
 };
 

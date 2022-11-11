@@ -111,7 +111,23 @@ export default class CardAccount extends Component {
   render() {
     const MAX_LOCAL_STORAGE = 5000; // To keep cross-browser behavior consistent, we'll lock this at 5MB, some browsers can do more
     let localStorageUsage = state.getLocalStorageUsage();
-    //console.log(localStorageUsage);
+
+    let emailSection = state.isEmailValidated() ? undefined : (
+      <div>
+        <HrTitle title="Email"></HrTitle>
+        <div
+          id="email-validation"
+          className="list-button button left"
+          onClick={this.handleEmailValidationClick.bind(this)}
+          style={{
+            backgroundColor: css.colors.BG,
+          }}
+        >
+          Re-send email validation email
+        </div>
+      </div>
+    );
+
     return (
       <Card title="Account">
         <HrTitle title="Storage"></HrTitle>
@@ -175,17 +191,7 @@ export default class CardAccount extends Component {
         >
           Delete account
         </div>
-        <HrTitle title="Email"></HrTitle>
-        <div
-          id="email-validation"
-          className="list-button button left"
-          onClick={this.handleEmailValidationClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BG,
-          }}
-        >
-          Re-send email validation email
-        </div>
+        {emailSection}
       </Card>
     );
   }

@@ -95,7 +95,6 @@
     "object-hash": "^2.0.0",
     "passport": "^0.6.0",
     "passport-local": "^1.0.0",
-    "pg": "^8.5.1",
     "process": "^0.11.10",
     "react": "17.0.1",
     "react-autosuggest": "^10.0.4",
