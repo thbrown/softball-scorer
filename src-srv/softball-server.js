@@ -560,6 +560,9 @@ module.exports = class SoftballServer {
     app.get('/service-worker', function (req, res) {
       res.redirect('/service-worker.js');
     });
+    app.get('/server/manifest', function (req, res) {
+      res.redirect('/manifest.json');
+    });
 
     app.delete(
       '/server/account',
