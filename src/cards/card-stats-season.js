@@ -18,6 +18,10 @@ const STATS_NAMES = [
   'outsideTheParkHRs',
   'walks',
   'reachedOnError',
+  'gameAutocorrelation',
+  'paAutocorrelation',
+  'paPerGame',
+  'outsPerGame',
 ];
 
 const STAT_ALIASES = {
@@ -31,6 +35,10 @@ const STAT_ALIASES = {
   outsideTheParkHRs: 'HRo',
   walks: 'BB',
   reachedOnError: 'ROE',
+  gameAutocorrelation: 'rG',
+  paAutocorrelation: 'rPA',
+  paPerGame: 'PA/G',
+  outsPerGame: 'O/G',
 };
 
 export default class CardStatsSeason extends React.Component {
@@ -128,7 +136,7 @@ export default class CardStatsSeason extends React.Component {
 
   buildStatsObject(teamId, playerId) {
     const { team, inputState } = this.props;
-    const plateAppearances = state.getPlateAppearancesForPlayerOnTeam(
+    const plateAppearances = state.getDecoratedPlateAppearancesForPlayerOnTeam(
       playerId,
       team,
       inputState

@@ -11,7 +11,7 @@ export default class CardPlayerStats extends React.Component {
     const playerStatsByTeam = [];
     const allTeams = state.getAllTeams();
     for (const team of allTeams) {
-      const playerPAsOnTeam = state.getPlateAppearancesForPlayerOnTeam(
+      const playerPAsOnTeam = state.getDecoratedPlateAppearancesForPlayerOnTeam(
         this.props.player.id,
         team.id
       );
@@ -38,6 +38,9 @@ export default class CardPlayerStats extends React.Component {
         <th>2B</th>
         <th>3B</th>
         <th>HR</th>
+        <th>rG</th>
+        <th>rPA</th>
+        <th>PA/G</th>
       </tr>,
     ];
     for (let season of playerStatsByTeam) {
@@ -50,11 +53,16 @@ export default class CardPlayerStats extends React.Component {
           <td>{season.stats.doubles}</td>
           <td>{season.stats.triples}</td>
           <td>{season.stats.homeruns}</td>
+          <td>{season.stats.gameAutocorrelation}</td>
+          <td>{season.stats.paAutocorrelation}</td>
+          <td>{season.stats.paPerGame}</td>
         </tr>
       );
     }
 
-    const allPAs = state.getPlateAppearancesForPlayer(this.props.player.id);
+    const allPAs = state.getDecoratedPlateAppearancesForPlayer(
+      this.props.player.id
+    );
     const allTimeStats = state.buildStatsObject(allPAs, this.props.player.id);
     seasonStats.push(
       <tr key={'season-alltime'} style={{ textAlign: 'right' }}>
@@ -78,6 +86,15 @@ export default class CardPlayerStats extends React.Component {
         </td>
         <td>
           <b>{allTimeStats.homeruns}</b>
+        </td>
+        <td>
+          <b>{allTimeStats.gameAutocorrelation}</b>
+        </td>
+        <td>
+          <b>{allTimeStats.paAutocorrelation}</b>
+        </td>
+        <td>
+          <b>{allTimeStats.paPerGame}</b>
         </td>
       </tr>
     );

@@ -186,7 +186,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
 
     let teamAtBatButtons = [];
     for (let team of state.getAllTeams()) {
-      let teamPAs = state.getPlateAppearancesForPlayerOnTeam(
+      let teamPAs = state.getDecoratedPlateAppearancesForPlayerOnTeam(
         this.props.player.id,
         team.id
       );
@@ -195,7 +195,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
           <div
             onClick={this.handleAddPas.bind(
               this,
-              state.getPlateAppearancesForPlayerOnTeam(
+              state.getDecoratedPlateAppearancesForPlayerOnTeam(
                 this.props.player.id,
                 team.id
               )

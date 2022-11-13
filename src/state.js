@@ -2,7 +2,7 @@ import expose from 'expose';
 import network from 'network';
 import SharedLib from '/../shared-lib';
 import results from 'plate-appearance-results';
-import { getShallowCopy } from 'utils/functions';
+import { getShallowCopy, autoCorrelation, isStatSig } from 'utils/functions';
 
 import dialog from 'dialog';
 const TLSchemas = SharedLib.schemaValidation.TLSchemas;
@@ -1289,6 +1289,9 @@ exp.editQueryObject = function (fieldName, value) {
   );
 };
 
+/**
+ * You'll get more stats if you pass in decorated plate appearances
+ */
 exp.buildStatsObject = function (plateAppearances, playerId) {
   const player =
     typeof playerId === 'string' ? state.getPlayer(playerId) : playerId;
@@ -1311,6 +1314,66 @@ exp.buildStatsObject = function (plateAppearances, playerId) {
   stats.SACs = 0;
   stats.strikeouts = 0;
   stats.directOuts = 0;
+  stats.gameAutocorrelation = '-';
+  stats.paAutocorrelation = '-';
+  stats.paPerGame = 0;
+  stats.outsPerGame = 0;
+
+  // Serial correlation for plate appearances
+  let hitOrNoHit = [];
+  plateAppearances.forEach((pa) => {
+    if (['E', 'FC', 'Out', 'TP', 'DP', 'K', 'Ʞ', 'SAC'].includes(pa.result)) {
+      hitOrNoHit.push(0);
+    } else if (['1B', '2B', '3B', 'HRi', 'HRo'].includes(pa.result)) {
+      hitOrNoHit.push(1);
+    }
+  });
+  let paAutoCorResult = autoCorrelation(hitOrNoHit, 1);
+  stats.paAutocorrelation = isStatSig(paAutoCorResult, hitOrNoHit.length)
+    ? paAutoCorResult.toFixed(2)
+    : '-';
+
+  if (isStatSig(paAutoCorResult, hitOrNoHit.length)) {
+    console.log(
+      stats.name,
+      isStatSig(paAutoCorResult, hitOrNoHit.length),
+      hitOrNoHit
+    );
+  }
+
+  // Serial correlation for games
+  // TODO: we want this sorted by date right?
+  let gamesLookup = {};
+  plateAppearances.forEach((pa) => {
+    if (pa?.game?.id) {
+      if (gamesLookup[pa.game.id]) {
+        gamesLookup[pa.game.id].push(pa);
+      } else {
+        gamesLookup[pa.game.id] = [];
+      }
+    }
+  });
+  let avgList = [];
+  Object.keys(gamesLookup).forEach((gameId) => {
+    let count = 0;
+    let hits = 0;
+    gamesLookup[gameId].forEach((pa) => {
+      if (['E', 'FC', 'Out', 'TP', 'DP', 'K', 'Ʞ', 'SAC'].includes(pa.result)) {
+        count++;
+      } else if (['1B', '2B', '3B', 'HRi', 'HRo'].includes(pa.result)) {
+        count++;
+        hits++;
+      }
+    });
+    avgList.push(hits / count);
+  });
+  let autoCorResult = autoCorrelation(avgList, 1);
+  if (isStatSig(autoCorResult, avgList.length)) {
+    console.log(stats.name, isStatSig(autoCorResult, avgList.length), avgList);
+  }
+  stats.gameAutocorrelation = isStatSig(autoCorResult, avgList.length)
+    ? autoCorResult.toFixed(2)
+    : '-';
 
   plateAppearances.forEach((pa) => {
     if (pa.result) {
@@ -1375,6 +1438,19 @@ exp.buildStatsObject = function (plateAppearances, playerId) {
     stats.sluggingPercentage = (stats.totalBasesByHit / stats.atBats).toFixed(
       3
     );
+  }
+
+  if (gamesLookup && Object.keys(gamesLookup).length > 0) {
+    stats.paPerGame = (
+      stats.plateAppearances / Object.keys(gamesLookup).length
+    ).toFixed(2);
+  }
+
+  if (gamesLookup && Object.keys(gamesLookup).length > 0) {
+    stats.outsPerGame = (
+      (stats.plateAppearances - stats.hits) /
+      Object.keys(gamesLookup).length
+    ).toFixed(2);
   }
 
   // Derived stats

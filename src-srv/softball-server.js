@@ -556,11 +556,33 @@ module.exports = class SoftballServer {
       })
     );
 
-    // We moved the service worker, without this re-direct, existing browsers will look in the wrong place
+    // We moved the service worker, the old service worker can intercept the request to get the new service worker resulting in a stale site.
+    // We'll serve a no-op service worker at the old spot. Plus we'll add a "Clear-Site-Data" header to destroy the old service worker.
+    // That header was the only thing I could get to work on mobile chrome.
     app.get('/service-worker', function (req, res) {
-      res.redirect('/service-worker.js');
+      logger.dev('?', 'Sending storage clear header');
+      res.set('Clear-Site-Data', 'storage');
+      res.set('Content-Type', 'application/javascript');
+      res.status(200).send(`// sw.js
+
+      self.addEventListener('install', () => {
+        self.skipWaiting();
+      });
+      
+      self.addEventListener('activate', () => {
+        self.clients.matchAll({
+          type: 'window'
+        }).then(windowClients => {
+          windowClients.forEach((windowClient) => {
+            windowClient.navigate(windowClient.url);
+          });
+        });
+      });`);
+      logger.dev('?', 'Sent storage clear header');
     });
+
     app.get('/server/manifest', function (req, res) {
+      logger.dev('?', 'Redirect manifest request');
       res.redirect('/manifest.json');
     });
 
