@@ -21,9 +21,11 @@ let updateSchema = function (
   inputScope, // full, export, or client
   logger = {
     warn: function (...val) {
+      val.shift(); // remove accountId
       console.warn(...val);
     },
     log: function (...val) {
+      val.shift();
       console.log(...val);
     },
   }
@@ -159,6 +161,7 @@ let updateSchema = function (
     }
 
     /*
+    // Example migrations
     if (version === 1) {
       // Blah blah blah
       inputJson.metadata = {

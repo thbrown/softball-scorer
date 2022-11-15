@@ -1120,13 +1120,6 @@ exp.saveDbStateToLocalStorage = function () {
     localStorage.setItem("LOCAL_DB_STATE", compressedLocalState);
     localStorage.setItem("ANCESTOR_DB_STATE", compressedAncestorState);
     */
-    console.log(
-      'VALIDATING',
-      SharedLib.schemaValidation.validateSchemaNoThrow(
-        LOCAL_DB_STATE,
-        TLSchemas.CLIENT
-      )
-    );
     SharedLib.schemaValidation.validateSchema(LOCAL_DB_STATE, TLSchemas.CLIENT);
 
     localStorage.setItem('SCHEMA_VERSION', CURRENT_LS_SCHEMA_VERSION);
@@ -1150,11 +1143,7 @@ exp.saveApplicationStateToLocalStorage = function () {
   }
 };
 
-exp.loadStateFromLocalStorage = function (
-  local = true,
-  ancestor = true,
-  app = true
-) {
+exp.loadStateFromLocalStorage = function (loadState = true, loadApp = true) {
   if (typeof Storage !== 'undefined') {
     // These statements define local storage schema migrations
     if (localStorage.getItem('SCHEMA_VERSION') !== CURRENT_LS_SCHEMA_VERSION) {
@@ -1168,17 +1157,47 @@ exp.loadStateFromLocalStorage = function (
       exp.saveApplicationStateToLocalStorage();
     }
 
-    let localDbState = localStorage.getItem('LOCAL_DB_STATE');
-    if (local && localDbState) {
-      LOCAL_DB_STATE = JSON.parse(localDbState);
+    // Retrieve, update, and validate state. Do nothing if anything in this process fails.
+    if (loadState) {
+      try {
+        let localDbState = JSON.parse(localStorage.getItem('LOCAL_DB_STATE'));
+        if (localDbState) {
+          SharedLib.schemaMigration.updateSchema(null, localDbState, 'client');
+          SharedLib.schemaValidation.validateSchema(
+            localDbState,
+            TLSchemas.CLIENT
+          );
+        }
+
+        let ancestorDbState = JSON.parse(
+          localStorage.getItem('ANCESTOR_DB_STATE')
+        );
+        if (ancestorDbState) {
+          SharedLib.schemaMigration.updateSchema(
+            null,
+            ancestorDbState,
+            'client'
+          );
+          SharedLib.schemaValidation.validateSchema(
+            ancestorDbState,
+            TLSchemas.CLIENT
+          );
+        }
+
+        // Apply changes if there were no errors - we want both of them to update or none of them
+        if (localDbState && ancestorDbState) {
+          LOCAL_DB_STATE = localDbState;
+          ANCESTOR_DB_STATE = ancestorDbState;
+        }
+      } catch (e) {
+        // We have bad data in ls, delete it all
+        console.warn('Error loading state from localstorage', e);
+        console.warn('Clearing ls');
+        exp.clearLocalStorage();
+      }
     }
 
-    let ancestorDbState = localStorage.getItem('ANCESTOR_DB_STATE');
-    if (ancestor && ancestorDbState) {
-      ANCESTOR_DB_STATE = JSON.parse(ancestorDbState);
-    }
-
-    if (app) {
+    if (loadApp) {
       let applicationState = JSON.parse(
         localStorage.getItem('APPLICATION_STATE')
       );
@@ -1215,7 +1234,7 @@ function onEdit() {
     exp.saveDbStateToLocalStorage();
   } catch (e) {
     console.warn('Could not persist edit locally, restoring. ', e);
-    exp.loadStateFromLocalStorage(true, false, false);
+    exp.loadStateFromLocalStorage(true, false);
     reRender();
   }
   exp.scheduleSync();
