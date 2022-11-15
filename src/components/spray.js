@@ -18,7 +18,7 @@ const BALL_FIELD_MAX_WIDTH = 500;
 const BALL_SIZE = 20;
 // TODO responsively size this so it is affected when resizing screen
 const TOOLTIP_WIDTH = window.innerWidth < 400 ? 125 : 175;
-const TOOLTIP_ROW_HEIGHT = 30;
+const TOOLTIP_ROW_HEIGHT = 21;
 const TOOLTIP_PADDING = 10;
 
 const getHitPosition = (pa) => {
@@ -76,7 +76,7 @@ const SprayTooltip = withStyles((theme) => ({
     color: theme.colors.TEXT_DARK,
     backgroundColor: theme.colors.BACKGROUND,
     border: '1px solid ' + theme.colors.SECONDARY_LIGHT,
-    borderRadius: theme.spacing.medium,
+    borderRadius: theme.spacing.xSmall,
     padding: TOOLTIP_PADDING + 'px',
     width: TOOLTIP_WIDTH + 'px',
     lineHeight: TOOLTIP_ROW_HEIGHT + 'px',
@@ -91,7 +91,7 @@ const SprayTooltip = withStyles((theme) => ({
     justifyContent: 'space-between',
     maxWidth: TOOLTIP_WIDTH + 'px',
     overflow: 'hidden',
-    borderBottom: '1px solid ' + theme.colors.PRIMARY,
+    borderBottom: '1px solid ' + theme.colors.SECONDARY_LIGHT,
   },
   tooltipLabel: {
     fontWeight: 'bold',

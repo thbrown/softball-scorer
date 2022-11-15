@@ -156,31 +156,37 @@ const CardStatsGame = ({
       />
       <InnerSection
         style={{
-          marginBottom: '16px',
+          marginBottom: '1.5rem',
         }}
       >
-        <h2>Results</h2>
-        {playerPaList.map((player) => {
-          return (
-            <div className={classes.statRow} key={player.id}>
-              <div
-                className={classes.statCell}
-                style={{
-                  width: '120px',
-                }}
-              >
-                {player.name}
+        <div
+          style={{
+            marginLeft: '1.5rem',
+          }}
+        >
+          <h2>Results</h2>
+          {playerPaList.map((player) => {
+            return (
+              <div className={classes.statRow} key={player.id}>
+                <div
+                  className={classes.statCell}
+                  style={{
+                    width: '120px',
+                  }}
+                >
+                  {player.name}
+                </div>
+                {player.plateAppearances.map((pa) => {
+                  return (
+                    <div key={pa.id} className={classes.statCell}>
+                      {pa.result}
+                    </div>
+                  );
+                })}
               </div>
-              {player.plateAppearances.map((pa) => {
-                return (
-                  <div key={pa.id} className={classes.statCell}>
-                    {pa.result}
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </InnerSection>
 
       {/* Conditionally show the link*/}

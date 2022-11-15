@@ -5,6 +5,8 @@ import Spray from '../components/spray';
 import state from 'state';
 import css from 'css';
 import InnerSection from 'elements/inner-section';
+import IconButton from '../elements/icon-button';
+import { showStatsHelp } from 'utils/help-functions';
 
 export default class CardPlayerStats extends React.Component {
   getSeasonalStats() {
@@ -30,7 +32,12 @@ export default class CardPlayerStats extends React.Component {
     const playerStatsByTeam = this.getSeasonalStats();
 
     const seasonStats = [
-      <tr key={'season-headers'} style={{ textAlign: 'right' }}>
+      <tr
+        key={'season-headers'}
+        style={{
+          textAlign: 'right',
+        }}
+      >
         <th style={{ textAlign: 'left' }}>Team Name</th>
         <th>PA</th>
         <th>Avg</th>
@@ -41,11 +48,20 @@ export default class CardPlayerStats extends React.Component {
         <th>rG</th>
         <th>rPA</th>
         <th>PA/G</th>
+        <th>O/G</th>
       </tr>,
     ];
     for (let season of playerStatsByTeam) {
       seasonStats.push(
-        <tr key={'season-' + season.teamName} style={{ textAlign: 'right' }}>
+        <tr
+          key={'season-' + season.teamName}
+          style={{
+            textAlign: 'right',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
           <td style={{ textAlign: 'left' }}>{season.teamName}</td>
           <td>{season.stats.plateAppearances}</td>
           <td>{season.stats.battingAverage}</td>
@@ -56,6 +72,7 @@ export default class CardPlayerStats extends React.Component {
           <td>{season.stats.gameAutocorrelation}</td>
           <td>{season.stats.paAutocorrelation}</td>
           <td>{season.stats.paPerGame}</td>
+          <td>{season.stats.outsPerGame}</td>
         </tr>
       );
     }
@@ -65,7 +82,12 @@ export default class CardPlayerStats extends React.Component {
     );
     const allTimeStats = state.buildStatsObject(allPAs, this.props.player.id);
     seasonStats.push(
-      <tr key={'season-alltime'} style={{ textAlign: 'right' }}>
+      <tr
+        key={'season-alltime'}
+        style={{
+          textAlign: 'right',
+        }}
+      >
         <td style={{ textAlign: 'left' }}>
           <b>Total</b>
         </td>
@@ -130,6 +152,7 @@ export default class CardPlayerStats extends React.Component {
         <InnerSection
           style={{
             margin: '7px auto',
+            overflow: 'auto',
             color: css.colors.TEXT_LIGHT,
             backgroundColor: css.colors.PRIMARY_DARK,
             borderRadius: '9px',
@@ -140,14 +163,23 @@ export default class CardPlayerStats extends React.Component {
             style={{
               fontSize: '16px',
               fontWeight: 'bold',
-              paddingTop: '1rem',
               paddingLeft: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              display: 'flex',
+              justifyContent: 'center',
             }}
           >
-            Stats
+            <div>Stats</div>{' '}
+            <IconButton
+              className="help-icon"
+              src="/server/assets/help.svg"
+              alt="help"
+              onClick={showStatsHelp}
+            />
           </div>
-          <table style={{ width: '100%', padding: '1rem' }}>
-            <tbody>{seasonStats}</tbody>
+          <table style={{ width: '100%', padding: '1rem', paddingTop: '0px' }}>
+            <tbody className="player-stats">{seasonStats}</tbody>
           </table>
         </InnerSection>
       </Card>

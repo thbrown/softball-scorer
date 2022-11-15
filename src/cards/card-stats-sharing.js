@@ -205,7 +205,9 @@ const CardStatsSharing = (props) => {
     );
   } else {
     content = (
-      <div>
+      <div
+        style={{ padding: '1rem', display: 'flex', justifyContent: 'center' }}
+      >
         Your session has expired. Login from the main menu to change stats
         sharing settings.
       </div>

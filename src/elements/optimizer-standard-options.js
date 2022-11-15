@@ -5,6 +5,7 @@ import { setRoute } from 'actions/route';
 import Loading from '../elements/loading';
 import state from 'state';
 import IconButton from './icon-button';
+import { showLineupTypeHelp } from 'utils/help-functions';
 
 export default class OptimizerStandardOptions extends React.Component {
   constructor(props) {
@@ -33,28 +34,6 @@ export default class OptimizerStandardOptions extends React.Component {
         undefined
       );
     }.bind(this);
-
-    // TODO: this is duplicated from card-game-edit
-    this.handleLineupTypeHelpClick = () => {
-      dialog.show_notification(
-        <div>
-          <b>Lineup Type</b> is used by the lineup simulator to determine what
-          lineups are valid. Some leagues have restrictions on which players can
-          bat in which slots. Softball.app supports three types of lineups:
-          <div style={{ margin: '1rem' }}>
-            <b>- Normal</b> Any batter is allowed to bat anywhere in the lineup.
-          </div>
-          <div style={{ margin: '1rem' }}>
-            <b>- Alternating Gender</b> Consecutive batters must have different
-            genders.
-          </div>
-          <div style={{ margin: '1rem' }}>
-            <b>- No Consecutive Females</b> Females may not bat back-to-back.
-          </div>
-        </div>,
-        undefined
-      );
-    };
 
     this.onLineupChange = function (value) {
       this.props.onChange();
@@ -138,7 +117,7 @@ export default class OptimizerStandardOptions extends React.Component {
             alt="help"
             className="help-icon"
             src="/server/assets/help.svg"
-            onClick={this.handleLineupTypeHelpClick}
+            onClick={showLineupTypeHelp}
             invert
             style={{
               marginLeft: '6px',

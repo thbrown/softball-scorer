@@ -127,9 +127,7 @@ const LineupList = (props) => {
         <div className={classes.actionButtonContainer}>
           <div
             id="cancel"
-            className={
-              'button edit-button secondary-button ' + classes.actionButton
-            }
+            className={'button tertiary-button ' + classes.actionButton}
             onClick={props.handleCancelClick}
           >
             Cancel

@@ -1103,3 +1103,7 @@ Scrolling is ~10-20x smoother.
 .storage-value {
   font-weight: 1000;
 }
+
+.player-stats td, .player-stats th {
+  padding-right:11px;
+}

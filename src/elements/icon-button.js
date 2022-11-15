@@ -10,7 +10,7 @@ id?: string
 onClick?: () => void
 */
 const IconButton = (props) => {
-  const { hideBackground, invert, ...rest } = props;
+  const { hideBackground, invert, opacity, ...rest } = props;
   return (
     <div
       style={{
@@ -24,6 +24,7 @@ const IconButton = (props) => {
         alignItems: 'center',
         justifyContent: 'center',
         alignContent: 'center',
+        opacity: 0.5,
       }}
     >
       <img alt="img" {...rest} />

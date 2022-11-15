@@ -65,7 +65,6 @@ export default class CardStatsPrivate extends React.Component {
           ]}
           invert={true}
           style={{
-            marginBottom: '16px',
             fontSize: '20px',
             marginLeft: '8px',
             marginRight: '8px',

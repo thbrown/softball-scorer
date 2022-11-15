@@ -4,6 +4,8 @@ import CardSection from 'elements/card-section';
 import { StickyTable, Row, Cell } from 'react-sticky-table';
 import css from 'css';
 import InnerSection from 'elements/inner-section';
+import IconButton from 'elements/icon-button';
+import { showStatsHelp } from 'utils/help-functions';
 
 const DSC_CHAR = '▼'; //'\25bc';
 const ASC_CHAR = '▲'; //'\25be';
@@ -246,21 +248,30 @@ export default class CardStatsSeason extends React.Component {
     );
 
     return (
-      <CardSection>
+      <CardSection noPadding={true}>
         <InnerSection
           style={{
-            padding: '0.25rem',
             textAlign: 'center',
             color: css.colors.TEXT_GREY,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
-          Tap a player name for a comprehensive hit spray chart.
+          <div>Tap a player name for season spray chart.</div>
+          <IconButton
+            className="help-icon"
+            src="/server/assets/help.svg"
+            alt="help"
+            onClick={showStatsHelp}
+            opacity=".5"
+            invert
+          />
         </InnerSection>
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-around',
-            marginTop: '0.75rem',
           }}
         >
           <StickyTable>{tableElems}</StickyTable>
