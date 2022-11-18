@@ -73,6 +73,9 @@ self.addEventListener('fetch', function (event) {
   // First try to get resource out of the cache, if it's not there go to the network.
   event.respondWith(
     caches.match(requestToProcess).then(function (response) {
+      console.log(
+        `[ServiceWorker] cache request ${JSON.stringify(response, null, 2)}`
+      );
       return response || fetch(event.request);
     })
   );

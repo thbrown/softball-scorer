@@ -1,4 +1,4 @@
-const CURRENT_VERSION = 1;
+const CURRENT_VERSION = 2;
 
 /**
  * When the json schema for an account's data gets updated, this function performs a schema migration on older data.
@@ -8,6 +8,8 @@ const CURRENT_VERSION = 1;
  *
  * To add a migration, add another if block to the bottom of this function. At a minimum you need to update the
  * metadata version of your document even if you are just adding fields.
+ *
+ * Then build shared `yarn --cwd ./shared build` and test with `yarn test schema-migration`
  *
  * @returns a string depending on the result of the migration:
  * "OKAY" - if json document is up-to-date and no action was taken
@@ -160,21 +162,41 @@ let updateSchema = function (
       };
     }
 
+    if (inputJson.metadata.version === 1) {
+      // We are moving status "PAUSING" to a new field. It's possible for for an opt to be in any number of statuses and also be pausing.
+      for (let optimization of inputJson.optimizations) {
+        optimization.status =
+          optimization.status === 6
+            ? SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR
+            : optimization.status;
+        optimization.pause = false;
+      }
+      inputJson.metadata = {
+        version: 2,
+        scope: inputScope,
+      };
+
+      // We are no longer exporting optimizations
+      if (inputScope === 'export') {
+        delete inputJson.optimizations;
+      }
+    }
+
     /*
     // Example migrations
-    if (version === 1) {
+    if (inputJson.metadata.version === 2) {
       // Blah blah blah
       inputJson.metadata = {
         version: 2,
-        scope: scope,
+        scope: inputScope,
       };
     }
 
-    if (version === 2) {
+    if (inputJson.metadata.version === 3) {
       // Blah blah blah
       inputJson.metadata = {
         version: 3,
-        scope: scope,
+        scope: inputScope,
       };
     }
     */

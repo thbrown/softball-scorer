@@ -50,7 +50,7 @@ module.exports = class CacheCallsGcpBuckets {
       try {
         let file = (await targetBucket.file(blobName).get())[0];
         generation = file.metadata.generation;
-        fileContent = JSON.parse(await file.download());
+        fileContent = JSON.parse(await file.download({ validation: 'md5' }));
       } catch (e) {
         logger.warn(
           accountId,
@@ -66,12 +66,16 @@ module.exports = class CacheCallsGcpBuckets {
       let result = SharedLib.schemaMigration.updateSchema(
         accountId,
         fileContent,
-        'full',
+        'client',
         logger
       );
 
       if (result === 'UPDATED') {
         // Check if a schema update is needed, if the schema has been upgraded, write the new data before progressing
+        SharedLib.schemaValidation.validateSchema(
+          fileContent,
+          TLSchemas.CLIENT
+        );
         await this.writeBlob(accountId, location, blobName, fileContent, null);
         logger.log(accountId, 'Updated schema write-back successful');
       }
@@ -79,10 +83,13 @@ module.exports = class CacheCallsGcpBuckets {
       // Validate schema after read
       SharedLib.schemaValidation.validateSchema(fileContent, TLSchemas.CLIENT);
 
+      /*
       return {
         content: fileContent,
         generation: generation,
       };
+      */
+      return fileContent;
     } catch (e) {
       if (e.code === 404) {
         logger.log(accountId, 'Ancestor not found');
@@ -94,7 +101,7 @@ module.exports = class CacheCallsGcpBuckets {
   }
 
   async setAncestor(accountId, sessionId, ancestor) {
-    let blobName = 'ancestor' + sessionId;
+    let blobName = 'ancestor-' + sessionId;
 
     try {
       // Validate schema before write
@@ -104,6 +111,8 @@ module.exports = class CacheCallsGcpBuckets {
       // Now write the actual file
       const file = targetBucket.file(blobName);
       await file.save(JSON.stringify(ancestor), {
+        validation: 'md5',
+        resumable: false,
         metadata: {
           cacheControl: 'no-cache',
         },

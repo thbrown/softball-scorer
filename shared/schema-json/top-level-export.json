@@ -4,33 +4,33 @@
   "title": "Top Level Export",
   "description": "Data that gets downloaded when a user exports his/her data from the app. Notably excludes account information.",
   "type": "object",
-  "required": ["metadata", "players", "optimizations", "teams"],
+  "required": ["metadata", "players", "teams"],
   "unevaluatedProperties": false,
   "properties": {
     "metadata": {
       "description": "Information about the json document itself",
       "type": "object",
-      "unevaluatedProperties": false,  
+      "unevaluatedProperties": false,
       "required": ["version", "scope"],
       "properties": {
         "version": {
           "type": "integer",
-          "description": "The version schema version of the json document"
+          "description": "The version schema of the json document"
         },
         "scope": {
           "type": "string",
           "enum": ["export"],
-          "description": "Export contains no account information."
+          "description": "Export contains no account information and no optimizations."
         }
       }
     },
     "players": {
       "description": "List of all players associated with this account",
       "type": "array",
-      "items": { 
+      "items": {
         "type": "object",
         "unevaluatedProperties": false,
-        "$ref": "http://softball.app/schemas/player" 
+        "$ref": "http://softball.app/schemas/player"
       }
     },
     "teams": {
@@ -39,18 +39,7 @@
       "items": {
         "type": "object",
         "unevaluatedProperties": false,
-        "allOf": [
-          { "$ref": "http://softball.app/schemas/team" }
-        ]  
-       }
-    },
-    "optimizations": {
-      "type": "array",
-      "description": "List of all optimizations associated with this account",
-      "items": { 
-        "type": "object",
-        "unevaluatedProperties": false,
-        "$ref": "http://softball.app/schemas/optimization"
+        "allOf": [{ "$ref": "http://softball.app/schemas/team" }]
       }
     }
   }

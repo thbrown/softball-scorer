@@ -314,7 +314,10 @@ let databaseCalls = class DatabaseCalls {
       throw new HandledError(accountId, 403, 'Please sign in first');
     }
     logger.log('Attempting to merge', this.STATES[accountId], patch);
-    SharedLib.objectMerge.patch(this.STATES[accountId], patch);
+    this.STATES[accountId] = SharedLib.objectMerge.patch(
+      this.STATES[accountId],
+      patch
+    );
   }
 
   async signup(email, passwordHash, passwordTokenHash) {

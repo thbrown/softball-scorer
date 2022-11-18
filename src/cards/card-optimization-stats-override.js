@@ -127,12 +127,13 @@ export default class CardOptimizationStatsOverride extends React.Component {
 
   renderPage() {
     if (
-      this.props.optimization.status !==
-      SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+      !SharedLib.constants.EDITABLE_OPTIMIZATION_STATUSES_ENUM.has(
+        this.props.optimization.status
+      )
     ) {
       return (
         <div className="auth-input-container">
-          {'This page is only available when optimization status is NOT_STARTED. Status is currently ' +
+          {'This page is only available when optimization status is editable. Status is currently ' +
             constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
               this.props.optimization.status
             ]}
@@ -186,7 +187,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
 
     let teamAtBatButtons = [];
     for (let team of state.getAllTeams()) {
-      let teamPAs = state.getDecoratedPlateAppearancesForPlayerOnTeam(
+      let teamPAs = state.getPlateAppearancesForPlayerOnTeam(
         this.props.player.id,
         team.id
       );
@@ -195,7 +196,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
           <div
             onClick={this.handleAddPas.bind(
               this,
-              state.getDecoratedPlateAppearancesForPlayerOnTeam(
+              state.getPlateAppearancesForPlayerOnTeam(
                 this.props.player.id,
                 team.id
               )

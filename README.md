@@ -55,7 +55,7 @@ If you are running from a gcp compute instance, you can set "access scope" on in
 
 If you are running on a local developer instance, you can auth with your Google credentials using the following command (using gcloud command line tools):
 
-````
+```
 
 gcloud auth application-default login
 
@@ -66,62 +66,6 @@ You'll need to add the storage admin or editor rolls to the account you log in a
 If you still get errors about permissions after setting IAM, you'll need to check to make sure the bucket names in the config are globally unique.
 
 For details and other ways to authenticate, see https://cloud.google.com/docs/authentication/provide-credentials-adc
-
-### Redis setup (tested on version 5.0.3)
-
-#### Windows
-
-Windows requires the use of Windows Subsystem for Linux (WSL)
-
-1. Enable WSL by opening powershell as an admin and running this command (this will require a restart)
-   `Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux`
-
-2. Install Ubuntu 18.04 from the Microsoft store
-   https://www.microsoft.com/en-us/p/ubuntu-1804/9n9tngvndl3q?activetab=pivot:overviewtab
-
-3. Make some default user
-
-4. Open Ubuntu in windows and follow the Ubuntu instructions below
-
-#### Linux
-
-1. `sudo apt-get update`
-2. `sudo apt-get upgrade`
-3. `sudo apt install redis-server`
-4. `redis-server`
-5. Update/Create ./src-srv/config.js with Redis server info (see ./src-srv/config-template.js)
-
-To run redis with own config:
-
-1. Make sure you are in the project root
-2. `sudo systemctl stop redis` Redis runs automatically. We will need to stop and restart to use our own config file.
-3. `sudo redis-server` optionally supply `./redis.conf`
-4. Press `Ctrl + A` then `d` to detach screen
-5. Update/Create ./src-srv/config.js with Redis server info (see ./src-srv/config-template.js)
-
-Example redis.conf
-
-```
-
-# Require a password
-
-requirepass "JtmpasEY9wSfu27XuYeK9Q4rdDPmXXeD_change_me"
-
-# Specify the port
-
-port 6379
-
-# If memory fills up, evict the least recently used key, even if it has no expiration
-
-maxmemory-policy allkeys-lru
-
-# Optionally allow other non-localhost machines to connect (req obviously if the app server is running on another machine)
-
-```
-
-Some other useful commands:
-`sudo systemctl enable redis-server.service`
-`sudo service redis-server restart`
 
 ### Nginx
 
@@ -229,6 +173,6 @@ Note: this is broken, because the file structure has changed. Should be fixable,
 
 Cloud build:
 
+```
 `./gcp-build.sh && yarn start`
 ```
-````

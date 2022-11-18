@@ -666,13 +666,34 @@ exp.duplicateOptimization = function (optimizationId) {
 
   // Reset the any status fields and de-duplicate unique fields
   duplicatedOptimization.id = getNextId();
+
   let newName = 'Duplicate of ' + duplicatedOptimization.name;
+  try {
+    // Try fancy renaming - like windows does when you copy a file
+    let regex = /\([\d]+\)$/; // There is a minor bug here with leading zeros
+    let matches = regex.exec(duplicatedOptimization.name);
+    console.log(matches);
+    if (matches?.length > 0) {
+      let nextNumber = parseInt(matches[0].slice(1, -1)) + 1;
+      let slicedOriginal = duplicatedOptimization.name.slice(
+        0,
+        -matches[0].length
+      );
+      newName = `${slicedOriginal} (${nextNumber})`;
+    } else {
+      newName = `${duplicatedOptimization.name} (2)`;
+    }
+  } catch (e) {
+    console.warn('regex failure', e);
+  }
   duplicatedOptimization.name = newName.substring(0, 49); // Prevent the name form being too long
-  duplicatedOptimization.status =
-    SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED;
   duplicatedOptimization.resultData = {};
   duplicatedOptimization.statusMessage = null;
   duplicatedOptimization.inputSummaryData = {};
+  duplicatedOptimization.name;
+  // Read-only fields
+  delete duplicatedOptimization.status;
+  delete duplicatedOptimization.pause;
 
   localState.optimizations.push(duplicatedOptimization);
   onEdit();
@@ -694,7 +715,6 @@ exp.addOptimization = function (name, playerList, teamList, lineupType) {
     name: name,
     customOptionsData: {},
     overrideData: {},
-    status: SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
     resultData: {},
     statusMessage: null,
     sendEmail: false,
@@ -1611,9 +1631,9 @@ let setSyncState = function (newState, skipRender) {
   if (syncState !== newState) {
     const origStateName = exp.syncStateToSyncStateName(syncState);
     const newStateName = exp.syncStateToSyncStateName(newState);
-    console.log(
-      `[SYNC] Sync state updated from ${origStateName} (${syncState}) to ${newStateName} (${newState})`
-    );
+    //console.log(
+    //  `[SYNC] Sync state updated from ${origStateName} (${syncState}) to ${newStateName} (${newState})`
+    //);
     syncState = newState;
     if (!skipRender) {
       reRender();

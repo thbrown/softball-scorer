@@ -20,7 +20,7 @@
         "scope": {
           "type": "string",
           "enum": ["full"],
-          "description": "What subset of account data is contained in the object defined by this schema, depending on the use case we might not want it to contain everything."
+          "description": "All account data is present"
         }
       }
     },
@@ -30,20 +30,20 @@
       "allOf": [
         { "$ref": "http://softball.app/schemas/account" },
         { "$ref": "http://softball.app/schemas/account-private" },
-        { 
+        {
           "$ref": "http://softball.app/schemas/account-read-only",
-          "required": ["accountId", "email", "emailConfirmed","balance"]
+          "required": ["accountId", "email", "emailConfirmed", "balance"]
         }
       ]
     },
     "players": {
       "description": "List of all players associated with this account",
       "type": "array",
-      "items": { 
+      "items": {
         "type": "object",
         "unevaluatedProperties": false,
         "$ref": "http://softball.app/schemas/player"
-       }
+      }
     },
     "teams": {
       "description": "List of all teams associated with this account",
@@ -54,16 +54,19 @@
         "allOf": [
           { "$ref": "http://softball.app/schemas/team-read-only" },
           { "$ref": "http://softball.app/schemas/team" }
-        ]  
+        ]
       }
     },
     "optimizations": {
       "type": "array",
       "description": "List of all optimizations associated with this account",
-      "items": { 
+      "items": {
         "type": "object",
         "unevaluatedProperties": false,
-        "$ref": "http://softball.app/schemas/optimization"
+        "allOf": [
+          { "$ref": "http://softball.app/schemas/optimization-read-only" },
+          { "$ref": "http://softball.app/schemas/optimization" }
+        ]
       }
     }
   }

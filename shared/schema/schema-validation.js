@@ -8,6 +8,7 @@ import * as schemaTeamReadOnly from '../schema-json/team-read-only.json';
 import * as schemaGame from '../schema-json/game.json';
 import * as schemaPlateAppearance from '../schema-json/plate-appearance.json';
 import * as schemaOptimization from '../schema-json/optimization.json';
+import * as schemaOptimizationReadOnly from '../schema-json/optimization-read-only.json';
 import * as schemaAccount from '../schema-json/account.json';
 import * as schemaAccountPrivate from '../schema-json/account-private.json';
 import * as schemaAccountReadOnly from '../schema-json/account-read-only.json';
@@ -31,6 +32,7 @@ const ajv = new Ajv({
     schemaGame,
     schemaPlateAppearance,
     schemaOptimization,
+    schemaOptimizationReadOnly,
     schemaAccount,
     schemaAccountPrivate,
     schemaAccountReadOnly,
@@ -112,6 +114,9 @@ let convertDocumentToExport = function (inputJson) {
 
   // No account info at all in export
   delete inputJson.account;
+
+  // No optimizations
+  delete inputJson.optimizations;
 
   validateSchema(inputJson, TLSchemas.EXPORT);
   return inputJson;

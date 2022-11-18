@@ -6,10 +6,17 @@ const TLSchemas = SharedLib.schemaValidation.TLSchemas;
 
 const { Storage } = require('@google-cloud/storage');
 
+const fs = require('fs');
+const path = require('path');
+
 let databaseCallsGcpBuckets = class DatabaseCallsGcpBuckets extends DatabaseCallsAbstractBlob {
   constructor(data, emailLookup, tokenLookup, publicIdLookup) {
     super();
-    this.storage = new Storage();
+    // CODE=FILE_NO_UPLOAD? FILE_NO_UPLOAD_DELETE?
+    this.storage = new Storage({
+      autoRetry: true,
+      idempotencyStrategy: 'RetryAlways',
+    });
     this.dataBucketName = data;
     this.emailLookupBucketName = emailLookup;
     this.tokenLookupBucketName = tokenLookup;
@@ -57,6 +64,17 @@ let databaseCallsGcpBuckets = class DatabaseCallsGcpBuckets extends DatabaseCall
   }
 
   async writeBlob(accountId, location, blobName, content, generation) {
+    await this._writeBlob(
+      accountId,
+      location,
+      blobName,
+      content,
+      generation,
+      0
+    );
+  }
+
+  async _writeBlob(accountId, location, blobName, content, generation, retry) {
     try {
       // Map location to file
       let targetBucket = this.blobMap[location];
@@ -70,14 +88,70 @@ let databaseCallsGcpBuckets = class DatabaseCallsGcpBuckets extends DatabaseCall
       const file = targetBucket.file(blobName);
       await file.save(JSON.stringify(content), {
         generation: generation,
+        validation: 'md5',
+        resumable: false,
         metadata: {
           cacheControl: 'no-cache',
         },
       });
     } catch (e) {
-      // Storage library doe snot give a good stack, print the one we care about here
+      // These error codes mean that the content written to the bucket has a different checksum than the file that was uploaded.
+      // It's really bad for us because the file either gets deleted to preserve data integrity (FILE_NO_UPLOAD) or the file
+      // fails to get delete and we get potentially corrupted data (FILE_NO_UPLOAD_DELETE). So we will re-try and if that
+      // doesn't work, we will dump the write content to the file system so we can restore it manually later. This is not an
+      // API error so it's not covered by the Storage library's automatic retry.
+      if (
+        retry <= 0 &&
+        (e.code === 'FILE_NO_UPLOAD' || e.code === 'FILE_NO_UPLOAD_DELETE')
+      ) {
+        logger.error(
+          accountId,
+          'Write checksum did not match. Attempting re-try.'
+        );
+        try {
+          // TODO, wait first??
+          await this._writeBlob(
+            accountId,
+            location,
+            blobName,
+            content,
+            generation,
+            retry + 1
+          );
+        } catch (e) {
+          // Something is still wrong, dump the file to the file system
+          var stack = new Error().stack;
+          logger.error(
+            accountId,
+            'BAD: write checksum did not match and retry failed. File to restore has been persisted to file system.',
+            stack,
+            this.blobMap[location].name,
+            blobName,
+            content.length
+          );
+          // Save the file to the local file system for manual restoration
+          fs.writeFileSync(
+            path.join(
+              __dirname,
+              `/emergency-dump-${this.blobMap[location].name}-${blobName}.json`
+            ),
+            JSON.stringify(content)
+          );
+          throw e;
+        }
+      }
+
+      // Storage library does not give a good stack, print the one we care about here
       var stack = new Error().stack;
-      logger.error(accountId, 'Write Error', stack);
+      logger.error(
+        accountId,
+        'Write Error',
+        stack,
+        this.blobMap[location].name,
+        blobName,
+        content.length
+      );
+      throw e;
     }
   }
 
@@ -92,7 +166,11 @@ let databaseCallsGcpBuckets = class DatabaseCallsGcpBuckets extends DatabaseCall
       try {
         let file = (await targetBucket.file(blobName).get())[0];
         generation = file.metadata.generation;
-        fileContent = JSON.parse(await file.download());
+        fileContent = JSON.parse(
+          await file.download({
+            validation: 'md5',
+          })
+        );
       } catch (e) {
         logger.warn(
           accountId,
@@ -100,7 +178,7 @@ let databaseCallsGcpBuckets = class DatabaseCallsGcpBuckets extends DatabaseCall
           blobName,
           e.statusCode
         );
-        // We check for 404 in the parent class
+        // Caller checks fof 404
         throw e;
       }
 
@@ -134,30 +212,57 @@ let databaseCallsGcpBuckets = class DatabaseCallsGcpBuckets extends DatabaseCall
         generation: generation,
       };
     } catch (e) {
+      // Storage library does not give a good stack, print the one we care about here
+      var stack = new Error().stack;
       if (e.code !== 404) {
-        // Storage library doe snot give a good stack, print the one we care about here
-        var stack = new Error().stack;
-        logger.error(accountId, 'Read Error', stack);
+        logger.error(
+          accountId,
+          'Read Error',
+          this.blobMap[location].name,
+          blobName,
+          stack
+        );
+      } else {
+        logger.warn(
+          accountId,
+          'Read Error - 404',
+          this.blobMap[location].name,
+          blobName,
+          stack
+        );
       }
       throw e;
     }
   }
 
   async deleteBlob(accountId, location, blobName) {
-    // Map location to file
-    let targetBucket = this.blobMap[location];
-    // Now delete the actual file
-    const file = targetBucket.file(blobName);
-    await file.delete();
+    try {
+      // Map location to file
+      let targetBucket = this.blobMap[location];
+      // Now delete the actual file
+      const file = targetBucket.file(blobName);
+      await file.delete();
+    } catch (e) {
+      if (e.code === 404) {
+        return; // Already deleted, or never existed
+      }
+      logger.error(accountId, 'Error on delete');
+      throw e;
+    }
   }
 
   async exists(accountId, location, blobName) {
-    // Map location to file
-    let targetBucket = this.blobMap[location];
-    // Now delete the actual file
-    const file = targetBucket.file(blobName);
-    let result = await file.exists();
-    return result[0];
+    try {
+      // Map location to file
+      let targetBucket = this.blobMap[location];
+      // Now delete the actual file
+      const file = targetBucket.file(blobName);
+      let result = await file.exists();
+      return result[0];
+    } catch (e) {
+      logger.log(accountId, 'Error on delete');
+      throw e;
+    }
   }
 };
 module.exports = databaseCallsGcpBuckets;

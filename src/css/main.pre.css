@@ -513,6 +513,14 @@ hr {
   }
 }
 
+@media (hover: hover) {
+  .hover:active, 
+  .hover:hover {
+    filter: brightness(95%);
+  }
+}
+
+
 .primary-button {
   background-color: $css.colors.PRIMARY_DARK;
   border: 2px solid $css.colors.PRIMARY_DARK;

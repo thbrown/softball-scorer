@@ -217,7 +217,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
       accountId,
       BlobLocation.DATA,
       accountId,
-      stateBlob,
+      stateBlob.content,
       stateBlob.generation
     );
   }
@@ -242,7 +242,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     let oldToken = account.passwordTokenHash;
     account.passwordTokenHash = tokenHash;
     account.passwordTokenExpiration = Date.now() + 3600000;
-    await this.writeBlob(accountId, BlobLocation.TOKEN_LOOKUP, accountId, {
+    await this.writeBlob(accountId, BlobLocation.TOKEN_LOOKUP, tokenHash, {
       accountId,
     });
     await this.writeBlob(
@@ -260,19 +260,21 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     await this.deleteBlob(
       accountId,
       BlobLocation.EMAIL_LOOKUP,
-      dataBlob.content.email
+      dataBlob.content.account.email
     );
     await this.deleteBlob(
       accountId,
       BlobLocation.TOKEN_LOOKUP,
-      dataBlob.content.tokenHash
+      dataBlob.content.account.passwordTokenHash
     );
     for (let team of dataBlob.content.teams) {
-      await this.deleteBlob(
-        accountId,
-        BlobLocation.PUBLIC_ID_LOOKUP,
-        team.publicId
-      );
+      if (team.publicId) {
+        await this.deleteBlob(
+          accountId,
+          BlobLocation.PUBLIC_ID_LOOKUP,
+          team.publicId
+        );
+      }
     }
     // Delete this last so we can retry delete if it fails
     await this.deleteBlob(accountId, BlobLocation.DATA, accountId);
@@ -287,44 +289,49 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     optimizationId,
     newStatus,
     optionalMessage,
-    optionalPreviousStatus
+    pause
   ) {
     logger.log(
       accountId,
       'setting optimization status',
       newStatus,
       optionalMessage,
-      optionalPreviousStatus
+      `pause? ${pause}`
     );
     let message = optionalMessage ? optionalMessage : null;
     let stateBlob = await this._getFullStateBlob(accountId);
     let state = stateBlob.content;
     for (let i = 0; i < state.optimizations.length; i++) {
       if (state.optimizations[i].id === optimizationId) {
-        if (optionalPreviousStatus === undefined) {
+        // Set status, if provided
+        if (newStatus !== undefined && newStatus != null) {
           state.optimizations[i].status = newStatus;
           state.optimizations[i].statusMessage = message;
-          await this.writeBlob(
-            accountId,
-            BlobLocation.DATA,
-            accountId,
-            state,
-            stateBlob.generation
-          );
-          return true;
-        } else if (state.optimizations[i].status === optionalPreviousStatus) {
-          state.optimizations[i].status = newStatus;
-          state.optimizations[i].statusMessage = message;
-          await this.writeBlob(
-            accountId,
-            BlobLocation.DATA,
-            accountId,
-            state,
-            stateBlob.generation
-          );
-          return true;
         }
-        return false;
+        // Set pause, if provided (and current status is "progressing")
+        if (pause === true || pause === false) {
+          let curStatus = state.optimizations[i].status;
+          // Don't set pause to true for an optimization in a terminal state
+          // TODO: this might be letting too much app logic into out db layer
+          if (
+            pause === true &&
+            SharedLib.constants.TERMINAL_OPTIMIZATION_STATUSES_ENUM.has(
+              curStatus
+            )
+          ) {
+            logger.warn(accountId, 'PAUSE REJECTED', curStatus, pause);
+          } else {
+            state.optimizations[i].pause = pause;
+          }
+        }
+        await this.writeBlob(
+          accountId,
+          BlobLocation.DATA,
+          accountId,
+          state,
+          stateBlob.generation
+        );
+        return true;
       }
     }
     throw new Error(

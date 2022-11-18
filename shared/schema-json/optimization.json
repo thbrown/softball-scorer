@@ -2,13 +2,11 @@
   "$id": "http://softball.app/schemas/optimization",
   "title": "Optimization",
   "type": "object",
-  "description": "Array of optimizations",
   "required": [
     "id",
     "name",
     "customOptionsData",
     "overrideData",
-    "status",
     "resultData",
     "statusMessage",
     "sendEmail",
@@ -33,7 +31,7 @@
       "description": "Object representing parameters required by the selected optimizerType",
       "additionalProperties": {
         "type": ["number", "integer", "string", "boolean", "null", "array"]
-       }
+      }
     },
     "overrideData": {
       "type": "object",
@@ -41,16 +39,12 @@
       "additionalProperties": {
         "type": "array",
         "description": "Plate appearances for a particular player",
-        "items": { 
+        "items": {
           "type": "object",
           "unevaluatedProperties": false,
-          "$ref": "http://softball.app/schemas/plate-appearance" 
+          "$ref": "http://softball.app/schemas/plate-appearance"
         }
       }
-    },
-    "status": {
-      "type": "integer",
-      "description": "Indicates what state the optimization is currently in e.g. NOT_STARTED, IN_PROGRESS, COMPLETE etc."
     },
     "resultData": {
       "type": "object",

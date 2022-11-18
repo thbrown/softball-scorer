@@ -16,6 +16,8 @@ const PROHIBITED_KEYS = [
   'passwordTokenExpiration',
   'publicId', // Team
   'publicIdEnabled',
+  'status', // Optimization
+  'pause',
 ];
 
 let patchManager = class PatchManager {

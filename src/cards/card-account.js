@@ -6,6 +6,7 @@ import dialog from 'dialog';
 import { setRoute } from 'actions/route';
 import SharedLib from '../../shared-lib';
 import HrTitle from 'elements/hr-title';
+import { logout } from 'utils/functions';
 
 export default class CardAccount extends Component {
   constructor(props) {
@@ -85,6 +86,7 @@ export default class CardAccount extends Component {
           let message;
           if (response.status === 204) {
             message = 'Your account has been deleted.';
+            logout(state, dialog, setRoute);
           } else if (response.status === 400) {
             message =
               'App encountered a problem while deleting your account. Try again later.';

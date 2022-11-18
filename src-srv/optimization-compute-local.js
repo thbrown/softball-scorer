@@ -217,7 +217,8 @@ module.exports = class OptimizationComputeLocal {
           accountId,
           optimizationId,
           SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
-          data.toString()
+          null,
+          false
         );
       }.bind(this)
     );
@@ -241,11 +242,13 @@ module.exports = class OptimizationComputeLocal {
     // Set the control flag to "HALT"
     fs.writeFileSync(CTRL_FLAGS + '/' + optimizationId, 'HALT');
 
-    // Set optimization status to PAUSING
+    // Set optimization pausing field (which is different from status)
     await this.databaseCalls.setOptimizationStatus(
       accountId,
       optimizationId,
-      SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSING
+      null,
+      null,
+      true
     );
   }
 
@@ -303,7 +306,9 @@ module.exports = class OptimizationComputeLocal {
       process.stderr.on(
         'data',
         async function (data) {
-          logger.error(accountId, data.toString());
+          let err = data.toString();
+          logger.error(accountId, err);
+          reject(err);
         }.bind(this)
       );
 

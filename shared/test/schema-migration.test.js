@@ -100,12 +100,7 @@ describe('Validation', () => {
     expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
 
     // Export
-    content = deepCopy(stringContent);
-    content.optimizations[0].rubbish = 1238789450;
-    schemaMigration.updateSchema(null, content, 'export');
-    r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.EXPORT);
-    expect(r.result).toEqual(false);
-    expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
+    // Export no longer contains optimization data
   });
 
   test('Team must not contain extra properties', async () => {

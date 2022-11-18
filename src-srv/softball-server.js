@@ -250,7 +250,7 @@ module.exports = class SoftballServer {
         } finally {
           await unlockAccount(accountId);
         }
-        res.status(200).send(JSON.stringify(state, null, 2));
+        res.status(200).send(`<pre>${JSON.stringify(state, null, 2)}</pre>`);
       })
     );
 
@@ -443,7 +443,7 @@ module.exports = class SoftballServer {
               account.accountId,
               req.body.email,
               'Softball.app Password Reset',
-              `Sombody tried to reset the password for the softball.app (https://softball.app) account associated with this email address. Please click this link to reset the password: https://softball.app/account/password-reset/${token} If you did not request this message or if you no longer want to reset your password, please ignore this email. This reset link will expire in 24 hours.`,
+              `Somebody tried to reset the password for the softball.app (https://softball.app) account associated with this email address. Please click this link to reset the password: https://softball.app/account/password-reset/${token} If you did not request this message or if you no longer want to reset your password, please ignore this email. This reset link will expire in 24 hours.`,
               passwordResetEmailHtml(
                 `https://softball.app/account/password-reset/${token}`
               )
@@ -452,7 +452,7 @@ module.exports = class SoftballServer {
           res.status(204).send();
         } else {
           // TODO: Always send an email, even if no such email address was found.
-          // Emails that haven't been registerd on the site will say so.
+          // Emails that haven't been registered on the site will say so.
           logger.warn(
             'N/A',
             'Password reset: No such email found',
@@ -503,6 +503,41 @@ module.exports = class SoftballServer {
           // If an attacker somehow guesses the reset token and resets the password, they still don't know the email.
           // So, we wont log the password resetter in automatically. We can change this if we think it really affects
           // usability but I think it's okay. If users are resetting their passwords they are probably already engaged.
+          // logIn(account, req, res);
+          res.status(204).send();
+        } else {
+          logger.warn(
+            null,
+            'Could not find account from reset token',
+            req.body.token
+          );
+          res.status(404).send();
+        }
+      })
+    );
+
+    app.post(
+      '/server/account/verify-email',
+      wrapForErrorProcessing(async (req, res, next) => {
+        checkFieldLength(req.body.token, 320);
+        let token = req.body.token;
+        let tokenHash = crypto
+          .createHash('sha256')
+          .update(token)
+          .digest('base64')
+          .replace(/\//g, '_');
+        let account = await this.databaseCalls.getAccountFromTokenHash(
+          tokenHash
+        );
+        if (account) {
+          logger.log(
+            account.account_id,
+            'Email verification received. Token',
+            req.body.token
+          );
+          await this.databaseCalls.confirmEmail(account.accountId);
+
+          // Don't log in automatically (for security over usability, is this worth the tradeoff?)
           // logIn(account, req, res);
           res.status(204).send();
         } else {
@@ -682,12 +717,6 @@ module.exports = class SoftballServer {
               //JSON.stringify(data.patch, null, 2)
             );
 
-            // Note: I don't think we need this any more, it was useful with postgres, but now we can rely on the diffing lib to do the same thing
-            //SharedLib.objectMerge.patch(state, data.patch, true);
-            //let stateCopy = JSON.parse(JSON.stringify(state)); // Deep copy
-            // Now we'll diff the patched version against our original copied version, this gives us a patch without any edits to deleted entries or additions of things that already exist
-            //let cleanPatch = SharedLib.objectMerge.diff(stateCopy, state);
-
             // Pass the client's patch to the database to persist its changes
             logger.log(
               accountId,
@@ -695,7 +724,6 @@ module.exports = class SoftballServer {
               data.patch.length
             );
             await this.databaseCalls.patchState(data.patch, accountId);
-            let oldHash = SharedLib.commonUtils.getHash(state);
             state = await this.databaseCalls.getClientState(accountId);
 
             // Useful for debugging
@@ -745,7 +773,11 @@ module.exports = class SoftballServer {
               logger.log(accountId, 'performing patch sync w/ ancestor');
 
               // Apply the client's patch to the ancestor (this prevents us from sending back the change the client just sent us)
-              SharedLib.objectMerge.patch(serverAncestor, data.patch, true);
+              serverAncestor = SharedLib.objectMerge.patch(
+                serverAncestor,
+                data.patch,
+                true
+              );
 
               // Diff the ancestor and the localState (dbState) to get the patch we need to send back to the client
               let serverPatch = SharedLib.objectMerge.diff(
@@ -755,7 +787,7 @@ module.exports = class SoftballServer {
               logger.log(
                 accountId,
                 'Server Patch',
-                JSON.stringify(serverPatch, null, 2)
+                JSON.stringify(serverPatch, null, 2).length
               );
               responseData.patch = serverPatch;
             } else {
@@ -822,9 +854,7 @@ module.exports = class SoftballServer {
         let accountId = extractSessionInfo(req, 'accountId');
         logger.log(accountId, `Starting optimization`);
 
-        // Convert client optimization id to the server one
         let optimizationId = req.body.optimizationId;
-
         try {
           // This lock is just to make sure we don't get two optimizations running at the same time
           // TODO: re-evaluate, we can run two at the same time
@@ -963,14 +993,18 @@ module.exports = class SoftballServer {
           );
           logger.log(accountId, 'Final flags ', softballSimFlags);
 
+          // Set status to starting
+          await this.databaseCalls.setOptimizationStatus(
+            accountId,
+            optimizationId,
+            SharedLib.constants.OPTIMIZATION_STATUS_ENUM.STARTING
+          );
+
+          // Return success, if something goes wrong from here on, we'll set the status to ERROR and client will see it on sync
+          res.status(204).send();
+
           // Now we can start the actual optimization
           try {
-            await this.databaseCalls.setOptimizationStatus(
-              accountId,
-              optimizationId,
-              SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES
-            );
-
             // Get any existing result
             let queryResponse = await this.optimizationCompute.query(
               accountId,
@@ -1003,7 +1037,7 @@ module.exports = class SoftballServer {
                 accountId,
                 optimizationId
               );
-              logger.log(accountId, 'QUERY RESPONSE ', queryResponse);
+              //logger.log(accountId, 'QUERY RESPONSE ', queryResponse);
               let result = queryResponse
                 ? JSON.parse(queryResponse)
                 : queryResponse;
@@ -1017,19 +1051,6 @@ module.exports = class SoftballServer {
                 // Something changed, reset the timeout counter
                 noChangeCounter = 0;
 
-                // TODO: Lock account??
-
-                // Save the new status to the db
-                // TODO: Don't let anything other than PAUSED override PAUSING, it's confusing
-                // The "Pausing" state comes from the client, never from the server
-                //if (
-                //  SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status] ==
-                //  SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSING // This will never be true
-                //) {
-                // Wait how can we find the old result?
-                // Read
-                //}
-
                 // Save the new result to the db
                 await this.databaseCalls.setOptimizationResultData(
                   accountId,
@@ -1042,7 +1063,12 @@ module.exports = class SoftballServer {
                   accountId,
                   optimizationId,
                   SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status],
-                  result.statusMessage
+                  result.statusMessage,
+                  SharedLib.constants.TERMINAL_OPTIMIZATION_STATUSES_ENUM.has(
+                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
+                  )
+                    ? false
+                    : null
                 );
 
                 // Send success email! - if complete
@@ -1086,7 +1112,8 @@ module.exports = class SoftballServer {
                   accountId,
                   optimizationId,
                   SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
-                  'Monitor Timeout'
+                  'Monitor Timeout',
+                  false
                 );
                 return;
               }
@@ -1094,12 +1121,7 @@ module.exports = class SoftballServer {
               // Keep monitoring if status is IN_PROGRESS or if there was no change
               if (
                 (result !== null &&
-                  // Not accounting for PAUSING here since that is assigned by the client and will never come back from the opt result
-                  [
-                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS,
-                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM
-                      .ALLOCATING_RESOURCES,
-                  ].includes(
+                  SharedLib.constants.PROGRESSING_OPTIMIZATION_STATUSES_ENUM.has(
                     SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
                   )) ||
                 somethingChanged
@@ -1140,7 +1162,8 @@ module.exports = class SoftballServer {
               accountId,
               optimizationId,
               SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
-              error.message
+              error.message,
+              false
             );
             throw error;
           }
@@ -1150,16 +1173,14 @@ module.exports = class SoftballServer {
             accountId,
             optimizationId,
             SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
-            error.message
+            error.message,
+            false
           );
           throw error;
         } finally {
           // Now unlock the account
           await unlockAccount(accountId);
         }
-
-        // Return success
-        res.status(204).send();
       })
     );
 
@@ -1264,7 +1285,7 @@ module.exports = class SoftballServer {
           logger.error(accountId, 'Error during estimate', error);
           let responseData = {};
           responseData.message = extractSessionInfo(req, error.message);
-          res.status(400).send();
+          res.status(400).send(JSON.stringify({ message: error.message }));
           return;
         }
 
