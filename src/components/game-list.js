@@ -44,7 +44,7 @@ const GameList = (props) => {
               {toClientDate(game.date)}
             </div>
             <IconButton
-              src="/server/assets/edit.svg"
+              src="/assets/edit.svg"
               alt="edit"
               id={'game-' + game.id + '-edit'}
               onClick={(ev) => {

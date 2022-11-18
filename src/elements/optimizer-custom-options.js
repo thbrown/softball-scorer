@@ -90,7 +90,7 @@ export default class OptimizerCustomOptions extends React.Component {
             <IconButton
               alt="help"
               className="help-icon"
-              src="/server/assets/help.svg"
+              src="/assets/help.svg"
               onClick={this.getHelpFunction(value.longLabel, value.description)}
               style={{
                 marginLeft: '6px',
@@ -146,7 +146,7 @@ export default class OptimizerCustomOptions extends React.Component {
             <IconButton
               alt="help"
               className="help-icon"
-              src="/server/assets/help.svg"
+              src="/assets/help.svg"
               onClick={this.getHelpFunction(value.longLabel, value.description)}
               style={{
                 marginLeft: '6px',
@@ -183,7 +183,7 @@ export default class OptimizerCustomOptions extends React.Component {
             <IconButton
               alt="help"
               className="help-icon"
-              src="/server/assets/help.svg"
+              src="/assets/help.svg"
               onClick={this.getHelpFunction(value.longLabel, value.description)}
               style={{
                 marginLeft: '6px',
@@ -217,7 +217,7 @@ export default class OptimizerCustomOptions extends React.Component {
             <IconButton
               alt="help"
               className="help-icon"
-              src="/server/assets/help.svg"
+              src="/assets/help.svg"
               onClick={this.getHelpFunction(value.longLabel, value.description)}
               style={{
                 marginLeft: '6px',

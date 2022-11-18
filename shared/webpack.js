@@ -2,10 +2,10 @@ const path = require('path');
 
 module.exports = {
   entry: './index.js',
-  mode: 'production', // set to development ro prevent minification
+  mode: 'production', // set to development to prevent minification
   performance: { hints: false },
   resolve: {
-    extensions: ['*', '.js', '.jsx'],
+    extensions: ['*', '.js', '.jsx', '.ts', '.tsx'],
     fallback: {
       buffer: require.resolve('buffer/'),
       crypto: require.resolve('crypto-browserify'),
@@ -22,7 +22,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx)$/,
+        test: /\.(js|jsx|ts|tsx)$/,
         exclude: /node_modules/,
         use: ['babel-loader'],
       },

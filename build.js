@@ -58,7 +58,7 @@ const rules = {
         try {
           await _executeAsync('webpack --config webpack.prod.js');
           await _executeAsync(
-            'terser --compress --mangle -o build/server/main.js -- build/server/main.js'
+            'terser --compress --mangle -o build/main.js -- build/main.js'
           );
           updateServiceWorker(cb);
         } catch (e) {

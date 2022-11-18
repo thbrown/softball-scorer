@@ -7,7 +7,7 @@ module.exports = {
   mode: 'production',
   performance: { hints: false },
   resolve: {
-    extensions: ['*', '.js', '.jsx'],
+    extensions: ['*', '.js', '.jsx', '.ts', '.tsx'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
     fallback: {
       buffer: require.resolve('buffer/'),
@@ -17,14 +17,14 @@ module.exports = {
   },
   output: {
     filename: 'main.js',
-    path: path.resolve(__dirname, 'build/server'),
-    publicPath: '/server/',
+    path: path.resolve(__dirname, 'build'),
+    publicPath: '/',
     clean: true,
   },
   module: {
     rules: [
       {
-        test: /\.(js|jsx)$/,
+        test: /\.(js|jsx|ts|tsx)$/,
         exclude: /node_modules/,
         use: ['babel-loader'],
       },
@@ -44,7 +44,12 @@ module.exports = {
         // Assets
         {
           from: path.join(__dirname, './assets'),
-          to: path.join(__dirname, './build/server/assets'),
+          to: path.join(__dirname, './build/assets'),
+        },
+        // Index
+        {
+          from: path.join(__dirname, './index.html'),
+          to: path.join(__dirname, './build'),
         },
       ],
       options: {

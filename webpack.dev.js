@@ -27,8 +27,9 @@ module.exports = {
   ],
   mode: 'development',
   devtool: 'inline-source-map',
+  watchOptions: { ignored: /node_modules|build|shared|assets/ },
   resolve: {
-    extensions: ['*', '.js', '.jsx'],
+    extensions: ['*', '.js', '.jsx', '.ts', '.tsx'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
     fallback: {
       buffer: require.resolve('buffer/'),
@@ -38,25 +39,25 @@ module.exports = {
   },
   output: {
     filename: 'main.js',
-    path: path.resolve(__dirname, 'build/'),
-    publicPath: '/server/',
+    path: path.resolve(__dirname, '/'),
+    publicPath: '/',
     clean: true,
   },
   module: {
     rules: [
       {
-        test: /\.(js|jsx)$/,
-        exclude: /node_modules|src-srv/,
+        test: /\.(js|jsx|ts|tsx)$/,
+        exclude: /node_modules|src-srv|shared|public-root|assets/,
         use: ['babel-loader'],
       },
     ],
   },
   plugins: [
-    new WebpackBeforeBuildPlugin(async (stats, callback) => {
-      await execAsync('yarn build-css');
-      await execAsync('yarn update-service-worker');
-      callback();
-    }),
+    // new WebpackBeforeBuildPlugin(async (stats, callback) => {
+    //   await execAsync('yarn build-css');
+    //   await execAsync('yarn update-service-worker');
+    //   callback();
+    // }),
     new webpack.ProvidePlugin({
       process: 'process/browser',
     }),
@@ -64,13 +65,18 @@ module.exports = {
       patterns: [
         // Root
         {
-          from: path.join(__dirname, './public'),
+          from: path.join(__dirname, './public-root'),
           to: path.join(__dirname, './build'),
         },
         // Assets
         {
           from: path.join(__dirname, './assets'),
-          to: path.join(__dirname, './build/server/assets'),
+          to: path.join(__dirname, './build/assets'),
+        },
+        // Index
+        {
+          from: path.join(__dirname, './index.html'),
+          to: path.join(__dirname, './build'),
         },
       ],
       options: {
@@ -82,7 +88,7 @@ module.exports = {
     compress: true,
     open: true,
     static: {
-      directory: path.join(__dirname, './build'),
+      directory: path.join(__dirname, './'),
     },
     historyApiFallback: true,
     port: 8889,

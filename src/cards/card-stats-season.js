@@ -261,7 +261,7 @@ export default class CardStatsSeason extends React.Component {
           <div>Tap a player name for season spray chart.</div>
           <IconButton
             className="help-icon"
-            src="/server/assets/help.svg"
+            src="/assets/help.svg"
             alt="help"
             onClick={showStatsHelp}
             opacity=".5"

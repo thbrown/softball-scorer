@@ -208,7 +208,7 @@ export default class CardAuth extends React.Component {
         },
         DOM.img({
           id: 'submit-spinner',
-          src: '/server/assets/spinner.gif',
+          src: '/assets/spinner.gif',
           style: {
             display: 'none',
             marginRight: '6px',

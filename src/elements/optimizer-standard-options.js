@@ -116,7 +116,7 @@ export default class OptimizerStandardOptions extends React.Component {
           <IconButton
             alt="help"
             className="help-icon"
-            src="/server/assets/help.svg"
+            src="/assets/help.svg"
             onClick={showLineupTypeHelp}
             invert
             style={{
@@ -137,7 +137,7 @@ export default class OptimizerStandardOptions extends React.Component {
           <IconButton
             alt="help"
             className="help-icon"
-            src="/server/assets/help.svg"
+            src="/assets/help.svg"
             onClick={this.handleOptimizerHelp}
             invert
             style={{
@@ -147,7 +147,7 @@ export default class OptimizerStandardOptions extends React.Component {
           <IconButton
             alt="help"
             className="help-icon"
-            src="/server/assets/search.svg"
+            src="/assets/search.svg"
             onClick={this.handleOptimizerSearch}
             invert
             style={{

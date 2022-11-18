@@ -74,7 +74,7 @@ const CardOptimizationList = (props) => (
             <IconButton
               id={'edit-optimization-' + optimization.id}
               alt="edit"
-              src="/server/assets/more.svg"
+              src="/assets/more.svg"
               onClick={props.handleEditClick(optimization)}
               invert
             />

@@ -49,7 +49,7 @@ class CardPlayerList extends React.Component {
                   <div className="prevent-overflow">{player.name}</div>
                   <div style={{ display: 'flex' }}>
                     <IconButton
-                      src="/server/assets/edit.svg"
+                      src="/assets/edit.svg"
                       alt="edit"
                       id={'player-' + player.id + '-edit'}
                       onClick={(ev) => {

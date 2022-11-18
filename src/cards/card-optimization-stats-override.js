@@ -110,7 +110,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
                 alignItems: 'center',
               }}
             >
-              <IconButton src="/server/assets/delete.svg" alt="delete" />
+              <IconButton src="/assets/delete.svg" alt="delete" />
               <span
                 style={{
                   marginLeft: '4px',
@@ -239,7 +239,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
           <IconButton
             alt="help"
             className="help-icon"
-            src="/server/assets/help.svg"
+            src="/assets/help.svg"
             onClick={this.getHelpFunction()}
             invert
           />

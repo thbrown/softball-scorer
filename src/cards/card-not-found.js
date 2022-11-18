@@ -28,7 +28,7 @@ export default ({ message }) => {
         <div>Go to the home page?</div>
         <IconButton
           className="help-icon"
-          src="/server/assets/home.svg"
+          src="/assets/home.svg"
           alt="home"
           onClick={goHome}
           invert

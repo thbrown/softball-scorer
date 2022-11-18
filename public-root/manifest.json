@@ -3,12 +3,12 @@
   "name": "Softball App",
   "icons": [
     {
-      "src": "/server/assets/icons/logo192.png",
+      "src": "/assets/icons/logo192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/server/assets/icons/logo512.png",
+      "src": "/assets/icons/logo512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

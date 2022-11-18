@@ -18,8 +18,8 @@ hr {
 
 @font-face {
   font-family: 'score_boardregular';
-  src: url('/server/assets/scoreboard-webfont.woff2') format('woff2'),
-       url('/server/assets/scoreboard-webfont.woff') format('woff');
+  src: url('/assets/scoreboard-webfont.woff2') format('woff2'),
+       url('/assets/scoreboard-webfont.woff') format('woff');
   font-weight: normal;
   font-style: normal;
 }

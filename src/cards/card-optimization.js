@@ -752,7 +752,7 @@ export default class CardOptimization extends React.Component {
           {isOptEditable ? (
             <td height="48">
               <img
-                src="/server/assets/tune-black.svg"
+                src="/assets/tune-black.svg"
                 alt=">"
                 className="tableButton"
                 onClick={this.handleOverrideClick.bind(
@@ -910,7 +910,7 @@ export default class CardOptimization extends React.Component {
               >
                 <div className="js-accordionTrigger">
                   <img
-                    src="/server/assets/chevron-right.svg"
+                    src="/assets/chevron-right.svg"
                     alt=">"
                     className="chevron"
                   />
@@ -950,7 +950,7 @@ export default class CardOptimization extends React.Component {
               >
                 <div className="js-accordionTrigger">
                   <img
-                    src="/server/assets/chevron-right.svg"
+                    src="/assets/chevron-right.svg"
                     alt=">"
                     className="chevron"
                   />
@@ -975,7 +975,7 @@ export default class CardOptimization extends React.Component {
               >
                 <div className="js-accordionTrigger">
                   <img
-                    src="/server/assets/chevron-right.svg"
+                    src="/assets/chevron-right.svg"
                     alt=">"
                     className="chevron"
                   />
@@ -1046,7 +1046,7 @@ export default class CardOptimization extends React.Component {
           >
             <div className="js-accordionTrigger">
               <img
-                src="/server/assets/chevron-right.svg"
+                src="/assets/chevron-right.svg"
                 alt=">"
                 className="chevron"
               />
@@ -1212,7 +1212,7 @@ export default class CardOptimization extends React.Component {
             <IconButton
               alt="help"
               className="help-icon"
-              src="/server/assets/help.svg"
+              src="/assets/help.svg"
               onClick={showEmailHelp}
               style={{
                 marginLeft: '6px',

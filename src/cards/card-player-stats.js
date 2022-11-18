@@ -173,7 +173,7 @@ export default class CardPlayerStats extends React.Component {
             <div>Stats</div>{' '}
             <IconButton
               className="help-icon"
-              src="/server/assets/help.svg"
+              src="/assets/help.svg"
               alt="help"
               onClick={showStatsHelp}
             />

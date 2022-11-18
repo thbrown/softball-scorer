@@ -91,7 +91,7 @@ const CardTeamEdit = (props) => {
             alignItems: 'center',
           }}
         >
-          <IconButton src="/server/assets/check.svg" alt="" hideBackground />
+          <IconButton src="/assets/check.svg" alt="" hideBackground />
           <span style={{ marginLeft: '8px' }}> Save </span>
         </div>
       </ListButton>
@@ -107,7 +107,7 @@ const CardTeamEdit = (props) => {
           }}
         >
           <IconButton
-            src="/server/assets/cancel.svg"
+            src="/assets/cancel.svg"
             alt=""
             hideBackground
             invert
@@ -127,7 +127,7 @@ const CardTeamEdit = (props) => {
               alignItems: 'center',
             }}
           >
-            <IconButton src="/server/assets/delete.svg" alt="" hideBackground />
+            <IconButton src="/assets/delete.svg" alt="" hideBackground />
             <span style={{ marginLeft: '8px' }}> Delete </span>
           </div>
         </ListButton>
