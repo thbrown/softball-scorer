@@ -1,8 +1,10 @@
-const DatabaseCallsPostgres = require('./database-calls-postgres');
 const DatabaseCallsStatic = require('./database-calls-static');
+const DatabaseCallsFileSystem = require('./database-calls-file-system');
+const DatabaseCallsGcpBuckets = require('./database-calls-gcp-buckets');
 
 const CacheCallsRedis = require('./cache-calls-redis');
 const CacheCallsLocal = require('./cache-calls-local');
+const CacheCallsGcpBuckets = require('./cache-calls-gcp-buckets');
 
 const OptimizationComputeLocal = require('./optimization-compute-local');
 const OptimizationComputeGcp = require('./optimization-compute-gcp');
@@ -13,6 +15,7 @@ const EmailMailgun = require('./email-mailgun');
 const logger = require('./logger');
 
 const crypto = require('crypto');
+const e = require('express');
 
 let config = null;
 try {
@@ -31,52 +34,63 @@ let optimizationCompute;
 /**
  * Accessor utility for config values. This is responsible for setting defaults and handling nested json extraction.
  */
-module.exports.getDatabaseService = function (cacheService) {
+module.exports.getDatabaseService = async function (cacheService) {
   if (database) {
     return database;
   }
-  const {
-    host: pghost,
-    port: pgport,
-    username: pgusername,
-    password: pgpassword,
-    database: pgdatabase,
-  } = config.database || {};
-  if (pghost && pgport && pgusername && pgpassword) {
-    database = new DatabaseCallsPostgres(
-      pghost,
-      pgport,
-      pgusername,
-      pgpassword,
-      pgdatabase,
-      cacheService,
-      (err) => {
-        if (err) {
-          logger.error('sys', 'Encountered an error connecting to db', err);
-          process.exit(1);
-        }
-        logger.log('sys', 'Connected to db.');
-      }
+  const mode = config?.database?.mode;
+  if (mode === 'FileSystem') {
+    return new DatabaseCallsFileSystem('./database');
+  } else if (mode === 'GcpBuckets') {
+    const { data, emailLookup, tokenLookup, publicIdLookup } =
+      config.database.bucketNames;
+    database = new DatabaseCallsGcpBuckets(
+      data,
+      emailLookup,
+      tokenLookup,
+      publicIdLookup
     );
+    await database.init();
   } else {
-    logger.warn('sys', 'Warning: running without database connection');
-    database = new DatabaseCallsStatic();
+    logger.warn(
+      null,
+      'Warning: undefined config, running with local filesystem database'
+    );
+    return new DatabaseCallsFileSystem('./database');
   }
   return database;
 };
 
-module.exports.getCacheService = function () {
+module.exports.getCacheService = async function () {
   if (cache) {
     return cache;
   }
-  const { host: redisHost, port: redisPort, password: redisPassword } =
-    config.cache || {};
-  if (redisHost && redisPort && redisPassword) {
-    cache = new CacheCallsRedis(redisHost, redisPort, redisPassword);
+
+  const mode = config?.cache?.mode;
+
+  if (mode === 'GcpBuckets') {
+    const { session, ancestor } = config.cache.bucketNames;
+    cache = new CacheCallsGcpBuckets(session, ancestor);
+    await cache.init();
+  } else if (mode === 'Redis') {
+    const {
+      host: redisHost,
+      port: redisPort,
+      password: redisPassword,
+    } = config.cache || {};
+    if (redisHost && redisPort && redisPassword) {
+      cache = new CacheCallsRedis(redisHost, redisPort, redisPassword);
+    } else {
+      throw new Error('Missing required redis config info');
+    }
   } else {
-    logger.warn(null, 'Warning: running with local in-memory cache');
+    logger.warn(
+      null,
+      'Warning: undefined config, running with local in-memory cache'
+    );
     cache = new CacheCallsLocal();
   }
+
   return cache;
 };
 
@@ -147,10 +161,6 @@ module.exports.getOptimizationComputeService = function (
 
 module.exports.getAppServerPort = function () {
   return (config.app && config.app.port) || 8888;
-};
-
-module.exports.getOptimizationServerPort = function () {
-  return (config.optimization && config.optimization.port) || 8414;
 };
 
 module.exports.getRecapchaSecretKey = function () {

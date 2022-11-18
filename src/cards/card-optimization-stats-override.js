@@ -53,7 +53,9 @@ export default class CardOptimizationStatsOverride extends React.Component {
     };
 
     this.handleAddPas = function (toAdd) {
-      let allOverrides = JSON.parse(props.optimization.overrideData);
+      let allOverrides = JSON.parse(
+        JSON.stringify(props.optimization.overrideData)
+      );
       let overridesForPlayer = [];
 
       // Add all the new PAs
@@ -66,24 +68,24 @@ export default class CardOptimizationStatsOverride extends React.Component {
       state.setOptimizationField(
         props.optimization.id,
         'overrideData',
-        allOverrides,
-        true
+        allOverrides
       );
     };
 
     this.handleDeleteClick = function () {
       dialog.show_confirm(
-        'Are you sure you want to delete all stat overrides for player "' +
+        'Are you sure you want to delete all stat overrides for player  "' +
           props.player.name +
           '"?',
         () => {
-          let allOverrides = JSON.parse(props.optimization.overrideData);
+          let allOverrides = JSON.parse(
+            JSON.stringify(props.optimization.overrideData)
+          );
           delete allOverrides[props.player.id];
           state.setOptimizationField(
             props.optimization.id,
             'overrideData',
-            allOverrides,
-            true
+            allOverrides
           );
           goBack();
         }
@@ -125,12 +127,13 @@ export default class CardOptimizationStatsOverride extends React.Component {
 
   renderPage() {
     if (
-      this.props.optimization.status !==
-      SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+      !SharedLib.constants.EDITABLE_OPTIMIZATION_STATUSES_ENUM.has(
+        this.props.optimization.status
+      )
     ) {
       return (
         <div className="auth-input-container">
-          {'This page is only available when optimization status is NOT_STARTED. Status is currently ' +
+          {'This page is only available when optimization status is editable. Status is currently ' +
             constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
               this.props.optimization.status
             ]}
@@ -138,11 +141,11 @@ export default class CardOptimizationStatsOverride extends React.Component {
       );
     }
 
-    let overrides = state.getParsedOptimizationOverridePlateAppearances(
+    let overrides = state.getOptimizationOverridesForPlayer(
       this.props.optimization.id,
       this.props.player.id
     );
-    let overrideStats = state.buildStatsObject(this.props.player.id, overrides);
+    let overrideStats = state.buildStatsObject(overrides, this.props.player.id);
     let paDisplayList = [];
     for (let pa in overrides) {
       let paObject = overrides[pa];

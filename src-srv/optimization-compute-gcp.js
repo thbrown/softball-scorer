@@ -16,6 +16,7 @@ module.exports = class OptimizationComputeLocal {
     this.configParams = configParams;
   }
 
+  // TODO: we should add retry here, it fails sometimes with a 500 because of Google reasons
   async start(accountId, optimizationId, stats, options) {
     // Add additional flags to json body
     options['-i'] = optimizationId;
@@ -41,6 +42,7 @@ module.exports = class OptimizationComputeLocal {
         }
       }
     } catch (error) {
+      logger.error(accountId, 'Error starting optimization', error);
       let errorMessage = error?.response?.body;
       try {
         errorMessage = errorMessage
@@ -72,11 +74,13 @@ module.exports = class OptimizationComputeLocal {
     if (response.statusCode === 200) {
       let jsonResponse = JSON.parse(response.body);
       if (jsonResponse.status === 'SUCCESS') {
-        // Set optimization status to PAUSING
+        // Set optimization to pause, don't change the status (TODO: rename the status change function)
         await this.databaseCalls.setOptimizationStatus(
           accountId,
           optimizationId,
-          SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSING
+          null,
+          null,
+          true
         );
         return response.body;
       } else {

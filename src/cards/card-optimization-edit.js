@@ -4,7 +4,7 @@ import dialog from 'dialog';
 import FloatingInput from 'elements/floating-input';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
-import { goBack, goHome } from 'actions/route';
+import { goBack, goHome, setRoute } from 'actions/route';
 import IconButton from '../elements/icon-button';
 
 const CardOptimizationEdit = (props) => {
@@ -45,7 +45,7 @@ const CardOptimizationEdit = (props) => {
 
   const handleConfirmClick = function () {
     state.replaceOptimization(props.optimization.id, buildOptimization());
-    goBack();
+    setRoute('/optimizations');
   };
 
   const handleCancelClick = function () {
@@ -89,7 +89,7 @@ const CardOptimizationEdit = (props) => {
           onChange={(value) => handleOptimizationNameChange(value)}
         />
       </div>
-      <ListButton type="primary-button" onClick={handleConfirmClick}>
+      <ListButton id="save" type="primary-button" onClick={handleConfirmClick}>
         <div
           style={{
             display: 'flex',
@@ -107,6 +107,7 @@ const CardOptimizationEdit = (props) => {
         </div>
       </ListButton>
       <ListButton
+        id="cancel"
         type="edit-button"
         className="edit-button button cancel-button"
         onClick={handleCancelClick}
@@ -128,7 +129,11 @@ const CardOptimizationEdit = (props) => {
         </div>
       </ListButton>
       {!props.isNew && (
-        <ListButton type="edit-button" onClick={handleDuplicateClick}>
+        <ListButton
+          id="duplicate"
+          type="edit-button"
+          onClick={handleDuplicateClick}
+        >
           <div
             style={{
               display: 'flex',
@@ -147,7 +152,11 @@ const CardOptimizationEdit = (props) => {
         </ListButton>
       )}
       {!props.isNew && (
-        <ListButton type="delete-button" onClick={handleDeleteClick}>
+        <ListButton
+          id="delete"
+          type="delete-button"
+          onClick={handleDeleteClick}
+        >
           <div
             style={{
               display: 'flex',

@@ -33,6 +33,7 @@ export default class CardVerifyEmail extends React.Component {
         }
         dialog.show_notification(message, function () {
           setRoute(redirect);
+          state.sync();
         });
       } else if (response.status === 404) {
         dialog.show_notification(

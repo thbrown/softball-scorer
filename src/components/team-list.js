@@ -32,10 +32,7 @@ const TeamList = () => {
           onClick={() => handleTeamClick(team)}
         >
           <div className="centered-row">
-            <div className="prevent-overflow">
-              <span style={{ fontSize: '12px' }}>VS. </span>
-              {team.name}
-            </div>
+            <div className="prevent-overflow">{team.name}</div>
             <IconButton
               src="/server/assets/edit.svg"
               alt="edit"

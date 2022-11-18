@@ -10,6 +10,7 @@ module.exports = {
   },
 
   database: {
+    mode: 'FileSystem',
     host: null,
     port: null,
     username: null,

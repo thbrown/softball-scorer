@@ -10,9 +10,10 @@ id?: string
 onClick?: () => void
 */
 const IconButton = (props) => {
-  const { hideBackground, invert, ...rest } = props;
+  const { hideBackground, invert, opacity, ...rest } = props;
   return (
     <div
+      className="hover"
       style={{
         background: props.hideBackground ? undefined : colors.SEMI_TRANSPARENT,
         filter: invert ? 'invert(1)' : undefined,
@@ -24,6 +25,7 @@ const IconButton = (props) => {
         alignItems: 'center',
         justifyContent: 'center',
         alignContent: 'center',
+        opacity: opacity,
       }}
     >
       <img alt="img" {...rest} />

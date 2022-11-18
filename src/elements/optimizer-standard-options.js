@@ -5,6 +5,7 @@ import { setRoute } from 'actions/route';
 import Loading from '../elements/loading';
 import state from 'state';
 import IconButton from './icon-button';
+import { showLineupTypeHelp } from 'utils/help-functions';
 
 export default class OptimizerStandardOptions extends React.Component {
   constructor(props) {
@@ -34,34 +35,12 @@ export default class OptimizerStandardOptions extends React.Component {
       );
     }.bind(this);
 
-    // TODO: this is duplicated from card-game-edit
-    this.handleLineupTypeHelpClick = () => {
-      dialog.show_notification(
-        <div>
-          <b>Lineup Type</b> is used by the lineup simulator to determine what
-          lineups are valid. Some leagues have restrictions on which players can
-          bat in which slots. Softball.app supports three types of lineups:
-          <div style={{ margin: '1rem' }}>
-            <b>- Normal</b> Any batter is allowed to bat anywhere in the lineup.
-          </div>
-          <div style={{ margin: '1rem' }}>
-            <b>- Alternating Gender</b> Consecutive batters must have different
-            genders.
-          </div>
-          <div style={{ margin: '1rem' }}>
-            <b>- No Consecutive Females</b> Females may not bat back-to-back.
-          </div>
-        </div>,
-        undefined
-      );
-    };
-
     this.onLineupChange = function (value) {
       this.props.onChange();
       state.setOptimizationField(
         this.props.optimizationId,
         'lineupType',
-        value
+        parseInt(value)
       );
     }.bind(this);
 
@@ -70,7 +49,7 @@ export default class OptimizerStandardOptions extends React.Component {
       state.setOptimizationField(
         this.props.optimizationId,
         'optimizerType',
-        newOptimizerId
+        parseInt(newOptimizerId)
       );
     }.bind(this);
 
@@ -83,9 +62,12 @@ export default class OptimizerStandardOptions extends React.Component {
 
   render() {
     // Process info about all available optimizers
-    let optimizerOptions = {};
+    const optimizerOptions = [];
     for (const id in this.props.optimizerData) {
-      optimizerOptions[id] = this.props.optimizerData[id].name;
+      optimizerOptions.push({
+        label: this.props.optimizerData[id].name,
+        value: parseInt(id),
+      });
     }
 
     // Process info about the selected optimizer
@@ -119,12 +101,15 @@ export default class OptimizerStandardOptions extends React.Component {
             label="Lineup Type"
             initialValue={this.props.lineupType}
             onChange={this.onLineupChange}
-            values={{
-              0: 'Normal',
-              1: 'Alternating Gender',
-              2: 'No Consecutive Females',
-              3: 'No Consecutive Females and No Three Consecutive Males',
-            }}
+            values={[
+              { label: 'Normal', value: 0 },
+              { label: 'Alternating Gender', value: 1 },
+              { label: 'No Consecutive Females', value: 2 },
+              {
+                label: 'No Consecutive Females and No Three Consecutive Males',
+                value: 3,
+              },
+            ]}
             disabled={this.props.disabled}
             fullWidth
           />
@@ -132,7 +117,7 @@ export default class OptimizerStandardOptions extends React.Component {
             alt="help"
             className="help-icon"
             src="/server/assets/help.svg"
-            onClick={this.handleLineupTypeHelpClick}
+            onClick={showLineupTypeHelp}
             invert
             style={{
               marginLeft: '6px',

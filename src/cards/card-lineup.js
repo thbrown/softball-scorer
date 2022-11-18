@@ -3,7 +3,6 @@ import DOM from 'react-dom-factories';
 import expose from 'expose';
 import state from 'state';
 import dialog from 'dialog';
-import Button from 'elements/list-button';
 import Draggable from 'react-draggable';
 import { setRoute } from 'actions/route';
 import css from 'css';
@@ -170,9 +169,9 @@ export default class CardLineup extends React.Component {
         `This will take you to a page for setting up and running an "Optimization" for this lineup. After your optimization is done running, you can import the optimized lineup into this game by pressing "Import Lineup From Optimization".`,
         () => {
           const optimization = state.addOptimization(
-            `vs ${this.props.game.opponent}`,
-            JSON.stringify(this.props.game.lineup),
-            JSON.stringify([this.props.team.id]),
+            `Optimize lineup vs ${this.props.game.opponent}`,
+            JSON.parse(JSON.stringify(this.props.game.lineup)),
+            JSON.parse(JSON.stringify([this.props.team.id])),
             this.props.game.lineupType
           );
           setRoute(
@@ -195,7 +194,9 @@ export default class CardLineup extends React.Component {
     if (this.simWorker) {
       this.simWorker.terminate();
     }
-    this.simWorker = new Worker('/server/simulation-worker');
+
+    let workerUrl = new URL('../workers/simulation-worker.js', import.meta.url);
+    this.simWorker = new Worker(workerUrl);
     this.simWorker.onmessage = function (e) {
       let data = JSON.parse(e.data);
       let elem = this.scoreTextRef.current;
@@ -433,7 +434,7 @@ export default class CardLineup extends React.Component {
 
     if (this.props.game.lineup.length === 0) {
       pageElems = pageElems.concat(
-        <div className="background-text">
+        <div key="no-players-notice" className="background-text">
           There are currently no players in this lineup, add some by clicking
           the button below.
         </div>
@@ -513,7 +514,9 @@ export default class CardLineup extends React.Component {
       this.props.game.plateAppearances.length === 0 &&
       state.getAllOptimizations().length > 0;
     if (showOptLineupButton || showImportOptLineupButton) {
-      pageElems.push(<HrTitle title="Optimization"></HrTitle>);
+      pageElems.push(
+        <HrTitle key="optimization" title="Optimization"></HrTitle>
+      );
     }
 
     if (showOptLineupButton) {
@@ -560,7 +563,7 @@ export default class CardLineup extends React.Component {
       (plateAppearance) => {
         let value = true;
         this.props.game.lineup.forEach((playerInLineupId) => {
-          if (playerInLineupId === plateAppearance.player_id) {
+          if (playerInLineupId === plateAppearance.playerId) {
             value = false; // TODO: how can we break out of this loop early?
           }
         });
@@ -579,7 +582,7 @@ export default class CardLineup extends React.Component {
       // Get unique player ids
       let playersIdsNotInLineupWithPlateAppearances = {};
       nonLineupPlateAppearances.forEach((value) => {
-        playersIdsNotInLineupWithPlateAppearances[value.player_id] = true;
+        playersIdsNotInLineupWithPlateAppearances[value.playerId] = true;
       });
 
       let playersIdsNotInLineup = Object.keys(

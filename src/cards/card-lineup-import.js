@@ -4,7 +4,7 @@ import Card from 'elements/card';
 import { makeStyles } from 'css/helpers';
 import { compose, withState, withHandlers } from 'recompose';
 import ListPicker from 'elements/list-picker';
-import { toClientDate } from 'utils/functions';
+import { sortObjectsByDate, toClientDate } from 'utils/functions';
 
 const enhance = compose(
   withState('team', 'setTeam', null),
@@ -52,7 +52,6 @@ const useLineupListStyles = makeStyles((theme) => ({
     textAlign: 'center',
   },
   itemText: {
-    width: 'calc(100% - 80px)',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'pre',
@@ -90,6 +89,7 @@ const toItems = (list) =>
     name: obj.name || obj.opponent,
     id: obj.id,
     floatName: obj.date ? toClientDate(obj.date) : undefined,
+    date: obj.date,
   }));
 
 const LineupList = (props) => {
@@ -115,6 +115,7 @@ const LineupList = (props) => {
         />
         <div className={classes.actionButtonContainer}>
           <div
+            id="confirm"
             className={'button primary-button ' + classes.actionButton}
             onClick={function wrapper(ev) {
               return props.handleConfirmClick(ev, props.team, props.game);
@@ -125,9 +126,8 @@ const LineupList = (props) => {
         </div>
         <div className={classes.actionButtonContainer}>
           <div
-            className={
-              'button edit-button secondary-button ' + classes.actionButton
-            }
+            id="cancel"
+            className={'button tertiary-button ' + classes.actionButton}
             onClick={props.handleCancelClick}
           >
             Cancel
@@ -144,7 +144,9 @@ const LineupList = (props) => {
         </div>
         <ListPicker
           textClassName={classes.itemText}
-          items={toItems([...props.team.games].reverse())}
+          items={sortObjectsByDate(toItems([...props.team.games]), {
+            isAsc: false,
+          })}
           onClick={props.handleGameItemClick}
         />
       </>

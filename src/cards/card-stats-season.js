@@ -1,10 +1,11 @@
 import React from 'react';
 import state from 'state';
-import Card from 'elements/card';
 import CardSection from 'elements/card-section';
 import { StickyTable, Row, Cell } from 'react-sticky-table';
-import { setRoute } from 'actions/route';
 import css from 'css';
+import InnerSection from 'elements/inner-section';
+import IconButton from 'elements/icon-button';
+import { showStatsHelp } from 'utils/help-functions';
 
 const DSC_CHAR = '▼'; //'\25bc';
 const ASC_CHAR = '▲'; //'\25be';
@@ -19,6 +20,10 @@ const STATS_NAMES = [
   'outsideTheParkHRs',
   'walks',
   'reachedOnError',
+  'gameAutocorrelation',
+  'paAutocorrelation',
+  'paPerGame',
+  'outsPerGame',
 ];
 
 const STAT_ALIASES = {
@@ -32,9 +37,13 @@ const STAT_ALIASES = {
   outsideTheParkHRs: 'HRo',
   walks: 'BB',
   reachedOnError: 'ROE',
+  gameAutocorrelation: 'rG',
+  paAutocorrelation: 'rPA',
+  paPerGame: 'PA/G',
+  outsPerGame: 'O/G',
 };
 
-export default class CardStats extends React.Component {
+export default class CardStatsSeason extends React.Component {
   constructor(props) {
     super(props);
 
@@ -90,17 +99,7 @@ export default class CardStats extends React.Component {
     }.bind(this);
 
     this.handlePlayerClick = function (playerId) {
-      const {
-        team: { id: teamId },
-        routingMethod,
-      } = this.props;
-      if (routingMethod === 'app') {
-        setRoute(`/teams/${teamId}/stats/player/${playerId}`);
-      } else if (routingMethod === 'statsPage') {
-        setRoute(
-          `/public-teams/${this.props.publicTeamId}/stats/player/${playerId}`
-        );
-      }
+      this.props.onPlayerClick(playerId);
     }.bind(this);
   }
 
@@ -138,13 +137,14 @@ export default class CardStats extends React.Component {
   }
 
   buildStatsObject(teamId, playerId) {
-    const { team, state: stateProps } = this.props;
-    const plateAppearances = state.getPlateAppearancesForPlayerOnTeam(
+    const { team, inputState } = this.props;
+    const plateAppearances = state.getDecoratedPlateAppearancesForPlayerOnTeam(
       playerId,
-      team
+      team,
+      inputState
     );
-    const player = state.getPlayer(playerId, stateProps);
-    return state.buildStatsObject(player, plateAppearances);
+    const player = state.getPlayer(playerId, inputState);
+    return state.buildStatsObject(plateAppearances, player);
   }
 
   renderStatsHeader() {
@@ -206,36 +206,19 @@ export default class CardStats extends React.Component {
   }
 
   renderNoTable() {
-    if (this.props.routingMethod === 'app') {
-      return (
-        <CardSection isCentered={true}>
-          There aren't any stats for this team yet!
-        </CardSection>
-      );
-    } else {
-      return (
-        <Card title={`${this.props?.team?.name} Stats`}>
-          <div
-            style={{
-              color: css.colors.TEXT_LIGHT,
-              display: 'flex',
-              justifyContent: 'space-around',
-              marginTop: css.spacing.xSmall,
-            }}
-          >
-            <div> There aren't any stats for this team yet! </div>
-          </div>
-        </Card>
-      );
-    }
+    return (
+      <CardSection isCentered={true}>
+        There aren't any season stats for this team yet!
+      </CardSection>
+    );
   }
 
   render() {
-    const { team, routingMethod, state: stateProps } = this.props;
+    const { team, inputState } = this.props;
 
     // TODO: Generate this once when the component mounts.  It's very redundant to do it
     // on each render
-    const s = stateProps || state.getLocalState();
+    const s = inputState || state.getLocalState();
 
     if (!team) {
       return this.renderNoTable();
@@ -264,39 +247,41 @@ export default class CardStats extends React.Component {
       })
     );
 
-    if (routingMethod === 'app') {
-      return (
-        <div
+    return (
+      <CardSection noPadding={true}>
+        <InnerSection
           style={{
-            height: window.innerHeight - 48 + 'px',
-            width: '100%',
+            textAlign: 'center',
+            color: css.colors.TEXT_GREY,
             display: 'flex',
+            alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <StickyTable stickyHeaderCount={1}>{tableElems}</StickyTable>
+          <div>Tap a player name for season spray chart.</div>
+          <IconButton
+            className="help-icon"
+            src="/server/assets/help.svg"
+            alt="help"
+            onClick={showStatsHelp}
+            opacity=".5"
+            invert
+          />
+        </InnerSection>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-around',
+          }}
+        >
+          <StickyTable>{tableElems}</StickyTable>
         </div>
-      );
-    } else {
-      return (
-        <Card title={`${this.props?.team?.name} Stats`}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-around',
-              marginTop: css.spacing.xSmall,
-            }}
-          >
-            <StickyTable>{tableElems}</StickyTable>
-          </div>
-        </Card>
-      );
-    }
+      </CardSection>
+    );
   }
 }
 
-CardStats.defaultProps = {
+CardStatsSeason.defaultProps = {
   team: null,
   state: null,
-  routingMethod: 'app',
 };

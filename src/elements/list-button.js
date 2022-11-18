@@ -14,9 +14,10 @@ export const ListButtonContentIcon = ({ children, icon }) => {
   );
 };
 
-const ListButton = ({ children, type, onClick, style }) => {
+const ListButton = ({ children, id, type, onClick, style }) => {
   return (
     <div
+      id={id}
       onClick={onClick}
       className={`${type ? type + '' : 'list-button'} button left`}
       style={{

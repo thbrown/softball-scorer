@@ -4,8 +4,9 @@ import state from 'state';
 import Card from 'elements/card';
 import dialog from 'dialog';
 import { setRoute } from 'actions/route';
-import SharedLib from '/../shared-lib';
+import SharedLib from '../../shared-lib';
 import HrTitle from 'elements/hr-title';
+import { logout } from 'utils/functions';
 
 export default class CardAccount extends Component {
   constructor(props) {
@@ -40,13 +41,95 @@ export default class CardAccount extends Component {
         setRoute('/menu');
       });
     };
+
+    this.handleDeleteDataClick = async function () {
+      dialog.show_input(
+        'Are you sure you want to delete all the data in your account? All your data will be permanently deleted. If you\'d like to continue deleting your account data type "delete" into the box below. Otherwise, click cancel to return the the main menu.',
+        async (input) => {
+          // Did they enter the correct thing?
+          if (input !== 'delete') {
+            dialog.show_notification(
+              `You typed '${input}' not 'delete'. Try again.`
+            );
+            return;
+          }
+
+          // Yes, okay delete the data then do a sync
+          state.deleteAllData();
+          await state.sync();
+          dialog.show_notification('Data successfully deleted', function () {
+            setRoute('/menu');
+          });
+        },
+        '',
+        ''
+      );
+    };
+
+    this.handleDeleteAccountClick = async function () {
+      dialog.show_input(
+        'Are you sure you want to delete your account? All your data will be permanently deleted. If you\'d like to continue deleting your account type "delete" into the box below. Otherwise, click cancel to return the the main menu.',
+        async (input) => {
+          // Did they enter the correct thing?
+          if (input !== 'delete') {
+            dialog.show_notification(
+              `You typed '${input}' not 'delete'. Try again.`
+            );
+            return;
+          }
+
+          // Yes, okay send the delete request
+          let buttonDiv = document.getElementById('delete-account');
+          buttonDiv.classList.add('disabled');
+
+          let response = await state.request('DELETE', 'server/account');
+          let message;
+          if (response.status === 204) {
+            message = 'Your account has been deleted.';
+            logout(state, dialog, setRoute);
+          } else if (response.status === 400) {
+            message =
+              'App encountered a problem while deleting your account. Try again later.';
+          } else if (response.status === -1) {
+            message =
+              'Application is offline, try deleting your account again after getting a better internet connection.';
+          } else {
+            message = `An unexpected error occurred. Response: ${JSON.stringify(
+              response
+            )}`;
+          }
+          buttonDiv.classList.remove('disabled');
+
+          dialog.show_notification(message, function () {
+            setRoute('/menu');
+          });
+        },
+        '',
+        ''
+      );
+    };
   }
 
-  // TODO: only have this if account email is not verified
   render() {
     const MAX_LOCAL_STORAGE = 5000; // To keep cross-browser behavior consistent, we'll lock this at 5MB, some browsers can do more
     let localStorageUsage = state.getLocalStorageUsage();
-    console.log(localStorageUsage);
+
+    let emailSection = state.isEmailValidated() ? undefined : (
+      <div>
+        <HrTitle title="Email"></HrTitle>
+        <div
+          id="email-validation"
+          className="list-button button left"
+          onClick={this.handleEmailValidationClick.bind(this)}
+          style={{
+            backgroundColor: css.colors.BG,
+          }}
+        >
+          Re-send email validation email
+        </div>
+      </div>
+    );
+
     return (
       <Card title="Account">
         <HrTitle title="Storage"></HrTitle>
@@ -89,17 +172,28 @@ export default class CardAccount extends Component {
             </div>
           </div>
         </div>
-        <HrTitle title="Email"></HrTitle>
+        <HrTitle title="Delete"></HrTitle>
         <div
-          id="email-validation"
+          id="delete-data"
           className="list-button button left"
-          onClick={this.handleEmailValidationClick.bind(this)}
+          onClick={this.handleDeleteDataClick.bind(this)}
           style={{
             backgroundColor: css.colors.BG,
           }}
         >
-          Re-send email validation email
+          Delete all data
         </div>
+        <div
+          id="delete-account"
+          className="list-button button left"
+          onClick={this.handleDeleteAccountClick.bind(this)}
+          style={{
+            backgroundColor: css.colors.BG,
+          }}
+        >
+          Delete account
+        </div>
+        {emailSection}
       </Card>
     );
   }

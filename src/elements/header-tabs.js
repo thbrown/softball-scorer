@@ -5,33 +5,48 @@ const useHeaderTabsStyles = makeStyles((css) => ({
   tabContainer: {
     display: 'flex',
     justifyContent: 'space-between',
+    textAlign: 'center',
   },
   headerTab: {
     width: '45%',
     transition: 'border 0.25s',
     height: '42px',
-    borderBottom: '5px solid ' + css.colors.PRIMARY_DARK,
+    cursor: 'pointer',
+    userSelect: 'none',
   },
-  headerTabSelected: {
-    width: '45%',
-    transition: 'border 0.25s',
-    height: '42px',
+  selected: {
     borderBottom: '5px solid ' + css.colors.TEXT_LIGHT,
+  },
+  unselected: {
+    borderBottom: '5px solid ' + css.colors.PRIMARY_DARK,
   },
 }));
 
-const HeaderTabs = ({ tab, tabNames, handleTabClick }) => {
+const HeaderTabs = ({
+  tab,
+  tabNames,
+  handleTabClick,
+  invert,
+  style,
+  tabStyle,
+}) => {
   const { classes } = useHeaderTabsStyles();
+
+  // HACK: this is brutal
+  const selectedClass = invert ? classes.unselected : classes.selected;
+  const unselectedClass = invert ? classes.selected : classes.unselected;
+
   return (
-    <div className={classes.tabContainer}>
+    <div className={classes.tabContainer} style={style}>
       {tabNames.map(({ value, label }) => {
         return (
           <div
             key={value}
-            className={
-              tab === value ? classes.headerTabSelected : classes.headerTab
-            }
+            className={`${tab === value ? selectedClass : unselectedClass} ${
+              classes.headerTab
+            }`}
             onClick={() => handleTabClick(value)}
+            style={tabStyle}
           >
             {label}
           </div>

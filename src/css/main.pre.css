@@ -103,7 +103,7 @@ hr {
 
 .card-textbox {
   padding: .75rem .25rem;
-  color: $css.colors.TEXT_LIGHT;
+  color: $css.colors.TEXT_DARK;
 }
 
 .card {
@@ -512,6 +512,14 @@ hr {
     filter: brightness(95%);
   }
 }
+
+@media (hover: hover) {
+  .hover:active, 
+  .hover:hover {
+    filter: brightness(95%);
+  }
+}
+
 
 .primary-button {
   background-color: $css.colors.PRIMARY_DARK;
@@ -1102,4 +1110,8 @@ Scrolling is ~10-20x smoother.
 
 .storage-value {
   font-weight: 1000;
+}
+
+.player-stats td, .player-stats th {
+  padding-right:11px;
 }

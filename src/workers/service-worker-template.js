@@ -1,6 +1,6 @@
 // The build process appends an autoGenCacheName variable to the top of this file based on the hash of the src and assets directory
 let cacheName = 'softball-v1';
-if (typeof autoGenCacheName !== 'undefined') {
+if (typeof autoGenCacheName !== undefined) {
   cacheName = autoGenCacheName;
 }
 
@@ -16,6 +16,8 @@ self.addEventListener('install', function (event) {
       return cache.addAll([
         '/',
         '/robots.txt',
+        '/manifest.json',
+        '/server/main.js',
         '/server/assets/alert.svg',
         '/server/assets/autotrack.js',
         '/server/assets/back.svg',
@@ -40,8 +42,6 @@ self.addEventListener('install', function (event) {
         '/server/assets/spinner.gif',
         '/server/assets/scoreboard-webfont.woff',
         '/server/assets/scoreboard-webfont.woff2',
-        '/main.js',
-        '/server/simulation-worker',
       ]);
     })
   );
@@ -51,8 +51,8 @@ self.addEventListener('fetch', function (event) {
   let requestToProcess = event.request;
 
   // If the url's path doesn't begin with 'server', it's an app url. Redirect it to / and the client code will handle it.
-  // The service worker itself is an exception, it we served it under /server/service-worker it would not be able to
-  // cache the request to the root '/' due to scoping. So we've put it under /service-worker.
+  // The service worker itself is an exception, it we served it under /server/service-worker.js it would not be able to
+  // cache the request to the root '/' due to scoping. So we've put it under /service-worker.js.
   // robots.txt is also an exception
   var url = new URL(event.request.url);
   let pathArray = url.pathname ? url.pathname.split('/') : undefined;
@@ -61,9 +61,9 @@ self.addEventListener('fetch', function (event) {
     (!pathArray ||
       pathArray.length < 2 ||
       (pathArray[1] !== 'server' &&
-        pathArray[1] !== 'service-worker' &&
+        pathArray[1] !== 'service-worker.js' &&
         pathArray[1] !== 'robots.txt' &&
-        pathArray[1] !== 'main.js'))
+        pathArray[1] !== 'manifest.json'))
   ) {
     console.log(`[ServiceWorker] redirecting ${event.request.url} to base url`);
     requestToProcess = new Request('/');
@@ -73,6 +73,9 @@ self.addEventListener('fetch', function (event) {
   // First try to get resource out of the cache, if it's not there go to the network.
   event.respondWith(
     caches.match(requestToProcess).then(function (response) {
+      console.log(
+        `[ServiceWorker] cache request ${JSON.stringify(response, null, 2)}`
+      );
       return response || fetch(event.request);
     })
   );

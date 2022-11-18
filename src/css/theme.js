@@ -16,6 +16,7 @@ const theme = {
     TEXT_LIGHT: '#FFFFFF',
     TEXT_GREY: '#A4A4A4',
     TEXT_DARK: '#000000',
+    TEXT_DESC: 'rgba(0, 0, 0, 0.75)',
     CANCEL: '#B72A2A',
     DELETE: '#B72A2A',
     WHITE: '#FFFFFF',

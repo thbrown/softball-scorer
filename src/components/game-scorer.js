@@ -76,6 +76,32 @@ const ScoreChangeButton = ({ onScoreChange, increment, buttonText }) => {
       className={classes.scoreIncrementButton + ' button'}
     >
       {buttonText}
+      {/* <div className={classes.buttonRoot}>
+      <div
+        onClick={(ev) => {
+          onScoreChange(1);
+          ev.preventDefault();
+        }}
+        className={classes.scoreIncrementButton + ' button'}
+        style={{
+          height: 'unset',
+        }}
+      >
+        +1
+      </div>
+      <div
+        onClick={(ev) => {
+          onScoreChange(-1);
+          ev.preventDefault();
+        }}
+        className={classes.scoreIncrementButton + ' button'}
+        style={{
+          borderColor: css.colors.CANCEL,
+          height: 'unset',
+        }}
+      >
+        -1
+      </div> */}
     </div>
   );
 };

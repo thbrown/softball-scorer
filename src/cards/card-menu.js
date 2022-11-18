@@ -8,6 +8,8 @@ import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
 import HrTitle from 'elements/hr-title';
 import Chip from 'elements/chip';
+import SharedLib from '../../shared-lib';
+import { logout } from 'utils/functions';
 
 class CardMenu extends Component {
   constructor(props) {
@@ -73,23 +75,7 @@ class CardMenu extends Component {
           }
         }
 
-        let response = await state.request('POST', 'server/account/logout');
-        if (response.status === 204) {
-          state.resetState();
-          dialog.show_notification('Logout successful.', function () {
-            setRoute('/menu/login');
-          });
-        } else {
-          // If we're offline we can't delete our sid cookie in javascript because is has the httpOnly header, it has to be done from the server.
-          // Instead we'll delete our nonHttpOnlyToken cookie locally. Since both are required for performing an authenticated request
-          // the server will invalidate the sid cookie next time any request succeeds.
-          document.cookie =
-            'nonHttpOnlyToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-          state.resetState();
-          dialog.show_notification('Logout successful.', function () {
-            setRoute('/menu/login');
-          });
-        }
+        logout(state, dialog, setRoute);
       });
     };
 
@@ -130,7 +116,10 @@ class CardMenu extends Component {
 
     this.handleSaveClick = function () {
       const today = new Date().getTime();
-      const blob = new Blob([JSON.stringify(state.getLocalState(), null, 2)], {
+      const clientData = state.getLocalState();
+      const exportData =
+        SharedLib.schemaValidation.convertDocumentToExport(clientData);
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
         type: 'text/plain;charset=utf-8',
       });
       FileSaver.saveAs(blob, 'save' + today + '.json');
