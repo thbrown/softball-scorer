@@ -5,12 +5,8 @@ const exp = {};
 
 const FETCH_TIMEOUT =
   config.network && config.network.timeout ? config.network.timeout : 10000;
-const NETWORK_DELAY = 1000;
+const NETWORK_DELAY = 0; // I don't remember why I added this, testing? It was set to 1000ms this whole time :embarrassing:
 let requestInternal;
-
-exp.requestCrossOrigin = async function (method, fullUrl, body) {
-  return await requestInternal(method, fullUrl, body);
-};
 
 exp.request = async function (method, url, body, controller, overrideTimeout) {
   url = exp.getServerUrl(url);
@@ -54,9 +50,7 @@ requestInternal = async function (
         if (err.name == 'AbortError') {
           console.log('Network request canceled');
           // Canceled Request (TODO: not sure the best way to handle this yet)
-          resolve(
-            -4
-          ); /*
+          resolve(-4); /*
           reject(
             new Error(
               'Something went wrong during the request (canceled): ' + err,
@@ -85,8 +79,6 @@ requestInternal = async function (
         console.log(e, data, response.status, response);
       }
     }
-
-    state.setStatusBasedOnHttpResponse(response.status); // Can't we remove this to remove circular reference?
   } else {
     throw new Error('Unsupported Browser');
   }

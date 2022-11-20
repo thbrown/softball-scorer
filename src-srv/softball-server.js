@@ -806,9 +806,9 @@ module.exports = class SoftballServer {
               if (data.type === 'full') {
                 logger.warn(
                   accountId,
-                  'State',
-                  SharedLib.commonUtils.getObjectString(state),
-                  JSON.stringify(state, null, 2)
+                  'Full sync requested by browser, something must have gone wrong with the patch sync',
+                  SharedLib.commonUtils.getObjectString(state)
+                  //JSON.stringify(state, null, 2)
                 );
               }
 
@@ -997,7 +997,10 @@ module.exports = class SoftballServer {
           await this.databaseCalls.setOptimizationStatus(
             accountId,
             optimizationId,
-            SharedLib.constants.OPTIMIZATION_STATUS_ENUM.STARTING
+            SharedLib.constants.OPTIMIZATION_STATUS_ENUM.STARTING,
+            null,
+            null,
+            SharedLib.constants.STARTABLE_OPTIMIZATION_STATUSES_ENUM
           );
 
           // Return success, if something goes wrong from here on, we'll set the status to ERROR and client will see it on sync
@@ -1010,7 +1013,7 @@ module.exports = class SoftballServer {
               accountId,
               optimizationId
             );
-            logger.log(accountId, 'QUERY RESPONSE ', queryResponse);
+            //logger.log(accountId, 'QUERY RESPONSE ', queryResponse);
             let recentHash = SharedLib.commonUtils.getHash(
               queryResponse ? JSON.parse(queryResponse) : queryResponse
             );
@@ -1068,7 +1071,7 @@ module.exports = class SoftballServer {
                     SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
                   )
                     ? false
-                    : null
+                    : null // If the optimization was pausing, then we updated it to a terminal status, set the optimization so that it's no longer pausing
                 );
 
                 // Send success email! - if complete

@@ -166,7 +166,7 @@ export const autoCorrelation = function (input, lag) {
 };
 
 export const logout = async function (state, dialog, setRoute) {
-  let response = await state.request('POST', 'server/account/logout');
+  let response = await state.requestAuth('POST', 'server/account/logout');
   if (response.status === 204) {
     state.resetState();
     dialog.show_notification('Logout successful.', function () {

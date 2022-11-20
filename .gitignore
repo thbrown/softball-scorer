@@ -10,6 +10,7 @@ config-common.js
 *.sublime-project
 *.sublime-workspace
 src-srv/logs
+logs/*
 .vscode
 softball-sim.jar
 java.log

@@ -289,7 +289,8 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     optimizationId,
     newStatus,
     optionalMessage,
-    pause
+    pause,
+    allowedPreviousStatus
   ) {
     logger.log(
       accountId,
@@ -303,26 +304,29 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     let state = stateBlob.content;
     for (let i = 0; i < state.optimizations.length; i++) {
       if (state.optimizations[i].id === optimizationId) {
+        // First confirm that the optimization is one of the allowed statuses
+        let curStatus = state.optimizations[i].status;
+        if (
+          allowedPreviousStatus !== undefined &&
+          !allowedPreviousStatus.has(curStatus)
+        ) {
+          logger.warn(
+            accountId,
+            `Invalid optimization status transition from ${curStatus} to ${newStatus} (pause - ${pause}). Allowed initial statuses are ${new Array(
+              ...allowedPreviousStatus
+            ).join(' ')}`
+          );
+          return false;
+        }
+
         // Set status, if provided
         if (newStatus !== undefined && newStatus != null) {
           state.optimizations[i].status = newStatus;
           state.optimizations[i].statusMessage = message;
         }
-        // Set pause, if provided (and current status is "progressing")
+        // Set pause, if provided
         if (pause === true || pause === false) {
-          let curStatus = state.optimizations[i].status;
-          // Don't set pause to true for an optimization in a terminal state
-          // TODO: this might be letting too much app logic into out db layer
-          if (
-            pause === true &&
-            SharedLib.constants.TERMINAL_OPTIMIZATION_STATUSES_ENUM.has(
-              curStatus
-            )
-          ) {
-            logger.warn(accountId, 'PAUSE REJECTED', curStatus, pause);
-          } else {
-            state.optimizations[i].pause = pause;
-          }
+          state.optimizations[i].pause = pause;
         }
         await this.writeBlob(
           accountId,

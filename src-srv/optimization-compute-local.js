@@ -248,7 +248,9 @@ module.exports = class OptimizationComputeLocal {
       optimizationId,
       null,
       null,
-      true
+      true,
+      // Don't set pause to true for an operation in a terminal state
+      SharedLib.constants.TERMINAL_OPTIMIZATION_STATUSES_ENUM
     );
   }
 

@@ -73,7 +73,7 @@ const CardStatsSharing = (props) => {
       teamId: props.team.id,
     };
 
-    let response = await state.request(
+    let response = await state.requestAuth(
       'POST',
       `server/team-stats/edit`,
       JSON.stringify(body)

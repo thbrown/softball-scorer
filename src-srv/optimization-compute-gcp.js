@@ -75,12 +75,17 @@ module.exports = class OptimizationComputeLocal {
       let jsonResponse = JSON.parse(response.body);
       if (jsonResponse.status === 'SUCCESS') {
         // Set optimization to pause, don't change the status (TODO: rename the status change function)
+        const PAUSEABLE_STATUSES = SharedLib.constants.invertOptStatusSet(
+          SharedLib.constants.TERMINAL_OPTIMIZATION_STATUSES_ENUM
+        );
         await this.databaseCalls.setOptimizationStatus(
           accountId,
           optimizationId,
           null,
           null,
-          true
+          true,
+          // Don't set pause to true for an optimization in a terminal state
+          PAUSEABLE_STATUSES
         );
         return response.body;
       } else {

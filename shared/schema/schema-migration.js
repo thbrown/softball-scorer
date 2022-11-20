@@ -43,11 +43,12 @@ let updateSchema = function (
     }
 
     if (version === CURRENT_VERSION) {
+      /*
       logger.log(
         accountId,
         'Schema migration not required. Schema version: ',
         version
-      );
+      );*/
       return 'OKAY';
     } else if (version > CURRENT_VERSION) {
       logger.warn(

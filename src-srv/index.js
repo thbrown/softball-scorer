@@ -44,6 +44,7 @@ async function runServer() {
     cacheService,
     optimizationCompute
   );
+
   softballServer.start();
 }
 runServer();
