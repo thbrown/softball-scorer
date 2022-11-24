@@ -105,8 +105,8 @@ module.exports = class CacheCalls {
    */
   async lockAccount(accountId) {
     // This redis function (lua)
-    // 1) Returns true if the key corresponding to the accoutn id doesn't exist and puts the key in the cache
-    // 2) Returns false if the key corresponding to the accoutn id exists
+    // 1) Returns true if the key corresponding to the account id doesn't exist and puts the key in the cache
+    // 2) Returns false if the key corresponding to the account id exists
     let result = await this.evalAsync(
       "local value = redis.call('get', KEYS[1]); if not value then redis.call('set', KEYS[1], 1, 'EX', ARGV[1]) return true else return false end",
       '1', // # of keys

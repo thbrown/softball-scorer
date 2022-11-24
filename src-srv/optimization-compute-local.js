@@ -164,6 +164,12 @@ module.exports = class OptimizationComputeLocal {
   }
 
   async start(accountId, optimizationId, stats, options) {
+    // Add additional flags to json body
+    options['-i'] = optimizationId; // id
+    options['-k'] = this.configParams.apiKey; // apiKey
+    options['-r'] = this.configParams.updateUrl; // update url
+    options['-s'] = accountId; // stuff (which is the account id in our case)
+
     // Instruct the compute service to start the optimization
     logger.log(accountId, 'Starting local optimization');
 

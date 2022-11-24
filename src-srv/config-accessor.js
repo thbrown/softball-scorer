@@ -67,7 +67,6 @@ module.exports.getCacheService = async function () {
   }
 
   const mode = config?.cache?.mode;
-
   if (mode === 'GcpBuckets') {
     const { session, ancestor } = config.cache.bucketNames;
     cache = new CacheCallsGcpBuckets(session, ancestor);
@@ -132,9 +131,7 @@ module.exports.getOptimizationComputeService = function (
     return optimizationCompute;
   }
 
-  const computeMode = config.optimizationCompute
-    ? config.optimizationCompute.mode
-    : null;
+  const computeMode = config?.optimizationCompute?.mode;
   if (computeMode === 'local' || !computeMode) {
     logger.warn(
       null,
@@ -157,6 +154,10 @@ module.exports.getOptimizationComputeService = function (
     );
   }
   return optimizationCompute;
+};
+
+module.exports.getOptParams = function () {
+  return config?.optimizationCompute?.params || {};
 };
 
 module.exports.getAppServerPort = function () {

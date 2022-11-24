@@ -19,7 +19,10 @@ module.exports = class OptimizationComputeLocal {
   // TODO: we should add retry here, it fails sometimes with a 500 because of Google reasons
   async start(accountId, optimizationId, stats, options) {
     // Add additional flags to json body
-    options['-i'] = optimizationId;
+    options['-i'] = optimizationId; // id
+    options['-k'] = this.configParams.apiKey; // apiKey
+    options['-r'] = this.configParams.updateUrl; // update url
+    options['-s'] = accountId; // stuff (which is the account id in our case)
     options['data'] = stats;
     options['PASSWORD'] = this.configParams.password;
 
