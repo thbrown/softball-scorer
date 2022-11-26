@@ -3,8 +3,9 @@ const DatabaseCallsFileSystem = require('./database-calls-file-system');
 const DatabaseCallsGcpBuckets = require('./database-calls-gcp-buckets');
 
 const CacheCallsRedis = require('./cache-calls-redis');
-const CacheCallsLocal = require('./cache-calls-local');
+const CacheCallsMemory = require('./cache-calls-memory');
 const CacheCallsGcpBuckets = require('./cache-calls-gcp-buckets');
+const CacheCallsFileSystem = require('./cache-calls-file-system');
 
 const OptimizationComputeLocal = require('./optimization-compute-local');
 const OptimizationComputeGcp = require('./optimization-compute-gcp');
@@ -82,12 +83,14 @@ module.exports.getCacheService = async function () {
     } else {
       throw new Error('Missing required redis config info');
     }
+  } else if (mode === 'Memory') {
+    cache = new CacheCallsMemory();
   } else {
+    cache = new CacheCallsFileSystem();
     logger.warn(
       null,
-      'Warning: undefined config, running with local in-memory cache'
+      'Warning: undefined config, running with file-system cache'
     );
-    cache = new CacheCallsLocal();
   }
 
   return cache;
