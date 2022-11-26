@@ -342,7 +342,11 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
   }
 
   async setOptimizationResultData(accountId, optimizationId, newResults) {
-    logger.log(accountId, 'setting optimization result data', newResults);
+    logger.log(
+      accountId,
+      'setting optimization result data',
+      newResults.length
+    );
     if (!newResults) {
       return; // No-op
     }

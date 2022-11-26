@@ -679,7 +679,7 @@ exp.duplicateOptimization = function (optimizationId) {
         0,
         -matches[0].length
       );
-      newName = `${slicedOriginal} (${nextNumber})`;
+      newName = `${slicedOriginal}(${nextNumber})`;
     } else {
       newName = `${duplicatedOptimization.name} (2)`;
     }

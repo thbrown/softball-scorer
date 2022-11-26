@@ -156,6 +156,13 @@ module.exports.getOptimizationComputeService = function (
   return optimizationCompute;
 };
 
+module.exports.getUpdateUrl = function () {
+  return (
+    config?.optimizationCompute?.params?.updateUrl ||
+    `http://localhost:${module.exports.getAppServerPort()}/server/update-optimization`
+  );
+};
+
 module.exports.getOptParams = function () {
   return config?.optimizationCompute?.params || {};
 };

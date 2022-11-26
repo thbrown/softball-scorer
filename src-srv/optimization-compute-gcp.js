@@ -2,6 +2,7 @@ const got = require('got');
 
 const logger = require('./logger.js');
 const SharedLib = require('../shared-lib').default;
+const configAccessor = require('./config-accessor');
 
 //var https = require('https');
 
@@ -19,10 +20,13 @@ module.exports = class OptimizationComputeLocal {
   // TODO: we should add retry here, it fails sometimes with a 500 because of Google reasons
   async start(accountId, optimizationId, stats, options) {
     // Add additional flags to json body
-    options['-i'] = optimizationId; // id
-    options['-k'] = this.configParams.apiKey; // apiKey
-    options['-r'] = this.configParams.updateUrl; // update url
-    options['-s'] = accountId; // stuff (which is the account id in our case)
+    options['-n'] = optimizationId; // id
+    options['-u'] = configAccessor.getUpdateUrl(); // update url
+    options['-b'] = JSON.stringify({
+      optimizationId: optimizationId,
+      accountId: accountId,
+      apiKey: this?.configParams?.apiKey,
+    });
     options['data'] = stats;
     options['PASSWORD'] = this.configParams.password;
 

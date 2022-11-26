@@ -851,22 +851,21 @@ module.exports = class SoftballServer {
     app.post(
       '/server/update-optimization',
       wrapForErrorProcessing(async (req, res, next) => {
-        logger.log('n/A', 'Request received');
-
         // Make sure the request is good
         let optimizationId = req.body.optimizationId;
         let apiKey = req.body.apiKey;
-        let accountId = req.body.stuff;
+        let accountId = req.body.accountId;
         let targetApiKey = configAccessor.getOptParams().apiKey;
         checkRequiredField(req.body.optimizationId, 'optimizationId');
-        checkRequiredField(req.body.apiKey, 'apiKey');
-        checkRequiredField(req.body.stuff, 'accountId (stuff)');
+        checkRequiredField(req.body.accountId, 'accountId');
         if (apiKey !== targetApiKey) {
           let message = JSON.stringify({ message: 'Invalid api key' });
           logger.log(accountId, `Optimization update failure`, message);
           res.status(403).send(message);
           return;
         }
+
+        logger.log(accountId, 'Optimization update request received');
 
         // Get account and optimization data
         let clientState = await this.databaseCalls.getClientState(accountId);
@@ -879,11 +878,6 @@ module.exports = class SoftballServer {
         let account = clientState.account;
         let optimization = undefined;
         for (let i = 0; i < clientState.optimizations.length; i++) {
-          logger.log(
-            accountId,
-            optimizationId,
-            clientState.optimizations[i].id
-          );
           if (clientState.optimizations[i].id === optimizationId) {
             optimization = clientState.optimizations[i];
             break;
@@ -957,7 +951,7 @@ module.exports = class SoftballServer {
 
         logger.log(accountId, `Optimization update successful`);
         // Woot, done
-        res.status(200).send(responseData);
+        res.status(204).send();
       })
     );
 
