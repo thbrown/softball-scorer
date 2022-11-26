@@ -28,6 +28,7 @@ export const toClientDate = function (serverDate) {
   return new Date(serverDate * 1000).toISOString().substring(0, 10);
 };
 
+/*
 // Async decompression in web worker
 export const decompress = async function (inputString) {
   return new Promise((resolve, reject) => {
@@ -55,7 +56,7 @@ export const compress = async function (inputString) {
     );
   });
 };
-
+*/
 export const mean = function (values) {
   return values.reduce((sum, v) => sum + v, 0) / values.length;
 };

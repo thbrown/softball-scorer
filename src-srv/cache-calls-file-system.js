@@ -1,7 +1,6 @@
 const configAccessor = require('./config-accessor');
 
-var session = require('express-session');
-var FileStore = require('session-file-store')(session);
+var FileSystemSessionStore = require('./file-system-session-store');
 
 /**
  * This cache implementation just stores cached data in the file system.
@@ -114,6 +113,6 @@ module.exports = class CacheCalls {
   }
 
   getSessionStore() {
-    return new FileStore({});
+    return new FileSystemSessionStore();
   }
 };
