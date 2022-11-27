@@ -167,7 +167,6 @@ export default class CardOptimization extends React.Component {
         dialog.show_notification('Sent pause request.');
         // Do a sync, since the above call succeeded server has updated the optimization's status on it's end
         await state.sync();
-        buttonDiv.classList.remove('disabled');
         return;
       } else if (response.status === 403) {
         dialog.show_notification(

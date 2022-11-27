@@ -338,16 +338,18 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
         return true;
       }
     }
-    throw new Error(
-      'Optimization not found 5 ' +
-        optimizationId +
-        ' ' +
-        JSON.stringify(state.optimizations, null, 2)
-    );
+    throw new Error('Optimization not found 5 ' + optimizationId);
   }
 
   async setOptimizationResultData(accountId, optimizationId, newResults) {
-    logger.log(accountId, 'setting optimization result data', newResults);
+    logger.log(
+      accountId,
+      'setting optimization result data',
+      newResults.length
+    );
+    if (!newResults) {
+      return; // No-op
+    }
     let stateBlob = await this._getFullStateBlob(accountId);
     let state = stateBlob.content;
     for (let i = 0; i < state.optimizations.length; i++) {
@@ -363,12 +365,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
         return;
       }
     }
-    throw new Error(
-      'Optimization not found 4 ' +
-        optimizationId +
-        ' ' +
-        JSON.stringify(state.optimizations, null, 2)
-    );
+    throw new Error('Optimization not found 4 ' + optimizationId + ' ');
   }
 
   async getOptimizationStatus(accountId, optimizationId) {

@@ -14,7 +14,7 @@ const LOG_NAME = 'server.log';
 const LOG_FULL_PATH = LOG_LOCATION + LOG_NAME;
 const OVERFLOW_ENABLED = true;
 const OVERFLOW_LOG_PREFIX = 'server-too-long';
-const OVERFLOW_LOG_LIMIT = 5000; // Log lines larger than this will be written to a file
+const OVERFLOW_LOG_LIMIT = 4000; // Log lines larger than this will be written to a file
 
 if (LOG_TO_FILE) {
   ensureDirectoryExistence(LOG_FULL_PATH);
@@ -48,7 +48,8 @@ let logColor = async function (accountId, color, ...messages) {
       wholeMessage = `${wholeMessage}${messages[i]}\t`;
     }
     if (wholeMessage.length > OVERFLOW_LOG_LIMIT) {
-      let overflowFileName = `${OVERFLOW_LOG_PREFIX}-${accountId}-${timestamp}.log`;
+      let filePathAccountId = accountId.replace(/[^a-z0-9]/gi, '_');
+      let overflowFileName = `${OVERFLOW_LOG_PREFIX}-${filePathAccountId}-${timestamp}.log`;
 
       // Write the whole thing to the file system  (async, no need to wait for it)
       fs.writeFile(
@@ -59,7 +60,7 @@ let logColor = async function (accountId, color, ...messages) {
             process.stdout.write(
               `Logging was unable to write to the file system\t`
             );
-            process.stdout.write(err);
+            process.stdout.write(err.toString());
           }
         }
       );

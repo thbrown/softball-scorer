@@ -3,8 +3,9 @@ const DatabaseCallsFileSystem = require('./database-calls-file-system');
 const DatabaseCallsGcpBuckets = require('./database-calls-gcp-buckets');
 
 const CacheCallsRedis = require('./cache-calls-redis');
-const CacheCallsLocal = require('./cache-calls-local');
+const CacheCallsMemory = require('./cache-calls-memory');
 const CacheCallsGcpBuckets = require('./cache-calls-gcp-buckets');
+const CacheCallsFileSystem = require('./cache-calls-file-system');
 
 const OptimizationComputeLocal = require('./optimization-compute-local');
 const OptimizationComputeGcp = require('./optimization-compute-gcp');
@@ -67,7 +68,6 @@ module.exports.getCacheService = async function () {
   }
 
   const mode = config?.cache?.mode;
-
   if (mode === 'GcpBuckets') {
     const { session, ancestor } = config.cache.bucketNames;
     cache = new CacheCallsGcpBuckets(session, ancestor);
@@ -83,12 +83,14 @@ module.exports.getCacheService = async function () {
     } else {
       throw new Error('Missing required redis config info');
     }
+  } else if (mode === 'Memory') {
+    cache = new CacheCallsMemory();
   } else {
+    cache = new CacheCallsFileSystem();
     logger.warn(
       null,
-      'Warning: undefined config, running with local in-memory cache'
+      'Warning: undefined config, running with file-system cache'
     );
-    cache = new CacheCallsLocal();
   }
 
   return cache;
@@ -132,9 +134,7 @@ module.exports.getOptimizationComputeService = function (
     return optimizationCompute;
   }
 
-  const computeMode = config.optimizationCompute
-    ? config.optimizationCompute.mode
-    : null;
+  const computeMode = config?.optimizationCompute?.mode;
   if (computeMode === 'local' || !computeMode) {
     logger.warn(
       null,
@@ -157,6 +157,17 @@ module.exports.getOptimizationComputeService = function (
     );
   }
   return optimizationCompute;
+};
+
+module.exports.getUpdateUrl = function () {
+  return (
+    config?.optimizationCompute?.params?.updateUrl ||
+    `http://localhost:${module.exports.getAppServerPort()}/server/update-optimization`
+  );
+};
+
+module.exports.getOptParams = function () {
+  return config?.optimizationCompute?.params || {};
 };
 
 module.exports.getAppServerPort = function () {

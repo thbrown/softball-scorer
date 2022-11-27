@@ -21,4 +21,5 @@ shared-lib.js
 shared-lib.js.LICENSE.txt
 yarn-error.log
 database/*
+session/*
 emergency-dump-*
