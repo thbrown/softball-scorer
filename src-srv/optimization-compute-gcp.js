@@ -22,11 +22,11 @@ module.exports = class OptimizationComputeLocal {
     // Add additional flags to json body
     options['-n'] = optimizationId; // id
     options['-u'] = configAccessor.getUpdateUrl(); // update url
-    options['-b'] = JSON.stringify({
+    options['-b'] = {
       optimizationId: optimizationId,
       accountId: accountId,
       apiKey: this?.configParams?.apiKey,
-    });
+    };
     options['data'] = stats;
     options['PASSWORD'] = this.configParams.password;
 
@@ -154,7 +154,7 @@ module.exports = class OptimizationComputeLocal {
     logger.log(accountId, 'Starting gcp optimization estimate');
 
     // Add additional flags to json body
-    options['-i'] = optimizationId;
+    options['-n'] = optimizationId;
     options['-e'] = true;
     options['data'] = stats;
     options['PASSWORD'] = this.configParams.password;
