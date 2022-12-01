@@ -1,5 +1,6 @@
 import React from 'react';
 import dialog from 'dialog';
+import css from 'css';
 import state from 'state';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
@@ -138,7 +139,7 @@ export default class CardGameEdit extends React.Component {
             <IconButton src="/server/assets/check.svg" alt="save" />
             <span
               style={{
-                marginLeft: '4px',
+                marginLeft: css.spacing.xSmall,
               }}
             >
               Save
@@ -159,7 +160,7 @@ export default class CardGameEdit extends React.Component {
             <IconButton src="/server/assets/cancel.svg" alt="cancel" invert />
             <span
               style={{
-                marginLeft: '4px',
+                marginLeft: css.spacing.xSmall,
               }}
             >
               Cancel
@@ -181,7 +182,7 @@ export default class CardGameEdit extends React.Component {
               <IconButton src="/server/assets/delete.svg" alt="delete" />
               <span
                 style={{
-                  marginLeft: '4px',
+                  marginLeft: css.spacing.xSmall,
                 }}
               >
                 Delete

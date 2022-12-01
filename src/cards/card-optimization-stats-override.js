@@ -111,13 +111,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
               }}
             >
               <IconButton src="/server/assets/delete.svg" alt="delete" />
-              <span
-                style={{
-                  marginLeft: '4px',
-                }}
-              >
-                Delete All
-              </span>
+              <span>Delete All</span>
             </div>
           </ListButton>
         )}

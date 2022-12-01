@@ -1,4 +1,5 @@
 import dialog from 'dialog';
+import css from 'css';
 
 export const showLineupTypeHelp = () => {
   dialog.show_notification(
@@ -84,7 +85,7 @@ export const showEmailHelp = () => {
   dialog.show_notification(
     <div>
       <p>
-        This functionality is disable because your email has not been verified.
+        This functionality is disabled because your email has not been verified.
       </p>
       <p>
         Click the link in the validation email that was sent to you on signup.

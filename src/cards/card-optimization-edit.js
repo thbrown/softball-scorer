@@ -97,13 +97,7 @@ const CardOptimizationEdit = (props) => {
           }}
         >
           <IconButton src="/server/assets/check.svg" alt="" />
-          <span
-            style={{
-              marginLeft: '4px',
-            }}
-          >
-            Save
-          </span>
+          <span>Save</span>
         </div>
       </ListButton>
       <ListButton
@@ -119,13 +113,7 @@ const CardOptimizationEdit = (props) => {
           }}
         >
           <IconButton src="/server/assets/cancel.svg" alt="" invert />
-          <span
-            style={{
-              marginLeft: '4px',
-            }}
-          >
-            Cancel
-          </span>
+          <span>Cancel</span>
         </div>
       </ListButton>
       {!props.isNew && (
@@ -141,13 +129,7 @@ const CardOptimizationEdit = (props) => {
             }}
           >
             <IconButton src="/server/assets/duplicate.svg" alt="" invert />
-            <span
-              style={{
-                marginLeft: '4px',
-              }}
-            >
-              Duplicate
-            </span>
+            <span>Duplicate</span>
           </div>
         </ListButton>
       )}
@@ -164,13 +146,7 @@ const CardOptimizationEdit = (props) => {
             }}
           >
             <IconButton src="/server/assets/delete.svg" alt="" />
-            <span
-              style={{
-                marginLeft: '4px',
-              }}
-            >
-              Delete
-            </span>
+            <span>Delete</span>
           </div>
         </ListButton>
       )}

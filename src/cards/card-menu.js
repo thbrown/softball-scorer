@@ -137,9 +137,12 @@ class CardMenu extends Component {
             standalone app?
           </b>
           <div style={{ marginTop: '1rem' }}>
-            Pressing yes will cause your browser to issue an 'add to home
-            screen' prompt. If you dismiss the browser's prompt, this menu
-            option will disappear for a while.
+            Tapping yes will cause your browser to issue an 'Add to Home Screen'
+            prompt.
+          </div>
+          <div>
+            If you dismiss the browser's prompt, this menu option will disappear
+            for a while.
           </div>
         </div>,
         () => {

@@ -1214,9 +1214,6 @@ export default class CardOptimization extends React.Component {
               className="help-icon"
               src="/server/assets/help.svg"
               onClick={showEmailHelp}
-              style={{
-                marginLeft: '6px',
-              }}
               invert
             />
           )}

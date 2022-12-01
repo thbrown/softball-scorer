@@ -4,7 +4,7 @@ body {
   position: absolute;
   width: 100%;
   margin: 0px;
-  font-size: 14px;
+  font-size: 16px;
   font-family: Roboto, San Francicso, Trebuchet MS, sans-serif;
   box-sizing: border-box;
   padding-top: 48px; /* sticky header height */
@@ -19,7 +19,7 @@ hr {
 @font-face {
   font-family: 'score_boardregular';
   src: url('/server/assets/scoreboard-webfont.woff2') format('woff2'),
-       url('/server/assets/scoreboard-webfont.woff') format('woff');
+    url('/server/assets/scoreboard-webfont.woff') format('woff');
   font-weight: normal;
   font-style: normal;
 }
@@ -27,7 +27,7 @@ hr {
 .background-text {
   text-align: center;
   font-size: 14px;
-  margin: 10px
+  margin: 10px;
 }
 
 .centered-row {
@@ -39,11 +39,11 @@ hr {
 }
 
 .fade-out {
-  -webkit-animation: fadeout 3.0s;
-  -moz-animation: fadeout 3.0s;
-  -ms-animation: fadeout 3.0s;
-  -o-animation: fadeout 3.0s;
-  animation: fadeout 3.0s;
+  -webkit-animation: fadeout 3s;
+  -moz-animation: fadeout 3s;
+  -ms-animation: fadeout 3s;
+  -o-animation: fadeout 3s;
+  animation: fadeout 3s;
 }
 
 .card-body {
@@ -89,7 +89,7 @@ hr {
   color: $css.colors.TEXT_LIGHT;
   background-color: $css.colors.PRIMARY_DARK;
   margin-bottom: 2px;
-  font-size: 24px;
+  font-size: $css.typography.size.xLarge;
   text-align: center;
   line-height: 48px;
   height: 48px;
@@ -102,7 +102,7 @@ hr {
 }
 
 .card-textbox {
-  padding: .75rem .25rem;
+  padding: 0.75rem 0.25rem;
   color: $css.colors.TEXT_DARK;
 }
 
@@ -117,7 +117,7 @@ hr {
   cursor: default;
   padding: 12px;
   margin: 10px;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   color: $css.colors.TEXT_LIGHT;
   background-color: $css.colors.SECONDARY;
   font-size: 20px;
@@ -139,9 +139,9 @@ hr {
 .table-cell {
   border-right: 1px solid $css.colors.SECONDARY_LIGHT;
   border-bottom: 1px solid $css.colors.SECONDARY_LIGHT;
-  padding: 7px;
+  padding: $css.spacing.xSmall;
   min-width: 50px;
-  height:24px;
+  height: 24px;
   line-height: 1.7;
 }
 .table-cell-header {
@@ -156,7 +156,7 @@ hr {
 .name-stat-cell {
   width: 80px;
   text-align: left;
-  height:24px;
+  height: 24px;
   text-overflow: ellipsis;
   overflow: hidden;
   color: $css.colors.TEXT_LIGHT;
@@ -188,7 +188,7 @@ hr {
 .lineup-row {
   touch-action: initial !important;
   background-color: $css.colors.WHITE;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   color: $css.colors.TEXT_DARK;
   display: flex;
   justify-content: space-between;
@@ -243,7 +243,7 @@ hr {
 
 .scorer-row {
   background-color: $css.colors.SECONDARY;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   color: $css.colors.TEXT_LIGHT;
   display: flex;
   justify-content: space-between;
@@ -253,14 +253,13 @@ hr {
 
 .future-batter-row {
   background-color: $css.colors.SECONDARY;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   color: $css.colors.TEXT_LIGHT;
   display: flex;
   justify-content: space-between;
   margin: 10px;
   padding: 10px 16px;
 }
-
 
 .lineup-box-beginning,
 .lineup-box-end,
@@ -284,7 +283,7 @@ hr {
 
 .lineup-box:hover,
 .lineup-box:active,
-.list-item:hover, 
+.list-item:hover,
 .list-item:active {
   filter: brightness(75%);
 }
@@ -319,7 +318,7 @@ hr {
   padding: 12px;
   color: $css.colors.TEXT_LIGHT;
   border: 2px solid $css.colors.SECONDARY;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   text-align: center;
   font-size: 18px;
 }
@@ -337,7 +336,7 @@ hr {
 
 .group {
   border: 1px $css.colors.SECONDARY_DARK solid;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   padding: 0px;
   margin-bottom: 8px;
   color: $css.colors.TEXT_DARK;
@@ -385,7 +384,7 @@ hr {
   height: 50px;
   padding-left: 10px;
   font-size: 18px;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   margin: 2px;
 }
 
@@ -404,7 +403,7 @@ hr {
   width: 100%;
   background-color: $css.colors.WHITE;
   font-size: 18px;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   z-index: 2;
 }
 
@@ -447,9 +446,9 @@ hr {
 .dialog {
   max-width: 960px;
   background-color: $css.colors.BACKGROUND;
-  border-radius: 8px;
+  border-radius: $css.borderRadius.medium;
   color: $css.colors.TEXT_DARK;
-  box-shadow: 0px 9px 25px 10px rgba(0,0,0,0.5);
+  box-shadow: 0px 9px 25px 10px rgba(0, 0, 0, 0.5);
   padding: 16px;
   margin: 32px;
   z-index: 2001;
@@ -458,15 +457,15 @@ hr {
 }
 
 .dialog-text {
-  font-size: 18px;
+  font-size: $css.typography.size.medium;
   color: $css.colors.TEXT_DARK;
 }
 
 .dialog-input-box {
   background-color: $css.colors.WHITE;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   color: $css.colors.TEXT_DARK;
-  font-size: 18px;
+  font-size: $css.typography.size.medium;
   margin-top: 24px;
   width: calc(100% - 18px);
 }
@@ -479,13 +478,13 @@ hr {
 }
 
 .button {
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   cursor: pointer;
-  font-size: 18px;
+  font-size: $css.typography.size.medium;
   margin: 10px;
   text-align: center;
   min-width: 52px;
-  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   height: 48px;
@@ -507,19 +506,18 @@ hr {
 }
 
 @media (hover: hover) {
-  .button:active, 
+  .button:active,
   .button:hover {
     filter: brightness(95%);
   }
 }
 
 @media (hover: hover) {
-  .hover:active, 
+  .hover:active,
   .hover:hover {
     filter: brightness(95%);
   }
 }
-
 
 .primary-button {
   background-color: $css.colors.PRIMARY_DARK;
@@ -669,6 +667,7 @@ hr {
   height: 100%;
   overflow: hidden;
   box-sizing: border-box;
+  font-size: $css.typography.size.small;
 }
 .sticky-table .sticky-table-corner {
   z-index: 4;
@@ -781,7 +780,7 @@ Scrolling is ~10-20x smoother.
 .icon-button {
   width: 48px;
   height: 48px;
-  border-radius: 8px;
+  border-radius: $css.borderRadius.medium;
   margin-left: 3px;
   background-color: $css.colors.PRIMARY_DARK;
   text-align: center;
@@ -811,7 +810,7 @@ Scrolling is ~10-20x smoother.
   margin-bottom: 8px;
   padding: 4px 8px;
   position: relative;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   background-color: white;
   width: 100%;
 }
@@ -865,12 +864,19 @@ Scrolling is ~10-20x smoother.
 }
 
 .floating-react-select input,
-.floating-react-select > div:first-of-type > div:first-of-type > div:first-of-type,
-.floating-react-select > div:first-of-type > div:first-of-type > div:first-of-type > div:first-of-type {
+.floating-react-select
+  > div:first-of-type
+  > div:first-of-type
+  > div:first-of-type,
+.floating-react-select
+  > div:first-of-type
+  > div:first-of-type
+  > div:first-of-type
+  > div:first-of-type {
   width: 100% !important;
 }
 
-.floating-react-select div[class*="indicatorContainer"] {
+.floating-react-select div[class*='indicatorContainer'] {
   display: none !important;
 }
 
@@ -1016,7 +1022,7 @@ Scrolling is ~10-20x smoother.
   *overflow: hidden;
 }
 
-#gamesMenu input[type="checkbox"] {
+#gamesMenu input[type='checkbox'] {
   width: 16px;
   height: 16px;
 }
@@ -1030,7 +1036,11 @@ Scrolling is ~10-20x smoother.
 }
 
 .pie-timer {
-  background: -webkit-linear-gradient(left, $css.colors.PRIMARY 50%, #F5F5F5 50%); /* $css.colors.BACKGROUND doesn't get substituted here, so I'm hardcoding #F5F5F5 */
+  background: -webkit-linear-gradient(
+    left,
+    $css.colors.PRIMARY 50%,
+    #f5f5f5 50%
+  ); /* $css.colors.BACKGROUND doesn't get substituted here, so I'm hardcoding #F5F5F5 */
   border-radius: 100%;
   height: 25px; /* Height and width */
   position: relative;
@@ -1057,31 +1067,31 @@ Scrolling is ~10-20x smoother.
   height: 25px;
 }
 @-webkit-keyframes time {
-  100% { 
-      -webkit-transform: rotate(360deg);
-      transform: rotate(360deg);
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
   }
 }
 @-webkit-keyframes pie-mask {
   0% {
-      background: $css.colors.BACKGROUND; /* Background colour */
-      -webkit-transform: rotate(0deg);
-      transform: rotate(0deg);
+    background: $css.colors.BACKGROUND; /* Background colour */
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
   }
   50% {
-      background: $css.colors.BACKGROUND; /* Background colour */
-      -webkit-transform: rotate(-180deg);
-      transform: rotate(-180deg);
+    background: $css.colors.BACKGROUND; /* Background colour */
+    -webkit-transform: rotate(-180deg);
+    transform: rotate(-180deg);
   }
   50.01% {
-      background: $css.colors.PRIMARY; /* Foreground colour */
-      -webkit-transform: rotate(0deg);
-      transform: rotate(0deg);
+    background: $css.colors.PRIMARY; /* Foreground colour */
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
   }
   100% {
-      background: $css.colors.PRIMARY; /* Foreground colour */
-      -webkit-transform: rotate(-180deg);
-      transform: rotate(-180deg);
+    background: $css.colors.PRIMARY; /* Foreground colour */
+    -webkit-transform: rotate(-180deg);
+    transform: rotate(-180deg);
   }
 }
 
@@ -1090,7 +1100,7 @@ Scrolling is ~10-20x smoother.
   background: $css.colors.BACKGROUND;
   text-align: center;
   display: inline-block;
-  border-radius: 32px;
+  border-radius: $css.borderRadius.xLarge;
   cursor: default;
 }
 
@@ -1112,6 +1122,7 @@ Scrolling is ~10-20x smoother.
   font-weight: 1000;
 }
 
-.player-stats td, .player-stats th {
-  padding-right:11px;
+.player-stats td,
+.player-stats th {
+  padding-right: $css.spacing.xSmall;
 }

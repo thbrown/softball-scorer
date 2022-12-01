@@ -1,6 +1,7 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
 import dialog from 'dialog';
+import css from 'css';
 import Draggable from 'react-draggable';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
@@ -30,17 +31,17 @@ const useStyles = makeStyles((theme) => ({
   },
   button: {
     cursor: 'default',
-    padding: '12px',
+    padding: theme.spacing.medium,
     color: theme.colors.TEXT_DARK,
     border: `2px solid ${theme.colors.SECONDARY}`,
     background: theme.colors.WHITE,
-    borderRadius: '4px',
+    borderRadius: theme.borderRadius.small,
     textAlign: 'center',
-    fontSize: '18px',
+    fontSize: theme.typography.size.large,
     width: '48px',
     margin: '2px',
     [`@media (max-width:${theme.breakpoints.sm})`]: {
-      fontSize: '16px',
+      fontSize: theme.typography.size.medium,
       padding: '6px',
       margin: '0px',
     },

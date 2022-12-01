@@ -8,7 +8,7 @@ import IconButton from 'elements/icon-button';
 export default ({ message }) => {
   message =
     message === undefined
-      ? 'The page your looking for was not found. It may have been deleted or it may never have existed.'
+      ? 'The page you are looking for was not found. It may have been deleted or it may never have existed.'
       : message;
   return (
     <Card title="Not Found" enableLeftHeader={false}>

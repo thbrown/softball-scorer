@@ -76,7 +76,7 @@ const SprayTooltip = withStyles((theme) => ({
     color: theme.colors.TEXT_DARK,
     backgroundColor: theme.colors.BACKGROUND,
     border: '1px solid ' + theme.colors.SECONDARY_LIGHT,
-    borderRadius: theme.spacing.xSmall,
+    borderRadius: theme.borderRadius.small,
     padding: TOOLTIP_PADDING + 'px',
     width: TOOLTIP_WIDTH + 'px',
     lineHeight: TOOLTIP_ROW_HEIGHT + 'px',
@@ -261,9 +261,9 @@ const enhance = compose(
     filterArea: {
       backgroundColor: theme.colors.PRIMARY_DARK,
       color: theme.colors.TEXT_LIGHT,
-      padding: theme.spacing.xSmall,
+      padding: theme.spacing.medium,
       marginTop: theme.spacing.xxSmall,
-      borderRadius: theme.spacing.small,
+      borderRadius: theme.borderRadius.medium,
     },
     title: {
       textAlign: 'center',
@@ -277,16 +277,19 @@ const enhance = compose(
       marginTop: theme.spacing.xSmall,
       marginBottom: theme.spacing.xSmall,
       display: 'flex',
-      justifyContent: 'space-around',
+      justifyContent: 'flex-start',
     },
     filterButton: {
       '-webkitTapHighlightColor': 'rgba(0,0,0,0)',
       cursor: 'pointer',
       backgroundColor: theme.colors.PRIMARY,
-      padding: theme.spacing.xSmall,
+      paddingTop: theme.spacing.large,
+      paddingBottom: theme.spacing.large,
+      paddingLeft: theme.spacing.medium,
+      paddingRight: theme.spacing.medium,
       fontSize: theme.typography.size.small,
-      borderRadius: theme.spacing.small,
-      margin: '2px',
+      borderRadius: theme.borderRadius.medium,
+      marginRight: theme.spacing.xSmall,
       '&:hover': {
         filter: 'brightness(80%)',
       },
@@ -296,10 +299,13 @@ const enhance = compose(
       '-webkitTapHighlightColor': 'rgba(0,0,0,0)',
       cursor: 'pointer',
       backgroundColor: theme.colors.PRIMARY_LIGHT,
-      padding: theme.spacing.xSmall,
+      paddingTop: theme.spacing.large,
+      paddingBottom: theme.spacing.large,
+      paddingLeft: theme.spacing.medium,
+      paddingRight: theme.spacing.medium,
       fontSize: theme.typography.size.small,
-      borderRadius: theme.spacing.small,
-      margin: '2px',
+      borderRadius: theme.borderRadius.medium,
+      marginRight: theme.spacing.xSmall,
       '&:hover': {
         filter: 'brightness(100%)',
       },
@@ -331,6 +337,19 @@ const Spray = ({
   return (
     <div className={'sprayBody ' + classes.sprayBody}>
       <Field decoratedPlateAppearances={decoratedPlateAppearances} />
+      <div
+        style={{
+          margin: 'auto',
+          maxWidth: '500px',
+          padding: css.spacing.xSmall,
+          textAlign: 'center',
+          fontSize: css.typography.size.small,
+          color: css.colors.TEXT_GREY,
+        }}
+      >
+        Tap a ball to see info about the plate appearance.
+      </div>
+
       {hideFilter ? null : (
         <div className={classes.filterArea}>
           <div className={classes.subtitle}>Hits</div>

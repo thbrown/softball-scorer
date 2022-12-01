@@ -119,9 +119,6 @@ export default class OptimizerStandardOptions extends React.Component {
             src="/server/assets/help.svg"
             onClick={showLineupTypeHelp}
             invert
-            style={{
-              marginLeft: '6px',
-            }}
           />
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
@@ -140,9 +137,6 @@ export default class OptimizerStandardOptions extends React.Component {
             src="/server/assets/help.svg"
             onClick={this.handleOptimizerHelp}
             invert
-            style={{
-              marginLeft: '6px',
-            }}
           />
           <IconButton
             alt="help"
@@ -150,9 +144,6 @@ export default class OptimizerStandardOptions extends React.Component {
             src="/server/assets/search.svg"
             onClick={this.handleOptimizerSearch}
             invert
-            style={{
-              marginLeft: '6px',
-            }}
           />
         </div>
       </div>

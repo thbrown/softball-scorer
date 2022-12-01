@@ -374,13 +374,7 @@ export default class CardPlayerEdit extends React.Component {
               }}
             >
               <IconButton src="/server/assets/check.svg" alt="save" />
-              <span
-                style={{
-                  marginLeft: '4px',
-                }}
-              >
-                Save
-              </span>
+              <span>Save</span>
             </div>
           </ListButton>
           <ListButton type="edit-button" onClick={this.handleCancelClick}>
@@ -391,13 +385,7 @@ export default class CardPlayerEdit extends React.Component {
               }}
             >
               <IconButton src="/server/assets/cancel.svg" alt="cancel" invert />
-              <span
-                style={{
-                  marginLeft: '4px',
-                }}
-              >
-                Cancel
-              </span>
+              <span>Cancel</span>
             </div>
           </ListButton>
           {this.props.isNew ? null : (
@@ -409,13 +397,7 @@ export default class CardPlayerEdit extends React.Component {
                 }}
               >
                 <IconButton src="/server/assets/delete.svg" alt="delete" />
-                <span
-                  style={{
-                    marginLeft: '4px',
-                  }}
-                >
-                  Delete
-                </span>
+                <span>Delete</span>
               </div>
             </ListButton>
           )}
