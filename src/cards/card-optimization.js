@@ -51,6 +51,7 @@ export default class CardOptimization extends React.Component {
 
     this.enableAutoSync = async function () {
       this.startAnimation();
+      console.log('DISABLE AUTOSYNC', this.activeTime);
       clearTimeout(this.activeTime);
       this.activeTime = setTimeout(
         async function () {
@@ -157,7 +158,7 @@ export default class CardOptimization extends React.Component {
       const body = JSON.stringify({
         optimizationId: this.props.optimization.id,
       });
-      const response = await state.request(
+      const response = await state.requestAuth(
         'POST',
         'server/pause-optimization',
         body
@@ -166,7 +167,6 @@ export default class CardOptimization extends React.Component {
         dialog.show_notification('Sent pause request.');
         // Do a sync, since the above call succeeded server has updated the optimization's status on it's end
         await state.sync();
-        buttonDiv.classList.remove('disabled');
         return;
       } else if (response.status === 403) {
         dialog.show_notification(
@@ -297,7 +297,7 @@ export default class CardOptimization extends React.Component {
         optimizationId: this.props.optimization.id,
         unpause: isUnpause,
       });
-      let response = await state.request(
+      let response = await state.requestAuth(
         'POST',
         'server/start-optimization',
         body,
@@ -399,6 +399,34 @@ export default class CardOptimization extends React.Component {
         return;
       }
 
+      // Make sure the user is logged in
+      if (!state.isSessionValid()) {
+        this.setState({
+          estimatedCompletionTimeSec: null,
+          estimateError:
+            'You must be logged in to run a lineup optimization. Your session is invalid, it may have expired. Log in and try again.',
+        });
+        return;
+      }
+
+      // Make sure the app has an internet connection
+      if (!state.isOnline()) {
+        this.setState({
+          estimatedCompletionTimeSec: null,
+          estimateError: 'Lineup optimizations are not available offline.',
+        });
+        return;
+      }
+
+      // Only request a new completion time estimate if there is at least one player in playerList
+      if (optimization.playerList.length === 0) {
+        this.setState({
+          estimatedCompletionTimeSec: null,
+          estimateError: 'No players selected',
+        });
+        return;
+      }
+
       // Make sure each player has at least one PA
       for (let playerId of optimization.playerList) {
         let overridePAs = state.getOptimizationOverridesForPlayer(
@@ -423,15 +451,6 @@ export default class CardOptimization extends React.Component {
           });
           return;
         }
-      }
-
-      // Only request a new completion time estimate if there is at least one player in playerList
-      if (optimization.playerList.length === 0) {
-        this.setState({
-          estimatedCompletionTimeSec: null,
-          estimateError: 'No players selected',
-        });
-        return;
       }
 
       // Don't do anything if optimizerData isn't loaded
@@ -484,7 +503,7 @@ export default class CardOptimization extends React.Component {
       let body = JSON.stringify({
         optimizationId: this.props.optimization.id,
       });
-      let response = await state.request(
+      let response = await state.requestAuth(
         'POST',
         'server/estimate-optimization',
         body,

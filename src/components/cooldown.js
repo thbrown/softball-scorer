@@ -100,7 +100,7 @@ export default class Cooldown extends Component {
           style={{
             width: this.props.size,
             height: this.props.size,
-            filter: 'blur(.6px)',
+            //filter: 'blur(.6px)',
           }}
           width={this.props.size * QUALITY_RATIO}
           height={this.props.size * QUALITY_RATIO}

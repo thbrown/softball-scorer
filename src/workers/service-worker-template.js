@@ -29,6 +29,7 @@ self.addEventListener('install', function (event) {
         '/server/assets/check.svg',
         '/server/assets/chevron-right.svg',
         '/server/assets/delete.svg',
+        '/server/assets/duplicate.svg',
         '/server/assets/edit.svg',
         '/server/assets/empty.svg',
         '/server/assets/help.svg',
@@ -38,10 +39,15 @@ self.addEventListener('install', function (event) {
         '/server/assets/icons/logo512.png',
         '/server/assets/link.svg',
         '/server/assets/main.css',
+        '/server/assets/more.svg',
         '/server/assets/remove.svg',
+        '/server/assets/padlock.svg',
+        '/server/assets/padlock-open.svg',
         '/server/assets/spinner.gif',
+        '/server/assets/search.svg',
         '/server/assets/scoreboard-webfont.woff',
         '/server/assets/scoreboard-webfont.woff2',
+        '/server/assets/tune-black.svg',
       ]);
     })
   );
@@ -73,9 +79,6 @@ self.addEventListener('fetch', function (event) {
   // First try to get resource out of the cache, if it's not there go to the network.
   event.respondWith(
     caches.match(requestToProcess).then(function (response) {
-      console.log(
-        `[ServiceWorker] cache request ${JSON.stringify(response, null, 2)}`
-      );
       return response || fetch(event.request);
     })
   );

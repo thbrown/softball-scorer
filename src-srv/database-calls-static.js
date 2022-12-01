@@ -467,12 +467,7 @@ let databaseCalls = class DatabaseCalls {
         return;
       }
     }
-    throw new Error(
-      'Optimization not found 4 ' +
-        optimizationId +
-        ' ' +
-        JSON.stringify(state.optimizations)
-    );
+    throw new Error('Optimization not found 4 ' + optimizationId);
   }
 
   async getOptimizationStatus(accountId, optimizationId) {

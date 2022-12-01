@@ -21,6 +21,7 @@ const logger = require('./logger');
 const passwordResetEmailHtml = require('./email/password-reset-email-html');
 const welcomeEmailHtml = require('./email/welcome-email-html');
 const optimizationCompleteEmailHtml = require('./email/optimization-complete-email-html');
+const { config } = require('process');
 // const OptimizationResultsHtml = require('../common-optimization-results-html');
 const SharedLib = require('../shared-lib').default;
 
@@ -806,9 +807,9 @@ module.exports = class SoftballServer {
               if (data.type === 'full') {
                 logger.warn(
                   accountId,
-                  'State',
-                  SharedLib.commonUtils.getObjectString(state),
-                  JSON.stringify(state, null, 2)
+                  'Full sync requested by browser, something must have gone wrong with the patch sync',
+                  SharedLib.commonUtils.getObjectString(state)
+                  //JSON.stringify(state, null, 2)
                 );
               }
 
@@ -840,6 +841,117 @@ module.exports = class SoftballServer {
 
         // Woot, done
         res.status(200).send(responseData);
+      })
+    );
+
+    /**
+     * This gets called by softball-sim instance whenever a new optimization result is available.
+     * It's not meant to be called by the app.
+     */
+    app.post(
+      '/server/update-optimization',
+      wrapForErrorProcessing(async (req, res, next) => {
+        // Make sure the request is good
+        let optimizationId = req.body.optimizationId;
+        let apiKey = req.body.apiKey;
+        let accountId = req.body.accountId;
+        let targetApiKey = configAccessor.getOptParams().apiKey;
+        checkRequiredField(req.body.optimizationId, 'optimizationId');
+        checkRequiredField(req.body.accountId, 'accountId');
+        if (apiKey !== targetApiKey) {
+          let message = JSON.stringify({ message: 'Invalid api key' });
+          logger.log(accountId, `Optimization update failure`, message);
+          res.status(403).send(message);
+          return;
+        }
+
+        logger.log(accountId, 'Optimization update request received');
+
+        // Get account and optimization data
+        let clientState = await this.databaseCalls.getClientState(accountId);
+        if (!clientState) {
+          let message = JSON.stringify({ message: 'Invalid accountId' });
+          logger.log(accountId, `Optimization update failure`, message);
+          res.status(400).send(message);
+          return;
+        }
+        let account = clientState.account;
+        let optimization = undefined;
+        for (let i = 0; i < clientState.optimizations.length; i++) {
+          if (clientState.optimizations[i].id === optimizationId) {
+            optimization = clientState.optimizations[i];
+            break;
+          }
+        }
+        if (!optimization) {
+          let message = JSON.stringify({ message: 'Invalid optimization' });
+          logger.log(accountId, `Optimization update failure`, message);
+          res.status(400).send(message);
+          return;
+        }
+
+        // Get the latest optimization result
+        let queryResponse = await this.optimizationCompute.query(
+          accountId,
+          optimizationId
+        );
+        let result = queryResponse ? JSON.parse(queryResponse) : queryResponse;
+
+        if (!result) {
+          let message = JSON.stringify({ message: 'Empty result returned' });
+          logger.log(accountId, `Optimization update failure`, message);
+          res.status(400).send(message);
+          return;
+        }
+
+        // Save the new result to the db
+        await this.databaseCalls.setOptimizationResultData(
+          accountId,
+          optimizationId,
+          result
+        );
+
+        // Save the status to the db
+        await this.databaseCalls.setOptimizationStatus(
+          accountId,
+          optimizationId,
+          SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status],
+          result.statusMessage,
+          SharedLib.constants.TERMINAL_OPTIMIZATION_STATUSES_ENUM.has(
+            SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
+          )
+            ? false
+            : null // If the optimization was pausing, then we updated it to a terminal status, set the optimization so that it's no longer pausing
+        );
+
+        // Send success email! - if complete
+        if (
+          SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status] ==
+            SharedLib.constants.OPTIMIZATION_STATUS_ENUM.COMPLETE &&
+          optimization.sendEmail &&
+          account.emailConfirmed
+        ) {
+          let emailAddress = extractSessionInfo(req, 'email');
+          let email = configAccessor.getEmailService();
+          email.sendMessage(
+            accountId,
+            emailAddress,
+            `Lineup Optimization ${optimization.name} Complete!`,
+            JSON.stringify(result, null, 2),
+            optimizationCompleteEmailHtml(
+              SharedLib.commonOptimizationResults.getResultsAsHtml(
+                result,
+                optimization.inputSummaryData
+              ),
+              `https://softball.app/optimizations/${req.body.optimizationId}`
+            )
+          );
+          logger.log(accountId, 'Completion Email sent');
+        }
+
+        logger.log(accountId, `Optimization update successful`);
+        // Woot, done
+        res.status(204).send();
       })
     );
 
@@ -997,7 +1109,10 @@ module.exports = class SoftballServer {
           await this.databaseCalls.setOptimizationStatus(
             accountId,
             optimizationId,
-            SharedLib.constants.OPTIMIZATION_STATUS_ENUM.STARTING
+            SharedLib.constants.OPTIMIZATION_STATUS_ENUM.STARTING,
+            null,
+            null,
+            SharedLib.constants.STARTABLE_OPTIMIZATION_STATUSES_ENUM
           );
 
           // Return success, if something goes wrong from here on, we'll set the status to ERROR and client will see it on sync
@@ -1010,10 +1125,6 @@ module.exports = class SoftballServer {
               accountId,
               optimizationId
             );
-            logger.log(accountId, 'QUERY RESPONSE ', queryResponse);
-            let recentHash = SharedLib.commonUtils.getHash(
-              queryResponse ? JSON.parse(queryResponse) : queryResponse
-            );
 
             // Start the computer that will run the optimization
             let startMonitor = await this.optimizationCompute.start(
@@ -1022,134 +1133,13 @@ module.exports = class SoftballServer {
               statsData,
               softballSimFlags
             );
-            logger.log(accountId, 'MONITOR: Starting? ', startMonitor);
 
+            // I'm not sure this ever happens
             if (!startMonitor) {
-              return;
-            }
-
-            // Retrieve the results of the optimization on an interval, update the db
-            const MONITOR_NO_CHANGE_TIMEOUT = 60; // With a 5 sec interval this is 5 minutes
-            let noChangeCounter = 0;
-            let monitor = async function () {
-              // Get the latest optimization result
-              let queryResponse = await this.optimizationCompute.query(
-                accountId,
-                optimizationId
+              throw new Error(
+                'There was a problem running the optimization, try again in a few minutes.'
               );
-              //logger.log(accountId, 'QUERY RESPONSE ', queryResponse);
-              let result = queryResponse
-                ? JSON.parse(queryResponse)
-                : queryResponse;
-              let resultHash = SharedLib.commonUtils.getHash(result);
-
-              // Has anything changed?
-              let somethingChanged = resultHash !== recentHash;
-              recentHash = resultHash;
-
-              if (result != null && somethingChanged) {
-                // Something changed, reset the timeout counter
-                noChangeCounter = 0;
-
-                // Save the new result to the db
-                await this.databaseCalls.setOptimizationResultData(
-                  accountId,
-                  optimizationId,
-                  result
-                );
-
-                // Save the status to the db
-                await this.databaseCalls.setOptimizationStatus(
-                  accountId,
-                  optimizationId,
-                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status],
-                  result.statusMessage,
-                  SharedLib.constants.TERMINAL_OPTIMIZATION_STATUSES_ENUM.has(
-                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
-                  )
-                    ? false
-                    : null
-                );
-
-                // Send success email! - if complete
-                if (
-                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status] ==
-                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM.COMPLETE &&
-                  optimization.sendEmail &&
-                  account.emailConfirmed
-                ) {
-                  let emailAddress = extractSessionInfo(req, 'email');
-                  let email = configAccessor.getEmailService();
-                  email.sendMessage(
-                    accountId,
-                    emailAddress,
-                    `Lineup Optimization ${optimization.name} Complete!`,
-                    JSON.stringify(result, null, 2),
-                    optimizationCompleteEmailHtml(
-                      SharedLib.commonOptimizationResults.getResultsAsHtml(
-                        result,
-                        optimization.inputSummaryData
-                      ),
-                      `https://softball.app/optimizations/${req.body.optimizationId}`
-                    )
-                  );
-                  logger.log(accountId, 'Completion Email sent');
-                }
-              } else {
-                // No changes detected
-                noChangeCounter++;
-              }
-
-              // Don't keep monitoring if we've hit the timeout, transition to error
-              if (noChangeCounter > MONITOR_NO_CHANGE_TIMEOUT) {
-                logger.error(
-                  accountId,
-                  'Monitor Timeout',
-                  MONITOR_NO_CHANGE_TIMEOUT
-                );
-
-                await this.databaseCalls.setOptimizationStatus(
-                  accountId,
-                  optimizationId,
-                  SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
-                  'Monitor Timeout',
-                  false
-                );
-                return;
-              }
-
-              // Keep monitoring if status is IN_PROGRESS or if there was no change
-              if (
-                (result !== null &&
-                  SharedLib.constants.PROGRESSING_OPTIMIZATION_STATUSES_ENUM.has(
-                    SharedLib.constants.OPTIMIZATION_STATUS_ENUM[result.status]
-                  )) ||
-                somethingChanged
-              ) {
-                logger.log(
-                  accountId,
-                  'MONITOR: Checking again in ',
-                  MONITORING_INTERVAL
-                );
-                setTimeout(monitor, MONITORING_INTERVAL);
-              } else if (result === null) {
-                logger.log(
-                  accountId,
-                  'MONITOR: Null, checking again in ',
-                  MONITORING_INTERVAL
-                );
-                setTimeout(monitor, MONITORING_INTERVAL);
-              } else {
-                logger.log(
-                  accountId,
-                  'Monitor halting, reached terminal status ',
-                  result ? result.status : result,
-                  resultHash,
-                  recentHash
-                );
-              }
-            }.bind(this);
-            monitor(accountId, optimizationId);
+            }
           } catch (error) {
             // Transition status to ERROR
             logger.error(
@@ -1443,6 +1433,7 @@ module.exports = class SoftballServer {
       let accountId = extractSessionInfo(req, 'accountId');
 
       if (error instanceof HandledError) {
+        logger.error(accountId, error);
         logger.error(accountId, 'Sending Error', error.getExternalMessage());
         res.setHeader('content-type', 'application/json');
         res
@@ -1453,7 +1444,7 @@ module.exports = class SoftballServer {
         }
       } else {
         let errorId = Math.random().toString(36).substring(7);
-        logger.error(accountId, 'Sending Error', errorId);
+        logger.error(accountId, 'Sending Error', errorId, error);
         res.setHeader('content-type', 'application/json');
         res
           .status(500)

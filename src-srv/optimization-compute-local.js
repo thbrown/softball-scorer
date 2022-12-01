@@ -2,6 +2,7 @@ const fs = require('fs');
 
 const logger = require('./logger.js');
 const SharedLib = require('../shared-lib').default;
+const configAccessor = require('./config-accessor.js');
 
 var https = require('https');
 
@@ -164,6 +165,14 @@ module.exports = class OptimizationComputeLocal {
   }
 
   async start(accountId, optimizationId, stats, options) {
+    // Add additional flags to json body
+    options['-u'] = configAccessor.getUpdateUrl();
+    options['-b'] = JSON.stringify({
+      optimizationId: optimizationId,
+      accountId: accountId,
+      apiKey: this?.configParams?.apiKey, // What is this?
+    }); // stuff (which is the account id in our case)
+
     // Instruct the compute service to start the optimization
     logger.log(accountId, 'Starting local optimization');
 
@@ -242,13 +251,19 @@ module.exports = class OptimizationComputeLocal {
     // Set the control flag to "HALT"
     fs.writeFileSync(CTRL_FLAGS + '/' + optimizationId, 'HALT');
 
+    // Set optimization to pause, don't change the status (TODO: rename the status change function)
+    const PAUSEABLE_STATUSES = SharedLib.constants.invertOptStatusSet(
+      SharedLib.constants.TERMINAL_OPTIMIZATION_STATUSES_ENUM
+    );
+
     // Set optimization pausing field (which is different from status)
     await this.databaseCalls.setOptimizationStatus(
       accountId,
       optimizationId,
       null,
       null,
-      true
+      true,
+      PAUSEABLE_STATUSES
     );
   }
 
