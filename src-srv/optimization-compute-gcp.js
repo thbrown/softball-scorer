@@ -20,7 +20,7 @@ module.exports = class OptimizationComputeLocal {
   // TODO: we should add retry here, it fails sometimes with a 500 because of Google reasons
   async start(accountId, optimizationId, stats, options) {
     // Add additional flags to json body
-    options['-n'] = optimizationId; // id
+    options['-n'] = optimizationId; // name
     options['-u'] = configAccessor.getUpdateUrl(); // update url
     options['-b'] = {
       optimizationId: optimizationId,
@@ -107,7 +107,7 @@ module.exports = class OptimizationComputeLocal {
       logger.log(accountId, 'Querying gcp bucket for result');
       // Begin the estimate and wait for to finish
       const queryResponse = await got.post(QUERY_URL, {
-        json: { i: optimizationId, PASSWORD: this.configParams.password },
+        json: { n: optimizationId, PASSWORD: this.configParams.password },
       });
 
       if (queryResponse.statusCode === 200) {
