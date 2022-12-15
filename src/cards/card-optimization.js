@@ -3,7 +3,7 @@ import Card from 'elements/card';
 import state from 'state';
 import dialog from 'dialog';
 import { setRoute } from 'actions/route';
-import SharedLib from '/../shared-lib';
+import SharedLib from 'shared-lib';
 import NoSelect from 'elements/no-select';
 import StandardOptions from 'elements/optimizer-standard-options';
 import CustomOptions from 'elements/optimizer-custom-options';

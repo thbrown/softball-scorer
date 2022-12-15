@@ -86,7 +86,7 @@ export default class MainContainer extends expose.Component {
         document.removeEventListener('click', enableNoSleep, false);
       }
 
-      // Update the network status whenever we receive an 'online' or 'offline' event
+      // // Update the network status whenever we receive an 'online' or 'offline' event
       window.addEventListener(
         'online',
         () => {
@@ -144,7 +144,9 @@ export default class MainContainer extends expose.Component {
       window.ga('send', 'pageview');
 
       // Sync on first load
-      setTimeout(state.sync, 1);
+      setTimeout(() => {
+        state.sync();
+      }, 1);
     }
   }
 

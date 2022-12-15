@@ -8,7 +8,7 @@ import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
 import HrTitle from 'elements/hr-title';
 import Chip from 'elements/chip';
-import SharedLib from '../../shared-lib';
+import SharedLib from 'shared-lib';
 import { logout } from 'utils/functions';
 
 class CardMenu extends Component {

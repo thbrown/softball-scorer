@@ -1,6 +1,6 @@
 import React from 'react';
 import dialog from 'dialog';
-import SharedLib from '/../shared-lib';
+import SharedLib from 'shared-lib';
 import state from 'state';
 import Card from 'elements/card';
 import CardSection from 'elements/card-section';
@@ -94,6 +94,7 @@ const CardImport = () => {
           dialog.show_notification(
             'There was an error while parsing file input: ' + exception.message
           );
+          console.error(exception);
           return;
         }
 

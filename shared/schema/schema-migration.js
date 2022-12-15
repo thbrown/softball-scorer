@@ -1,4 +1,6 @@
-const CURRENT_VERSION = 2;
+import constants from '../utils/constants';
+
+export const CURRENT_VERSION = 2;
 
 /**
  * When the json schema for an account's data gets updated, this function performs a schema migration on older data.
@@ -17,7 +19,7 @@ const CURRENT_VERSION = 2;
  * "ERROR" - if there was an error while attempting to update the json document's schema
  * "REFRESH" - if the document's version is newer than the current app version
  */
-let updateSchema = function (
+export let updateSchema = function (
   accountId,
   inputJson,
   inputScope, // full, export, or client
@@ -167,7 +169,7 @@ let updateSchema = function (
       for (let optimization of inputJson.optimizations) {
         optimization.status =
           optimization.status === 6
-            ? SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR
+            ? constants.OPTIMIZATION_STATUS_ENUM.ERROR
             : optimization.status;
         optimization.pause = false;
       }
@@ -216,7 +218,9 @@ let updateSchema = function (
   return 'UPDATED';
 };
 
-module.exports = module.exports = {
+const exp = {
   updateSchema,
   CURRENT_VERSION,
 };
+
+export default exp;

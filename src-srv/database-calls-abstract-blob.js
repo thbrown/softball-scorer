@@ -1,7 +1,8 @@
 const HandledError = require('./handled-error.js');
 const logger = require('./logger.js');
-const SharedLib = require('../shared-lib').default;
-const TLSchemas = require('../shared-lib').default.schemaValidation.TLSchemas;
+const SharedLib = require('../shared-lib');
+const TLSchemas = SharedLib.schemaValidation.default.TLSchemas;
+// const TLSchemas = require('../shared-lib').default.schemaValidation.TLSchemas;
 
 const { BlobLocation } = require('./database-calls-abstract-blob-types');
 const PatchManager = require('./patch-manager');

@@ -1,6 +1,6 @@
 import expose from 'expose';
 import network from 'network';
-import SharedLib from '/../shared-lib';
+import SharedLib from 'shared-lib';
 import results from 'plate-appearance-results';
 import { getShallowCopy, autoCorrelation, isStatSig } from 'utils/functions';
 
@@ -134,6 +134,7 @@ exp.sync = async function (fullSync) {
       '[SYNC] waiting for in progress sync to finish ' + exp.getSyncState()
     );
     await sleep(500); // TODO: debounce
+    // return;
   }
   // Kill any scheduled syncs
   clearTimeout(syncTimer);
@@ -162,7 +163,8 @@ exp.sync = async function (fullSync) {
 
     // Ship it
     console.log('[SYNC] Syncing...', body);
-    let response = await state.request(
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const response = await state.request(
       'POST',
       'server/sync',
       JSON.stringify(body)

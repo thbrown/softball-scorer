@@ -14,7 +14,7 @@ import * as schemaAccountPrivate from '../schema-json/account-private.json';
 import * as schemaAccountReadOnly from '../schema-json/account-read-only.json';
 import * as jsonPointer from 'jsonpointer';
 
-const TLSchemas = {
+export const TLSchemas = {
   EXPORT: 'top-level-export',
   CLIENT: 'top-level-client',
   FULL: 'top-level-full',
@@ -39,7 +39,7 @@ const ajv = new Ajv({
   ],
 });
 
-let validateSchemaNoThrow = function (inputJson, schemaId) {
+export let validateSchemaNoThrow = function (inputJson, schemaId) {
   let validateSchemaObj = ajv.getSchema(
     `http://softball.app/schemas/${schemaId}`
   );
@@ -56,7 +56,7 @@ let validateSchemaNoThrow = function (inputJson, schemaId) {
   }
 };
 
-let validateSchema = function (inputJson, schemaId) {
+export let validateSchema = function (inputJson, schemaId) {
   let result = validateSchemaNoThrow(inputJson, schemaId);
   if (result.errors && result.errors.length > 0) {
     console.log('Validation result', result);
@@ -80,7 +80,7 @@ let validateSchema = function (inputJson, schemaId) {
   }
 };
 
-let convertDocumentToClient = function (inputJson) {
+export let convertDocumentToClient = function (inputJson) {
   if (inputJson.metadata.scope !== 'full') {
     throw new Error('Invalid inputJson ' + inputJson.metadata.scope);
   }
@@ -96,7 +96,7 @@ let convertDocumentToClient = function (inputJson) {
   return inputJson;
 };
 
-let convertDocumentToExport = function (inputJson) {
+export let convertDocumentToExport = function (inputJson) {
   if (
     inputJson.metadata.scope !== 'full' &&
     inputJson.metadata.scope !== 'client'
@@ -122,10 +122,11 @@ let convertDocumentToExport = function (inputJson) {
   return inputJson;
 };
 
-module.exports = module.exports = {
+const exp = {
   validateSchema,
   validateSchemaNoThrow,
   convertDocumentToExport,
   convertDocumentToClient,
   TLSchemas,
 };
+export default exp;

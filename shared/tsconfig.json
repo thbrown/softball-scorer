@@ -1,26 +1,26 @@
 {
   "compilerOptions": {
-    "baseUrl": "./src",
-    "paths": {
-      "@/*": ["src/*"]
-    },
-    "target": "ES2017",
+    "baseUrl": "./",
+    "types": ["node"],
+    "target": "ES6",
+    "module": "CommonJS",
     "moduleResolution": "node",
-    "outDir": "build",
-    "declaration": true,
+    "noEmit": true,
     "allowJs": true,
+    "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "lib": ["dom", "ES2017"],
+    "isolatedModules": false,
+    "lib": ["dom", "ES2017", "ES2021"],
     "removeComments": true,
     "sourceMap": true,
     "forceConsistentCasingInFileNames": true,
     "strictNullChecks": true,
     "noImplicitAny": false,
-    "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "esModuleInterop": true,
     "jsx": "react",
+    "esModuleInterop": true,
+    "pretty": true
   },
   "references": [],
-  "include": ["src/**/*"]
+  "include": ["./**/*"]
 }

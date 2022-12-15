@@ -1,7 +1,7 @@
 const got = require('got');
 
 const logger = require('./logger.js');
-const SharedLib = require('../shared-lib').default;
+const SharedLib = require('../shared-lib');
 
 //var https = require('https');
 

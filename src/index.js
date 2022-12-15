@@ -5,8 +5,7 @@ import RouteContainer from 'elements/route-container';
 import MainContainer from 'main-container';
 import state from 'state';
 import routes from 'routes';
-
-require('utils/polyfills');
+import 'utils/polyfills';
 
 global.React = React;
 
@@ -60,3 +59,34 @@ window.addEventListener('resize', function () {
   }
   _resize_timeout = setTimeout(Main.render, 100);
 });
+
+// import React from 'react';
+// import ReactDOM from 'react-dom';
+// import MainContainer from 'main-container2';
+
+// const container = document.createElement('div');
+// document.body.prepend(container);
+// let Main = (global.Main = {});
+
+// const App = () => {
+//   console.log('rapp');
+//   return (
+//     <div>
+//       <MainContainer main={Main} data={{}} loading={true} />
+//     </div>
+//   );
+// };
+
+// (Main.render = function () {
+//   ReactDOM.render(<App />, container);
+// })();
+
+// let _resize_timeout = null;
+// window.addEventListener('resize', function () {
+//   if (_resize_timeout !== null) {
+//     clearTimeout(_resize_timeout);
+//   }
+//   _resize_timeout = setTimeout(Main.render, 100);
+// });
+
+// console.log('blargaroo3');

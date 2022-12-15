@@ -4,7 +4,7 @@ import state from 'state';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
 import { goBack, goHome, setRoute } from 'actions/route';
-import SharedLib from '/../shared-lib';
+import SharedLib from 'shared-lib';
 import IconButton from '../elements/icon-button';
 import { colors } from '../css/theme';
 

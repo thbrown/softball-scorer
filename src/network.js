@@ -19,7 +19,12 @@ exp.request = async function (method, url, body, controller, overrideTimeout) {
 export const request = exp.request;
 
 exp.getServerUrl = function (path) {
-  return window.location.origin + '/' + path;
+  console.log('GET SERVER URL', process.env.WEBPACK_DEV_SERVER);
+  if (process.env.WEBPACK_DEV_SERVER) {
+    return 'http://localhost:8888/' + path;
+  } else {
+    return window.location.origin + '/' + path;
+  }
 };
 
 requestInternal = async function (
@@ -51,12 +56,10 @@ requestInternal = async function (
         });
         setTimeout(() => resolve(reqResp), NETWORK_DELAY);
       } catch (err) {
-        if (err.name == 'AbortError') {
+        if (err.name === 'AbortError') {
           console.log('Network request canceled');
           // Canceled Request (TODO: not sure the best way to handle this yet)
-          resolve(
-            -4
-          ); /*
+          resolve(-4); /*
           reject(
             new Error(
               'Something went wrong during the request (canceled): ' + err,

@@ -137,7 +137,7 @@ export default class CardAuth extends React.Component {
             if (status === 200) {
               console.log('Done with sync');
               setRoute('/menu');
-              window.location.reload();
+              // window.location.reload();
             } else {
               dialog.show_notification(
                 'An error occurred while attempting sync: ' + status

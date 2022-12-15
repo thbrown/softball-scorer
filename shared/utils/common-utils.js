@@ -1,6 +1,6 @@
-const hasher = require('node-object-hash');
+import hasher from 'node-object-hash';
 
-exports.factorial = function (n) {
+export const factorial = function (n) {
   if (n < 0 || n > 20) {
     throw Error('Factorial out of range' + n);
   }
@@ -12,7 +12,7 @@ exports.factorial = function (n) {
   return fact[n];
 };
 
-exports.binomial = function (n, k) {
+export const binomial = function (n, k) {
   if (n === 0) {
     return 0;
   }
@@ -25,7 +25,7 @@ exports.binomial = function (n, k) {
 };
 
 // https://stackoverflow.com/questions/8211744/convert-time-interval-given-in-seconds-into-more-human-readable-form
-exports.secondsToString = function (seconds) {
+export const secondsToString = function (seconds) {
   function numberEnding(number) {
     return number > 1 ? 's' : '';
   }
@@ -54,7 +54,7 @@ exports.secondsToString = function (seconds) {
 };
 
 // Calculate the hash of the data and return the result as a base64 string
-exports.getHash = function (data, logger) {
+export const getHash = function (data, logger) {
   // I've tried other hashes here (like javascript xxHash) but md5 is faster in the browser and much faster on the server.
   var objectHasher = hasher({
     alg: 'md5',
@@ -67,7 +67,7 @@ exports.getHash = function (data, logger) {
 };
 
 // Get the string representation of an object for hashing, sorts properties of objects so representation is stable
-exports.getObjectString = function (data) {
+export const getObjectString = function (data) {
   var objectHasher = hasher({
     alg: 'md5',
     sort: true,
@@ -79,15 +79,15 @@ exports.getObjectString = function (data) {
 };
 
 // Concatenate arrays and remove duplicates
-exports.merge = function (array1, array2) {
+export const merge = function (array1, array2) {
   return [...new Set([...array1, ...array2])];
 };
 
-exports.truncate = function (str, n) {
+export const truncate = function (str, n) {
   return str.length > n ? str.substr(0, n - 1) : str;
 };
 
-exports.round = function (toRound, decimalPlaces) {
+export const round = function (toRound, decimalPlaces) {
   decimalPlaces = decimalPlaces ? decimalPlaces : 0;
   return (
     Math.round(toRound * Math.pow(10, decimalPlaces)) /
@@ -95,7 +95,7 @@ exports.round = function (toRound, decimalPlaces) {
   );
 };
 
-exports.formatPercentage = function (value, decimalPlaces) {
+export const formatPercentage = function (value, decimalPlaces) {
   decimalPlaces = decimalPlaces ? decimalPlaces : 0;
   if (isNaN(value)) {
     return '-%';
@@ -103,7 +103,7 @@ exports.formatPercentage = function (value, decimalPlaces) {
   return (parseFloat(value) * 100).toFixed(decimalPlaces) + '%';
 };
 
-exports.sortJson = function sortJson(object) {
+export const sortJson = function sortJson(object) {
   if (typeof object != 'object' || object instanceof Array)
     // Not to sort the array
     return object;
@@ -115,3 +115,18 @@ exports.sortJson = function sortJson(object) {
   }
   return newObject;
 };
+
+const exp = {
+  factorial,
+  binomial,
+  secondsToString,
+  getHash,
+  getObjectString,
+  merge,
+  truncate,
+  round,
+  formatPercentage,
+  sortJson,
+};
+
+export default exp;

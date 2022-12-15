@@ -1,6 +1,6 @@
 const { Storage } = require('@google-cloud/storage');
-const SharedLib = require('../shared-lib').default;
-const TLSchemas = SharedLib.schemaValidation.TLSchemas;
+const SharedLib = require('../shared-lib');
+const TLSchemas = SharedLib.schemaValidation.default.TLSchemas;
 const logger = require('./logger.js');
 const BucketSessionStore = require('gcp-bucket-session-store');
 

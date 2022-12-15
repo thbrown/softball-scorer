@@ -3,6 +3,7 @@ const SoftballServer = require('./softball-server');
 
 const configAccessor = require('./config-accessor');
 const logger = require('./logger.js');
+const context = require('./context');
 
 // Fake top-level async
 async function runServer() {
@@ -44,6 +45,13 @@ async function runServer() {
     cacheService,
     optimizationCompute
   );
+
+  context.setServer(softballServer);
+
   softballServer.start();
 }
 runServer();
+
+// const SharedLib = require('../shared-lib');
+
+// console.log('WOOOO', SharedLib);

@@ -4,7 +4,7 @@
 const configAccessor = require('../config-accessor');
 const SoftballServer = require('../softball-server');
 const utils = require('./test-utils.js');
-const state = require('../../src/state.js').default;
+const state = require('../../src/state.js');
 
 /**
  * This test requires an attached postgres database.
