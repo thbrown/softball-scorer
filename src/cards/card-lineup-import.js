@@ -1,5 +1,6 @@
 import React from 'react';
 import state from 'state';
+import css from 'css';
 import Card from 'elements/card';
 import { makeStyles } from 'css/helpers';
 import { compose, withState, withHandlers } from 'recompose';
@@ -79,7 +80,7 @@ const useLineupListStyles = makeStyles((theme) => ({
     marginLeft: theme.spacing.xxSmall,
     color: theme.colors.TEXT_LIGHT,
     backgroundColor: theme.colors.PRIMARY_DARK,
-    borderRadius: '30px',
+    borderRadius: css.borderRadius.xLarge,
     fontSize: theme.typography.size.medium,
   },
 }));

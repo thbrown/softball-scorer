@@ -17,14 +17,9 @@ const IconButton = (props) => {
       style={{
         background: props.hideBackground ? undefined : colors.SEMI_TRANSPARENT,
         filter: invert ? 'invert(1)' : undefined,
-        display: 'flex',
-        alignItems: 'center',
-        width: '48px', // Minimum accessible tap target size
-        height: '48px',
-        borderRadius: '16px',
-        alignItems: 'center',
-        justifyContent: 'center',
-        alignContent: 'center',
+        width: '24px',
+        height: '24px',
+        padding: '12px', // 24x24 + 12 + 12 padding => minimum accessible tap target size
         opacity: opacity,
       }}
     >

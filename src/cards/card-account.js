@@ -82,7 +82,7 @@ export default class CardAccount extends Component {
           let buttonDiv = document.getElementById('delete-account');
           buttonDiv.classList.add('disabled');
 
-          let response = await state.request('DELETE', 'server/account');
+          let response = await state.requestAuth('DELETE', 'server/account');
           let message;
           if (response.status === 204) {
             message = 'Your account has been deleted.';

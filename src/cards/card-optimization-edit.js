@@ -96,6 +96,7 @@ const CardOptimizationEdit = (props) => {
             alignItems: 'center',
           }}
         >
+<<<<<<< HEAD
           <IconButton src="/assets/check.svg" alt="" />
           <span
             style={{
@@ -104,6 +105,10 @@ const CardOptimizationEdit = (props) => {
           >
             Save
           </span>
+=======
+          <IconButton src="/server/assets/check.svg" alt="" />
+          <span>Save</span>
+>>>>>>> master
         </div>
       </ListButton>
       <ListButton
@@ -118,6 +123,7 @@ const CardOptimizationEdit = (props) => {
             alignItems: 'center',
           }}
         >
+<<<<<<< HEAD
           <IconButton src="/assets/cancel.svg" alt="" invert />
           <span
             style={{
@@ -126,6 +132,10 @@ const CardOptimizationEdit = (props) => {
           >
             Cancel
           </span>
+=======
+          <IconButton src="/server/assets/cancel.svg" alt="" invert />
+          <span>Cancel</span>
+>>>>>>> master
         </div>
       </ListButton>
       {!props.isNew && (
@@ -140,6 +150,7 @@ const CardOptimizationEdit = (props) => {
               alignItems: 'center',
             }}
           >
+<<<<<<< HEAD
             <IconButton src="/assets/duplicate.svg" alt="" invert />
             <span
               style={{
@@ -148,6 +159,10 @@ const CardOptimizationEdit = (props) => {
             >
               Duplicate
             </span>
+=======
+            <IconButton src="/server/assets/duplicate.svg" alt="" invert />
+            <span>Duplicate</span>
+>>>>>>> master
           </div>
         </ListButton>
       )}
@@ -163,6 +178,7 @@ const CardOptimizationEdit = (props) => {
               alignItems: 'center',
             }}
           >
+<<<<<<< HEAD
             <IconButton src="/assets/delete.svg" alt="" />
             <span
               style={{
@@ -171,6 +187,10 @@ const CardOptimizationEdit = (props) => {
             >
               Delete
             </span>
+=======
+            <IconButton src="/server/assets/delete.svg" alt="" />
+            <span>Delete</span>
+>>>>>>> master
           </div>
         </ListButton>
       )}

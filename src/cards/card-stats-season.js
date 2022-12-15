@@ -248,34 +248,51 @@ export default class CardStatsSeason extends React.Component {
     );
 
     return (
-      <CardSection noPadding={true}>
+      <CardSection>
+        <StickyTable>{tableElems}</StickyTable>
         <InnerSection
           style={{
             textAlign: 'center',
             color: css.colors.TEXT_GREY,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            fontSize: css.typography.size.small,
+            marginTop: css.spacing.medium,
           }}
         >
           <div>Tap a player name for season spray chart.</div>
-          <IconButton
+          {/* <IconButton
             className="help-icon"
             src="/assets/help.svg"
             alt="help"
             onClick={showStatsHelp}
             opacity=".5"
             invert
-          />
+          /> */}
         </InnerSection>
-        <div
+        <InnerSection
           style={{
-            display: 'flex',
-            justifyContent: 'space-around',
+            textAlign: 'center',
+            color: css.colors.TEXT_GREY,
+            fontSize: css.typography.size.small,
           }}
         >
-          <StickyTable>{tableElems}</StickyTable>
-        </div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <div>Curious about a particular stat?</div>
+            <IconButton
+              className="help-icon"
+              src="/server/assets/help.svg"
+              alt="info"
+              style={{ opacity: '50%' }}
+              onClick={showStatsHelp}
+              invert
+            />
+          </div>
+        </InnerSection>
       </CardSection>
     );
   }

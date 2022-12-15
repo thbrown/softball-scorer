@@ -2,8 +2,7 @@ const got = require('got');
 
 const logger = require('./logger.js');
 const SharedLib = require('../shared-lib');
-
-//var https = require('https');
+const configAccessor = require('./config-accessor');
 
 const START_URL = `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-start`;
 const PAUSE_URL = `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-pause`;
@@ -19,7 +18,13 @@ module.exports = class OptimizationComputeLocal {
   // TODO: we should add retry here, it fails sometimes with a 500 because of Google reasons
   async start(accountId, optimizationId, stats, options) {
     // Add additional flags to json body
-    options['-i'] = optimizationId;
+    options['-n'] = optimizationId; // name
+    options['-u'] = configAccessor.getUpdateUrl(); // update url
+    options['-b'] = {
+      optimizationId: optimizationId,
+      accountId: accountId,
+      apiKey: this?.configParams?.apiKey,
+    };
     options['data'] = stats;
     options['PASSWORD'] = this.configParams.password;
 
@@ -75,12 +80,17 @@ module.exports = class OptimizationComputeLocal {
       let jsonResponse = JSON.parse(response.body);
       if (jsonResponse.status === 'SUCCESS') {
         // Set optimization to pause, don't change the status (TODO: rename the status change function)
+        const PAUSEABLE_STATUSES = SharedLib.constants.invertOptStatusSet(
+          SharedLib.constants.TERMINAL_OPTIMIZATION_STATUSES_ENUM
+        );
         await this.databaseCalls.setOptimizationStatus(
           accountId,
           optimizationId,
           null,
           null,
-          true
+          true,
+          // Don't set pause to true for an optimization in a terminal state
+          PAUSEABLE_STATUSES
         );
         return response.body;
       } else {
@@ -95,7 +105,7 @@ module.exports = class OptimizationComputeLocal {
       logger.log(accountId, 'Querying gcp bucket for result');
       // Begin the estimate and wait for to finish
       const queryResponse = await got.post(QUERY_URL, {
-        json: { i: optimizationId, PASSWORD: this.configParams.password },
+        json: { n: optimizationId, PASSWORD: this.configParams.password },
       });
 
       if (queryResponse.statusCode === 200) {
@@ -142,7 +152,7 @@ module.exports = class OptimizationComputeLocal {
     logger.log(accountId, 'Starting gcp optimization estimate');
 
     // Add additional flags to json body
-    options['-i'] = optimizationId;
+    options['-n'] = optimizationId;
     options['-e'] = true;
     options['data'] = stats;
     options['PASSWORD'] = this.configParams.password;

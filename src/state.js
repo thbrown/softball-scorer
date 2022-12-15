@@ -163,8 +163,7 @@ exp.sync = async function (fullSync) {
 
     // Ship it
     console.log('[SYNC] Syncing...', body);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const response = await state.request(
+    const response = await state.requestAuth(
       'POST',
       'server/sync',
       JSON.stringify(body)
@@ -290,7 +289,7 @@ exp.sync = async function (fullSync) {
 
     return response.status;
   } catch (err) {
-    // We might be able to re-try some problems, like if the network is temporarally out
+    // We might be able to re-try some problems, like if the network is temporarily out
     setSyncState(SYNC_STATUS_ENUM.PENDING); // Assume re-try
     if (
       (+err.message === -1 && !exp.isOnline()) ||
@@ -681,7 +680,7 @@ exp.duplicateOptimization = function (optimizationId) {
         0,
         -matches[0].length
       );
-      newName = `${slicedOriginal} (${nextNumber})`;
+      newName = `${slicedOriginal}(${nextNumber})`;
     } else {
       newName = `${duplicatedOptimization.name} (2)`;
     }
@@ -1569,10 +1568,12 @@ exp.setActiveUser = function (user) {
   exp.saveApplicationStateToLocalStorage();
 };
 
-// This assumes all routes are behind login
-exp.setStatusBasedOnHttpResponse = function (code) {
+exp.setStatusBasedOnHttpResponse = function (code, isAuthRequest) {
   if (code >= 200 && code < 300) {
-    sessionValid = true;
+    // If this request required authentication and it succeeded, we know the session is valid
+    if (isAuthRequest) {
+      sessionValid = true;
+    }
     online = true;
     // Sync might have been failing for network reasons, give it another shot
     if (exp.getSyncState() === SYNC_STATUS_ENUM.ERROR) {
@@ -1717,10 +1718,17 @@ exp.getLocalStorageUsage = function () {
 };
 
 /**
- * Perform a network request, and update the state (online, authentication status, etc...)
- * based on the response
+ * Perform a network request (internal - use requestAuth or request outside of this class).
+ * Updates application state based on status code of the response
  */
-exp.request = async function (method, url, body, controller, overrideTimeout) {
+let _request = async function (
+  method,
+  url,
+  body,
+  controller,
+  overrideTimeout,
+  isAuth
+) {
   try {
     let response = await network.request(
       method,
@@ -1729,7 +1737,7 @@ exp.request = async function (method, url, body, controller, overrideTimeout) {
       controller,
       overrideTimeout
     );
-    state.setStatusBasedOnHttpResponse(response.status);
+    state.setStatusBasedOnHttpResponse(response.status, isAuth);
     return response;
   } catch (err) {
     console.log('Encountered an error during network request');
@@ -1744,16 +1752,28 @@ exp.request = async function (method, url, body, controller, overrideTimeout) {
   }
 };
 
-/*
-let lineupTypes = Object.keys(exp.LINEUP_TYPE_ENUM);
-exp.LINEUP_TYPE_ENUM_INVERSE = {};
-for (let i = 0; i < lineupTypes.length; i++) {
-  let englishValue = lineupTypes[i];
-  exp.LINEUP_TYPE_ENUM_INVERSE[
-    exp.LINEUP_TYPE_ENUM[englishValue]
-  ] = englishValue;
-}
-*/
+/**
+ * Perform a network request.
+ * Will update the state's "isOnline" variable based on the call's success or failure
+ * Will update the state's "isSessionValid" variable based on the call's success or failure
+ */
+exp.requestAuth = async function (
+  method,
+  url,
+  body,
+  controller,
+  overrideTimeout
+) {
+  return await _request(method, url, body, controller, overrideTimeout, true);
+};
+
+/**
+ * Perform a network request.
+ * Will update the state's "isOnline" variable based on the call's success or failure
+ */
+exp.request = async function (method, url, body, controller, overrideTimeout) {
+  return await _request(method, url, body, controller, overrideTimeout, true);
+};
 
 window.state = exp;
 export default exp;

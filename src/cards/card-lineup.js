@@ -246,7 +246,6 @@ export default class CardLineup extends React.Component {
         <div
           style={{
             display: 'flex',
-            justifyContent: 'center',
             alignItems: 'center',
           }}
         >
@@ -255,16 +254,11 @@ export default class CardLineup extends React.Component {
             alt=""
             invert
             style={{
-              width: '18px',
+              height: '18px',
+              paddingTop: '2px',
             }}
           />
-          <span
-            style={{
-              marginLeft: '4px',
-            }}
-          >
-            Lineup Order Locked
-          </span>
+          <span>Lineup Order Locked</span>
         </div>
       );
     } else {
@@ -272,7 +266,6 @@ export default class CardLineup extends React.Component {
         <div
           style={{
             display: 'flex',
-            justifyContent: 'center',
             alignItems: 'center',
           }}
         >
@@ -281,16 +274,11 @@ export default class CardLineup extends React.Component {
             alt=""
             invert
             style={{
-              width: '18px',
+              height: '18px',
+              paddingTop: css.spacing.xxSmall,
             }}
           />
-          <span
-            style={{
-              marginLeft: '4px',
-            }}
-          >
-            Lineup Order Unlocked
-          </span>
+          <span>Lineup Order Unlocked</span>
         </div>
       );
     }

@@ -133,17 +133,6 @@ export default class CardPlayerStats extends React.Component {
           },
         }}
       >
-        <div
-          style={{
-            margin: 'auto',
-            maxWidth: '500px',
-            padding: '0.25rem',
-            textAlign: 'center',
-            color: css.colors.TEXT_GREY,
-          }}
-        >
-          Tap a location to see information about the plate appearance.
-        </div>
         <Spray
           decoratedPlateAppearances={state.getDecoratedPlateAppearancesForPlayer(
             this.props.player.id
@@ -151,26 +140,22 @@ export default class CardPlayerStats extends React.Component {
         ></Spray>
         <InnerSection
           style={{
-            margin: '7px auto',
+            marginTop: css.spacing.xxSmall,
             overflow: 'auto',
             color: css.colors.TEXT_LIGHT,
             backgroundColor: css.colors.PRIMARY_DARK,
-            borderRadius: '9px',
-            marginBottom: '100px',
+            borderRadius: css.borderRadius.medium,
           }}
         >
           <div
             style={{
-              fontSize: '16px',
-              fontWeight: 'bold',
-              paddingLeft: '1rem',
+              fontSize: css.typography.size.medium,
+              paddingLeft: css.spacing.medium,
               display: 'flex',
               alignItems: 'center',
-              display: 'flex',
-              justifyContent: 'center',
             }}
           >
-            <div>Stats</div>{' '}
+            <div>Stats</div>
             <IconButton
               className="help-icon"
               src="/assets/help.svg"
@@ -178,7 +163,14 @@ export default class CardPlayerStats extends React.Component {
               onClick={showStatsHelp}
             />
           </div>
-          <table style={{ width: '100%', padding: '1rem', paddingTop: '0px' }}>
+          <table
+            style={{
+              fontSize: css.typography.size.small,
+              width: '100%',
+              padding: css.spacing.medium,
+              paddingTop: '0',
+            }}
+          >
             <tbody className="player-stats">{seasonStats}</tbody>
           </table>
         </InnerSection>

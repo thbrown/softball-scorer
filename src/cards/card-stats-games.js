@@ -35,7 +35,6 @@ export default class CardStatsSharing extends React.Component {
                 style={{
                   fontSize: '12px',
                   marginRight: '10px',
-                  marginTop: '5px',
                 }}
               >
                 {toClientDate(game.date)}

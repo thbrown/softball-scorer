@@ -33,6 +33,7 @@ const useStyles = makeStyles((css) => {
       backgroundColor: css.colors.INVISIBLE,
       color: css.colors.TEXT_DARK,
       border: '0px',
+      fontFamily: 'inherit',
       resize: 'none',
       whiteSpace: 'unset',
       overflowWrap: 'unset',
@@ -61,7 +62,7 @@ const useStyles = makeStyles((css) => {
     publicLinkContainer: {
       color: css.colors.TEXT_DARK,
       backgroundColor: css.colors.BACKGROUND,
-      borderRadius: css.spacing.xSmall,
+      borderRadius: css.borderRadius.small,
       display: 'flex',
       justifyContent: 'flex-start',
       alignItems: 'center',
@@ -143,10 +144,6 @@ const CardStatsGame = ({
           }}
         />
       </InnerSection>
-
-      <InnerSection className={classes.description}>
-        Tap a location to see information about the plate appearance.
-      </InnerSection>
       <Spray
         decoratedPlateAppearances={state.getDecoratedPlateAppearancesForGame(
           game,
@@ -156,12 +153,12 @@ const CardStatsGame = ({
       />
       <InnerSection
         style={{
-          marginBottom: '1.5rem',
+          marginBottom: theme.spacing.large,
         }}
       >
         <div
           style={{
-            marginLeft: '1.5rem',
+            marginLeft: theme.spacing.large,
           }}
         >
           <h2>Results</h2>
@@ -196,10 +193,11 @@ const CardStatsGame = ({
             className={classes.description}
             style={{
               padding: '6px',
+              fontSize: theme.typography.size.small,
               color: theme.colors.TEXT_GREY,
             }}
           >
-            Public link to this game!
+            Public link to this game:
           </InnerSection>
 
           <InnerSection>

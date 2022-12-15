@@ -18,30 +18,36 @@ self.addEventListener('install', function (event) {
         '/robots.txt',
         '/manifest.json',
         '/server/main.js',
-        '/assets/alert.svg',
-        '/assets/autotrack.js',
-        '/assets/back.svg',
-        '/assets/ballfield2.png',
-        '/assets/baseball-hit.svg',
-        '/assets/baseball-out.svg',
-        '/assets/baseball.svg',
-        '/assets/cancel.svg',
-        '/assets/check.svg',
-        '/assets/chevron-right.svg',
-        '/assets/delete.svg',
-        '/assets/edit.svg',
-        '/assets/empty.svg',
-        '/assets/help.svg',
-        '/assets/home.svg',
-        '/assets/icons/logo.svg',
-        '/assets/icons/logo192.png',
-        '/assets/icons/logo512.png',
-        '/assets/link.svg',
-        '/assets/main.css',
-        '/assets/remove.svg',
-        '/assets/spinner.gif',
-        '/assets/scoreboard-webfont.woff',
-        '/assets/scoreboard-webfont.woff2',
+        '/server/assets/alert.svg',
+        '/server/assets/autotrack.js',
+        '/server/assets/back.svg',
+        '/server/assets/ballfield2.png',
+        '/server/assets/baseball-hit.svg',
+        '/server/assets/baseball-out.svg',
+        '/server/assets/baseball.svg',
+        '/server/assets/cancel.svg',
+        '/server/assets/check.svg',
+        '/server/assets/chevron-right.svg',
+        '/server/assets/delete.svg',
+        '/server/assets/duplicate.svg',
+        '/server/assets/edit.svg',
+        '/server/assets/empty.svg',
+        '/server/assets/help.svg',
+        '/server/assets/home.svg',
+        '/server/assets/icons/logo.svg',
+        '/server/assets/icons/logo192.png',
+        '/server/assets/icons/logo512.png',
+        '/server/assets/link.svg',
+        '/server/assets/main.css',
+        '/server/assets/more.svg',
+        '/server/assets/remove.svg',
+        '/server/assets/padlock.svg',
+        '/server/assets/padlock-open.svg',
+        '/server/assets/spinner.gif',
+        '/server/assets/search.svg',
+        '/server/assets/scoreboard-webfont.woff',
+        '/server/assets/scoreboard-webfont.woff2',
+        '/server/assets/tune-black.svg',
       ]);
     })
   );
@@ -73,9 +79,6 @@ self.addEventListener('fetch', function (event) {
   // First try to get resource out of the cache, if it's not there go to the network.
   event.respondWith(
     caches.match(requestToProcess).then(function (response) {
-      console.log(
-        `[ServiceWorker] cache request ${JSON.stringify(response, null, 2)}`
-      );
       return response || fetch(event.request);
     })
   );

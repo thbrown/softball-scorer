@@ -166,7 +166,7 @@ export default class CardPlayerSelect extends React.Component {
       },
       multiValue: (provided) => {
         const modifications = {
-          padding: 14,
+          padding: 8,
         };
         return Object.assign(provided, modifications);
       },

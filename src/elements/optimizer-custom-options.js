@@ -92,9 +92,6 @@ export default class OptimizerCustomOptions extends React.Component {
               className="help-icon"
               src="/assets/help.svg"
               onClick={this.getHelpFunction(value.longLabel, value.description)}
-              style={{
-                marginLeft: '6px',
-              }}
               invert
             />
           </div>
@@ -148,9 +145,6 @@ export default class OptimizerCustomOptions extends React.Component {
               className="help-icon"
               src="/assets/help.svg"
               onClick={this.getHelpFunction(value.longLabel, value.description)}
-              style={{
-                marginLeft: '6px',
-              }}
               invert
             />
           </div>
@@ -185,9 +179,6 @@ export default class OptimizerCustomOptions extends React.Component {
               className="help-icon"
               src="/assets/help.svg"
               onClick={this.getHelpFunction(value.longLabel, value.description)}
-              style={{
-                marginLeft: '6px',
-              }}
               invert
             />
           </div>
@@ -219,9 +210,6 @@ export default class OptimizerCustomOptions extends React.Component {
               className="help-icon"
               src="/assets/help.svg"
               onClick={this.getHelpFunction(value.longLabel, value.description)}
-              style={{
-                marginLeft: '6px',
-              }}
               invert
             />
           </div>

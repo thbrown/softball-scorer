@@ -46,6 +46,16 @@ export const OPTIMIZATION_TYPE_ENUM = Object.freeze({
   SORT_BY_AVERAGE: 4,
 });
 
+exports.invertOptStatusSet = function (inputSet) {
+  let output = new Set();
+  for (let key in exports.OPTIMIZATION_STATUS_ENUM) {
+    if (!inputSet.has(exports.OPTIMIZATION_STATUS_ENUM[key])) {
+      output.add(exports.OPTIMIZATION_STATUS_ENUM[key]);
+    }
+  }
+  return output;
+};
+
 // Flip enums for reverse lookups
 let optStatuses = Object.keys(OPTIMIZATION_STATUS_ENUM);
 let inverse = {};

@@ -11,7 +11,6 @@ const BucketSessionStore = require('gcp-bucket-session-store');
  */
 module.exports = class CacheCallsGcpBuckets {
   constructor(sessionBucket, ancestorBucket) {
-    console.log(sessionBucket, ancestorBucket);
     this.sessionBucket = sessionBucket;
     this.ancestorBucket = ancestorBucket;
     this.storage = new Storage();

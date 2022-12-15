@@ -10,6 +10,7 @@ config-common.js
 *.sublime-project
 *.sublime-workspace
 src-srv/logs
+logs/*
 .vscode
 softball-sim.jar
 java.log
@@ -20,4 +21,5 @@ shared-lib.js
 shared-lib.js.LICENSE.txt
 yarn-error.log
 database/*
+session/*
 emergency-dump-*

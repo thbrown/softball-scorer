@@ -1,4 +1,5 @@
 import expose from 'expose';
+import css from 'css';
 import DOM from 'react-dom-factories';
 
 export default class WalkupSong extends expose.Component {
@@ -90,6 +91,7 @@ export default class WalkupSong extends expose.Component {
           style: {
             position: 'relative',
             display: 'inline-block',
+            borderRadius: css.borderRadius.small,
           },
         },
         DOM.iframe({
@@ -128,10 +130,12 @@ export default class WalkupSong extends expose.Component {
             width: this.props.width,
             height: this.props.height,
             textAlign: 'center',
-            color: 'black',
-            paddingTop: '8px',
-            backgroundColor: 'lightgray',
-            borderRadius: '5px',
+            color: css.colors.TEXT_LIGHT,
+            backgroundColor: css.colors.SECONDARY,
+            borderRadius: css.borderRadius.small,
+            display: 'flex',
+            justifyContent: 'space-around',
+            alignItems: 'center',
           },
         },
         'No Song'

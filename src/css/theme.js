@@ -30,35 +30,39 @@ const theme = {
     'fixed-table-header-height': '28px',
     'fixed-table-col-width': '80px',
   },
+  // 16px base body font
+  // 2px -> 0.125rem
+  // 4px -> 0.25rem
+  // 8px -> 0.5rem
+  // 12px -> 0.75rem
+  // 16px -> 1rem
+  // 20px -> 1.25rem
+  // 24px -> 1.5rem
+  // 32px -> 2rem
   typography: {
     size: {
-      xxSmall: '10px',
-      xSmall: '12px',
-      small: '14px',
-      medium: '16px',
-      large: '20px',
-      xLarge: '32px',
+      xxSmall: '0.625rem',
+      xSmall: '0.75rem',
+      small: '0.875rem',
+      medium: '1rem',
+      large: '1.25rem',
+      xLarge: '1.5rem',
     },
   },
   border: '2px solid rgba(0, 0, 0, 0.10)',
   borderRadius: {
-    small: '5px',
+    small: '0.25rem',
+    medium: '0.5rem',
+    large: '0.75rem',
+    xLarge: '1rem',
   },
   spacing: {
-    xxSmall: '0.5rem',
-    xSmall: '1rem',
-    small: '1.5rem',
-    medium: '2rem',
-    large: '5rem',
-    xLarge: '10rem',
-  },
-  sizing: {
-    xxSmall: '1rem',
-    xSmall: '2rem',
-    small: '5rem',
-    medium: '10rem',
-    large: '20rem',
-    xLarge: '30rem',
+    xxSmall: '0.125rem',
+    xSmall: '0.25rem',
+    small: '0.5rem',
+    medium: '0.75rem',
+    large: '1rem',
+    xLarge: '2rem',
   },
   breakpoints: {
     sm: '320px',

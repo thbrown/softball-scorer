@@ -375,9 +375,9 @@ export default class CardPlayerEdit extends React.Component {
             >
               <IconButton src="/assets/check.svg" alt="save" />
               <span
-                style={{
-                  marginLeft: '4px',
-                }}
+              // style={{
+              //   marginLeft: '4px',
+              // }}
               >
                 Save
               </span>
@@ -392,9 +392,9 @@ export default class CardPlayerEdit extends React.Component {
             >
               <IconButton src="/assets/cancel.svg" alt="cancel" invert />
               <span
-                style={{
-                  marginLeft: '4px',
-                }}
+              // style={{
+              //   marginLeft: '4px',
+              // }}
               >
                 Cancel
               </span>
@@ -410,9 +410,9 @@ export default class CardPlayerEdit extends React.Component {
               >
                 <IconButton src="/assets/delete.svg" alt="delete" />
                 <span
-                  style={{
-                    marginLeft: '4px',
-                  }}
+                // style={{
+                //   marginLeft: '4px',
+                // }}
                 >
                   Delete
                 </span>

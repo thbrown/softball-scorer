@@ -8,7 +8,7 @@ import IconButton from '../elements/icon-button';
 import css from 'css';
 import Loading from 'elements/loading';
 
-const useCardTeamEditStyles = makeStyles((css) => ({
+const useStatsSharingStyles = makeStyles((css) => ({
   publicLink: {
     fontSize: css.typography.size.xSmall,
     padding: css.spacing.xxSmall,
@@ -19,9 +19,10 @@ const useCardTeamEditStyles = makeStyles((css) => ({
     whiteSpace: 'unset',
     overflowWrap: 'unset',
     overflow: 'hidden',
+    fontFamily: 'inherit',
   },
   publicLinkLabelBox: {
-    fontSize: css.typography.size.large,
+    fontSize: css.typography.size.medium,
     display: 'flex',
     justifyContent: 'flex-start',
     alignItems: 'center',
@@ -43,17 +44,21 @@ const useCardTeamEditStyles = makeStyles((css) => ({
   publicLinkContainer: {
     color: css.colors.TEXT_DARK,
     backgroundColor: css.colors.BACKGROUND,
-    borderRadius: css.spacing.xSmall,
+    borderRadius: css.borderRadius.small,
     display: 'flex',
     justifyContent: 'flex-start',
     alignItems: 'center',
-    marginTop: css.spacing.xxSmall,
+    marginTop: css.spacing.xSmall,
     overflow: 'hidden',
   },
   publicLinkCheckbox: {
     width: '1rem',
     height: '1rem',
     marginRight: css.spacing.xSmall,
+  },
+  helpText: {
+    color: css.colors.TEXT_GREY,
+    fontSize: css.typography.size.small,
   },
 }));
 
@@ -73,7 +78,7 @@ const CardStatsSharing = (props) => {
       teamId: props.team.id,
     };
 
-    let response = await state.request(
+    let response = await state.requestAuth(
       'POST',
       `server/team-stats/edit`,
       JSON.stringify(body)
@@ -107,7 +112,7 @@ const CardStatsSharing = (props) => {
     copyText.blur();
   };
 
-  const { styles } = useCardTeamEditStyles();
+  const { styles } = useStatsSharingStyles();
   const { publicId, publicIdEnabled } = props.team;
   const publicLink = `${window.location.origin}/public-teams/${publicId}/stats`;
 
@@ -141,35 +146,9 @@ const CardStatsSharing = (props) => {
   if (state.isSessionValid()) {
     content = (
       <div className="auth-input-container">
-        <div
-          style={{
-            textAlign: 'left',
-            fontSize: css.typography.size.medium,
-            marginBottom: '32px',
-          }}
-        >
-          <p
-            style={{
-              textTransform: 'uppercase',
-              fontWeight: 'unset',
-            }}
-          >
-            Share team stats with others
-          </p>
-          <p
-            style={{
-              color: css.colors.TEXT_DESC,
-            }}
-          >
-            Check the "Public Link" checkbox below to generate link you can
-            share with others (teammates, fans, etc...) that will allow them to
-            view team statistics. Public page is updated live and can be hidden
-            at any time by unchecking the checkbox below.
-          </p>
-        </div>
         <div style={styles.publicLinkLabelBox}>
           <label htmlFor="publicIdEnabled" style={styles.publicLinkLabel}>
-            Public Link
+            Enable Public Link for Team Stats Sharing
           </label>
           {checkboxContent}
           {copiedNotificationVisible && (
@@ -201,6 +180,17 @@ const CardStatsSharing = (props) => {
             />
           </div>
         )}
+        <div>
+          <div style={styles.helpText}>
+            Generates a link you can share with others - teammates, fans, etc.
+          </div>
+          <div style={styles.helpText}>
+            Anyone with the link can view this team's stats (updated live).
+          </div>
+          <div style={styles.helpText}>
+            Team stats can be hidden at any time by unchecking the checkbox.
+          </div>
+        </div>
       </div>
     );
   } else {
