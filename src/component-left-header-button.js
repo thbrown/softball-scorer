@@ -3,7 +3,6 @@ import { goBack } from 'actions/route';
 
 const LeftHeaderButton = (props) => {
   return window?.history?.length > 1 || props.onClick ? (
-    // null
     <img
       id="back-button"
       src="/assets/back.svg"

@@ -16,12 +16,4 @@ const exp = {
   schemaValidation,
 };
 
-// const exp = {
-//   welp: () => {
-//     console.log('welp');
-//   },
-//   objectMerge,
-//   schemaValidation,
-// };
-
 export default exp;

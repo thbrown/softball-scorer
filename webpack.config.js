@@ -99,7 +99,7 @@ module.exports = (env) => ({
   module: getLoaders(env),
   plugins: getPlugins(env),
   devServer: {
-    // open: ['public/index.html'],
+    open: ['index.html'],
     setupExitSignals: true,
     historyApiFallback: true,
     port: 8889,

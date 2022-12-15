@@ -51,7 +51,3 @@ async function runServer() {
   softballServer.start();
 }
 runServer();
-
-// const SharedLib = require('../shared-lib');
-
-// console.log('WOOOO', SharedLib);

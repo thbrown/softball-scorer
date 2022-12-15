@@ -12,17 +12,6 @@ function getLoaders() {
     exclude: /node_modules/,
   };
 
-  // const json = {
-  //   test: /\.json$/,
-  //   loader: 'json-loader',
-  // };
-
-  const babelLoader = {
-    test: /\.(js|jsx|ts|tsx)$/,
-    exclude: /node_modules/,
-    use: ['babel-loader'],
-  };
-
   const loaders = {
     rules: [esbuild],
   };
@@ -41,7 +30,6 @@ module.exports = {
   mode: 'development', // set to development to prevent minification
   target: 'node',
   performance: { hints: false },
-  // devtool: 'inline-source-map',
   resolve: {
     extensions: ['.tsx', '.ts', '.jsx', '.js', '.json'],
     fallback: {
@@ -56,7 +44,6 @@ module.exports = {
     path: path.resolve(__dirname, '../'),
     libraryTarget: 'commonjs-module',
     libraryExport: 'default',
-    // auxiliaryComment: 'Test Comment',
   },
   module: getLoaders(),
   plugins: getPlugins(),
@@ -69,27 +56,4 @@ module.exports = {
     'node-object-hash': 'node-object-hash',
     'base-x': 'base-x',
   },
-  // externals: {
-  //   buffer: {
-  //     commonjs: 'buffer',
-  //   },
-  //   crypto: {
-  //     commonjs: 'crypto',
-  //   },
-  //   stream: {
-  //     commonjs: 'stream',
-  //   },
-  //   react: {
-  //     commonjs: 'react',
-  //   },
-  //   'react-dom/server': {
-  //     commonjs: 'react-dom/server',
-  //   },
-  //   'node-object-hash': {
-  //     commonjs: 'node-object-hash',
-  //   },
-  //   'base-x': {
-  //     commonjs: 'base-x',
-  //   },
-  // },
 };
