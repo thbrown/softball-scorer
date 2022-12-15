@@ -3,7 +3,7 @@ import dialog from 'dialog';
 import state from 'state';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
-import { goBack, goHome, setRoute } from 'actions/route';
+import { goBack, setRoute } from 'actions/route';
 import SharedLib from 'shared-lib';
 import IconButton from '../elements/icon-button';
 import { colors } from '../css/theme';
@@ -111,13 +111,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
               }}
             >
               <IconButton src="/assets/delete.svg" alt="delete" />
-              <span
-              // style={{
-              //   marginLeft: '4px',
-              // }}
-              >
-                Delete All
-              </span>
+              <span>Delete All</span>
             </div>
           </ListButton>
         )}

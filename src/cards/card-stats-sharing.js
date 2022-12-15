@@ -1,8 +1,6 @@
 import React from 'react';
 import state from 'state';
 import dialog from 'dialog';
-import CardSection from 'elements/card-section';
-import { goBack, goHome } from 'actions/route';
 import { makeStyles } from 'css/helpers';
 import IconButton from '../elements/icon-button';
 import css from 'css';
@@ -63,7 +61,6 @@ const useStatsSharingStyles = makeStyles((css) => ({
 }));
 
 const CardStatsSharing = (props) => {
-  const [team, setTeam] = React.useState(props.team);
   const [loading, setLoading] = React.useState(false);
   const [copiedNotificationVisible, setCopiedNotificationVisible] =
     React.useState(false);
@@ -121,10 +118,10 @@ const CardStatsSharing = (props) => {
   if (loading) {
     // Show the loading page if there is no optimizer data
     checkboxContent = (
-      <div style={{ height: '25px' }}>
+      <div>
         <div>
           <div style={{ opacity: 0.9, zIndex: 1 }}>
-            <Loading style={{ width: '25px', height: '25px' }}></Loading>
+            <Loading style={{ width: '18px' }}></Loading>
           </div>
         </div>
       </div>
@@ -157,6 +154,17 @@ const CardStatsSharing = (props) => {
             </span>
           )}
         </div>
+        <div>
+          <div style={{ ...styles.helpText, margin: '5px 0px' }}>
+            Generates a link you can share with others - teammates, fans, etc.
+          </div>
+          <div style={{ ...styles.helpText, margin: '5px 0px' }}>
+            Anyone with the link can view this team's stats (updated live).
+          </div>
+          <div style={{ ...styles.helpText, margin: '5px 0px' }}>
+            Team stats can be hidden at any time by unchecking the checkbox.
+          </div>
+        </div>
         {publicIdEnabled && (
           <div style={styles.publicLinkContainer}>
             <div style={styles.publicLinkLineItem}>
@@ -180,17 +188,6 @@ const CardStatsSharing = (props) => {
             />
           </div>
         )}
-        <div>
-          <div style={styles.helpText}>
-            Generates a link you can share with others - teammates, fans, etc.
-          </div>
-          <div style={styles.helpText}>
-            Anyone with the link can view this team's stats (updated live).
-          </div>
-          <div style={styles.helpText}>
-            Team stats can be hidden at any time by unchecking the checkbox.
-          </div>
-        </div>
       </div>
     );
   } else {

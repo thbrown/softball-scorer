@@ -67,6 +67,7 @@ export default class OptimizerStandardOptions extends React.Component {
       optimizerOptions.push({
         label: this.props.optimizerData[id].name,
         value: parseInt(id),
+        key: id,
       });
     }
 
@@ -102,10 +103,11 @@ export default class OptimizerStandardOptions extends React.Component {
             initialValue={this.props.lineupType}
             onChange={this.onLineupChange}
             values={[
-              { label: 'Normal', value: 0 },
-              { label: 'Alternating Gender', value: 1 },
-              { label: 'No Consecutive Females', value: 2 },
+              { key: 0, label: 'Normal', value: 0 },
+              { key: 1, label: 'Alternating Gender', value: 1 },
+              { key: 2, label: 'No Consecutive Females', value: 2 },
               {
+                key: 3,
                 label: 'No Consecutive Females and No Three Consecutive Males',
                 value: 3,
               },
