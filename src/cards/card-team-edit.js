@@ -92,7 +92,6 @@ const CardTeamEdit = (props) => {
           }}
         >
           <IconButton src="/assets/check.svg" alt="" hideBackground />
-          {/* <span style={{ marginLeft: '8px' }}> Save </span> */}
           <span> Save </span>
         </div>
       </ListButton>
@@ -124,7 +123,6 @@ const CardTeamEdit = (props) => {
             }}
           >
             <IconButton src="/assets/delete.svg" alt="" hideBackground />
-            {/* <span style={{ marginLeft: '8px' }}> Delete </span> */}
             <span> Delete </span>
           </div>
         </ListButton>

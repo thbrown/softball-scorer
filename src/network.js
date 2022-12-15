@@ -15,12 +15,7 @@ exp.request = async function (method, url, body, controller, overrideTimeout) {
 export const request = exp.request;
 
 exp.getServerUrl = function (path) {
-  console.log('GET SERVER URL', process.env.WEBPACK_DEV_SERVER);
-  if (process.env.WEBPACK_DEV_SERVER) {
-    return 'http://localhost:8888/' + path;
-  } else {
-    return window.location.origin + '/' + path;
-  }
+  return window.location.origin + '/' + path;
 };
 
 requestInternal = async function (

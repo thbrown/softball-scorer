@@ -134,7 +134,6 @@ exp.sync = async function (fullSync) {
       '[SYNC] waiting for in progress sync to finish ' + exp.getSyncState()
     );
     await sleep(500); // TODO: debounce
-    // return;
   }
   // Kill any scheduled syncs
   clearTimeout(syncTimer);

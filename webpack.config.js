@@ -106,7 +106,6 @@ module.exports = (env) => ({
     watchFiles: 'src/**/*',
     proxy: {
       '/menu/*': srvUrl,
-      '/server/sync2': srvUrl,
       '/server/sync': srvUrl,
       '/server/*': srvUrl,
       '/service-workers/*': srvUrl,

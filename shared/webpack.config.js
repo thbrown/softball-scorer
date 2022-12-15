@@ -27,7 +27,7 @@ function getPlugins() {
 
 module.exports = {
   entry: './index.js',
-  mode: 'development', // set to development to prevent minification
+  mode: 'development',
   target: 'node',
   performance: { hints: false },
   resolve: {
