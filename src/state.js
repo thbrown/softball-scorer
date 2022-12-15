@@ -159,8 +159,6 @@ exp.sync = async function (fullSync) {
       type: fullSync ? 'full' : 'any',
     };
 
-    console.log('PATCH', body);
-
     // Ship it
     console.log('[SYNC] Syncing...', body);
     const response = await state.requestAuth(

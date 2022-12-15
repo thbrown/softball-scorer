@@ -1,3 +1,8 @@
+/**
+ * NOTE for compatibility with webpack on client and server, only use export/module syntax,
+ * do not use the `exports` or `module.exports` commonjs format
+ */
+
 export const OPTIMIZATION_STATUS_ENUM = Object.freeze({
   undefined: 0, // Treated the same as NOT_STARTED
   NOT_STARTED: 0,
@@ -46,11 +51,11 @@ export const OPTIMIZATION_TYPE_ENUM = Object.freeze({
   SORT_BY_AVERAGE: 4,
 });
 
-exports.invertOptStatusSet = function (inputSet) {
+export const invertOptStatusSet = function (inputSet) {
   let output = new Set();
-  for (let key in exports.OPTIMIZATION_STATUS_ENUM) {
-    if (!inputSet.has(exports.OPTIMIZATION_STATUS_ENUM[key])) {
-      output.add(exports.OPTIMIZATION_STATUS_ENUM[key]);
+  for (let key in OPTIMIZATION_STATUS_ENUM) {
+    if (!inputSet.has(OPTIMIZATION_STATUS_ENUM[key])) {
+      output.add(OPTIMIZATION_STATUS_ENUM[key]);
     }
   }
   return output;
@@ -74,6 +79,7 @@ const exp = {
   PROGRESSING_OPTIMIZATION_STATUSES_ENUM,
   OPTIMIZATION_TYPE_ENUM,
   OPTIMIZATION_STATUS_ENUM_INVERSE,
+  invertOptStatusSet,
 };
 
 export default exp;
