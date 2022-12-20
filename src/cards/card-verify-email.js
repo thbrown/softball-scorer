@@ -71,7 +71,7 @@ export default class CardVerifyEmail extends React.Component {
       },
       DOM.img({
         id: 'score-spinner',
-        src: '/server/assets/spinner.gif',
+        src: '/assets/spinner.gif',
         style: {
           visibility: 'unset',
         },

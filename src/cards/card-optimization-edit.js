@@ -96,7 +96,7 @@ const CardOptimizationEdit = (props) => {
             alignItems: 'center',
           }}
         >
-          <IconButton src="/server/assets/check.svg" alt="" />
+          <IconButton src="/assets/check.svg" alt="" />
           <span>Save</span>
         </div>
       </ListButton>
@@ -112,7 +112,7 @@ const CardOptimizationEdit = (props) => {
             alignItems: 'center',
           }}
         >
-          <IconButton src="/server/assets/cancel.svg" alt="" invert />
+          <IconButton src="/assets/cancel.svg" alt="" invert />
           <span>Cancel</span>
         </div>
       </ListButton>
@@ -128,7 +128,7 @@ const CardOptimizationEdit = (props) => {
               alignItems: 'center',
             }}
           >
-            <IconButton src="/server/assets/duplicate.svg" alt="" invert />
+            <IconButton src="/assets/duplicate.svg" alt="" invert />
             <span>Duplicate</span>
           </div>
         </ListButton>
@@ -145,7 +145,7 @@ const CardOptimizationEdit = (props) => {
               alignItems: 'center',
             }}
           >
-            <IconButton src="/server/assets/delete.svg" alt="" />
+            <IconButton src="/assets/delete.svg" alt="" />
             <span>Delete</span>
           </div>
         </ListButton>

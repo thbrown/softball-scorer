@@ -1,10 +1,8 @@
 const got = require('got');
 
 const logger = require('./logger.js');
-const SharedLib = require('../shared-lib').default;
+const SharedLib = require('../shared-lib');
 const configAccessor = require('./config-accessor');
-
-//var https = require('https');
 
 const START_URL = `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-start`;
 const PAUSE_URL = `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-pause`;

@@ -47,7 +47,7 @@ requestInternal = async function (
         });
         setTimeout(() => resolve(reqResp), NETWORK_DELAY);
       } catch (err) {
-        if (err.name == 'AbortError') {
+        if (err.name === 'AbortError') {
           console.log('Network request canceled');
           // Canceled Request (TODO: not sure the best way to handle this yet)
           resolve(-4); /*

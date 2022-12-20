@@ -103,7 +103,7 @@ export default class CardPlayerEdit extends React.Component {
               {
                 label: 'Enter more than 3 characters to search',
                 value: undefined,
-                thumbnail: '/server/assets/alert.svg',
+                thumbnail: '/assets/alert.svg',
               },
             ]);
           });
@@ -116,7 +116,7 @@ export default class CardPlayerEdit extends React.Component {
               {
                 label: 'Link: ' + query,
                 value: query,
-                thumbnail: '/server/assets/link.svg',
+                thumbnail: '/assets/link.svg',
               },
             ]);
           });
@@ -256,7 +256,7 @@ export default class CardPlayerEdit extends React.Component {
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <img
               alt="Plate appearance scoring screenshot"
-              src="/server/assets/help-walkup.svg"
+              src="/assets/help-walkup.svg"
             ></img>
           </div>
         </div>,
@@ -350,7 +350,7 @@ export default class CardPlayerEdit extends React.Component {
               <IconButton
                 alt="help"
                 className="help-icon"
-                src="/server/assets/help.svg"
+                src="/assets/help.svg"
                 onClick={this.handleSongHelpClick}
                 invert
               />
@@ -373,7 +373,7 @@ export default class CardPlayerEdit extends React.Component {
                 alignItems: 'center',
               }}
             >
-              <IconButton src="/server/assets/check.svg" alt="save" />
+              <IconButton src="/assets/check.svg" alt="save" />
               <span>Save</span>
             </div>
           </ListButton>
@@ -384,7 +384,7 @@ export default class CardPlayerEdit extends React.Component {
                 alignItems: 'center',
               }}
             >
-              <IconButton src="/server/assets/cancel.svg" alt="cancel" invert />
+              <IconButton src="/assets/cancel.svg" alt="cancel" invert />
               <span>Cancel</span>
             </div>
           </ListButton>
@@ -396,7 +396,7 @@ export default class CardPlayerEdit extends React.Component {
                   alignItems: 'center',
                 }}
               >
-                <IconButton src="/server/assets/delete.svg" alt="delete" />
+                <IconButton src="/assets/delete.svg" alt="delete" />
                 <span>Delete</span>
               </div>
             </ListButton>

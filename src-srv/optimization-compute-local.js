@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 const logger = require('./logger.js');
-const SharedLib = require('../shared-lib').default;
+const SharedLib = require('../shared-lib');
 const configAccessor = require('./config-accessor.js');
 
 var https = require('https');

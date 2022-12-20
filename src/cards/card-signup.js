@@ -220,7 +220,7 @@ export default class CardSignup extends React.Component {
       >
         <img
           id="score-spinner"
-          src="/server/assets/spinner.gif"
+          src="/assets/spinner.gif"
           className="gone"
           style={{
             visibility: 'unset',

@@ -277,7 +277,7 @@ export default class CardStatsSeason extends React.Component {
             <div>Curious about a particular stat?</div>
             <IconButton
               className="help-icon"
-              src="/server/assets/help.svg"
+              src="/assets/help.svg"
               alt="info"
               style={{ opacity: '50%' }}
               onClick={showStatsHelp}

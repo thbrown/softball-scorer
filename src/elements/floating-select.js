@@ -10,17 +10,17 @@ export default class FloatingSelect extends React.Component {
 
   render() {
     const options = this.props.values.map((valueEntry) => {
-      let { label, value } = valueEntry;
+      let { label, value, key } = valueEntry;
 
       return (
-        <option value={value} key={value}>
+        <option value={value} key={key ?? value}>
           {label}
         </option>
       );
     });
     if (!this.state.value) {
       options.push(
-        <option disabled selected value>
+        <option disabled value="unknown-option" key="unknown-option">
           {'-- select an option --'}
         </option>
       );
@@ -33,7 +33,7 @@ export default class FloatingSelect extends React.Component {
           id={this.props.selectId}
           className="select"
           disabled={this.props.disabled}
-          value={this.state.value}
+          value={this.state.value ?? 'unknown-option'}
           style={{
             width: this.props.fullWidth ? '100%' : undefined,
             ...(this.props.selectStyle ?? {}),

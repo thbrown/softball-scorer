@@ -110,7 +110,7 @@ export default class CardGameEdit extends React.Component {
             />
             <IconButton
               className="help-icon"
-              src="/server/assets/help.svg"
+              src="/assets/help.svg"
               alt="help"
               onClick={showLineupTypeHelp}
               invert
@@ -136,7 +136,7 @@ export default class CardGameEdit extends React.Component {
               alignItems: 'center',
             }}
           >
-            <IconButton src="/server/assets/check.svg" alt="save" />
+            <IconButton src="/assets/check.svg" alt="save" />
             <span
               style={{
                 marginLeft: css.spacing.xSmall,
@@ -157,7 +157,7 @@ export default class CardGameEdit extends React.Component {
               alignItems: 'center',
             }}
           >
-            <IconButton src="/server/assets/cancel.svg" alt="cancel" invert />
+            <IconButton src="/assets/cancel.svg" alt="cancel" invert />
             <span
               style={{
                 marginLeft: css.spacing.xSmall,
@@ -179,7 +179,7 @@ export default class CardGameEdit extends React.Component {
                 alignItems: 'center',
               }}
             >
-              <IconButton src="/server/assets/delete.svg" alt="delete" />
+              <IconButton src="/assets/delete.svg" alt="delete" />
               <span
                 style={{
                   marginLeft: css.spacing.xSmall,

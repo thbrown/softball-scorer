@@ -1,4 +1,9 @@
-exports.OPTIMIZATION_STATUS_ENUM = Object.freeze({
+/**
+ * NOTE for compatibility with webpack on client and server, only use export/module syntax,
+ * do not use the `exports` or `module.exports` commonjs format
+ */
+
+export const OPTIMIZATION_STATUS_ENUM = Object.freeze({
   undefined: 0, // Treated the same as NOT_STARTED
   NOT_STARTED: 0,
   STARTING: 6, // Added later, this state doesn't exist on softball-sim
@@ -9,36 +14,36 @@ exports.OPTIMIZATION_STATUS_ENUM = Object.freeze({
   ERROR: 5,
 });
 
-exports.EDITABLE_OPTIMIZATION_STATUSES_ENUM = Object.freeze(
-  new Set([undefined, exports.OPTIMIZATION_STATUS_ENUM.NOT_STARTED])
+export const EDITABLE_OPTIMIZATION_STATUSES_ENUM = Object.freeze(
+  new Set([undefined, OPTIMIZATION_STATUS_ENUM.NOT_STARTED])
 );
 
-exports.STARTABLE_OPTIMIZATION_STATUSES_ENUM = Object.freeze(
+export const STARTABLE_OPTIMIZATION_STATUSES_ENUM = Object.freeze(
   new Set([
     undefined,
-    exports.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
-    exports.OPTIMIZATION_STATUS_ENUM.ERROR,
-    exports.OPTIMIZATION_STATUS_ENUM.PAUSED,
+    OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
+    OPTIMIZATION_STATUS_ENUM.ERROR,
+    OPTIMIZATION_STATUS_ENUM.PAUSED,
   ])
 );
 
-exports.TERMINAL_OPTIMIZATION_STATUSES_ENUM = Object.freeze(
+export const TERMINAL_OPTIMIZATION_STATUSES_ENUM = Object.freeze(
   new Set([
-    exports.OPTIMIZATION_STATUS_ENUM.COMPLETE,
-    exports.OPTIMIZATION_STATUS_ENUM.PAUSED,
-    exports.OPTIMIZATION_STATUS_ENUM.ERROR,
+    OPTIMIZATION_STATUS_ENUM.COMPLETE,
+    OPTIMIZATION_STATUS_ENUM.PAUSED,
+    OPTIMIZATION_STATUS_ENUM.ERROR,
   ])
 );
 
-exports.PROGRESSING_OPTIMIZATION_STATUSES_ENUM = Object.freeze(
+export const PROGRESSING_OPTIMIZATION_STATUSES_ENUM = Object.freeze(
   new Set([
-    exports.OPTIMIZATION_STATUS_ENUM.STARTING,
-    exports.OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES,
-    exports.OPTIMIZATION_STATUS_ENUM.IN_PROGRESS,
+    OPTIMIZATION_STATUS_ENUM.STARTING,
+    OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES,
+    OPTIMIZATION_STATUS_ENUM.IN_PROGRESS,
   ])
 );
 
-exports.OPTIMIZATION_TYPE_ENUM = Object.freeze({
+export const OPTIMIZATION_TYPE_ENUM = Object.freeze({
   MONTE_CARLO_EXHAUSTIVE: 0,
   MONTE_CARLO_ADAPTIVE: 1,
   MONTE_CARLO_ANNEALING: 2,
@@ -46,23 +51,35 @@ exports.OPTIMIZATION_TYPE_ENUM = Object.freeze({
   SORT_BY_AVERAGE: 4,
 });
 
-exports.invertOptStatusSet = function (inputSet) {
+export const invertOptStatusSet = function (inputSet) {
   let output = new Set();
-  for (let key in exports.OPTIMIZATION_STATUS_ENUM) {
-    if (!inputSet.has(exports.OPTIMIZATION_STATUS_ENUM[key])) {
-      output.add(exports.OPTIMIZATION_STATUS_ENUM[key]);
+  for (let key in OPTIMIZATION_STATUS_ENUM) {
+    if (!inputSet.has(OPTIMIZATION_STATUS_ENUM[key])) {
+      output.add(OPTIMIZATION_STATUS_ENUM[key]);
     }
   }
   return output;
 };
 
 // Flip enums for reverse lookups
-let optStatuses = Object.keys(exports.OPTIMIZATION_STATUS_ENUM);
+let optStatuses = Object.keys(OPTIMIZATION_STATUS_ENUM);
 let inverse = {};
 for (let i = 0; i < optStatuses.length; i++) {
   let englishValue = optStatuses[i];
-  inverse[exports.OPTIMIZATION_STATUS_ENUM[englishValue]] = englishValue;
+  inverse[OPTIMIZATION_STATUS_ENUM[englishValue]] = englishValue;
 }
 inverse[undefined] = 'NOT_STARTED'; // undefined is treated the same as NOT_STARTED
+export const OPTIMIZATION_STATUS_ENUM_INVERSE = inverse;
 
-exports.OPTIMIZATION_STATUS_ENUM_INVERSE = inverse;
+const exp = {
+  OPTIMIZATION_STATUS_ENUM,
+  EDITABLE_OPTIMIZATION_STATUSES_ENUM,
+  STARTABLE_OPTIMIZATION_STATUSES_ENUM,
+  TERMINAL_OPTIMIZATION_STATUSES_ENUM,
+  PROGRESSING_OPTIMIZATION_STATUSES_ENUM,
+  OPTIMIZATION_TYPE_ENUM,
+  OPTIMIZATION_STATUS_ENUM_INVERSE,
+  invertOptStatusSet,
+};
+
+export default exp;

@@ -32,7 +32,10 @@ export const toClientDate = function (serverDate) {
 // Async decompression in web worker
 export const decompress = async function (inputString) {
   return new Promise((resolve, reject) => {
-    let worker = new URL('../workers/compress-worker.js', import.meta.url);
+    let worker = new URL(
+      'service-workers/compress-worker.js',
+      window.location.origin
+    );
     const compressWorker = new Worker(worker);
     compressWorker.onmessage = function (e) {
       resolve(e.data);
@@ -46,7 +49,10 @@ export const decompress = async function (inputString) {
 // Async compression in web worker
 export const compress = async function (inputString) {
   return new Promise((resolve, reject) => {
-    let worker = new URL('../workers/compress-worker.js', import.meta.url);
+    let worker = new URL(
+      'service-workers/compress-worker.js',
+      window.location.origin
+    );
     const compressWorker = new Worker(worker);
     compressWorker.onmessage = function (e) {
       resolve(e.data);

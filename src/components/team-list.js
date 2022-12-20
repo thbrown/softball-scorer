@@ -34,7 +34,7 @@ const TeamList = () => {
           <div className="centered-row">
             <div className="prevent-overflow">{team.name}</div>
             <IconButton
-              src="/server/assets/edit.svg"
+              src="/assets/edit.svg"
               alt="edit"
               id={'team-' + team.id + '-edit'}
               onClick={handleEditClick.bind(this, team)}

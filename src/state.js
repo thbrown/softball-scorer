@@ -1,6 +1,6 @@
 import expose from 'expose';
 import network from 'network';
-import SharedLib from '/../shared-lib';
+import SharedLib from 'shared-lib';
 import results from 'plate-appearance-results';
 import { getShallowCopy, autoCorrelation, isStatSig } from 'utils/functions';
 
@@ -158,11 +158,9 @@ exp.sync = async function (fullSync) {
       type: fullSync ? 'full' : 'any',
     };
 
-    console.log('PATCH', body);
-
     // Ship it
     console.log('[SYNC] Syncing...', body);
-    let response = await state.requestAuth(
+    const response = await state.requestAuth(
       'POST',
       'server/sync',
       JSON.stringify(body)

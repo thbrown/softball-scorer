@@ -5,8 +5,7 @@ import RouteContainer from 'elements/route-container';
 import MainContainer from 'main-container';
 import state from 'state';
 import routes from 'routes';
-
-require('utils/polyfills');
+import 'utils/polyfills';
 
 global.React = React;
 

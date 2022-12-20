@@ -1,7 +1,7 @@
 const HandledError = require('./handled-error.js');
 
 const logger = require('./logger.js');
-const SharedLib = require('../shared-lib').default;
+const SharedLib = require('../shared-lib');
 
 let databaseCalls = class DatabaseCalls {
   constructor() {

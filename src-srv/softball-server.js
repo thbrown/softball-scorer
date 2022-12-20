@@ -23,7 +23,9 @@ const welcomeEmailHtml = require('./email/welcome-email-html');
 const optimizationCompleteEmailHtml = require('./email/optimization-complete-email-html');
 const { config } = require('process');
 // const OptimizationResultsHtml = require('../common-optimization-results-html');
-const SharedLib = require('../shared-lib').default;
+const SharedLib = require('../shared-lib');
+const { readFile } = require('fs');
+const { sync } = require('./sync');
 
 const MONITORING_INTERVAL = 5000;
 
@@ -617,6 +619,23 @@ module.exports = class SoftballServer {
       logger.dev('?', 'Sent storage clear header');
     });
 
+    app.get('/service-workers/:fileName', function (req, res) {
+      logger.dev('service-workers', 'Reading ' + req.params.fileName);
+      res.set('Content-Type', 'application/javascript');
+      readFile('./src/workers/' + req.params.fileName, (err, file) => {
+        if (err) {
+          res.status(404).send();
+          logger.dev(
+            'service-workers',
+            'Could not find ./src/workers/' + req.params.fileName
+          );
+        } else {
+          res.status(200).send(file.toString());
+          logger.dev('service-workers', 'Sent ' + req.params.fileName);
+        }
+      });
+    });
+
     app.get('/server/manifest', function (req, res) {
       logger.dev('?', 'Redirect manifest request');
       res.redirect('/manifest.json');
@@ -676,171 +695,13 @@ module.exports = class SoftballServer {
           return;
         }
 
-        let accountId = extractSessionInfo(req, 'accountId');
-        let data = req.body;
+        const accountId = extractSessionInfo(req, 'accountId');
+        const sessionId = req.sessionID;
+        const data = req.body;
 
-        // Validate the request
-        if (!data['checksum']) {
-          if (data['md5']) {
-            // We re-named this field (md5 -> checksum), doing this check prevents users from getting a scary error message
-            // before they refresh the page and get the most recent version of the app. It can be removed later.
-            data.checksum = data['md5'];
-          } else {
-            throw new HandledError(
-              accountId,
-              400,
-              'Missing required field: checksum',
-              JSON.stringify(data)
-            );
-          }
-        }
+        const response = await sync({ accountId, sessionId, data });
 
-        // Prevent race conditions across requests
-        await lockAccount(accountId);
-
-        // For testing locks
-        // await sleep(10000);
-
-        let state = undefined;
-        let responseData = {};
-        let anyChangesMade = false;
-
-        try {
-          // Check if the client sent updates to the server
-          if (
-            data.patch &&
-            Array.isArray(data.patch) &&
-            data.patch.length !== 0
-          ) {
-            logger.log(
-              accountId,
-              'Client has updates'
-              //JSON.stringify(data.patch, null, 2)
-            );
-
-            // Pass the client's patch to the database to persist its changes
-            logger.log(
-              accountId,
-              'Client patch. Number of patches: ',
-              data.patch.length
-            );
-            await this.databaseCalls.patchState(data.patch, accountId);
-            state = await this.databaseCalls.getClientState(accountId);
-
-            // Useful for debugging
-            /*logger.log(
-              accountId,
-              "updatedState",
-              JSON.stringify(state, null, 2),
-              SharedLib.commonUtils.getHash(state)
-            );
-            */
-            anyChangesMade = true;
-          } else {
-            logger.log(accountId, 'No updates from client');
-          }
-
-          // Calculate the checksum of the current state
-          state = state || (await this.databaseCalls.getClientState(accountId));
-          let checksum = SharedLib.commonUtils.getHash(state);
-
-          // Compare the calculated checksum with the checksum provided by the client to determine if the server has updates for the client.
-          if (data.checksum !== checksum) {
-            logger.log(
-              accountId,
-              'Server has updates. CLIENT: ',
-              data.checksum,
-              ' SERVER: ',
-              checksum
-            );
-
-            // If we have an ancestor state cached and client did not request a full sync we'll send only a patch representing the server's updates
-            // If the client requested a full sync or we don't have a cached ancestor we'll send the entire state to the client
-            let serverAncestor = await this.cacheCalls.getAncestor(
-              accountId,
-              req.sessionID
-            );
-            logger.log(
-              accountId,
-              'Retrieving ancestor'
-              /*JSON.stringify(
-                serverAncestor.optimizations[state.optimizations.length - 1],
-                null,
-                2
-              )*/
-            );
-            if (data.type === 'any' && serverAncestor) {
-              // Yes we have an ancestor!
-              logger.log(accountId, 'performing patch sync w/ ancestor');
-
-              // Apply the client's patch to the ancestor (this prevents us from sending back the change the client just sent us)
-              serverAncestor = SharedLib.objectMerge.patch(
-                serverAncestor,
-                data.patch,
-                true
-              );
-
-              // Diff the ancestor and the localState (dbState) to get the patch we need to send back to the client
-              let serverPatch = SharedLib.objectMerge.diff(
-                serverAncestor,
-                state
-              );
-              logger.log(
-                accountId,
-                'Server Patch',
-                JSON.stringify(serverPatch, null, 2).length
-              );
-              responseData.patch = serverPatch;
-            } else {
-              // No we have no ancestor OR sync status is 'full', send back the whole state
-              logger.log(
-                accountId,
-                'performing full sync',
-                'Requested Sync Type:',
-                data.type,
-                'Ancestor present?:',
-                !!serverAncestor
-              );
-
-              // The browser specifically requested a full sync, something must have gone wrong with the patch sync.
-              // Print the state string so we can compare what went wrong with the browser's version
-              if (data.type === 'full') {
-                logger.warn(
-                  accountId,
-                  'Full sync requested by browser, something must have gone wrong with the patch sync',
-                  SharedLib.commonUtils.getObjectString(state)
-                  //JSON.stringify(state, null, 2)
-                );
-              }
-
-              responseData.base =
-                state || (await this.databaseCalls.getClientState(accountId));
-            }
-
-            anyChangesMade = true;
-          } else {
-            logger.log(
-              accountId,
-              'No updates from server',
-              data.checksum,
-              checksum
-            );
-          }
-
-          // Whatever happened, we need to send the checksum back
-          responseData.checksum = checksum;
-
-          // Finally, if changes were made by either the client or the server, update the ancestor state for this session. This will reduce network egress for subsequent syncs.
-          if (anyChangesMade) {
-            await this.cacheCalls.setAncestor(accountId, req.sessionID, state);
-          }
-        } finally {
-          // Unlock the account
-          await unlockAccount(accountId);
-        }
-
-        // Woot, done
-        res.status(200).send(responseData);
+        res.status(200).send(response);
       })
     );
 

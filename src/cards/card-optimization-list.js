@@ -5,7 +5,7 @@ import { setRoute } from 'actions/route';
 import { compose, withHandlers } from 'recompose';
 import NoSelect from 'elements/no-select';
 import ListButton from 'elements/list-button';
-import SharedLib from '/../shared-lib';
+import SharedLib from 'shared-lib';
 import IconButton from 'elements/icon-button';
 
 const enhance = compose(
@@ -74,7 +74,7 @@ const CardOptimizationList = (props) => (
             <IconButton
               id={'edit-optimization-' + optimization.id}
               alt="edit"
-              src="/server/assets/edit.svg"
+              src="/assets/edit.svg"
               onClick={props.handleEditClick(optimization)}
               invert
             />

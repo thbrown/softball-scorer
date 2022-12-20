@@ -312,7 +312,7 @@ class CardPlateAppearance extends React.Component {
     this.props.plateAppearances.forEach((value) => {
       let x = -1;
       let y = -1;
-      let imageSrc = '/server/assets/baseball.svg';
+      let imageSrc = '/assets/baseball.svg';
 
       if (value.id === this.props.plateAppearance.id) {
         x = this.state.paLocationX;
@@ -410,7 +410,7 @@ class CardPlateAppearance extends React.Component {
     let confirm = DOM.img({
       id: 'pa-confirm',
       key: 'confirm',
-      src: '/server/assets/check.svg',
+      src: '/assets/check.svg',
       onClick: this.handleConfirmClick,
       alt: 'confirm',
       className: 'plate-appearance-card-actions',
@@ -420,7 +420,7 @@ class CardPlateAppearance extends React.Component {
     let cancel = DOM.img({
       id: 'pa-cancel',
       key: 'cancel',
-      src: '/server/assets/cancel.svg',
+      src: '/assets/cancel.svg',
       onClick: this.handleCancelClick,
       alt: 'cancel',
       className: 'plate-appearance-card-actions',
@@ -431,7 +431,7 @@ class CardPlateAppearance extends React.Component {
       let trash = DOM.img({
         id: 'pa-delete',
         key: 'delete',
-        src: '/server/assets/delete.svg',
+        src: '/assets/delete.svg',
         onClick: this.handleDeleteClick,
         alt: 'delete',
         className: 'plate-appearance-card-actions',
@@ -466,8 +466,8 @@ class CardPlateAppearance extends React.Component {
     let imageSrcForCurrentPa = results
       .getNoHitResults()
       .includes(this.state.paResult)
-      ? '/server/assets/baseball-out.svg'
-      : '/server/assets/baseball-hit.svg';
+      ? '/assets/baseball-out.svg'
+      : '/assets/baseball-hit.svg';
     return DOM.div(
       {
         className: 'card',

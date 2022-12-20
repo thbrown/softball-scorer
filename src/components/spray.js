@@ -175,8 +175,8 @@ const Field = enhanceField((props) => {
       const { x, y } = getHitPosition(plateAppearance);
       if (plateAppearance.location && x && y) {
         const image = results.getNoHitResults().includes(plateAppearance.result)
-          ? '/server/assets/baseball-out.svg'
-          : '/server/assets/baseball-hit.svg';
+          ? '/assets/baseball-out.svg'
+          : '/assets/baseball-hit.svg';
         const alt = results.getNoHitResults().includes(plateAppearance.result)
           ? 'out'
           : 'hit';

@@ -1,11 +1,11 @@
 import React from 'react';
 import { goBack } from 'actions/route';
 
-const LeftHeaderButton = (props) =>
-  window?.history?.length > 1 || props.onClick ? (
+const LeftHeaderButton = (props) => {
+  return window?.history?.length > 1 || props.onClick ? (
     <img
       id="back-button"
-      src="/server/assets/back.svg"
+      src="/assets/back.svg"
       className="back-arrow"
       alt="back"
       style={props.style}
@@ -24,6 +24,7 @@ const LeftHeaderButton = (props) =>
   ) : (
     <div style={{ width: '36px' }} />
   );
+};
 
 LeftHeaderButton.defaultProps = {
   style: {},

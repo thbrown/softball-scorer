@@ -1,8 +1,8 @@
 const DatabaseCallsAbstractBlob = require('./database-calls-abstract-blob');
 const { BlobLocation } = require('./database-calls-abstract-blob-types');
-const SharedLib = require('../shared-lib').default;
+const SharedLib = require('../shared-lib');
+const TLSchemas = SharedLib.schemaValidation.default.TLSchemas;
 const logger = require('./logger.js');
-const TLSchemas = SharedLib.schemaValidation.TLSchemas;
 
 const { Storage } = require('@google-cloud/storage');
 

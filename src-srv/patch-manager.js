@@ -1,7 +1,7 @@
 const HandledError = require('./handled-error.js');
 
 const logger = require('./logger.js');
-const SharedLib = require('../shared-lib').default;
+const SharedLib = require('../shared-lib');
 
 // Don't add integers to PROHIBITED_KEYS, they will prohibit adds/edits to arrays at that index
 // TODO: it would be great if we could get this from the json schema (look for the readOnly property)

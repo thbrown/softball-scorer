@@ -195,7 +195,10 @@ export default class CardLineup extends React.Component {
       this.simWorker.terminate();
     }
 
-    let workerUrl = new URL('../workers/simulation-worker.js', import.meta.url);
+    let workerUrl = new URL(
+      'service-workers/simulation-worker.js',
+      window.location.origin
+    );
     this.simWorker = new Worker(workerUrl);
     this.simWorker.onmessage = function (e) {
       let data = JSON.parse(e.data);
@@ -247,7 +250,7 @@ export default class CardLineup extends React.Component {
           }}
         >
           <IconButton
-            src="/server/assets/padlock.svg"
+            src="/assets/padlock.svg"
             alt=""
             invert
             style={{
@@ -267,7 +270,7 @@ export default class CardLineup extends React.Component {
           }}
         >
           <IconButton
-            src="/server/assets/padlock-open.svg"
+            src="/assets/padlock-open.svg"
             alt=""
             invert
             style={{
@@ -386,7 +389,7 @@ export default class CardLineup extends React.Component {
       DOM.img({
         id: 'score-spinner',
         ref: this.scoreSpinnerRef,
-        src: '/server/assets/spinner.gif',
+        src: '/assets/spinner.gif',
         style: {
           visibility: 'unset',
         },
@@ -641,7 +644,7 @@ export default class CardLineup extends React.Component {
         DOM.img({
           id: 'remove-' + playerId,
           key: 'del',
-          src: '/server/assets/remove.svg',
+          src: '/assets/remove.svg',
           className: 'lineup-row-button',
           style: {
             paddingTop: '20px',

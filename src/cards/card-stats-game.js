@@ -213,7 +213,7 @@ const CardStatsGame = ({
                   <IconButton
                     onClick={handleCopyClick}
                     style={styles.publicLinkCopyButton}
-                    src="/server/assets/copy.svg"
+                    src="/assets/copy.svg"
                     alt="copy"
                     invert
                   />

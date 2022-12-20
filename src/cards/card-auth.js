@@ -137,7 +137,6 @@ export default class CardAuth extends React.Component {
             if (status === 200) {
               console.log('Done with sync');
               setRoute('/menu');
-              window.location.reload();
             } else {
               dialog.show_notification(
                 'An error occurred while attempting sync: ' + status
@@ -208,7 +207,7 @@ export default class CardAuth extends React.Component {
         },
         DOM.img({
           id: 'submit-spinner',
-          src: '/server/assets/spinner.gif',
+          src: '/assets/spinner.gif',
           style: {
             display: 'none',
             marginRight: '6px',
