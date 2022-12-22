@@ -17,37 +17,37 @@ self.addEventListener('install', function (event) {
         '/',
         '/robots.txt',
         '/manifest.json',
-        '/server/main.js',
-        '/server/assets/alert.svg',
-        '/server/assets/autotrack.js',
-        '/server/assets/back.svg',
-        '/server/assets/ballfield2.png',
-        '/server/assets/baseball-hit.svg',
-        '/server/assets/baseball-out.svg',
-        '/server/assets/baseball.svg',
-        '/server/assets/cancel.svg',
-        '/server/assets/check.svg',
-        '/server/assets/chevron-right.svg',
-        '/server/assets/delete.svg',
-        '/server/assets/duplicate.svg',
-        '/server/assets/edit.svg',
-        '/server/assets/empty.svg',
-        '/server/assets/help.svg',
-        '/server/assets/home.svg',
-        '/server/assets/icons/logo.svg',
-        '/server/assets/icons/logo192.png',
-        '/server/assets/icons/logo512.png',
-        '/server/assets/link.svg',
-        '/server/assets/main.css',
-        '/server/assets/more.svg',
-        '/server/assets/remove.svg',
-        '/server/assets/padlock.svg',
-        '/server/assets/padlock-open.svg',
-        '/server/assets/spinner.gif',
-        '/server/assets/search.svg',
-        '/server/assets/scoreboard-webfont.woff',
-        '/server/assets/scoreboard-webfont.woff2',
-        '/server/assets/tune-black.svg',
+        '/main.js',
+        '/assets/alert.svg',
+        '/assets/autotrack.js',
+        '/assets/back.svg',
+        '/assets/ballfield2.png',
+        '/assets/baseball-hit.svg',
+        '/assets/baseball-out.svg',
+        '/assets/baseball.svg',
+        '/assets/cancel.svg',
+        '/assets/check.svg',
+        '/assets/chevron-right.svg',
+        '/assets/delete.svg',
+        '/assets/duplicate.svg',
+        '/assets/edit.svg',
+        '/assets/empty.svg',
+        '/assets/help.svg',
+        '/assets/home.svg',
+        '/assets/icons/logo.svg',
+        '/assets/icons/logo192.png',
+        '/assets/icons/logo512.png',
+        '/assets/link.svg',
+        '/assets/main.css',
+        '/assets/more.svg',
+        '/assets/remove.svg',
+        '/assets/padlock.svg',
+        '/assets/padlock-open.svg',
+        '/assets/spinner.gif',
+        '/assets/search.svg',
+        '/assets/scoreboard-webfont.woff',
+        '/assets/scoreboard-webfont.woff2',
+        '/assets/tune-black.svg',
       ]);
     })
   );
@@ -56,10 +56,11 @@ self.addEventListener('install', function (event) {
 self.addEventListener('fetch', function (event) {
   let requestToProcess = event.request;
 
-  // If the url's path doesn't begin with 'server', it's an app url. Redirect it to / and the client code will handle it.
+  // If the url's path doesn't begin with 'server' or 'assets', it's an app url. Redirect it to / and the client code will handle it.
   // The service worker itself is an exception, it we served it under /server/service-worker.js it would not be able to
   // cache the request to the root '/' due to scoping. So we've put it under /service-worker.js.
   // robots.txt is also an exception
+  // main.js is also an exception for webpack dev server reasons
   var url = new URL(event.request.url);
   let pathArray = url.pathname ? url.pathname.split('/') : undefined;
   if (
@@ -67,9 +68,11 @@ self.addEventListener('fetch', function (event) {
     (!pathArray ||
       pathArray.length < 2 ||
       (pathArray[1] !== 'server' &&
+        pathArray[1] !== 'assets' &&
         pathArray[1] !== 'service-worker.js' &&
         pathArray[1] !== 'robots.txt' &&
-        pathArray[1] !== 'manifest.json'))
+        pathArray[1] !== 'manifest.json' &&
+        pathArray[1] !== 'main.js'))
   ) {
     console.log(`[ServiceWorker] redirecting ${event.request.url} to base url`);
     requestToProcess = new Request('/');
