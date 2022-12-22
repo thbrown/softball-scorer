@@ -3,9 +3,17 @@ const jsonpatch = require('fast-json-patch');
 const jsonPointer = require('jsonpointer');
 
 /**
- * JSON patch spec RFC6902 doesn't quite work for us because we are not necessarily applying the patch to the objects we diffed.
- * This wrapper performs a conversion of this application's JSON documents so that they can be diffed and patched as we expect
- * by a RFC6902-compatible library.
+ * JSON patch spec RFC6902 doesn't quite work for us for three reasons.
+ * - First, we want to be able to identify JSON objects within arrays by their 'id' property rather than their index
+ *   within the array and apply diffs accordingly.
+ * - Second, we are not necessarily applying the patch to the objects we diffed which can cause conflicts if the
+ *   pointer in the patch we are attempting apply does not exist on the document we are attempting to patch.
+ * - Third, we need to be able to preform document merges (by ignoring removals and possibly modifying replacements).
+ *
+ * This wrapper performs a conversion of this application's JSON documents so that they can be diffed and patched as we expect by a RFC6902-compatible
+ * library.
+ *
+ * Restrictions - id must be string or numbers (not booleans, null, arrays, or objects)
  *
  * The conversion addresses these three particular issues:
  *
@@ -43,7 +51,35 @@ const jsonPointer = require('jsonpointer');
  *
  *  Then we can apply RFC6902 patches, then convert back.
  *
- *  Note: The difficulty of identifying whether an empty array should be converted to an object or not results in a few special cases described in the code below.
+ *  Note: Typically when a document is being converted to an RFC6902 compatible format we can tell if we should preform
+ *  the conversion (from array to object) by looking for an 'id' property in first element of the arrays we are diffing
+ *  (e.g. if the array has object at index 0 with an "id" property, perform the conversion, otherwise, don't). However,
+ *  when diffing empty arrays, it's not possible to determine whether the conversion should be performed. Therefore,
+ *  we default to not performing the conversion and leaving an empty array in the patch object.
+ *
+ *  Subsequently, during the patch process we sometimes need to correct this decision if we ever find ourselves
+ *  attempting to apply a patch that contains an empty array ([]) or apply a patch to an empty array ([]).
+ *
+ *  The table below enumerates every combination of patch involving [] and {} and identifies combinations that need to
+ *  be addressed.
+ *
+ *  Legend:
+ *  i - First document to diff (against ii) to find the patch
+ *  ii - Second document to diff (against i) to find the patch
+ *  iii - Document to apply the patch too (also called the target)
+ *
+ *  [] - represents a document is an empty array (and maybe should have been converted into an empty object by the diff process instead)
+ *  {} - represents a document with at least one property beginning with '#' or '$' (which would signify that it's been converted from an array of objects w/ id properties)
+ *
+ *  i  - ii - iii - OP - STATUS - LABEL (if applicable)
+ *  [] - [] - {}  - NOOP - OKAY
+ *  [] - [] - []  - NOOP - OKAY
+ *  [] - {} - {}  - REPLACE - FIX NEEDED (patch would overwrite existing keys in iii) - SCENARIO A - FIX IN DIFF - ALL
+ *  [] - {} - []  - REPLACE - OKAY (it's fine to replace an empty array with an object)
+ *  {} - {} - {}  - ADD/REMOVE - OKAY (items can be added or removed from iii)
+ *  {} - {} - []  - ADD/REMOVE - FIX NEEDED (can't add or remove keys from/to an array) - SCENARIO B - FIX IN PATCH - ALL
+ *  {} - [] - []  - REPLACE - OKAY (it's fine to replace an empty array with an object)
+ *  {} - [] - {}  - REPLACE - FIX NEEDED (patch would overwrite existing keys in iii)  - SCENARIO C - FIX IN DIFF - MERGE ONLY???
  *
  * 3) We need to be fault tolerant when applying patches that affect objects that have been deleted.
  *
@@ -78,8 +114,46 @@ let patch = function (
   // Convert to RFC6902 compatible document
   toPatch = this._toRFC6902(toPatch, patchObj, toPatch);
 
-  // It's impossible for _toRFC6902(...) to determine if the array is an array of objects with ids or just a regular array, so the function assumes the array is a regular array.
-  // If, in any patch, we are attempting to add properties to an array, we know _toRFC6902(...) made the wrong assumption. So we'll correct that here.
+  // Fix for SCENARIO A (see documentation at the top of this class)
+  // If we are replacing an object, convert the replacement to an addition by re-diffing our target with a {}
+  // [] - {} - {}
+  let updatedPatch = [];
+  for (let patchStep of patchObj) {
+    if (patchStep.op === 'replace') {
+      let destination = jsonPointer.get(toPatch, patchStep.path);
+      if (
+        typeof destination === 'object' && // Is this an object (not null or an array)
+        destination !== null &&
+        !Array.isArray(destination) &&
+        Object.keys(destination).length >= 1 // It's fine to replace empty objects
+      ) {
+        let keys = Object.keys(destination);
+        if (keys.length > 0) {
+          // Just check the first key. All keys sent through _toRFC6902(...) should have a prefix so this should never fail.
+          if (keys[0][0] === '$' || keys[0][0] === '#') {
+            // We want to do adds, not a replace. We can get those by re-doing the diff for this section against '{}' instead if '[]'
+            let newPatch = jsonpatch.compare({}, patchStep.value, false);
+            console.log('REMOVE: ', patchStep);
+
+            for (let innerPatchStep of newPatch) {
+              // This should only ever have adds
+              // TODO: what if it has adds to an array?
+              // This patch should be applied at the original patches path
+              innerPatchStep.path = patchStep.path + innerPatchStep.path;
+              updatedPatch.push(innerPatchStep);
+              console.log('ALT: ', innerPatchStep);
+            }
+            continue;
+          }
+        }
+      }
+    }
+    updatedPatch.push(patchStep);
+  }
+  patchObj = updatedPatch;
+
+  // Fix for SCENARIO B (see documentation at the top of this class)
+  // Convert the target to an empty object before doing any additions
   for (let patchStep of patchObj) {
     if (patchStep.op === 'add') {
       let splitPath = patchStep.path.split('/');
@@ -90,9 +164,9 @@ let patch = function (
         let firstChar = lastPathElement.substring(0, 1);
         // These prefixes indicate we should be working with a object (that should have been converted from an array by _toRFC6902(...))
         if (firstChar === '#' || firstChar === '$') {
-          // It's actually an array of id'd objects! That's represented as an object in RFC6902 format. Fix it.
+          // It's actually an empty array of id'd objects! We want that to be {} instead of []. Fix it.
           if (oneUpPath.trim() === '') {
-            toPatch = {}; // JSON pointer cant set the root
+            toPatch = {}; // JSON pointer cant set the root, so we'll set it directly
           } else {
             jsonPointer.set(toPatch, oneUpPath, {});
           }
@@ -128,11 +202,9 @@ let patch = function (
         continue;
       }
 
-      // Same problem as above - It's impossible for _toRFC6902(...) to determine if the array is an array of objects with ids or
-      // just a regular array, so the function assumes the array is a regular array. If we are merging two documents, one with an
-      // array of objects w/ ids and another with an empty array, _toRFC6902(...) will guess wrong and the patch will attempt to
-      // replace our objects with an array. This will get through the merger because the operation is a replace, not a remove.
-      // To solve this, we'll ignore any "replace" op that's trying to put an empty array over an object with $ or # keys.
+      // Fix for SCENARIO C (see documentation at the top of this class)
+      // If we are ever trying to replace a converted object with an empty array, just stop and don't do it
+      // TODO: why is this only a problem on merge? Maybe because it's okay to blast away existing keys on a non merge?
       if (
         patchStep.op === 'replace' &&
         Array.isArray(patchStep.value) &&
@@ -155,7 +227,6 @@ let patch = function (
     patchObj = updatedPatch;
   }
 
-  //console.log('PATCH TO BE APPLIED', patchObj, toPatch);
   const patched = jsonpatch.applyPatch(toPatch, patchObj, false);
   return this._fromRFC6902(patched.newDocument);
 };
@@ -247,7 +318,7 @@ let _isValueValid = function (toCheck, forbiddenKeySet) {
 /**
  * Keys are prefixed in output, this is required for converting back via _fromRFC6902(...) (prefix - description):
  * $ - converted from an array to object
- * # - converted from an array to object w/ numeric key
+ * # - converted from an array to object w/ numeric id
  * _ - kept as an object
  * * - kept as an object w/ numeric key [This is a unicorn, keys can not be numeric in JSON, they are all strings]
  */
@@ -304,7 +375,7 @@ let _fromRFC6902 = function (input) {
   } else if (typeof input === 'object') {
     let keys = Object.keys(input);
     if (keys.length === 0) {
-      return {};
+      return {}; // TODO: does this need to be []?
     }
 
     let firstLetterOfFirstKey = keys[0].substring(0, 1);
@@ -314,7 +385,10 @@ let _fromRFC6902 = function (input) {
         let first = key.substring(0, 1);
         if (first !== '$' && first !== '#') {
           throw new Error(
-            'Invalid json document for RFC6902 conversion: ' + key
+            'Invalid json document for RFC6902 conversion: ' +
+              key +
+              ' mixed keys ' +
+              keys
           );
         }
         let rest = key.substring(1);
@@ -329,7 +403,10 @@ let _fromRFC6902 = function (input) {
         let first = key.substring(0, 1);
         if (first !== '_' && first !== '*') {
           throw new Error(
-            'Invalid json document for RFC6902 conversion: ' + key
+            'Invalid json document for RFC6902 conversion: ' +
+              key +
+              ' mixed keys ' +
+              keys
           );
         }
         let rest = key.substring(1);

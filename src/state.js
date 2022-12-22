@@ -159,6 +159,7 @@ exp.sync = async function (fullSync) {
     };
 
     // Ship it
+    console.log(state.getAncestorState(), localState);
     console.log('[SYNC] Syncing...', body);
     const response = await state.requestAuth(
       'POST',

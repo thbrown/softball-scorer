@@ -59,6 +59,23 @@ test('MERGE: Array w/ ids - nested - without existing members - reverse', () => 
   expect(Object.keys(document.slytherins).length).toEqual(3);
 });
 
+test('MERGE: Array w/ ids - nested - without existing members into third array - SCENARIO A', () => {
+  let documentA = { slytherins: [] };
+  let documentB = { slytherins: [{ id: 3, name: 'Millicent' }] };
+  let documentC = {
+    slytherins: [
+      { id: 4, name: 'Crab' },
+      { id: 5, name: 'Goyle' },
+    ],
+  };
+
+  let patch = objectMerge.diff(documentA, documentB);
+  console.log(patch);
+
+  let document = objectMerge.patch(documentC, patch, true, true);
+  expect(Object.keys(document.slytherins).length).toEqual(3);
+});
+
 // Adding to populated array with ids
 // Merging array without ids
 test('MERGE: Array w/ ids - root - without existing members [Empty array bug]', () => {
