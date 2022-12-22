@@ -8,7 +8,7 @@ const jsonPointer = require('jsonpointer');
  *   within the array and apply diffs accordingly.
  * - Second, we are not necessarily applying the patch to the objects we diffed which can cause conflicts if the
  *   pointer in the patch we are attempting apply does not exist on the document we are attempting to patch.
- * - Third, we need to be able to preform document merges (by ignoring removals and possibly modifying replacements).
+ * - Third, we need to be able to perform document merges (by ignoring removals and possibly modifying replacements).
  *
  * This wrapper performs a conversion of this application's JSON documents so that they can be diffed and patched as we expect by a RFC6902-compatible
  * library.
@@ -53,15 +53,19 @@ const jsonPointer = require('jsonpointer');
  *
  *  Note: Typically when a document is being converted to an RFC6902 compatible format we can tell if we should preform
  *  the conversion (from array to object) by looking for an 'id' property in first element of the arrays we are diffing
- *  (e.g. if the array has object at index 0 with an "id" property, perform the conversion, otherwise, don't). However,
- *  when diffing empty arrays, it's not possible to determine whether the conversion should be performed. Therefore,
- *  we default to not performing the conversion and leaving an empty array in the patch object.
+ *  (e.g. if the array has an object at index 0 with an "id" property, perform the conversion, otherwise, don't).
+ *  However, when converting empty arrays, it's not possible to determine whether the conversion should be performed.
+ *  Therefore, we default to not performing the conversion and leaving an empty array.
  *
- *  Subsequently, during the patch process we sometimes need to correct this decision if we ever find ourselves
- *  attempting to apply a patch that contains an empty array ([]) or apply a patch to an empty array ([]).
+ *  Subsequently, after the conversion and the compare process we sometimes need to correct this decision if we ever
+ *  discover that we generated a patch between a converted object and a non-converted array ([]). We do this in a post-
+ *  processing step after the initial compare.
  *
- *  The table below enumerates every combination of patch involving [] and {} and identifies combinations that need to
- *  be addressed.
+ *  Also, when applying the patch that attempts to add or remove keys from to/from an empty array, we need to change
+ *  that [] to an empty object before applying the patch.
+ *
+ *  For further clarification, the table below enumerates every combination of patch involving [] and {} and identifies
+ *  which combinations that need to be addressed.
  *
  *  Legend:
  *  i - First document to diff (against ii) to find the patch
@@ -74,12 +78,16 @@ const jsonPointer = require('jsonpointer');
  *  i  - ii - iii - OP - STATUS - LABEL (if applicable)
  *  [] - [] - {}  - NOOP - OKAY
  *  [] - [] - []  - NOOP - OKAY
- *  [] - {} - {}  - REPLACE - FIX NEEDED (patch would overwrite existing keys in iii) - SCENARIO A - FIX IN DIFF - ALL
- *  [] - {} - []  - REPLACE - OKAY (it's fine to replace an empty array with an object)
+ *  [] - {} - {}  - REPLACE - FIX NEEDED (patch would overwrite existing keys in iii) - SCENARIO A
+ *  [] - {} - []  - REPLACE - FIX NEEDED (change should be additions not replacements & we can't apply additions to []) - SCENARIO A & SCENARIO B
  *  {} - {} - {}  - ADD/REMOVE - OKAY (items can be added or removed from iii)
- *  {} - {} - []  - ADD/REMOVE - FIX NEEDED (can't add or remove keys from/to an array) - SCENARIO B - FIX IN PATCH - ALL
- *  {} - [] - []  - REPLACE - OKAY (it's fine to replace an empty array with an object)
- *  {} - [] - {}  - REPLACE - FIX NEEDED (patch would overwrite existing keys in iii)  - SCENARIO C - FIX IN DIFF - MERGE ONLY???
+ *  {} - {} - []  - ADD/REMOVE - FIX NEEDED (can't add or remove keys from/to an array) - SCENARIO B
+ *  {} - [] - []  - REPLACE - FIX NEEDED (change should be removals not replacements & we can't apply removals to []) - SCENARIO C & SCENARIO B
+ *  {} - [] - {}  - REPLACE - FIX NEEDED (patch would overwrite existing keys in iii)  - SCENARIO C
+ *
+ * SCENARIO A - FIX IN DIFF
+ * SCENARIO B - FIX IN PATCH
+ * SCENARIO C - FIX IN DIFF
  *
  * 3) We need to be fault tolerant when applying patches that affect objects that have been deleted.
  *
@@ -93,11 +101,85 @@ const jsonPointer = require('jsonpointer');
  */
 
 let diff = function (mine, theirs) {
-  return jsonpatch.compare(
-    this._toRFC6902(mine),
-    this._toRFC6902(theirs),
-    false
-  );
+  // Do the RFC6902 conversion an diffing
+  mine = this._toRFC6902(mine);
+  theirs = this._toRFC6902(theirs);
+  let patchObj = jsonpatch.compare(mine, theirs, false);
+
+  // Post processing for SCENARIO A (see documentation at the top of this class)
+  // If we are replacing an object, convert the replacement to an addition by re-diffing our target with a {}
+  // [] - {} - ?
+  let updatedPatch = [];
+  for (let patchStep of patchObj) {
+    if (patchStep.op === 'replace') {
+      let destinationMine = jsonPointer.get(mine, patchStep.path);
+      let destinationTheirs = jsonPointer.get(theirs, patchStep.path);
+
+      // Replacing a [] with a {}
+      if (
+        commonUtils.isObject(destinationTheirs) &&
+        Array.isArray(destinationMine) &&
+        destinationMine.length === 0
+      ) {
+        let keys = Object.keys(destinationTheirs);
+        if (keys.length > 0) {
+          // Make sure {} was converted from an array of objects w/ ids (i.e. it a key that begin with "$" or "#")
+          // Just check the first key. All keys sent through _toRFC6902(...) should have a prefix so this should never fail.
+          if (keys[0][0] === '$' || keys[0][0] === '#') {
+            // We want to do adds and removals, not a replace. We can get those by re-doing the diff for this section against '{}' instead if '[]'
+            let newPatch = jsonpatch.compare({}, destinationTheirs, false);
+
+            for (let innerPatchStep of newPatch) {
+              // This patch should be applied at the original patches path
+              innerPatchStep.path = patchStep.path + innerPatchStep.path;
+              updatedPatch.push(innerPatchStep);
+            }
+            continue;
+          }
+        }
+      }
+    }
+    updatedPatch.push(patchStep);
+  }
+  patchObj = updatedPatch;
+
+  // Post processing for SCENARIO C (see documentation at the top of this class)
+  // If we are ever trying to replace a converted object with an empty array, just stop and don't do it
+  // {} - [] - ?
+  updatedPatch = [];
+  for (let patchStep of patchObj) {
+    if (patchStep.op === 'replace') {
+      let destinationMine = jsonPointer.get(mine, patchStep.path);
+      let destinationTheirs = jsonPointer.get(theirs, patchStep.path);
+
+      // Replacing a {} with a []
+      if (
+        commonUtils.isObject(destinationMine) &&
+        Array.isArray(destinationTheirs) &&
+        destinationTheirs.length === 0
+      ) {
+        let keys = Object.keys(destinationMine);
+        if (keys.length > 0) {
+          // Make sure {} was converted from an array of objects w/ ids (i.e. it a key that begin with "$" or "#")
+          // Just check the first key. All keys sent through _toRFC6902(...) should have a prefix so this should never fail.
+          if (keys[0][0] === '$' || keys[0][0] === '#') {
+            // We want to do adds and removals, not a replace. We can get those by re-doing the diff for this section against '{}' instead if '[]'
+            let newPatch = jsonpatch.compare(destinationMine, {}, false);
+            for (let innerPatchStep of newPatch) {
+              // This patch should be applied at the original patches path
+              innerPatchStep.path = patchStep.path + innerPatchStep.path;
+              updatedPatch.push(innerPatchStep);
+            }
+            continue;
+          }
+        }
+      }
+    }
+    updatedPatch.push(patchStep);
+  }
+  patchObj = updatedPatch;
+
+  return patchObj;
 };
 
 let patch = function (
@@ -114,48 +196,11 @@ let patch = function (
   // Convert to RFC6902 compatible document
   toPatch = this._toRFC6902(toPatch, patchObj, toPatch);
 
-  // Fix for SCENARIO A (see documentation at the top of this class)
-  // If we are replacing an object, convert the replacement to an addition by re-diffing our target with a {}
-  // [] - {} - {}
-  let updatedPatch = [];
-  for (let patchStep of patchObj) {
-    if (patchStep.op === 'replace') {
-      let destination = jsonPointer.get(toPatch, patchStep.path);
-      if (
-        typeof destination === 'object' && // Is this an object (not null or an array)
-        destination !== null &&
-        !Array.isArray(destination) &&
-        Object.keys(destination).length >= 1 // It's fine to replace empty objects
-      ) {
-        let keys = Object.keys(destination);
-        if (keys.length > 0) {
-          // Just check the first key. All keys sent through _toRFC6902(...) should have a prefix so this should never fail.
-          if (keys[0][0] === '$' || keys[0][0] === '#') {
-            // We want to do adds, not a replace. We can get those by re-doing the diff for this section against '{}' instead if '[]'
-            let newPatch = jsonpatch.compare({}, patchStep.value, false);
-            console.log('REMOVE: ', patchStep);
-
-            for (let innerPatchStep of newPatch) {
-              // This should only ever have adds
-              // TODO: what if it has adds to an array?
-              // This patch should be applied at the original patches path
-              innerPatchStep.path = patchStep.path + innerPatchStep.path;
-              updatedPatch.push(innerPatchStep);
-              console.log('ALT: ', innerPatchStep);
-            }
-            continue;
-          }
-        }
-      }
-    }
-    updatedPatch.push(patchStep);
-  }
-  patchObj = updatedPatch;
-
   // Fix for SCENARIO B (see documentation at the top of this class)
-  // Convert the target to an empty object before doing any additions
+  // Convert the target to an empty object before doing any additions or subtractions
+  // {} - [] - [] | [] - {} - [] | {} - {} - []
   for (let patchStep of patchObj) {
-    if (patchStep.op === 'add') {
+    if (patchStep.op === 'add' || patchStep.op === 'remove') {
       let splitPath = patchStep.path.split('/');
       let oneUpPath = splitPath.slice(0, -1).join('/');
       let thingAtPointer = jsonPointer.get(toPatch, oneUpPath);
@@ -175,6 +220,7 @@ let patch = function (
     }
   }
 
+  // Only perform operations on json elements that exist
   if (skipOperationOnNonExistent) {
     let updatedPatch = [];
     for (let patchStep of patchObj) {
@@ -193,34 +239,15 @@ let patch = function (
     patchObj = updatedPatch;
   }
 
+  // Don't do any removals (aka perform a merge)
+  // Even though this is a merge, we'll still do replacements. The 'mine' end of the diff wins on a conflict.
   if (skipDeletes) {
     let updatedPatch = [];
-    // Only perform operations on json elements that exist
     for (let patchStep of patchObj) {
       // Don't do any removal or replacements
       if (patchStep.op === 'remove') {
         continue;
       }
-
-      // Fix for SCENARIO C (see documentation at the top of this class)
-      // If we are ever trying to replace a converted object with an empty array, just stop and don't do it
-      // TODO: why is this only a problem on merge? Maybe because it's okay to blast away existing keys on a non merge?
-      if (
-        patchStep.op === 'replace' &&
-        Array.isArray(patchStep.value) &&
-        patchStep.value.length === 0
-      ) {
-        // We'll fail if this doesn't exist, there are no current use cases for skipOperationOnNonExistent=false && skipDeletes=true
-        let destination = jsonPointer.get(toPatch, patchStep.path);
-        let keys = Object.keys(destination);
-        if (keys.length > 0) {
-          // Just check the first key. All keys sent through _toRFC6902(...) should have a prefix so this should never fail.
-          if (keys[0][0] === '$' || keys[0][0] === '#') {
-            continue; // No, do not delete my data
-          }
-        }
-      }
-
       // Everything else is okay
       updatedPatch.push(patchStep);
     }

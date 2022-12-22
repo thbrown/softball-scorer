@@ -116,6 +116,10 @@ export const sortJson = function sortJson(object) {
   return newObject;
 };
 
+export const isObject = function isObject(input) {
+  return typeof input === 'object' && input !== null && !Array.isArray(input);
+};
+
 const exp = {
   factorial,
   binomial,
