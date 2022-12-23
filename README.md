@@ -16,7 +16,7 @@ curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 3. Install yarn `[sudo] npm install -g yarn`
 4. From this repo's root directory, run `yarn`.
 5. Setup any optional features using the sections below if desired.
-6. Build client source (dev mode), and start the server. From the root directory:  
+6. Build client source (dev mode), and start the server (no css build). From the root directory:  
    `yarn bundle && yarn start`
 7. Visit http://localhost:8888 in your browser.
 
@@ -28,7 +28,7 @@ use `yarn bundle` to build webpack, but skip the terser/css steps.
 
 ## Prod
 
-use `yarn --cwd ./shared build && yarn build && yarn start`
+use `yarn build-css && yarn --cwd ./shared build && yarn build && yarn start`
 
 ## Optional features
 

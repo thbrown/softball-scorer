@@ -1,3 +1,4 @@
+
 body {
   background: $css.colors.BACKGROUND;
   color: $css.colors.TEXT_DARK;
@@ -78,9 +79,11 @@ hr {
   width: $css.sizes.ICON;
 }
 
+/*
 .list-button {
   margin: -12px;
 }
+*/
 
 .card-title {
   position: fixed;
@@ -369,13 +372,22 @@ hr {
 
 /* It's possible to make these have prettier names */
 .react-autosuggest__container,
-.auth-input-container {
+.auth-input-container{
   position: relative;
-  /* TODO This should match the list-button  */
   margin: 10px;
   /* TODO Which color is this supposed to be?  */
   color: $css.colors.TEXT_LIGHT;
   color: black;
+}
+
+.page-width-input {
+  width: calc(100% - 20px);
+  padding: 14px;
+  height: 48px;
+  margin: 2px;
+  padding-left: 10px;
+  font-size: 18px;
+  border-radius: 0.25rem;
 }
 
 .react-autosuggest__input,
@@ -553,14 +565,12 @@ hr {
 .list-button {
   background-color: $css.colors.WHITE;
   border: $css.border;
-  width: auto;
   margin: 10px;
 }
 
 .edit-button {
   background-color: $css.colors.WHITE;
   border: $css.border;
-  width: auto;
   margin: 10px;
   justify-content: left;
 }
