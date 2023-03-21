@@ -156,14 +156,11 @@ const CardStatsSharing = (props) => {
         </div>
         <div>
           <div style={{ ...styles.helpText, margin: '5px 0px' }}>
-            Generates a link you can share with others - teammates, fans, etc.
-          </div>
-          <div style={{ ...styles.helpText, margin: '5px 0px' }}>
-            Anyone with the link can view this team's stats (updated live).
-          </div>
-          <div style={{ ...styles.helpText, margin: '5px 0px' }}>
+            A public link is one you can share with others - teammates, fans,
+            etc. Anyone with the link can view this team's stats (updated live).
             Team stats can be hidden at any time by unchecking the checkbox.
           </div>
+          <div style={{ ...styles.helpText, margin: '5px 0px' }}></div>
         </div>
         {publicIdEnabled && (
           <div style={styles.publicLinkContainer}>
