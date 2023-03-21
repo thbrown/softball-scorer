@@ -8,23 +8,20 @@ import SharedLib from 'shared-lib';
 import IconButton from 'elements/icon-button';
 
 const CardOptimizationList = (props) => {
-  const handleOptimizationClick = (props) => (optimization) => () => {
+  const handleOptimizationClick = (optimization) => () => {
     setRoute(`/optimizations/${optimization.id}`);
   };
-  const handleEditClick = (props) => (optimization) => (ev) => {
+  const handleEditClick = (optimization) => (ev) => {
     setRoute(`/optimizations/${optimization.id}/edit`);
     ev.stopPropagation();
   };
-  const handleCreateClick = (props) => () => {
-    console.log('click create', props);
+  const handleCreateClick = (props) => {
     const d = new Date();
     const optimization = state.addOptimization(
       `${d.getMonth() + 1}/${d.getDate()} optimization`
     );
     setRoute(`/optimizations/${optimization.id}/edit?isNew=true`);
   };
-
-  console.log('lol what?');
 
   return (
     <Card title="Optimizations">

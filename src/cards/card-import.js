@@ -6,6 +6,7 @@ import Card from 'elements/card';
 import CardSection from 'elements/card-section';
 import { setRoute } from 'actions/route';
 import { makeStyles } from 'css/helpers';
+import css from 'css';
 
 const TLSchemas = SharedLib.schemaValidation.TLSchemas;
 
@@ -149,12 +150,24 @@ const CardImport = () => {
         <div style={{ maxWidth: '500px' }}>
           <div>
             <b>
-              <div>
-                Import data data that's been downloaded from softball.app's
-                export feature.
-              </div>
-              <div>
-                Any data imported here will be merged with your existing data.
+              <div
+                style={{
+                  textAlign: 'left',
+                  margin: '0px 16px',
+                }}
+              >
+                Import data data that's been downloaded from{' '}
+                <span
+                  style={{
+                    textDecoration: 'underline',
+                    color: css.colors.PRIMARY_DARK,
+                  }}
+                >
+                  {' '}
+                  Softball.app's{' '}
+                </span>
+                export feature. Any data imported here will be merged with your
+                existing data.
               </div>
             </b>
           </div>

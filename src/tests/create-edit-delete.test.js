@@ -5,7 +5,6 @@ import { setRoute, setOnGoBack } from 'actions/route';
 import { getPageWrapper } from './test-helpers';
 
 Enzyme.configure({ adapter: new Adapter() });
-state.setOffline();
 
 const TEST_TEAM_NAME = 'Test Team';
 const TEST_GAME_NAME = 'Test Opponent';
@@ -102,6 +101,7 @@ describe('[UI] Create/Edit/Delete', () => {
         setRoute(path);
       });
       state.resetState();
+      state.setOffline();
     });
 
     it('A user can create, edit, and delete a team', () => {

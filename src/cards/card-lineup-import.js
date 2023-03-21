@@ -65,17 +65,17 @@ const toItems = (list) =>
 
 const LineupList = (props) => {
   const { classes } = useLineupListStyles();
-  const handleTeamItemClick = (props) => (item) => {
+  const handleTeamItemClick = (item) => {
     props.setTeam(state.getTeam(item.id));
     window.scroll(0, 0);
   };
-  const handleGameItemClick = (props) => (item) => {
+  const handleGameItemClick = (item) => {
     props.setGame(state.getGame(item.id));
     window.scroll(0, 0);
   };
 
-  const handleConfirmClick = (props) => props.handleConfirmClick;
-  const handleCancelClick = (props) => props.handleCancelClick;
+  const handleConfirmClick = props.handleConfirmClick;
+  const handleCancelClick = props.handleCancelClick;
 
   if (props.game) {
     return (
