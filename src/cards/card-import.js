@@ -163,9 +163,8 @@ const CardImport = () => {
                     color: css.colors.PRIMARY_DARK,
                   }}
                 >
-                  {' '}
-                  Softball.app's{' '}
-                </span>
+                  Softball.app's
+                </span>{' '}
                 export feature. Any data imported here will be merged with your
                 existing data.
               </div>
