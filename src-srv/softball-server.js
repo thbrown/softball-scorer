@@ -1405,11 +1405,11 @@ module.exports = class SoftballServer {
                 reject(err);
                 return;
               }
-              req.session.passport.user = sessionInfo;
               return;
             };
             return done;
           };
+
           passport.serializeUser(sessionInfo, doneWrapper(req));
           initSecondAuthToken(req, res);
           resolve();

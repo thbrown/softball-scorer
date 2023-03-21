@@ -313,10 +313,14 @@ let databaseCalls = class DatabaseCalls {
     if (accountId === undefined) {
       throw new HandledError(accountId, 403, 'Please sign in first');
     }
-    logger.log('Attempting to merge', this.STATES[accountId], patch);
+    logger.log('Attempting to merge', this.STATES[accountId], patch); // TODO: is this really supposed to me a merge?
     this.STATES[accountId] = SharedLib.objectMerge.patch(
       this.STATES[accountId],
-      patch
+      patch,
+      false,
+      false,
+      accountId,
+      logger
     );
   }
 

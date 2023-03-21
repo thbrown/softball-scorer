@@ -120,7 +120,11 @@ const applyServerPatchChanges = async ({
     serverAncestor = SharedLib.objectMerge.patch(
       serverAncestor,
       data.patch,
-      true
+      true,
+      false,
+      false,
+      accountId,
+      patchState
     );
 
     // Diff the ancestor and the localState (dbState) to get the patch we need to send back to the client

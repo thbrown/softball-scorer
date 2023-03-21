@@ -186,7 +186,13 @@ let patch = function (
   toPatch,
   patchObj,
   skipOperationOnNonExistent,
-  skipDeletes
+  skipDeletes,
+  accountId,
+  logger = {
+    error: function (...val) {
+      console.warn(...val);
+    },
+  }
 ) {
   // Empty patch indicates no changes
   if (patchObj === null || patchObj === undefined) {
@@ -230,10 +236,13 @@ let patch = function (
         continue;
       }
 
-      // Keep other things if their targets exist
-      if (jsonPointer.get(toPatch, patchStep.path)) {
+      // Otherwise, keep the patch only if the target's parent exists
+      let oneUpPath = patchStep.path.split('/').slice(0, -1).join('/');
+      if (jsonPointer.get(toPatch, oneUpPath) !== undefined) {
         updatedPatch.push(patchStep);
         continue;
+      } else {
+        console.warn('REMOVED other', patchStep);
       }
     }
     patchObj = updatedPatch;
@@ -254,8 +263,14 @@ let patch = function (
     patchObj = updatedPatch;
   }
 
-  const patched = jsonpatch.applyPatch(toPatch, patchObj, false);
-  return this._fromRFC6902(patched.newDocument);
+  try {
+    const patched = jsonpatch.applyPatch(toPatch, patchObj, false);
+    return this._fromRFC6902(patched.newDocument);
+  } catch (e) {
+    logger.error(accountId, 'BAD PATCH', toPatch);
+    logger.error(accountId, 'BAD PATCH', patchObj);
+    throw e;
+  }
 };
 
 /**

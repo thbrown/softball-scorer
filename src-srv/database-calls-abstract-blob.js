@@ -187,7 +187,14 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     patch = patchManager.securePatch(patch, accountId);
 
     let currentStateBlob = await this._getFullStateBlob(accountId);
-    let newState = SharedLib.objectMerge.patch(currentStateBlob.content, patch);
+    let newState = SharedLib.objectMerge.patch(
+      currentStateBlob.content,
+      patch,
+      false,
+      false,
+      accountId,
+      logger
+    );
 
     await this.writeBlob(
       accountId,
