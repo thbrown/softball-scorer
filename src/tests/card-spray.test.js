@@ -6,12 +6,12 @@ import { setRoute } from 'actions/route';
 import mockData from './mock.json';
 
 Enzyme.configure({ adapter: new Adapter() });
-state.setOffline();
 
 describe('[UI] Spray', () => {
   let wrapper = null;
 
   beforeAll(() => {
+    state.setOffline();
     state.setLocalState(mockData);
     const { wrapper: localWrapper } = getPageWrapper();
     wrapper = localWrapper;

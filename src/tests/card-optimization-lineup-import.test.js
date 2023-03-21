@@ -13,16 +13,17 @@ const GAME_ID = '1';
 
 describe('[UI] Optimization', () => {
   let wrapper = null;
-  let optimizationId = null;
 
   beforeAll(() => {
+    state.setOffline();
     state.setLocalState(mockData);
     const { wrapper: localWrapper } = getPageWrapper();
     wrapper = localWrapper;
-    optimizationId = createOptimizationUI(wrapper).id;
+    window.scroll = () => void 0;
   });
 
   it('A user can import a lineup from a game through the player list editor', () => {
+    const optimizationId = createOptimizationUI(wrapper).id;
     wrapper
       .find('#optimization-' + optimizationId)
       .hostNodes()
@@ -39,6 +40,6 @@ describe('[UI] Optimization', () => {
       .simulate('click');
     wrapper.find('#confirm').hostNodes().simulate('click');
     const { playerList, teamList } = state.getOptimization(optimizationId);
-    expect(JSON.parse(playerList).length).toEqual(10);
+    expect(playerList.length).toEqual(10);
   });
 });

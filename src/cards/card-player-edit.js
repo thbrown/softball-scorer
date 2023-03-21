@@ -29,7 +29,7 @@ export default class CardPlayerEdit extends React.Component {
       player.name = this.state.playerName;
       player.gender = this.state.playerGender;
       player.songLink = this.state.playerSongLink;
-      player.songStart = parseInt(this.state.playerSongStart);
+      player.songStart = parseInt(this.state.playerSongStart || 0);
       return player;
     };
 
@@ -267,10 +267,15 @@ export default class CardPlayerEdit extends React.Component {
 
   componentDidMount() {
     // TODO: can we use defaultChecked instead?
-    if (this.state.playerGender === 'F') {
-      document.getElementById('femaleGenderChoice').checked = true;
-    } else {
-      document.getElementById('maleGenderChoice').checked = true;
+    const elem = (() => {
+      if (this.state.playerGender === 'F') {
+        return document.getElementById('femaleGenderChoice');
+      } else {
+        return document.getElementById('maleGenderChoice');
+      }
+    })();
+    if (elem) {
+      elem.checked = true;
     }
   }
 
@@ -366,7 +371,11 @@ export default class CardPlayerEdit extends React.Component {
     return (
       <>
         <>
-          <ListButton type="primary-button" onClick={this.handleConfirmClick}>
+          <ListButton
+            id="save"
+            type="primary-button"
+            onClick={this.handleConfirmClick}
+          >
             <div
               style={{
                 display: 'flex',
@@ -377,7 +386,11 @@ export default class CardPlayerEdit extends React.Component {
               <span>Save</span>
             </div>
           </ListButton>
-          <ListButton type="edit-button" onClick={this.handleCancelClick}>
+          <ListButton
+            id="cancel"
+            type="edit-button"
+            onClick={this.handleCancelClick}
+          >
             <div
               style={{
                 display: 'flex',
@@ -389,7 +402,11 @@ export default class CardPlayerEdit extends React.Component {
             </div>
           </ListButton>
           {this.props.isNew ? null : (
-            <ListButton type="delete-button" onClick={this.handleDeleteClick}>
+            <ListButton
+              id="delete"
+              type="delete-button"
+              onClick={this.handleDeleteClick}
+            >
               <div
                 style={{
                   display: 'flex',

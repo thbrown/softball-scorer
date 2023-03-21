@@ -3,38 +3,8 @@ import state from 'state';
 import css from 'css';
 import Card from 'elements/card';
 import { makeStyles } from 'css/helpers';
-import { compose, withState, withHandlers } from 'recompose';
 import ListPicker from 'elements/list-picker';
 import { sortObjectsByDate, toClientDate } from 'utils/functions';
-
-const enhance = compose(
-  withState('team', 'setTeam', null),
-  withState('game', 'setGame', null),
-  withHandlers({
-    handleTeamItemClick: (props) => (item) => {
-      props.setTeam(state.getTeam(item.id));
-      window.scroll(0, 0);
-    },
-    handleGameItemClick: (props) => (item) => {
-      props.setGame(state.getGame(item.id));
-      window.scroll(0, 0);
-    },
-    handleBackClick: (props) => () => {
-      // Back means different things in each stage of the import wizard
-      let skipDefaultBack = false;
-      if (props.game) {
-        props.setGame(null);
-        skipDefaultBack = true;
-      } else if (props.team) {
-        props.setTeam(null);
-        skipDefaultBack = true;
-      }
-      return skipDefaultBack;
-    },
-    handleConfirmClick: (props) => props.handleConfirmClick,
-    handleCancelClick: (props) => props.handleCancelClick,
-  })
-);
 
 const useLineupListStyles = makeStyles((theme) => ({
   title: {
@@ -95,6 +65,17 @@ const toItems = (list) =>
 
 const LineupList = (props) => {
   const { classes } = useLineupListStyles();
+  const handleTeamItemClick = (props) => (item) => {
+    props.setTeam(state.getTeam(item.id));
+    window.scroll(0, 0);
+  };
+  const handleGameItemClick = (props) => (item) => {
+    props.setGame(state.getGame(item.id));
+    window.scroll(0, 0);
+  };
+
+  const handleConfirmClick = (props) => props.handleConfirmClick;
+  const handleCancelClick = (props) => props.handleCancelClick;
 
   if (props.game) {
     return (
@@ -119,7 +100,7 @@ const LineupList = (props) => {
             id="confirm"
             className={'button primary-button ' + classes.actionButton}
             onClick={function wrapper(ev) {
-              return props.handleConfirmClick(ev, props.team, props.game);
+              return handleConfirmClick(ev, props.team, props.game);
             }}
           >
             Confirm
@@ -129,7 +110,7 @@ const LineupList = (props) => {
           <div
             id="cancel"
             className={'button tertiary-button ' + classes.actionButton}
-            onClick={props.handleCancelClick}
+            onClick={handleCancelClick}
           >
             Cancel
           </div>
@@ -148,7 +129,7 @@ const LineupList = (props) => {
           items={sortObjectsByDate(toItems([...props.team.games]), {
             isAsc: false,
           })}
-          onClick={props.handleGameItemClick}
+          onClick={handleGameItemClick}
         />
       </>
     );
@@ -158,22 +139,46 @@ const LineupList = (props) => {
         <div className={classes.title}> Pick a team </div>
         <ListPicker
           items={toItems([...state.getLocalState().teams].reverse())}
-          onClick={props.handleTeamItemClick}
+          onClick={handleTeamItemClick}
         />
       </>
     );
   }
 };
 
-const CardImport = enhance((props) => (
-  <Card
-    title="Import Lineup"
-    leftHeaderProps={{
-      onClick: props.handleBackClick,
-    }}
-  >
-    <LineupList {...props} />
-  </Card>
-));
+const CardImport = (props) => {
+  const [team, setTeam] = React.useState(null);
+  const [game, setGame] = React.useState(null);
+
+  const handleBackClick = (props) => () => {
+    // Back means different things in each stage of the import wizard
+    let skipDefaultBack = false;
+    if (game) {
+      setGame(null);
+      skipDefaultBack = true;
+    } else if (team) {
+      setTeam(null);
+      skipDefaultBack = true;
+    }
+    return skipDefaultBack;
+  };
+
+  return (
+    <Card
+      title="Import Lineup"
+      leftHeaderProps={{
+        onClick: handleBackClick,
+      }}
+    >
+      <LineupList
+        {...props}
+        team={team}
+        setTeam={setTeam}
+        game={game}
+        setGame={setGame}
+      />
+    </Card>
+  );
+};
 
 export default CardImport;

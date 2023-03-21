@@ -1,4 +1,15 @@
 {
+  "account": {
+    "optimizers": [1, 0, 2, 4],
+    "accountId": "1",
+    "email": "robert@jordan.com",
+    "emailConfirmed": false,
+    "balance": 2000
+  },
+  "metadata": {
+    "version": 2,
+    "scope": "client"
+  },
   "teams": [
     {
       "id": "4i7WarrEmtZMxJ",
@@ -20,8 +31,9 @@
             "1ajppp381cecS7"
           ],
           "date": 1562826405,
-          "park": null,
           "lineupType": 2,
+          "scoreThem": 0,
+          "scoreUs": 0,
           "plateAppearances": [
             {
               "id": "1pupriMTKbq2Se",
@@ -400,8 +412,9 @@
             "2iTjqxkl8o92IJ",
             "1ajppp381cecS7"
           ],
+          "scoreThem": 0,
+          "scoreUs": 0,
           "date": 1662826406,
-          "park": null,
           "lineupType": 2,
           "plateAppearances": []
         },
@@ -420,8 +433,9 @@
             "2iTjqxkl8o92IJ",
             "1ajppp381cecS7"
           ],
+          "scoreThem": 0,
+          "scoreUs": 0,
           "date": 1562826407,
-          "park": null,
           "lineupType": 2,
           "plateAppearances": []
         },
@@ -440,8 +454,9 @@
             "2iTjqxkl8o92IJ",
             "1ajppp381cecS7"
           ],
+          "scoreThem": 0,
+          "scoreUs": 0,
           "date": 1562826408,
-          "park": null,
           "lineupType": 4,
           "plateAppearances": []
         },
@@ -460,8 +475,9 @@
             "2iTjqxkl8o92IJ",
             "1ajppp381cecS7"
           ],
+          "scoreThem": 0,
+          "scoreUs": 0,
           "date": 1562826409,
-          "park": null,
           "lineupType": 4,
           "plateAppearances": []
         },
@@ -480,8 +496,9 @@
             "2iTjqxkl8o92IJ",
             "1ajppp381cecS7"
           ],
+          "scoreThem": 0,
+          "scoreUs": 0,
           "date": 1562826409,
-          "park": null,
           "lineupType": 4,
           "plateAppearances": []
         },
@@ -500,8 +517,9 @@
             "2iTjqxkl8o92IJ",
             "1ajppp381cecS7"
           ],
+          "scoreThem": 0,
+          "scoreUs": 0,
           "date": 1162826409,
-          "park": null,
           "lineupType": 4,
           "plateAppearances": []
         }
