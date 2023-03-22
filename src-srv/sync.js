@@ -124,7 +124,7 @@ const applyServerPatchChanges = async ({
       false,
       false,
       accountId,
-      patchState
+      logger
     );
 
     // Diff the ancestor and the localState (dbState) to get the patch we need to send back to the client
