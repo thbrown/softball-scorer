@@ -4,11 +4,6 @@ import AsyncCreatableSelect from 'react-select/async-creatable';
 export default class FloatingReactAsyncCreatableSelect extends React.Component {
   constructor(props) {
     super(props);
-    console.log(
-      'DEFAULT PROPS',
-      this.props.defaultValue.value,
-      !!this.props.defaultValue
-    );
     this.state = {
       value: this.props.defaultValue,
       active: !!this.props.defaultValue.value,
@@ -58,7 +53,6 @@ export default class FloatingReactAsyncCreatableSelect extends React.Component {
   }
 
   render() {
-    console.log('DEFAULT VALUE', this.state.value);
     return (
       <div className={'float-container' + (this.state.active ? ' active' : '')}>
         <label style={{ zIndex: 1 }}>{this.props.label}</label>

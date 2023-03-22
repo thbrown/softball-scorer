@@ -967,9 +967,9 @@ Scrolling is ~10-20x smoother.
 }
 
 .js-accordionTrigger {
+  width: calc(100% - 24px);
   padding: 12px;
   display: inline-block;
-  width: 100%;
 }
 
 .playerTable {

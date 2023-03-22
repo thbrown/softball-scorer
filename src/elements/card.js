@@ -17,6 +17,7 @@ const Card = ({
     <div className={noFade ? '' : 'card'}>
       <div className="card-title">
         <LeftHeaderButton
+          id="left-button"
           style={{
             visibility: enableLeftHeader ? 'visible' : 'hidden',
           }}

@@ -9,7 +9,7 @@ import StandardOptions from 'elements/optimizer-standard-options';
 import CustomOptions from 'elements/optimizer-custom-options';
 import network from 'network';
 import Loading from 'elements/loading';
-import theme, { colors } from '../css/theme';
+import { colors } from '../css/theme';
 import Cooldown from 'components/cooldown';
 import IconButton from '../elements/icon-button';
 import { showEmailHelp } from 'utils/help-functions';

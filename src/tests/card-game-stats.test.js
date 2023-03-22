@@ -6,27 +6,48 @@ import { setRoute } from 'actions/route';
 import mockData from './mock.json';
 
 Enzyme.configure({ adapter: new Adapter() });
-state.setOffline();
 
 describe('[UI] Game Stats', () => {
   let wrapper = null;
+  let _isSessionValid = state.isSessionValid;
 
   beforeAll(() => {
+    state.setOffline();
     state.setLocalState(mockData);
     const { wrapper: localWrapper } = getPageWrapper();
     wrapper = localWrapper;
     setRoute(`/`);
   });
 
-  it('A user can access the game stats card from the plate appearance list', () => {
+  beforeEach(() => {
+    state.isSessionValid = jest.fn().mockImplementation(() => {
+      return true;
+    });
+  });
+
+  afterEach(() => {
+    state.isSessionValid = _isSessionValid;
+  });
+
+  it('A user can navigate to the share page for a specific team team', () => {
     const teamId = '4i7WarrEmtZMxJ';
     const gameId = '1';
 
     wrapper.find(`#teams`).hostNodes().simulate('click');
     wrapper.find(`#team-${teamId}`).hostNodes().simulate('click');
-    wrapper.find(`#game-${gameId}`).hostNodes().simulate('click');
-    wrapper.find(`#view-stats`).hostNodes().simulate('click');
+    wrapper
+      .findWhere((node) => {
+        return node.type() && node.name() && node.text() === 'Stats';
+      })
+      .hostNodes()
+      .simulate('click');
+    wrapper
+      .findWhere((node) => {
+        return node.type() && node.name() && node.text() === 'Sharing';
+      })
+      .hostNodes()
+      .simulate('click');
 
-    expect(wrapper.find({ children: 'Game Stats' })).toExist();
+    expect(wrapper.find('input#publicIdEnabled')).toExist();
   });
 });
