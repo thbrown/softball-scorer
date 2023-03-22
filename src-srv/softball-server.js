@@ -618,19 +618,19 @@ module.exports = class SoftballServer {
       logger.dev('?', 'Sent storage clear header');
     });
 
-    app.get('/service-workers/:fileName', function (req, res) {
-      logger.dev('service-workers', 'Reading ' + req.params.fileName);
+    app.get('/web-workers/:fileName', function (req, res) {
+      logger.dev('web-workers', 'Reading ' + req.params.fileName);
       res.set('Content-Type', 'application/javascript');
       readFile('./src/workers/' + req.params.fileName, (err, file) => {
         if (err) {
           res.status(404).send();
           logger.dev(
-            'service-workers',
+            'web-workers',
             'Could not find ./src/workers/' + req.params.fileName
           );
         } else {
           res.status(200).send(file.toString());
-          logger.dev('service-workers', 'Sent ' + req.params.fileName);
+          logger.dev('web-workers', 'Sent ' + req.params.fileName);
         }
       });
     });

@@ -56,7 +56,7 @@ self.addEventListener('install', function (event) {
 self.addEventListener('fetch', function (event) {
   let requestToProcess = event.request;
 
-  // If the url's path doesn't begin with 'server' or 'assets', it's an app url. Redirect it to / and the client code will handle it.
+  // If the url's path doesn't begin with 'server', 'assets', or 'web-workers', it's an app url. Redirect it to / and the client code will handle it.
   // The service worker itself is an exception, it we served it under /server/service-worker.js it would not be able to
   // cache the request to the root '/' due to scoping. So we've put it under /service-worker.js.
   // robots.txt is also an exception
@@ -69,6 +69,7 @@ self.addEventListener('fetch', function (event) {
       pathArray.length < 2 ||
       (pathArray[1] !== 'server' &&
         pathArray[1] !== 'assets' &&
+        pathArray[1] !== 'web-workers' &&
         pathArray[1] !== 'service-worker.js' &&
         pathArray[1] !== 'robots.txt' &&
         pathArray[1] !== 'manifest.json' &&

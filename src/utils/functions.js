@@ -33,7 +33,7 @@ export const toClientDate = function (serverDate) {
 export const decompress = async function (inputString) {
   return new Promise((resolve, reject) => {
     let worker = new URL(
-      'service-workers/compress-worker.js',
+      'web-workers/compress-worker.js',
       window.location.origin
     );
     const compressWorker = new Worker(worker);
@@ -50,7 +50,7 @@ export const decompress = async function (inputString) {
 export const compress = async function (inputString) {
   return new Promise((resolve, reject) => {
     let worker = new URL(
-      'service-workers/compress-worker.js',
+      'web-workers/compress-worker.js',
       window.location.origin
     );
     const compressWorker = new Worker(worker);

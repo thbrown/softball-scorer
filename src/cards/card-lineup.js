@@ -196,7 +196,7 @@ export default class CardLineup extends React.Component {
     }
 
     let workerUrl = new URL(
-      'service-workers/simulation-worker.js',
+      'web-workers/simulation-worker.js',
       window.location.origin
     );
     this.simWorker = new Worker(workerUrl);

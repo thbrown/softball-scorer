@@ -66,6 +66,10 @@ export let validateSchema = function (inputJson, schemaId) {
     for (let error of result.errors) {
       let path = error.instancePath;
       let valueAtPath = jsonPointer.get(inputJson, path);
+      let typeAtPath = typeof valueAtPath;
+      if (typeof valueAtPath === 'object' && valueAtPath !== null) {
+        valueAtPath = JSON.stringify(valueAtPath, null, 2);
+      }
       errorMessage =
         errorMessage +
         '\n' +
@@ -73,7 +77,7 @@ export let validateSchema = function (inputJson, schemaId) {
         '\nValue at instancePath: ' +
         valueAtPath +
         ' of type ' +
-        typeof valueAtPath;
+        typeAtPath;
     }
 
     throw new Error(errorMessage);

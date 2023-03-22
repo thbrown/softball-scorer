@@ -133,7 +133,7 @@ const applyServerPatchChanges = async ({
       accountId,
       'Server Patch',
       JSON.stringify(serverPatch, null, 2).length
-    );
+    ); // TODO: can we log the number of add/removals/replacements here?
     patch = serverPatch;
   } else {
     // No we have no ancestor OR sync status is 'full', send back the whole state

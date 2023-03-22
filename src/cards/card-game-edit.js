@@ -46,7 +46,7 @@ export default class CardGameEdit extends React.Component {
 
     this.handleConfirmClick = () => {
       state.replaceGame(props.game.id, props.team.id, { ...this.state });
-      setRoute(`/teams/${props.team.id}`);
+      goBack();
     };
 
     this.handleCancelClick = () => {

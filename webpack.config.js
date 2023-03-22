@@ -108,7 +108,7 @@ module.exports = (env) => ({
       '/menu/*': srvUrl,
       '/server/sync': srvUrl,
       '/server/*': srvUrl,
-      '/service-workers/*': srvUrl,
+      '/web-workers/*': srvUrl,
       '/service-worker.js': srvUrl,
       '/favicon.ico': srvUrl,
       '/robots.txt': srvUrl,
