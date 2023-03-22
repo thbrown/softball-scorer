@@ -21,7 +21,6 @@ const logger = require('./logger');
 const passwordResetEmailHtml = require('./email/password-reset-email-html');
 const welcomeEmailHtml = require('./email/welcome-email-html');
 const optimizationCompleteEmailHtml = require('./email/optimization-complete-email-html');
-const { config } = require('process');
 // const OptimizationResultsHtml = require('../common-optimization-results-html');
 const SharedLib = require('../shared-lib');
 const { readFile } = require('fs');

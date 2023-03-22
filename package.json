@@ -74,7 +74,6 @@
     "lz-string": "^1.4.4",
     "mailgun.js": "^6.0.1",
     "node-object-hash": "^2.3.10",
-    "object-hash": "^3.0.0",
     "passport": "^0.6.0",
     "passport-local": "^1.0.0",
     "process": "^0.11.10",
@@ -88,7 +87,6 @@
     "reactify": "^1.1.1",
     "recompose": "^0.30.0",
     "redis": "^3.0.2",
-    "stable": "^0.1.8",
     "stream-browserify": "^3.0.0",
     "uuid": "^8.3.1",
     "zlib": "^1.0.5"
