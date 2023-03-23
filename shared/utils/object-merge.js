@@ -213,7 +213,7 @@ let patch = function (
       if (Array.isArray(thingAtPointer) && thingAtPointer.length === 0) {
         let lastPathElement = splitPath[splitPath.length - 1];
         let firstChar = lastPathElement.substring(0, 1);
-        // These prefixes indicate we should be working with a object (that should have been converted from an array by _toRFC6902(...))
+        // These prefixes indicate we should be working with an object (that should have been converted from an array by _toRFC6902(...))
         if (firstChar === '#' || firstChar === '$') {
           // It's actually an empty array of id'd objects! We want that to be {} instead of []. Fix it.
           if (oneUpPath.trim() === '') {
@@ -265,6 +265,33 @@ let patch = function (
 
   try {
     const patched = jsonpatch.applyPatch(toPatch, patchObj, false);
+
+    // To fix scenario B we converted {} to [], if we added anything to that object, it will be converted back to an array in by _fromRFC6902
+    // However if we didn't add anything, we will have to convert it back to [] manually doing the reverse of what we did in the Scenario B fix above
+    for (let patchStep of patchObj) {
+      if (patchStep.op === 'add' || patchStep.op === 'remove') {
+        let splitPath = patchStep.path.split('/');
+        let oneUpPath = splitPath.slice(0, -1).join('/');
+        let thingAtPointer = jsonPointer.get(toPatch, oneUpPath);
+        if (
+          commonUtils.isObject(thingAtPointer) &&
+          Object.keys(thingAtPointer).length === 0
+        ) {
+          let lastPathElement = splitPath[splitPath.length - 1];
+          let firstChar = lastPathElement.substring(0, 1);
+          // These prefixes indicate we should be working with an object (that should have been converted from an array by _toRFC6902(...))
+          if (firstChar === '#' || firstChar === '$') {
+            // It's actually an empty array of id'd objects! We want that to be {} instead of []. Fix it.
+            if (oneUpPath.trim() === '') {
+              patched.newDocument = []; // JSON pointer cant set the root, so we'll set it directly
+            } else {
+              jsonPointer.set(patched.newDocument, oneUpPath, []);
+            }
+          }
+        }
+      }
+    }
+
     return this._fromRFC6902(patched.newDocument);
   } catch (e) {
     logger.error(accountId, 'BAD PATCH', toPatch);
@@ -364,7 +391,7 @@ let _isValueValid = function (toCheck, forbiddenKeySet) {
  * _ - kept as an object
  * * - kept as an object w/ numeric key [This is a unicorn, keys can not be numeric in JSON, they are all strings]
  */
-let _toRFC6902 = function (input) {
+const _toRFC6902 = function (input) {
   if (input === undefined || input === null) {
     return input;
   } else if (Array.isArray(input)) {
@@ -404,7 +431,7 @@ let _toRFC6902 = function (input) {
   }
 };
 
-let _fromRFC6902 = function (input) {
+const _fromRFC6902 = function (input) {
   if (input === undefined || input === null) {
     return input;
   } else if (Array.isArray(input)) {

@@ -50,7 +50,7 @@ const assertStateObjects = function (...args) {
       );
     }
   });
-  return { valid };
+  return { valid, errors };
 };
 
 const isSameRouteAs = function (key) {

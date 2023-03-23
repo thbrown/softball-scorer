@@ -37,7 +37,7 @@
     "lineup": {
       "type": "array",
       "description": "Batting lineup for this game",
-      "items": { 
+      "items": {
         "type": "string"
       }
     },
@@ -48,10 +48,10 @@
     "plateAppearances": {
       "type": "array",
       "description": "All plate appearances that occurred during this game",
-      "items": { 
+      "items": {
         "type": "object",
         "unevaluatedProperties": false,
-        "$ref": "http://softball.app/schemas/plate-appearance" 
+        "$ref": "http://softball.app/schemas/plate-appearance"
       }
     }
   }

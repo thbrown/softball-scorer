@@ -1,6 +1,28 @@
 const objectMerge = require('../utils/object-merge.js');
 const utils = require('../utils/common-utils');
 
+test('PATCH: Patching that results in an empty array, remains an array', () => {
+  let documentA = [{ id: 1 }];
+  let documentB = [];
+  let documentC = [{ id: 1 }];
+  let patch = objectMerge.diff(documentA, documentB);
+
+  let document = objectMerge.patch(documentC, patch);
+  expect(Array.isArray(document)).toEqual(true);
+});
+
+test('PATCH: Patching that results in an empty object, remains an object', () => {
+  let documentA = { pizza: true };
+  let documentB = {};
+  let documentC = { pizza: true };
+  let patch = objectMerge.diff(documentA, documentB);
+
+  let document = objectMerge.patch(documentC, patch);
+  console.log(patch);
+  console.log(document);
+  expect(utils.isObject(document)).toEqual(true);
+});
+
 test('MERGE: Documents are merged when deletes are disabled', () => {
   let documentA = [{ id: 1 }, { id: 2 }, { id: 3 }];
   let documentB = [{ id: 3 }, { id: 4 }, { id: 5 }];
