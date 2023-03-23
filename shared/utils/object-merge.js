@@ -396,6 +396,7 @@ let _isValueValid = function (toCheck, forbiddenKeySet) {
  * * - kept as an object w/ numeric key [This will never happen, keys can not be numeric in JSON, they are all strings] TODO: remove this
  * % - converted from an array of numbers to object
  * @ - converted from an array of strings to object
+ * TODO: use some symbol (and extra key) to keep track of array ordering?
  */
 const _toRFC6902 = function (input) {
   if (input === undefined || input === null) {
@@ -407,14 +408,15 @@ const _toRFC6902 = function (input) {
     } else if (typeof input[0] === 'number' || typeof input[0] === 'string') {
       // This is an array of numbers or strings, convert the array to an object
       let outputObject = {};
-      for (let element of input) {
+      for (let elementIndex in input) {
+        let element = input[elementIndex];
         let id = (typeof element === 'number' ? '%' : '@') + element;
-        outputObject[id] = ''; // Empty string here okay? is null or undefined or element better?
+        outputObject[id] = elementIndex; // elementIndex is used to maintain ordering
       }
       console.log('TO', input, outputObject);
       return outputObject;
     } else if (input[0].id === undefined) {
-      // This is an array of some other primitive  (boolean, arrays, undefined, null, etc.) or objects without an id, keep it as an array
+      // This is an array of some other primitive (boolean, arrays, undefined, null, etc.) or objects without an id, keep it as an array
       let outputArray = [];
       for (let element of input) {
         outputArray.push(this._toRFC6902(element));
@@ -478,6 +480,7 @@ const _fromRFC6902 = function (input) {
         let rest = key.substring(1);
         let element = first === '%' ? parseFloat(rest) : rest;
         outputArray.push(element);
+        // TODO: sort element by value
       }
       console.log('FROM', input, outputArray);
       return outputArray;
