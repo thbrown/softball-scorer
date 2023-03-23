@@ -18,9 +18,30 @@ test('PATCH: Patching that results in an empty object, remains an object', () =>
   let patch = objectMerge.diff(documentA, documentB);
 
   let document = objectMerge.patch(documentC, patch);
+  expect(utils.isObject(document)).toEqual(true);
+});
+
+// TODO: fix ordering here! Same order and maybe patch values at front?
+test('MERGE: Arrays with numbers are merged properly', () => {
+  let documentA = [0, 1, 2, 3, 5];
+  let documentB = [4, 3];
+  let documentC = [2, 3, 10, 11];
+  let patch = objectMerge.diff(documentA, documentB);
+
+  let document = objectMerge.patch(documentC, patch);
   console.log(patch);
   console.log(document);
-  expect(utils.isObject(document)).toEqual(true);
+  expect(document).toEqual([3, 10, 11, 4]); // [4,3,10,11]
+});
+
+test('MERGE: Arrays with strings are merged properly', () => {
+  let documentA = ['0', '1', '2', '3', '5'];
+  let documentB = ['4', '3'];
+  let documentC = ['2', '3', '10', '11'];
+  let patch = objectMerge.diff(documentA, documentB);
+
+  let document = objectMerge.patch(documentC, patch);
+  expect(document).toEqual(['3', '10', '11', '4']);
 });
 
 test('MERGE: Documents are merged when deletes are disabled', () => {

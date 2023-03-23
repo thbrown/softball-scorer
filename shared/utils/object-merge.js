@@ -13,7 +13,11 @@ const jsonPointer = require('jsonpointer');
  * This wrapper performs a conversion of this application's JSON documents so that they can be diffed and patched as we expect by a RFC6902-compatible
  * library.
  *
- * Restrictions - id must be string or numbers (not booleans, null, arrays, or objects)
+ * Restrictions:
+ * - id must be string or numbers (not booleans, null, arrays, or objects)
+ * - object keys must have homogeneous types
+ * - arrays may not contain duplicate elements
+ * - arrays of strings, numbers, or objects w/ id properties will merge properly, anything else wont
  *
  * The conversion addresses these three particular issues:
  *
@@ -386,10 +390,12 @@ let _isValueValid = function (toCheck, forbiddenKeySet) {
 
 /**
  * Keys are prefixed in output, this is required for converting back via _fromRFC6902(...) (prefix - description):
- * $ - converted from an array to object
- * # - converted from an array to object w/ numeric id
+ * $ - converted from an array of objects w/ string id to object
+ * # - converted from an array of objects w/ numeric id to object
  * _ - kept as an object
- * * - kept as an object w/ numeric key [This is a unicorn, keys can not be numeric in JSON, they are all strings]
+ * * - kept as an object w/ numeric key [This will never happen, keys can not be numeric in JSON, they are all strings] TODO: remove this
+ * % - converted from an array of numbers to object
+ * @ - converted from an array of strings to object
  */
 const _toRFC6902 = function (input) {
   if (input === undefined || input === null) {
@@ -398,8 +404,17 @@ const _toRFC6902 = function (input) {
     if (input.length === 0) {
       // Empty array
       return [];
+    } else if (typeof input[0] === 'number' || typeof input[0] === 'string') {
+      // This is an array of numbers or strings, convert the array to an object
+      let outputObject = {};
+      for (let element of input) {
+        let id = (typeof element === 'number' ? '%' : '@') + element;
+        outputObject[id] = ''; // Empty string here okay? is null or undefined or element better?
+      }
+      console.log('TO', input, outputObject);
+      return outputObject;
     } else if (input[0].id === undefined) {
-      // This is an array of primitives, arrays, or an array without an id, keep it as an array
+      // This is an array of some other primitive  (boolean, arrays, undefined, null, etc.) or objects without an id, keep it as an array
       let outputArray = [];
       for (let element of input) {
         outputArray.push(this._toRFC6902(element));
@@ -444,11 +459,29 @@ const _fromRFC6902 = function (input) {
   } else if (typeof input === 'object') {
     let keys = Object.keys(input);
     if (keys.length === 0) {
-      return {}; // TODO: does this need to be []?
+      return {}; // TODO: does this need to be []? FLUP: might need to return either {} or []. Since we are returning {} here we'll make sure we convert any {} that should be [] in the patch before calling _fromRFC6902
     }
 
     let firstLetterOfFirstKey = keys[0].substring(0, 1);
-    if (firstLetterOfFirstKey === '$' || firstLetterOfFirstKey === '#') {
+    if (firstLetterOfFirstKey === '%' || firstLetterOfFirstKey === '@') {
+      let outputArray = [];
+      for (let key of keys) {
+        let first = key.substring(0, 1);
+        if (first !== '%' && first !== '@') {
+          throw new Error(
+            'Invalid json document for RFC6902 conversion: ' +
+              key +
+              ' mixed keys ' +
+              keys
+          );
+        }
+        let rest = key.substring(1);
+        let element = first === '%' ? parseFloat(rest) : rest;
+        outputArray.push(element);
+      }
+      console.log('FROM', input, outputArray);
+      return outputArray;
+    } else if (firstLetterOfFirstKey === '$' || firstLetterOfFirstKey === '#') {
       let outputArray = [];
       for (let key of keys) {
         let first = key.substring(0, 1);
