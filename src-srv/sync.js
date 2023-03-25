@@ -102,11 +102,7 @@ const applyServerPatchChanges = async ({
   logger.log(
     accountId,
     'Retrieving ancestor'
-    /*JSON.stringify(
-      serverAncestor.optimizations[state.optimizations.length - 1],
-      null,
-      2
-    )*/
+    //JSON.stringify(serverAncestor, null, 2)
   );
 
   let patch = null;
@@ -137,14 +133,25 @@ const applyServerPatchChanges = async ({
     patch = serverPatch;
   } else {
     // No we have no ancestor OR sync status is 'full', send back the whole state
-    logger.log(
-      accountId,
-      'performing full sync',
-      'Requested Sync Type:',
-      data.type,
-      'Ancestor present?:',
-      !!serverAncestor
-    );
+    if (serverAncestor) {
+      logger.warn(
+        accountId,
+        'performing full sync',
+        'Requested Sync Type:',
+        data.type,
+        'Ancestor present?:',
+        !!serverAncestor
+      );
+    } else {
+      logger.log(
+        accountId,
+        'performing full sync',
+        'Requested Sync Type:',
+        data.type,
+        'Ancestor present?:',
+        !!serverAncestor
+      );
+    }
 
     // The browser specifically requested a full sync, something must have gone wrong with the patch sync.
     // Print the state string so we can compare what went wrong with the browser's version

@@ -176,6 +176,8 @@ exp.sync = async function (fullSync) {
         localState
       );
 
+      console.log('[SYNC] Local changes', localChangesDuringRequest);
+
       // Update the ancestor if updates were received from the server
       if (serverState.base) {
         // The entire state was sent, we can just save it directly
@@ -198,12 +200,14 @@ exp.sync = async function (fullSync) {
 
       // Verify that the ancestor state (after updates) has the same hash as the server state
       let ancestorHash = state.getAncestorStateChecksum();
+
       console.log(
         '[SYNC] CLIENT: ',
         ancestorHash,
         ' SERVER: ',
         serverState.checksum
       );
+
       if (ancestorHash !== serverState.checksum) {
         if (fullSync) {
           // Something went wrong after trying a full sync, we probably can't do anything about it!
@@ -243,6 +247,10 @@ exp.sync = async function (fullSync) {
             )
           );
 
+          console.warn(
+            SharedLib.commonUtils.getObjectString(state.getLocalState())
+          );
+
           // Set the state back to what it was when we first did a sync
           state.setAncestorState(ancestorStateCopy);
           throw new Error(-2);
@@ -263,8 +271,22 @@ exp.sync = async function (fullSync) {
         true
       );
 
+      // Apply any changes that were made during the request to the new local state (Presumably this will be a no-op most times)
+      newLocalState = SharedLib.objectMerge.patch(
+        newLocalState,
+        localChangesDuringRequest,
+        true
+      );
+
       // Set local state to a copy of ancestor state (w/ localChangesDuringRequest applied)
       setLocalStateNoSideEffects(newLocalState);
+
+      console.log(
+        '[SYNC] local',
+        state.getLocalStateChecksum(),
+        'ancestor',
+        state.getAncestorStateChecksum()
+      );
       reRender();
 
       // Write the most updated data to local storage

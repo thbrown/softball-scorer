@@ -1,6 +1,73 @@
 const objectMerge = require('../utils/object-merge.js');
 const utils = require('../utils/common-utils');
 
+test('PATCH: Arrays maintain ordering on patch', () => {
+  const BASE = {
+    lineup: [
+      '1CWXFOLUGu5kTH',
+      '0000000000000B',
+      '00000000000002',
+      '1Wl1TC2aF2JF7d',
+      '00000000000001',
+      '2mQ74fPkiYKgp2',
+      '00000000000003',
+      '0QNxIPfgaAkYBI',
+      '3ID5Ku7F0Sa7Kk',
+      '5exz4RNKa2qs1P',
+      '3CDUFVMThOQNDR',
+      '1mx5oJRIVHChQ5',
+    ],
+  };
+  const CHANGE = JSON.parse(JSON.stringify(BASE)).lineup.splice(5, 1);
+  let patch = objectMerge.diff(BASE, CHANGE);
+  let document = objectMerge.patch(BASE, patch);
+  let end = utils.getHash(document);
+  expect(document).toEqual(CHANGE);
+});
+
+test('PATCH: Empty patches cause no changes', () => {
+  const BASE = {
+    lineup: [
+      '1CWXFOLUGu5kTH',
+      '0000000000000B',
+      '00000000000002',
+      '1Wl1TC2aF2JF7d',
+      '00000000000001',
+      '2mQ74fPkiYKgp2',
+      '00000000000003',
+      '0QNxIPfgaAkYBI',
+      '3ID5Ku7F0Sa7Kk',
+      '5exz4RNKa2qs1P',
+      '3CDUFVMThOQNDR',
+      '1mx5oJRIVHChQ5',
+    ],
+  };
+  let patch = [];
+  let document = objectMerge.patch(BASE, patch);
+  let end = utils.getHash(document);
+  expect(document).toEqual(BASE);
+});
+
+test('PATCH: Reordering of objects w/ ids in an array', () => {
+  let inputA = [
+    { id: 321, name: 'Matthew' },
+    { id: 427, name: 'Mark' },
+    { id: 112, name: 'Luke' },
+    { id: 314, name: 'John' },
+  ];
+  let inputB = [
+    { id: 112, name: 'Luke' },
+    { id: 321, name: 'Matthew' },
+    { id: 314, name: 'John' },
+    { id: 427, name: 'Mark' },
+  ];
+
+  let patch = objectMerge.diff(inputA, inputB);
+  let document = objectMerge.patch(inputA, patch);
+
+  expect(document).toEqual(inputB);
+});
+
 test('PATCH: Patching that results in an empty array, remains an array', () => {
   let documentA = [{ id: 1 }];
   let documentB = [];
@@ -21,17 +88,52 @@ test('PATCH: Patching that results in an empty object, remains an object', () =>
   expect(utils.isObject(document)).toEqual(true);
 });
 
-// TODO: fix ordering here! Same order and maybe patch values at front?
+test('PATCH: Reordering numeric arrays', () => {
+  let documentA = [0, 1, 2, 3, 5];
+  let documentB = [5, 2, 0, 3, 1];
+  let patch = objectMerge.diff(documentA, documentB);
+
+  let document = objectMerge.patch(documentA, patch);
+  expect(document).toEqual([5, 2, 0, 3, 1]);
+});
+
+test('PATCH: Reordering string arrays', () => {
+  let documentA = ['0', '1', '2', '3', '5'];
+  let documentB = ['5', '2', '0', '3', '1'];
+  let patch = objectMerge.diff(documentA, documentB);
+
+  let document = objectMerge.patch(documentA, patch);
+  expect(document).toEqual(['5', '2', '0', '3', '1']);
+});
+
+test('PATCH: Reordering numeric arrays w/ addition & subtraction', () => {
+  let documentA = [0, 1, 2, 3, 5];
+  let documentB = [5, 2, 4, 3, 1];
+  let patch = objectMerge.diff(documentA, documentB);
+
+  let document = objectMerge.patch(documentA, patch);
+  expect(document).toEqual([5, 2, 4, 3, 1]);
+});
+
+test('PATCH: Reordering string arrays w/ addition & subtraction', () => {
+  let documentA = ['0', '1', '2', '3', '5'];
+  let documentB = ['5', '2', '4', '3', '1'];
+  let patch = objectMerge.diff(documentA, documentB);
+
+  let document = objectMerge.patch(documentA, patch);
+  expect(document).toEqual(['5', '2', '4', '3', '1']);
+});
+
 test('MERGE: Arrays with numbers are merged properly', () => {
   let documentA = [0, 1, 2, 3, 5];
   let documentB = [4, 3];
-  let documentC = [2, 3, 10, 11];
+  let documentC = [2, 10, 11, 3];
   let patch = objectMerge.diff(documentA, documentB);
 
   let document = objectMerge.patch(documentC, patch);
-  console.log(patch);
-  console.log(document);
-  expect(document).toEqual([3, 10, 11, 4]); // [4,3,10,11]
+  // "3" and "10" are competing for the spot at index 1
+  // Either one could win, we let the lowest value (natural ordering) win in case of a tie
+  expect(document).toEqual([4, 3, 10, 11]);
 });
 
 test('MERGE: Arrays with strings are merged properly', () => {
@@ -41,7 +143,7 @@ test('MERGE: Arrays with strings are merged properly', () => {
   let patch = objectMerge.diff(documentA, documentB);
 
   let document = objectMerge.patch(documentC, patch);
-  expect(document).toEqual(['3', '10', '11', '4']);
+  expect(document).toEqual(['4', '3', '10', '11']);
 });
 
 test('MERGE: Documents are merged when deletes are disabled', () => {
@@ -67,8 +169,10 @@ test('MERGE: Patch fields win on collision', () => {
   let patch = objectMerge.diff(documentA, documentB);
 
   let document = objectMerge.patch(documentA, patch, true, true);
+  console.log(patch);
+  console.log(document);
   expect(document.length).toEqual(5);
-  expect(document[2].name).toEqual('Millicent');
+  expect(document[0].name).toEqual('Millicent');
 });
 
 test('MERGE: Array w/ ids - nested - without existing members', () => {
@@ -200,6 +304,12 @@ test('Create RFC6902 compatible document', () => {
     '#427': { _name: 'Mark' },
     '#112': { _name: 'Luke' },
     '#314': { _name: 'John' },
+    '&order': {
+      112: '2',
+      314: '3',
+      321: '0',
+      427: '1',
+    },
   };
 
   let output = objectMerge._toRFC6902(input);
@@ -212,6 +322,7 @@ test('Restore from RFC6902 compatible document', () => {
     '#427': { _name: 'Mark', _synoptic: true },
     '#112': { _name: 'Luke', _synoptic: true },
     '#314': { _name: 'John', _synoptic: false },
+    '&order': { 321: '0', 427: '1', 112: '2', 314: '3' },
   };
 
   let expected = [
@@ -260,18 +371,28 @@ test('Create and restore RFC6902 compatible nested document', () => {
       _names: {
         $A: { _name: 'Matt' },
         $B: { _name: 'Matthew' },
+        '&order': {
+          A: '0',
+          B: '1',
+        },
       },
       _404: false,
     },
     '#427': {
       _names: {
         $A: { _name: 'Mark' },
+        '&order': {
+          A: '0',
+        },
       },
       _404: false,
     },
     '#112': {
       _names: {
         $A: { _name: 'Luke' },
+        '&order': {
+          A: '0',
+        },
       },
       _404: false,
     },
@@ -280,8 +401,19 @@ test('Create and restore RFC6902 compatible nested document', () => {
         $A: { _name: 'John' },
         $B: { _name: 'Johnny' },
         $C: { _name: 'Johnny Boy' },
+        '&order': {
+          A: '0',
+          B: '1',
+          C: '2',
+        },
       },
       _404: false,
+    },
+    '&order': {
+      112: '2',
+      314: '3',
+      321: '0',
+      427: '1',
     },
   };
 

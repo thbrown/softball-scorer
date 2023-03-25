@@ -21,7 +21,6 @@ const logger = require('./logger');
 const passwordResetEmailHtml = require('./email/password-reset-email-html');
 const welcomeEmailHtml = require('./email/welcome-email-html');
 const optimizationCompleteEmailHtml = require('./email/optimization-complete-email-html');
-// const OptimizationResultsHtml = require('../common-optimization-results-html');
 const SharedLib = require('../shared-lib');
 const { readFile } = require('fs');
 const { sync } = require('./sync');
@@ -167,7 +166,7 @@ module.exports = class SoftballServer {
     );
     app.use(
       passportSession({
-        store: this.cacheCalls.getSessionStore(), // new BucketSessionStore({ bucketName: 'test-session-bucket' })
+        store: this.cacheCalls.getSessionStore(),
         secret: configAccessor.getSessionSecretKey(),
         resave: false,
         saveUninitialized: false,
@@ -327,7 +326,8 @@ module.exports = class SoftballServer {
             return;
           }
           req.logIn(accountInfo, function () {
-            initSecondAuthToken(req, res);
+            logger.warn(null, req.session, accountInfo, err, info);
+            initSecondAuthToken(req, res); // This breaks sometimes
             logger.log(accountInfo.accountId, 'Login Successful!');
             res.status(204).send();
           });
@@ -619,24 +619,17 @@ module.exports = class SoftballServer {
     });
 
     app.get('/web-workers/:fileName', function (req, res) {
-      logger.dev('web-workers', 'Reading ' + req.params.fileName);
       res.set('Content-Type', 'application/javascript');
       readFile('./src/workers/' + req.params.fileName, (err, file) => {
         if (err) {
           res.status(404).send();
-          logger.dev(
-            'web-workers',
-            'Could not find ./src/workers/' + req.params.fileName
-          );
         } else {
           res.status(200).send(file.toString());
-          logger.dev('web-workers', 'Sent ' + req.params.fileName);
         }
       });
     });
 
     app.get('/server/manifest', function (req, res) {
-      logger.dev('?', 'Redirect manifest request');
       res.redirect('/manifest.json');
     });
 
@@ -1343,15 +1336,19 @@ module.exports = class SoftballServer {
     }
 
     function initSecondAuthToken(req, res) {
-      // Make the cookie
-      let token = uuidv4();
-      res.cookie('nonHttpOnlyToken', token, {
-        expires: new Date(253402300000000),
-        httpOnly: false,
-      });
-      // Remember this cookie's token in the session
-      var sessData = req.session;
-      sessData.nonHttpOnlyToken = token;
+      try {
+        // Make the cookie
+        let token = uuidv4();
+        res.cookie('nonHttpOnlyToken', token, {
+          expires: new Date(253402300000000),
+          httpOnly: false,
+        });
+        // Remember this cookie's token in the session
+        var sessData = req.session;
+        sessData.nonHttpOnlyToken = token;
+      } catch (e) {
+        logger.error('?', '2nd auth token not registered', e);
+      }
     }
 
     async function generateToken(length = 30) {
@@ -1392,25 +1389,25 @@ module.exports = class SoftballServer {
     async function logIn(account, req, res) {
       logger.log(account.accountId, 'Logging in');
       await new Promise(function (resolve, reject) {
-        req.logIn(account, function () {
+        req.logIn(account, function (apples, oranges) {
           // We need to serialize some info to the session
           let sessionInfo = {
             accountId: account.accountId,
             email: account.email,
           };
-          var doneWrapper = function (req) {
+          var doneWrapper = function () {
             var done = function (err, user) {
               if (err) {
                 reject(err);
                 return;
               }
+              initSecondAuthToken(req, res);
               return;
             };
             return done;
           };
 
-          passport.serializeUser(sessionInfo, doneWrapper(req));
-          initSecondAuthToken(req, res);
+          passport.serializeUser(sessionInfo, doneWrapper());
           resolve();
         });
       });

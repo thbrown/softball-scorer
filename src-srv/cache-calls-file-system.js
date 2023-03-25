@@ -1,4 +1,5 @@
 const configAccessor = require('./config-accessor');
+const logger = require('./logger.js');
 
 var FileSystemSessionStore = require('./file-system-session-store');
 
@@ -8,7 +9,7 @@ var FileSystemSessionStore = require('./file-system-session-store');
  * TODO: this uses the file system for the sessions but not for other cache functions (it just uses in-memory)
  * Persisting other cache stuff to the file system probably doesn't matter much so this is low priority
  */
-module.exports = class CacheCalls {
+module.exports = class CacheCallsFileSystem {
   constructor() {
     this.cache = {};
     this.timers = {};
@@ -46,7 +47,7 @@ module.exports = class CacheCalls {
   }
 
   async getAncestor(accountId, sessionId) {
-    this.getData(accountId, 'ancestor' + sessionId);
+    return this.getData(accountId, 'ancestor' + sessionId);
   }
 
   async setAncestor(accountId, sessionId, ancestor) {
@@ -73,15 +74,6 @@ module.exports = class CacheCalls {
     return undefined;
   }
 
-  // Intended for these to be private methods
-  getData(accountId, field) {
-    if (this.cache[accountId]) {
-      return this.cache[accountId][field];
-    } else {
-      return undefined;
-    }
-  }
-
   putDataTTL(key, ttl, value) {
     this.cache[key] = value;
 
@@ -98,11 +90,20 @@ module.exports = class CacheCalls {
     );
   }
 
-  putData(key, field, value) {
-    if (!this.cache[key]) {
-      this.cache[key] = {};
+  // Intended for these to be private methods
+  getData(accountId, field) {
+    if (this.cache[accountId]) {
+      return this.cache[accountId][field];
+    } else {
+      return undefined;
     }
-    this.cache[key][field] = value;
+  }
+
+  putData(accountId, field, value) {
+    if (!this.cache[accountId]) {
+      this.cache[accountId] = {};
+    }
+    this.cache[accountId][field] = value;
   }
 
   deleteData(key, field) {
