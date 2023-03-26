@@ -300,8 +300,8 @@ const patch = function (
     return this._fromRFC6902(patched.newDocument);
   } catch (e) {
     logger.error(e);
-    logger.error(accountId, 'BAD PATCH', toPatch);
-    logger.error(accountId, 'BAD PATCH', patchObj);
+    logger.error(accountId, 'BAD PATCH', JSON.stringify(toPatch, null, 2));
+    logger.error(accountId, 'BAD PATCH', JSON.stringify(patchObj, null, 2));
     throw e;
   }
 };
@@ -481,8 +481,19 @@ const _fromRFC6902 = function (input) {
       return {}; // TODO: does this need to be []? FLUP: might need to return either {} or []. Since we are returning {} here we'll make sure we convert any {} that should be [] in the patch before calling _fromRFC6902
     }
 
-    let firstLetterOfFirstKey = keys[0].substring(0, 1);
-    if (firstLetterOfFirstKey === '%' || firstLetterOfFirstKey === '@') {
+    // Get the first non-"&" key
+    let firstLetterOfFirstKey = undefined;
+    for (let i = 0; i < keys.length; i++) {
+      let keyFirstChar = keys[i].substring(0, 1);
+      if (keyFirstChar !== '&') {
+        firstLetterOfFirstKey = keyFirstChar;
+        break;
+      }
+    }
+    if (firstLetterOfFirstKey === undefined) {
+      // No non-"&" keys found - we are unnecessarily specifying order
+      return {};
+    } else if (firstLetterOfFirstKey === '%' || firstLetterOfFirstKey === '@') {
       let outputArray = [];
       let orderObject = input['&order'];
       for (let keyIndex in keys) {
@@ -588,7 +599,10 @@ const _fromRFC6902 = function (input) {
       return outputObject;
     } else {
       throw new Error(
-        'Invalid json document for RFC6902 conversion: ' + keys[0]
+        'Invalid json document for RFC6902 conversion: ' +
+          keys[0] +
+          ' ' +
+          JSON.stringify(input, null, 2)
       );
     }
   } else {

@@ -2,6 +2,7 @@ const { Store } = require('express-session');
 
 const fs = require('fs');
 const path = require('path');
+const logger = require('./logger');
 
 const noop = () => {};
 
@@ -29,12 +30,16 @@ class FileSystemSessionStore extends Store {
   }
 
   get(sid, cb = noop) {
+    logger.log('?', 'Getting session');
     let target = path.join(this.path, sid);
     if (!fs.existsSync(target)) {
       cb(null);
+      logger.log('?', 'No session :(');
       return;
     }
     let content = JSON.parse(fs.readFileSync(target));
+    logger.log('?', 'Session ', content);
+
     cb(null, content);
   }
 

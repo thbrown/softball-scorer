@@ -336,6 +336,40 @@ test('Restore from RFC6902 compatible document', () => {
   expect(utils.sortJson(output)).toEqual(utils.sortJson(expected));
 });
 
+test('Tolerate misplaced &order keys', () => {
+  let expected = [
+    { id: 321, name: 'Matthew' },
+    { id: 427, name: 'Mark' },
+    { id: 112, name: 'Luke' },
+    { id: 314, name: 'John' },
+  ];
+  let input = {
+    '&order': {
+      112: '2',
+      314: '3',
+      321: '0',
+      427: '1',
+    },
+    '#321': { _name: 'Matthew' },
+    '#427': { _name: 'Mark' },
+    '#112': { _name: 'Luke' },
+    '#314': { _name: 'John' },
+  };
+
+  let output = objectMerge._fromRFC6902(input);
+  expect(utils.sortJson(output)).toEqual(utils.sortJson(expected));
+});
+
+test('Tolerate only &order keys - I don`t think this actually happens', () => {
+  let expected = {};
+  let input = {
+    '&order': {},
+  };
+
+  let output = objectMerge._fromRFC6902(input);
+  expect(utils.sortJson(output)).toEqual(utils.sortJson(expected));
+});
+
 test('Create and restore RFC6902 compatible nested document', () => {
   let input = [
     {
