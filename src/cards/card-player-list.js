@@ -8,7 +8,9 @@ import IconButton from 'elements/icon-button';
 class CardPlayerList extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      search: undefined,
+    };
 
     this.handlePlayerClick = function (player) {
       setRoute(`/players/${player.id}`);
@@ -22,6 +24,10 @@ class CardPlayerList extends React.Component {
       const player = state.addPlayer('', 'M');
       setRoute(`/players/${player.id}/edit?isNew=true`);
     };
+
+    this.handleSearch = function (v) {
+      this.setState({ search: v.target.value });
+    }.bind(this);
   }
 
   renderPlayerList() {
@@ -35,9 +41,31 @@ class CardPlayerList extends React.Component {
         >
           <div className="prevent-overflow">+ Add New Player</div>
         </ListButton>
+        <input
+          type="text"
+          name="search"
+          id="search"
+          placeholder="Search Players"
+          className="page-width-input"
+          onChange={this.handleSearch}
+          style={{
+            width: 'calc(100% - 41px)',
+            marginLeft: '11px',
+            padding: '0px',
+            paddingLeft: '10px',
+          }}
+        />
         {state
           .getAllPlayersAlphabetically()
           .slice()
+          .filter((player) => {
+            return (
+              this.state.search === undefined ||
+              player.name
+                .toLowerCase()
+                .includes(this.state.search.toLowerCase())
+            );
+          })
           .map((player) => {
             return (
               <ListButton
