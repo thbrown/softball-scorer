@@ -103,8 +103,7 @@ const jsonPointer = require('jsonpointer');
  *
  * TODO: Think about making this an interface. I don't know what other implementation we would used here but it's a nice abstraction.
  */
-
-let diff = function (mine, theirs) {
+const diff = function (mine, theirs) {
   // Do the RFC6902 conversion an diffing
   mine = this._toRFC6902(mine);
   theirs = this._toRFC6902(theirs);
@@ -186,7 +185,7 @@ let diff = function (mine, theirs) {
   return patchObj;
 };
 
-let patch = function (
+const patch = function (
   toPatch,
   patchObj,
   skipOperationOnNonExistent,
@@ -198,8 +197,10 @@ let patch = function (
     },
   }
 ) {
+  //console.warn('APPLYING PATCH', patchObj.length);
+
   // Empty patch indicates no changes
-  if (patchObj === null || patchObj === undefined) {
+  if (patchObj === null || patchObj === undefined || patchObj.length === 0) {
     return toPatch;
   }
 
@@ -246,7 +247,7 @@ let patch = function (
         updatedPatch.push(patchStep);
         continue;
       } else {
-        console.warn('REMOVED other', patchStep);
+        //console.warn('REMOVED other', patchStep);
       }
     }
     patchObj = updatedPatch;
@@ -298,8 +299,9 @@ let patch = function (
 
     return this._fromRFC6902(patched.newDocument);
   } catch (e) {
-    logger.error(accountId, 'BAD PATCH', toPatch);
-    logger.error(accountId, 'BAD PATCH', patchObj);
+    logger.error(e);
+    logger.error(accountId, 'BAD PATCH', JSON.stringify(toPatch, null, 2));
+    logger.error(accountId, 'BAD PATCH', JSON.stringify(patchObj, null, 2));
     throw e;
   }
 };
@@ -396,6 +398,12 @@ let _isValueValid = function (toCheck, forbiddenKeySet) {
  * * - kept as an object w/ numeric key [This will never happen, keys can not be numeric in JSON, they are all strings] TODO: remove this
  * % - converted from an array of numbers to object
  * @ - converted from an array of strings to object
+ * & - internal property marker, currently only use to track array ordering
+ *
+ *
+ *
+ * [{id:1}, {id:2}, {id:3}]
+ * {#1:{},#2:{},#3:{},&order:{}}
  */
 const _toRFC6902 = function (input) {
   if (input === undefined || input === null) {
@@ -407,14 +415,19 @@ const _toRFC6902 = function (input) {
     } else if (typeof input[0] === 'number' || typeof input[0] === 'string') {
       // This is an array of numbers or strings, convert the array to an object
       let outputObject = {};
-      for (let element of input) {
+      let orderObject = {};
+      for (let elementIndex in input) {
+        let element = input[elementIndex];
         let id = (typeof element === 'number' ? '%' : '@') + element;
-        outputObject[id] = ''; // Empty string here okay? is null or undefined or element better?
+        outputObject[id] = '';
+        orderObject[element] = elementIndex;
       }
-      console.log('TO', input, outputObject);
+      if (Object.keys(orderObject).length > 0) {
+        outputObject['&order'] = orderObject;
+      }
       return outputObject;
     } else if (input[0].id === undefined) {
-      // This is an array of some other primitive  (boolean, arrays, undefined, null, etc.) or objects without an id, keep it as an array
+      // This is an array of some other primitive (boolean, arrays, undefined, null, etc.) or objects without an id, keep it as an array
       let outputArray = [];
       for (let element of input) {
         outputArray.push(this._toRFC6902(element));
@@ -423,10 +436,16 @@ const _toRFC6902 = function (input) {
     } else {
       // This is an array of objects with ids, convert the array to an object
       let outputObject = {};
-      for (let element of input) {
+      let orderObject = {};
+      for (let elementIndex in input) {
+        let element = input[elementIndex];
         let id = (typeof element.id === 'number' ? '#' : '$') + element.id;
         outputObject[id] = this._toRFC6902(element);
+        orderObject[element.id] = elementIndex;
         delete outputObject[id]['_id'];
+      }
+      if (Object.keys(orderObject).length > 0) {
+        outputObject['&order'] = orderObject;
       }
       return outputObject;
     }
@@ -462,11 +481,28 @@ const _fromRFC6902 = function (input) {
       return {}; // TODO: does this need to be []? FLUP: might need to return either {} or []. Since we are returning {} here we'll make sure we convert any {} that should be [] in the patch before calling _fromRFC6902
     }
 
-    let firstLetterOfFirstKey = keys[0].substring(0, 1);
-    if (firstLetterOfFirstKey === '%' || firstLetterOfFirstKey === '@') {
+    // Get the first non-"&" key
+    let firstLetterOfFirstKey = undefined;
+    for (let i = 0; i < keys.length; i++) {
+      let keyFirstChar = keys[i].substring(0, 1);
+      if (keyFirstChar !== '&') {
+        firstLetterOfFirstKey = keyFirstChar;
+        break;
+      }
+    }
+    if (firstLetterOfFirstKey === undefined) {
+      // No non-"&" keys found - we are unnecessarily specifying order
+      return {};
+    } else if (firstLetterOfFirstKey === '%' || firstLetterOfFirstKey === '@') {
       let outputArray = [];
-      for (let key of keys) {
+      let orderObject = input['&order'];
+      for (let keyIndex in keys) {
+        let key = keys[keyIndex];
         let first = key.substring(0, 1);
+        if (first === '&') {
+          // Internal key, skip
+          continue;
+        }
         if (first !== '%' && first !== '@') {
           throw new Error(
             'Invalid json document for RFC6902 conversion: ' +
@@ -479,12 +515,36 @@ const _fromRFC6902 = function (input) {
         let element = first === '%' ? parseFloat(rest) : rest;
         outputArray.push(element);
       }
-      console.log('FROM', input, outputArray);
-      return outputArray;
+      // Create order indexes for all anything that's in outputArray but not in orderObject
+      for (let outputObjectIndex in outputArray) {
+        let outputObject = outputArray[outputObjectIndex];
+        if (orderObject[outputObject] === undefined) {
+          orderObject[outputObject] = outputObjectIndex;
+        }
+      }
+
+      // Sort outputArray based off orderObject
+      const sortedOutputArray = outputArray.sort(function (a, b) {
+        const a1 = parseInt(orderObject[a]);
+        const b1 = parseInt(orderObject[b]);
+        if (a1 < b1) {
+          return -1;
+        }
+        if (a1 > b1) {
+          return 1;
+        }
+        return String(b).localeCompare(String(a)); // Break ties with natural ordering
+      });
+      return sortedOutputArray;
     } else if (firstLetterOfFirstKey === '$' || firstLetterOfFirstKey === '#') {
       let outputArray = [];
+      let orderObject = input['&order'];
       for (let key of keys) {
         let first = key.substring(0, 1);
+        if (first === '&') {
+          // Internal key, skip
+          continue;
+        }
         if (first !== '$' && first !== '#') {
           throw new Error(
             'Invalid json document for RFC6902 conversion: ' +
@@ -498,7 +558,28 @@ const _fromRFC6902 = function (input) {
         object.id = first === '#' ? parseFloat(rest) : rest;
         outputArray.push(object);
       }
-      return outputArray;
+      // Create order indexes for all anything that's in outputArray but not in orderObject
+      for (let outputObjectIndex in outputArray) {
+        let outputObject = outputArray[outputObjectIndex];
+        if (orderObject[outputObject.id] === undefined) {
+          orderObject[outputObject.id] = outputObjectIndex;
+        }
+      }
+
+      // Sort outputArray based off orderObject
+      const sortedOutputArray = outputArray.sort(function (a, b) {
+        const a1 = parseInt(orderObject[a.id]);
+        const b1 = parseInt(orderObject[b.id]);
+        if (a1 < b1) {
+          return -1;
+        }
+        if (a1 > b1) {
+          return 1;
+        }
+        return String(b.id).localeCompare(String(a.id)); // Break ties with natural ordering
+      });
+
+      return sortedOutputArray;
     } else if (firstLetterOfFirstKey === '_' || firstLetterOfFirstKey === '*') {
       let outputObject = {};
       for (let key of keys) {
@@ -518,7 +599,10 @@ const _fromRFC6902 = function (input) {
       return outputObject;
     } else {
       throw new Error(
-        'Invalid json document for RFC6902 conversion: ' + keys[0]
+        'Invalid json document for RFC6902 conversion: ' +
+          keys[0] +
+          ' ' +
+          JSON.stringify(input, null, 2)
       );
     }
   } else {

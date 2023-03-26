@@ -58,7 +58,14 @@ export const getHash = function (data, logger) {
   // I've tried other hashes here (like javascript xxHash) but md5 is faster in the browser and much faster on the server.
   var objectHasher = hasher({
     alg: 'md5',
-    sort: true,
+    sort: {
+      array: false,
+      typedArray: false,
+      object: true,
+      set: false,
+      map: false,
+      bigint: false, // Not sure about this one, how do you sort an int?
+    },
     coerce: false,
     enc: 'base64',
   });

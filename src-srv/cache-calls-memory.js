@@ -1,4 +1,5 @@
 const configAccessor = require('./config-accessor');
+const logger = require('./logger.js');
 
 /**
  * This cache implementation just stores cached data in local memory. It will not scale past one process.
@@ -41,7 +42,7 @@ module.exports = class CacheCalls {
   }
 
   async getAncestor(accountId, sessionId) {
-    this.getData(accountId, 'ancestor' + sessionId);
+    return this.getData(accountId, 'ancestor' + sessionId);
   }
 
   async setAncestor(accountId, sessionId, ancestor) {

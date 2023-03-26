@@ -62,7 +62,11 @@ export default class CardAuth extends React.Component {
             });
           }
         },
-        undefined,
+        async () => {
+          self.setState({
+            passwordResetInProgress: false,
+          });
+        },
         document.getElementById('username').value
       );
     }.bind(this);
@@ -217,13 +221,13 @@ export default class CardAuth extends React.Component {
             disabled={this.state.logInInProgress}
             value="Log In"
           >
+            Log In
             {this.state.logInInProgress ? (
               <Loading
                 style={{ width: '30px', height: '20%', marginTop: '-28px' }}
                 color="white"
               ></Loading>
             ) : undefined}
-            Log In
           </button>
         </form>
         <hr style={{ margin: '16px' }}></hr>
@@ -243,12 +247,12 @@ export default class CardAuth extends React.Component {
             onClick={this.handlePasswordResetClick}
             disabled={this.state.passwordResetInProgress}
           >
+            Reset Password
             {this.state.passwordResetInProgress ? (
               <Loading
                 style={{ width: '30px', height: '20%', marginTop: '-28px' }}
               ></Loading>
             ) : undefined}
-            Reset Password
           </button>
         </div>
       </div>

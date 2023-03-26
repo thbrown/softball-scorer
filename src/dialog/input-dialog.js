@@ -22,6 +22,7 @@ export default class InputDialog extends React.Component {
 
     this.handleCancelClick = window.current_cancel = () => {
       this.props.hide();
+      this.props.on_cancel();
     };
   }
 
