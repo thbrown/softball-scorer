@@ -100,7 +100,7 @@ hr {
   z-index: 1000;
   cursor: default;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   overflow: hidden;
 }
 

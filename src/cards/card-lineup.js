@@ -107,7 +107,7 @@ export default class CardLineup extends React.Component {
     }.bind(this);
 
     this.handleNewPlateAppearanceClick = function (player, game_id, team_id) {
-      let plateAppearance = state.addPlateAppearance(
+      const plateAppearance = state.addPlateAppearance(
         player.id,
         game_id,
         team_id
@@ -121,9 +121,10 @@ export default class CardLineup extends React.Component {
       this.setState({
         dragging: true,
       });
-      let elem = document.getElementById('lineup_' + player.id);
+      const elem = document.getElementById('lineup_' + player.id);
       elem.style['z-index'] = 100;
       elem.style.position = 'absolute';
+      elem.style.width = '90%';
       this.handleDrag(player, index, true);
     };
 
@@ -132,10 +133,12 @@ export default class CardLineup extends React.Component {
         dragging: false,
       });
       hideHighlights(true);
-      let elem = document.getElementById('lineup_' + player.id);
+      const elem = document.getElementById('lineup_' + player.id);
       elem.style['z-index'] = 1;
       elem.style.position = null;
       elem.style['margin-top'] = null;
+      elem.style.width = 'unset';
+
       const { new_position_index } = getInds(elem, index);
       state.updateLineup(this.props.game.lineup, player.id, new_position_index);
 
@@ -540,7 +543,16 @@ export default class CardLineup extends React.Component {
       );
     }
 
-    return DOM.div({ id: 'list-container' }, pageElems);
+    return DOM.div(
+      {
+        id: 'list-container',
+        style: {
+          overflow: 'hidden',
+          position: 'relative',
+        },
+      },
+      pageElems
+    );
   }
 
   renderNonLineupAtBats() {
