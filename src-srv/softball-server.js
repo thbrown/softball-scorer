@@ -1450,7 +1450,7 @@ module.exports = class SoftballServer {
         ghostPlayer.name = ghostPlayer.name + ' Ghost'; // Unnecessary but helps show whats going on
         statsData.players.push(ghostPlayer);
 
-        // Overrides - Attribute all PAs of our overridenPlayer to our new ghost player
+        // Overrides - Attribute all PAs of our overriden Player to our new ghost player
         for (let team of statsData.teams) {
           for (let game of team.games) {
             for (let pa of game.plateAppearances) {

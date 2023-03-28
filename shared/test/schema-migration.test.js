@@ -1,8 +1,7 @@
 let fs = require('fs');
-const schemaValidation = require('../../shared-lib').default.schemaValidation;
-const schemaMigration = require('../../shared-lib').default.schemaMigration;
-const TLSchemas =
-  require('../../shared-lib').default.schemaValidation.TLSchemas;
+const schemaValidation = require('../../shared-lib').schemaValidation;
+const schemaMigration = require('../../shared-lib').schemaMigration;
+const TLSchemas = require('../../shared-lib').schemaValidation.TLSchemas;
 
 let deepCopy = function (input) {
   return JSON.parse(JSON.stringify(input));

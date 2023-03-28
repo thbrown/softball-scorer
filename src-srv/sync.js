@@ -15,6 +15,7 @@ const lockAccount = async function (accountId) {
   let success = false;
   let counter = 0;
   const self = context.getServer();
+
   do {
     success = await self.cacheCalls.lockAccount(accountId);
 

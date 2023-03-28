@@ -111,16 +111,23 @@ export const formatPercentage = function (value, decimalPlaces) {
 };
 
 export const sortJson = function sortJson(object) {
-  if (typeof object != 'object' || object instanceof Array)
-    // Not to sort the array
+  if (Array.isArray(object)) {
+    let result = [];
+    for (let el of object) {
+      result.push(sortJson(el));
+    }
+    return result;
+  } else if (isObject(object)) {
+    let keys = Object.keys(object);
+    keys.sort();
+    var newObject = {};
+    for (let key of keys) {
+      newObject[key] = sortJson(object[key]);
+    }
+    return newObject;
+  } else {
     return object;
-  var keys = Object.keys(object);
-  keys.sort();
-  var newObject = {};
-  for (var i = 0; i < keys.length; i++) {
-    newObject[keys[i]] = sortJson(object[keys[i]]);
   }
-  return newObject;
 };
 
 export const isObject = function isObject(input) {

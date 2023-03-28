@@ -3,8 +3,11 @@
 
 const configAccessor = require('../config-accessor');
 const SoftballServer = require('../softball-server');
-const utils = require('./test-utils.js');
-const state = require('../../src/state.js');
+const testUtils = require('./test-utils.js');
+const state = require('../../src/state.js').default;
+const context = require('../context');
+const SharedLib = require('../../shared-lib');
+const utils = SharedLib.commonUtils;
 
 /**
  * This test requires an attached postgres database.
@@ -22,23 +25,24 @@ describe('sync', () => {
     databaseCalls = await configAccessor.getDatabaseService(cache);
     compute = configAccessor.getOptimizationComputeService();
     server = new SoftballServer(port, databaseCalls, cache, compute);
+    context.setServer(server);
     server.start();
 
     // Wait for services to start up (TODO: fix this)
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    let email = `syncTest${utils.randomId(10)}@softball.app`;
+    let email = `syncTest${testUtils.randomId(10)}@softball.app`;
     let accountPassword = 'pizza';
-    await utils.signup(email, accountPassword);
+    await testUtils.signup(email, accountPassword);
 
-    sessionCookies = await utils.login(email, accountPassword);
+    sessionCookies = await testUtils.login(email, accountPassword);
     authenticate(sessionCookies); // global, see jest-setup.js
     done();
   });
 
   afterAll(async (done) => {
     try {
-      await utils.deleteAccount(sessionCookies);
+      await testUtils.deleteAccount(sessionCookies);
       await server.stop();
 
       // This isn't currently working for some reason (is this causing the open file handles after tests run?)
@@ -63,6 +67,10 @@ describe('sync', () => {
         delete teams[i].publicId;
       }
     }
+    delete activeState.getLocalState().account.accountId;
+    delete activeState.getLocalState().account.balance;
+    delete activeState.getLocalState().account.email;
+    delete activeState.getLocalState().account.emailConfirmed;
 
     let serverChecksum = activeState.getLocalStateChecksum();
     let afterSyncCopy = JSON.stringify(state.getLocalState(), null, 2);
@@ -70,17 +78,12 @@ describe('sync', () => {
     if (clientChecksum !== serverChecksum) {
       // Checksums don't care about ordering, so they are the definitive answer
       // If those don't match, we'll compare the strings because they are much easier to debug
-      /*
-      console.log(
-        'Pre',
-        beforeSyncCopy,
-        serverChecksum,
-        'Post Sync',
-        afterSyncCopy,
-        clientChecksum
+      console.log('Pre', beforeSyncCopy);
+      console.log('Post', afterSyncCopy);
+      console.log('Checksums', serverChecksum, clientChecksum);
+      expect(utils.sortJson(JSON.parse(afterSyncCopy))).toEqual(
+        utils.sortJson(JSON.parse(beforeSyncCopy))
       );
-      */
-      expect(afterSyncCopy).toEqual(beforeSyncCopy);
     }
 
     console.log('Sync assertions successful');

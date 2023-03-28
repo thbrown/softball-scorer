@@ -679,25 +679,27 @@ export default class CardOptimization extends React.Component {
       );
     }
 
-    Promise.all(prom).then((values) => {
-      values = values.map((v) => v.body).filter((v) => v.length !== 0);
+    Promise.all(prom)
+      .then((values) => {
+        values = values.map((v) => v?.body).filter((v) => v?.length !== 0);
 
-      // No data found, may be offline
-      if (values.length == 0) {
-        return;
-      }
+        // No data found, may be offline
+        if (values.length == 0 || values.some((v) => v === undefined)) {
+          return;
+        }
 
-      // Convert optimizer data array to an object
-      let optData = {};
-      for (let i = 0; i < values.length; i++) {
-        let opt = values[i];
-        optData[opt.id] = opt;
-      }
+        // Convert optimizer data array to an object
+        let optData = {};
+        for (let i = 0; i < values.length; i++) {
+          let opt = values[i];
+          optData[opt.id] = opt;
+        }
 
-      this.setState({
-        optimizerData: optData,
-      });
-    });
+        this.setState({
+          optimizerData: optData,
+        });
+      })
+      .catch((e) => console.warn('Error fetching optimizers:', e));
   }
 
   renderOptimizationPage(optimization) {

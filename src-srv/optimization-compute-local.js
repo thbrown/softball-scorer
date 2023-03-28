@@ -332,7 +332,7 @@ module.exports = class OptimizationComputeLocal {
       });
 
       process.on('close', function (code) {
-        //Result of the estimate has been written to the file system, read that out and return it
+        // Result of the estimate has been written to the file system, read that out and return it
         let result = self.query(accountId, optimizationId);
         resolve(result);
       });

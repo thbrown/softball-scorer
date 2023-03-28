@@ -39,7 +39,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     const newAccount = {
       accountId: accountId,
       email: email,
-      optimizers: [0],
+      optimizers: [0, 1, 2],
       balance: 0,
       emailConfirmed: false,
       passwordHash: passwordHash,
