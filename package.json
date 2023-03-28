@@ -15,7 +15,7 @@
     "build-shared": "(cd shared && yarn build)",
     "update-service-worker": "node build.js update-service-worker",
     "clean": "node build.js clean",
-    "test": "jest --runInBand --bail --verbose=false",
+    "test": "jest --runInBand --bail",
     "test-old": "jest --runInBand --detectOpenHandles --bail --verbose=false --forceExit",
     "test:ui": "jest --watch ./src/tests/*",
     "analyze": "webpack --profile --json > build/stats.json && webpack-bundle-analyzer build/stats.json",

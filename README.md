@@ -26,6 +26,12 @@ use `yarn watch` if you want to start both dev server and softball.app server at
 use `yarn start` and `yarn bundle-watch` if you want to start both servers but each in their own terminal
 use `yarn bundle` to build webpack, but skip the terser/css steps.
 
+## Tests
+
+`yarn test`
+
+Integration tests not run with jest's "runInBand" flag will fail (this flag is used automatically if you use the build script above).
+
 ## Prod
 
 use `yarn build-css && yarn --cwd ./shared build && yarn build && yarn start`

@@ -192,6 +192,7 @@ module.exports = class OptimizationComputeLocal {
         errorMessage = errorMessage
           ? JSON.parse(errorMessage)?.message
           : 'Unknown Problem';
+        logger.error(accountId, error?.response);
         throw new Error(errorMessage);
       } catch (error) {
         // Not a json error object for some reason

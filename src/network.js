@@ -10,6 +10,7 @@ let requestInternal;
 
 exp.request = async function (method, url, body, controller, overrideTimeout) {
   url = exp.getServerUrl(url);
+
   return await requestInternal(method, url, body, controller, overrideTimeout);
 };
 export const request = exp.request;
