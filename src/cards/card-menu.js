@@ -46,9 +46,9 @@ class CardMenu extends Component {
               <div>
                 Could not sync account data prior to logout. You may be offline.
                 If you continue to sign out you will lose un-synced data. You
-                might consider backing up your data <a href="/menu">here</a>
+                might consider backing up your data <a href="/menu">here</a>{' '}
                 before continuing.
-                <div style={{ margin: '1rem' }}>Continue anyways?</div>
+                <p>Continue anyways?</p>
               </div>
             );
             // Wait for user to select an option
