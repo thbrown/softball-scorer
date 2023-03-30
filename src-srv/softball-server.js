@@ -326,7 +326,6 @@ module.exports = class SoftballServer {
             return;
           }
           req.logIn(accountInfo, function () {
-            logger.warn(null, req.session, accountInfo, err, info);
             initSecondAuthToken(req, res); // This breaks sometimes
             logger.log(accountInfo.accountId, 'Login Successful!');
             res.status(204).send();

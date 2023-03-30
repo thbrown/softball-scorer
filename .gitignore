@@ -24,4 +24,4 @@ database/*
 session/*
 emergency-dump-*
 .yarn
-converage
+coverage

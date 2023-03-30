@@ -48,7 +48,7 @@ describe('sync', () => {
       // This isn't currently working for some reason (is this causing the open file handles after tests run?)
       await databaseCalls.disconnect();
     } catch (err) {
-      console.log(`Something went wrong in afterAll ${err}`);
+      console.error(`Something went wrong in afterAll ${err} ${err.stack}`);
       throw err;
     }
     done();
@@ -281,7 +281,7 @@ describe('sync', () => {
   });
   */
 
-  test('Ordering - This query includes both deletes and and insert, this tests to makes sure the resulting querys are sorted and performed in the right order', async () => {
+  test.only('Ordering - This query includes both deletes and and insert, this tests to makes sure the resulting querys are sorted and performed in the right order', async () => {
     state.deleteAllData();
     await performAndValidateSync(state);
 

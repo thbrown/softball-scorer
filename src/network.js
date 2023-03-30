@@ -32,7 +32,7 @@ requestInternal = async function (
     const res = await new Promise(async function (resolve, reject) {
       const timeout = setTimeout(
         function () {
-          reject(new Error('Request timed out'));
+          reject(new Error('Request timed out ' + url));
         },
         overrideTimeout ? overrideTimeout : FETCH_TIMEOUT
       );

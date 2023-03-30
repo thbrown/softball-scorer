@@ -32,6 +32,10 @@ use `yarn bundle` to build webpack, but skip the terser/css steps.
 
 Integration tests not run with jest's "runInBand" flag will fail (this flag is used automatically if you use the build script above).
 
+If you are running the tests using gcp buckets as the cache or database, you'll need to account for longer network calls by extending the test timeout `--testTimeout=30000`
+
+You can specify particular tests w/ wild cards e.g. `yarn test sync-integration*`
+
 ## Prod
 
 use `yarn build-css && yarn --cwd ./shared build && yarn build && yarn start`
