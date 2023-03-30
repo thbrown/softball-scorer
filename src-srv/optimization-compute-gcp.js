@@ -3,8 +3,9 @@ const got = require('got');
 const logger = require('./logger.js');
 const SharedLib = require('../shared-lib');
 const configAccessor = require('./config-accessor');
+const HandledError = require('./handled-error.js');
 
-const START_URL = `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-start`;
+const START_URL = `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-start-b`;
 const PAUSE_URL = `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-pause`;
 const QUERY_URL = `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-query`;
 
@@ -53,10 +54,20 @@ module.exports = class OptimizationComputeLocal {
         errorMessage = errorMessage
           ? JSON.parse(errorMessage)?.message
           : 'Unknown Problem';
-        throw new Error(errorMessage);
-      } catch (error) {
+        throw new HandledError(
+          accountId,
+          error?.response?.code,
+          errorMessage,
+          error.stack
+        );
+      } catch (error2) {
         // Not a json error object for some reason
-        throw new Error(errorMessage);
+        throw new HandledError(
+          accountId,
+          error?.response?.statusCode,
+          errorMessage,
+          error.stack + ' - ' + error2.stack
+        );
       }
     }
 
@@ -94,8 +105,12 @@ module.exports = class OptimizationComputeLocal {
         );
         return response.body;
       } else {
-        logger.error(accountId, 'Error while pausing', response.body);
-        throw new Error('Unexpected error encountered during pausing');
+        throw new HandledError(
+          accountId,
+          response?.statusCode,
+          'Unexpected error encountered during pausing',
+          response.body
+        );
       }
     }
   }
@@ -117,8 +132,12 @@ module.exports = class OptimizationComputeLocal {
           }
           return jsonResponse.message;
         } else {
-          logger.error(accountId, 'Unsuccessful query', queryResponse.body);
-          throw new Error('Unsuccessful query');
+          throw new HandledError(
+            accountId,
+            queryResponse?.statusCode,
+            'Unsuccessful query',
+            queryResponse.body
+          );
         }
       }
     } catch (error) {
@@ -192,11 +211,20 @@ module.exports = class OptimizationComputeLocal {
         errorMessage = errorMessage
           ? JSON.parse(errorMessage)?.message
           : 'Unknown Problem';
-        logger.error(accountId, error?.response);
-        throw new Error(errorMessage);
-      } catch (error) {
+        throw new HandledError(
+          accountId,
+          error?.response?.code,
+          errorMessage,
+          error.stack
+        );
+      } catch (error2) {
         // Not a json error object for some reason
-        throw new Error(errorMessage);
+        throw new HandledError(
+          accountId,
+          error?.response?.statusCode,
+          errorMessage,
+          error.stack + ' - ' + error2.stack
+        );
       }
     }
   }
