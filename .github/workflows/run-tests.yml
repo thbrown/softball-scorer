@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Greeting
-      - run: echo "Running tests on ${{ github.ref }} in ${{ github.repository }}."
+        run: echo "Running tests on ${{ github.ref }} in ${{ github.repository }}."
       - uses: actions/checkout@v2
       - name: Install modules
         run: yarn
