@@ -210,8 +210,7 @@ export default class CardLineup extends React.Component {
         data.time
       }ms)`;
 
-      let scoreSpinner = this.scoreSpinnerRef.current;
-      scoreSpinner.style.visibility = 'hidden';
+      this.scoreSpinnerRef.current.style.visibility = 'hidden';
     }.bind(this);
 
     // Tell web worker to start computing lineup estimated score
@@ -349,62 +348,45 @@ export default class CardLineup extends React.Component {
     });
 
     if (editable === FULL_EDIT || editable === PARTIAL_EDIT) {
-      pas = pas.concat([
-        DOM.div(
-          {
-            id: 'newPa-' + player.id,
-            key: 'newPa' + player.id,
-            onClick: this.handleNewPlateAppearanceClick.bind(
-              this,
-              player,
-              this.props.game.id,
-              this.props.team.id
-            ),
-            className: 'lineup-box',
-          },
-          DOM.div(
-            {
-              style: {
-                backgroundColor: css.colors.PRIMARY_LIGHT,
-              },
-            },
+      pas.push(
+        <div
+          id={'newPa-' + player.id}
+          key={'newPa' + player.id}
+          className="lineup-box"
+          onClick={this.handleNewPlateAppearanceClick.bind(
+            this,
+            player,
+            this.props.game.id,
+            this.props.team.id
+          )}
+        >
+          <div style={{ backgroundColor: css.colors.PRIMARY_LIGHT }}>
             <span className="no-select">+</span>
-          )
-        ),
-      ]);
+          </div>
+        </div>
+      );
     }
 
-    return DOM.div(
-      {
-        className: 'plate-appearance-list',
-      },
-      pas
-    );
+    return <div className="plate-appearance-list">{pas}</div>;
   }
 
   renderLineupScore() {
-    return DOM.div(
-      {
-        id: 'score',
-        key: 'score',
-        className: 'lineup-score',
-      },
-      DOM.img({
-        id: 'score-spinner',
-        ref: this.scoreSpinnerRef,
-        src: '/assets/spinner.gif',
-        style: {
-          visibility: 'unset',
-        },
-      }),
-      DOM.div(
-        {
-          id: 'score-text',
-          ref: this.scoreTextRef,
-          className: 'lineup-score-text',
-        },
-        SIMULATION_TEXT
-      )
+    return (
+      <div id="score" key="score" className="lineup-score">
+        <img
+          id="score-spinner"
+          ref={this.scoreSpinnerRef}
+          src="/assets/spinner.gif"
+          style={{ visibility: 'unset' }}
+        ></img>
+        <div
+          id="score-text"
+          ref={this.scoreTextRef}
+          className="lineup-score-text"
+        >
+          {SIMULATION_TEXT}
+        </div>
+      </div>
     );
   }
 
@@ -418,9 +400,10 @@ export default class CardLineup extends React.Component {
         'lineup:',
         !this.props.game.lineup
       );
-      return DOM.div(
-        { className: 'page-error' },
-        'Lineup: No game, team, or lineup exists.'
+      return (
+        <div className="page-error">
+          'Lineup: No game, team, or lineup exists.'
+        </div>
       );
     }
 
@@ -450,14 +433,12 @@ export default class CardLineup extends React.Component {
         })
         .reduce((acc, next, i) => {
           acc.push(
-            DOM.div({
-              key: 'highlight' + i,
-              id: 'highlight' + i,
-              className: 'highlight',
-              style: {
-                visibility: 'hidden',
-              },
-            })
+            <div
+              key={'highlight' + i}
+              id={'highlight' + i}
+              className="highlight"
+              style={{ visibility: 'hidden' }}
+            ></div>
           );
           acc.push(next);
           return acc;
@@ -465,27 +446,23 @@ export default class CardLineup extends React.Component {
     );
 
     pageElems.push(
-      DOM.div({
-        id: 'highlight' + this.props.game.lineup.length,
-        key: 'highlight' + this.props.game.lineup.length,
-        className: 'highlight',
-        style: {
-          visibility: 'hidden',
-        },
-      })
+      <div
+        id={'highlight' + this.props.game.lineup.length}
+        key={'highlight' + this.props.game.lineup.length}
+        className="highlight"
+        style={{ visibility: 'hidden' }}
+      ></div>
     );
 
     pageElems.push(
-      DOM.div(
-        {
-          id: 'newPlayer',
-          key: 'newplayer',
-          // className: 'list-item add-list-item',
-          className: 'primary-button button',
-          onClick: this.handleCreateClick,
-        },
-        '+ Add/Remove Players'
-      )
+      <div
+        id="newPlayer"
+        key="newplayer"
+        className="primary-button button"
+        onClick={this.handleCreateClick}
+      >
+        + Add/Remove Players
+      </div>
     );
 
     if (this.props.game.lineup.length !== 0) {
@@ -543,16 +520,7 @@ export default class CardLineup extends React.Component {
       );
     }
 
-    return DOM.div(
-      {
-        id: 'list-container',
-        style: {
-          overflow: 'hidden',
-          position: 'relative',
-        },
-      },
-      pageElems
-    );
+    return <div id="list-container">{pageElems}</div>;
   }
 
   renderNonLineupAtBats() {
@@ -575,7 +543,7 @@ export default class CardLineup extends React.Component {
     );
 
     if (nonLineupPlateAppearances.length !== 0) {
-      pageElems.push(DOM.hr());
+      pageElems.push(<hr></hr>);
       pageElems.push(
         <div className="background-text">
           Players with plate appearances who are not in the lineup
@@ -599,7 +567,7 @@ export default class CardLineup extends React.Component {
       });
     }
 
-    return DOM.div({}, pageElems);
+    return <div>{pageElems}</div>;
   }
 
   renderPlayerTile(playerId, gameId, index, editable) {
@@ -611,12 +579,8 @@ export default class CardLineup extends React.Component {
     let elems = [];
     if (editable === FULL_EDIT) {
       elems.push(
-        DOM.div(
-          {
-            key: 'handle',
-            className: 'player-drag-handle',
-          },
-          // We are using an inline svg here because using an image tag messes with react draggable handle on desktops
+        <div key="handle" className="player-drag-handle">
+          {/* We are using an inline svg here because using an image tag messes with react draggable handle on desktops */}
           <div>
             <svg
               style={{
@@ -629,44 +593,36 @@ export default class CardLineup extends React.Component {
               <path d="M9,3H11V5H9V3M13,3H15V5H13V3M9,7H11V9H9V7M13,7H15V9H13V7M9,11H11V13H9V11M13,11H15V13H13V11M9,15H11V17H9V15M13,15H15V17H13V15M9,19H11V21H9V19M13,19H15V21H13V19Z" />
             </svg>
           </div>
-        )
+        </div>
       );
     }
     elems.push(
-      DOM.div(
-        {
-          key: 'name',
-          className: 'player-name prevent-overflow',
-        },
-        player.name
-      )
+      <div key="name" className="player-name prevent-overflow">
+        {player.name}
+      </div>
     );
     elems.push(
-      DOM.div(
-        {
-          key: 'boxes',
-          className: 'plate-appearance-list-container',
-        },
-        this.renderPlateAppearanceBoxes(player, plateAppearances, editable)
-      )
+      <div key="boxes" className="plate-appearance-list-container">
+        {this.renderPlateAppearanceBoxes(player, plateAppearances, editable)}
+      </div>
     );
 
     if (editable === FULL_EDIT) {
       elems.push(
-        DOM.img({
-          id: 'remove-' + playerId,
-          key: 'del',
-          src: '/assets/remove.svg',
-          className: 'lineup-row-button',
-          style: {
+        <img
+          id={'remove-' + playerId}
+          key="del"
+          src="/assets/remove.svg"
+          className="lineup-row-button"
+          style={{
             paddingTop: '20px',
             paddingBottom: '20px',
             marginLeft: '0',
             marginRight: '-8px',
             filter: 'invert(1)',
-          },
-          onClick: this.handleRemoveClick.bind(this, player),
-        })
+          }}
+          onClick={this.handleRemoveClick.bind(this, player)}
+        ></img>
       );
     }
 
@@ -683,23 +639,23 @@ export default class CardLineup extends React.Component {
           onStop: this.handleDragStop.bind(this, player, index),
           onDrag: this.handleDrag.bind(this, player, index, false),
         },
-        DOM.div(
-          {
-            key: 'lineup_' + player.id,
-            id: 'lineup_' + player.id,
-            className: 'lineup-row',
-          },
-          elems
-        )
+        <div
+          key={'lineup_' + player.id}
+          id={'lineup_' + player.id}
+          className={'lineup-row'}
+        >
+          {elems}
+        </div>
       );
     } else {
-      return DOM.div(
-        {
-          id: 'lineup_' + player.id,
-          key: 'lineup_' + player.id,
-          className: 'lineup-row',
-        },
-        elems
+      return (
+        <div
+          id={'lineup_' + player.id}
+          key={'lineup_' + player.id}
+          className={'lineup-row'}
+        >
+          {elems}
+        </div>
       );
     }
   }

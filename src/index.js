@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import DataContainer from 'elements/data-container';
 import RouteContainer from 'elements/route-container';
 import MainContainer from 'main-container';
@@ -49,7 +49,8 @@ const App = (props) => {
 };
 
 (Main.render = function () {
-  ReactDOM.render(<App />, container);
+  let root = ReactDOM.createRoot(container);
+  root.render(<App />);
 })();
 
 let _resize_timeout = null;
