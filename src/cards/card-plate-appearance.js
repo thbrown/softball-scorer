@@ -1,18 +1,14 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
 import dialog from 'dialog';
-import css from 'css';
 import Draggable from 'react-draggable';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
 import results from 'plate-appearance-results';
 import WalkupSong from 'components/walkup-song';
 import { normalize } from 'utils/functions';
-import { goBack, setRoute } from 'actions/route';
+import { goBack } from 'actions/route';
 import { makeStyles } from 'css/helpers';
 import BallFieldSvg from '../components/ball-field-svg';
 import Card from 'elements/card';
-import HeaderTabs from 'elements/header-tabs';
 
 const LOCATION_DENOMINATOR = 32767;
 
