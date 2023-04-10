@@ -12,9 +12,17 @@ global.React = React;
 const container = document.createElement('div');
 document.body.prepend(container);
 
-let Main = (global.Main = {});
+let Main = (global.Main = {
+  render: () => void 0,
+});
 
 const App = (props) => {
+  const [render, setRender] = React.useState(false);
+
+  Main.render = () => {
+    setRender(!render);
+  };
+
   return (
     <DataContainer
       url="server/current-account"
@@ -48,7 +56,7 @@ const App = (props) => {
   );
 };
 
-(Main.render = function () {
+(function () {
   let root = ReactDOM.createRoot(container);
   root.render(<App />);
 })();
