@@ -1,16 +1,14 @@
 import React from 'react';
 import DOM from 'react-dom-factories';
 import dialog from 'dialog';
-import css from 'css';
 import Draggable from 'react-draggable';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
 import results from 'plate-appearance-results';
 import WalkupSong from 'components/walkup-song';
 import { normalize } from 'utils/functions';
-import { goBack, setRoute } from 'actions/route';
+import { goBack } from 'actions/route';
 import { makeStyles } from 'css/helpers';
 import BallFieldSvg from '../components/ball-field-svg';
+import Card from 'elements/card';
 
 const LOCATION_DENOMINATOR = 32767;
 
@@ -468,66 +466,41 @@ class CardPlateAppearance extends React.Component {
       .includes(this.state.paResult)
       ? '/assets/baseball-out.svg'
       : '/assets/baseball-hit.svg';
-    return DOM.div(
-      {
-        className: 'card',
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {
+
+    return (
+      <Card
+        title={this.props.player.name}
+        enableLeftHeader={true}
+        enableRightHeader={true}
+        leftHeaderProps={{
           onClick: this.homeOrBack,
-        }),
-        DOM.div(
-          {
-            className: 'prevent-overflow card-title-text-with-arrow',
-          },
-          this.props.player.name
-        ),
-        React.createElement(RightHeaderButton, {
+        }}
+        rightHeaderProps={{
           onClick: this.homeOrBack,
-        })
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-          style: {
+        }}
+      >
+        <div
+          className="card-body"
+          style={{
             maxWidth: BALLFIELD_MAX_WIDTH + 'px',
             backgroundColor: 'unset',
             background: 'unset',
             boxShadow: 'unset',
-          },
-        },
-
-        this.renderButtonList(),
-        this.renderField(imageSrcForCurrentPa),
-        DOM.div(
-          {
-            style: {
-              display: 'flex',
-              justifyContent: 'space-between',
-            },
-          },
-          DOM.div(
-            {
-              style: {
-                paddingLeft: '18px',
-              },
-            },
-            this.renderBaseball(imageSrcForCurrentPa)
-          ),
-          this.renderActionsButtons(),
-          DOM.div(
-            {
-              style: {
-                paddingRight: '24px',
-              },
-            },
-            this.renderWalkupSong()
-          )
-        )
-      )
+          }}
+        >
+          {this.renderButtonList()}
+          {this.renderField(imageSrcForCurrentPa)}
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ paddingLeft: '18px' }}>
+              {this.renderBaseball(imageSrcForCurrentPa)}
+            </div>
+            {this.renderActionsButtons()}
+            <div style={{ paddingRight: '24px' }}>
+              {this.renderWalkupSong()}
+            </div>
+          </div>
+        </div>
+      </Card>
     );
   }
 }
