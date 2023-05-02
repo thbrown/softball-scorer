@@ -3,7 +3,8 @@ export const normalize = function (x, A, B, C, D) {
 };
 
 // NOTE: Does not modify in place, it creates a new array and returns the result
-export const sortObjectsByDate = function (list, { isAsc, eqCb }) {
+export const sortObjectsByDate = function (listInput, { isAsc, eqCb }) {
+  const list = listInput.slice();
   return list.sort((a, b) => {
     if (a.date === b.date) {
       if (eqCb) {

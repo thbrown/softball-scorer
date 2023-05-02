@@ -783,7 +783,7 @@ module.exports = class SoftballServer {
           optimization.sendEmail &&
           account.emailConfirmed
         ) {
-          let emailAddress = extractSessionInfo(req, 'email');
+          const emailAddress = account.email;
           let email = configAccessor.getEmailService();
           email.sendMessage(
             accountId,

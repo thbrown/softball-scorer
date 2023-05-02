@@ -79,11 +79,6 @@ hr {
   width: $css.sizes.ICON;
 }
 
-/*
-.list-button {
-  margin: -12px;
-}
-*/
 
 .card-title {
   position: fixed;
@@ -100,7 +95,7 @@ hr {
   z-index: 1000;
   cursor: default;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   overflow: hidden;
 }
 
