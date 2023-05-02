@@ -25,7 +25,9 @@ class LocalStorageMock {
   }
 }
 
-global.localStorage = new LocalStorageMock();
+if (global.localStorage === undefined) {
+  global.localStorage = new LocalStorageMock();
+}
 
 // crypto - https://stackoverflow.com/questions/52612122/how-to-use-jest-to-test-functions-using-crypto-or-window-mscrypto
 const crypto = require('crypto');
