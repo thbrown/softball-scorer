@@ -5,7 +5,7 @@ const SharedLib = require('../shared-lib');
 const configAccessor = require('./config-accessor');
 const HandledError = require('./handled-error.js');
 
-const START_URL = `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-start-b`;
+const START_URL = `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-start`;
 const PAUSE_URL = `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-pause`;
 const QUERY_URL = `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-query`;
 
