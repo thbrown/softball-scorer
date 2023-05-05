@@ -4,6 +4,7 @@ import { getPageWrapper } from './test-helpers';
 import state from 'state';
 import { setRoute } from 'actions/route';
 import mockData from './mock.json';
+import SharedLib from 'shared-lib';
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -13,6 +14,7 @@ describe('[UI] Game Stats', () => {
 
   beforeAll(() => {
     state.setOffline();
+    SharedLib.schemaMigration.updateSchema(null, mockData, 'client');
     state.setLocalState(mockData);
     const { wrapper: localWrapper } = getPageWrapper();
     wrapper = localWrapper;

@@ -4,6 +4,7 @@ import { getPageWrapper } from './test-helpers';
 import state from 'state';
 import mockData from './mock.json';
 import { createOptimizationUI } from './create-edit-delete.test';
+import SharedLib from 'shared-lib';
 
 Enzyme.configure({ adapter: new Adapter() });
 state.setOffline();
@@ -16,6 +17,7 @@ describe('[UI] Optimization', () => {
 
   beforeAll(() => {
     state.setOffline();
+    SharedLib.schemaMigration.updateSchema(null, mockData, 'client');
     state.setLocalState(mockData);
     const { wrapper: localWrapper } = getPageWrapper();
     wrapper = localWrapper;

@@ -5,6 +5,7 @@ import state from 'state';
 import mockData from './mock.json';
 import { createGameUI } from './create-edit-delete.test';
 import { setRoute } from 'actions/route';
+import SharedLib from 'shared-lib';
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -29,6 +30,7 @@ describe('[UI] Modify Game (add plate appearances)', () => {
 
   beforeAll(() => {
     state.setOffline();
+    SharedLib.schemaMigration.updateSchema(null, mockData, 'client');
     state.setLocalState(mockData);
     const { wrapper: localWrapper } = getPageWrapper();
     wrapper = localWrapper;
