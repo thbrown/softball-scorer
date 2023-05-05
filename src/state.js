@@ -357,7 +357,7 @@ exp.sync = async function (fullSync) {
           err,
         () => {}
       );
-      console.log(err);
+      console.warn(e.stack);
       setSyncState(SYNC_STATUS_ENUM.ERROR);
     }
     return err.message;
