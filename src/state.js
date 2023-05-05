@@ -87,8 +87,8 @@ exp.getNewGame = function (opposingTeamName, lineup, lineupType) {
     opponent: opposingTeamName,
     lineup: lineup ? lineup : [],
     date: timestamp,
-    scoreUs: 0,
-    scoreThem: 0,
+    scoreUs: {},
+    scoreThem: {},
     lineupType: lineupType ? lineupType : exp.LINEUP_TYPE_ENUM.NORMAL,
     plateAppearances: [],
   };
@@ -357,7 +357,7 @@ exp.sync = async function (fullSync) {
           err,
         () => {}
       );
-      console.log(err);
+      console.warn(e.stack);
       setSyncState(SYNC_STATUS_ENUM.ERROR);
     }
     return err.message;
@@ -867,16 +867,17 @@ exp.removeGame = function (game_id, team_id) {
   onEdit();
 };
 
-exp.setScore = function ({ scoreUs, scoreThem }, gameId) {
-  const game = exp.getGame(gameId);
-  game.scoreUs = scoreUs === undefined ? game.scoreUs : scoreUs;
-  game.scoreThem = scoreThem === undefined ? game.scoreThem : scoreThem;
-  if (game.scoreUs < 0) {
-    game.scoreUs = 0;
+exp.setScore = function (game, inning, increment, scoreKey) {
+  let teamScoreObj = game[scoreKey];
+  if (teamScoreObj[inning] !== undefined) {
+    teamScoreObj[inning] += increment;
+  } else {
+    teamScoreObj[inning] = increment;
   }
-  if (game.scoreThem < 0) {
-    game.scoreThem = 0;
+  if (teamScoreObj[inning] <= 0) {
+    delete teamScoreObj[inning];
   }
+
   onEdit();
   return game;
 };

@@ -3,6 +3,7 @@ import CardSection from 'elements/card-section';
 import state from 'state';
 import { makeStyles } from 'css/helpers';
 import css from 'css';
+import { json } from 'body-parser';
 
 const useScorePaperStyles = makeStyles((css) => ({
   root: {
@@ -11,40 +12,20 @@ const useScorePaperStyles = makeStyles((css) => ({
     flexDirection: 'column',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: css.borderRadius.large,
-    padding: css.spacing.large,
+    borderRadius: css.borderRadius.small,
+    padding: css.spacing.small,
     backgroundColor: css.colors.PRIMARY,
     color: css.colors.TEXT_LIGHT,
     boxShadow: css.boxShadow.paper,
   },
-  buttonRoot: {
-    width: '120px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderRadius: css.borderRadius.small,
-    padding: css.spacing.small,
-    color: css.colors.TEXT_LIGHT,
-  },
   teamName: {
     fontSize: '1rem',
     color: css.colors.TEXT_LIGHT,
+    textAlign: 'center',
   },
   teamScore: {
     fontFamily: 'score_boardregular, Arial, sans-serif',
     fontSize: '6rem',
-  },
-  scoreIncrementButton: {
-    backgroundColor: css.colors.PRIMARY,
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    margin: css.spacing.small,
-    fontSize: '2rem',
-    padding: css.spacing.large,
-    borderRadius: css.borderRadius.large,
-    border: '5px solid ' + css.colors.PRIMARY_DARK,
   },
 }));
 
@@ -58,36 +39,114 @@ const ScorePaper = ({ score, name }) => {
   );
 };
 
-const ScoreChanger = ({ onScoreChange }) => {
-  const { classes } = useScorePaperStyles();
+const tableStyles = makeStyles((css) => ({
+  table: {
+    color: css.colors.TEXT_DARK,
+    borderCollapse: 'collapse',
+    margin: 'auto',
+  },
+  tableCell: {
+    textAlign: 'center',
+    verticalAlign: 'middle',
+    border: '3px solid',
+    borderColor: css.colors.PRIMARY,
+    padding: '4px',
+    width: '32px',
+    height: '32px',
+  },
+  scoreText: {
+    padding: '4px',
+  },
+  scoreIncrementButton: {
+    backgroundColor: css.colors.PRIMARY_DARK,
+    color: css.colors.TEXT_LIGHT,
+    padding: '0',
+    margin: '0',
+    minWidth: '32px',
+    height: '32px',
+  },
+}));
+
+const ScoreChangeButton = ({ onScoreChange, increment, buttonText }) => {
+  const { classes } = tableStyles();
   return (
-    <div className={classes.buttonRoot}>
-      <div
-        onClick={(ev) => {
-          onScoreChange(1);
-          ev.preventDefault();
-        }}
-        className={classes.scoreIncrementButton + ' button'}
-        style={{
-          height: 'unset',
-        }}
-      >
-        +1
-      </div>
-      <div
-        onClick={(ev) => {
-          onScoreChange(-1);
-          ev.preventDefault();
-        }}
-        className={classes.scoreIncrementButton + ' button'}
-        style={{
-          borderColor: css.colors.CANCEL,
-          height: 'unset',
-        }}
-      >
-        -1
-      </div>
+    <div
+      onClick={(ev) => {
+        onScoreChange(increment);
+        ev.preventDefault();
+      }}
+      className={classes.scoreIncrementButton + ' button'}
+    >
+      {buttonText}
     </div>
+  );
+};
+
+const TableCell = ({ whoseScore, inning, game }) => {
+  const { classes } = tableStyles();
+
+  const handleScoreChange = (increment) => {
+    state.setScore(game, inning, increment, whoseScore);
+  };
+
+  return (
+    <td className={classes.tableCell}>
+      <div>
+        <ScoreChangeButton
+          increment={1}
+          buttonText="+"
+          onScoreChange={(increment) => {
+            handleScoreChange(increment);
+          }}
+        />
+        <div className={classes.scoreText}>{game[whoseScore][inning] || 0}</div>
+        <ScoreChangeButton
+          increment={-1}
+          buttonText="-"
+          onScoreChange={(increment) => {
+            handleScoreChange(increment);
+          }}
+        />
+      </div>
+    </td>
+  );
+};
+
+const ScoreTable = ({ usName, themName, game }) => {
+  const { classes } = tableStyles();
+  return (
+    <table className={classes.table}>
+      <thead>
+        <th className={classes.tableCell}></th>
+        <th className={classes.tableCell}>1</th>
+        <th className={classes.tableCell}>2</th>
+        <th className={classes.tableCell}>3</th>
+        <th className={classes.tableCell}>4</th>
+        <th className={classes.tableCell}>5</th>
+        <th className={classes.tableCell}>6</th>
+        <th className={classes.tableCell}>7</th>
+      </thead>
+      <tr>
+        <td className={classes.tableCell}>{usName}</td>
+        <TableCell inning="1" game={game} whoseScore="scoreUs" />
+        <TableCell inning="2" game={game} whoseScore="scoreUs" />
+        <TableCell inning="3" game={game} whoseScore="scoreUs" />
+        <TableCell inning="4" game={game} whoseScore="scoreUs" />
+        <TableCell inning="5" game={game} whoseScore="scoreUs" />
+        <TableCell inning="6" game={game} whoseScore="scoreUs" />
+        <TableCell inning="7" game={game} whoseScore="scoreUs" />
+      </tr>
+      <tr>
+        <td className={classes.tableCell}>{themName}</td>
+        <TableCell inning="1" game={game} whoseScore="scoreThem" />
+        <TableCell inning="2" game={game} whoseScore="scoreThem" />
+        <TableCell inning="3" game={game} whoseScore="scoreThem" />
+        <TableCell inning="4" game={game} whoseScore="scoreThem" />
+        <TableCell inning="5" game={game} whoseScore="scoreThem" />
+        <TableCell inning="6" game={game} whoseScore="scoreThem" />
+        <TableCell inning="7" game={game} whoseScore="scoreThem" />
+      </tr>
+    </table>
   );
 };
 
@@ -99,25 +158,24 @@ const useGameScorerStyles = makeStyles((css) => ({
   },
 }));
 
+const calculateScore = (scoreObj) => {
+  let totalScore = 0;
+  for (let inningNumber in scoreObj) {
+    totalScore += scoreObj[inningNumber];
+  }
+  return totalScore;
+};
+
 const GameScorer = ({ teamId, gameId }) => {
   const { classes } = useGameScorerStyles();
-
-  const handleScoreChange = (inc, scoreKey) => {
-    state.setScore(
-      {
-        [scoreKey]: game[scoreKey] + inc,
-      },
-      gameId
-    );
-  };
 
   const game = state.getGame(gameId);
   const team = state.getTeam(teamId);
 
   const usName = team.name;
   const themName = game.opponent;
-  const usScore = game.scoreUs || 0;
-  const themScore = game.scoreThem || 0;
+  const usScore = calculateScore(game.scoreUs) || 0;
+  const themScore = calculateScore(game.scoreThem) || 0;
 
   return (
     <CardSection>
@@ -125,19 +183,8 @@ const GameScorer = ({ teamId, gameId }) => {
         <ScorePaper name={usName} score={usScore} />
         <ScorePaper name={themName} score={themScore} />
       </div>
-      <div className={classes.cards}>
-        <ScoreChanger
-          onScoreChange={(inc) => {
-            handleScoreChange(inc, 'scoreUs');
-          }}
-        />
-        <ScoreChanger
-          onScoreChange={(inc) => {
-            handleScoreChange(inc, 'scoreThem');
-          }}
-          name={themName}
-          score={themScore}
-        />
+      <div style={{ marginTop: '16px' }}>
+        <ScoreTable game={game} usName={usName} themName={themName} />
       </div>
     </CardSection>
   );

@@ -27,12 +27,18 @@
       "description": "Epoch timestamp in seconds when the game was created, not necessarily played."
     },
     "scoreUs": {
-      "type": "integer",
-      "description": "Number of runs scored by this team in this game"
+      "type": "object",
+      "description": "Number of runs scored by this team in this game in each inning",
+      "patternProperties": {
+        "^[0-9]+$": { "type": "number" }
+      }
     },
     "scoreThem": {
-      "type": "integer",
-      "description": "Number of runs scored by this team's opponent in this game"
+      "type": "object",
+      "description": "Number of runs scored by this team's opponent in each inning",
+      "patternProperties": {
+        "^[0-9]+$": { "type": "number" }
+      }
     },
     "lineup": {
       "type": "array",
