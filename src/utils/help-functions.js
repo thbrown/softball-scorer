@@ -6,7 +6,7 @@ export const showLineupTypeHelp = () => {
     <div>
       <b>Lineup Type</b> is used by the lineup simulator to determine what
       lineups are valid. Some leagues have restrictions on which players can bat
-      in which slots. Softball.app supports three types of lineups:
+      in which slots. Softball.app supports these types of lineups:
       <div style={{ margin: '1rem' }}>
         <b>- Normal</b> Any batter is allowed to bat anywhere in the lineup.
       </div>

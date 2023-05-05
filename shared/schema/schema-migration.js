@@ -1,17 +1,23 @@
 import constants from '../utils/constants';
 
-export const CURRENT_VERSION = 2;
+export const CURRENT_VERSION = 3;
 
 /**
  * When the json schema for an account's data gets updated, this function performs a schema migration on older data.
  *
- * For simplicity, version numbers consist of a single, serial integer value that conveys no semantic meaning of the
- * nature of the changes made between versions (e.g. version 1,2,3,4,5, etc...)
+ * For simplicity, version numbers consist of a single, serial integer value that conveys no semantic meaning about
+ * the nature of the changes made between versions (e.g. version 1,2,3,4,5, etc...)
  *
  * To add a migration, add another if block to the bottom of this function. At a minimum you need to update the
  * metadata version of your document even if you are just adding fields.
  *
  * Then build shared `yarn --cwd ./shared build` and test with `yarn test schema-migration`
+ *
+ * We should try to never add any dependencies to this function because doing so means we can never change the behavior
+ * of those dependencies without busting migrations. Since there is no way to enforce dependencies don't change, it's a
+ * recipe for data corruption.
+ *
+ * This function is run whenever we read data into the app (e.g from the data base, on file import, from localstorage, etc...)
  *
  * @returns a string depending on the result of the migration:
  * "OKAY" - if json document is up-to-date and no action was taken
@@ -166,7 +172,7 @@ export let updateSchema = function (
     }
 
     if (inputJson.metadata.version === 1) {
-      // We are moving status "PAUSING" to a new field. It's possible for for an opt to be in any number of statuses and also be pausing.
+      // We are moving status "PAUSING" to a new field. It's possible for an opt to be in any number of statuses and also be pausing.
       for (let optimization of inputJson.optimizations) {
         optimization.status =
           optimization.status === 6
@@ -185,9 +191,50 @@ export let updateSchema = function (
       }
     }
 
+    if (inputJson.metadata.version === 2) {
+      // For all games - Convert score to an object
+      for (let team of inputJson.teams) {
+        for (let game of team.games) {
+          game.scoreUs = { 1: game.scoreUs };
+          game.scoreThem = { 1: game.scoreThem };
+        }
+      }
+
+      // Copy and pasting this code from utils instead of introducing a dependency
+      const sortObjectsByDate = function (listInput, { isAsc, eqCb }) {
+        const list = listInput.slice();
+        return list.sort((a, b) => {
+          if (a.date === b.date) {
+            if (eqCb) {
+              return eqCb(a, b);
+            } else {
+              return a.id < b.id ? -1 : 1;
+            }
+          }
+          if (isAsc) {
+            return a.date < b.date ? -1 : 1;
+          } else {
+            return a.date < b.date ? 1 : -1;
+          }
+        });
+      };
+
+      // For all Teams - Sort games by date DSC
+      for (let team of inputJson.teams) {
+        const sorted = sortObjectsByDate(team.games, { isAsc: false });
+        team.games = sorted;
+      }
+
+      // Blah blah blah
+      inputJson.metadata = {
+        version: 3,
+        scope: inputScope,
+      };
+    }
+
     /*
     // Example migrations
-    if (inputJson.metadata.version === 2) {
+    if (inputJson.metadata.version === 3) {
       // Blah blah blah
       inputJson.metadata = {
         version: 2,
@@ -195,7 +242,7 @@ export let updateSchema = function (
       };
     }
 
-    if (inputJson.metadata.version === 3) {
+    if (inputJson.metadata.version === 4) {
       // Blah blah blah
       inputJson.metadata = {
         version: 3,

@@ -133,7 +133,7 @@ restrictEmailsToDomain: 'softball.app', // Only allow emails to softball.app (in
 
 Data is passed to the backend via JSON and database implementations are responsible for persisting it.
 
-The JSON schemas for this application are defined in `/shared/scheam` and are defined using JSON Shema (https://json-schema.org/specification.html)
+The JSON schemas for this application are defined in `/shared/schema` and are defined using JSON Shema (https://json-schema.org/specification.html)
 
 #### Types of fields
 
