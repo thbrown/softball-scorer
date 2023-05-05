@@ -3,6 +3,7 @@ import CardSection from 'elements/card-section';
 import state from 'state';
 import { makeStyles } from 'css/helpers';
 import css from 'css';
+import { json } from 'body-parser';
 
 const useScorePaperStyles = makeStyles((css) => ({
   root: {
@@ -20,6 +21,7 @@ const useScorePaperStyles = makeStyles((css) => ({
   teamName: {
     fontSize: '1rem',
     color: css.colors.TEXT_LIGHT,
+    textAlign: 'center',
   },
   teamScore: {
     fontFamily: 'score_boardregular, Arial, sans-serif',
@@ -46,7 +48,7 @@ const tableStyles = makeStyles((css) => ({
   tableCell: {
     textAlign: 'center',
     verticalAlign: 'middle',
-    border: '1px solid',
+    border: '3px solid',
     borderColor: css.colors.PRIMARY,
     padding: '4px',
     width: '32px',
@@ -80,8 +82,13 @@ const ScoreChangeButton = ({ onScoreChange, increment, buttonText }) => {
   );
 };
 
-const TableCell = ({ handleScoreChange, whoseScore }) => {
+const TableCell = ({ whoseScore, inning, game }) => {
   const { classes } = tableStyles();
+
+  const handleScoreChange = (increment) => {
+    state.setScore(game, inning, increment, whoseScore);
+  };
+
   return (
     <td className={classes.tableCell}>
       <div>
@@ -89,15 +96,15 @@ const TableCell = ({ handleScoreChange, whoseScore }) => {
           increment={1}
           buttonText="+"
           onScoreChange={(increment) => {
-            handleScoreChange(increment, whoseScore);
+            handleScoreChange(increment);
           }}
         />
-        <div className={classes.scoreText}>0</div>
+        <div className={classes.scoreText}>{game[whoseScore][inning] || 0}</div>
         <ScoreChangeButton
           increment={-1}
           buttonText="-"
           onScoreChange={(increment) => {
-            handleScoreChange(increment, whoseScore);
+            handleScoreChange(increment);
           }}
         />
       </div>
@@ -105,60 +112,39 @@ const TableCell = ({ handleScoreChange, whoseScore }) => {
   );
 };
 
-const ScoreTable = ({ usName, themName, handleScoreChange }) => {
+const ScoreTable = ({ usName, themName, game }) => {
   const { classes } = tableStyles();
   return (
     <table className={classes.table}>
-      <th>
-        <td className={classes.tableCell}></td>
-        <td className={classes.tableCell}>1</td>
-        <td className={classes.tableCell}>2</td>
-        <td className={classes.tableCell}>3</td>
-        <td className={classes.tableCell}>4</td>
-        <td className={classes.tableCell}>5</td>
-        <td className={classes.tableCell}>6</td>
-        <td className={classes.tableCell}>7</td>
-      </th>
+      <thead>
+        <th className={classes.tableCell}></th>
+        <th className={classes.tableCell}>1</th>
+        <th className={classes.tableCell}>2</th>
+        <th className={classes.tableCell}>3</th>
+        <th className={classes.tableCell}>4</th>
+        <th className={classes.tableCell}>5</th>
+        <th className={classes.tableCell}>6</th>
+        <th className={classes.tableCell}>7</th>
+      </thead>
       <tr>
         <td className={classes.tableCell}>{usName}</td>
-        <TableCell handleScoreChange={handleScoreChange} whoseScore="scoreUs" />
-        <TableCell handleScoreChange={handleScoreChange} whoseScore="scoreUs" />
-        <TableCell handleScoreChange={handleScoreChange} whoseScore="scoreUs" />
-        <TableCell handleScoreChange={handleScoreChange} whoseScore="scoreUs" />
-        <TableCell handleScoreChange={handleScoreChange} whoseScore="scoreUs" />
-        <TableCell handleScoreChange={handleScoreChange} whoseScore="scoreUs" />
-        <TableCell handleScoreChange={handleScoreChange} whoseScore="scoreUs" />
+        <TableCell inning="1" game={game} whoseScore="scoreUs" />
+        <TableCell inning="2" game={game} whoseScore="scoreUs" />
+        <TableCell inning="3" game={game} whoseScore="scoreUs" />
+        <TableCell inning="4" game={game} whoseScore="scoreUs" />
+        <TableCell inning="5" game={game} whoseScore="scoreUs" />
+        <TableCell inning="6" game={game} whoseScore="scoreUs" />
+        <TableCell inning="7" game={game} whoseScore="scoreUs" />
       </tr>
       <tr>
         <td className={classes.tableCell}>{themName}</td>
-        <TableCell
-          handleScoreChange={handleScoreChange}
-          whoseScore="scoreThem"
-        />
-        <TableCell
-          handleScoreChange={handleScoreChange}
-          whoseScore="scoreThem"
-        />
-        <TableCell
-          handleScoreChange={handleScoreChange}
-          whoseScore="scoreThem"
-        />
-        <TableCell
-          handleScoreChange={handleScoreChange}
-          whoseScore="scoreThem"
-        />
-        <TableCell
-          handleScoreChange={handleScoreChange}
-          whoseScore="scoreThem"
-        />
-        <TableCell
-          handleScoreChange={handleScoreChange}
-          whoseScore="scoreThem"
-        />
-        <TableCell
-          handleScoreChange={handleScoreChange}
-          whoseScore="scoreThem"
-        />
+        <TableCell inning="1" game={game} whoseScore="scoreThem" />
+        <TableCell inning="2" game={game} whoseScore="scoreThem" />
+        <TableCell inning="3" game={game} whoseScore="scoreThem" />
+        <TableCell inning="4" game={game} whoseScore="scoreThem" />
+        <TableCell inning="5" game={game} whoseScore="scoreThem" />
+        <TableCell inning="6" game={game} whoseScore="scoreThem" />
+        <TableCell inning="7" game={game} whoseScore="scoreThem" />
       </tr>
     </table>
   );
@@ -172,6 +158,14 @@ const useGameScorerStyles = makeStyles((css) => ({
   },
 }));
 
+const calculateScore = (scoreObj) => {
+  let totalScore = 0;
+  for (let inningNumber in scoreObj) {
+    totalScore += scoreObj[inningNumber];
+  }
+  return totalScore;
+};
+
 const GameScorer = ({ teamId, gameId }) => {
   const { classes } = useGameScorerStyles();
 
@@ -180,18 +174,8 @@ const GameScorer = ({ teamId, gameId }) => {
 
   const usName = team.name;
   const themName = game.opponent;
-  const usScore = game.scoreUs || 0;
-  const themScore = game.scoreThem || 0;
-
-  const handleScoreChange = (increment, scoreKey) => {
-    console.log(state);
-    state.setScore(
-      {
-        [scoreKey]: game[scoreKey] + increment,
-      },
-      gameId
-    );
-  };
+  const usScore = calculateScore(game.scoreUs) || 0;
+  const themScore = calculateScore(game.scoreThem) || 0;
 
   return (
     <CardSection>
@@ -199,12 +183,8 @@ const GameScorer = ({ teamId, gameId }) => {
         <ScorePaper name={usName} score={usScore} />
         <ScorePaper name={themName} score={themScore} />
       </div>
-      <div>
-        <ScoreTable
-          handleScoreChange={handleScoreChange}
-          usName={usName}
-          themName={themName}
-        />
+      <div style={{ marginTop: '16px' }}>
+        <ScoreTable game={game} usName={usName} themName={themName} />
       </div>
     </CardSection>
   );
