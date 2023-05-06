@@ -6,8 +6,8 @@ import React from 'react';
  * We want to re-use the HTML we use for the results accordion in the optimization complete email. This file contains the common logic.
  */
 const getResultsAsJsx = function (result, inputSummaryData) {
-  let resultData = result ? JSON.parse(result) : undefined;
-  let stats = inputSummaryData ? JSON.parse(inputSummaryData) : {};
+  let resultData = result ? result : undefined;
+  let stats = inputSummaryData ? inputSummaryData : {};
 
   let optimizer = '-';
   let humanDetails = '-';
@@ -51,7 +51,7 @@ const getResultsAsJsx = function (result, inputSummaryData) {
       );
     }
 
-    if(resultData.flatLineup) {
+    if (resultData.flatLineup) {
       // Format lineup, we want names and stats, not ids
       const PLAYER_DELETED_MSG = '<Player was deleted>';
       const PLAYER_NAME_MAX_LENGTH = 25;
@@ -83,14 +83,15 @@ const getResultsAsJsx = function (result, inputSummaryData) {
         } else {
           bestPlayers.push(
             <div key={i}>
-              {CommonUtils.truncate(
-                playerStats.name.padEnd(maxNameLength),
-                PLAYER_NAME_MAX_LENGTH + 1
-              ) +
-                ' ' +
-                playerStats.battingAverage.padStart(5) +
-                ' ' +
-                playerStats.sluggingPercentage /*+ 
+              {
+                CommonUtils.truncate(
+                  playerStats.name.padEnd(maxNameLength),
+                  PLAYER_NAME_MAX_LENGTH + 1
+                ) +
+                  ' ' +
+                  playerStats.battingAverage.padStart(5) +
+                  ' ' +
+                  playerStats.sluggingPercentage /*+ 
                 ' ' +
                 playerStats.hits +
                 ' ' +
@@ -114,7 +115,8 @@ const getResultsAsJsx = function (result, inputSummaryData) {
                 ' ' +
                 playerStats.triples+
                 ' ' +
-              playerStats.homeruns*/}
+              playerStats.homeruns*/
+              }
               <br />
             </div>
           );
@@ -141,7 +143,9 @@ const getResultsAsJsx = function (result, inputSummaryData) {
     <div id="content">
       <b>Optimal Lineup Score:</b>
       <br />
-      {typeof bestScore === "number" ? bestScore.toFixed(2) + " runs per game" : bestScore}
+      {typeof bestScore === 'number'
+        ? bestScore.toFixed(2) + ' runs per game'
+        : bestScore}
       <br />
       <br />
       <b>Optimal Lineup:</b>
@@ -170,7 +174,4 @@ const getResultsAsHtml = function (result, inputSummaryData) {
   );
 };
 
-export {
-  getResultsAsHtml,
-  getResultsAsJsx,
-};
+export { getResultsAsHtml, getResultsAsJsx };

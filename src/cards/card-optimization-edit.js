@@ -4,7 +4,8 @@ import dialog from 'dialog';
 import FloatingInput from 'elements/floating-input';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
-import { goBack, goHome } from 'actions/route';
+import { goBack, goHome, setRoute } from 'actions/route';
+import IconButton from '../elements/icon-button';
 
 const CardOptimizationEdit = (props) => {
   const [optName, setOptName] = React.useState(props.optimization.name);
@@ -44,7 +45,7 @@ const CardOptimizationEdit = (props) => {
 
   const handleConfirmClick = function () {
     state.replaceOptimization(props.optimization.id, buildOptimization());
-    goBack();
+    setRoute('/optimizations');
   };
 
   const handleCancelClick = function () {
@@ -79,11 +80,7 @@ const CardOptimizationEdit = (props) => {
   };
 
   return (
-    <Card
-      title="Edit Optimization"
-      leftHeaderProps={{ onClick: () => homeOrBack('back') }}
-      rightHeaderProps={{ onClick: () => homeOrBack('home') }}
-    >
+    <Card title="Edit Optimization">
       <div className="auth-input-container">
         <FloatingInput
           inputId="optimizationName"
@@ -92,44 +89,65 @@ const CardOptimizationEdit = (props) => {
           onChange={(value) => handleOptimizationNameChange(value)}
         />
       </div>
-      <ListButton type="edit-button" onClick={handleConfirmClick}>
-        <img
-          className="edit-button-icon"
-          src="/server/assets/check.svg"
-          alt=""
-        />
-        <span className="edit-button-icon"> Save </span>
+      <ListButton id="save" type="primary-button" onClick={handleConfirmClick}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <IconButton src="/assets/check.svg" alt="" />
+          <span>Save</span>
+        </div>
       </ListButton>
       <ListButton
+        id="cancel"
         type="edit-button"
         className="edit-button button cancel-button"
         onClick={handleCancelClick}
       >
-        <img
-          className="edit-button-icon"
-          src="/server/assets/cancel.svg"
-          alt=""
-        />
-        <span className="edit-button-icon"> Cancel </span>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <IconButton src="/assets/cancel.svg" alt="" invert />
+          <span>Cancel</span>
+        </div>
       </ListButton>
       {!props.isNew && (
-        <ListButton type="edit-button" onClick={handleDeleteClick}>
-          <img
-            className="edit-button-icon"
-            src="/server/assets/delete.svg"
-            alt=""
-          />
-          <span className="edit-button-icon"> Delete </span>
+        <ListButton
+          id="duplicate"
+          type="edit-button"
+          onClick={handleDuplicateClick}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <IconButton src="/assets/duplicate.svg" alt="" invert />
+            <span>Duplicate</span>
+          </div>
         </ListButton>
       )}
       {!props.isNew && (
-        <ListButton type="edit-button" onClick={handleDuplicateClick}>
-          <img
-            className="edit-button-icon"
-            src="/server/assets/duplicate.svg"
-            alt=""
-          />
-          <span className="edit-button-icon"> Duplicate </span>
+        <ListButton
+          id="delete"
+          type="delete-button"
+          onClick={handleDeleteClick}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <IconButton src="/assets/delete.svg" alt="" />
+            <span>Delete</span>
+          </div>
         </ListButton>
       )}
     </Card>

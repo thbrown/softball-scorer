@@ -1,15 +1,16 @@
 import React from 'react';
 import dialog from 'dialog';
 import Draggable from 'react-draggable';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
 import results from 'plate-appearance-results';
 import state from 'state';
 import WalkupSong from 'component-walkup-song';
 import { normalize, distance } from 'utils/functions';
+import WalkupSong from 'components/walkup-song';
+import { normalize } from 'utils/functions';
 import { goBack } from 'actions/route';
 import { makeStyles } from 'css/helpers';
-import css from 'css';
+import BallFieldSvg from '../components/ball-field-svg';
+import Card from 'elements/card';
 
 const LOCATION_DENOMINATOR = 32767;
 
@@ -17,31 +18,41 @@ const BALLFIELD_MAX_WIDTH = 500;
 
 const PLAYER_LOCATION_SIZE = 48;
 
+const RESULT_OPTIONS_DEFAULT = 0;
+const RESULT_OPTIONS_EXTRA = 1;
+
 const useStyles = makeStyles((theme) => ({
   buttonRow: {
     display: 'flex',
-    justifyContent: 'space-around',
-    margin: '4px',
+    justifyContent: 'flex-start',
+    margin: '4px 10px',
+  },
+  buttonRowExtra: {
+    display: 'flex',
+    justifyContent: 'flex-start',
+    margin: '4px 10px',
   },
   button: {
     cursor: 'default',
-    padding: '12px',
+    padding: theme.spacing.medium,
     color: theme.colors.TEXT_DARK,
     border: `2px solid ${theme.colors.SECONDARY}`,
-    borderRadius: '4px',
+    background: theme.colors.WHITE,
+    borderRadius: theme.borderRadius.small,
     textAlign: 'center',
-    fontSize: '18px',
+    fontSize: theme.typography.size.large,
     width: '48px',
     margin: '2px',
     [`@media (max-width:${theme.breakpoints.sm})`]: {
-      fontSize: '16px',
+      fontSize: theme.typography.size.medium,
       padding: '6px',
       margin: '0px',
     },
   },
   buttonSelected: {
     color: theme.colors.TEXT_LIGHT,
-    backgroundColor: theme.colors.SECONDARY,
+    backgroundColor: theme.colors.PRIMARY_DARK,
+    borderColor: theme.colors.PRIMARY_DARK,
   },
 }));
 
@@ -124,22 +135,27 @@ class CardPlateAppearance extends React.Component {
       });
     };
 
-    this.handleToggleResultOptions = function () {
-      let update = this.state.resultOptionsPage === 0 ? 1 : 0;
+    this.handleToggleResultOptions = () => {
+      let update =
+        this.state.resultOptionsPage === RESULT_OPTIONS_DEFAULT
+          ? RESULT_OPTIONS_EXTRA
+          : RESULT_OPTIONS_DEFAULT;
       this.setState({
         resultOptionsPage: update,
       });
     };
 
-    this.handleDragStart = function (ev) {
+    this.handleDragStart = (ev) => {
       var element = document.getElementById('baseball');
-      element.classList.remove('pulse-animation');
+      if (element) {
+        element.classList.remove('pulse-animation');
+      }
       this.setState({
         dragging: true,
       });
     };
 
-    this.handleDragStop = function () {
+    this.handleDragStop = () => {
       // lame way to make this run after the mouseup event
       setTimeout(() => {
         let new_x = Math.floor(
@@ -332,7 +348,7 @@ class CardPlateAppearance extends React.Component {
     }
 
     let visibleOptions =
-      this.state.resultOptionsPage === 0
+      this.state.resultOptionsPage === RESULT_OPTIONS_DEFAULT
         ? results.getFirstPage()
         : results.getSecondPage();
 
@@ -368,10 +384,22 @@ class CardPlateAppearance extends React.Component {
 
     return (
       <div>
-        <div className={this.props.classes.classes.buttonRow}>
+        <div
+          className={
+            this.state.resultOptionsPage === RESULT_OPTIONS_DEFAULT
+              ? this.props.classes.classes.buttonRow
+              : this.props.classes.classes.buttonRowExtra
+          }
+        >
           {elems.slice(0, elems.length / 2)}
         </div>
-        <div className={this.props.classes.classes.buttonRow}>
+        <div
+          className={
+            this.state.resultOptionsPage === RESULT_OPTIONS_DEFAULT
+              ? this.props.classes.classes.buttonRow
+              : this.props.classes.classes.buttonRowExtra
+          }
+        >
           {elems.slice(elems.length / 2, elems.length)}
         </div>
       </div>
@@ -409,7 +437,7 @@ class CardPlateAppearance extends React.Component {
     this.props.plateAppearances.forEach((value) => {
       let x = -1;
       let y = -1;
-      let imageSrc = '/server/assets/baseball.svg';
+      let imageSrc = '/assets/baseball.svg';
 
       if (value.id === this.props.plateAppearance.id) {
         x = this.state.paLocationX;
@@ -562,7 +590,7 @@ class CardPlateAppearance extends React.Component {
         {runnerObjects}
         <img
           draggable={true}
-          src="/server/assets/ballfield2.png"
+          src="/assets/ballfield2.png"
           alt="ballfield"
           style={{
             width: '100%',
@@ -605,7 +633,7 @@ class CardPlateAppearance extends React.Component {
       <img
         id="pa-confirm"
         key="confirm"
-        src="/server/assets/check.svg"
+        src="/assets/check.svg"
         alt="confirm"
         className="plate-appearance-card-actions"
         onClick={this.handleConfirmClick}
@@ -617,7 +645,7 @@ class CardPlateAppearance extends React.Component {
       <img
         id="pa-cancel"
         key="cancel"
-        src="/server/assets/cancel.svg"
+        src="/assets/cancel.svg"
         alt="cancel"
         className="plate-appearance-card-actions"
         onClick={this.handleCancelClick}
@@ -630,7 +658,7 @@ class CardPlateAppearance extends React.Component {
         <img
           id="pa-delete"
           key="delete"
-          src="/server/assets/delete.svg"
+          src="/assets/delete.svg"
           alt="delete"
           className="plate-appearance-card-actions"
           onClick={this.handleDeleteClick}
@@ -654,6 +682,7 @@ class CardPlateAppearance extends React.Component {
   }
 
   renderWalkupSong() {
+    // PIZZA songLink?
     return (
       <WalkupSong
         songLink={this.props.player.song_link}
@@ -668,55 +697,43 @@ class CardPlateAppearance extends React.Component {
     let imageSrcForCurrentPa = results
       .getNoHitResults()
       .includes(this.state.paResult)
-      ? '/server/assets/baseball-out.svg'
-      : '/server/assets/baseball-hit.svg';
+      ? '/assets/baseball-out.svg'
+      : '/assets/baseball-hit.svg';
+
     return (
-      <div
-        className="card"
-        style={{
-          position: 'relative',
+      <Card
+        title={this.props.player.name}
+        enableLeftHeader={true}
+        enableRightHeader={true}
+        leftHeaderProps={{
+          onClick: this.homeOrBack,
+        }}
+        rightHeaderProps={{
+          onClick: this.homeOrBack,
         }}
       >
-        <div className="card-title">
-          <LeftHeaderButton onClick={this.homeOrBack}></LeftHeaderButton>
-          <div className="prevent-overflow card-title-text-with-arrow">
-            {this.props.player.name}
-          </div>
-          <RightHeaderButton onClick={this.homeOrBack}></RightHeaderButton>
-        </div>
         <div
           className="card-body"
           style={{
             maxWidth: BALLFIELD_MAX_WIDTH + 'px',
+            backgroundColor: 'unset',
+            background: 'unset',
+            boxShadow: 'unset',
           }}
         >
           {this.renderButtonList()}
           {this.renderField(imageSrcForCurrentPa)}
-          <div
-            style={{
-              backgroundColor: css.colors.PRIMARY_LIGHT,
-              display: 'flex',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div
-              style={{
-                paddingRight: '24px',
-              }}
-            >
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ paddingLeft: '18px' }}>
               {this.renderBaseball(imageSrcForCurrentPa)}
             </div>
             {this.renderActionsButtons()}
-            <div
-              style={{
-                paddingRight: '24px',
-              }}
-            >
+            <div style={{ paddingRight: '24px' }}>
               {this.renderWalkupSong()}
             </div>
           </div>
         </div>
-      </div>
+      </Card>
     );
   }
 }

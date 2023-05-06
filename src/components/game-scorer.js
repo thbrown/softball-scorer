@@ -11,8 +11,8 @@ const useScorePaperStyles = makeStyles((css) => ({
     flexDirection: 'column',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: css.borderRadius.small,
-    padding: css.spacing.small,
+    borderRadius: css.borderRadius.large,
+    padding: css.spacing.large,
     backgroundColor: css.colors.PRIMARY,
     color: css.colors.TEXT_LIGHT,
     boxShadow: css.boxShadow.paper,
@@ -25,9 +25,7 @@ const useScorePaperStyles = makeStyles((css) => ({
     alignItems: 'center',
     borderRadius: css.borderRadius.small,
     padding: css.spacing.small,
-    backgroundColor: css.colors.SECONDARY,
     color: css.colors.TEXT_LIGHT,
-    boxShadow: css.boxShadow.paper,
   },
   teamName: {
     fontSize: '1rem',
@@ -43,8 +41,9 @@ const useScorePaperStyles = makeStyles((css) => ({
     justifyContent: 'space-between',
     alignItems: 'center',
     margin: css.spacing.small,
-    fontSize: '3rem',
-    borderRadius: '3rem',
+    fontSize: '2rem',
+    padding: css.spacing.large,
+    borderRadius: css.borderRadius.large,
     border: '5px solid ' + css.colors.PRIMARY_DARK,
   },
 }));
@@ -69,6 +68,9 @@ const ScoreChanger = ({ onScoreChange }) => {
           ev.preventDefault();
         }}
         className={classes.scoreIncrementButton + ' button'}
+        style={{
+          height: 'unset',
+        }}
       >
         +1
       </div>
@@ -80,6 +82,7 @@ const ScoreChanger = ({ onScoreChange }) => {
         className={classes.scoreIncrementButton + ' button'}
         style={{
           borderColor: css.colors.CANCEL,
+          height: 'unset',
         }}
       >
         -1

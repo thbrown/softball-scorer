@@ -1,13 +1,21 @@
 import React from 'react';
 
-export default ({ className, style, div, children }) => {
+const NoSelect = ({ className, style, div, children }) => {
   return div ? (
-    <div style={style} className={'no-select ' + className ? className : ''}>
+    <div
+      style={{ userSelect: 'none', ...(style ?? {}) }}
+      className={'no-select ' + className ? className : ''}
+    >
       {children}
     </div>
   ) : (
-    <span style={style} className={'no-select ' + className ? className : ''}>
+    <span
+      style={{ userSelect: 'none', ...(style ?? {}) }}
+      className={'no-select ' + className ? className : ''}
+    >
       {children}
     </span>
   );
 };
+
+export default NoSelect;

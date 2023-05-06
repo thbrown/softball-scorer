@@ -4,31 +4,40 @@ import { setRoute } from 'actions/route';
 import Spray from '../components/spray';
 import state from 'state';
 import css from 'css';
+import InnerSection from 'elements/inner-section';
+import IconButton from '../elements/icon-button';
+import { showStatsHelp } from 'utils/help-functions';
 
 export default class CardPlayerStats extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  render() {
-    // Generate season stats section
-    let playerStatsByTeam = [];
-    let allTeams = state.getAllTeams();
-    for (let team of allTeams) {
-      let playerPAsOnTeam = state.getPlateAppearancesForPlayerOnTeam(
+  getSeasonalStats() {
+    const playerStatsByTeam = [];
+    const allTeams = state.getAllTeams();
+    for (const team of allTeams) {
+      const playerPAsOnTeam = state.getDecoratedPlateAppearancesForPlayerOnTeam(
         this.props.player.id,
         team.id
       );
       if (playerPAsOnTeam.length !== 0) {
         playerStatsByTeam.push({
           teamName: team.name,
-          stats: state.buildStatsObject(this.props.player.id, playerPAsOnTeam),
+          stats: state.buildStatsObject(playerPAsOnTeam, this.props.player.id),
         });
       }
     }
+    return playerStatsByTeam;
+  }
 
-    let seasonStats = [
-      <tr key={'season-headers'} style={{ textAlign: 'right' }}>
+  render() {
+    // Generate season stats section
+    const playerStatsByTeam = this.getSeasonalStats();
+
+    const seasonStats = [
+      <tr
+        key={'season-headers'}
+        style={{
+          textAlign: 'right',
+        }}
+      >
         <th style={{ textAlign: 'left' }}>Team Name</th>
         <th>PA</th>
         <th>Avg</th>
@@ -36,11 +45,23 @@ export default class CardPlayerStats extends React.Component {
         <th>2B</th>
         <th>3B</th>
         <th>HR</th>
+        <th>rG</th>
+        <th>rPA</th>
+        <th>PA/G</th>
+        <th>O/G</th>
       </tr>,
     ];
     for (let season of playerStatsByTeam) {
       seasonStats.push(
-        <tr key={'season-' + season.teamName} style={{ textAlign: 'right' }}>
+        <tr
+          key={'season-' + season.teamName}
+          style={{
+            textAlign: 'right',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
           <td style={{ textAlign: 'left' }}>{season.teamName}</td>
           <td>{season.stats.plateAppearances}</td>
           <td>{season.stats.battingAverage}</td>
@@ -48,14 +69,25 @@ export default class CardPlayerStats extends React.Component {
           <td>{season.stats.doubles}</td>
           <td>{season.stats.triples}</td>
           <td>{season.stats.homeruns}</td>
+          <td>{season.stats.gameAutocorrelation}</td>
+          <td>{season.stats.paAutocorrelation}</td>
+          <td>{season.stats.paPerGame}</td>
+          <td>{season.stats.outsPerGame}</td>
         </tr>
       );
     }
 
-    let allPAs = state.getPlateAppearancesForPlayer(this.props.player.id);
-    let allTimeStats = state.buildStatsObject(this.props.player.id, allPAs);
+    const allPAs = state.getDecoratedPlateAppearancesForPlayer(
+      this.props.player.id
+    );
+    const allTimeStats = state.buildStatsObject(allPAs, this.props.player.id);
     seasonStats.push(
-      <tr key={'season-alltime'} style={{ textAlign: 'right' }}>
+      <tr
+        key={'season-alltime'}
+        style={{
+          textAlign: 'right',
+        }}
+      >
         <td style={{ textAlign: 'left' }}>
           <b>Total</b>
         </td>
@@ -77,6 +109,15 @@ export default class CardPlayerStats extends React.Component {
         <td>
           <b>{allTimeStats.homeruns}</b>
         </td>
+        <td>
+          <b>{allTimeStats.gameAutocorrelation}</b>
+        </td>
+        <td>
+          <b>{allTimeStats.paAutocorrelation}</b>
+        </td>
+        <td>
+          <b>{allTimeStats.paPerGame}</b>
+        </td>
       </tr>
     );
 
@@ -93,35 +134,46 @@ export default class CardPlayerStats extends React.Component {
         }}
       >
         <Spray
-          //team={this.props.team}
-          //player={this.props.player}
-          plateAppearances={state.getPlateAppearancesForPlayer(
+          decoratedPlateAppearances={state.getDecoratedPlateAppearancesForPlayer(
             this.props.player.id
           )}
         ></Spray>
-        <div
+        <InnerSection
           style={{
-            margin: '7px auto',
-            maxWidth: '500px',
+            marginTop: css.spacing.xxSmall,
+            overflow: 'auto',
             color: css.colors.TEXT_LIGHT,
             backgroundColor: css.colors.PRIMARY_DARK,
-            borderRadius: '9px',
+            borderRadius: css.borderRadius.medium,
           }}
         >
           <div
             style={{
-              fontSize: '16px',
-              fontWeight: 'bold',
-              paddingTop: '1rem',
-              paddingLeft: '1rem',
+              fontSize: css.typography.size.medium,
+              paddingLeft: css.spacing.medium,
+              display: 'flex',
+              alignItems: 'center',
             }}
           >
-            Stats
+            <div>Stats</div>
+            <IconButton
+              className="help-icon"
+              src="/assets/help.svg"
+              alt="help"
+              onClick={showStatsHelp}
+            />
           </div>
-          <table style={{ width: '100%', padding: '1rem' }}>
-            {seasonStats}
+          <table
+            style={{
+              fontSize: css.typography.size.small,
+              width: '100%',
+              padding: css.spacing.medium,
+              paddingTop: '0',
+            }}
+          >
+            <tbody className="player-stats">{seasonStats}</tbody>
           </table>
-        </div>
+        </InnerSection>
       </Card>
     );
   }

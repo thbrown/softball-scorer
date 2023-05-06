@@ -3,46 +3,20 @@
   "version": "1.0.0",
   "description": "Shared assets for softball-scorer",
   "scripts": {
-    "build": "../node_modules/.bin/webpack --config webpack.js"
+    "build": "../node_modules/.bin/webpack --config webpack.config.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/thbrown/softball-scorer.git"
   },
+  "babel": {
+    "plugins": [
+      "@babel/plugin-syntax-jsx"
+    ]
+  },
   "author": "Browns and Co.",
   "license": "UNLICENSED",
   "bugs": {
     "url": "https://github.com/thbrown/softball-scorer/issues"
-  },
-  "babel": {
-    "plugins": [
-      [
-        "module-resolver",
-        {
-          "root": [
-            "../"
-          ]
-        }
-      ],
-      "@babel/plugin-proposal-optional-chaining",
-      "@babel/plugin-proposal-class-properties",
-      [
-        "@babel/plugin-transform-modules-commonjs",
-        {
-          "allowTopLevelThis": true
-        }
-      ]
-    ],
-    "presets": [
-      "@babel/preset-react",
-      [
-        "@babel/preset-env",
-        {
-          "targets": {
-            "browsers": "last 1 chrome versions"
-          }
-        }
-      ]
-    ]
   }
 }

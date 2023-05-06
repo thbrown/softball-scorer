@@ -1,7 +1,8 @@
 const fs = require('fs');
 
 const logger = require('./logger.js');
-const SharedLib = require('../shared-lib').default;
+const SharedLib = require('../shared-lib');
+const configAccessor = require('./config-accessor.js');
 
 var https = require('https');
 
@@ -35,7 +36,7 @@ module.exports = class OptimizationComputeLocal {
       logger.log('sys', 'Creating directory', CTRL_FLAGS);
     }
 
-    logger.log('sys', 'Creating directory finished!!', ROOT);
+    logger.log('sys', 'Creating directories for local compute complete.', ROOT);
 
     this.download = function (url, dest, skipExistenceCheck) {
       if (fs.existsSync(JAR_FILE_PATH) && !skipExistenceCheck) {
@@ -164,6 +165,14 @@ module.exports = class OptimizationComputeLocal {
   }
 
   async start(accountId, optimizationId, stats, options) {
+    // Add additional flags to json body
+    options['-u'] = configAccessor.getUpdateUrl();
+    options['-b'] = JSON.stringify({
+      optimizationId: optimizationId,
+      accountId: accountId,
+      apiKey: this?.configParams?.apiKey, // What is this?
+    }); // stuff (which is the account id in our case)
+
     // Instruct the compute service to start the optimization
     logger.log(accountId, 'Starting local optimization');
 
@@ -217,7 +226,8 @@ module.exports = class OptimizationComputeLocal {
           accountId,
           optimizationId,
           SharedLib.constants.OPTIMIZATION_STATUS_ENUM.ERROR,
-          data.toString()
+          null,
+          false
         );
       }.bind(this)
     );
@@ -241,11 +251,19 @@ module.exports = class OptimizationComputeLocal {
     // Set the control flag to "HALT"
     fs.writeFileSync(CTRL_FLAGS + '/' + optimizationId, 'HALT');
 
-    // Set optimization status to PAUSING
+    // Set optimization to pause, don't change the status (TODO: rename the status change function)
+    const PAUSEABLE_STATUSES = SharedLib.constants.invertOptStatusSet(
+      SharedLib.constants.TERMINAL_OPTIMIZATION_STATUSES_ENUM
+    );
+
+    // Set optimization pausing field (which is different from status)
     await this.databaseCalls.setOptimizationStatus(
       accountId,
       optimizationId,
-      SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSING
+      null,
+      null,
+      true,
+      PAUSEABLE_STATUSES
     );
   }
 
@@ -285,6 +303,11 @@ module.exports = class OptimizationComputeLocal {
       '-z',
       RESULTS_PATH + '/' + optimizationId,
     ].concat(optionsArray);
+    logger.log(
+      accountId,
+      'Starting local optimization estimate',
+      argsArray.join(' ')
+    );
 
     // Start the jar
     let self = this;
@@ -298,7 +321,9 @@ module.exports = class OptimizationComputeLocal {
       process.stderr.on(
         'data',
         async function (data) {
-          logger.error(accountId, data.toString());
+          let err = data.toString();
+          logger.error(accountId, err);
+          reject(err);
         }.bind(this)
       );
 
@@ -307,7 +332,7 @@ module.exports = class OptimizationComputeLocal {
       });
 
       process.on('close', function (code) {
-        //Result of the estimate has been written to the file system, read that out and return it
+        // Result of the estimate has been written to the file system, read that out and return it
         let result = self.query(accountId, optimizationId);
         resolve(result);
       });

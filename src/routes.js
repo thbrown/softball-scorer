@@ -21,11 +21,12 @@ import CardPlayerStats from 'cards/card-player-stats';
 import CardReset from 'cards/card-reset';
 import CardSignup from 'cards/card-signup';
 import CardSpray from 'cards/card-spray';
+import CardStatsPrivate from 'cards/card-stats-private';
+import CardStatsPublic from 'cards/card-stats-public';
 import CardTeam from 'cards/card-team';
 import CardTeamEdit from 'cards/card-team-edit';
 import CardTeams from 'cards/card-teams';
 import CardVerifyEmail from 'cards/card-verify-email';
-import CardStats from 'cards/card-stats';
 import CardLineupImport from 'cards/card-lineup-import';
 import CardLineupImporter from 'cards/card-lineup-importer';
 import CardOptimizerSelect from 'cards/card-optimizer-select';
@@ -49,7 +50,7 @@ const assertStateObjects = function (...args) {
       );
     }
   });
-  return { valid };
+  return { valid, errors };
 };
 
 const isSameRouteAs = function (key) {
@@ -94,6 +95,9 @@ routes = {
   [`${ROUTE_PREFIX}/index.html`]: () => {
     return <CardMenu />;
   },
+  [`${ROUTE_PREFIX}/index.dev.html`]: () => {
+    return <CardMenu />;
+  },
   [`${ROUTE_PREFIX}/menu`]: isSameRouteAs('/'),
   [`${ROUTE_PREFIX}/menu/login`]: () => {
     return <CardAuth />;
@@ -117,14 +121,13 @@ routes = {
     return <CardTeams />;
   },
   [`${ROUTE_PREFIX}/teams/:teamId`]: ({ teamId, search }) => {
-    const tab = search.tab;
     const team = state.getTeam(teamId);
     const { valid, errors } = assertStateObjects(team);
     if (!valid) {
       console.warn(errors);
       return <CardNotFound />;
     }
-    return <CardTeam team={team} tab={tab || 'games'} />;
+    return <CardTeam team={team} tab={'games'} />;
   },
   [`${ROUTE_PREFIX}/teams/:teamId/games`]: isSameRouteAs('/teams/:teamId'),
   [`${ROUTE_PREFIX}/teams/:teamId/edit`]: ({ teamId, search: { isNew } }) => {
@@ -143,7 +146,18 @@ routes = {
       console.warn(errors);
       return <CardNotFound />;
     }
-    return <CardTeam team={team} tab="stats" />;
+    return (
+      <CardTeam team={team} tab="stats" subtab={CardStatsPrivate.SEASON_TAB} />
+    );
+  },
+  [`${ROUTE_PREFIX}/teams/:teamId/stats/:subtab`]: ({ teamId, subtab }) => {
+    const team = state.getTeam(teamId);
+    const { valid, errors } = assertStateObjects(team);
+    if (!valid) {
+      console.warn(errors);
+      return <CardNotFound />;
+    }
+    return <CardTeam team={team} tab="stats" subtab={subtab} />;
   },
   [`${ROUTE_PREFIX}/teams/:teamId/stats/player/:playerId`]: ({
     teamId,
@@ -151,14 +165,12 @@ routes = {
   }) => {
     const team = state.getTeam(teamId);
     const player = state.getPlayer(playerId);
-    const playerPlateAppearances = state.getPlateAppearancesForPlayerOnTeam(
-      playerId,
-      teamId
-    );
+    const decoratedPlayerPlateAppearances =
+      state.getDecoratedPlateAppearancesForPlayerOnTeam(playerId, teamId);
     const { valid, errors } = assertStateObjects(
       team,
       player,
-      playerPlateAppearances
+      decoratedPlayerPlateAppearances
     );
     if (!valid) {
       console.warn(errors);
@@ -168,7 +180,7 @@ routes = {
       <CardSpray
         team={team}
         player={player}
-        plateAppearances={playerPlateAppearances}
+        decoratedPlateAppearances={decoratedPlayerPlateAppearances}
       />
     );
   },
@@ -197,6 +209,26 @@ routes = {
       return <CardNotFound />;
     }
     return <CardGame team={team} game={game} tab="scorer" />;
+  },
+  [`${ROUTE_PREFIX}/teams/:teamId/stats/games/:gameId`]: ({
+    teamId,
+    gameId,
+  }) => {
+    const team = state.getTeam(teamId);
+    const game = state.getGame(gameId);
+    const { valid, errors } = assertStateObjects(team, game);
+    if (!valid) {
+      console.warn(errors);
+      return <CardNotFound />;
+    }
+    return (
+      <CardTeam
+        team={team}
+        tab="stats"
+        subtab={CardStatsPrivate.GAME_STATS_TAB}
+        game={game}
+      />
+    );
   },
   [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/import`]: ({
     teamId,
@@ -279,54 +311,53 @@ routes = {
     }
     return <CardGameEdit team={team} game={game} isNew={isNew} />;
   },
-  [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/lineup/plateAppearances/:plateAppearanceId`]: ({
-    teamId,
-    gameId,
-    plateAppearanceId,
-    search: { isNew },
-  }) => {
-    const team = state.getTeam(teamId);
-    const game = state.getGame(gameId);
-    const plateAppearance = state.getPlateAppearance(plateAppearanceId);
-    const plateAppearances = state.getPlateAppearancesForPlayerInGame(
-      plateAppearance?.player_id,
-      gameId
-    );
-    const player = state.getPlayer(plateAppearance?.player_id);
-    const { valid, errors } = assertStateObjects(
-      team,
-      game,
-      plateAppearance,
-      plateAppearances,
-      player
-    );
-    if (!valid) {
-      console.warn(errors);
-      return <CardNotFound />;
-    }
-    return (
-      <CardPlateAppearance
-        remove={function () {
-          state.removePlateAppearance(plateAppearance.id, game.id);
-        }}
-        replace={function (newPa) {
-          state.replacePlateAppearance(
-            plateAppearance.id,
-            game.id,
-            team.id,
-            newPa
-          );
-        }}
-        player={player}
-        plateAppearance={plateAppearance}
-        plateAppearances={plateAppearances}
-        isNew={isNew}
-      />
-    );
-  },
-  [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/scorer/plateAppearances/:plateAppearanceId`]: isSameRouteAs(
-    '/teams/:teamId/games/:gameId/lineup/plateAppearances/:plateAppearanceId'
-  ),
+  [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/lineup/plateAppearances/:plateAppearanceId`]:
+    ({ teamId, gameId, plateAppearanceId, search: { isNew } }) => {
+      const team = state.getTeam(teamId);
+      const game = state.getGame(gameId);
+      const plateAppearance = state.getPlateAppearance(plateAppearanceId);
+      const plateAppearances = state.getPlateAppearancesForPlayerInGame(
+        plateAppearance?.playerId,
+        gameId
+      );
+      const player = state.getPlayer(plateAppearance?.playerId);
+      const { valid, errors } = assertStateObjects(
+        team,
+        game,
+        plateAppearance,
+        plateAppearances,
+        player
+      );
+      if (!valid) {
+        console.warn(errors);
+        return <CardNotFound />;
+      }
+      return (
+        <CardPlateAppearance
+          team={team}
+          game={game}
+          remove={function () {
+            state.removePlateAppearance(plateAppearance.id, game.id);
+          }}
+          replace={function (newPa) {
+            state.replacePlateAppearance(
+              plateAppearance.id,
+              game.id,
+              team.id,
+              newPa
+            );
+          }}
+          player={player}
+          plateAppearance={plateAppearance}
+          plateAppearances={plateAppearances}
+          isNew={isNew}
+        />
+      );
+    },
+  [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/scorer/plateAppearances/:plateAppearanceId`]:
+    isSameRouteAs(
+      '/teams/:teamId/games/:gameId/lineup/plateAppearances/:plateAppearanceId'
+    ),
   [`${ROUTE_PREFIX}/players`]: () => {
     return <CardPlayerList />;
   },
@@ -394,15 +425,10 @@ routes = {
     }
     return (
       <CardPlayerSelect
-        selected={JSON.parse(optimization.playerList)}
+        selected={optimization.playerList}
         players={state.getAllPlayersAlphabetically()}
         onComplete={(players) => {
-          state.setOptimizationField(
-            optimization.id,
-            'playerList',
-            players,
-            true
-          );
+          state.setOptimizationField(optimization.id, 'playerList', players);
         }}
         onImportClick={function () {
           setRoute(`/optimizations/${optimization.id}/import-lineup`);
@@ -420,12 +446,7 @@ routes = {
       return <CardNotFound />;
     }
     let onConfirm = (ev, team, game) => {
-      state.setOptimizationField(
-        optimization.id,
-        'playerList',
-        game.lineup,
-        true
-      );
+      state.setOptimizationField(optimization.id, 'playerList', game.lineup);
       goBack(2);
     };
 
@@ -458,60 +479,56 @@ routes = {
       />
     );
   },
-  [`${ROUTE_PREFIX}/optimizations/:optimizationId/overrides/:playerId/plateAppearances/:plateAppearanceId`]: ({
-    optimizationId,
-    playerId,
-    plateAppearanceId,
-    search: { isNew },
-  }) => {
-    const optimization = state.getOptimization(optimizationId);
-    const player = state.getPlayer(playerId);
+  [`${ROUTE_PREFIX}/optimizations/:optimizationId/overrides/:playerId/plateAppearances/:plateAppearanceId`]:
+    ({ optimizationId, playerId, plateAppearanceId, search: { isNew } }) => {
+      const optimization = state.getOptimization(optimizationId);
+      const player = state.getPlayer(playerId);
 
-    // TODO: getting both a plate appearance and the plate appearances results in unnecessary parsing and un-parsing of json
-    const plateAppearances = state.getParsedOptimizationOverridePlateAppearances(
-      optimizationId,
-      playerId
-    );
+      // TODO: getting both a plate appearance and the plate appearances results is unnecessary parsing and un-parsing of json
+      const plateAppearances = state.getOptimizationOverridesForPlayer(
+        optimizationId,
+        playerId
+      );
 
-    const plateAppearance = state.getParsedOptimizationOverridePlateAppearance(
-      optimizationId,
-      playerId,
-      plateAppearanceId
-    );
+      const plateAppearance = state.getOptimizationOverridePlateAppearance(
+        optimizationId,
+        playerId,
+        plateAppearanceId
+      );
 
-    const { valid, errors } = assertStateObjects(
-      optimization,
-      player,
-      plateAppearance
-    );
-    if (!valid) {
-      console.warn(errors);
-      return <CardNotFound />;
-    }
-    return (
-      <CardPlateAppearance
-        remove={function () {
-          state.removeOptimizationOverridePlateAppearance(
-            optimizationId,
-            playerId,
-            plateAppearanceId
-          );
-        }}
-        replace={function (newPa) {
-          state.replaceOptimizationOverridePlateAppearance(
-            optimizationId,
-            playerId,
-            newPa.id,
-            newPa
-          );
-        }}
-        player={player}
-        plateAppearance={plateAppearance}
-        plateAppearances={plateAppearances}
-        isNew={isNew}
-      />
-    );
-  },
+      const { valid, errors } = assertStateObjects(
+        optimization,
+        player,
+        plateAppearance
+      );
+      if (!valid) {
+        console.warn(errors);
+        return <CardNotFound />;
+      }
+      return (
+        <CardPlateAppearance
+          remove={function () {
+            state.removeOptimizationOverridePlateAppearance(
+              optimizationId,
+              playerId,
+              plateAppearanceId
+            );
+          }}
+          replace={function (newPa) {
+            state.replaceOptimizationOverridePlateAppearance(
+              optimizationId,
+              playerId,
+              newPa.id,
+              newPa
+            );
+          }}
+          player={player}
+          plateAppearance={plateAppearance}
+          plateAppearances={plateAppearances}
+          isNew={isNew}
+        />
+      );
+    },
   [`${ROUTE_PREFIX}/account`]: () => {
     return <CardAccount />;
   },
@@ -523,12 +540,67 @@ routes = {
     teamId,
   }) => {
     return renderWhileLoading({ loading, error })(() => {
+      const team = data.teams[0];
+      const { valid, errors } = assertStateObjects(team);
+      if (!valid) {
+        console.warn(errors);
+        return <CardNotFound />;
+      }
       return (
-        <CardStats
-          state={data}
-          team={data.teams[0]}
-          routingMethod="statsPage"
-          publicTeamId={publicTeamId}
+        <CardStatsPublic
+          team={team}
+          tab={CardStatsPublic.SEASON_TAB}
+          inputState={data}
+        />
+      );
+    });
+  },
+  [`${ROUTE_PREFIX}/public-teams/:publicTeamId/stats/season`]: ({
+    data,
+    loading,
+    error,
+    publicTeamId,
+    teamId,
+    tab,
+  }) => {
+    return renderWhileLoading({ loading, error })(() => {
+      const team = data.teams[0];
+      const { valid, errors } = assertStateObjects(team);
+      if (!valid) {
+        console.warn(errors);
+        return <CardNotFound />;
+      }
+      return (
+        <CardStatsPublic
+          team={team}
+          tab={CardStatsPublic.SEASON_TAB}
+          inputState={data}
+        />
+      );
+    });
+  },
+  [`${ROUTE_PREFIX}/public-teams/:publicTeamId/stats/games`]: ({
+    data,
+    loading,
+    error,
+    publicTeamId,
+    teamId,
+    tab,
+  }) => {
+    return renderWhileLoading({ loading, error })(() => {
+      const team = data.teams[0];
+      const game = team.games[0];
+      const { valid, errors } = assertStateObjects(team); // Game can be undefined
+      if (!valid) {
+        console.warn(errors);
+        return <CardNotFound />;
+      }
+      return (
+        <CardStatsPublic
+          team={team}
+          tab={CardStatsPublic.GAME_STATS_TAB}
+          game={game}
+          inputState={data}
         />
       );
     });
@@ -547,23 +619,49 @@ routes = {
 
       const team = data.teams[0];
 
-      const playerPlateAppearances = state.getPlateAppearancesForPlayerOnTeam(
-        playerId,
-        team.id,
-        data
-      );
+      const decoratedPlayerPlateAppearances =
+        state.getDecoratedPlateAppearancesForPlayerOnTeam(
+          playerId,
+          team.id,
+          data
+        );
 
       return (
         <CardSpray
           team={team}
           player={player}
-          plateAppearances={playerPlateAppearances}
+          decoratedPlateAppearances={decoratedPlayerPlateAppearances}
           backNavUrl={`/public-teams/${publicTeamId}/stats`}
         />
       );
     });
   },
-  [`${ROUTE_PREFIX}/account/select-optimizers`]: ({}) => {
+  [`${ROUTE_PREFIX}/public-teams/:publicTeamId/stats/games/:gameId`]: ({
+    data,
+    loading,
+    error,
+    publicTeamId,
+    gameId,
+  }) => {
+    return renderWhileLoading({ loading, error })(() => {
+      const team = data.teams[0];
+      const game = state.getGame(gameId, data);
+      const { valid, errors } = assertStateObjects(team, game);
+      if (!valid) {
+        console.warn(errors);
+        return <CardNotFound />;
+      }
+      return (
+        <CardStatsPublic
+          team={team}
+          tab={CardStatsPublic.GAME_STATS_TAB}
+          game={game}
+          inputState={data}
+        />
+      );
+    });
+  },
+  [`${ROUTE_PREFIX}/account/select-optimizers`]: () => {
     return <CardOptimizerSelect />;
   },
 };

@@ -1,23 +1,36 @@
 import expose from 'expose';
 import network from 'network';
-import SharedLib from '/../shared-lib';
+import SharedLib from 'shared-lib';
 import results from 'plate-appearance-results';
-import { getShallowCopy } from 'utils/functions';
+import { getShallowCopy, autoCorrelation, isStatSig } from 'utils/functions';
 
 import dialog from 'dialog';
+const TLSchemas = SharedLib.schemaValidation.TLSchemas;
 
 const exp = {};
+
+/*
+ * NOTE: Because we want all changes to the state to be done via the functions in this class
+ * (as opposed to mutating objects that were returned from getters) we should consider deep
+ * copying all objects returned by the getters, then recursively freezing them so the app
+ * will throw an error when updates are done outside of this class.
+ */
 
 // Constants
 const INITIAL_STATE = {
   account: {
-    optimizers: '[0,1,2]',
+    optimizers: [0, 1, 2],
   },
   teams: [],
   players: [],
   optimizations: [],
+  metadata: {
+    scope: 'client',
+    version: SharedLib.schemaMigration.CURRENT_VERSION,
+  },
 };
-const CURRENT_LS_SCHEMA_VERSION = '6';
+
+const CURRENT_LS_SCHEMA_VERSION = '7';
 const SYNC_DELAY_MS = 10000;
 const SYNC_STATUS_ENUM = Object.freeze({
   COMPLETE: 1,
@@ -32,6 +45,7 @@ exp.LINEUP_TYPE_ENUM = Object.freeze({
   NORMAL: 0,
   ALTERNATING_GENDER: 1,
   NO_CONSECUTIVE_FEMALES: 2,
+  NO_CONSECUTIVE_FEMALES_AND_NO_THREE_CONSECUTIVE_MALES: 3,
 });
 exp.LINEUP_ORDER_ENUM = Object.freeze({
   StandardBattingLineup: 'StandardBattingLineup',
@@ -62,19 +76,17 @@ exp.getNewTeam = function (teamName) {
     id: id,
     name: teamName,
     games: [],
-    publicIdEnabled: false,
   };
 };
 
 exp.getNewGame = function (opposingTeamName, lineup, lineupType) {
-  const timestamp = Math.floor(new Date().getTime() / 1000); // Postgres expects time in seconds not ms
+  const timestamp = Math.floor(new Date().getTime() / 1000); // Time in seconds not ms
   const id = getNextId();
   return {
     id: id,
     opponent: opposingTeamName,
     lineup: lineup ? lineup : [],
     date: timestamp,
-    park: null,
     scoreUs: 0,
     scoreThem: 0,
     lineupType: lineupType ? lineupType : exp.LINEUP_TYPE_ENUM.NORMAL,
@@ -86,12 +98,13 @@ exp.getNewPlateAppearance = function (playerId) {
   const id = getNextId();
   return {
     id: id,
-    player_id: playerId,
+    playerId: playerId,
     result: null,
     location: {
       x: null,
       y: null,
     },
+    runners: {},
   };
 };
 
@@ -121,7 +134,7 @@ exp.sync = async function (fullSync) {
     console.log(
       '[SYNC] waiting for in progress sync to finish ' + exp.getSyncState()
     );
-    await sleep(500);
+    await sleep(500); // TODO: debounce
   }
   // Kill any scheduled syncs
   clearTimeout(syncTimer);
@@ -146,11 +159,10 @@ exp.sync = async function (fullSync) {
       type: fullSync ? 'full' : 'any',
     };
 
-    console.log('PATCH', body);
-
     // Ship it
+    console.log(state.getAncestorState(), localState);
     console.log('[SYNC] Syncing...', body);
-    let response = await state.request(
+    const response = await state.requestAuth(
       'POST',
       'server/sync',
       JSON.stringify(body)
@@ -165,65 +177,79 @@ exp.sync = async function (fullSync) {
         localState
       );
 
+      console.log('[SYNC] Local changes', localChangesDuringRequest);
+
       // Update the ancestor if updates were received from the server
       if (serverState.base) {
         // The entire state was sent, we can just save it directly
         state.setAncestorState(serverState.base);
-      } else if (serverState.patches) {
-        // Patches were sent, apply all patches to a copy of the local state
-        console.log(`[SYNC] Applying patches `);
+      } else if (serverState.patch) {
+        // Patch was sent, apply the patch to a copy of the local state
+        console.log(`[SYNC] Applying patch (${serverState.patch.length})`);
 
-        serverState.patches.forEach((patch) => {
-          SharedLib.objectMerge.patch(localStateCopyPreRequest, patch);
-        });
+        localStateCopyPreRequest = SharedLib.objectMerge.patch(
+          localStateCopyPreRequest,
+          serverState.patch
+        );
+
         // The local state with the server updates is the new ancestor
         state.setAncestorState(localStateCopyPreRequest);
       } else {
-        console.log('[SYNC] No updates recieved from server');
+        console.log('[SYNC] No updates received from server');
         state.setAncestorState(localStateCopyPreRequest);
       }
 
       // Verify that the ancestor state (after updates) has the same hash as the server state
       let ancestorHash = state.getAncestorStateChecksum();
+
       console.log(
         '[SYNC] CLIENT: ',
         ancestorHash,
         ' SERVER: ',
         serverState.checksum
       );
+
       if (ancestorHash !== serverState.checksum) {
         if (fullSync) {
           // Something went wrong after trying a full sync, we probably can't do anything about it!
-          // serverState.base should have contained a verbatium copy of what the server has, so this is weird.
+          // serverState.base should have contained a verbatim copy of what the server has, so this is weird.
           console.log(
             '[SYNC] Yikes! Something went wrong while attempting full sync'
           );
           console.log(
+            'Client calculated',
             SharedLib.commonUtils.getHash(state.getAncestorState()),
+            'Server has',
             SharedLib.commonUtils.getHash(serverState.base)
           );
 
+          console.log(JSON.stringify(state.getAncestorState(), null, 2));
           console.log(
             SharedLib.commonUtils.getObjectString(state.getAncestorState())
           );
-          console.log(SharedLib.commonUtils.getObjectString(serverState.base));
 
           // Set the state back to what it was when we first did a sync
           state.setAncestorState(ancestorStateCopy);
           throw new Error(-3);
         } else {
-          // Something went wrong with the patch based sync, perhaps the server's cached data was incorrect
+          // Something went wrong with the patch-based sync, perhaps the server's cached data was incorrect
           // We should be able to repeat the request with type "full" so we'll get the whole state back, not just the patches
-          console.log(
+          console.warn(
             '[SYNC] Something went wrong while attempting patch sync'
           );
-          console.log(
-            SharedLib.commonUtils.getHash(state.getLocalState),
+          console.warn(
+            SharedLib.commonUtils.getHash(state.getLocalState()),
             serverState.checksum
           );
 
-          console.log(
-            SharedLib.commonUtils.getObjectString(state.getLocalState)
+          console.warn(
+            SharedLib.commonUtils.getObjectString(
+              JSON.stringify(state.getLocalState(), null, 2)
+            )
+          );
+
+          console.warn(
+            SharedLib.commonUtils.getObjectString(state.getLocalState())
           );
 
           // Set the state back to what it was when we first did a sync
@@ -240,7 +266,14 @@ exp.sync = async function (fullSync) {
       let newLocalState = JSON.parse(JSON.stringify(state.getAncestorState()));
 
       // Apply any changes that were made during the request to the new local state (Presumably this will be a no-op most times)
-      SharedLib.objectMerge.patch(
+      newLocalState = SharedLib.objectMerge.patch(
+        newLocalState,
+        localChangesDuringRequest,
+        true
+      );
+
+      // Apply any changes that were made during the request to the new local state (Presumably this will be a no-op most times)
+      newLocalState = SharedLib.objectMerge.patch(
         newLocalState,
         localChangesDuringRequest,
         true
@@ -248,6 +281,13 @@ exp.sync = async function (fullSync) {
 
       // Set local state to a copy of ancestor state (w/ localChangesDuringRequest applied)
       setLocalStateNoSideEffects(newLocalState);
+
+      console.log(
+        '[SYNC] local',
+        state.getLocalStateChecksum(),
+        'ancestor',
+        state.getAncestorStateChecksum()
+      );
       reRender();
 
       // Write the most updated data to local storage
@@ -270,7 +310,7 @@ exp.sync = async function (fullSync) {
 
     return response.status;
   } catch (err) {
-    // We might be able to re-try some problems, like if the network is temporarally out
+    // We might be able to re-try some problems, like if the network is temporarily out
     setSyncState(SYNC_STATUS_ENUM.PENDING); // Assume re-try
     if (
       (+err.message === -1 && !exp.isOnline()) ||
@@ -343,7 +383,7 @@ exp.resetState = function () {
   exp.saveDbStateToLocalStorage();
 };
 
-exp.deleteAllLocalData = function () {
+exp.deleteAllData = function () {
   LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
   onEdit();
 };
@@ -357,11 +397,13 @@ exp.getLocalStateChecksum = function () {
 };
 
 exp.setLocalState = function (newState) {
+  SharedLib.schemaValidation.validateSchema(newState, TLSchemas.CLIENT);
   LOCAL_DB_STATE = newState;
   onEdit();
 };
 
 let setLocalStateNoSideEffects = function (newState) {
+  SharedLib.schemaValidation.validateSchema(newState, TLSchemas.CLIENT);
   LOCAL_DB_STATE = newState;
 };
 
@@ -417,21 +459,15 @@ exp.removeTeam = function (team_id) {
   onEdit();
 };
 
-exp.setTeamPublicIdEnabled = function (teamId, isEnabled) {
-  const team = exp.getTeam(teamId);
-  team.publicIdEnabled = isEnabled;
-  onEdit();
-};
-
 exp.getAllTeams = function () {
   return getShallowCopy(exp.getLocalState().teams);
 };
 
 // PLAYER
 
-exp.getPlayer = function (player_id, state) {
+exp.getPlayer = function (playerId, state) {
   return (state || LOCAL_DB_STATE).players.reduce((prev, curr) => {
-    return curr.id === player_id ? curr : prev;
+    return curr.id === playerId ? curr : prev;
   }, null);
 };
 
@@ -486,8 +522,8 @@ exp.addPlayer = function (playerName, gender) {
     id: id,
     name: playerName,
     gender: gender,
-    song_link: null,
-    song_start: null,
+    songLink: null,
+    songStart: null,
   };
   new_state.players.push(player);
   onEdit();
@@ -510,9 +546,8 @@ exp.replaceOptimization = function (optimizationId, newOptimization) {
   const localState = exp.getLocalState();
   const oldOptimization = exp.getOptimization(optimizationId);
 
-  const oldOptimizationIndex = localState.optimizations.indexOf(
-    oldOptimization
-  );
+  const oldOptimizationIndex =
+    localState.optimizations.indexOf(oldOptimization);
   localState.optimizations[oldOptimizationIndex] = newOptimization;
   onEdit();
 };
@@ -526,18 +561,9 @@ exp.getUsedOptimizers = function () {
 };
 
 // Set a field on the specified optimization object
-exp.setOptimizationField = function (
-  optimizationId,
-  fieldName,
-  fieldValue,
-  isJson
-) {
+exp.setOptimizationField = function (optimizationId, fieldName, fieldValue) {
   const optimization = exp.getOptimization(optimizationId);
-  if (isJson) {
-    optimization[fieldName] = JSON.stringify(fieldValue);
-  } else {
-    optimization[fieldName] = fieldValue;
-  }
+  optimization[fieldName] = fieldValue;
   onEdit();
 };
 
@@ -548,39 +574,33 @@ exp.setOptimizationCustomOptionsDataField = function (
   fieldValue
 ) {
   const optimization = exp.getOptimization(optimizationId);
-  const customOptionsData = JSON.parse(optimization.customOptionsData);
-  if (fieldValue) {
-    customOptionsData[fieldName] = fieldValue;
-  } else {
+  const customOptionsData = optimization.customOptionsData;
+  if (fieldValue === undefined) {
     delete customOptionsData[fieldName];
+  } else {
+    customOptionsData[fieldName] = fieldValue;
   }
-  optimization.customOptionsData = JSON.stringify(customOptionsData);
+  optimization.customOptionsData = customOptionsData;
   onEdit();
 };
 
-exp.getParsedOptimizationOverridePlateAppearances = function (
-  optimizationId,
-  playerId
-) {
+exp.getOptimizationOverridesForPlayer = function (optimizationId, playerId) {
   let optimization = exp.getOptimization(optimizationId);
   // TODO: do we consistently protect against undefined ?
   if (optimization.overrideData) {
-    let allOverrides = JSON.parse(optimization.overrideData);
+    let allOverrides = optimization.overrideData;
     return allOverrides[playerId] ? allOverrides[playerId] : [];
   } else {
     return [];
   }
 };
 
-exp.getParsedOptimizationOverridePlateAppearance = function (
+exp.getOptimizationOverridePlateAppearance = function (
   optimizationId,
   playerId,
   paId
 ) {
-  let pas = exp.getParsedOptimizationOverridePlateAppearances(
-    optimizationId,
-    playerId
-  );
+  let pas = exp.getOptimizationOverridesForPlayer(optimizationId, playerId);
   let result = pas.find((pa) => {
     return pa.id === paId;
   });
@@ -592,17 +612,18 @@ exp.addOptimizationOverridePlateAppearance = function (
   playerId
 ) {
   let optimization = exp.getOptimization(optimizationId);
-  let allOverrides = JSON.parse(optimization.overrideData);
+  let allOverrides = optimization.overrideData;
 
   let playerOverrides = allOverrides[playerId];
   let addedPa = this.getNewPlateAppearance(playerId);
+
   if (!playerOverrides) {
     allOverrides[playerId] = [addedPa];
   } else {
     allOverrides[playerId].push(addedPa);
   }
 
-  optimization.overrideData = JSON.stringify(allOverrides);
+  optimization.overrideData = allOverrides;
   onEdit();
   return addedPa;
 };
@@ -613,7 +634,7 @@ exp.removeOptimizationOverridePlateAppearance = function (
   paId
 ) {
   let optimization = exp.getOptimization(optimizationId);
-  let allOverrides = JSON.parse(optimization.overrideData);
+  let allOverrides = optimization.overrideData;
 
   let playerOverrides = allOverrides[playerId];
 
@@ -626,7 +647,7 @@ exp.removeOptimizationOverridePlateAppearance = function (
     delete allOverrides[playerId];
   }
 
-  optimization.overrideData = JSON.stringify(allOverrides);
+  optimization.overrideData = allOverrides;
   onEdit();
 };
 
@@ -637,7 +658,7 @@ exp.replaceOptimizationOverridePlateAppearance = function (
   paToAdd
 ) {
   let optimization = exp.getOptimization(optimizationId);
-  let allOverrides = JSON.parse(optimization.overrideData);
+  let allOverrides = optimization.overrideData;
   let playerOverrides = allOverrides[playerId];
 
   for (let i = 0; i < playerOverrides.length; i++) {
@@ -647,7 +668,7 @@ exp.replaceOptimizationOverridePlateAppearance = function (
       break;
     }
   }
-  optimization.overrideData = JSON.stringify(allOverrides);
+  optimization.overrideData = allOverrides;
   onEdit();
 };
 
@@ -656,7 +677,7 @@ exp.getOptimizationCustomOptionsDataField = function (
   fieldName
 ) {
   const optimization = exp.getOptimization(optimizationId);
-  const customOptionsData = JSON.parse(optimization.customOptionsData);
+  const customOptionsData = optimization.customOptionsData;
   return customOptionsData[fieldName];
 };
 
@@ -667,13 +688,34 @@ exp.duplicateOptimization = function (optimizationId) {
 
   // Reset the any status fields and de-duplicate unique fields
   duplicatedOptimization.id = getNextId();
+
   let newName = 'Duplicate of ' + duplicatedOptimization.name;
+  try {
+    // Try fancy renaming - like windows does when you copy a file
+    let regex = /\([\d]+\)$/; // There is a minor bug here with leading zeros
+    let matches = regex.exec(duplicatedOptimization.name);
+    console.log(matches);
+    if (matches?.length > 0) {
+      let nextNumber = parseInt(matches[0].slice(1, -1)) + 1;
+      let slicedOriginal = duplicatedOptimization.name.slice(
+        0,
+        -matches[0].length
+      );
+      newName = `${slicedOriginal}(${nextNumber})`;
+    } else {
+      newName = `${duplicatedOptimization.name} (2)`;
+    }
+  } catch (e) {
+    console.warn('regex failure', e);
+  }
   duplicatedOptimization.name = newName.substring(0, 49); // Prevent the name form being too long
-  duplicatedOptimization.status =
-    SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED;
-  duplicatedOptimization.resultData = JSON.stringify({});
+  duplicatedOptimization.resultData = {};
   duplicatedOptimization.statusMessage = null;
-  duplicatedOptimization.inputSummaryData = JSON.stringify({});
+  duplicatedOptimization.inputSummaryData = {};
+  duplicatedOptimization.name;
+  // Read-only fields
+  delete duplicatedOptimization.status;
+  delete duplicatedOptimization.pause;
 
   localState.optimizations.push(duplicatedOptimization);
   onEdit();
@@ -687,25 +729,24 @@ exp.removeOptimization = function (optimizationId) {
   onEdit();
 };
 
-exp.addOptimization = function (name) {
+exp.addOptimization = function (name, playerList, teamList, lineupType) {
   const id = getNextId();
   let new_state = exp.getLocalState();
   let optimization = {
     id: id,
     name: name,
-    customOptionsData: JSON.stringify({}),
-    overrideData: JSON.stringify({}),
-    status: SharedLib.constants.OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
-    resultData: JSON.stringify({}),
+    customOptionsData: {},
+    overrideData: {},
+    resultData: {},
     statusMessage: null,
     sendEmail: false,
-    teamList: JSON.stringify([]),
-    gameList: JSON.stringify([]),
-    playerList: JSON.stringify([]),
-    lineupType: 0,
+    teamList: teamList ? teamList : exp.getAllTeams().map((t) => t.id),
+    gameList: [],
+    playerList: playerList ? playerList : [],
+    lineupType: lineupType === undefined ? 0 : lineupType,
     optimizerType:
-      SharedLib.constants.OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXHAUSTIVE,
-    inputSummaryData: JSON.stringify({}),
+      SharedLib.constants.OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_ADAPTIVE,
+    inputSummaryData: {},
   };
   new_state.optimizations.push(optimization);
   onEdit();
@@ -792,8 +833,8 @@ exp.setGameLineup = function (gameId, newLineup) {
   onEdit();
 };
 
-exp.addPlayerToLineup = function (lineup, player_id) {
-  lineup.push(player_id);
+exp.addPlayerToLineup = function (lineup, playerId) {
+  lineup.push(playerId);
   onEdit();
 };
 
@@ -804,8 +845,8 @@ exp.updateLineup = function (lineup, playerId, newIndex) {
   onEdit();
 };
 
-exp.removePlayerFromLineup = function (lineup, player_id) {
-  const index = lineup.indexOf(player_id);
+exp.removePlayerFromLineup = function (lineup, playerId) {
+  const index = lineup.indexOf(playerId);
   lineup.splice(index, 1);
   onEdit();
 };
@@ -873,7 +914,7 @@ exp.replacePlateAppearance = function (paId, gameId, teamId, newPa) {
   }
   appearances.splice(i, 1, {
     id: newPa.id,
-    player_id: newPa.player_id,
+    playerId: newPa.playerId,
     result: newPa.result,
     location: {
       x: newPa?.location?.x,
@@ -897,30 +938,52 @@ exp.getPlateAppearance = function (pa_id, state) {
   return null;
 };
 
-const getClientPlateAppearance = (pa, game) => ({
-  ...pa,
-  game,
-  date: game.date,
-});
+exp.getAllPlateAppearancesForPlayer = function (playerId) {
+  let allPAs = [];
+  let allTeams = state.getAllTeams();
+  for (let team of allTeams) {
+    let playerPAsOnTeam = exp.getPlateAppearancesForPlayerOnTeam(
+      playerId,
+      team.id
+    );
+    for (let pa of playerPAsOnTeam) {
+      allPAs.push(pa);
+    }
+  }
+  return allPAs;
+};
 
 exp.getPlateAppearancesForGame = function (gameId, state) {
   const game = exp.getGame(gameId, state);
   if (!game) {
     return null;
   }
-  return game.plateAppearances.map((pa) => getClientPlateAppearance(pa, game));
+  return game.plateAppearances;
 };
 
-exp.getPlateAppearancesForPlayerInGame = function (player_id, game_id, state) {
+exp.getPlateAppearancesForPlayerInGame = function (playerId, game_id, state) {
   const game = exp.getGame(game_id, state);
-  const player = exp.getPlayer(player_id, state);
+  const player = exp.getPlayer(playerId, state);
   if (!game || !player) {
     return null;
   }
-  return game.plateAppearances.filter((pa) => pa.player_id === player_id);
+  return game.plateAppearances.filter((pa) => pa.playerId === playerId);
 };
 
-exp.getPlateAppearancesForPlayerOnTeam = function (player_id, team_id, state) {
+/**
+ * Returns a plate appearance with the game object it's from.
+ */
+const decoratePlateAppearance = (pa, game) => ({
+  ...pa,
+  game,
+  date: game.date,
+});
+
+exp.getDecoratedPlateAppearancesForPlayerOnTeam = function (
+  playerId,
+  team_id,
+  state
+) {
   const team =
     typeof team_id === 'string' ? exp.getTeam(team_id, state) : team_id;
   let plateAppearances = [];
@@ -929,10 +992,28 @@ exp.getPlateAppearancesForPlayerOnTeam = function (player_id, team_id, state) {
     team.games.forEach((game) => {
       if (game.plateAppearances) {
         const plateAppearancesThisGame = game.plateAppearances
-          .filter((pa) => player_id === pa.player_id)
+          .filter((pa) => playerId === pa.playerId)
           .map((pa) => {
-            return getClientPlateAppearance(pa, game);
+            return decoratePlateAppearance(pa, game);
           });
+        plateAppearances = plateAppearances.concat(plateAppearancesThisGame);
+      }
+    });
+  }
+  return plateAppearances;
+};
+
+exp.getPlateAppearancesForPlayerOnTeam = function (playerId, team_id, state) {
+  const team =
+    typeof team_id === 'string' ? exp.getTeam(team_id, state) : team_id;
+  let plateAppearances = [];
+
+  if (team && team.games) {
+    team.games.forEach((game) => {
+      if (game.plateAppearances) {
+        const plateAppearancesThisGame = game.plateAppearances.filter(
+          (pa) => playerId === pa.playerId
+        );
         plateAppearances = plateAppearances.concat(plateAppearancesThisGame);
       }
     });
@@ -966,7 +1047,31 @@ exp.getPlateAppearancesForPlayerInGameOrOnTeam = function (
   return plateAppearances;
 };
 
-exp.getPlateAppearancesForPlayer = function (player_id, state) {
+exp.getPlateAppearancesForPlayer = function (playerId, state) {
+  let localState = state || exp.getLocalState();
+  let teams = localState.teams;
+  let plateAppearances = [];
+
+  if (teams) {
+    teams.forEach((team) => {
+      if (team.games) {
+        team.games.forEach((game) => {
+          if (game.plateAppearances) {
+            const plateAppearancesThisGame = game.plateAppearances.filter(
+              (pa) => playerId === pa.playerId
+            );
+            plateAppearances = plateAppearances.concat(
+              plateAppearancesThisGame
+            );
+          }
+        });
+      }
+    });
+  }
+  return plateAppearances;
+};
+
+exp.getDecoratedPlateAppearancesForPlayer = function (playerId, state) {
   let localState = state || exp.getLocalState();
   let teams = localState.teams;
   let plateAppearances = [];
@@ -977,9 +1082,9 @@ exp.getPlateAppearancesForPlayer = function (player_id, state) {
         team.games.forEach((game) => {
           if (game.plateAppearances) {
             const plateAppearancesThisGame = game.plateAppearances
-              .filter((pa) => player_id === pa.player_id)
+              .filter((pa) => playerId === pa.playerId)
               .map((pa) => {
-                return getClientPlateAppearance(pa, game);
+                return decoratePlateAppearance(pa, game);
               });
             plateAppearances = plateAppearances.concat(
               plateAppearancesThisGame
@@ -990,6 +1095,10 @@ exp.getPlateAppearancesForPlayer = function (player_id, state) {
     });
   }
   return plateAppearances;
+};
+
+exp.getDecoratedPlateAppearancesForGame = function (game, state) {
+  return game.plateAppearances.map((pa) => decoratePlateAppearance(pa, game));
 };
 
 exp.updatePlateAppearanceResult = function (plateAppearance, result) {
@@ -1016,21 +1125,28 @@ exp.removePlateAppearance = function (plateAppearance_id, game_id) {
 
 exp.getAccountOptimizersList = function () {
   if (exp.getLocalState().account) {
-    return JSON.parse(exp.getLocalState().account.optimizers);
+    return exp.getLocalState().account.optimizers;
   } else {
     return [];
   }
 };
 
+exp.isEmailValidated = function () {
+  if (exp.getLocalState().account) {
+    return exp.getLocalState().account.emailConfirmed;
+  } else {
+    return false;
+  }
+};
+
 exp.setAccountOptimizersList = function (newOptimizersArray) {
   if (exp.getLocalState().account) {
-    exp.getLocalState().account.optimizers = JSON.stringify(newOptimizersArray);
+    exp.getLocalState().account.optimizers = newOptimizersArray;
     onEdit();
   }
 };
 
 // LOCAL STORAGE
-
 exp.saveDbStateToLocalStorage = function () {
   if (typeof Storage !== 'undefined') {
     /*
@@ -1038,14 +1154,15 @@ exp.saveDbStateToLocalStorage = function () {
     let compressedLocalState = LZString.compress(
       JSON.stringify(LOCAL_DB_STATE)
     );
-    let compressedAncesorState = LZString.compress(
+    let compressedAncestorState = LZString.compress(
       JSON.stringify(ANCESTOR_DB_STATE)
     );
 
     localStorage.setItem("SCHEMA_VERSION", CURRENT_LS_SCHEMA_VERSION);
     localStorage.setItem("LOCAL_DB_STATE", compressedLocalState);
-    localStorage.setItem("ANCESTOR_DB_STATE", compressedAncesorState);
+    localStorage.setItem("ANCESTOR_DB_STATE", compressedAncestorState);
     */
+    SharedLib.schemaValidation.validateSchema(LOCAL_DB_STATE, TLSchemas.CLIENT);
 
     localStorage.setItem('SCHEMA_VERSION', CURRENT_LS_SCHEMA_VERSION);
     localStorage.setItem('LOCAL_DB_STATE', JSON.stringify(LOCAL_DB_STATE));
@@ -1068,22 +1185,9 @@ exp.saveApplicationStateToLocalStorage = function () {
   }
 };
 
-exp.loadStateFromLocalStorage = function () {
+exp.loadStateFromLocalStorage = function (loadState = true, loadApp = true) {
   if (typeof Storage !== 'undefined') {
     // These statements define local storage schema migrations
-    // TODO: this logic also needs to be executed when importing a file
-    if (localStorage.getItem('SCHEMA_VERSION') === '5') {
-      // Added optimizations
-      console.log('Upgrading localstorage from version 5 to version 6');
-      let localState = JSON.parse(localStorage.getItem('LOCAL_DB_STATE'));
-      localState['optimizations'] = [];
-      let ancestorState = JSON.parse(localStorage.getItem('ANCESTOR_DB_STATE'));
-      ancestorState['optimizations'] = [];
-      localStorage.setItem('SCHEMA_VERSION', '6');
-      localStorage.setItem('LOCAL_DB_STATE', JSON.stringify(localState));
-      localStorage.setItem('ANCESTOR_DB_STATE', JSON.stringify(ancestorState));
-    }
-
     if (localStorage.getItem('SCHEMA_VERSION') !== CURRENT_LS_SCHEMA_VERSION) {
       console.log(
         `Removing invalid localStorage data ${localStorage.getItem(
@@ -1095,34 +1199,64 @@ exp.loadStateFromLocalStorage = function () {
       exp.saveApplicationStateToLocalStorage();
     }
 
-    let localDbState = localStorage.getItem('LOCAL_DB_STATE');
-    if (localDbState) {
-      // LOCAL_DB_STATE = JSON.parse(LZString.decompress(localDbState));
-      LOCAL_DB_STATE = JSON.parse(localDbState);
+    // Retrieve, update, and validate state. Do nothing if anything in this process fails.
+    if (loadState) {
+      try {
+        let localDbState = JSON.parse(localStorage.getItem('LOCAL_DB_STATE'));
+        if (localDbState) {
+          SharedLib.schemaMigration.updateSchema(null, localDbState, 'client');
+          SharedLib.schemaValidation.validateSchema(
+            localDbState,
+            TLSchemas.CLIENT
+          );
+        }
+
+        let ancestorDbState = JSON.parse(
+          localStorage.getItem('ANCESTOR_DB_STATE')
+        );
+        if (ancestorDbState) {
+          SharedLib.schemaMigration.updateSchema(
+            null,
+            ancestorDbState,
+            'client'
+          );
+          SharedLib.schemaValidation.validateSchema(
+            ancestorDbState,
+            TLSchemas.CLIENT
+          );
+        }
+
+        // Apply changes if there were no errors - we want both of them to update or none of them
+        if (localDbState && ancestorDbState) {
+          LOCAL_DB_STATE = localDbState;
+          ANCESTOR_DB_STATE = ancestorDbState;
+        }
+      } catch (e) {
+        // We have bad data in ls, delete it all
+        console.warn('Error loading state from localstorage', e);
+        console.warn('Clearing ls');
+        exp.clearLocalStorage();
+      }
     }
 
-    let ancestorDbState = localStorage.getItem('ANCESTOR_DB_STATE');
-    if (ancestorDbState) {
-      // ANCESTOR_DB_STATE = JSON.parse(LZString.decompress(ancestorDbState));
-      ANCESTOR_DB_STATE = JSON.parse(ancestorDbState);
-    }
-
-    let applicationState = JSON.parse(
-      localStorage.getItem('APPLICATION_STATE')
-    );
-    if (applicationState) {
-      online = applicationState.online ? applicationState.online : true;
-      sessionValid = applicationState.sessionValid
-        ? applicationState.sessionValid
-        : false;
-      activeUser = applicationState.activeUser
-        ? applicationState.activeUser
-        : null;
-    } else {
-      console.log('Tried to load null, falling back to defaults');
-      online = true;
-      sessionValid = false;
-      activeUser = null;
+    if (loadApp) {
+      let applicationState = JSON.parse(
+        localStorage.getItem('APPLICATION_STATE')
+      );
+      if (applicationState) {
+        online = applicationState.online ? applicationState.online : true;
+        sessionValid = applicationState.sessionValid
+          ? applicationState.sessionValid
+          : false;
+        activeUser = applicationState.activeUser
+          ? applicationState.activeUser
+          : null;
+      } else {
+        console.log('Tried to load null, falling back to defaults');
+        online = true;
+        sessionValid = false;
+        activeUser = null;
+      }
     }
   }
 
@@ -1138,7 +1272,13 @@ exp.clearLocalStorage = function () {
 
 function onEdit() {
   reRender();
-  exp.saveDbStateToLocalStorage();
+  try {
+    exp.saveDbStateToLocalStorage();
+  } catch (e) {
+    console.warn('Could not persist edit locally, restoring. ', e);
+    exp.loadStateFromLocalStorage(true, false);
+    reRender();
+  }
   exp.scheduleSync();
 }
 
@@ -1210,13 +1350,16 @@ exp.editQueryObject = function (fieldName, value) {
   );
 };
 
-exp.buildStatsObject = function (playerId, plateAppearances) {
+/**
+ * You'll get more stats if you pass in decorated plate appearances
+ */
+exp.buildStatsObject = function (plateAppearances, playerId) {
   const player =
     typeof playerId === 'string' ? state.getPlayer(playerId) : playerId;
 
   const stats = {};
-  stats.id = player.id;
-  stats.name = player.name;
+  stats.id = player ? player.id : undefined;
+  stats.name = player ? player.name : undefined;
   stats.plateAppearances = 0;
   stats.totalBasesByHit = 0;
   stats.atBats = 0;
@@ -1232,6 +1375,66 @@ exp.buildStatsObject = function (playerId, plateAppearances) {
   stats.SACs = 0;
   stats.strikeouts = 0;
   stats.directOuts = 0;
+  stats.gameAutocorrelation = '-';
+  stats.paAutocorrelation = '-';
+  stats.paPerGame = 0;
+  stats.outsPerGame = 0;
+
+  // Serial correlation for plate appearances
+  let hitOrNoHit = [];
+  plateAppearances.forEach((pa) => {
+    if (['E', 'FC', 'Out', 'TP', 'DP', 'K', 'Ʞ', 'SAC'].includes(pa.result)) {
+      hitOrNoHit.push(0);
+    } else if (['1B', '2B', '3B', 'HRi', 'HRo'].includes(pa.result)) {
+      hitOrNoHit.push(1);
+    }
+  });
+  let paAutoCorResult = autoCorrelation(hitOrNoHit, 1);
+  stats.paAutocorrelation = isStatSig(paAutoCorResult, hitOrNoHit.length)
+    ? paAutoCorResult.toFixed(2)
+    : '-';
+
+  if (isStatSig(paAutoCorResult, hitOrNoHit.length)) {
+    console.log(
+      stats.name,
+      isStatSig(paAutoCorResult, hitOrNoHit.length),
+      hitOrNoHit
+    );
+  }
+
+  // Serial correlation for games
+  // TODO: we want this sorted by date right?
+  let gamesLookup = {};
+  plateAppearances.forEach((pa) => {
+    if (pa?.game?.id) {
+      if (gamesLookup[pa.game.id]) {
+        gamesLookup[pa.game.id].push(pa);
+      } else {
+        gamesLookup[pa.game.id] = [];
+      }
+    }
+  });
+  let avgList = [];
+  Object.keys(gamesLookup).forEach((gameId) => {
+    let count = 0;
+    let hits = 0;
+    gamesLookup[gameId].forEach((pa) => {
+      if (['E', 'FC', 'Out', 'TP', 'DP', 'K', 'Ʞ', 'SAC'].includes(pa.result)) {
+        count++;
+      } else if (['1B', '2B', '3B', 'HRi', 'HRo'].includes(pa.result)) {
+        count++;
+        hits++;
+      }
+    });
+    avgList.push(hits / count);
+  });
+  let autoCorResult = autoCorrelation(avgList, 1);
+  if (isStatSig(autoCorResult, avgList.length)) {
+    console.log(stats.name, isStatSig(autoCorResult, avgList.length), avgList);
+  }
+  stats.gameAutocorrelation = isStatSig(autoCorResult, avgList.length)
+    ? autoCorResult.toFixed(2)
+    : '-';
 
   plateAppearances.forEach((pa) => {
     if (pa.result) {
@@ -1298,6 +1501,19 @@ exp.buildStatsObject = function (playerId, plateAppearances) {
     );
   }
 
+  if (gamesLookup && Object.keys(gamesLookup).length > 0) {
+    stats.paPerGame = (
+      stats.plateAppearances / Object.keys(gamesLookup).length
+    ).toFixed(2);
+  }
+
+  if (gamesLookup && Object.keys(gamesLookup).length > 0) {
+    stats.outsPerGame = (
+      (stats.plateAppearances - stats.hits) /
+      Object.keys(gamesLookup).length
+    ).toFixed(2);
+  }
+
   // Derived stats
   stats.outs = stats.atBats - stats.hits;
   stats.homeruns = stats.insideTheParkHRs + stats.outsideTheParkHRs;
@@ -1321,7 +1537,7 @@ exp.getActiveStatsForAllPlayers = function (overrideData, playerIds, teamIds) {
 
     let plateAppearances = [];
     let existingOverride = overrideData[player.id];
-    if (existingOverride) {
+    if (existingOverride && existingOverride.length !== 0) {
       // If there are stats overrides, use those
       plateAppearances = existingOverride;
     } else {
@@ -1334,7 +1550,7 @@ exp.getActiveStatsForAllPlayers = function (overrideData, playerIds, teamIds) {
     }
 
     // Gather the stats required for the optimization
-    let fullStats = exp.buildStatsObject(player.id, plateAppearances);
+    let fullStats = exp.buildStatsObject(plateAppearances, player.id);
     activeStats[player.id] = fullStats;
   }
   return activeStats;
@@ -1373,10 +1589,12 @@ exp.setActiveUser = function (user) {
   exp.saveApplicationStateToLocalStorage();
 };
 
-// This assumes all routes are behind login
-exp.setStatusBasedOnHttpResponse = function (code) {
+exp.setStatusBasedOnHttpResponse = function (code, isAuthRequest) {
   if (code >= 200 && code < 300) {
-    sessionValid = true;
+    // If this request required authentication and it succeeded, we know the session is valid
+    if (isAuthRequest) {
+      sessionValid = true;
+    }
     online = true;
     // Sync might have been failing for network reasons, give it another shot
     if (exp.getSyncState() === SYNC_STATUS_ENUM.ERROR) {
@@ -1437,9 +1655,9 @@ let setSyncState = function (newState, skipRender) {
   if (syncState !== newState) {
     const origStateName = exp.syncStateToSyncStateName(syncState);
     const newStateName = exp.syncStateToSyncStateName(newState);
-    console.log(
-      `[SYNC] Sync state updated from ${origStateName} (${syncState}) to ${newStateName} (${newState})`
-    );
+    //console.log(
+    //  `[SYNC] Sync state updated from ${origStateName} (${syncState}) to ${newStateName} (${newState})`
+    //);
     syncState = newState;
     if (!skipRender) {
       reRender();
@@ -1464,11 +1682,74 @@ exp.getPreventScreenLock = function () {
   return this.preventScreenLock;
 };
 
+exp.getLocalStorageUsage = function () {
+  let total = 0;
+  let players = 0;
+  let teams = 0;
+  let optimizations = 0;
+  let xLen = 0;
+  let x = 0;
+  for (x in localStorage) {
+    if (!localStorage.hasOwnProperty(x)) {
+      continue;
+    }
+    xLen = (localStorage[x].length + x.length) * 2;
+
+    if (x === 'LOCAL_DB_STATE') {
+      let appState = JSON.parse(localStorage['LOCAL_DB_STATE']);
+      for (let y in appState) {
+        let yLen = (JSON.stringify(appState[y]).length + y.length) * 2;
+        if (y === 'players') {
+          players += yLen;
+        } else if (y === 'teams') {
+          teams += yLen;
+        } else if (y === 'optimizations') {
+          optimizations += yLen;
+        }
+      }
+    }
+    total += xLen;
+    //console.log(x.substr(0, 50) + ' = ' + (xLen / 1024).toFixed(2) + ' KB');
+  }
+
+  // We multiply by 2 twice because:
+  // 1) UTF-16 requires 2 bytes per character
+  // 2) We need to store each character twice, both in local an ancestor
+  return {
+    players: (players / 1024) * 2,
+    teams: (teams / 1024) * 2,
+    optimizations: (optimizations / 1024) * 2,
+    system: ((total - teams * 2 - players * 2 - optimizations * 2) / 1024) * 2,
+    total: (total / 1024) * 2,
+  };
+  /*
+  console.log('Playe = ' + ((players / 1024) * 2).toFixed(2) + ' KB');
+  console.log('Teams = ' + ((teams / 1024) * 2).toFixed(2) + ' KB');
+  console.log('Optim = ' + ((optimizations / 1024) * 2).toFixed(2) + ' KB');
+  console.log(
+    'Syste = ' +
+      (
+        ((total - teams * 2 - players * 2 - optimizations * 2) / 1024) *
+        2
+      ).toFixed(2) +
+      ' KB'
+  );
+  console.log('Total = ' + (total / 1024).toFixed(2) + ' KB');
+  */
+};
+
 /**
- * Perform a network request, and update the state (online, authentication status, etc...)
- * based on the response
+ * Perform a network request (internal - use requestAuth or request outside of this class).
+ * Updates application state based on status code of the response
  */
-exp.request = async function (method, url, body, controller, overrideTimeout) {
+let _request = async function (
+  method,
+  url,
+  body,
+  controller,
+  overrideTimeout,
+  isAuth
+) {
   try {
     let response = await network.request(
       method,
@@ -1477,7 +1758,7 @@ exp.request = async function (method, url, body, controller, overrideTimeout) {
       controller,
       overrideTimeout
     );
-    state.setStatusBasedOnHttpResponse(response.status);
+    state.setStatusBasedOnHttpResponse(response.status, isAuth);
     return response;
   } catch (err) {
     console.log('Encountered an error during network request');
@@ -1492,16 +1773,28 @@ exp.request = async function (method, url, body, controller, overrideTimeout) {
   }
 };
 
-/*
-let lineupTypes = Object.keys(exp.LINEUP_TYPE_ENUM);
-exp.LINEUP_TYPE_ENUM_INVERSE = {};
-for (let i = 0; i < lineupTypes.length; i++) {
-  let englishValue = lineupTypes[i];
-  exp.LINEUP_TYPE_ENUM_INVERSE[
-    exp.LINEUP_TYPE_ENUM[englishValue]
-  ] = englishValue;
-}
-*/
+/**
+ * Perform a network request.
+ * Will update the state's "isOnline" variable based on the call's success or failure
+ * Will update the state's "isSessionValid" variable based on the call's success or failure
+ */
+exp.requestAuth = async function (
+  method,
+  url,
+  body,
+  controller,
+  overrideTimeout
+) {
+  return await _request(method, url, body, controller, overrideTimeout, true);
+};
+
+/**
+ * Perform a network request.
+ * Will update the state's "isOnline" variable based on the call's success or failure
+ */
+exp.request = async function (method, url, body, controller, overrideTimeout) {
+  return await _request(method, url, body, controller, overrideTimeout, true);
+};
 
 window.state = exp;
 export default exp;

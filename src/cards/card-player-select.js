@@ -40,12 +40,22 @@ export default class CardPlayerSelect extends React.Component {
       startingValues: startingValues,
       typed: '',
       gender: 'M',
+      menuIsOpen: false,
     };
 
     this.onInputChange = function (inputValue) {
       this.adjustSpacerDivHeight();
       this.setState({
         typed: inputValue,
+      });
+
+      // Open menu if the user has type anything
+      let menuIsOpen = false;
+      if (inputValue) {
+        menuIsOpen = true;
+      }
+      this.setState({
+        menuIsOpen,
       });
     };
 
@@ -166,7 +176,7 @@ export default class CardPlayerSelect extends React.Component {
       },
       multiValue: (provided) => {
         const modifications = {
-          padding: 14,
+          padding: 8,
         };
         return Object.assign(provided, modifications);
       },
@@ -185,19 +195,14 @@ export default class CardPlayerSelect extends React.Component {
         <div id="spacer" style={{ transition: 'height .25s' }} />
         <div>
           <ListButton
-            style={{ marginLeft: '16px' }}
             onClick={this.handleConfirmClick.bind(this)}
+            type="primary-button"
           >
             Confirm Selection
           </ListButton>
         </div>
         <div>
-          <ListButton
-            style={{ marginLeft: '16px' }}
-            onClick={this.handleCancelClick}
-          >
-            Cancel
-          </ListButton>
+          <ListButton onClick={this.handleCancelClick}>Cancel</ListButton>
         </div>
         <ListButton id="import" onClick={this.props.onImportClick}>
           Import From Another Game
@@ -223,6 +228,8 @@ export default class CardPlayerSelect extends React.Component {
           onInputChange={this.onInputChange.bind(this)}
           noOptionsMessage={this.noOptionsMessage.bind(this)}
           defaultValue={this.state.startingValues}
+          menuIsOpen={this.state.menuIsOpen}
+          placeholder={"Type a player's name..."}
         />
       </div>
     );

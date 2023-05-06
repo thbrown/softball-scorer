@@ -1,10 +1,5 @@
 node_modules
-build/main.js
-build/*.hot-update.json
-build/*.hot-update.js
-build/vendor.js
-build/stats.json
-build/main.js.LICENSE.txt
+build/*
 assets/main.css
 certs/
 src/workers/service-worker.js
@@ -15,6 +10,7 @@ config-common.js
 *.sublime-project
 *.sublime-workspace
 src-srv/logs
+logs/*
 .vscode
 softball-sim.jar
 java.log
@@ -22,3 +18,10 @@ cred.json
 .gradle
 src-srv/optimizations-temp/
 shared-lib.js
+shared-lib.js.LICENSE.txt
+yarn-error.log
+database/*
+session/*
+emergency-dump-*
+.yarn
+coverage

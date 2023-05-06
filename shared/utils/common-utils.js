@@ -1,36 +1,18 @@
-const hasher = require('node-object-hash');
+import hasher from 'node-object-hash';
 
-exports.factorial = function (n) {
+export const factorial = function (n) {
   if (n < 0 || n > 20) {
     throw Error('Factorial out of range' + n);
   }
   const fact = [
-    1,
-    1,
-    2,
-    6,
-    24,
-    120,
-    720,
-    5040,
-    40320,
-    362880,
-    3628800,
-    39916800,
-    479001600,
-    6227020800,
-    87178291200,
-    1307674368000,
-    20922789888000,
-    355687428096000,
-    6402373705728000,
-    121645100408832000,
-    2432902008176640000,
+    1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600,
+    6227020800, 87178291200, 1307674368000, 20922789888000, 355687428096000,
+    6402373705728000, 121645100408832000, 2432902008176640000,
   ];
   return fact[n];
 };
 
-exports.binomial = function (n, k) {
+export const binomial = function (n, k) {
   if (n === 0) {
     return 0;
   }
@@ -43,7 +25,7 @@ exports.binomial = function (n, k) {
 };
 
 // https://stackoverflow.com/questions/8211744/convert-time-interval-given-in-seconds-into-more-human-readable-form
-exports.secondsToString = function (seconds) {
+export const secondsToString = function (seconds) {
   function numberEnding(number) {
     return number > 1 ? 's' : '';
   }
@@ -72,11 +54,18 @@ exports.secondsToString = function (seconds) {
 };
 
 // Calculate the hash of the data and return the result as a base64 string
-exports.getHash = function (data, logger) {
+export const getHash = function (data, logger) {
   // I've tried other hashes here (like javascript xxHash) but md5 is faster in the browser and much faster on the server.
   var objectHasher = hasher({
     alg: 'md5',
-    sort: true,
+    sort: {
+      array: false,
+      typedArray: false,
+      object: true,
+      set: false,
+      map: false,
+      bigint: false, // Not sure about this one, how do you sort an int?
+    },
     coerce: false,
     enc: 'base64',
   });
@@ -85,7 +74,7 @@ exports.getHash = function (data, logger) {
 };
 
 // Get the string representation of an object for hashing, sorts properties of objects so representation is stable
-exports.getObjectString = function (data) {
+export const getObjectString = function (data) {
   var objectHasher = hasher({
     alg: 'md5',
     sort: true,
@@ -97,10 +86,65 @@ exports.getObjectString = function (data) {
 };
 
 // Concatenate arrays and remove duplicates
-exports.merge = function (array1, array2) {
+export const merge = function (array1, array2) {
   return [...new Set([...array1, ...array2])];
 };
 
-exports.truncate = function (str, n) {
+export const truncate = function (str, n) {
   return str.length > n ? str.substr(0, n - 1) : str;
 };
+
+export const round = function (toRound, decimalPlaces) {
+  decimalPlaces = decimalPlaces ? decimalPlaces : 0;
+  return (
+    Math.round(toRound * Math.pow(10, decimalPlaces)) /
+    Math.pow(10, decimalPlaces)
+  );
+};
+
+export const formatPercentage = function (value, decimalPlaces) {
+  decimalPlaces = decimalPlaces ? decimalPlaces : 0;
+  if (isNaN(value)) {
+    return '-%';
+  }
+  return (parseFloat(value) * 100).toFixed(decimalPlaces) + '%';
+};
+
+export const sortJson = function sortJson(object) {
+  if (Array.isArray(object)) {
+    let result = [];
+    for (let el of object) {
+      result.push(sortJson(el));
+    }
+    return result;
+  } else if (isObject(object)) {
+    let keys = Object.keys(object);
+    keys.sort();
+    var newObject = {};
+    for (let key of keys) {
+      newObject[key] = sortJson(object[key]);
+    }
+    return newObject;
+  } else {
+    return object;
+  }
+};
+
+export const isObject = function isObject(input) {
+  return typeof input === 'object' && input !== null && !Array.isArray(input);
+};
+
+const exp = {
+  factorial,
+  binomial,
+  secondsToString,
+  getHash,
+  getObjectString,
+  merge,
+  truncate,
+  round,
+  formatPercentage,
+  sortJson,
+};
+
+export default exp;

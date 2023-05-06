@@ -5,7 +5,6 @@ const argv = require('minimist')(process.argv.slice(2));
 const fs = require('fs');
 const css = require('./src/css/theme.js');
 const uglifycss = require('uglifycss');
-const { hashElement } = require('folder-hash');
 
 const env = Object.create(process.env);
 env.NPM_CONFIG_COLOR = 'always';
@@ -57,7 +56,6 @@ const rules = {
           process.exit(0);
         }
         try {
-          await _executeAsync('webpack --config webpack.prod.js');
           await _executeAsync(
             'terser --compress --mangle -o build/main.js -- build/main.js'
           );
@@ -192,34 +190,32 @@ function build_css(cb) {
 function updateServiceWorker(cb) {
   console.log('Updating service-worker.js...');
 
-  // https://www.npmjs.com/package/folder-hash
-  const options = {
-    folders: { exclude: ['node_modules', 'build'] },
-    files: { exclude: ['service-worker.js'] },
-  };
+  // Assign a random id to the service worker after each build, so it gets updated with iterative development
+  function makeid(length) {
+    var result = '';
+    var characters =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+  let buildId = makeid(32);
+  console.log('Service worker build id:', buildId);
+  var contents = fs.readFileSync(
+    './src/workers/service-worker-template.js',
+    'utf8'
+  );
 
-  hashElement('.', options)
-    .then((hashObj) => {
-      console.log('Version hash:', hashObj.hash);
-      var contents = fs.readFileSync(
-        './src/workers/service-worker-template.js',
-        'utf8'
-      );
+  const edit =
+    '// This file has been automatically generated as part of the build process. Changes here will be overidden on the next build.\r\n' +
+    "// Do not check this in to source control. If you'd like to make edits to the service worker edit service-worker-template.js instead.\r\n" +
+    '// Changes made in that file will be reflected here. \r\n' +
+    `let autoGenCacheName = 'softball-${buildId}'; \r\n`;
 
-      // TODO: Minify this
-      const edit =
-        '// This file has been automatically generated as part of the build process. Changes here will be overidden on the next build.\r\n' +
-        "// Do not check this in to source control. If you'd like to make edits to the service worker edit service-worker-template.js instead.\r\n" +
-        '// Changes made in that file will be reflected here. \r\n' +
-        `let autoGenCacheName = 'softball-${hashObj.hash}'; \r\n`;
-
-      fs.writeFileSync('./src/workers/service-worker.js', edit + contents);
-      cb();
-    })
-    .catch((error) => {
-      console.error('hashing failed:', error);
-      process.exit(0);
-    });
+  fs.writeFileSync('./build/service-worker.js', edit + contents);
+  cb();
 }
 
 function initConfigFiles(cb) {

@@ -4,6 +4,7 @@
 const configAccessor = require('../config-accessor.js');
 const SoftballServer = require('../softball-server');
 const utils = require('./test-utils.js');
+const context = require('../context');
 
 describe('sync', () => {
   let databaseCalls;
@@ -13,11 +14,11 @@ describe('sync', () => {
 
   beforeAll(async (done) => {
     const port = configAccessor.getAppServerPort();
-    const optPort = configAccessor.getOptimizationServerPort();
-    cache = configAccessor.getCacheService();
-    databaseCalls = configAccessor.getDatabaseService(cache);
+    cache = await configAccessor.getCacheService();
+    databaseCalls = await configAccessor.getDatabaseService(cache);
     compute = configAccessor.getOptimizationComputeService();
-    server = new SoftballServer(port, optPort, databaseCalls, cache, compute);
+    server = new SoftballServer(port, databaseCalls, cache, compute);
+    context.setServer(server);
     server.start();
     done();
   });

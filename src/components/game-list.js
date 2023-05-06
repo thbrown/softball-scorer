@@ -2,7 +2,8 @@ import React from 'react';
 import state from 'state';
 import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
-import { toClientDate } from 'utils/functions';
+import { sortObjectsByDate, toClientDate } from 'utils/functions';
+import IconButton from '../elements/icon-button';
 
 const GameList = (props) => {
   const handleGameClick = function (game) {
@@ -18,7 +19,9 @@ const GameList = (props) => {
     setRoute(`/teams/${props.team.id}/games/${game.id}/edit?isNew=true`);
   };
 
-  const elems = [...props.team.games].reverse().map((game) => {
+  const games = sortObjectsByDate(props.team.games, { isAsc: false });
+
+  const elems = games.map((game) => {
     return (
       <ListButton
         key={'game-' + game.id}
@@ -30,7 +33,7 @@ const GameList = (props) => {
             <span style={{ fontSize: '12px' }}>VS. </span>
             {game.opponent}
           </div>
-          <div style={{ display: 'flex' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <div
               style={{
                 fontSize: '12px',
@@ -40,8 +43,8 @@ const GameList = (props) => {
             >
               {toClientDate(game.date)}
             </div>
-            <img
-              src="/server/assets/edit.svg"
+            <IconButton
+              src="/assets/edit.svg"
               alt="edit"
               id={'game-' + game.id + '-edit'}
               onClick={(ev) => {
@@ -49,6 +52,7 @@ const GameList = (props) => {
                 ev.preventDefault();
                 ev.stopPropagation();
               }}
+              invert
             />
           </div>
         </div>
@@ -60,18 +64,14 @@ const GameList = (props) => {
     <ListButton
       id="newGame"
       key="newGame"
-      type="tertiary-button"
+      type="primary-button"
       onClick={handleCreateClick}
     >
       + Add New Game
     </ListButton>
   );
 
-  return (
-    <div className="card">
-      <div className="card-body">{elems}</div>
-    </div>
-  );
+  return <div>{elems}</div>;
 };
 
 export default GameList;

@@ -2,13 +2,13 @@ import React from 'react';
 import dialog from 'dialog';
 import state from 'state';
 import FloatingInput from 'elements/floating-input';
-import WalkupSong from 'component-walkup-song';
+import WalkupSong from 'components/walkup-song';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
 import { goBack, goHome } from 'actions/route';
 import network from 'network';
-import AsyncSelect from 'react-select/async';
 import FloatingReactAsyncCreatableSelect from 'elements/floating-react-async-creatable-select';
+import IconButton from 'elements/icon-button';
 
 export default class CardPlayerEdit extends React.Component {
   constructor(props) {
@@ -19,8 +19,8 @@ export default class CardPlayerEdit extends React.Component {
     this.state = {
       playerGender: props.player.gender,
       playerName: props.player.name,
-      playerSongLink: props.player.song_link,
-      playerSongStart: props.player.song_start,
+      playerSongLink: props.player.songLink,
+      playerSongStart: props.player.songStart,
       youTubeKey: 0, // Used as a react 'key' so we can reset the floating label when an a youtube search changes the field
     };
 
@@ -28,8 +28,8 @@ export default class CardPlayerEdit extends React.Component {
       const player = JSON.parse(JSON.stringify(props.player));
       player.name = this.state.playerName;
       player.gender = this.state.playerGender;
-      player.song_link = this.state.playerSongLink;
-      player.song_start = this.state.playerSongStart;
+      player.songLink = this.state.playerSongLink;
+      player.songStart = parseInt(this.state.playerSongStart || 0);
       return player;
     };
 
@@ -54,7 +54,7 @@ export default class CardPlayerEdit extends React.Component {
       }
       console.log('YoutubeResults', results);
       return results;
-    }.bind(this);
+    };
 
     this.formatOptionLabel = ({ value, label, thumbnail }, { context }) => {
       if (context === 'value') {
@@ -90,7 +90,7 @@ export default class CardPlayerEdit extends React.Component {
     this.onYouTubeSelect = function () {
       let timeout;
       return async function (query) {
-        if (query.length == 0) {
+        if (query.length === 0) {
           return new Promise((resolve) => {
             resolve([]);
           });
@@ -103,7 +103,7 @@ export default class CardPlayerEdit extends React.Component {
               {
                 label: 'Enter more than 3 characters to search',
                 value: undefined,
-                thumbnail: '/server/assets/alert.svg',
+                thumbnail: '/assets/alert.svg',
               },
             ]);
           });
@@ -116,7 +116,7 @@ export default class CardPlayerEdit extends React.Component {
               {
                 label: 'Link: ' + query,
                 value: query,
-                thumbnail: '/server/assets/link.svg',
+                thumbnail: '/assets/link.svg',
               },
             ]);
           });
@@ -234,7 +234,7 @@ export default class CardPlayerEdit extends React.Component {
 
     this.isValidYouTubeVideoLink = function (url) {
       let result = url.match(
-        /(?:https?:\/\/)?(?:youtu\.be\/|(?:www\.|m\.)?youtube\.com\/(?:watch|v|embed)(?:\.php)?(?:\?.*v=|\/))([a-zA-Z0-9\_-]{11})/
+        /(?:https?:\/\/)?(?:youtu\.be\/|(?:www\.|m\.)?youtube\.com\/(?:watch|v|embed)(?:\.php)?(?:\?.*v=|\/))([a-zA-Z0-9_-]{11})/
       );
       return result == null ? false : true;
     };
@@ -256,7 +256,7 @@ export default class CardPlayerEdit extends React.Component {
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <img
               alt="Plate appearance scoring screenshot"
-              src="/server/assets/help-walkup.svg"
+              src="/assets/help-walkup.svg"
             ></img>
           </div>
         </div>,
@@ -267,10 +267,15 @@ export default class CardPlayerEdit extends React.Component {
 
   componentDidMount() {
     // TODO: can we use defaultChecked instead?
-    if (this.state.playerGender === 'F') {
-      document.getElementById('femaleGenderChoice').checked = true;
-    } else {
-      document.getElementById('maleGenderChoice').checked = true;
+    const elem = (() => {
+      if (this.state.playerGender === 'F') {
+        return document.getElementById('femaleGenderChoice');
+      } else {
+        return document.getElementById('maleGenderChoice');
+      }
+    })();
+    if (elem) {
+      elem.checked = true;
     }
   }
 
@@ -347,14 +352,13 @@ export default class CardPlayerEdit extends React.Component {
                 width={128}
                 height={128}
               ></WalkupSong>
-              <div className="icon-button">
-                <img
-                  alt="help"
-                  className="help-icon"
-                  src="/server/assets/help.svg"
-                  onClick={this.handleSongHelpClick}
-                />
-              </div>
+              <IconButton
+                alt="help"
+                className="help-icon"
+                src="/assets/help.svg"
+                onClick={this.handleSongHelpClick}
+                invert
+              />
             </div>
           </fieldset>
         </div>
@@ -367,30 +371,51 @@ export default class CardPlayerEdit extends React.Component {
     return (
       <>
         <>
-          <ListButton type="edit-button" onClick={this.handleConfirmClick}>
-            <img
-              className="edit-button-icon"
-              src="/server/assets/check.svg"
-              alt="save"
-            />
-            <span className="edit-button-icon">Save</span>
+          <ListButton
+            id="save"
+            type="primary-button"
+            onClick={this.handleConfirmClick}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <IconButton src="/assets/check.svg" alt="save" />
+              <span>Save</span>
+            </div>
           </ListButton>
-          <ListButton type="edit-button" onClick={this.handleCancelClick}>
-            <img
-              className="edit-button-icon"
-              src="/server/assets/cancel.svg"
-              alt="cancel"
-            />
-            <span className="edit-button-icon">Cancel</span>
+          <ListButton
+            id="cancel"
+            type="edit-button"
+            onClick={this.handleCancelClick}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <IconButton src="/assets/cancel.svg" alt="cancel" invert />
+              <span>Cancel</span>
+            </div>
           </ListButton>
           {this.props.isNew ? null : (
-            <ListButton type="edit-button" onClick={this.handleDeleteClick}>
-              <img
-                className="edit-button-icon"
-                src="/server/assets/delete.svg"
-                alt="delete"
-              />
-              <span className="edit-button-icon">Delete</span>
+            <ListButton
+              id="delete"
+              type="delete-button"
+              onClick={this.handleDeleteClick}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <IconButton src="/assets/delete.svg" alt="delete" />
+                <span>Delete</span>
+              </div>
             </ListButton>
           )}
         </>

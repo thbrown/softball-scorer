@@ -3,66 +3,12 @@ import state from 'state';
 import dialog from 'dialog';
 import Card from 'elements/card';
 import FloatingInput from 'elements/floating-input';
-import CardSection from 'elements/card-section';
 import ListButton from 'elements/list-button';
 import { goBack, goHome } from 'actions/route';
-import { makeStyles } from 'css/helpers';
-
-const useCardTeamEditStyles = makeStyles((css) => ({
-  publicLink: {
-    fontSize: css.typography.size.xSmall,
-    padding: css.spacing.xxSmall,
-    backgroundColor: css.colors.INVISIBLE,
-    color: css.colors.TEXT_LIGHT,
-    border: '0px',
-    resize: 'none',
-    whiteSpace: 'unset',
-    overflowWrap: 'unset',
-    overflow: 'hidden',
-  },
-  publicLinkLabelBox: {
-    fontSize: css.typography.size.large,
-    display: 'flex',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-  },
-  publicLinkLabel: {
-    paddingRight: css.spacing.xxSmall,
-  },
-  publicLinkLineItem: {
-    padding: css.spacing.xxSmall,
-  },
-  publicLinkCopyButton: {
-    width: css.sizes.ICON,
-    cursor: 'pointer',
-  },
-  publicLinkCopiedText: {
-    opacity: 1,
-    transition: 'transition: all 0.5s ease-out',
-  },
-  publicLinkContainer: {
-    backgroundColor: css.colors.PRIMARY,
-    borderRadius: css.spacing.xSmall,
-    display: 'flex',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginTop: css.spacing.xxSmall,
-    overflow: 'hidden',
-  },
-  publicLinkCheckbox: {
-    width: '1rem',
-    height: '1rem',
-    marginRight: css.spacing.xSmall,
-  },
-}));
+import IconButton from '../elements/icon-button';
 
 const CardTeamEdit = (props) => {
   const [team, setTeam] = React.useState(props.team);
-  const [
-    copiedNotificationVisible,
-    setCopiedNotificationVisible,
-  ] = React.useState(false);
-  const publicLinkRef = React.useRef(null);
   let isPristine = props.isNew ? false : true;
 
   const homeOrBack = (type, cb) => {
@@ -120,29 +66,6 @@ const CardTeamEdit = (props) => {
     });
   };
 
-  const handlePublicLinkEnabledClicked = (ev) => {
-    setTeam({
-      ...team,
-      publicIdEnabled: !!ev.target.checked,
-    });
-  };
-
-  const handleCopyClick = () => {
-    const copyText = publicLinkRef.current;
-    copyText.select();
-    document.execCommand('copy');
-    setCopiedNotificationVisible(true);
-    setTimeout(() => {
-      setCopiedNotificationVisible(false);
-    }, 2999);
-    window.getSelection().removeAllRanges();
-    copyText.blur();
-  };
-
-  const { styles } = useCardTeamEditStyles();
-  const { publicId, publicIdEnabled } = team;
-  const publicLink = `${window.location.host}/public-teams/${publicId}/stats`;
-
   return (
     <Card
       title="Edit Team"
@@ -161,84 +84,47 @@ const CardTeamEdit = (props) => {
           defaultValue={props.team.name}
         />
       </div>
-      {publicId && state.isSessionValid() && (
-        <>
-          <CardSection>
-            <div className="auth-input-container">
-              <div style={styles.publicLinkLabelBox}>
-                <label htmlFor="publicIdEnabled" style={styles.publicLinkLabel}>
-                  Public Link
-                </label>
-                <input
-                  id="publicIdEnabled"
-                  type="checkbox"
-                  checked={!!publicIdEnabled}
-                  style={styles.publicLinkCheckbox}
-                  onChange={handlePublicLinkEnabledClicked}
-                />
-                {copiedNotificationVisible && (
-                  <span
-                    style={styles.publicLinkCopiedText}
-                    className="fade-out"
-                  >
-                    Link copied
-                  </span>
-                )}
-              </div>
-              {publicIdEnabled && (
-                <div style={styles.publicLinkContainer}>
-                  <div style={styles.publicLinkLineItem}>
-                    <span>
-                      <img
-                        onClick={handleCopyClick}
-                        style={styles.publicLinkCopyButton}
-                        src="/server/assets/copy.svg"
-                        alt="copy"
-                      />
-                    </span>
-                  </div>
-                  <input
-                    id="publicLink"
-                    ref={publicLinkRef}
-                    readOnly
-                    size={publicLink.length}
-                    value={publicLink}
-                    style={styles.publicLink}
-                  />
-                </div>
-              )}
-            </div>
-          </CardSection>
-        </>
-      )}
-      <ListButton type="edit-button" onClick={handleConfirmClick}>
-        <img
-          className="edit-button-icon"
-          src="/server/assets/check.svg"
-          alt=""
-        />
-        <span className="edit-button-icon"> Save </span>
+      <ListButton id="save" type="primary-button" onClick={handleConfirmClick}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <IconButton src="/assets/check.svg" alt="" hideBackground />
+          <span> Save </span>
+        </div>
       </ListButton>
       <ListButton
-        type="edit-button"
-        className="edit-button button cancel-button"
+        // type="secondary-button"
+        className="edit-button button"
         onClick={handleCancelClick}
       >
-        <img
-          className="edit-button-icon"
-          src="/server/assets/cancel.svg"
-          alt=""
-        />
-        <span className="edit-button-icon"> Cancel </span>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <IconButton src="/assets/cancel.svg" alt="" hideBackground invert />
+          <span>Cancel</span>
+        </div>
       </ListButton>
       {!props.isNew && (
-        <ListButton type="edit-button" onClick={handleDeleteClick}>
-          <img
-            className="edit-button-icon"
-            src="/server/assets/delete.svg"
-            alt=""
-          />
-          <span className="edit-button-icon"> Delete </span>
+        <ListButton
+          id="delete"
+          type="delete-button"
+          onClick={handleDeleteClick}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <IconButton src="/assets/delete.svg" alt="" hideBackground />
+            <span> Delete </span>
+          </div>
         </ListButton>
       )}
     </Card>

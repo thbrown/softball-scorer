@@ -15,6 +15,7 @@ export default class CardOptimizerSelect extends expose.Component {
 
     this.onMessageReceived = function onMessageReceived(evt) {
       state.setAccountOptimizersList(evt.data);
+      state.scheduleSync();
       console.log('Selected optimizers', evt.data);
     };
   }

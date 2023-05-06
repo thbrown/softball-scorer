@@ -3,6 +3,9 @@ import FloatingSelect from 'elements/floating-select';
 import dialog from 'dialog';
 import { setRoute } from 'actions/route';
 import Loading from '../elements/loading';
+import state from 'state';
+import IconButton from './icon-button';
+import { showLineupTypeHelp } from 'utils/help-functions';
 
 export default class OptimizerStandardOptions extends React.Component {
   constructor(props) {
@@ -37,7 +40,7 @@ export default class OptimizerStandardOptions extends React.Component {
       state.setOptimizationField(
         this.props.optimizationId,
         'lineupType',
-        value
+        parseInt(value)
       );
     }.bind(this);
 
@@ -46,7 +49,7 @@ export default class OptimizerStandardOptions extends React.Component {
       state.setOptimizationField(
         this.props.optimizationId,
         'optimizerType',
-        newOptimizerId
+        parseInt(newOptimizerId)
       );
     }.bind(this);
 
@@ -59,9 +62,13 @@ export default class OptimizerStandardOptions extends React.Component {
 
   render() {
     // Process info about all available optimizers
-    let optimizerOptions = {};
+    const optimizerOptions = [];
     for (const id in this.props.optimizerData) {
-      optimizerOptions[id] = this.props.optimizerData[id].name;
+      optimizerOptions.push({
+        label: this.props.optimizerData[id].name,
+        value: parseInt(id),
+        key: id,
+      });
     }
 
     // Process info about the selected optimizer
@@ -75,9 +82,8 @@ export default class OptimizerStandardOptions extends React.Component {
       this.props.optimizerData[optId] !== undefined
     ) {
       this.selectedOptimizerName = this.props.optimizerData[optId].name;
-      this.selectedOptimizerDescription = this.props.optimizerData[
-        optId
-      ].shortDescription;
+      this.selectedOptimizerDescription =
+        this.props.optimizerData[optId].shortDescription;
     }
 
     // Main content
@@ -90,29 +96,34 @@ export default class OptimizerStandardOptions extends React.Component {
         >
           <Loading style={{ width: '85px', height: '85px' }}></Loading>
         </div>
-        <div style={{ display: 'flex' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
           <FloatingSelect
             selectId="lineupType"
             label="Lineup Type"
             initialValue={this.props.lineupType}
             onChange={this.onLineupChange}
-            values={{
-              0: 'Normal',
-              1: 'Alternating Gender',
-              2: 'No Consecutive Females',
-            }}
+            values={[
+              { key: 0, label: 'Normal', value: 0 },
+              { key: 1, label: 'Alternating Gender', value: 1 },
+              { key: 2, label: 'No Consecutive Females', value: 2 },
+              {
+                key: 3,
+                label: 'No Consecutive Females and No Three Consecutive Males',
+                value: 3,
+              },
+            ]}
             disabled={this.props.disabled}
+            fullWidth
           />
-          <div className="icon-button">
-            <img
-              alt="help"
-              className="help-icon"
-              src="/server/assets/help.svg"
-              onClick={this.handleOptimizerHelp}
-            />
-          </div>
+          <IconButton
+            alt="help"
+            className="help-icon"
+            src="/assets/help.svg"
+            onClick={showLineupTypeHelp}
+            invert
+          />
         </div>
-        <div style={{ display: 'flex' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
           <FloatingSelect
             selectId="optimizer"
             label="Optimizer"
@@ -120,15 +131,22 @@ export default class OptimizerStandardOptions extends React.Component {
             onChange={this.onOptimizerChange}
             values={optimizerOptions}
             disabled={this.props.disabled}
+            fullWidth
           />
-          <div className="icon-button">
-            <img
-              alt="help"
-              className="help-icon"
-              src="/server/assets/search.svg"
-              onClick={this.handleOptimizerSearch}
-            />
-          </div>
+          <IconButton
+            alt="help"
+            className="help-icon"
+            src="/assets/help.svg"
+            onClick={this.handleOptimizerHelp}
+            invert
+          />
+          <IconButton
+            alt="help"
+            className="help-icon"
+            src="/assets/search.svg"
+            onClick={this.handleOptimizerSearch}
+            invert
+          />
         </div>
       </div>
     );

@@ -1,0 +1,17 @@
+name: CI
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Greeting
+        run: echo "Running tests on ${{ github.ref }} in ${{ github.repository }}."
+      - uses: actions/checkout@v3
+      - name: Copy configs
+        run: cp ./src-srv/config.template.js ./src-srv/config.js && cp ./src/config.template.js ./src/config.js
+      - name: Install modules
+        run: yarn
+      - name: Build
+        run: yarn build-css && yarn --cwd ./shared build && yarn build
+      - name: Run tests
+        run: yarn test

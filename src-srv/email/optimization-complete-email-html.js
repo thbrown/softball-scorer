@@ -193,7 +193,7 @@ module.exports = function (resultHtml, optimizationLink) {
     <tr>
       <td style="padding-right: 0px;padding-left: 0px;" align="center">
         <a href="https://softball.app/" target="_blank">
-        <img align="center" border="0" src="https://softball.app/server/assets/email/rounded-logo.png" alt="Image" title="Image" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: block !important;border: none;height: auto;float: none;width: 50%;max-width: 73.5px;" width="73.5" class="v-src-width v-src-max-width"/>
+        <img align="center" border="0" src="https://softball.app/assets/email/rounded-logo.png" alt="Image" title="Image" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: block !important;border: none;height: auto;float: none;width: 50%;max-width: 73.5px;" width="73.5" class="v-src-width v-src-max-width"/>
         </a>
       </td>
     </tr>
@@ -296,7 +296,7 @@ module.exports = function (resultHtml, optimizationLink) {
         <td style="overflow-wrap:break-word;word-break:break-word;padding:10px;font-family:arial,helvetica,sans-serif;" align="left">
           
     <div class="v-text-align" style="color: #000000; line-height: 140%; text-align: left; word-wrap: break-word;">
-      <p style="font-size: 14px; line-height: 140%;">Your optimization has finished running! Here are the details:</p>
+      <p style="font-size: 14px; line-height: 140%;">Your optimization has finished running! Here are the results:</p>
     </div>
   
         </td>

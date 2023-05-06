@@ -7,15 +7,21 @@
     "run": "node src-srv",
     "start": "node src-srv",
     "start:dev": "yarn watch",
-    "build": "node build.js build",
-    "watch": "rm -rf build/*hot-update.json build/*.hot-update.js && concurrently -n srv,webpack \"node src-srv\" \"node_modules/.bin/webpack serve --env development --config webpack.dev.js --progress\"",
+    "build": "yarn bundle && node build.js build",
+    "bundle": "webpack --progress",
+    "bundle-watch": "webpack serve --env WEBPACK_DEV_SERVER=true --progress",
+    "watch": "concurrently -n srv,webpack \"yarn start\" \"yarn bundle-watch\"",
     "build-css": "node build.js build-css",
+    "build-shared": "(cd shared && yarn build)",
     "update-service-worker": "node build.js update-service-worker",
     "clean": "node build.js clean",
-    "test": "jest --runInBand --detectOpenHandles --bail --verbose=false --forceExit",
+    "test": "jest --runInBand --bail",
+    "test-old": "jest --runInBand --detectOpenHandles --bail --verbose=false --forceExit",
     "test:ui": "jest --watch ./src/tests/*",
-    "analyze": "webpack --config webpack.prod.js --profile --json > build/stats.json && webpack-bundle-analyzer build/stats.json",
-    "fix": "npm i --package-lock-only && npm audit fix && rm yarn.lock && yarn import && rm package-lock.json"
+    "analyze": "webpack --profile --json > build/stats.json && webpack-bundle-analyzer build/stats.json",
+    "fix": "npm i --package-lock-only && npm audit fix && rm yarn.lock && yarn import && rm package-lock.json",
+    "fmt": "prettier src src-srv --write",
+    "fmt:check": "prettier src src-srv --check"
   },
   "repository": {
     "type": "git",
@@ -26,32 +32,12 @@
   "bugs": {
     "url": "https://github.com/thbrown/softball-scorer/issues"
   },
-  "babel": {
-    "plugins": [
-      [
-        "module-resolver",
-        {
-          "root": [
-            "./src"
-          ]
-        }
-      ],
-      "@babel/plugin-proposal-optional-chaining",
-      "@babel/plugin-proposal-class-properties"
-    ],
-    "presets": [
-      "@babel/preset-react",
-      [
-        "@babel/preset-env",
-        {
-          "targets": {
-            "browsers": "last 1 chrome versions"
-          }
-        }
-      ]
-    ]
-  },
   "jest": {
+    "preset": "ts-jest",
+    "transform": {
+      "^.+\\.(ts|tsx)?$": "ts-jest",
+      "^.+\\.(js|jsx)$": "babel-jest"
+    },
     "testEnvironment": "enzyme",
     "testEnvironmentOptions": {
       "enzymeAdapter": "react16"
@@ -62,8 +48,13 @@
     ]
   },
   "homepage": "https://github.com/thbrown/softball-scorer#readme",
+  "resolutions": {
+    "node-fetch": "^2.6.7"
+  },
   "dependencies": {
+    "@google-cloud/storage": "^5.8.1",
     "acorn": "^8.0.4",
+    "ajv": "^8.11.0",
     "base-x": "^3.0.6",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.18.3",
@@ -73,22 +64,22 @@
     "crypto-browserify": "^3.12.0",
     "express": "^4.16.3",
     "express-session": "^1.15.6",
+    "fast-json-patch": "^3.1.1",
     "file-saver": "^2.0.0-rc.3",
-    "folder-hash": "^4.0.0",
+    "gcp-bucket-session-store": "^0.2.0",
     "googleapis": "^66.0.0",
     "got": "^11.8.0",
     "helmet": "^4.2.0",
+    "jsonpointer": "^5.0.1",
     "lz-string": "^1.4.4",
-    "mailgun.js": "^2.0.6",
-    "node-object-hash": "^2.0.0",
-    "object-hash": "^2.0.0",
-    "passport": "^0.4.0",
+    "mailgun.js": "^6.0.1",
+    "node-object-hash": "^2.3.10",
+    "passport": "^0.6.0",
     "passport-local": "^1.0.0",
-    "pg": "^8.5.1",
     "process": "^0.11.10",
-    "react": "17.0.1",
+    "react": "18.2.0",
     "react-autosuggest": "^10.0.4",
-    "react-dom": "17.0.1",
+    "react-dom": "18.2.0",
     "react-dom-factories": "^1.0.2",
     "react-draggable": "^4.4.3",
     "react-select": "^3.1.1",
@@ -96,8 +87,6 @@
     "reactify": "^1.1.1",
     "recompose": "^0.30.0",
     "redis": "^3.0.2",
-    "serve-favicon": "^2.5.0",
-    "stable": "^0.1.8",
     "stream-browserify": "^3.0.0",
     "uuid": "^8.3.1",
     "zlib": "^1.0.5"
@@ -108,18 +97,23 @@
     "@babel/node": "^7.4.5",
     "@babel/plugin-proposal-class-properties": "^7.5.0",
     "@babel/plugin-proposal-optional-chaining": "^7.2.0",
+    "@babel/plugin-syntax-jsx": "^7.18.6",
     "@babel/preset-env": "^7.4.5",
     "@babel/preset-react": "^7.0.0",
     "@babel/register": "^7.4.4",
+    "@peculiar/webcrypto": "^1.4.1",
     "@wojtekmaj/enzyme-adapter-react-17": "^0.3.2",
     "babel-eslint": "^10.0.1",
+    "babel-jest": "^29.3.1",
     "babel-loader": "^8.0.6",
     "babel-plugin-module-resolver": "^4.0.0",
     "before-build-webpack": "^0.2.9",
     "concurrently": "^5.0.2",
+    "copy-webpack-plugin": "^11.0.0",
     "cross-env": "^7.0.3",
     "enzyme": "^3.10.0",
     "enzyme-adapter-react-16": "^1.15.5",
+    "esbuild-loader": "^2.20.0",
     "eslint": "^7.15.0",
     "eslint-config-prettier": "^6.0.0",
     "eslint-config-react-app": "^6.0.0",
@@ -130,17 +124,22 @@
     "eslint-plugin-prettier": "^3.1.0",
     "eslint-plugin-react": "^7.13.0",
     "eslint-plugin-react-hooks": "^4.2.0",
+    "fork-ts-checker-webpack-plugin": "^7.2.13",
     "jest": "^26.6.3",
-    "jest-enzyme": "^7.1.1",
+    "jest-enzyme": "^7.1.2",
+    "json-loader": "^0.5.7",
     "node-fetch": "^2.6.7",
     "prettier": "^2.2.1",
     "set-cookie-parser": "^2.4.6",
     "terser": "^5.5.1",
+    "ts-jest": "^29.0.3",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.3",
     "uglifycss": "0.0.29",
-    "webpack": "^5.10.0",
+    "webpack": "^5.75.0",
     "webpack-bundle-analyzer": "^4.2.0",
-    "webpack-cli": "^4.2.0",
-    "webpack-dev-server": "^4.7.4",
+    "webpack-cli": "^5.0.1",
+    "webpack-dev-server": "^4.11.1",
     "write-file-webpack-plugin": "^4.5.1"
   },
   "config": {

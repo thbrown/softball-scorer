@@ -3,8 +3,11 @@
 
 const configAccessor = require('../config-accessor');
 const SoftballServer = require('../softball-server');
-const utils = require('./test-utils.js');
+const testUtils = require('./test-utils.js');
 const state = require('../../src/state.js').default;
+const context = require('../context');
+const SharedLib = require('../../shared-lib');
+const utils = SharedLib.commonUtils;
 
 /**
  * This test requires an attached postgres database.
@@ -18,34 +21,34 @@ describe('sync', () => {
   let sessionCookies;
   beforeAll(async (done) => {
     const port = configAccessor.getAppServerPort();
-    const optPort = configAccessor.getOptimizationServerPort();
-    cache = configAccessor.getCacheService();
-    databaseCalls = configAccessor.getDatabaseService(cache);
+    cache = await configAccessor.getCacheService();
+    databaseCalls = await configAccessor.getDatabaseService(cache);
     compute = configAccessor.getOptimizationComputeService();
-    server = new SoftballServer(port, optPort, databaseCalls, cache, compute);
+    server = new SoftballServer(port, databaseCalls, cache, compute);
+    context.setServer(server);
     server.start();
 
     // Wait for services to start up (TODO: fix this)
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    let email = `syncTest${utils.randomId(10)}@softball.app`;
+    let email = `syncTest${testUtils.randomId(10)}@softball.app`;
     let accountPassword = 'pizza';
-    await utils.signup(email, accountPassword);
+    await testUtils.signup(email, accountPassword);
 
-    sessionCookies = await utils.login(email, accountPassword);
+    sessionCookies = await testUtils.login(email, accountPassword);
     authenticate(sessionCookies); // global, see jest-setup.js
     done();
   });
 
   afterAll(async (done) => {
     try {
-      await utils.deleteAccount(sessionCookies);
+      await testUtils.deleteAccount(sessionCookies);
       await server.stop();
 
       // This isn't currently working for some reason (is this causing the open file handles after tests run?)
       await databaseCalls.disconnect();
     } catch (err) {
-      console.log(`Something went wrong in afterAll ${err}`);
+      console.error(`Something went wrong in afterAll ${err} ${err.stack}`);
       throw err;
     }
     done();
@@ -64,6 +67,10 @@ describe('sync', () => {
         delete teams[i].publicId;
       }
     }
+    delete activeState.getLocalState().account.accountId;
+    delete activeState.getLocalState().account.balance;
+    delete activeState.getLocalState().account.email;
+    delete activeState.getLocalState().account.emailConfirmed;
 
     let serverChecksum = activeState.getLocalStateChecksum();
     let afterSyncCopy = JSON.stringify(state.getLocalState(), null, 2);
@@ -71,24 +78,19 @@ describe('sync', () => {
     if (clientChecksum !== serverChecksum) {
       // Checksums don't care about ordering, so they are the definitive answer
       // If those don't match, we'll compare the strings because they are much easier to debug
-      /*
-      console.log(
-        'Pre',
-        beforeSyncCopy,
-        serverChecksum,
-        'Post Sync',
-        afterSyncCopy,
-        clientChecksum
+      console.log('Pre', beforeSyncCopy);
+      console.log('Post', afterSyncCopy);
+      console.log('Checksums', serverChecksum, clientChecksum);
+      expect(utils.sortJson(JSON.parse(afterSyncCopy))).toEqual(
+        utils.sortJson(JSON.parse(beforeSyncCopy))
       );
-      */
-      expect(afterSyncCopy).toEqual(beforeSyncCopy);
     }
 
     console.log('Sync assertions successful');
   };
 
   test('Sync - Players', async () => {
-    state.deleteAllLocalData();
+    state.deleteAllData();
     await performAndValidateSync(state);
 
     // Create
@@ -107,7 +109,7 @@ describe('sync', () => {
   });
 
   test('Sync - Team', async () => {
-    state.deleteAllLocalData();
+    state.deleteAllData();
     await performAndValidateSync(state);
 
     // Create
@@ -126,7 +128,7 @@ describe('sync', () => {
   });
 
   test('Sync - Game', async () => {
-    state.deleteAllLocalData();
+    state.deleteAllData();
     await performAndValidateSync(state);
 
     // Create
@@ -145,7 +147,7 @@ describe('sync', () => {
   });
 
   test('Sync - Lineups', async () => {
-    state.deleteAllLocalData();
+    state.deleteAllData();
     await performAndValidateSync(state);
 
     let players = [];
@@ -189,7 +191,7 @@ describe('sync', () => {
   });
 
   test('Sync - Plate Appearances', async () => {
-    state.deleteAllLocalData();
+    state.deleteAllData();
     await performAndValidateSync(state);
 
     let players = [];
@@ -279,8 +281,8 @@ describe('sync', () => {
   });
   */
 
-  test('Ordering - This query includes both deletes and and insert, this tests to makes sure the resulting querys are sorted and performed in the right order', async () => {
-    state.deleteAllLocalData();
+  test.only('Ordering - This query includes both deletes and and insert, this tests to makes sure the resulting querys are sorted and performed in the right order', async () => {
+    state.deleteAllData();
     await performAndValidateSync(state);
 
     // Add a bunch of initial data

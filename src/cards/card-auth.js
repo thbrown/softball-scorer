@@ -1,19 +1,20 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 import dialog from 'dialog';
 import state from 'state';
 import { setRoute } from 'actions/route';
-
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
+import Card from 'elements/card';
+import Loading from 'elements/loading';
 
 export default class CardAuth extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      logInInProgress: false,
+      passwordResetInProgress: false,
+    };
 
     this.handleSignupClick = function () {
-      let emailValue = document.getElementById('email').value;
+      let emailValue = document.getElementById('username').value;
       if (emailValue) {
         setRoute(`/menu/signup?email=${encodeURIComponent(emailValue)}`);
       } else {
@@ -22,53 +23,63 @@ export default class CardAuth extends React.Component {
     };
 
     this.handlePasswordResetClick = function () {
+      let self = this;
+      self.setState({
+        passwordResetInProgress: true,
+      });
+
       dialog.show_input(
         'To reset your password, please enter your email address.',
         async (email) => {
-          console.log('Email', email);
-          if (email === undefined || email.trim().length === 0) {
-            dialog.show_notification('You must specify an email.');
-            return;
-          }
+          try {
+            if (email === undefined || email.trim().length === 0) {
+              dialog.show_notification('You must specify an email.');
+              return;
+            }
 
-          let body = JSON.stringify({
-            email: email,
-          });
+            let body = JSON.stringify({
+              email: email,
+            });
 
-          // TODO: loading icon
-          let response = await state.request(
-            'POST',
-            'server/account/reset-password-request',
-            body
-          );
-          if (response.status === 204) {
-            dialog.show_notification(
-              'Password reset email has been sent to the email provided.'
+            let response = await state.request(
+              'POST',
+              'server/account/reset-password-request',
+              body
             );
-          } else {
-            dialog.show_notification(
-              "Failed to send password reset email. Verify the email's validity and try again."
-            );
+
+            if (response.status === 204) {
+              dialog.show_notification(
+                'Password reset email has been sent to the email provided.'
+              );
+            } else {
+              dialog.show_notification(
+                "Failed to send password reset email. Verify the email's validity and try again."
+              );
+            }
+          } finally {
+            self.setState({
+              passwordResetInProgress: false,
+            });
           }
         },
-        undefined,
-        document.getElementById('email').value
+        async () => {
+          self.setState({
+            passwordResetInProgress: false,
+          });
+        },
+        document.getElementById('username').value
       );
-    };
+    }.bind(this);
 
-    this.handleSubmitClick = async function () {
+    this.handleSubmitClick = async function (e) {
+      e.preventDefault();
+
       // Disable the button
-      if (this.blocked) {
-        return;
-      }
-      this.blocked = true;
-
-      // Turn on the spinner
-      let spinner = document.getElementById('submit-spinner');
-      spinner.style.display = 'initial';
-
+      this.setState({
+        logInInProgress: true,
+      });
       try {
-        let email = document.getElementById('email');
+        let email = document.getElementById('username');
         let password = document.getElementById('password');
 
         if (email.value && password.value) {
@@ -137,7 +148,6 @@ export default class CardAuth extends React.Component {
             if (status === 200) {
               console.log('Done with sync');
               setRoute('/menu');
-              window.location.reload();
             } else {
               dialog.show_notification(
                 'An error occurred while attempting sync: ' + status
@@ -164,122 +174,92 @@ export default class CardAuth extends React.Component {
           );
         }
       } finally {
-        this.blocked = false;
-        spinner.style.display = 'none';
+        this.setState({
+          logInInProgress: false,
+        });
       }
     }.bind(this);
   }
 
   renderAuthInterface() {
-    return DOM.div(
-      {
-        className: 'auth-input-container',
-      },
-      DOM.input({
-        key: 'email',
-        id: 'email',
-        className: 'auth-input',
-        placeholder: 'Email',
-        type: 'email',
-      }),
-      DOM.input({
-        key: 'password',
-        id: 'password',
-        className: 'auth-input',
-        placeholder: 'Password',
-        type: 'password',
-      }),
-      this.renderButtons()
+    return (
+      <div style={{ padding: '14px' }}>
+        <form
+          onSubmit={this.handleSubmitClick}
+          className="page-width-input"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'space-around',
+            height: '145px',
+            paddingBottom: '8px',
+          }}
+        >
+          <input
+            type="text"
+            name="username"
+            id="username"
+            placeholder="Email"
+            className="page-width-input"
+            disabled={this.state.logInInProgress}
+          />
+          <input
+            type="password"
+            name="password"
+            id="password"
+            placeholder="Password"
+            className="page-width-input"
+            disabled={this.state.logInInProgress}
+          />
+          <button
+            type="submit"
+            className={`button primary-button page-width-input ${
+              this.state.logInInProgress ? 'disabled' : null
+            }`}
+            style={{ width: '100%' }}
+            disabled={this.state.logInInProgress}
+            value="Log In"
+          >
+            Log In
+            {this.state.logInInProgress ? (
+              <Loading
+                style={{ width: '30px', height: '20%', marginTop: '-28px' }}
+                color="white"
+              ></Loading>
+            ) : undefined}
+          </button>
+        </form>
+        <hr style={{ margin: '16px' }}></hr>
+        <div>
+          <button
+            key="signup"
+            id="signup"
+            className="button list-button page-width-input"
+            onClick={this.handleSignupClick}
+          >
+            Create Account
+          </button>
+          <button
+            key="passwordReset"
+            id="passwordReset"
+            className="button list-button page-width-input"
+            onClick={this.handlePasswordResetClick}
+            disabled={this.state.passwordResetInProgress}
+          >
+            Reset Password
+            {this.state.passwordResetInProgress ? (
+              <Loading
+                style={{ width: '30px', height: '20%', marginTop: '-28px' }}
+              ></Loading>
+            ) : undefined}
+          </button>
+        </div>
+      </div>
     );
-  }
-
-  renderButtons() {
-    return [
-      DOM.div(
-        {
-          key: 'submit',
-          id: 'submit',
-          className: 'button primary-button',
-          style: {
-            width: 'auto',
-            margin: '10px',
-          },
-          onClick: this.handleSubmitClick,
-        },
-        DOM.img({
-          id: 'submit-spinner',
-          src: '/server/assets/spinner.gif',
-          style: {
-            display: 'none',
-            marginRight: '6px',
-          },
-        }),
-        'Submit'
-      ),
-      DOM.hr({
-        key: 'divider',
-        style: {
-          margin: '16px',
-        },
-      }),
-      DOM.div(
-        {
-          key: 'alternateButtons',
-        },
-        DOM.div(
-          {
-            key: 'signup',
-            id: 'signup',
-            className: 'button primary-button',
-            style: {
-              width: 'auto',
-              margin: '10px',
-            },
-            onClick: this.handleSignupClick,
-          },
-          'Create Account'
-        ),
-        DOM.div(
-          {
-            key: 'passwordReset',
-            id: 'passwordReset',
-            className: 'button primary-button',
-            style: {
-              width: 'auto',
-              margin: '10px',
-            },
-            onClick: this.handlePasswordResetClick,
-          },
-          'Reset Password'
-        )
-      ),
-    ];
   }
 
   render() {
-    return DOM.div(
-      {
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {}),
-        DOM.div(
-          {
-            className: 'card-title-text-with-arrow',
-          },
-          'Login'
-        ),
-        React.createElement(RightHeaderButton, {})
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderAuthInterface()
-      )
-    );
+    return <Card title={'Login'}>{this.renderAuthInterface()}</Card>;
   }
 }

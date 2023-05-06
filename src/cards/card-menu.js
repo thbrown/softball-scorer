@@ -7,6 +7,9 @@ import Card from 'elements/card';
 import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
 import HrTitle from 'elements/hr-title';
+import Chip from 'elements/chip';
+import SharedLib from 'shared-lib';
+import { logout } from 'utils/functions';
 
 class CardMenu extends Component {
   constructor(props) {
@@ -28,6 +31,10 @@ class CardMenu extends Component {
       setRoute('/optimizations');
     };
 
+    this.handleDetailsClick = function () {
+      setRoute('/account');
+    };
+
     this.handleLogoutClick = async function () {
       dialog.show_confirm('Are you sure you want to log out?', async () => {
         // Do a sync if necessary
@@ -39,9 +46,9 @@ class CardMenu extends Component {
               <div>
                 Could not sync account data prior to logout. You may be offline.
                 If you continue to sign out you will lose un-synced data. You
-                might consider backing up your data <a href="/menu">here</a>
+                might consider backing up your data <a href="/menu">here</a>{' '}
                 before continuing.
-                <div style={{ margin: '1rem' }}>Continue anyways?</div>
+                <p>Continue anyways?</p>
               </div>
             );
             // Wait for user to select an option
@@ -68,23 +75,7 @@ class CardMenu extends Component {
           }
         }
 
-        let response = await state.request('POST', 'server/account/logout');
-        if (response.status === 204) {
-          state.resetState();
-          dialog.show_notification('Logout successful.', function () {
-            setRoute('/menu/login');
-          });
-        } else {
-          // If we're offline we can't delete our sid cookie in javascript because is has the httpOnly header, it has to be done from the server.
-          // Instead we'll delete our nonHttpOnlyToken cookie locally. Since both are required for performing an authenticated request
-          // the server will invalidate the sid cookie next time any request succeeds.
-          document.cookie =
-            'nonHttpOnlyToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-          state.resetState();
-          dialog.show_notification('Logout successful.', function () {
-            setRoute('/menu/login');
-          });
-        }
+        logout(state, dialog, setRoute);
       });
     };
 
@@ -125,7 +116,10 @@ class CardMenu extends Component {
 
     this.handleSaveClick = function () {
       const today = new Date().getTime();
-      const blob = new Blob([JSON.stringify(state.getLocalState(), null, 2)], {
+      const clientData = state.getLocalState();
+      const exportData =
+        SharedLib.schemaValidation.convertDocumentToExport(clientData);
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
         type: 'text/plain;charset=utf-8',
       });
       FileSaver.saveAs(blob, 'save' + today + '.json');
@@ -143,9 +137,12 @@ class CardMenu extends Component {
             standalone app?
           </b>
           <div style={{ marginTop: '1rem' }}>
-            Pressing yes will cause your browser to issue an 'add to home
-            screen' prompt. If you dismiss the browser's prompt, this menu
-            option will disappear for a while.
+            Tapping yes will cause your browser to issue an 'Add to Home Screen'
+            prompt.
+          </div>
+          <div>
+            If you dismiss the browser's prompt, this menu option will disappear
+            for a while.
           </div>
         </div>,
         () => {
@@ -172,13 +169,21 @@ class CardMenu extends Component {
           showBlogLink: true,
         }}
       >
-        <div style={{ margin: '5px', marginLeft: '15px' }}>
-          <div>{'Status: ' + (state.isOnline() ? 'Online' : 'Offline')}</div>
-          <div>
-            {'Current User: ' +
-              (state.getActiveUser() == null ? 'Guest' : state.getActiveUser())}
-          </div>
-          <div>{/*'Time Till Sync: ' + state.getTimeTillSync()*/}</div>
+        <div
+          style={{
+            margin: '0px 10px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <Chip type={state.isOnline() ? 'SUCCESS' : 'WARNING'}>
+            {state.isOnline() ? 'Online' : 'Offline'}
+          </Chip>
+          <Chip>
+            {state.getActiveUser() == null ? 'Guest' : state.getActiveUser()}
+          </Chip>
+          {/* <div>'Time Till Sync: ' + state.getTimeTillSync()</div> */}
         </div>
         <HrTitle title="Application"></HrTitle>
         <ListButton
@@ -241,9 +246,19 @@ class CardMenu extends Component {
             backgroundColor: css.colors.BG,
           }}
         >
-          Import From File...
+          Import From File
         </ListButton>
         <HrTitle title="Account"></HrTitle>
+        <ListButton
+          id="details"
+          className={'list-item'}
+          onClick={this.handleDetailsClick.bind(this)}
+          style={{
+            backgroundColor: css.colors.BG,
+          }}
+        >
+          Settings
+        </ListButton>
         {state.isSessionValid() ? (
           <ListButton
             id="logout"

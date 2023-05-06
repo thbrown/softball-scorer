@@ -24,8 +24,8 @@ export default class RightHeaderButton extends React.Component {
 
   render() {
     const src = this.props.showBlogLink
-      ? '/server/assets/icons/logo.svg'
-      : '/server/assets/home.svg';
+      ? '/assets/icons/logo.svg'
+      : '/assets/home.svg';
     const alt = this.props.showBlogLink ? 'blog' : 'home';
     return (
       <img

@@ -11,35 +11,50 @@ const Card = ({
   rightHeaderProps,
   titleProps,
   noFade,
+  style,
 }) => {
   return (
-    <div className={noFade ? '' : 'card'}>
+    <>
       <div className="card-title">
-        <LeftHeaderButton
-          style={{
-            visibility: enableLeftHeader ? 'visible' : 'hidden',
-          }}
-          {...leftHeaderProps}
-        />
         <div
           style={{
-            width: 'calc(100% - 100px)',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
+            display: 'flex',
+            justifyContent: 'space-between',
+            maxWidth: '960px',
+            width: '100%',
           }}
-          {...titleProps}
         >
-          {title}
+          <LeftHeaderButton
+            id="left-button"
+            style={{
+              visibility: enableLeftHeader ? 'visible' : 'hidden',
+            }}
+            {...leftHeaderProps}
+          />
+          <div
+            style={{
+              width: 'calc(100% - 100px)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+            {...titleProps}
+          >
+            {title}
+          </div>
+          <RightHeaderButton
+            style={{
+              visibility: enableRightHeader ? 'visible' : 'hidden',
+            }}
+            {...rightHeaderProps}
+          />
         </div>
-        <RightHeaderButton
-          style={{
-            visibility: enableRightHeader ? 'visible' : 'hidden',
-          }}
-          {...rightHeaderProps}
-        />
       </div>
-      <div className="card-body">{children}</div>
-    </div>
+      <div className={noFade ? '' : 'card'}>
+        <div className="card-body" style={style}>
+          {children}
+        </div>
+      </div>
+    </>
   );
 };
 

@@ -1,51 +1,21 @@
 import React from 'react';
 import state from 'state';
+import css from 'css';
 import Card from 'elements/card';
 import { makeStyles } from 'css/helpers';
-import { compose, withState, withHandlers } from 'recompose';
 import ListPicker from 'elements/list-picker';
-import { toClientDate } from 'utils/functions';
-
-const enhance = compose(
-  withState('team', 'setTeam', null),
-  withState('game', 'setGame', null),
-  withHandlers({
-    handleTeamItemClick: (props) => (item) => {
-      props.setTeam(state.getTeam(item.id));
-      window.scroll(0, 0);
-    },
-    handleGameItemClick: (props) => (item) => {
-      props.setGame(state.getGame(item.id));
-      window.scroll(0, 0);
-    },
-    handleBackClick: (props) => () => {
-      // Back means different things in each stage of the import wizard
-      let skipDefaultBack = false;
-      if (props.game) {
-        props.setGame(null);
-        skipDefaultBack = true;
-      } else if (props.team) {
-        props.setTeam(null);
-        skipDefaultBack = true;
-      }
-      return skipDefaultBack;
-    },
-    handleConfirmClick: (props) => props.handleConfirmClick,
-    handleCancelClick: (props) => props.handleCancelClick,
-  })
-);
+import { sortObjectsByDate, toClientDate } from 'utils/functions';
 
 const useLineupListStyles = makeStyles((theme) => ({
   title: {
     position: 'sticky',
     left: '0px',
-    top: '48px',
     fontSize: theme.typography.size.xLarge,
     textAlign: 'center',
-    color: theme.colors.TEXT_LIGHT,
+    color: theme.colors.TEXT_DARK,
     padding: theme.spacing.xSmall,
-    backgroundColor: theme.colors.PRIMARY,
-    boxShadow: '0px 2px 5px 5px rgba(0,0,0,0.5)',
+    backgroundColor: theme.colors.BACKGROUND,
+    // boxShadow: '0px 2px 5px 5px rgba(0,0,0,0.5)',
     marginBottom: theme.spacing.small,
   },
   itemCustom: {
@@ -53,7 +23,6 @@ const useLineupListStyles = makeStyles((theme) => ({
     textAlign: 'center',
   },
   itemText: {
-    width: 'calc(100% - 80px)',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'pre',
@@ -81,7 +50,7 @@ const useLineupListStyles = makeStyles((theme) => ({
     marginLeft: theme.spacing.xxSmall,
     color: theme.colors.TEXT_LIGHT,
     backgroundColor: theme.colors.PRIMARY_DARK,
-    borderRadius: '30px',
+    borderRadius: css.borderRadius.xLarge,
     fontSize: theme.typography.size.medium,
   },
 }));
@@ -91,10 +60,22 @@ const toItems = (list) =>
     name: obj.name || obj.opponent,
     id: obj.id,
     floatName: obj.date ? toClientDate(obj.date) : undefined,
+    date: obj.date,
   }));
 
 const LineupList = (props) => {
   const { classes } = useLineupListStyles();
+  const handleTeamItemClick = (item) => {
+    props.setTeam(state.getTeam(item.id));
+    window.scroll(0, 0);
+  };
+  const handleGameItemClick = (item) => {
+    props.setGame(state.getGame(item.id));
+    window.scroll(0, 0);
+  };
+
+  const handleConfirmClick = props.handleConfirmClick;
+  const handleCancelClick = props.handleCancelClick;
 
   if (props.game) {
     return (
@@ -116,11 +97,10 @@ const LineupList = (props) => {
         />
         <div className={classes.actionButtonContainer}>
           <div
-            className={
-              'button edit-button primary-button ' + classes.actionButton
-            }
+            id="confirm"
+            className={'button primary-button ' + classes.actionButton}
             onClick={function wrapper(ev) {
-              return props.handleConfirmClick(ev, props.team, props.game);
+              return handleConfirmClick(ev, props.team, props.game);
             }}
           >
             Confirm
@@ -128,10 +108,9 @@ const LineupList = (props) => {
         </div>
         <div className={classes.actionButtonContainer}>
           <div
-            className={
-              'button edit-button secondary-button ' + classes.actionButton
-            }
-            onClick={props.handleCancelClick}
+            id="cancel"
+            className={'button tertiary-button ' + classes.actionButton}
+            onClick={handleCancelClick}
           >
             Cancel
           </div>
@@ -147,8 +126,10 @@ const LineupList = (props) => {
         </div>
         <ListPicker
           textClassName={classes.itemText}
-          items={toItems([...props.team.games].reverse())}
-          onClick={props.handleGameItemClick}
+          items={sortObjectsByDate(toItems([...props.team.games]), {
+            isAsc: false,
+          })}
+          onClick={handleGameItemClick}
         />
       </>
     );
@@ -158,22 +139,46 @@ const LineupList = (props) => {
         <div className={classes.title}> Pick a team </div>
         <ListPicker
           items={toItems([...state.getLocalState().teams].reverse())}
-          onClick={props.handleTeamItemClick}
+          onClick={handleTeamItemClick}
         />
       </>
     );
   }
 };
 
-const CardImport = enhance((props) => (
-  <Card
-    title="Import Lineup"
-    leftHeaderProps={{
-      onClick: props.handleBackClick,
-    }}
-  >
-    <LineupList {...props} />
-  </Card>
-));
+const CardImport = (props) => {
+  const [team, setTeam] = React.useState(null);
+  const [game, setGame] = React.useState(null);
+
+  const handleBackClick = (props) => () => {
+    // Back means different things in each stage of the import wizard
+    let skipDefaultBack = false;
+    if (game) {
+      setGame(null);
+      skipDefaultBack = true;
+    } else if (team) {
+      setTeam(null);
+      skipDefaultBack = true;
+    }
+    return skipDefaultBack;
+  };
+
+  return (
+    <Card
+      title="Import Lineup"
+      leftHeaderProps={{
+        onClick: handleBackClick,
+      }}
+    >
+      <LineupList
+        {...props}
+        team={team}
+        setTeam={setTeam}
+        game={game}
+        setGame={setGame}
+      />
+    </Card>
+  );
+};
 
 export default CardImport;

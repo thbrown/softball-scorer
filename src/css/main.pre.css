@@ -1,10 +1,11 @@
+
 body {
   background: $css.colors.BACKGROUND;
   color: $css.colors.TEXT_DARK;
   position: absolute;
   width: 100%;
   margin: 0px;
-  font-size: 14px;
+  font-size: 16px;
   font-family: Roboto, San Francicso, Trebuchet MS, sans-serif;
   box-sizing: border-box;
   padding-top: 48px; /* sticky header height */
@@ -18,8 +19,8 @@ hr {
 
 @font-face {
   font-family: 'score_boardregular';
-  src: url('/server/assets/scoreboard-webfont.woff2') format('woff2'),
-       url('/server/assets/scoreboard-webfont.woff') format('woff');
+  src: url('/assets/scoreboard-webfont.woff2') format('woff2'),
+       url('/assets/scoreboard-webfont.woff') format('woff');
   font-weight: normal;
   font-style: normal;
 }
@@ -27,26 +28,33 @@ hr {
 .background-text {
   text-align: center;
   font-size: 14px;
-  margin: 10px
+  margin: 10px;
 }
 
 .centered-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-grow: 1;
+  max-width: 100%;
 }
 
 .fade-out {
-  -webkit-animation: fadeout 3.0s;
-  -moz-animation: fadeout 3.0s;
-  -ms-animation: fadeout 3.0s;
-  -o-animation: fadeout 3.0s;
-  animation: fadeout 3.0s;
+  -webkit-animation: fadeout 3s;
+  -moz-animation: fadeout 3s;
+  -ms-animation: fadeout 3s;
+  -o-animation: fadeout 3s;
+  animation: fadeout 3s;
 }
 
 .card-body {
   max-width: 960px;
   margin: 0 auto;
+  background: $css.colors.WHITE;
+  padding: 1rem 0 1rem 0;
+  box-shadow: 0px 0px 10px rgb(0 0 0 / 25%);
+  margin-bottom: 48px;
+  /* height: 100%; */
 }
 
 .page-error {
@@ -65,27 +73,21 @@ hr {
 
 .header-right,
 .back-arrow,
-.list-button,
 .lineup-row-button {
   cursor: pointer;
   height: $css.sizes.ICON;
   width: $css.sizes.ICON;
 }
 
-.list-button {
-  padding: 8px;
-  margin: -12px;
-}
 
 .card-title {
   position: fixed;
   top: 0;
   width: 100%;
-  font-weight: bold;
   color: $css.colors.TEXT_LIGHT;
   background-color: $css.colors.PRIMARY_DARK;
   margin-bottom: 2px;
-  font-size: 24px;
+  font-size: $css.typography.size.xLarge;
   text-align: center;
   line-height: 48px;
   height: 48px;
@@ -93,20 +95,27 @@ hr {
   z-index: 1000;
   cursor: default;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   overflow: hidden;
 }
 
 .card-textbox {
-  padding: .75rem .25rem;
-  color: $css.colors.TEXT_LIGHT;
+  padding: 0.75rem 0.25rem;
+  color: $css.colors.TEXT_DARK;
+}
+
+.card {
+  position: fixed;
+  width: 100%;
+  height: calc(100% - 48px);
+  overflow-y: auto;
 }
 
 .list-item {
   cursor: default;
   padding: 12px;
   margin: 10px;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   color: $css.colors.TEXT_LIGHT;
   background-color: $css.colors.SECONDARY;
   font-size: 20px;
@@ -128,9 +137,9 @@ hr {
 .table-cell {
   border-right: 1px solid $css.colors.SECONDARY_LIGHT;
   border-bottom: 1px solid $css.colors.SECONDARY_LIGHT;
-  padding: 7px;
+  padding: $css.spacing.xSmall;
   min-width: 50px;
-  height:24px;
+  height: 24px;
   line-height: 1.7;
 }
 .table-cell-header {
@@ -139,17 +148,17 @@ hr {
 }
 .table-cell-header-label {
   color: $css.colors.TEXT_LIGHT;
-  background-color: $css.colors.PRIMARY;
+  background-color: $css.colors.PRIMARY_DARK;
 }
 
 .name-stat-cell {
   width: 80px;
   text-align: left;
-  height:24px;
+  height: 24px;
   text-overflow: ellipsis;
   overflow: hidden;
   color: $css.colors.TEXT_LIGHT;
-  background-color: $css.colors.PRIMARY;
+  background-color: $css.colors.PRIMARY_DARK;
 }
 
 .number-stat-cell {
@@ -176,14 +185,15 @@ hr {
 
 .lineup-row {
   touch-action: initial !important;
-  background-color: $css.colors.SECONDARY_DARK;
-  border-radius: 4px;
-  color: $css.colors.TEXT_LIGHT;
+  background-color: $css.colors.WHITE;
+  border-radius: $css.borderRadius.small;
+  color: $css.colors.TEXT_DARK;
   display: flex;
   justify-content: space-between;
   margin: 5px 5px;
   padding-left: 5px;
   min-width: calc(100% - 36px);
+  border: $css.border;
 }
 
 .player-drag-handle {
@@ -222,7 +232,6 @@ hr {
 }
 
 .player-name {
-  color: $css.colors.TEXT_LIGHT;
   font-size: 16px;
   line-height: 40px;
   overflow: hidden;
@@ -232,7 +241,7 @@ hr {
 
 .scorer-row {
   background-color: $css.colors.SECONDARY;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   color: $css.colors.TEXT_LIGHT;
   display: flex;
   justify-content: space-between;
@@ -242,7 +251,7 @@ hr {
 
 .future-batter-row {
   background-color: $css.colors.SECONDARY;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   color: $css.colors.TEXT_LIGHT;
   display: flex;
   justify-content: space-between;
@@ -250,6 +259,8 @@ hr {
   padding: 10px 16px;
 }
 
+.lineup-box-beginning,
+.lineup-box-end,
 .lineup-box {
   background-color: white;
   color: $css.colors.TEXT_DARK;
@@ -261,18 +272,24 @@ hr {
   text-align: center;
 }
 
+.lineup-box-beginning {
+  border-right: none;
+}
+.lineup-box-end {
+  border-left: none;
+}
+
 .lineup-box:hover,
 .lineup-box:active,
-.list-item:hover, 
+.list-item:hover,
 .list-item:active {
   filter: brightness(75%);
 }
 
 .lineup-score {
-  height: 20px;
   padding-left: 10px;
-  padding-bottom: 8px;
   display: flex;
+  margin-bottom: 16px;
 }
 
 .lineup-score-text {
@@ -299,7 +316,7 @@ hr {
   padding: 12px;
   color: $css.colors.TEXT_LIGHT;
   border: 2px solid $css.colors.SECONDARY;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   text-align: center;
   font-size: 18px;
 }
@@ -317,7 +334,7 @@ hr {
 
 .group {
   border: 1px $css.colors.SECONDARY_DARK solid;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   padding: 0px;
   margin-bottom: 8px;
   color: $css.colors.TEXT_DARK;
@@ -338,6 +355,7 @@ hr {
 .song-preview-container {
   display: flex;
   padding-left: 16px;
+  align-items: flex-start;
 }
 
 .song-label {
@@ -349,22 +367,31 @@ hr {
 
 /* It's possible to make these have prettier names */
 .react-autosuggest__container,
-.auth-input-container {
+.auth-input-container{
   position: relative;
-  /* TODO This should match the list-button  */
   margin: 10px;
   /* TODO Which color is this supposed to be?  */
   color: $css.colors.TEXT_LIGHT;
   color: black;
 }
 
+.page-width-input {
+  width: calc(100% - 20px);
+  padding: 14px;
+  height: 48px;
+  margin: 2px;
+  padding-left: 10px;
+  font-size: 18px;
+  border-radius: 0.25rem;
+}
+
 .react-autosuggest__input,
 .auth-input {
-  width: calc(100% - 10px);
+  width: calc(100% - 20px);
   height: 50px;
   padding-left: 10px;
   font-size: 18px;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   margin: 2px;
 }
 
@@ -383,7 +410,7 @@ hr {
   width: 100%;
   background-color: $css.colors.WHITE;
   font-size: 18px;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   z-index: 2;
 }
 
@@ -411,33 +438,42 @@ hr {
 
 /* Dialog styles */
 
-.dialog {
+.dialog-bg {
   position: fixed;
-  width: calc(100% - 50px);
-  top: 50px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.dialog {
   max-width: 960px;
   background-color: $css.colors.BACKGROUND;
-  border-radius: 8px;
+  border-radius: $css.borderRadius.medium;
   color: $css.colors.TEXT_DARK;
-  box-shadow: 0px 9px 25px 10px rgba(0,0,0,0.5);
+  box-shadow: 0px 9px 25px 10px rgba(0, 0, 0, 0.5);
   padding: 16px;
+  margin: 32px;
   z-index: 2001;
+  margin-top: 80px;
+  width: 100%;
 }
 
 .dialog-text {
-  font-size: 18px;
+  font-size: $css.typography.size.medium;
   color: $css.colors.TEXT_DARK;
 }
 
 .dialog-input-box {
   background-color: $css.colors.WHITE;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   color: $css.colors.TEXT_DARK;
-  font-size: 18px;
+  font-size: $css.typography.size.medium;
   margin-top: 24px;
-  padding: 8px;
   width: calc(100% - 18px);
 }
 
@@ -449,16 +485,27 @@ hr {
 }
 
 .button {
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   cursor: pointer;
-  font-size: 18px;
+  font-size: $css.typography.size.medium;
   margin: 10px;
-  padding: 12px;
   text-align: center;
   min-width: 52px;
-  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  height: 48px;
+  padding-left: 10px;
+  padding-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button.left {
+  display: flex;
+  align-items: center;
+  justify-content: left;
 }
 
 .button:active {
@@ -466,24 +513,34 @@ hr {
 }
 
 @media (hover: hover) {
-  .button:active, 
+  .button:active,
   .button:hover {
-    filter: brightness(85%);
+    filter: brightness(95%);
+  }
+}
+
+@media (hover: hover) {
+  .hover:active,
+  .hover:hover {
+    filter: brightness(95%);
   }
 }
 
 .primary-button {
-  background-color: $css.colors.PRIMARY;
+  background-color: $css.colors.PRIMARY_DARK;
+  border: 2px solid $css.colors.PRIMARY_DARK;
   color: $css.colors.TEXT_LIGHT;
 }
 
 .secondary-button {
-  background-color: $css.colors.PRIMARY_LIGHT;
+  background-color: $css.colors.PRIMARY;
+  border: 2px solid $css.colors.PRIMARY;
   color: $css.colors.TEXT_DARK;
 }
 
 .tertiary-button {
   background-color: $css.colors.BACKGROUND;
+  border: 2px solid $css.colors.BACKGROUND;
   color: $css.colors.TEXT_DARK;
   border: solid 1px;
 }
@@ -491,30 +548,32 @@ hr {
 .cancel-button {
   background-color: $css.colors.PRIMARY_LIGHT;
   color: $css.colors.TEXT_LIGHT;
+  border: 2px solid $css.colors.PRIMARY_LIGHT;
 }
 
 .delete-button {
   background-color: $css.colors.DELETE;
+  border: 2px solid $css.colors.DELETE;
   color: $css.colors.TEXT_LIGHT;
 }
 
 .list-button {
-  background-color: $css.colors.PRIMARY;
-  color: $css.colors.TEXT_LIGHT;
+  background-color: $css.colors.WHITE;
+  border: $css.border;
   margin: 10px;
-  width: auto;
 }
 
 .edit-button {
-  background-color: $css.colors.PRIMARY;
-  color: $css.colors.TEXT_LIGHT;
-  width: auto;
+  background-color: $css.colors.WHITE;
+  border: $css.border;
   margin: 10px;
+  justify-content: left;
 }
 
 .edit-button-icon {
   vertical-align: middle;
-  padding-right: 12px;
+  margin-right: 12px;
+  background-color: $css.colors.SEMI_TRANSPARENT;
 }
 
 .edit-button-label {
@@ -580,8 +639,8 @@ hr {
 .plate-appearance-baseball,
 .plate-appearance-card-actions {
   padding: 12px;
-  height: 24px;
-  width: 24px;
+  height: 32px;
+  width: 32px;
 }
 
 .prevent-overflow {
@@ -613,6 +672,7 @@ hr {
   height: 100%;
   overflow: hidden;
   box-sizing: border-box;
+  font-size: $css.typography.size.small;
 }
 .sticky-table .sticky-table-corner {
   z-index: 4;
@@ -719,12 +779,13 @@ Scrolling is ~10-20x smoother.
 
 .help-parent {
   display: flex;
+  align-items: flex-start;
 }
 
 .icon-button {
   width: 48px;
   height: 48px;
-  border-radius: 8px;
+  border-radius: $css.borderRadius.medium;
   margin-left: 3px;
   background-color: $css.colors.PRIMARY_DARK;
   text-align: center;
@@ -732,7 +793,7 @@ Scrolling is ~10-20x smoother.
 
 .help-icon {
   position: relative;
-  top: calc(50% - 12px);
+  cursor: pointer;
 }
 
 .overlay {
@@ -752,9 +813,9 @@ Scrolling is ~10-20x smoother.
   border: solid 1px #ccc;
   box-sizing: border-box;
   margin-bottom: 8px;
-  padding: 0 8px;
+  padding: 4px 8px;
   position: relative;
-  border-radius: 4px;
+  border-radius: $css.borderRadius.small;
   background-color: white;
   width: 100%;
 }
@@ -808,12 +869,19 @@ Scrolling is ~10-20x smoother.
 }
 
 .floating-react-select input,
-.floating-react-select > div:first-of-type > div:first-of-type > div:first-of-type,
-.floating-react-select > div:first-of-type > div:first-of-type > div:first-of-type > div:first-of-type {
+.floating-react-select
+  > div:first-of-type
+  > div:first-of-type
+  > div:first-of-type,
+.floating-react-select
+  > div:first-of-type
+  > div:first-of-type
+  > div:first-of-type
+  > div:first-of-type {
   width: 100% !important;
 }
 
-.floating-react-select div[class*="indicatorContainer"] {
+.floating-react-select div[class*='indicatorContainer'] {
   display: none !important;
 }
 
@@ -850,7 +918,7 @@ Scrolling is ~10-20x smoother.
 
 .accordionTitle,
 .accordion__Heading {
-  background-color: $css.colors.BACKGROUND;
+  background-color: $css.colors.WHITE;
   font-size: 20px;
   display: block;
   color: $css.colors.TEXT_DARK;
@@ -894,6 +962,7 @@ Scrolling is ~10-20x smoother.
 }
 
 .js-accordionTrigger {
+  width: calc(100% - 24px);
   padding: 12px;
   display: inline-block;
 }
@@ -920,7 +989,7 @@ Scrolling is ~10-20x smoother.
   text-overflow: ellipsis;
   text-align: left;
   padding-right: 2px;
-  padding-left: 2px;
+  padding-left: 8px;
 }
 
 .playerTable tr:nth-child(even) {
@@ -958,7 +1027,7 @@ Scrolling is ~10-20x smoother.
   *overflow: hidden;
 }
 
-#gamesMenu input[type="checkbox"] {
+#gamesMenu input[type='checkbox'] {
   width: 16px;
   height: 16px;
 }
@@ -1025,7 +1094,11 @@ Scrolling is ~10-20x smoother.
 /* Pie optimization IN_PROGRESS svg */
 
 .pie-timer {
-  background: -webkit-linear-gradient(left, $css.colors.PRIMARY 50%, #F5F5F5 50%); /* $css.colors.BACKGROUND doesn't get substituted here, so I'm hardcoding #F5F5F5 */
+  background: -webkit-linear-gradient(
+    left,
+    $css.colors.PRIMARY 50%,
+    #f5f5f5 50%
+  ); /* $css.colors.BACKGROUND doesn't get substituted here, so I'm hardcoding #F5F5F5 */
   border-radius: 100%;
   height: 25px; /* Height and width */
   position: relative;
@@ -1052,39 +1125,62 @@ Scrolling is ~10-20x smoother.
   height: 25px;
 }
 @-webkit-keyframes time {
-  100% { 
-      -webkit-transform: rotate(360deg);
-      transform: rotate(360deg);
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
   }
 }
 @-webkit-keyframes pie-mask {
   0% {
-      background: $css.colors.BACKGROUND; /* Background colour */
-      -webkit-transform: rotate(0deg);
-      transform: rotate(0deg);
+    background: $css.colors.BACKGROUND; /* Background colour */
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
   }
   50% {
-      background: $css.colors.BACKGROUND; /* Background colour */
-      -webkit-transform: rotate(-180deg);
-      transform: rotate(-180deg);
+    background: $css.colors.BACKGROUND; /* Background colour */
+    -webkit-transform: rotate(-180deg);
+    transform: rotate(-180deg);
   }
   50.01% {
-      background: $css.colors.PRIMARY; /* Foreground colour */
-      -webkit-transform: rotate(0deg);
-      transform: rotate(0deg);
+    background: $css.colors.PRIMARY; /* Foreground colour */
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
   }
   100% {
-      background: $css.colors.PRIMARY; /* Foreground colour */
-      -webkit-transform: rotate(-180deg);
-      transform: rotate(-180deg);
+    background: $css.colors.PRIMARY; /* Foreground colour */
+    -webkit-transform: rotate(-180deg);
+    transform: rotate(-180deg);
   }
-}​
-
-.list-item: {
-  line-height: 20px,
 }
-@media only screen and (max-width:$css.breakpoints.sm): {
-  .list-item
-  font-size: 14px,
-  line-height: 14px,
-},
+
+.chip {
+  padding: 8px 16px;
+  background: $css.colors.BACKGROUND;
+  text-align: center;
+  display: inline-block;
+  border-radius: $css.borderRadius.xLarge;
+  cursor: default;
+}
+
+.storage-container {
+  padding: 10px;
+  max-width: 300px;
+}
+
+.storage-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.storage-label {
+  padding-left: 30px;
+}
+
+.storage-value {
+  font-weight: 1000;
+}
+
+.player-stats td,
+.player-stats th {
+  padding-right: $css.spacing.xSmall;
+}

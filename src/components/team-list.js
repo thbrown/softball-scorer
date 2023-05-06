@@ -2,7 +2,7 @@ import React from 'react';
 import state from 'state';
 import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
-import { getShallowCopy } from 'utils/functions';
+import IconButton from '../elements/icon-button';
 
 const TeamList = () => {
   const handleTeamClick = (team) => {
@@ -32,15 +32,14 @@ const TeamList = () => {
           onClick={() => handleTeamClick(team)}
         >
           <div className="centered-row">
-            <div className="prevent-overflow">
-              <span style={{ fontSize: '12px' }}>VS. </span>
-              {team.name}
-            </div>
-            <img
-              src="/server/assets/edit.svg"
+            <div className="prevent-overflow">{team.name}</div>
+            <IconButton
+              src="/assets/edit.svg"
               alt="edit"
               id={'team-' + team.id + '-edit'}
               onClick={handleEditClick.bind(this, team)}
+              invert
+              hideBackground
             />
           </div>
         </ListButton>
@@ -51,7 +50,7 @@ const TeamList = () => {
     <ListButton
       key={'newTeam'}
       id={'newTeam'}
-      type="tertiary-button"
+      type="primary-button"
       onClick={handleCreateClick}
     >
       + Add New Team

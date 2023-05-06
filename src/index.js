@@ -1,21 +1,28 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import DataContainer from 'elements/data-container';
 import RouteContainer from 'elements/route-container';
 import MainContainer from 'main-container';
 import state from 'state';
 import routes from 'routes';
-
-require('utils/polyfills');
+import 'utils/polyfills';
 
 global.React = React;
 
 const container = document.createElement('div');
 document.body.prepend(container);
 
-let Main = (global.Main = {});
+let Main = (global.Main = {
+  render: () => void 0,
+});
 
 const App = (props) => {
+  const [render, setRender] = React.useState(false);
+
+  Main.render = () => {
+    setRender(!render);
+  };
+
   return (
     <DataContainer
       url="server/current-account"
@@ -49,8 +56,9 @@ const App = (props) => {
   );
 };
 
-(Main.render = function () {
-  ReactDOM.render(<App />, container);
+(function () {
+  let root = ReactDOM.createRoot(container);
+  root.render(<App />);
 })();
 
 let _resize_timeout = null;

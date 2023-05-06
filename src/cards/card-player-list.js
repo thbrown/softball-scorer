@@ -3,11 +3,14 @@ import state from 'state';
 import { setRoute } from 'actions/route';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
+import IconButton from 'elements/icon-button';
 
 class CardPlayerList extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      search: undefined,
+    };
 
     this.handlePlayerClick = function (player) {
       setRoute(`/players/${player.id}`);
@@ -21,6 +24,10 @@ class CardPlayerList extends React.Component {
       const player = state.addPlayer('', 'M');
       setRoute(`/players/${player.id}/edit?isNew=true`);
     };
+
+    this.handleSearch = function (v) {
+      this.setState({ search: v.target.value });
+    }.bind(this);
   }
 
   renderPlayerList() {
@@ -29,14 +36,36 @@ class CardPlayerList extends React.Component {
         <ListButton
           id="newPlayer"
           key="newPlayer"
-          type="secondary-button"
+          type="primary-button"
           onClick={this.handleCreateClick}
         >
           <div className="prevent-overflow">+ Add New Player</div>
         </ListButton>
+        <input
+          type="text"
+          name="search"
+          id="search"
+          placeholder="Search Players"
+          className="page-width-input"
+          onChange={this.handleSearch}
+          style={{
+            width: 'calc(100% - 41px)',
+            marginLeft: '11px',
+            padding: '0px',
+            paddingLeft: '10px',
+          }}
+        />
         {state
           .getAllPlayersAlphabetically()
           .slice()
+          .filter((player) => {
+            return (
+              this.state.search === undefined ||
+              player.name
+                .toLowerCase()
+                .includes(this.state.search.toLowerCase())
+            );
+          })
           .map((player) => {
             return (
               <ListButton
@@ -47,15 +76,15 @@ class CardPlayerList extends React.Component {
                 <div className="centered-row">
                   <div className="prevent-overflow">{player.name}</div>
                   <div style={{ display: 'flex' }}>
-                    <img
-                      src="/server/assets/edit.svg"
+                    <IconButton
+                      src="/assets/edit.svg"
                       alt="edit"
                       id={'player-' + player.id + '-edit'}
                       onClick={(ev) => {
-                        console.log('PRESSED EDIT');
                         ev.stopPropagation();
                         this.handleEditClick.bind(this, player)();
                       }}
+                      invert
                     />
                   </div>
                 </div>

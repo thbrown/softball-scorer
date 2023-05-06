@@ -1,9 +1,9 @@
 const got = require('got');
 
 const logger = require('./logger.js');
-const SharedLib = require('../shared-lib').default;
-
-//var https = require('https');
+const SharedLib = require('../shared-lib');
+const configAccessor = require('./config-accessor');
+const HandledError = require('./handled-error.js');
 
 const START_URL = `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-start`;
 const PAUSE_URL = `https://us-central1-optimum-library-250223.cloudfunctions.net/softball-sim-pause`;
@@ -16,9 +16,16 @@ module.exports = class OptimizationComputeLocal {
     this.configParams = configParams;
   }
 
+  // TODO: we should add retry here, it fails sometimes with a 500 because of Google reasons
   async start(accountId, optimizationId, stats, options) {
     // Add additional flags to json body
-    options['-i'] = optimizationId;
+    options['-n'] = optimizationId; // name
+    options['-u'] = configAccessor.getUpdateUrl(); // update url
+    options['-b'] = {
+      optimizationId: optimizationId,
+      accountId: accountId,
+      apiKey: this?.configParams?.apiKey,
+    };
     options['data'] = stats;
     options['PASSWORD'] = this.configParams.password;
 
@@ -41,15 +48,26 @@ module.exports = class OptimizationComputeLocal {
         }
       }
     } catch (error) {
+      logger.error(accountId, 'Error starting optimization', error);
       let errorMessage = error?.response?.body;
       try {
         errorMessage = errorMessage
           ? JSON.parse(errorMessage)?.message
           : 'Unknown Problem';
-        throw new Error(errorMessage);
-      } catch (error) {
+        throw new HandledError(
+          accountId,
+          error?.response?.code,
+          errorMessage,
+          error.stack
+        );
+      } catch (error2) {
         // Not a json error object for some reason
-        throw new Error(errorMessage);
+        throw new HandledError(
+          accountId,
+          error?.response?.statusCode,
+          errorMessage,
+          error.stack + ' - ' + error2.stack
+        );
       }
     }
 
@@ -72,16 +90,27 @@ module.exports = class OptimizationComputeLocal {
     if (response.statusCode === 200) {
       let jsonResponse = JSON.parse(response.body);
       if (jsonResponse.status === 'SUCCESS') {
-        // Set optimization status to PAUSING
+        // Set optimization to pause, don't change the status (TODO: rename the status change function)
+        const PAUSEABLE_STATUSES = SharedLib.constants.invertOptStatusSet(
+          SharedLib.constants.TERMINAL_OPTIMIZATION_STATUSES_ENUM
+        );
         await this.databaseCalls.setOptimizationStatus(
           accountId,
           optimizationId,
-          SharedLib.constants.OPTIMIZATION_STATUS_ENUM.PAUSING
+          null,
+          null,
+          true,
+          // Don't set pause to true for an optimization in a terminal state
+          PAUSEABLE_STATUSES
         );
         return response.body;
       } else {
-        logger.error(accountId, 'Error while pausing', response.body);
-        throw new Error('Unexpected error encountered during pausing');
+        throw new HandledError(
+          accountId,
+          response?.statusCode,
+          'Unexpected error encountered during pausing',
+          response.body
+        );
       }
     }
   }
@@ -91,7 +120,7 @@ module.exports = class OptimizationComputeLocal {
       logger.log(accountId, 'Querying gcp bucket for result');
       // Begin the estimate and wait for to finish
       const queryResponse = await got.post(QUERY_URL, {
-        json: { i: optimizationId, PASSWORD: this.configParams.password },
+        json: { n: optimizationId, PASSWORD: this.configParams.password },
       });
 
       if (queryResponse.statusCode === 200) {
@@ -103,8 +132,12 @@ module.exports = class OptimizationComputeLocal {
           }
           return jsonResponse.message;
         } else {
-          logger.error(accountId, 'Unsuccessful query', queryResponse.body);
-          throw new Error('Unsuccessful query');
+          throw new HandledError(
+            accountId,
+            queryResponse?.statusCode,
+            'Unsuccessful query',
+            queryResponse.body
+          );
         }
       }
     } catch (error) {
@@ -138,7 +171,7 @@ module.exports = class OptimizationComputeLocal {
     logger.log(accountId, 'Starting gcp optimization estimate');
 
     // Add additional flags to json body
-    options['-i'] = optimizationId;
+    options['-n'] = optimizationId;
     options['-e'] = true;
     options['data'] = stats;
     options['PASSWORD'] = this.configParams.password;
@@ -153,8 +186,7 @@ module.exports = class OptimizationComputeLocal {
         'Estimation Response',
         startResponse.statusCode,
         startResponse.body,
-        options['-o'],
-        SharedLib.constants.OPTIMIZATION_TYPE_ENUM.MONTE_CARLO_EXHAUSTIVE
+        options['-o']
       );
 
       let body = JSON.parse(startResponse.body);
@@ -179,10 +211,20 @@ module.exports = class OptimizationComputeLocal {
         errorMessage = errorMessage
           ? JSON.parse(errorMessage)?.message
           : 'Unknown Problem';
-        throw new Error(errorMessage);
-      } catch (error) {
+        throw new HandledError(
+          accountId,
+          error?.response?.code,
+          errorMessage,
+          error.stack
+        );
+      } catch (error2) {
         // Not a json error object for some reason
-        throw new Error(errorMessage);
+        throw new HandledError(
+          accountId,
+          error?.response?.statusCode,
+          errorMessage,
+          error.stack + ' - ' + error2.stack
+        );
       }
     }
   }

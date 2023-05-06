@@ -1,4 +1,5 @@
 import expose from 'expose';
+import e from 'express';
 import { ROUTE_PREFIX } from 'routes';
 
 const urlStack = ['/'];
@@ -8,18 +9,26 @@ window.onpopstate = function () {
   setRoute(window?.location?.pathname);
 };
 
-export function setRoute(path, routeId) {
+export function setRoute(path, skipHistory) {
   if (path !== window?.location?.pathname) {
-    setUrl(ROUTE_PREFIX + path);
+    if (skipHistory) {
+      setUrl(ROUTE_PREFIX + path, true);
+    } else {
+      setUrl(ROUTE_PREFIX + path);
+    }
   }
-  expose.set_state('router' + (routeId || ''), {
+  expose.set_state('router', {
     path: ROUTE_PREFIX + path,
   });
 }
 
-export function setUrl(path) {
-  urlStack.unshift(path);
-  window.history.pushState({}, '', path);
+export function setUrl(path, skipHistory) {
+  if (skipHistory) {
+    window.history.replaceState({}, '', path);
+  } else {
+    urlStack.unshift(path);
+    window.history.pushState({}, '', path);
+  }
 }
 
 export function goBack(amount) {

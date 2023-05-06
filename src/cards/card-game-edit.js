@@ -1,11 +1,14 @@
 import React from 'react';
 import dialog from 'dialog';
+import css from 'css';
 import state from 'state';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
-import { goBack, goHome } from 'actions/route';
+import { goBack, goHome, setRoute } from 'actions/route';
 import FloatingInput from 'elements/floating-input';
 import FloatingSelect from 'elements/floating-select';
+import IconButton from '../elements/icon-button';
+import { showLineupTypeHelp } from 'utils/help-functions';
 
 export default class CardGameEdit extends React.Component {
   constructor(props) {
@@ -74,27 +77,6 @@ export default class CardGameEdit extends React.Component {
         lineupType: parseInt(newValue),
       });
     };
-
-    this.handleLineupTypeHelpClick = () => {
-      dialog.show_notification(
-        <div>
-          <b>Lineup Type</b> is used by the lineup simulator to determine what
-          lineups are valid. Some leagues have restrictions on which players can
-          bat in which slots. Softball.app supports three types of lineups:
-          <div style={{ margin: '1rem' }}>
-            <b>- Normal</b> Any batter is allowed to bat anywhere in the lineup.
-          </div>
-          <div style={{ margin: '1rem' }}>
-            <b>- Alternating Gender</b> Consecutive batters must have different
-            genders.
-          </div>
-          <div style={{ margin: '1rem' }}>
-            <b>- No Consecutive Females</b> Females may not bat back-to-back.
-          </div>
-        </div>,
-        undefined
-      );
-    };
   }
 
   renderGameEdit() {
@@ -114,20 +96,25 @@ export default class CardGameEdit extends React.Component {
               label="Lineup Type"
               initialValue={this.props.game.lineupType || 0}
               onChange={this.handleLineupTypeChange}
-              values={{
-                0: 'Normal',
-                1: 'Alternating Gender',
-                2: 'No Consecutive Females',
-              }}
+              values={[
+                { label: 'Normal', value: 0 },
+                { label: 'Alternating Gender', value: 1 },
+                { label: 'No Consecutive Females', value: 2 },
+                {
+                  label:
+                    'No Consecutive Females and No Three Consecutive Males',
+                  value: '3',
+                },
+              ]}
+              fullWidth
             />
-            <div className="icon-button">
-              <img
-                className="help-icon"
-                src="/server/assets/help.svg"
-                alt="help"
-                onClick={this.handleLineupTypeHelpClick}
-              />
-            </div>
+            <IconButton
+              className="help-icon"
+              src="/assets/help.svg"
+              alt="help"
+              onClick={showLineupTypeHelp}
+              invert
+            />
           </div>
         </div>
         {this.renderSaveOptions()}
@@ -138,30 +125,69 @@ export default class CardGameEdit extends React.Component {
   renderSaveOptions() {
     return (
       <>
-        <ListButton type="edit-button" onClick={this.handleConfirmClick}>
-          <img
-            className="edit-button-icon"
-            src="/server/assets/check.svg"
-            alt="save"
-          />
-          <span className="edit-button-icon">Save</span>
+        <ListButton
+          id="save"
+          type="primary-button"
+          onClick={this.handleConfirmClick}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <IconButton src="/assets/check.svg" alt="save" />
+            <span
+              style={{
+                marginLeft: css.spacing.xSmall,
+              }}
+            >
+              Save
+            </span>
+          </div>
         </ListButton>
-        <ListButton type="edit-button" onClick={this.handleCancelClick}>
-          <img
-            className="edit-button-icon"
-            src="/server/assets/cancel.svg"
-            alt="cancel"
-          />
-          <span className="edit-button-icon">Cancel</span>
+        <ListButton
+          id="cancel"
+          type="edit-button"
+          onClick={this.handleCancelClick}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <IconButton src="/assets/cancel.svg" alt="cancel" invert />
+            <span
+              style={{
+                marginLeft: css.spacing.xSmall,
+              }}
+            >
+              Cancel
+            </span>
+          </div>
         </ListButton>
         {this.props.isNew ? null : (
-          <ListButton type="edit-button" onClick={this.handleDeleteClick}>
-            <img
-              className="edit-button-icon"
-              src="/server/assets/delete.svg"
-              alt="delete"
-            />
-            <span className="edit-button-icon">Delete</span>
+          <ListButton
+            id="delete"
+            type="delete-button"
+            onClick={this.handleDeleteClick}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <IconButton src="/assets/delete.svg" alt="delete" />
+              <span
+                style={{
+                  marginLeft: css.spacing.xSmall,
+                }}
+              >
+                Delete
+              </span>
+            </div>
           </ListButton>
         )}
       </>
