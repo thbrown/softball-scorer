@@ -104,6 +104,7 @@ exp.getNewPlateAppearance = function (playerId) {
       x: null,
       y: null,
     },
+    runners: {},
   };
 };
 
@@ -826,6 +827,26 @@ exp.getGamesWherePlayerHasPlateAppearances = function (playerId, state) {
   return games;
 };
 
+exp.getInningScores = function (gameId) {
+  const pas = exp.getPlateAppearancesForGame(gameId);
+
+  const result = [];
+  let outs = 0;
+  let score = 0;
+  for (let pa of pas) {
+    const runsInPa = pa.runners.scored?.length ?? 0;
+    const outsInPa = pa.runners.out?.length ?? 0;
+    score += runsInPa;
+    outs += outsInPa;
+    if (outsInPa > 0 && outs % 3 === 0) {
+      // Inning ending PA
+      result.push(score);
+      score = 0;
+    }
+  }
+  return result;
+};
+
 exp.setGameLineup = function (gameId, newLineup) {
   const game = exp.getGame(gameId);
   game.lineup = newLineup; // Do we need to do a deep copy here?
@@ -920,16 +941,16 @@ exp.replacePlateAppearance = function (paId, gameId, teamId, newPa) {
       x: newPa?.location?.x,
       y: newPa?.location?.y,
     },
+    runners: newPa.runners,
   });
   onEdit();
 };
 
-// TODO: allow for passing team and game ids to improve perf
-exp.getPlateAppearance = function (pa_id, state) {
+exp.getPlateAppearance = function (paId, state) {
   for (let team of (state || LOCAL_DB_STATE).teams) {
     for (let game of team.games) {
       for (let pa of game.plateAppearances) {
-        if (pa.id === pa_id) {
+        if (pa.id === paId) {
           return pa;
         }
       }
@@ -968,6 +989,35 @@ exp.getPlateAppearancesForPlayerInGame = function (playerId, game_id, state) {
     return null;
   }
   return game.plateAppearances.filter((pa) => pa.playerId === playerId);
+};
+
+exp.getUsScoreAtPa = function (paId, gameId, teamId) {
+  const pas = exp.getPlateAppearancesForGame(gameId);
+  let scoreUs = 0;
+  for (let pa of pas) {
+    scoreUs += pa.runners['scored']?.length ?? 0;
+    if (pa.id === paId) {
+      break;
+    }
+  }
+  // TODO: account for overrides in each inning
+  return scoreUs;
+};
+
+exp.getThemScoreAtPa = function (paId, gameId, teamId) {
+  return 0;
+};
+
+exp.getOutsAtPa = function (paId, gameId, teamId) {
+  const pas = exp.getPlateAppearancesForGame(gameId);
+  let outs = 0;
+  for (let pa of pas) {
+    outs += pa.runners['out']?.length ?? 0;
+    if (pa.id === paId) {
+      break;
+    }
+  }
+  return outs;
 };
 
 /**

@@ -31,6 +31,7 @@ import CardLineupImport from 'cards/card-lineup-import';
 import CardLineupImporter from 'cards/card-lineup-importer';
 import CardOptimizerSelect from 'cards/card-optimizer-select';
 import { goBack, setRoute } from 'actions/route';
+import { findPreviousObject } from 'utils/functions';
 
 // possibility to add '/app/' here?
 export const ROUTE_PREFIX = '';
@@ -315,6 +316,10 @@ routes = {
     ({ teamId, gameId, plateAppearanceId, search: { isNew } }) => {
       const team = state.getTeam(teamId);
       const game = state.getGame(gameId);
+      const previousPlateAppearance = findPreviousObject(
+        state.getPlateAppearancesForGame(gameId),
+        plateAppearanceId
+      );
       const plateAppearance = state.getPlateAppearance(plateAppearanceId);
       const plateAppearances = state.getPlateAppearancesForPlayerInGame(
         plateAppearance?.playerId,
@@ -348,6 +353,7 @@ routes = {
             );
           }}
           player={player}
+          previousPlateAppearance={previousPlateAppearance}
           plateAppearance={plateAppearance}
           plateAppearances={plateAppearances}
           isNew={isNew}
@@ -484,7 +490,6 @@ routes = {
       const optimization = state.getOptimization(optimizationId);
       const player = state.getPlayer(playerId);
 
-      // TODO: getting both a plate appearance and the plate appearances results is unnecessary parsing and un-parsing of json
       const plateAppearances = state.getOptimizationOverridesForPlayer(
         optimizationId,
         playerId
@@ -493,6 +498,11 @@ routes = {
       const plateAppearance = state.getOptimizationOverridePlateAppearance(
         optimizationId,
         playerId,
+        plateAppearanceId
+      );
+
+      const previousPlateAppearance = findPreviousObject(
+        plateAppearances,
         plateAppearanceId
       );
 
@@ -523,6 +533,7 @@ routes = {
             );
           }}
           player={player}
+          previousPlateAppearance={previousPlateAppearance}
           plateAppearance={plateAppearance}
           plateAppearances={plateAppearances}
           isNew={isNew}

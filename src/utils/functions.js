@@ -29,6 +29,11 @@ export const toClientDate = function (serverDate) {
   return new Date(serverDate * 1000).toISOString().substring(0, 10);
 };
 
+export const distance = function (x1, y1, x2, y2) {
+  let result = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+  return result;
+};
+
 /*
 // Async decompression in web worker
 export const decompress = async function (inputString) {
@@ -191,4 +196,54 @@ export const logout = async function (state, dialog, setRoute) {
       setRoute('/menu/login');
     });
   }
+};
+
+export const findPreviousObject = function (objects, targetId) {
+  const targetIndex = objects.findIndex((obj) => obj.id === targetId);
+  if (targetIndex === -1 || targetIndex === 0) {
+    return null; // not found or first object in array
+  }
+  return objects[targetIndex - 1];
+};
+
+// Remove undefined, null, and empty arrays
+export const cleanObject = function (obj) {
+  // Check if the input is an object
+  if (typeof obj === 'object' && obj !== null) {
+    // Loop through each key in the object
+    Object.keys(obj).forEach((key) => {
+      // Check if the value of the key is undefined or null
+      if (obj[key] === undefined || obj[key] === null) {
+        // Remove the key from the object
+        delete obj[key];
+      } else if (Array.isArray(obj[key])) {
+        // If the value is an array, recursively clean the array
+        obj[key] = obj[key].filter(
+          (element) => element !== undefined && element !== null
+        );
+        obj[key] = obj[key].map((element) => {
+          if (Array.isArray(element)) {
+            return element.filter(
+              (innerElement) =>
+                innerElement !== undefined && innerElement !== null
+            );
+          }
+          return element;
+        });
+        // Remove the key if the array is empty
+        if (obj[key].length === 0) {
+          delete obj[key];
+        }
+      } else if (typeof obj[key] === 'object') {
+        // If the value is an object, recursively clean the object
+        obj[key] = cleanObject(obj[key]);
+        // Remove the key if the object is empty
+        if (Object.keys(obj[key]).length === 0) {
+          delete obj[key];
+        }
+      }
+    });
+  }
+  // Return the cleaned object
+  return obj;
 };

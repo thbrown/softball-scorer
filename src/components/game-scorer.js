@@ -82,13 +82,20 @@ const ScoreChangeButton = ({ onScoreChange, increment, buttonText }) => {
   );
 };
 
-const TableCell = ({ whoseScore, inning, game }) => {
+const TableCell = ({ whoseScore, inning, game, score }) => {
   const { classes } = tableStyles();
 
   const handleScoreChange = (increment) => {
     state.setScore(game, inning, increment, whoseScore);
   };
 
+  const displayScore = (score ?? 0) + (game[whoseScore][inning] ?? 0);
+  const displayScoreContent =
+    displayScore === score ? (
+      <span>{displayScore}</span>
+    ) : (
+      <b>{displayScore}</b>
+    );
   return (
     <td className={classes.tableCell}>
       <div>
@@ -99,7 +106,7 @@ const TableCell = ({ whoseScore, inning, game }) => {
             handleScoreChange(increment);
           }}
         />
-        <div className={classes.scoreText}>{game[whoseScore][inning] || 0}</div>
+        <div className={classes.scoreText}>{displayScoreContent}</div>
         <ScoreChangeButton
           increment={-1}
           buttonText="-"
@@ -114,6 +121,7 @@ const TableCell = ({ whoseScore, inning, game }) => {
 
 const ScoreTable = ({ usName, themName, game }) => {
   const { classes } = tableStyles();
+  const scores = state.getInningScores(game.id);
   return (
     <table className={classes.table}>
       <thead>
@@ -128,13 +136,48 @@ const ScoreTable = ({ usName, themName, game }) => {
       </thead>
       <tr>
         <td className={classes.tableCell}>{usName}</td>
-        <TableCell inning="1" game={game} whoseScore="scoreUs" />
-        <TableCell inning="2" game={game} whoseScore="scoreUs" />
-        <TableCell inning="3" game={game} whoseScore="scoreUs" />
-        <TableCell inning="4" game={game} whoseScore="scoreUs" />
-        <TableCell inning="5" game={game} whoseScore="scoreUs" />
-        <TableCell inning="6" game={game} whoseScore="scoreUs" />
-        <TableCell inning="7" game={game} whoseScore="scoreUs" />
+        <TableCell
+          inning="1"
+          game={game}
+          whoseScore="scoreUs"
+          score={scores[0]}
+        />
+        <TableCell
+          inning="2"
+          game={game}
+          whoseScore="scoreUs"
+          score={scores[1]}
+        />
+        <TableCell
+          inning="3"
+          game={game}
+          whoseScore="scoreUs"
+          score={scores[2]}
+        />
+        <TableCell
+          inning="4"
+          game={game}
+          whoseScore="scoreUs"
+          score={scores[3]}
+        />
+        <TableCell
+          inning="5"
+          game={game}
+          whoseScore="scoreUs"
+          score={scores[4]}
+        />
+        <TableCell
+          inning="6"
+          game={game}
+          whoseScore="scoreUs"
+          score={scores[5]}
+        />
+        <TableCell
+          inning="7"
+          game={game}
+          whoseScore="scoreUs"
+          score={scores[6]}
+        />
       </tr>
       <tr>
         <td className={classes.tableCell}>{themName}</td>
@@ -161,7 +204,7 @@ const useGameScorerStyles = makeStyles((css) => ({
 const calculateScore = (scoreObj) => {
   let totalScore = 0;
   for (let inningNumber in scoreObj) {
-    totalScore += scoreObj[inningNumber];
+    totalScore += scoreObj[inningNumber]; // Overrides
   }
   return totalScore;
 };
@@ -174,8 +217,15 @@ const GameScorer = ({ teamId, gameId }) => {
 
   const usName = team.name;
   const themName = game.opponent;
-  const usScore = calculateScore(game.scoreUs) || 0;
-  const themScore = calculateScore(game.scoreThem) || 0;
+  const usDerivedScore = state
+    .getInningScores(game.id)
+    .reduce((a, b) => a + b, 0);
+
+  const overrideGameScoreUs = calculateScore(game.scoreUs);
+  const overrideGameScoreThem = calculateScore(game.scoreUs);
+
+  const usScore = overrideGameScoreUs + usDerivedScore;
+  const themScore = overrideGameScoreThem;
 
   return (
     <CardSection>
