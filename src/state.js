@@ -827,6 +827,26 @@ exp.getGamesWherePlayerHasPlateAppearances = function (playerId, state) {
   return games;
 };
 
+exp.getInningScores = function (gameId) {
+  const pas = exp.getPlateAppearancesForGame(gameId);
+
+  const result = [];
+  let outs = 0;
+  let score = 0;
+  for (let pa of pas) {
+    const runsInPa = pa.runners.scored?.length ?? 0;
+    const outsInPa = pa.runners.out?.length ?? 0;
+    score += runsInPa;
+    outs += outsInPa;
+    if (outsInPa > 0 && outs % 3 === 0) {
+      // Inning ending PA
+      result.push(score);
+      score = 0;
+    }
+  }
+  return result;
+};
+
 exp.setGameLineup = function (gameId, newLineup) {
   const game = exp.getGame(gameId);
   game.lineup = newLineup; // Do we need to do a deep copy here?

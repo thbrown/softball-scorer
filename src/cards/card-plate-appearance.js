@@ -1042,6 +1042,7 @@ class CardPlateAppearance extends React.Component {
           style={{
             touchAction: 'none',
             transform: 'translate(0px, 0px)',
+            filter: `drop-shadow(rgba(0, 0, 0, 0.95) 0px 0px 8px)`,
           }}
         ></img>
       </Draggable>
