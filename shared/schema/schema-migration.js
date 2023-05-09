@@ -1,6 +1,6 @@
 import constants from '../utils/constants';
 
-export const CURRENT_VERSION = 3;
+export const CURRENT_VERSION = 4;
 
 /**
  * When the json schema for an account's data gets updated, this function performs a schema migration on older data.
@@ -225,27 +225,44 @@ export let updateSchema = function (
         team.games = sorted;
       }
 
-      // Blah blah blah
+      // Update json metadata
       inputJson.metadata = {
         version: 3,
+        scope: inputScope,
+      };
+    }
+
+    if (inputJson.metadata.version === 3) {
+      // Update all plate appearances (runners is empty object)
+      for (let team of inputJson.teams) {
+        for (let game of team.games) {
+          for (let pas of game.plateAppearances) {
+            pas.runners = {};
+          }
+        }
+      }
+
+      // Update json metadata
+      inputJson.metadata = {
+        version: 4,
         scope: inputScope,
       };
     }
 
     /*
     // Example migrations
-    if (inputJson.metadata.version === 3) {
+    if (inputJson.metadata.version === 4) {
       // Blah blah blah
       inputJson.metadata = {
-        version: 2,
+        version: 5,
         scope: inputScope,
       };
     }
 
-    if (inputJson.metadata.version === 4) {
+    if (inputJson.metadata.version === 5) {
       // Blah blah blah
       inputJson.metadata = {
-        version: 3,
+        version: 6,
         scope: inputScope,
       };
     }

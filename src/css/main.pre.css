@@ -636,8 +636,14 @@ hr {
   }
 }
 
-.plate-appearance-baseball,
+.plate-appearance-baseball {
+  padding: 12px;
+  height: 32px;
+  width: 32px;
+}
+
 .plate-appearance-card-actions {
+  filter: invert(1);
   padding: 12px;
   height: 32px;
   width: 32px;

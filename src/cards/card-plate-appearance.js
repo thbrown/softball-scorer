@@ -3,13 +3,10 @@ import dialog from 'dialog';
 import Draggable from 'react-draggable';
 import results from 'plate-appearance-results';
 import state from 'state';
-import WalkupSong from 'component-walkup-song';
-import { normalize, distance } from 'utils/functions';
 import WalkupSong from 'components/walkup-song';
-import { normalize } from 'utils/functions';
+import { normalize, distance, cleanObject } from 'utils/functions';
 import { goBack } from 'actions/route';
 import { makeStyles } from 'css/helpers';
-import BallFieldSvg from '../components/ball-field-svg';
 import Card from 'elements/card';
 
 const LOCATION_DENOMINATOR = 32767;
@@ -56,13 +53,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-// Locations of the bases (from the upper left of teh image in px) while the image is full sized
+// Locations of the bases (from the upper left of the image in px) while the image is full sized
 const BASE_COORDINATES = {
   '1B': { top: 375, left: 352 },
   '2B': { top: 277, left: 246 },
   '3B': { top: 375, left: 145 },
-  Scored: { top: 473, left: 247 },
-  Out: { top: 410, left: 55 },
+  scored: { top: 473, left: 247 },
+  out: { top: 410, left: 55 },
 };
 
 class CardPlateAppearance extends React.Component {
@@ -77,6 +74,8 @@ class CardPlateAppearance extends React.Component {
       paLocationY: props.plateAppearance.location
         ? props.plateAppearance.location.y
         : null,
+      runners: props.plateAppearance.runners,
+      suspendTransition: false,
     };
 
     this.isNew = props.isNew;
@@ -87,6 +86,7 @@ class CardPlateAppearance extends React.Component {
       pa.location = {};
       pa.location.x = this.state.paLocationX;
       pa.location.y = this.state.paLocationY;
+      pa.runners = this.state.runners;
       return pa;
     };
 
@@ -130,8 +130,158 @@ class CardPlateAppearance extends React.Component {
     }.bind(this);
 
     this.handleButtonClick = function (result) {
+      const isFirstPAOfInning =
+        this.props.previousPlateAppearance === undefined ||
+        this.props.previousPlateAppearance === null
+          ? true
+          : this.isLastPaOfInning(
+              this.props.previousPlateAppearance.id,
+              this.props.game.id,
+              this.props.team.id
+            );
+      const previousRunners = isFirstPAOfInning
+        ? {}
+        : this.props.previousPlateAppearance?.runners ?? {};
+
+      // Guess new state
+      const newRunners = {};
+      switch (result) {
+        case '1B':
+        case 'BB':
+        case 'E':
+          newRunners['1B'] = this.props.player.id;
+          newRunners['2B'] = previousRunners['1B'];
+          newRunners['3B'] = previousRunners['2B'];
+          newRunners['scored'] = [previousRunners['3B']];
+          break;
+        case '2B':
+          newRunners['2B'] = this.props.player.id;
+          newRunners['3B'] = previousRunners['1B'];
+          newRunners['scored'] = [previousRunners['2B'], previousRunners['3B']];
+          break;
+        case '3B':
+          newRunners['3B'] = this.props.player.id;
+          newRunners['scored'] = [
+            previousRunners['1B'],
+            previousRunners['2B'],
+            previousRunners['3B'],
+          ];
+          break;
+        case 'FC':
+          // Hitter is out
+          newRunners['1B'] = this.props.player.id;
+
+          // The next runner is out
+          if (previousRunners['1B'] !== undefined) {
+            newRunners['out'] = [previousRunners['1B']];
+            // Everybody else moves up a base
+            if (previousRunners['2B'] !== undefined) {
+              newRunners['3B'] = previousRunners['2B'];
+            }
+            if (previousRunners['3B'] !== undefined) {
+              newRunners['scored'] = [previousRunners['3B']];
+            }
+          } else if (previousRunners['2B'] !== undefined) {
+            newRunners['out'] = [previousRunners['2B']];
+            // Everybody else moves up a base
+            if (previousRunners['3B'] !== undefined) {
+              newRunners['scored'] = [previousRunners['3B']];
+            }
+          } else if (previousRunners['3B'] !== undefined) {
+            newRunners['out'] = [previousRunners['3B']];
+          }
+          break;
+        case 'HRi':
+        case 'HRo':
+          newRunners['scored'] = [
+            this.props.player.id,
+            previousRunners['1B'],
+            previousRunners['2B'],
+            previousRunners['3B'],
+          ];
+          break;
+        case 'SAC':
+          newRunners['out'] = [this.props.player.id];
+          if (previousRunners['1B'] !== undefined) {
+            newRunners['2B'] = previousRunners['1B'];
+          }
+          if (previousRunners['2B'] !== undefined) {
+            newRunners['3B'] = previousRunners['2B'];
+          }
+          if (previousRunners['3B'] !== undefined) {
+            newRunners['scored'] = [previousRunners['3B']];
+          }
+          break;
+        case 'DP':
+          // First Out
+          newRunners['out'] = [this.props.player.id];
+
+          // Second Out
+          if (previousRunners['1B'] !== undefined) {
+            newRunners['out'].push(previousRunners['1B']);
+            // Everybody else moves up a base
+            if (previousRunners['2B'] !== undefined) {
+              newRunners['3B'] = previousRunners['2B'];
+            }
+            if (previousRunners['3B'] !== undefined) {
+              newRunners['scored'] = [previousRunners['3B']];
+            }
+          } else if (previousRunners['2B'] !== undefined) {
+            newRunners['out'].push(previousRunners['2B']);
+            // Everybody else moves up a base
+            if (previousRunners['3B'] !== undefined) {
+              newRunners['scored'] = [previousRunners['3B']];
+            }
+          } else if (previousRunners['3B'] !== undefined) {
+            newRunners['out'].push(previousRunners['3B']);
+          }
+          break;
+        case 'TP':
+          // First Out
+          newRunners['out'] = [this.props.player.id];
+
+          // Second Out
+          if (
+            previousRunners['1B'] !== undefined &&
+            previousRunners['2B'] !== undefined
+          ) {
+            newRunners['out'].push(previousRunners['1B']);
+            newRunners['out'].push(previousRunners['2B']);
+            if (previousRunners['3B'] !== undefined) {
+              newRunners['scored'].push(previousRunners['3B']); // TODO: not scored
+            }
+          } else if (
+            previousRunners['1B'] !== undefined &&
+            previousRunners['3B'] !== undefined
+          ) {
+            newRunners['out'].push(previousRunners['1B']);
+            newRunners['out'].push(previousRunners['3B']);
+          } else if (
+            previousRunners['2B'] !== undefined &&
+            previousRunners['3B'] !== undefined
+          ) {
+            newRunners['out'].push(previousRunners['2B']);
+            newRunners['out'].push(previousRunners['3B']);
+          } else {
+            newRunners['1B'] = previousRunners['1B'];
+            newRunners['2B'] = previousRunners['2B'];
+            newRunners['3B'] = previousRunners['3B'];
+          }
+          break;
+        case null:
+          break;
+        default:
+          // TODO: move runners up in some cases?
+          newRunners['out'] = [this.props.player.id];
+          newRunners['1B'] = previousRunners['1B'];
+          newRunners['2B'] = previousRunners['2B'];
+          newRunners['3B'] = previousRunners['3B'];
+          break;
+      }
+
       this.setState({
         paResult: result,
+        runners: cleanObject(newRunners),
       });
     };
 
@@ -185,8 +335,8 @@ class CardPlateAppearance extends React.Component {
       '1B': React.createRef(),
       '2B': React.createRef(),
       '3B': React.createRef(),
-      Scored: React.createRef(),
-      Out: React.createRef(),
+      scored: React.createRef(),
+      out: React.createRef(),
     };
 
     this.getClosestBase = function (xCoord, yCoord, adjBaseCoordinates) {
@@ -218,23 +368,23 @@ class CardPlateAppearance extends React.Component {
           ),
           ref: this.baseRefs['3B'],
         },
-        Scored: {
+        scored: {
           dist: distance(
             xCoord,
             yCoord,
-            adjBaseCoordinates['Scored'].left,
-            adjBaseCoordinates['Scored'].top
+            adjBaseCoordinates['scored'].left,
+            adjBaseCoordinates['scored'].top
           ),
-          ref: this.baseRefs['Scored'],
+          ref: this.baseRefs['scored'],
         },
-        Out: {
+        out: {
           dist: distance(
             xCoord,
             yCoord,
-            adjBaseCoordinates['Out'].left,
-            adjBaseCoordinates['Out'].top
+            adjBaseCoordinates['out'].left,
+            adjBaseCoordinates['out'].top
           ),
-          ref: this.baseRefs['Out'],
+          ref: this.baseRefs['out'],
         },
       };
 
@@ -248,19 +398,59 @@ class CardPlateAppearance extends React.Component {
       return minEntry.ref;
     };
 
+    this.onPlayerDragStart = function () {
+      // Un-hide all runner locations
+      for (let entry in this.baseRefs) {
+        this.baseRefs[entry].current.classList.remove('gone');
+      }
+
+      // Halt css transition for player draggables
+      this.setState({
+        suspendTransition: true,
+      });
+    }.bind(this);
+
+    this.onPlayerDragStop = function (
+      adjustedBaseCoords,
+      playerId,
+      mouseEvent,
+      draggableData
+    ) {
+      // Hide all runner locations
+      for (let entry in this.baseRefs) {
+        this.baseRefs[entry].current.classList.add('gone');
+      }
+
+      // Determine new runner location
+      let ref = this.getClosestBase(
+        draggableData.x,
+        draggableData.y,
+        adjustedBaseCoords
+      );
+      let runnerLocation = ref.current.getAttribute('loc');
+
+      // Move the runners and update the state!
+      const newRunners = JSON.parse(JSON.stringify(this.state.runners));
+      this.moveRunner(newRunners, playerId, runnerLocation);
+      this.setState({
+        runners: cleanObject(newRunners),
+        suspendTransition: false,
+      });
+    }.bind(this);
+
     this.onPlayerDrag = function (
       adjustedBaseCoords,
       mouseEvent,
       draggableData
     ) {
-      // Un-highlight all base locations
+      // Un-highlight all runner locations
       for (let entry in this.baseRefs) {
         this.baseRefs[entry].current.classList.remove(
           'player-location-highlight'
         );
       }
 
-      // Highlight the closest base location
+      // Highlight the closest runner location
       let ref = this.getClosestBase(
         draggableData.x,
         draggableData.y,
@@ -335,6 +525,97 @@ class CardPlateAppearance extends React.Component {
 
     window.removeEventListener('mouseup', this.onmouseup);
     window.removeEventListener('touchend', this.onmouseup);
+  }
+
+  moveRunner(runners, playerId, location) {
+    if (playerId === undefined) {
+      return;
+    }
+
+    // remove the player from its old location
+    Object.keys(runners).forEach(function (key) {
+      if (Array.isArray(runners[key])) {
+        runners[key] = runners[key].filter((pid) => pid !== playerId);
+        if (runners[key].length === 0) {
+          delete runners[key];
+        }
+      } else {
+        if (runners[key] === playerId) {
+          delete runners[key];
+        }
+      }
+    });
+
+    // Move everybody in my way, the move me
+    if (location === 'scored') {
+      if (runners['scored'] === undefined) {
+        runners['scored'] = [playerId];
+      } else {
+        runners['scored'].push(playerId);
+      }
+    } else if (location === 'out') {
+      if (runners['out'] === undefined) {
+        runners['out'] = [playerId];
+      } else {
+        runners['out'].push(playerId);
+      }
+    } else if (location === '1B') {
+      this.moveRunner(runners, runners[location], '2B');
+      runners[location] = playerId;
+    } else if (location === '2B') {
+      this.moveRunner(runners, runners[location], '3B');
+      runners[location] = playerId;
+    } else if (location === '3B') {
+      this.moveRunner(runners, runners[location], 'scored');
+      runners[location] = playerId;
+    } else {
+      console.error("Couldn't find loc", location);
+    }
+  }
+
+  getRunnerDraggable(playerId, x, y, disabled, adjBaseCoordinates, opacity) {
+    return (
+      <Draggable
+        onDrag={this.onPlayerDrag.bind(this, adjBaseCoordinates)}
+        position={{ x: x + 1, y: y - 20 }}
+        disabled={disabled}
+        key={'dr-' + playerId}
+        onStop={this.onPlayerDragStop.bind(this, adjBaseCoordinates, playerId)}
+        onStart={this.onPlayerDragStart}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            color: 'black',
+            marginLeft: -64,
+            marginTop: -50,
+            opacity: opacity,
+            userSelect: 'none',
+            transition: this.state.suspendTransition
+              ? 'none'
+              : 'transform 0.3s',
+          }}
+          className="triangle-border"
+        >
+          {state.getPlayer(playerId).name}
+        </div>
+      </Draggable>
+    );
+  }
+
+  isLastPaOfInning(paId, gameId, teamId, paRunnerOverride) {
+    const outsFromGame = state.getOutsAtPa(paId, gameId, teamId);
+    let outsAtPa = outsFromGame;
+    let outsInPa = undefined;
+    if (paRunnerOverride) {
+      const outsFromThisSavedPa =
+        this.props.plateAppearance.runners.out?.length ?? 0;
+      outsInPa = paRunnerOverride.out?.length ?? 0;
+      outsAtPa = outsFromGame - outsFromThisSavedPa + outsInPa;
+    } else {
+      outsInPa = state.getPlateAppearance(paId).runners.out?.length ?? 0;
+    }
+    return outsAtPa % 3 === 0 && outsInPa > 0;
   }
 
   renderButtonList() {
@@ -484,24 +765,120 @@ class CardPlateAppearance extends React.Component {
       }
     });
 
+    const teamId = this.props.team.id;
+    const gameId = this.props.game.id;
+    const paId = this.props.plateAppearance.id;
+
+    const isLastPAOfInning = this.isLastPaOfInning(
+      paId,
+      gameId,
+      teamId,
+      this.state.runners
+    );
+    const isFirstPAOfInning =
+      this.props.previousPlateAppearance === undefined ||
+      this.props.previousPlateAppearance === null
+        ? true
+        : this.isLastPaOfInning(
+            this.props.previousPlateAppearance.id,
+            gameId,
+            teamId
+          );
+
+    // Determine runners object used to render
+    const lastPaRunners = JSON.parse(
+      JSON.stringify(this.props.previousPlateAppearance?.runners ?? {})
+    );
+    delete lastPaRunners['out'];
+    delete lastPaRunners['scored'];
+
+    const useLastPaRunners =
+      Object.keys(this.state.runners).length === 0 && !isFirstPAOfInning;
+
+    const runners = useLastPaRunners ? lastPaRunners : this.state.runners;
+
+    // Create a list of runner draggable
+    const OLD_RUNNERS_OPACITY = '.3';
+    const NEW_RUNNERS_OPACITY = '1';
+    const runnerDraggables = [];
+    if (runners['1B'] !== undefined) {
+      const coords = adjBaseCoordinates['1B'];
+      runnerDraggables.push(
+        this.getRunnerDraggable(
+          runners['1B'],
+          coords.left,
+          coords.top,
+          useLastPaRunners,
+          adjBaseCoordinates,
+          useLastPaRunners ? OLD_RUNNERS_OPACITY : NEW_RUNNERS_OPACITY
+        )
+      );
+    }
+    if (runners['2B'] !== undefined) {
+      const coords = adjBaseCoordinates['2B'];
+      runnerDraggables.push(
+        this.getRunnerDraggable(
+          runners['2B'],
+          coords.left,
+          coords.top,
+          useLastPaRunners,
+          adjBaseCoordinates,
+          useLastPaRunners ? OLD_RUNNERS_OPACITY : NEW_RUNNERS_OPACITY
+        )
+      );
+    }
+    if (runners['3B'] !== undefined) {
+      const coords = adjBaseCoordinates['3B'];
+      runnerDraggables.push(
+        this.getRunnerDraggable(
+          runners['3B'],
+          coords.left,
+          coords.top,
+          useLastPaRunners,
+          adjBaseCoordinates,
+          useLastPaRunners ? OLD_RUNNERS_OPACITY : NEW_RUNNERS_OPACITY
+        )
+      );
+    }
+
+    const STACK_OFFSET_X = -3;
+    const STACK_OFFSET_Y = 9;
+
+    if (runners['scored'] !== undefined) {
+      const coords = adjBaseCoordinates['scored'];
+      for (let i = 0; i < runners['scored'].length; i++) {
+        runnerDraggables.push(
+          this.getRunnerDraggable(
+            runners['scored'][i],
+            coords.left + STACK_OFFSET_X * i,
+            coords.top + STACK_OFFSET_Y * i,
+            i === runners['scored'].length - 1 ? useLastPaRunners : true,
+            adjBaseCoordinates,
+            useLastPaRunners ? OLD_RUNNERS_OPACITY : NEW_RUNNERS_OPACITY
+          )
+        );
+      }
+    }
+
+    if (runners['out'] !== undefined) {
+      const coords = adjBaseCoordinates['out'];
+      for (let i = 0; i < runners['out'].length; i++) {
+        runnerDraggables.push(
+          this.getRunnerDraggable(
+            runners['out'][i],
+            coords.left + STACK_OFFSET_X * i + 20,
+            coords.top + STACK_OFFSET_Y * i + 60,
+            i === runners['out'].length - 1 ? useLastPaRunners : true,
+            adjBaseCoordinates,
+            useLastPaRunners ? OLD_RUNNERS_OPACITY : NEW_RUNNERS_OPACITY
+          )
+        );
+      }
+    }
+
     let runnerObjects = (
       <div>
-        <Draggable
-          //style={{ top: '-300px', left: '300px', position: 'absolute' }}
-          onDrag={this.onPlayerDrag.bind(this, adjBaseCoordinates)}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              color: 'black',
-              marginLeft: -64,
-              marginTop: -50,
-            }}
-            className="triangle-border"
-          >
-            Lauren B
-          </div>
-        </Draggable>
+        {runnerDraggables}
         <div
           ref={this.baseRefs['1B']}
           style={{
@@ -512,9 +889,10 @@ class CardPlateAppearance extends React.Component {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          className="player-location"
+          loc="1B"
+          className="player-location gone"
         >
-          <div>1B</div>
+          <div style={{ marginTop: '13px', marginLeft: '13px' }}>1B</div>
         </div>
         <div
           ref={this.baseRefs['2B']}
@@ -526,9 +904,10 @@ class CardPlateAppearance extends React.Component {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          className="player-location"
+          loc="2B"
+          className="player-location gone"
         >
-          <div>2B</div>
+          <div style={{ marginTop: '13px', marginLeft: '13px' }}>2B</div>
         </div>
         <div
           ref={this.baseRefs['3B']}
@@ -540,38 +919,79 @@ class CardPlateAppearance extends React.Component {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          className="player-location"
+          loc="3B"
+          className="player-location gone"
         >
-          <div>3B</div>
+          <div style={{ marginTop: '13px', marginLeft: '13px' }}>3B</div>
         </div>
         <div
-          ref={this.baseRefs['Scored']}
+          ref={this.baseRefs['scored']}
           style={{
-            top: `${adjBaseCoordinates['Scored'].top}px`,
-            left: `${adjBaseCoordinates['Scored'].left}px`,
+            top: `${adjBaseCoordinates['scored'].top}px`,
+            left: `${adjBaseCoordinates['scored'].left}px`,
             marginLeft: -PLAYER_LOCATION_SIZE / 2,
             marginTop: -PLAYER_LOCATION_SIZE / 2,
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          className="player-location"
+          loc="scored"
+          className="player-location gone"
         >
-          <div>Scored</div>
+          <div
+            style={{ marginTop: '14px', marginLeft: '12px', fontSize: '13px' }}
+          >
+            Run
+          </div>
         </div>
         <div
-          ref={this.baseRefs['Out']}
+          ref={this.baseRefs['out']}
           style={{
-            top: `${adjBaseCoordinates['Out'].top}px`,
-            left: `${adjBaseCoordinates['Out'].left}px`,
+            top: `${adjBaseCoordinates['out'].top}px`,
+            left: `${adjBaseCoordinates['out'].left}px`,
             marginLeft: -PLAYER_LOCATION_SIZE / 2,
             marginTop: -PLAYER_LOCATION_SIZE / 2,
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          className="player-location"
+          loc="out"
+          className="player-location gone"
         >
-          <div>Out</div>
+          <div
+            style={{ marginTop: '16px', marginLeft: '13px', fontSize: '13px' }}
+          >
+            Out
+          </div>
         </div>
+      </div>
+    );
+
+    // For this PA, ignore outs/runs from the global state and use the values in the local component state
+    const runsFromThisSavedPa =
+      this.props.plateAppearance.runners.scored?.length ?? 0;
+    const runsFromState = this.state.runners.scored?.length ?? 0;
+    const runsFromGame = state.getUsScoreAtPa(paId, gameId, teamId);
+    const runsAtPa = runsFromGame - runsFromThisSavedPa + runsFromState;
+
+    const outsFromGame = state.getOutsAtPa(paId, gameId, teamId);
+    const outsFromThisSavedPa =
+      this.props.plateAppearance.runners.out?.length ?? 0;
+    const outsFromState = this.state.runners.out?.length ?? 0;
+    const outsAtPa = outsFromGame - outsFromThisSavedPa + outsFromState;
+
+    const textInfo = (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-evenly',
+          position: 'relative',
+        }}
+      >
+        <div>
+          Score: {`${runsAtPa}-${state.getThemScoreAtPa(paId, gameId, teamId)}`}
+        </div>
+        <div>Inning: {Math.floor(outsAtPa / 3) + 1}</div>
+
+        <div>Outs: {isLastPAOfInning ? 3 : outsAtPa % 3}</div>
       </div>
     );
 
@@ -587,9 +1007,10 @@ class CardPlateAppearance extends React.Component {
           overflow: 'hidden',
         }}
       >
+        {textInfo}
         {runnerObjects}
         <img
-          draggable={true}
+          //draggable={true}
           src="/assets/ballfield2.png"
           alt="ballfield"
           style={{
@@ -682,11 +1103,10 @@ class CardPlateAppearance extends React.Component {
   }
 
   renderWalkupSong() {
-    // PIZZA songLink?
     return (
       <WalkupSong
-        songLink={this.props.player.song_link}
-        songStart={this.props.player.song_start}
+        songLink={this.props.player.songLink}
+        songStart={this.props.player.songStart}
         width={48}
         height={48}
       ></WalkupSong>
@@ -713,12 +1133,12 @@ class CardPlateAppearance extends React.Component {
         }}
       >
         <div
-          className="card-body"
           style={{
             maxWidth: BALLFIELD_MAX_WIDTH + 'px',
             backgroundColor: 'unset',
             background: 'unset',
             boxShadow: 'unset',
+            margin: '0 auto',
           }}
         >
           {this.renderButtonList()}
