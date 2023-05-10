@@ -49,21 +49,20 @@ const tableStyles = makeStyles((css) => ({
     textAlign: 'center',
     verticalAlign: 'middle',
     border: '3px solid',
-    borderColor: css.colors.PRIMARY,
-    padding: '4px',
-    width: '32px',
-    height: '32px',
+    borderColor: css.colors.SECONDARY,
+    minWidth: '48px',
+    height: '48px',
   },
   scoreText: {
     padding: '4px',
   },
   scoreIncrementButton: {
-    backgroundColor: css.colors.PRIMARY_DARK,
+    backgroundColor: css.colors.PRIMARY,
     color: css.colors.TEXT_LIGHT,
     padding: '0',
     margin: '0',
-    minWidth: '32px',
-    height: '32px',
+    minWidth: '36px',
+    height: '36px',
   },
 }));
 
@@ -71,13 +70,15 @@ const ScoreChangeButton = ({ onScoreChange, increment, buttonText }) => {
   const { classes } = tableStyles();
   return (
     <div
+      style={{ padding: '6px' }}
       onClick={(ev) => {
         onScoreChange(increment);
         ev.preventDefault();
       }}
-      className={classes.scoreIncrementButton + ' button'}
     >
-      {buttonText}
+      <div className={classes.scoreIncrementButton + ' button'}>
+        {buttonText}
+      </div>
     </div>
   );
 };
@@ -125,7 +126,10 @@ const ScoreTable = ({ usName, themName, game }) => {
   return (
     <table className={classes.table}>
       <thead>
-        <th className={classes.tableCell}></th>
+        <th
+          style={{ borderTop: 0, borderLeft: 0 }}
+          className={classes.tableCell}
+        ></th>
         <th className={classes.tableCell}>1</th>
         <th className={classes.tableCell}>2</th>
         <th className={classes.tableCell}>3</th>
@@ -233,7 +237,7 @@ const GameScorer = ({ teamId, gameId }) => {
         <ScorePaper name={usName} score={usScore} />
         <ScorePaper name={themName} score={themScore} />
       </div>
-      <div style={{ marginTop: '16px' }}>
+      <div style={{ marginTop: '16px', overflowX: 'auto' }}>
         <ScoreTable game={game} usName={usName} themName={themName} />
       </div>
     </CardSection>
