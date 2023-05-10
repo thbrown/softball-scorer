@@ -3,7 +3,6 @@ import CardSection from 'elements/card-section';
 import state from 'state';
 import { makeStyles } from 'css/helpers';
 import css from 'css';
-import { json } from 'body-parser';
 
 const useScorePaperStyles = makeStyles((css) => ({
   root: {
@@ -91,7 +90,7 @@ const TableCell = ({ whoseScore, inning, game, score }) => {
 
   const displayScore = (score ?? 0) + (game[whoseScore][inning] ?? 0);
   const displayScoreContent =
-    displayScore === score ? (
+    game[whoseScore][inning] === undefined ? (
       <span>{displayScore}</span>
     ) : (
       <b>{displayScore}</b>
@@ -222,7 +221,7 @@ const GameScorer = ({ teamId, gameId }) => {
     .reduce((a, b) => a + b, 0);
 
   const overrideGameScoreUs = calculateScore(game.scoreUs);
-  const overrideGameScoreThem = calculateScore(game.scoreUs);
+  const overrideGameScoreThem = calculateScore(game.scoreThem);
 
   const usScore = overrideGameScoreUs + usDerivedScore;
   const themScore = overrideGameScoreThem;

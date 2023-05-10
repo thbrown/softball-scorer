@@ -844,6 +844,10 @@ exp.getInningScores = function (gameId) {
       score = 0;
     }
   }
+
+  // The last inning might not have 3 yet, add it.
+  result.push(score);
+
   return result;
 };
 
@@ -947,15 +951,28 @@ exp.replacePlateAppearance = function (paId, gameId, teamId, newPa) {
 };
 
 exp.getPlateAppearance = function (paId, state) {
+  // Check teams tree first
   for (let team of (state || LOCAL_DB_STATE).teams) {
     for (let game of team.games) {
       for (let pa of game.plateAppearances) {
         if (pa.id === paId) {
-          return pa;
+          return decoratePlateAppearance(pa, game);
         }
       }
     }
   }
+
+  // Then check the overrides
+  for (let optimization of (state || LOCAL_DB_STATE).optimizations) {
+    for (let playerId in optimization.overrideData) {
+      for (let pa of optimization.overrideData[playerId]) {
+        if (pa.id === paId) {
+          return decoratePlateAppearance(pa, undefined, optimization);
+        }
+      }
+    }
+  }
+
   return null;
 };
 
@@ -991,8 +1008,24 @@ exp.getPlateAppearancesForPlayerInGame = function (playerId, game_id, state) {
   return game.plateAppearances.filter((pa) => pa.playerId === playerId);
 };
 
-exp.getUsScoreAtPa = function (paId, gameId, teamId) {
-  const pas = exp.getPlateAppearancesForGame(gameId);
+exp.getThemScoreAtPa = function (paId) {
+  return 0;
+};
+
+exp.getUsScoreAtPa = function (paId) {
+  // Needs to work for overrides too
+  const pa = exp.getPlateAppearance(paId);
+  let pas = undefined;
+  if (pa.game) {
+    pas = exp.getPlateAppearancesForGame(pa.game.id);
+  } else if (pa.optimization) {
+    pas = exp.getOptimizationOverridesForPlayer(
+      pa.optimization.id,
+      pa.playerId
+    );
+  } else {
+    throw new Error("Can't find that PA " + paId);
+  }
   let scoreUs = 0;
   for (let pa of pas) {
     scoreUs += pa.runners['scored']?.length ?? 0;
@@ -1004,12 +1037,20 @@ exp.getUsScoreAtPa = function (paId, gameId, teamId) {
   return scoreUs;
 };
 
-exp.getThemScoreAtPa = function (paId, gameId, teamId) {
-  return 0;
-};
-
-exp.getOutsAtPa = function (paId, gameId, teamId) {
-  const pas = exp.getPlateAppearancesForGame(gameId);
+exp.getOutsAtPa = function (paId) {
+  // Needs to work for overrides too
+  const pa = exp.getPlateAppearance(paId);
+  let pas = undefined;
+  if (pa.game) {
+    pas = exp.getPlateAppearancesForGame(pa.game.id);
+  } else if (pa.optimization) {
+    pas = exp.getOptimizationOverridesForPlayer(
+      pa.optimization.id,
+      pa.playerId
+    );
+  } else {
+    throw new Error("Can't find that PA " + paId);
+  }
   let outs = 0;
   for (let pa of pas) {
     outs += pa.runners['out']?.length ?? 0;
@@ -1021,12 +1062,13 @@ exp.getOutsAtPa = function (paId, gameId, teamId) {
 };
 
 /**
- * Returns a plate appearance with the game object it's from.
+ * Returns a plate appearance with the game object it's from (or optimization if it's an optimization override PA).
  */
-const decoratePlateAppearance = (pa, game) => ({
+const decoratePlateAppearance = (pa, game, optimization) => ({
   ...pa,
   game,
-  date: game.date,
+  optimization,
+  date: game?.date,
 });
 
 exp.getDecoratedPlateAppearancesForPlayerOnTeam = function (

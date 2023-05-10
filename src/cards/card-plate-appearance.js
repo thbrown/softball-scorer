@@ -134,11 +134,7 @@ class CardPlateAppearance extends React.Component {
         this.props.previousPlateAppearance === undefined ||
         this.props.previousPlateAppearance === null
           ? true
-          : this.isLastPaOfInning(
-              this.props.previousPlateAppearance.id,
-              this.props.game.id,
-              this.props.team.id
-            );
+          : this.isLastPaOfInning(this.props.previousPlateAppearance.id);
       const previousRunners = isFirstPAOfInning
         ? {}
         : this.props.previousPlateAppearance?.runners ?? {};
@@ -603,8 +599,8 @@ class CardPlateAppearance extends React.Component {
     );
   }
 
-  isLastPaOfInning(paId, gameId, teamId, paRunnerOverride) {
-    const outsFromGame = state.getOutsAtPa(paId, gameId, teamId);
+  isLastPaOfInning(paId, paRunnerOverride) {
+    const outsFromGame = state.getOutsAtPa(paId);
     let outsAtPa = outsFromGame;
     let outsInPa = undefined;
     if (paRunnerOverride) {
@@ -765,25 +761,14 @@ class CardPlateAppearance extends React.Component {
       }
     });
 
-    const teamId = this.props.team.id;
-    const gameId = this.props.game.id;
     const paId = this.props.plateAppearance.id;
 
-    const isLastPAOfInning = this.isLastPaOfInning(
-      paId,
-      gameId,
-      teamId,
-      this.state.runners
-    );
+    const isLastPAOfInning = this.isLastPaOfInning(paId, this.state.runners);
     const isFirstPAOfInning =
       this.props.previousPlateAppearance === undefined ||
       this.props.previousPlateAppearance === null
         ? true
-        : this.isLastPaOfInning(
-            this.props.previousPlateAppearance.id,
-            gameId,
-            teamId
-          );
+        : this.isLastPaOfInning(this.props.previousPlateAppearance.id);
 
     // Determine runners object used to render
     const lastPaRunners = JSON.parse(
@@ -969,10 +954,10 @@ class CardPlateAppearance extends React.Component {
     const runsFromThisSavedPa =
       this.props.plateAppearance.runners.scored?.length ?? 0;
     const runsFromState = this.state.runners.scored?.length ?? 0;
-    const runsFromGame = state.getUsScoreAtPa(paId, gameId, teamId);
+    const runsFromGame = state.getUsScoreAtPa(paId);
     const runsAtPa = runsFromGame - runsFromThisSavedPa + runsFromState;
 
-    const outsFromGame = state.getOutsAtPa(paId, gameId, teamId);
+    const outsFromGame = state.getOutsAtPa(paId);
     const outsFromThisSavedPa =
       this.props.plateAppearance.runners.out?.length ?? 0;
     const outsFromState = this.state.runners.out?.length ?? 0;
@@ -986,9 +971,7 @@ class CardPlateAppearance extends React.Component {
           position: 'relative',
         }}
       >
-        <div>
-          Score: {`${runsAtPa}-${state.getThemScoreAtPa(paId, gameId, teamId)}`}
-        </div>
+        <div>Score: {`${runsAtPa}-${state.getThemScoreAtPa(paId)}`}</div>
         <div>Inning: {Math.floor(outsAtPa / 3) + 1}</div>
 
         <div>Outs: {isLastPAOfInning ? 3 : outsAtPa % 3}</div>
