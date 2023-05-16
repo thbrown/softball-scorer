@@ -2,7 +2,6 @@ import React from 'react';
 import CardSection from 'elements/card-section';
 import state from 'state';
 import { makeStyles } from 'css/helpers';
-import css from 'css';
 
 const useScorePaperStyles = makeStyles((css) => ({
   root: {
@@ -125,73 +124,77 @@ const ScoreTable = ({ usName, themName, game }) => {
   return (
     <table className={classes.table}>
       <thead>
-        <th
-          style={{ borderTop: 0, borderLeft: 0 }}
-          className={classes.tableCell}
-        ></th>
-        <th className={classes.tableCell}>1</th>
-        <th className={classes.tableCell}>2</th>
-        <th className={classes.tableCell}>3</th>
-        <th className={classes.tableCell}>4</th>
-        <th className={classes.tableCell}>5</th>
-        <th className={classes.tableCell}>6</th>
-        <th className={classes.tableCell}>7</th>
+        <tr>
+          <th
+            style={{ borderTop: 0, borderLeft: 0 }}
+            className={classes.tableCell}
+          ></th>
+          <th className={classes.tableCell}>1</th>
+          <th className={classes.tableCell}>2</th>
+          <th className={classes.tableCell}>3</th>
+          <th className={classes.tableCell}>4</th>
+          <th className={classes.tableCell}>5</th>
+          <th className={classes.tableCell}>6</th>
+          <th className={classes.tableCell}>7</th>
+        </tr>
       </thead>
-      <tr>
-        <td className={classes.tableCell}>{usName}</td>
-        <TableCell
-          inning="1"
-          game={game}
-          whoseScore="scoreUs"
-          score={scores[0]}
-        />
-        <TableCell
-          inning="2"
-          game={game}
-          whoseScore="scoreUs"
-          score={scores[1]}
-        />
-        <TableCell
-          inning="3"
-          game={game}
-          whoseScore="scoreUs"
-          score={scores[2]}
-        />
-        <TableCell
-          inning="4"
-          game={game}
-          whoseScore="scoreUs"
-          score={scores[3]}
-        />
-        <TableCell
-          inning="5"
-          game={game}
-          whoseScore="scoreUs"
-          score={scores[4]}
-        />
-        <TableCell
-          inning="6"
-          game={game}
-          whoseScore="scoreUs"
-          score={scores[5]}
-        />
-        <TableCell
-          inning="7"
-          game={game}
-          whoseScore="scoreUs"
-          score={scores[6]}
-        />
-      </tr>
-      <tr>
-        <td className={classes.tableCell}>{themName}</td>
-        <TableCell inning="1" game={game} whoseScore="scoreThem" />
-        <TableCell inning="2" game={game} whoseScore="scoreThem" />
-        <TableCell inning="3" game={game} whoseScore="scoreThem" />
-        <TableCell inning="4" game={game} whoseScore="scoreThem" />
-        <TableCell inning="5" game={game} whoseScore="scoreThem" />
-        <TableCell inning="6" game={game} whoseScore="scoreThem" />
-        <TableCell inning="7" game={game} whoseScore="scoreThem" />
-      </tr>
+      <tbody>
+        <tr>
+          <td className={classes.tableCell}>{usName}</td>
+          <TableCell
+            inning="1"
+            game={game}
+            whoseScore="scoreUs"
+            score={scores[0]}
+          />
+          <TableCell
+            inning="2"
+            game={game}
+            whoseScore="scoreUs"
+            score={scores[1]}
+          />
+          <TableCell
+            inning="3"
+            game={game}
+            whoseScore="scoreUs"
+            score={scores[2]}
+          />
+          <TableCell
+            inning="4"
+            game={game}
+            whoseScore="scoreUs"
+            score={scores[3]}
+          />
+          <TableCell
+            inning="5"
+            game={game}
+            whoseScore="scoreUs"
+            score={scores[4]}
+          />
+          <TableCell
+            inning="6"
+            game={game}
+            whoseScore="scoreUs"
+            score={scores[5]}
+          />
+          <TableCell
+            inning="7"
+            game={game}
+            whoseScore="scoreUs"
+            score={scores[6]}
+          />
+        </tr>
+        <tr>
+          <td className={classes.tableCell}>{themName}</td>
+          <TableCell inning="1" game={game} whoseScore="scoreThem" />
+          <TableCell inning="2" game={game} whoseScore="scoreThem" />
+          <TableCell inning="3" game={game} whoseScore="scoreThem" />
+          <TableCell inning="4" game={game} whoseScore="scoreThem" />
+          <TableCell inning="5" game={game} whoseScore="scoreThem" />
+          <TableCell inning="6" game={game} whoseScore="scoreThem" />
+          <TableCell inning="7" game={game} whoseScore="scoreThem" />
+        </tr>
+      </tbody>
     </table>
   );
 };
