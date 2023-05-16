@@ -2,7 +2,6 @@ import React from 'react';
 import ListButton from 'elements/list-button';
 import { sortObjectsByDate, toClientDate } from 'utils/functions';
 import { setRoute } from 'actions/route';
-import state from 'state';
 
 export default class CardStatsSharing extends React.Component {
   constructor(props) {

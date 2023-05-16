@@ -10,7 +10,7 @@ id?: string
 onClick?: () => void
 */
 const IconButton = (props) => {
-  const { hideBackground, invert, opacity, containerStyle, ...rest } = props;
+  const { hideBackground, invert, opacity, ...rest } = props;
   return (
     <div
       className="hover"
@@ -21,7 +21,6 @@ const IconButton = (props) => {
         height: '24px',
         padding: '12px', // 24x24 + 12 + 12 padding => minimum accessible tap target size
         opacity: opacity,
-        ...(containerStyle ?? {}),
       }}
     >
       <img alt="img" {...rest} />

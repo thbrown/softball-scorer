@@ -1486,13 +1486,13 @@ exp.buildStatsObject = function (plateAppearances, playerId) {
     ? paAutoCorResult.toFixed(2)
     : '-';
 
-  // if (isStatSig(paAutoCorResult, hitOrNoHit.length)) {
-  //   console.log(
-  //     stats.name,
-  //     isStatSig(paAutoCorResult, hitOrNoHit.length),
-  //     hitOrNoHit
-  //   );
-  // }
+  if (isStatSig(paAutoCorResult, hitOrNoHit.length)) {
+    console.log(
+      stats.name,
+      isStatSig(paAutoCorResult, hitOrNoHit.length),
+      hitOrNoHit
+    );
+  }
 
   // Serial correlation for games
   // TODO: we want this sorted by date right?
@@ -1521,9 +1521,9 @@ exp.buildStatsObject = function (plateAppearances, playerId) {
     avgList.push(hits / count);
   });
   let autoCorResult = autoCorrelation(avgList, 1);
-  // if (isStatSig(autoCorResult, avgList.length)) {
-  //   console.log(stats.name, isStatSig(autoCorResult, avgList.length), avgList);
-  // }
+  if (isStatSig(autoCorResult, avgList.length)) {
+    console.log(stats.name, isStatSig(autoCorResult, avgList.length), avgList);
+  }
   stats.gameAutocorrelation = isStatSig(autoCorResult, avgList.length)
     ? autoCorResult.toFixed(2)
     : '-';
