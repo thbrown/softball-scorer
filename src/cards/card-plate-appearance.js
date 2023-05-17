@@ -134,7 +134,10 @@ class CardPlateAppearance extends React.Component {
         this.props.previousPlateAppearance === undefined ||
         this.props.previousPlateAppearance === null
           ? true
-          : this.isLastPaOfInning(this.props.previousPlateAppearance.id);
+          : state.isLastPaOfInning(
+              this.props.previousPlateAppearance.id,
+              this.props.origin
+            );
       const previousRunners = isFirstPAOfInning
         ? {}
         : this.props.previousPlateAppearance?.runners ?? {};
@@ -599,21 +602,6 @@ class CardPlateAppearance extends React.Component {
     );
   }
 
-  isLastPaOfInning(paId, paRunnerOverride) {
-    const outsFromGame = state.getOutsAtPa(paId, this.props.origin);
-    let outsAtPa = outsFromGame;
-    let outsInPa = undefined;
-    if (paRunnerOverride) {
-      const outsFromThisSavedPa =
-        this.props.plateAppearance.runners.out?.length ?? 0;
-      outsInPa = paRunnerOverride.out?.length ?? 0;
-      outsAtPa = outsFromGame - outsFromThisSavedPa + outsInPa;
-    } else {
-      outsInPa = state.getPlateAppearance(paId).runners.out?.length ?? 0;
-    }
-    return outsAtPa % 3 === 0 && outsInPa > 0;
-  }
-
   renderButtonList() {
     if (!this.props.player || !this.props.plateAppearance) {
       return (
@@ -763,12 +751,19 @@ class CardPlateAppearance extends React.Component {
 
     const paId = this.props.plateAppearance.id;
 
-    const isLastPAOfInning = this.isLastPaOfInning(paId, this.state.runners);
+    const isLastPAOfInning = state.isLastPaOfInning(
+      paId,
+      this.props.origin,
+      this.state.runners
+    );
     const isFirstPAOfInning =
       this.props.previousPlateAppearance === undefined ||
       this.props.previousPlateAppearance === null
         ? true
-        : this.isLastPaOfInning(this.props.previousPlateAppearance.id);
+        : state.isLastPaOfInning(
+            this.props.previousPlateAppearance.id,
+            this.props.origin
+          );
 
     // Determine runners object used to render
     const lastPaRunners = JSON.parse(

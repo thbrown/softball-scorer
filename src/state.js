@@ -990,10 +990,59 @@ exp.getPlateAppearancesForPlayerInGame = function (playerId, game_id, state) {
   return game.plateAppearances.filter((pa) => pa.playerId === playerId);
 };
 
+/**
+ * `paRunnerOverride` can be used to replace the runners of the paId for last inning calc purposes.
+ * This is useful when you want the outs of the the current PA to affect the calculation but the PA
+ * hasn't yet been saved to the global state.
+ */
+exp.isLastPaOfInning = function (paId, paOrigin, paRunnerOverride) {
+  const outsFromGame = exp.getOutsAtPa(paId, paOrigin);
+  let outsAtPa = outsFromGame;
+  let outsInPa = undefined;
+  if (paRunnerOverride) {
+    const outsFromThisSavedPa =
+      exp.getPlateAppearance(paId).runners.out?.length ?? 0;
+    outsInPa = paRunnerOverride.out?.length ?? 0;
+    outsAtPa = outsFromGame - outsFromThisSavedPa + outsInPa;
+  } else {
+    outsInPa = exp.getPlateAppearance(paId).runners.out?.length ?? 0;
+  }
+  return outsAtPa % 3 === 0 && outsInPa > 0;
+};
+
+exp.didPlayerScoreThisInning = function (paId) {
+  const pa = exp.getPlateAppearance(paId);
+  const player = INDEX.getPlayer(pa.playerId);
+  const game = INDEX.getGameForPa(paId);
+  const gamePas = game.plateAppearances;
+
+  // Find this pa in game
+  let paIndex = undefined;
+  for (let i = 0; i < gamePas.length; i++) {
+    if (paId === gamePas[i].id) {
+      paIndex = i;
+      break;
+    }
+  }
+
+  // Look to see if the player scored in this or subsequent PAs in this inning
+  for (let i = paIndex; i < gamePas.length; i++) {
+    if (gamePas[i].runners.scored) {
+      if (gamePas[i].runners.scored.includes(player.id)) {
+        return true;
+      }
+    }
+    if (exp.isLastPaOfInning(gamePas[i].id, 'game')) {
+      return false;
+    }
+  }
+  return false;
+};
+
 exp.getUsScoreAtPa = function (paId, paOrigin) {
   let pas = undefined;
   if (paOrigin === 'optimization') {
-    const pa = exp.getPaFromOptimization(paId);
+    const pa = INDEX.getPaFromOptimization(paId);
     pas = exp.getOptimizationOverridesForPlayer(
       pa.optimization.id,
       pa.playerId
@@ -1018,9 +1067,9 @@ exp.getUsScoreAtPa = function (paId, paOrigin) {
 exp.getOutsAtPa = function (paId, paOrigin) {
   let pas = undefined;
   if (paOrigin === 'optimization') {
-    const pa = exp.getPaFromOptimization(paId);
+    const pa = INDEX.getPaFromOptimization(paId);
     pas = exp.getOptimizationOverridesForPlayer(
-      pa.optimization.id,
+      INDEX.getOptimizationForPa(pa.id).id,
       pa.playerId
     );
   } else if (paOrigin === 'game') {

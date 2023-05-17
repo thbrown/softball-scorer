@@ -330,6 +330,8 @@ export default class CardLineup extends React.Component {
     let pas = plateAppearances.map((pa, i) => {
       pa = pa || {};
 
+      const didPlayerScore = state.didPlayerScoreThisInning(pa.id);
+
       let className = 'lineup-box-beginning';
       if (editable === NO_EDIT && i === plateAppearances.length - 1) {
         className = 'lineup-box';
@@ -341,6 +343,7 @@ export default class CardLineup extends React.Component {
           key={`box${i}`}
           onClick={this.handleBoxClick.bind(this, pa.id)}
           className={className}
+          style={{ backgroundColor: didPlayerScore ? 'lightblue' : undefined }}
         >
           <span className="no-select">{pa.result || ''}</span>
         </div>

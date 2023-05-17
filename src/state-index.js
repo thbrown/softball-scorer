@@ -31,7 +31,10 @@ export default class StateIndex {
   };
 
   getFromIndex(id, index, validationIndex, secondTry) {
-    console.warn('POINTER', index[id], index, id);
+    if (id === undefined) {
+      throw new Error('Undefined input id');
+    }
+    //console.warn('POINTER', index[id], index, id);
     const result =
       index[id] === undefined
         ? undefined
@@ -166,7 +169,7 @@ export default class StateIndex {
     return this.getFromIndex(paId, this.paLookup);
   }
 
-  getPaFromOptimization() {
+  getPaFromOptimization(paId) {
     return this.getFromIndex(paId, this.paLookupTwo);
   }
 
