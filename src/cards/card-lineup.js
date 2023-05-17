@@ -331,6 +331,13 @@ export default class CardLineup extends React.Component {
       pa = pa || {};
 
       const didPlayerScore = state.didPlayerScoreThisInning(pa.id);
+      const isLastPaOfInning = state.isLastPaOfInning(pa.id, 'game');
+
+      const resultElement = isLastPaOfInning ? (
+        <b>{pa.result || ''}</b>
+      ) : (
+        <>{pa.result || ''}</>
+      );
 
       let className = 'lineup-box-beginning';
       if (editable === NO_EDIT && i === plateAppearances.length - 1) {
@@ -345,7 +352,7 @@ export default class CardLineup extends React.Component {
           className={className}
           style={{ backgroundColor: didPlayerScore ? 'lightblue' : undefined }}
         >
-          <span className="no-select">{pa.result || ''}</span>
+          <span className="no-select">{resultElement}</span>
         </div>
       );
     });

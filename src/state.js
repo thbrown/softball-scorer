@@ -996,6 +996,9 @@ exp.getPlateAppearancesForPlayerInGame = function (playerId, game_id, state) {
  * hasn't yet been saved to the global state.
  */
 exp.isLastPaOfInning = function (paId, paOrigin, paRunnerOverride) {
+  if (paOrigin === 'optimization') {
+    return false; // TODO
+  }
   const outsFromGame = exp.getOutsAtPa(paId, paOrigin);
   let outsAtPa = outsFromGame;
   let outsInPa = undefined;
@@ -1042,6 +1045,8 @@ exp.didPlayerScoreThisInning = function (paId) {
 exp.getUsScoreAtPa = function (paId, paOrigin) {
   let pas = undefined;
   if (paOrigin === 'optimization') {
+    return 0;
+    // TODO
     const pa = INDEX.getPaFromOptimization(paId);
     pas = exp.getOptimizationOverridesForPlayer(
       pa.optimization.id,
