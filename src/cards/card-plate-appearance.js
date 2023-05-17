@@ -600,7 +600,7 @@ class CardPlateAppearance extends React.Component {
   }
 
   isLastPaOfInning(paId, paRunnerOverride) {
-    const outsFromGame = state.getOutsAtPa(paId);
+    const outsFromGame = state.getOutsAtPa(paId, this.props.origin);
     let outsAtPa = outsFromGame;
     let outsInPa = undefined;
     if (paRunnerOverride) {
@@ -954,14 +954,23 @@ class CardPlateAppearance extends React.Component {
     const runsFromThisSavedPa =
       this.props.plateAppearance.runners.scored?.length ?? 0;
     const runsFromState = this.state.runners.scored?.length ?? 0;
-    const runsFromGame = state.getUsScoreAtPa(paId);
+    const runsFromGame = state.getUsScoreAtPa(paId, this.props.origin);
     const runsAtPa = runsFromGame - runsFromThisSavedPa + runsFromState;
 
-    const outsFromGame = state.getOutsAtPa(paId);
+    const outsFromGame = state.getOutsAtPa(paId, this.props.origin);
     const outsFromThisSavedPa =
       this.props.plateAppearance.runners.out?.length ?? 0;
     const outsFromState = this.state.runners.out?.length ?? 0;
     const outsAtPa = outsFromGame - outsFromThisSavedPa + outsFromState;
+
+    // TODO: DUp code, also we need to get this by inning instead of over the whole game
+    const calculateScore = (scoreObj) => {
+      let totalScore = 0;
+      for (let inningNumber in scoreObj) {
+        totalScore += scoreObj[inningNumber]; // Overrides
+      }
+      return totalScore;
+    };
 
     const textInfo = (
       <div
@@ -971,7 +980,14 @@ class CardPlateAppearance extends React.Component {
           position: 'relative',
         }}
       >
-        <div>Score: {`${runsAtPa}-${state.getThemScoreAtPa(paId)}`}</div>
+        <div>
+          Score:{' '}
+          {`${runsAtPa}-${
+            this.props.plateAppearance.game === undefined
+              ? 0
+              : calculateScore(this.props.plateAppearance.game.scoreThem)
+          }`}
+        </div>
         <div>Inning: {Math.floor(outsAtPa / 3) + 1}</div>
 
         <div>Outs: {isLastPAOfInning ? 3 : outsAtPa % 3}</div>

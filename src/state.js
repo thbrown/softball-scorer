@@ -3,6 +3,7 @@ import network from 'network';
 import SharedLib from 'shared-lib';
 import results from 'plate-appearance-results';
 import { getShallowCopy, autoCorrelation, isStatSig } from 'utils/functions';
+import StateIndex from 'state-index';
 
 import dialog from 'dialog';
 const TLSchemas = SharedLib.schemaValidation.TLSchemas;
@@ -67,10 +68,13 @@ let syncState = SYNC_STATUS_ENUM.UNKNOWN;
 let syncTimer = null;
 let syncTimerTimestamp = null;
 
+// Index for quick relationship lookups
+let INDEX = new StateIndex(LOCAL_DB_STATE);
+
 const state = exp;
 
 // New objects shapes
-exp.getNewTeam = function (teamName) {
+const getNewTeam = function (teamName) {
   const id = getNextId();
   return {
     id: id,
@@ -79,7 +83,7 @@ exp.getNewTeam = function (teamName) {
   };
 };
 
-exp.getNewGame = function (opposingTeamName, lineup, lineupType) {
+const getNewGame = function (opposingTeamName, lineup, lineupType) {
   const timestamp = Math.floor(new Date().getTime() / 1000); // Time in seconds not ms
   const id = getNextId();
   return {
@@ -94,7 +98,7 @@ exp.getNewGame = function (opposingTeamName, lineup, lineupType) {
   };
 };
 
-exp.getNewPlateAppearance = function (playerId) {
+const getNewPlateAppearance = function (playerId) {
   const id = getNextId();
   return {
     id: id,
@@ -378,6 +382,7 @@ exp.resetState = function () {
 
   LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
   ANCESTOR_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+  INDEX = new StateIndex(LOCAL_DB_STATE);
 
   exp.saveApplicationStateToLocalStorage();
   exp.saveDbStateToLocalStorage();
@@ -385,6 +390,7 @@ exp.resetState = function () {
 
 exp.deleteAllData = function () {
   LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+  INDEX = new StateIndex(LOCAL_DB_STATE);
   onEdit();
 };
 
@@ -399,12 +405,14 @@ exp.getLocalStateChecksum = function () {
 exp.setLocalState = function (newState) {
   SharedLib.schemaValidation.validateSchema(newState, TLSchemas.CLIENT);
   LOCAL_DB_STATE = newState;
+  INDEX = new StateIndex(LOCAL_DB_STATE);
   onEdit();
 };
 
 let setLocalStateNoSideEffects = function (newState) {
   SharedLib.schemaValidation.validateSchema(newState, TLSchemas.CLIENT);
   LOCAL_DB_STATE = newState;
+  INDEX = new StateIndex(LOCAL_DB_STATE);
 };
 
 exp.getAncestorState = function () {
@@ -437,7 +445,7 @@ exp.getTeam = function (team_id, state) {
 
 exp.addTeam = function (teamName) {
   let localState = exp.getLocalState();
-  let team = exp.getNewTeam(teamName);
+  let team = getNewTeam(teamName);
   localState.teams.push(team);
   onEdit();
   return team;
@@ -595,16 +603,8 @@ exp.getOptimizationOverridesForPlayer = function (optimizationId, playerId) {
   }
 };
 
-exp.getOptimizationOverridePlateAppearance = function (
-  optimizationId,
-  playerId,
-  paId
-) {
-  let pas = exp.getOptimizationOverridesForPlayer(optimizationId, playerId);
-  let result = pas.find((pa) => {
-    return pa.id === paId;
-  });
-  return result;
+exp.getOptimizationOverridePlateAppearance = function (paId) {
+  return INDEX.getPaFromOptimization(paId);
 };
 
 exp.addOptimizationOverridePlateAppearance = function (
@@ -615,7 +615,7 @@ exp.addOptimizationOverridePlateAppearance = function (
   let allOverrides = optimization.overrideData;
 
   let playerOverrides = allOverrides[playerId];
-  let addedPa = this.getNewPlateAppearance(playerId);
+  let addedPa = getNewPlateAppearance(playerId);
 
   if (!playerOverrides) {
     allOverrides[playerId] = [addedPa];
@@ -765,7 +765,7 @@ exp.addGame = function (teamId, opposingTeamName) {
     lastLineupType = lastGame.lineupType;
     lastLineup = lastGame.lineup.slice();
   }
-  let game = exp.getNewGame(opposingTeamName, lastLineup, lastLineupType);
+  let game = getNewGame(opposingTeamName, lastLineup, lastLineupType);
   team.games.push(game);
   onEdit();
   return game;
@@ -899,7 +899,7 @@ exp.setScore = function (game, inning, increment, scoreKey) {
   } else {
     teamScoreObj[inning] = increment;
   }
-  if (teamScoreObj[inning] <= 0) {
+  if (teamScoreObj[inning] === 0) {
     delete teamScoreObj[inning];
   }
 
@@ -912,7 +912,7 @@ exp.setScore = function (game, inning, increment, scoreKey) {
 exp.addPlateAppearance = function (playerId, gameId) {
   const game = exp.getGame(gameId);
   const plateAppearances = game.plateAppearances;
-  const plateAppearance = exp.getNewPlateAppearance(playerId);
+  const plateAppearance = getNewPlateAppearance(playerId);
   plateAppearances.push(plateAppearance);
   onEdit();
   return plateAppearance;
@@ -951,29 +951,11 @@ exp.replacePlateAppearance = function (paId, gameId, teamId, newPa) {
 };
 
 exp.getPlateAppearance = function (paId, state) {
-  // Check teams tree first
-  for (let team of (state || LOCAL_DB_STATE).teams) {
-    for (let game of team.games) {
-      for (let pa of game.plateAppearances) {
-        if (pa.id === paId) {
-          return decoratePlateAppearance(pa, game);
-        }
-      }
-    }
-  }
-
-  // Then check the overrides
-  for (let optimization of (state || LOCAL_DB_STATE).optimizations) {
-    for (let playerId in optimization.overrideData) {
-      for (let pa of optimization.overrideData[playerId]) {
-        if (pa.id === paId) {
-          return decoratePlateAppearance(pa, undefined, optimization);
-        }
-      }
-    }
-  }
-
-  return null;
+  const result = decoratePlateAppearance(
+    INDEX.getPa(paId),
+    INDEX.getGameForPa(paId)
+  );
+  return result;
 };
 
 exp.getAllPlateAppearancesForPlayer = function (playerId) {
@@ -1008,23 +990,19 @@ exp.getPlateAppearancesForPlayerInGame = function (playerId, game_id, state) {
   return game.plateAppearances.filter((pa) => pa.playerId === playerId);
 };
 
-exp.getThemScoreAtPa = function (paId) {
-  return 0;
-};
-
-exp.getUsScoreAtPa = function (paId) {
-  // Needs to work for overrides too
-  const pa = exp.getPlateAppearance(paId);
+exp.getUsScoreAtPa = function (paId, paOrigin) {
   let pas = undefined;
-  if (pa.game) {
-    pas = exp.getPlateAppearancesForGame(pa.game.id);
-  } else if (pa.optimization) {
+  if (paOrigin === 'optimization') {
+    const pa = exp.getPaFromOptimization(paId);
     pas = exp.getOptimizationOverridesForPlayer(
       pa.optimization.id,
       pa.playerId
     );
+  } else if (paOrigin === 'game') {
+    const pa = exp.getPlateAppearance(paId);
+    pas = exp.getPlateAppearancesForGame(pa.game.id);
   } else {
-    throw new Error("Can't find that PA " + paId);
+    throw new Error('Invalid origin ' + paOrigin);
   }
   let scoreUs = 0;
   for (let pa of pas) {
@@ -1037,20 +1015,21 @@ exp.getUsScoreAtPa = function (paId) {
   return scoreUs;
 };
 
-exp.getOutsAtPa = function (paId) {
-  // Needs to work for overrides too
-  const pa = exp.getPlateAppearance(paId);
+exp.getOutsAtPa = function (paId, paOrigin) {
   let pas = undefined;
-  if (pa.game) {
-    pas = exp.getPlateAppearancesForGame(pa.game.id);
-  } else if (pa.optimization) {
+  if (paOrigin === 'optimization') {
+    const pa = exp.getPaFromOptimization(paId);
     pas = exp.getOptimizationOverridesForPlayer(
       pa.optimization.id,
       pa.playerId
     );
+  } else if (paOrigin === 'game') {
+    const pa = exp.getPlateAppearance(paId);
+    pas = exp.getPlateAppearancesForGame(pa.game.id);
   } else {
-    throw new Error("Can't find that PA " + paId);
+    throw new Error('Invalid origin ' + paOrigin);
   }
+
   let outs = 0;
   for (let pa of pas) {
     outs += pa.runners['out']?.length ?? 0;
@@ -1064,10 +1043,9 @@ exp.getOutsAtPa = function (paId) {
 /**
  * Returns a plate appearance with the game object it's from (or optimization if it's an optimization override PA).
  */
-const decoratePlateAppearance = (pa, game, optimization) => ({
+const decoratePlateAppearance = (pa, game) => ({
   ...pa,
   game,
-  optimization,
   date: game?.date,
 });
 
@@ -1322,6 +1300,7 @@ exp.loadStateFromLocalStorage = function (loadState = true, loadApp = true) {
         if (localDbState && ancestorDbState) {
           LOCAL_DB_STATE = localDbState;
           ANCESTOR_DB_STATE = ancestorDbState;
+          INDEX = new StateIndex(LOCAL_DB_STATE);
         }
       } catch (e) {
         // We have bad data in ls, delete it all
