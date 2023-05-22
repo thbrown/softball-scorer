@@ -317,7 +317,7 @@ let databaseCalls = class DatabaseCalls {
     this.STATES[accountId] = SharedLib.objectMerge.patch(
       this.STATES[accountId],
       patch,
-      false,
+      true,
       false,
       accountId,
       logger

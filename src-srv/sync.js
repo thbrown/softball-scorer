@@ -114,7 +114,7 @@ const applyServerPatchChanges = async ({
     // Yes we have an ancestor!
     logger.log(accountId, 'performing patch sync w/ ancestor');
 
-    // Apply the client's patch to the ancestor (self prevents us from sending back the change the client just sent us)
+    // Apply the client's patch to the ancestor (prevents us from sending back the change the client just sent us)
     serverAncestor = SharedLib.objectMerge.patch(
       serverAncestor,
       data.patch,

@@ -219,7 +219,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     let newState = SharedLib.objectMerge.patch(
       currentStateBlob.content,
       patch,
-      true, // PIZZA_PIE - we don't want to crash here?
+      true,
       false,
       accountId,
       logger
