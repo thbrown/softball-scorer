@@ -1627,7 +1627,7 @@ exp.buildStatsObject = function (plateAppearances, playerId) {
 
   if (gamesLookup && Object.keys(gamesLookup).length > 0) {
     stats.outsPerGame = (
-      (stats.plateAppearances - stats.hits) /
+      (stats.plateAppearances - (stats.hits + stats.walks)) /
       Object.keys(gamesLookup).length
     ).toFixed(2);
   }
