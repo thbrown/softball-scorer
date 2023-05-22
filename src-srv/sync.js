@@ -103,7 +103,8 @@ const applyServerPatchChanges = async ({
   let serverAncestor = await self.cacheCalls.getAncestor(accountId, sessionId);
   logger.log(
     accountId,
-    'Retrieving ancestor'
+    'Retrieving ancestor. Success: ',
+    serverAncestor !== undefined
     //JSON.stringify(serverAncestor, null, 2)
   );
 
@@ -114,12 +115,11 @@ const applyServerPatchChanges = async ({
     // Yes we have an ancestor!
     logger.log(accountId, 'performing patch sync w/ ancestor');
 
-    // Apply the client's patch to the ancestor (self prevents us from sending back the change the client just sent us)
+    // Apply the client's patch to the ancestor (prevents us from sending back the change the client just sent us)
     serverAncestor = SharedLib.objectMerge.patch(
       serverAncestor,
       data.patch,
       true,
-      false,
       false,
       accountId,
       logger
@@ -132,25 +132,14 @@ const applyServerPatchChanges = async ({
     patch = serverPatch;
   } else {
     // No we have no ancestor OR sync status is 'full', send back the whole state
-    if (serverAncestor) {
-      logger.warn(
-        accountId,
-        'performing full sync',
-        'Requested Sync Type:',
-        data.type,
-        'Ancestor present?:',
-        !!serverAncestor
-      );
-    } else {
-      logger.log(
-        accountId,
-        'performing full sync',
-        'Requested Sync Type:',
-        data.type,
-        'Ancestor present?:',
-        !!serverAncestor
-      );
-    }
+    logger.log(
+      accountId,
+      'performing full sync',
+      'Requested Sync Type:',
+      data.type,
+      'Ancestor present?:',
+      !!serverAncestor
+    );
 
     // The browser specifically requested a full sync, something must have gone wrong with the patch sync.
     // Print the state string so we can compare what went wrong with the browser's version

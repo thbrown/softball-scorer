@@ -1,6 +1,21 @@
 import constants from '../utils/constants';
+import { TLSchemas } from './schema-validation';
 
 export const CURRENT_VERSION = 5;
+
+export const SchemaMigrationTypes = {
+  EXPORT: 'export',
+  FULL: 'full',
+  CLIENT: 'client',
+};
+
+export const getMigration = function (tlSchema) {
+  const schemaNameMigrationMap = {};
+  schemaNameMigrationMap[TLSchemas.EXPORT] = SchemaMigrationTypes.EXPORT;
+  schemaNameMigrationMap[TLSchemas.FULL] = SchemaMigrationTypes.FULL;
+  schemaNameMigrationMap[TLSchemas.CLIENT] = SchemaMigrationTypes.CLIENT;
+  return schemaNameMigrationMap[tlSchema];
+};
 
 /**
  * When the json schema for an account's data gets updated, this function performs a schema migration on older data.
@@ -25,7 +40,7 @@ export const CURRENT_VERSION = 5;
  * "ERROR" - if there was an error while attempting to update the json document's schema
  * "REFRESH" - if the document's version is newer than the current app version
  */
-export let updateSchema = function (
+export const updateSchema = function (
   accountId,
   inputJson,
   inputScope, // full, export, or client

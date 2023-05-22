@@ -152,9 +152,9 @@ exp.sync = async function (fullSync) {
     let localState = state.getLocalState();
 
     // Save the ancestor state so we can restore it if something goes wrong
-    let ancestorStateCopy = JSON.parse(
-      JSON.stringify(state.getAncestorState())
-    );
+    //let ancestorStateCopy = JSON.parse(
+    //  JSON.stringify(state.getAncestorState())
+    //);
 
     // Get the patch ready to send to the server
     let body = {
@@ -164,7 +164,7 @@ exp.sync = async function (fullSync) {
     };
 
     // Ship it
-    console.log(state.getAncestorState(), localState);
+    //console.log(state.getAncestorState(), localState);
     console.log('[SYNC] Syncing...', body);
     const response = await state.requestAuth(
       'POST',
@@ -184,9 +184,10 @@ exp.sync = async function (fullSync) {
       console.log('[SYNC] Local changes', localChangesDuringRequest);
 
       // Update the ancestor if updates were received from the server
+      let tempAncestor = undefined;
       if (serverState.base) {
         // The entire state was sent, we can just save it directly
-        state.setAncestorState(serverState.base);
+        tempAncestor = serverState.base;
       } else if (serverState.patch) {
         // Patch was sent, apply the patch to a copy of the local state
         console.log(`[SYNC] Applying patch (${serverState.patch.length})`);
@@ -197,14 +198,17 @@ exp.sync = async function (fullSync) {
         );
 
         // The local state with the server updates is the new ancestor
-        state.setAncestorState(localStateCopyPreRequest);
+        tempAncestor = localStateCopyPreRequest;
       } else {
         console.log('[SYNC] No updates received from server');
-        state.setAncestorState(localStateCopyPreRequest);
+        tempAncestor = localStateCopyPreRequest;
       }
 
+      // TODO: we want to always set the local state before the ancestor state to avoid deletion on partial execution.
+      // TODO: Maybe we want partial sync to fail when updating objects that don't exist. Then for full sync we can merge the whole client state in.
+
       // Verify that the ancestor state (after updates) has the same hash as the server state
-      let ancestorHash = state.getAncestorStateChecksum();
+      let ancestorHash = SharedLib.commonUtils.getHash(tempAncestor);
 
       console.log(
         '[SYNC] CLIENT: ',
@@ -222,18 +226,13 @@ exp.sync = async function (fullSync) {
           );
           console.log(
             'Client calculated',
-            SharedLib.commonUtils.getHash(state.getAncestorState()),
+            SharedLib.commonUtils.getHash(ancestorHash),
             'Server has',
             SharedLib.commonUtils.getHash(serverState.base)
           );
 
-          console.log(JSON.stringify(state.getAncestorState(), null, 2));
-          console.log(
-            SharedLib.commonUtils.getObjectString(state.getAncestorState())
-          );
-
-          // Set the state back to what it was when we first did a sync
-          state.setAncestorState(ancestorStateCopy);
+          console.log(JSON.stringify(ancestorHash, null, 2));
+          console.log(SharedLib.commonUtils.getObjectString(ancestorHash));
           throw new Error(-3);
         } else {
           // Something went wrong with the patch-based sync, perhaps the server's cached data was incorrect
@@ -255,9 +254,6 @@ exp.sync = async function (fullSync) {
           console.warn(
             SharedLib.commonUtils.getObjectString(state.getLocalState())
           );
-
-          // Set the state back to what it was when we first did a sync
-          state.setAncestorState(ancestorStateCopy);
           throw new Error(-2);
         }
       } else {
@@ -267,14 +263,7 @@ exp.sync = async function (fullSync) {
       }
 
       // Copy
-      let newLocalState = JSON.parse(JSON.stringify(state.getAncestorState()));
-
-      // Apply any changes that were made during the request to the new local state (Presumably this will be a no-op most times)
-      newLocalState = SharedLib.objectMerge.patch(
-        newLocalState,
-        localChangesDuringRequest,
-        true
-      );
+      let newLocalState = JSON.parse(JSON.stringify(tempAncestor));
 
       // Apply any changes that were made during the request to the new local state (Presumably this will be a no-op most times)
       newLocalState = SharedLib.objectMerge.patch(
@@ -285,6 +274,10 @@ exp.sync = async function (fullSync) {
 
       // Set local state to a copy of ancestor state (w/ localChangesDuringRequest applied)
       setLocalStateNoSideEffects(newLocalState);
+
+      // Now set the ancestor, it's important to do this last as having an updated ancestor but not an updated local state would cause
+      // a patch with deletions possibly resulting in data loss.
+      state.setAncestorState(tempAncestor);
 
       console.log(
         '[SYNC] local',
@@ -1634,7 +1627,7 @@ exp.buildStatsObject = function (plateAppearances, playerId) {
 
   if (gamesLookup && Object.keys(gamesLookup).length > 0) {
     stats.outsPerGame = (
-      (stats.plateAppearances - stats.hits) /
+      (stats.plateAppearances - (stats.hits + stats.walks)) /
       Object.keys(gamesLookup).length
     ).toFixed(2);
   }

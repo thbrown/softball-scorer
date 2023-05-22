@@ -130,7 +130,7 @@ class CardPlateAppearance extends React.Component {
     }.bind(this);
 
     this.handleButtonClick = function (result) {
-      const isFirstPAOfInning =
+      const isPreviousPaFirstPAOfInning =
         this.props.previousPlateAppearance === undefined ||
         this.props.previousPlateAppearance === null
           ? true
@@ -138,7 +138,7 @@ class CardPlateAppearance extends React.Component {
               this.props.previousPlateAppearance.id,
               this.props.origin
             );
-      const previousRunners = isFirstPAOfInning
+      const previousRunners = isPreviousPaFirstPAOfInning
         ? {}
         : this.props.previousPlateAppearance?.runners ?? {};
 
@@ -246,9 +246,7 @@ class CardPlateAppearance extends React.Component {
           ) {
             newRunners['out'].push(previousRunners['1B']);
             newRunners['out'].push(previousRunners['2B']);
-            if (previousRunners['3B'] !== undefined) {
-              newRunners['scored'].push(previousRunners['3B']); // TODO: not scored
-            }
+            newRunners['3B'] = previousRunners['3B'];
           } else if (
             previousRunners['1B'] !== undefined &&
             previousRunners['3B'] !== undefined
@@ -278,9 +276,38 @@ class CardPlateAppearance extends React.Component {
           break;
       }
 
+      // If the last out of the inning will occur during this PA, don't auto count any scored runs
+      const cleanRunners = cleanObject(newRunners);
+      const outsAtPreviousPa = this.props.previousPlateAppearance
+        ? state.getOutsAtPa(
+            this.props.previousPlateAppearance.id,
+            this.props.origin
+          ) % 3
+        : 0;
+      const outsAtCurrentPa =
+        outsAtPreviousPa +
+        (cleanRunners['out'] ? cleanRunners['out'].length : 0);
+      if (outsAtCurrentPa >= 3 && cleanRunners['scored']?.length === 1) {
+        if (cleanRunners['3B'] === undefined) {
+          cleanRunners['3B'] = cleanRunners['scored'][0];
+          cleanRunners['scored'] = [];
+        } else if (cleanRunners['2B'] === undefined) {
+          cleanRunners['2B'] = cleanRunners['3B'];
+          cleanRunners['3B'] = cleanRunners['scored'][0];
+          cleanRunners['scored'] = [];
+        } else if (cleanRunners['1B'] === undefined) {
+          cleanRunners['1B'] = cleanRunners['2B'];
+          cleanRunners['2B'] = cleanRunners['3B'];
+          cleanRunners['3B'] = cleanRunners['scored'][0];
+          cleanRunners['scored'] = [];
+        } else {
+          logger.warn('Could not find a base for the runner!');
+        }
+      }
+
       this.setState({
         paResult: result,
-        runners: cleanObject(newRunners),
+        runners: cleanObject(cleanRunners),
       });
     };
 
@@ -756,7 +783,7 @@ class CardPlateAppearance extends React.Component {
       this.props.origin,
       this.state.runners
     );
-    const isFirstPAOfInning =
+    const isPreviousPaTheFirstPAOfInning =
       this.props.previousPlateAppearance === undefined ||
       this.props.previousPlateAppearance === null
         ? true
@@ -773,7 +800,8 @@ class CardPlateAppearance extends React.Component {
     delete lastPaRunners['scored'];
 
     const useLastPaRunners =
-      Object.keys(this.state.runners).length === 0 && !isFirstPAOfInning;
+      Object.keys(this.state.runners).length === 0 &&
+      !isPreviousPaTheFirstPAOfInning;
 
     const runners = useLastPaRunners ? lastPaRunners : this.state.runners;
 
@@ -983,7 +1011,9 @@ class CardPlateAppearance extends React.Component {
               : calculateScore(this.props.plateAppearance.game.scoreThem)
           }`}
         </div>
-        <div>Inning: {Math.floor(outsAtPa / 3) + 1}</div>
+        <div>
+          Inning: {Math.floor(outsAtPa / 3) + 1 - (isLastPAOfInning ? 1 : 0)}
+        </div>
 
         <div>Outs: {isLastPAOfInning ? 3 : outsAtPa % 3}</div>
       </div>
