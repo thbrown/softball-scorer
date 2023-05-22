@@ -70,8 +70,9 @@ const applyClientPatchChanges = async (accountId, data) => {
     // Pass the client's patch to the database to persist its changes
     logger.log(
       accountId,
-      'Client patch. Number of patches: ',
-      data.patch.length
+      'Client patch. ',
+      getPatchDetails(data.patch)
+      //JSON.stringify(data.patch, null, 2)
     );
     await self.databaseCalls.patchState(data.patch, accountId);
 
@@ -126,11 +127,8 @@ const applyServerPatchChanges = async ({
 
     // Diff the ancestor and the localState (dbState) to get the patch we need to send back to the client
     let serverPatch = SharedLib.objectMerge.diff(serverAncestor, state);
-    logger.log(
-      accountId,
-      'Server Patch',
-      JSON.stringify(serverPatch, null, 2).length
-    ); // TODO: can we log the number of add/removals/replacements here?
+    logger.log(accountId, 'Server Patch', getPatchDetails(serverPatch));
+
     patch = serverPatch;
   } else {
     // No we have no ancestor OR sync status is 'full', send back the whole state
@@ -228,4 +226,40 @@ const sync = async ({ accountId, data, sessionId }) => {
 
   return responseData;
 };
+
+/**
+ * Build a rough summary of the patch for logging purposes
+ */
+const getPatchDetails = function (patch) {
+  let adds = 0;
+  let removes = 0;
+  let replace = 0;
+  let moves = 0;
+  let copy = 0;
+  for (let patchStatement of patch) {
+    if (patchStatement.op === 'add') {
+      adds++;
+    } else if (patchStatement.op === 'remove') {
+      removes++;
+    } else if (patchStatement.op === 'replace') {
+      replace++;
+    } else if (patchStatement.op === 'move') {
+      moves++;
+    } else if (patchStatement.op === 'copy') {
+      copy++;
+    }
+  }
+  return [
+    `Num Patches: ${patch.length}`,
+    adds === 0 ? null : `Add: ${adds}`,
+    removes === 0 ? null : `Remove: ${removes}`,
+    replace === 0 ? null : `Replace: ${replace}`,
+    moves === 0 ? null : `Move: ${moves}`,
+    copy === 0 ? null : `Copy: ${copy}`,
+    `Char Length: ${JSON.stringify(patch).length}`,
+  ]
+    .filter((v) => v !== null)
+    .join(',');
+};
+
 exports.sync = sync;

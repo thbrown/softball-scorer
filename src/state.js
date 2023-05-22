@@ -358,7 +358,7 @@ exp.sync = async function (fullSync) {
       dialog.show_notification(
         'Auto sync failed with message "' +
           err.message +
-          `". App will continue to function, but your data won't be synced with the server. Consider backing up your data from the main menu to avoid data loss. Details: ` +
+          `". App will continue to function, but your data won't be synced with the server. Consider backing up your data by clicking "Export To File" on the main menu to avoid data loss. Details: ` +
           err,
         () => {}
       );
