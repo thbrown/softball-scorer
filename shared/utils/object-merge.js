@@ -300,8 +300,8 @@ const patch = function (
     return this._fromRFC6902(patched.newDocument);
   } catch (e) {
     logger.error(e);
-    logger.error(accountId, 'BAD PATCH', JSON.stringify(toPatch, null, 2));
-    logger.error(accountId, 'BAD PATCH', JSON.stringify(patchObj, null, 2));
+    logger.error(accountId, 'BAD PATCH' /*JSON.stringify(toPatch, null, 2)*/);
+    logger.error(accountId, 'BAD PATCH' /*JSON.stringify(patchObj, null, 2)*/);
     throw e;
   }
 };

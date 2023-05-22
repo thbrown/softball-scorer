@@ -3,6 +3,8 @@ const SharedLib = require('../shared-lib');
 const TLSchemas = SharedLib.schemaValidation.default.TLSchemas;
 const logger = require('./logger.js');
 const BucketSessionStore = require('gcp-bucket-session-store');
+const { BlobLocation } = require('./database-calls-abstract-blob-types');
+const GcpOps = require('./gcp-bucket-ops');
 
 /**
  * This cache implementation just stores cached info in a gcp bucket
@@ -41,59 +43,19 @@ module.exports = class CacheCallsGcpBuckets {
 
   async getAncestor(accountId, sessionId) {
     let blobName = 'ancestor-' + sessionId;
-    let targetBucket = this.storage.bucket(this.ancestorBucket);
     try {
-      // Read the file content
-      let fileContent;
-      let generation;
-      try {
-        let file = (await targetBucket.file(blobName).get())[0];
-        generation = file.metadata.generation;
-        fileContent = JSON.parse(await file.download({ validation: 'md5' }));
-      } catch (e) {
-        logger.warn(
-          accountId,
-          'Failed to read file, it might not exist',
-          blobName,
-          e.statusCode
-        );
-        // We check for 404 in the parent class
-        throw e;
-      }
-
-      // Schema validation for data blob.
-      let result = SharedLib.schemaMigration.updateSchema(
+      const { fileContent, generation } = await GcpOps.readBlob(
         accountId,
-        fileContent,
-        'client',
-        logger
+        this.storage.bucket(this.ancestorBucket),
+        blobName,
+        TLSchemas.CLIENT
       );
-
-      if (result === 'UPDATED') {
-        // Check if a schema update is needed, if the schema has been upgraded, write the new data before progressing
-        SharedLib.schemaValidation.validateSchema(
-          fileContent,
-          TLSchemas.CLIENT
-        );
-        await this.writeBlob(accountId, location, blobName, fileContent, null);
-        logger.log(accountId, 'Updated schema write-back successful');
-      }
-
-      // Validate schema after read
-      SharedLib.schemaValidation.validateSchema(fileContent, TLSchemas.CLIENT);
-
-      /*
-      return {
-        content: fileContent,
-        generation: generation,
-      };
-      */
       return fileContent;
     } catch (e) {
       if (e.code === 404) {
         logger.log(accountId, 'Ancestor not found');
       } else {
-        logger.warn(accountId, 'Error retrieving ancestor', e);
+        logger.error(accountId, 'Error retrieving ancestor', e);
       }
       return undefined;
     }
@@ -101,21 +63,14 @@ module.exports = class CacheCallsGcpBuckets {
 
   async setAncestor(accountId, sessionId, ancestor) {
     let blobName = 'ancestor-' + sessionId;
-
     try {
-      // Validate schema before write
-      SharedLib.schemaValidation.validateSchema(ancestor, TLSchemas.CLIENT);
-      let targetBucket = this.storage.bucket(this.ancestorBucket);
-
-      // Now write the actual file
-      const file = targetBucket.file(blobName);
-      await file.save(JSON.stringify(ancestor), {
-        validation: 'md5',
-        resumable: false,
-        metadata: {
-          cacheControl: 'no-cache',
-        },
-      });
+      await GcpOps.writeBlob(
+        accountId,
+        this.storage.bucket(this.ancestorBucket),
+        blobName,
+        ancestor,
+        TLSchemas.CLIENT
+      );
     } catch (e) {
       // Storage library does not give a good stack, print the one we care about here
       var stack = new Error().stack;

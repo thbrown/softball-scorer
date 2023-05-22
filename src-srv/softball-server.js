@@ -1346,7 +1346,7 @@ module.exports = class SoftballServer {
         var sessData = req.session;
         sessData.nonHttpOnlyToken = token;
       } catch (e) {
-        logger.error('?', '2nd auth token not registered', e);
+        logger.error('?', '2nd auth token not registered', e, sessData);
       }
     }
 
