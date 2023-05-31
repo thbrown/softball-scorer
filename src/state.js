@@ -885,7 +885,7 @@ exp.removeGame = function (game_id, team_id) {
   onEdit();
 };
 
-exp.setScore = function (game, inning, increment, scoreKey) {
+exp.setScoreAdjustment = function (game, inning, increment, scoreKey) {
   let teamScoreObj = game[scoreKey];
   if (teamScoreObj[inning] !== undefined) {
     teamScoreObj[inning] += increment;

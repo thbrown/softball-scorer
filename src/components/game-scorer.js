@@ -82,16 +82,18 @@ const ScoreChangeButton = ({ onScoreChange, increment, buttonText }) => {
   );
 };
 
-const TableCell = ({ whoseScore, inning, game, score }) => {
+const TableCell = ({ whoseScore, inning, game, derivedScore }) => {
   const { classes } = tableStyles();
 
   const handleScoreChange = (increment) => {
-    state.setScore(game, inning, increment, whoseScore);
+    state.setScoreAdjustment(game, inning, increment, whoseScore);
   };
 
-  const displayScore = (score ?? 0) + (game[whoseScore][inning] ?? 0);
+  const scoreAdjustment = game[whoseScore][inning];
+
+  const displayScore = (derivedScore ?? 0) + (scoreAdjustment ?? 0);
   const displayScoreContent =
-    game[whoseScore][inning] === undefined ? (
+    scoreAdjustment === undefined ? (
       <span>{displayScore}</span>
     ) : (
       <b>{displayScore}</b>
@@ -119,9 +121,8 @@ const TableCell = ({ whoseScore, inning, game, score }) => {
   );
 };
 
-const Inning = ({ inning, game }) => {
+const Inning = ({ inning, game, derivedScoreForUs }) => {
   const { classes } = tableStyles();
-  const scores = state.getInningScores(game.id);
   return (
     <tr>
       <td className={classes.tableCell}>{inning}</td>
@@ -129,13 +130,13 @@ const Inning = ({ inning, game }) => {
         inning={inning}
         game={game}
         whoseScore="scoreUs"
-        score={scores[inning - 1]}
+        derivedScore={derivedScoreForUs[inning - 1]}
       />
       <TableCell
         inning={inning}
         game={game}
         whoseScore="scoreThem"
-        score={scores[inning - 1]}
+        derivedScore={0}
       />
     </tr>
   );
@@ -143,6 +144,7 @@ const Inning = ({ inning, game }) => {
 
 const ScoreTable = ({ usName, themName, game }) => {
   const { classes } = tableStyles();
+  const derivedScoreForUs = state.getInningScores(game.id);
   return (
     <table className={classes.table}>
       <thead>
@@ -153,13 +155,41 @@ const ScoreTable = ({ usName, themName, game }) => {
         </tr>
       </thead>
       <tbody>
-        <Inning inning="1" game={game}></Inning>
-        <Inning inning="2" game={game}></Inning>
-        <Inning inning="3" game={game}></Inning>
-        <Inning inning="4" game={game}></Inning>
-        <Inning inning="5" game={game}></Inning>
-        <Inning inning="6" game={game}></Inning>
-        <Inning inning="7" game={game}></Inning>
+        <Inning
+          inning="1"
+          game={game}
+          derivedScoreForUs={derivedScoreForUs}
+        ></Inning>
+        <Inning
+          inning="2"
+          game={game}
+          derivedScoreForUs={derivedScoreForUs}
+        ></Inning>
+        <Inning
+          inning="3"
+          game={game}
+          derivedScoreForUs={derivedScoreForUs}
+        ></Inning>
+        <Inning
+          inning="4"
+          game={game}
+          derivedScoreForUs={derivedScoreForUs}
+        ></Inning>
+        <Inning
+          inning="5"
+          game={game}
+          derivedScoreForUs={derivedScoreForUs}
+        ></Inning>
+        <Inning
+          inning="6"
+          game={game}
+          derivedScoreForUs={derivedScoreForUs}
+        ></Inning>
+        <Inning
+          inning="7"
+          game={game}
+          derivedScoreForUs={derivedScoreForUs}
+        ></Inning>
       </tbody>
     </table>
   );
