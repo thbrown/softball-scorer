@@ -1019,13 +1019,6 @@ export default class CardOptimization extends React.Component {
                     {this.areAllTeamsSelected() ? 'Deselect All' : 'Select All'}
                   </div>
                 </div>
-                {/* <input
-                    type="checkbox"
-                    // onChange={this.handleTeamCheckboxClick.bind(this, team)}
-                    checked={this.areAllTeamsSelected()}
-                    style={{ marginRight: '5px' }}
-                  /> */}
-                {/* {team.name} */}
                 {teamsCheckboxes}
               </div>
             </dd>
