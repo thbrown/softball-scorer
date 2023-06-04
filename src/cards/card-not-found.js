@@ -5,7 +5,7 @@ import Card from 'elements/card';
 import { goHome } from 'actions/route';
 import IconButton from 'elements/icon-button';
 
-export default ({ message }) => {
+const CardNotFound = ({ message }) => {
   message =
     message === undefined
       ? 'The page you are looking for was not found. It may have been deleted or it may never have existed.'
@@ -37,3 +37,5 @@ export default ({ message }) => {
     </Card>
   );
 };
+
+export default CardNotFound;

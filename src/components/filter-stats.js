@@ -1,5 +1,7 @@
 import React from 'react';
 import InnerSection from 'elements/inner-section';
+import IconButton from 'elements/icon-button';
+import { useModal } from 'hooks';
 
 export const getUrlFilterState = () => {
   const search = new URLSearchParams(window.location.search);
@@ -31,11 +33,7 @@ const FilterLabel = (labelProps) => {
 // should this reset every time or be stored in local storage?
 let cachedFilterState = null;
 
-export const FilterStats = ({ setFilterState }) => {
-  const [filterState, setLocalFilterState] = React.useState(
-    cachedFilterState ?? getUrlFilterState()
-  );
-
+const FilterStats = ({ setFilterState, setLocalFilterState, filterState }) => {
   const handleEnableFilterChange = (ev) => {
     setLocalFilterState({
       ...filterState,
@@ -52,31 +50,6 @@ export const FilterStats = ({ setFilterState }) => {
     });
   };
 
-  const handleApplyFilterClick = () => {
-    const search = new URLSearchParams(window.location.search);
-    search.set('filter', filterState.filterChecked);
-    search.set('ab', filterState.abFilter);
-    const searchInd = window.location.pathname.indexOf('?');
-    const newUrl =
-      window.location.protocol +
-      '//' +
-      window.location.host +
-      window.location.pathname.slice(
-        0,
-        searchInd === -1 ? undefined : searchInd
-      ) +
-      '?' +
-      search.toString();
-    window.history.replaceState({ path: newUrl }, '', newUrl);
-    const newFilterState = {
-      ...filterState,
-      filterStateChanged: false,
-    };
-    setFilterState(newFilterState);
-    setLocalFilterState(newFilterState);
-    cachedFilterState = newFilterState;
-  };
-
   React.useEffect(() => {
     cachedFilterState = null;
   });
@@ -87,51 +60,105 @@ export const FilterStats = ({ setFilterState }) => {
         padding: '0px 8px',
       }}
     >
-      <h2>Filtering</h2>
-      <p>
-        <input
-          type="checkbox"
-          id="enable-filter"
-          name="enable-filter"
-          checked={filterState.filterChecked}
-          style={{
-            transform: 'scale(1.5)',
-            padding: '8px',
-          }}
-          onChange={handleEnableFilterChange}
-        />
-        <FilterLabel htmlFor="enable-filter">Enable filtering</FilterLabel>
-        <br />
-        <br />
-        <input
-          type="number"
-          name="ab-filter"
-          style={{
-            width: '48px',
-            padding: '8px',
-          }}
-          value={filterState.abFilter}
-          disabled={!filterState.filterChecked}
-          onChange={handleAbFilterChange}
-        ></input>
-        <FilterLabel htmlFor="ab-filter">Minimum # of ABs</FilterLabel>
-        <br />
-        <br />
-        <button
-          className="button primary-button"
-          style={{
-            marginLeft: '0px',
-            opacity: filterState.filterStateChanged ? 1 : 0.5,
-            pointerEvents: filterState.filterStateChanged ? 'auto' : 'none',
-          }}
-          disabled={filterState.filterStateChanged === false}
-          onClick={handleApplyFilterClick}
-        >
-          {!filterState.filterChecked && filterState.filterStateChanged
-            ? 'Remove Filter'
-            : 'Apply Filter'}
-        </button>
-      </p>
+      <input
+        type="checkbox"
+        id="enable-filter"
+        name="enable-filter"
+        checked={filterState.filterChecked}
+        style={{
+          transform: 'scale(1.5)',
+          padding: '8px',
+        }}
+        onChange={handleEnableFilterChange}
+      />
+      <FilterLabel htmlFor="enable-filter">Enable filtering</FilterLabel>
+      <br />
+      <br />
+      <input
+        type="number"
+        name="ab-filter"
+        style={{
+          width: '48px',
+          padding: '8px',
+        }}
+        value={filterState.abFilter}
+        disabled={!filterState.filterChecked}
+        onChange={handleAbFilterChange}
+      ></input>
+      <FilterLabel htmlFor="ab-filter">Minimum # of ABs</FilterLabel>
     </InnerSection>
+  );
+};
+
+export const FilterStatsModal = ({ setFilterState }) => {
+  const [filterState, setLocalFilterState] = React.useState(
+    cachedFilterState ?? getUrlFilterState()
+  );
+
+  const { modal, open, setOpen } = useModal({
+    title: 'Filter Stats',
+    body: (
+      <FilterStats
+        filterState={filterState}
+        setFilterState={setFilterState}
+        setLocalFilterState={setLocalFilterState}
+      />
+    ),
+    onConfirm: () => {
+      const search = new URLSearchParams(window.location.search);
+      search.set('filter', filterState.filterChecked);
+      search.set('ab', filterState.abFilter);
+      const searchInd = window.location.pathname.indexOf('?');
+      const newUrl =
+        window.location.protocol +
+        '//' +
+        window.location.host +
+        window.location.pathname.slice(
+          0,
+          searchInd === -1 ? undefined : searchInd
+        ) +
+        '?' +
+        search.toString();
+      window.history.replaceState({ path: newUrl }, '', newUrl);
+      const newFilterState = {
+        ...filterState,
+        filterStateChanged: false,
+      };
+      setFilterState(newFilterState);
+      setLocalFilterState(newFilterState);
+      cachedFilterState = newFilterState;
+    },
+    onCancel: () => void 0,
+  });
+
+  return (
+    <>
+      <div
+        className="button"
+        style={{
+          height: '8px',
+          marginLeft: '0px',
+          paddingLeft: '4px',
+        }}
+        onClick={() => setOpen(true)}
+      >
+        <span
+          style={{
+            fontSize: '0.8em',
+            textDecoration: 'underline',
+          }}
+        >
+          Filter
+        </span>
+        <IconButton
+          src="/assets/filter.svg"
+          alt="filter"
+          style={{
+            opacity: '0.5',
+          }}
+        />
+      </div>
+      {open && modal}
+    </>
   );
 };

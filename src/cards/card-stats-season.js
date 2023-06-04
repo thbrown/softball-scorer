@@ -6,7 +6,11 @@ import css from 'css';
 import InnerSection from 'elements/inner-section';
 import IconButton from 'elements/icon-button';
 import { showStatsHelp } from 'utils/help-functions';
-import { FilterStats, getUrlFilterState } from 'components/filter-stats';
+import {
+  FilterStats,
+  FilterStatsModal,
+  getUrlFilterState,
+} from 'components/filter-stats';
 
 const DSC_CHAR = '▼'; //'\25bc';
 const ASC_CHAR = '▲'; //'\25be';
@@ -218,10 +222,15 @@ export default class CardStatsSeason extends React.Component {
     );
   }
 
-  renderNoTable() {
+  renderNoTable(reason) {
+    const reasons = {
+      noTeam: 'No team selected.',
+      noData: 'There is no data for this team.',
+      noFilteredData: 'All data has been filtered out.',
+    };
     return (
       <CardSection isCentered={true}>
-        Cannot display season stats: not enough data.
+        Cannot display season stats: {reasons[reason] ?? 'No data.'}
       </CardSection>
     );
   }
@@ -234,12 +243,12 @@ export default class CardStatsSeason extends React.Component {
     const s = inputState || state.getLocalState();
 
     if (!team) {
-      return this.renderNoTable();
+      return this.renderNoTable('noTeam');
     }
 
     const searchFilterState = this.state.filterState;
 
-    const playerStatsList = s.players
+    const playerStatsListBeforeFilter = s.players
       .filter((player) => {
         return team.games.reduce((result, game) => {
           return result || game.lineup.indexOf(player.id) > -1;
@@ -247,7 +256,13 @@ export default class CardStatsSeason extends React.Component {
       })
       .map((player) => {
         return this.buildStatsObject(team.id, player.id);
-      })
+      });
+
+    if (playerStatsListBeforeFilter.length === 0) {
+      return this.renderNoTable('noGames');
+    }
+
+    const playerStatsList = playerStatsListBeforeFilter
       .filter((statsObj) => {
         if (searchFilterState.filterChecked) {
           return statsObj.plateAppearances >= searchFilterState.abFilter;
@@ -268,16 +283,33 @@ export default class CardStatsSeason extends React.Component {
       <CardSection>
         {playerStatsList.length === 0 ? (
           <>
-            {this.renderNoTable()}
-            <FilterStats setFilterState={this.setFilterState} />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-start',
+              }}
+            >
+              <FilterStatsModal setFilterState={this.setFilterState} />
+            </div>
+            {this.renderNoTable('noFilteredData')}
           </>
         ) : (
           <>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-start',
+              }}
+            >
+              <FilterStatsModal setFilterState={this.setFilterState} />
+            </div>
+            <StickyTable>{tableElems}</StickyTable>
             <InnerSection
               style={{
                 textAlign: 'center',
                 color: css.colors.TEXT_GREY,
                 fontSize: css.typography.size.small,
+                marginTop: css.spacing.large,
               }}
             >
               <div>Tap a player name for season spray chart.</div>
@@ -303,6 +335,8 @@ export default class CardStatsSeason extends React.Component {
                     alignItems: 'center',
                     marginLeft: '16px',
                     textDecoration: 'underline',
+                    userSelect: 'none',
+                    cursor: 'pointer',
                   }}
                   onClick={showStatsHelp}
                 >
@@ -320,8 +354,6 @@ export default class CardStatsSeason extends React.Component {
                 </div>
               </div>
             </InnerSection>
-            <StickyTable>{tableElems}</StickyTable>
-            <FilterStats setFilterState={this.setFilterState} />
           </>
         )}
       </CardSection>
