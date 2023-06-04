@@ -1,6 +1,21 @@
 import constants from '../utils/constants';
+import { TLSchemas } from './schema-validation';
 
-export const CURRENT_VERSION = 4;
+export const CURRENT_VERSION = 5;
+
+export const SchemaMigrationTypes = {
+  EXPORT: 'export',
+  FULL: 'full',
+  CLIENT: 'client',
+};
+
+export const getMigration = function (tlSchema) {
+  const schemaNameMigrationMap = {};
+  schemaNameMigrationMap[TLSchemas.EXPORT] = SchemaMigrationTypes.EXPORT;
+  schemaNameMigrationMap[TLSchemas.FULL] = SchemaMigrationTypes.FULL;
+  schemaNameMigrationMap[TLSchemas.CLIENT] = SchemaMigrationTypes.CLIENT;
+  return schemaNameMigrationMap[tlSchema];
+};
 
 /**
  * When the json schema for an account's data gets updated, this function performs a schema migration on older data.
@@ -25,7 +40,7 @@ export const CURRENT_VERSION = 4;
  * "ERROR" - if there was an error while attempting to update the json document's schema
  * "REFRESH" - if the document's version is newer than the current app version
  */
-export let updateSchema = function (
+export const updateSchema = function (
   accountId,
   inputJson,
   inputScope, // full, export, or client
@@ -236,8 +251,8 @@ export let updateSchema = function (
       // Update all plate appearances (runners is empty object)
       for (let team of inputJson.teams) {
         for (let game of team.games) {
-          for (let pas of game.plateAppearances) {
-            pas.runners = {};
+          for (let pa of game.plateAppearances) {
+            pa.runners = {};
           }
         }
       }
@@ -249,20 +264,38 @@ export let updateSchema = function (
       };
     }
 
-    /*
-    // Example migrations
     if (inputJson.metadata.version === 4) {
-      // Blah blah blah
+      // Update optimizers (player overrides should have runners)
+      if (inputScope !== 'export') {
+        for (let optimization of inputJson.optimizations) {
+          for (let playerId in optimization.overrideData) {
+            for (let pa of optimization.overrideData[playerId]) {
+              pa.runners = {};
+            }
+          }
+        }
+      }
+
       inputJson.metadata = {
         version: 5,
         scope: inputScope,
       };
     }
 
+    /*
+    // Example migrations
     if (inputJson.metadata.version === 5) {
       // Blah blah blah
       inputJson.metadata = {
         version: 6,
+        scope: inputScope,
+      };
+    }
+
+    if (inputJson.metadata.version === 6) {
+      // Blah blah blah
+      inputJson.metadata = {
+        version: 7,
         scope: inputScope,
       };
     }

@@ -46,7 +46,7 @@ const assertStateObjects = function (...args) {
       valid = false;
       errors.push(
         new Error(
-          `[ROUTES] 404 - Undefined field ${val} in ` + JSON.stringify(args)
+          `[ROUTES] 404 - Invalid field ${val} in ` + JSON.stringify(args)
         )
       );
     }
@@ -337,6 +337,7 @@ routes = {
         console.warn(errors);
         return <CardNotFound />;
       }
+
       return (
         <CardPlateAppearance
           team={team}
@@ -357,6 +358,7 @@ routes = {
           plateAppearance={plateAppearance}
           plateAppearances={plateAppearances}
           isNew={isNew}
+          origin={'game'}
         />
       );
     },
@@ -495,11 +497,8 @@ routes = {
         playerId
       );
 
-      const plateAppearance = state.getOptimizationOverridePlateAppearance(
-        optimizationId,
-        playerId,
-        plateAppearanceId
-      );
+      const plateAppearance =
+        state.getOptimizationOverridePlateAppearance(plateAppearanceId);
 
       const previousPlateAppearance = findPreviousObject(
         plateAppearances,
@@ -537,6 +536,7 @@ routes = {
           plateAppearance={plateAppearance}
           plateAppearances={plateAppearances}
           isNew={isNew}
+          origin={'optimization'}
         />
       );
     },

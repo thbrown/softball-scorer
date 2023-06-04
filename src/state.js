@@ -3,6 +3,7 @@ import network from 'network';
 import SharedLib from 'shared-lib';
 import results from 'plate-appearance-results';
 import { getShallowCopy, autoCorrelation, isStatSig } from 'utils/functions';
+import StateIndex from 'state-index';
 
 import dialog from 'dialog';
 const TLSchemas = SharedLib.schemaValidation.TLSchemas;
@@ -67,10 +68,13 @@ let syncState = SYNC_STATUS_ENUM.UNKNOWN;
 let syncTimer = null;
 let syncTimerTimestamp = null;
 
+// Index for quick relationship lookups
+let INDEX = new StateIndex(LOCAL_DB_STATE);
+
 const state = exp;
 
 // New objects shapes
-exp.getNewTeam = function (teamName) {
+const getNewTeam = function (teamName) {
   const id = getNextId();
   return {
     id: id,
@@ -79,7 +83,7 @@ exp.getNewTeam = function (teamName) {
   };
 };
 
-exp.getNewGame = function (opposingTeamName, lineup, lineupType) {
+const getNewGame = function (opposingTeamName, lineup, lineupType) {
   const timestamp = Math.floor(new Date().getTime() / 1000); // Time in seconds not ms
   const id = getNextId();
   return {
@@ -94,7 +98,7 @@ exp.getNewGame = function (opposingTeamName, lineup, lineupType) {
   };
 };
 
-exp.getNewPlateAppearance = function (playerId) {
+const getNewPlateAppearance = function (playerId) {
   const id = getNextId();
   return {
     id: id,
@@ -148,9 +152,9 @@ exp.sync = async function (fullSync) {
     let localState = state.getLocalState();
 
     // Save the ancestor state so we can restore it if something goes wrong
-    let ancestorStateCopy = JSON.parse(
-      JSON.stringify(state.getAncestorState())
-    );
+    //let ancestorStateCopy = JSON.parse(
+    //  JSON.stringify(state.getAncestorState())
+    //);
 
     // Get the patch ready to send to the server
     let body = {
@@ -160,7 +164,7 @@ exp.sync = async function (fullSync) {
     };
 
     // Ship it
-    console.log(state.getAncestorState(), localState);
+    //console.log(state.getAncestorState(), localState);
     console.log('[SYNC] Syncing...', body);
     const response = await state.requestAuth(
       'POST',
@@ -180,9 +184,10 @@ exp.sync = async function (fullSync) {
       console.log('[SYNC] Local changes', localChangesDuringRequest);
 
       // Update the ancestor if updates were received from the server
+      let tempAncestor = undefined;
       if (serverState.base) {
         // The entire state was sent, we can just save it directly
-        state.setAncestorState(serverState.base);
+        tempAncestor = serverState.base;
       } else if (serverState.patch) {
         // Patch was sent, apply the patch to a copy of the local state
         console.log(`[SYNC] Applying patch (${serverState.patch.length})`);
@@ -193,14 +198,17 @@ exp.sync = async function (fullSync) {
         );
 
         // The local state with the server updates is the new ancestor
-        state.setAncestorState(localStateCopyPreRequest);
+        tempAncestor = localStateCopyPreRequest;
       } else {
         console.log('[SYNC] No updates received from server');
-        state.setAncestorState(localStateCopyPreRequest);
+        tempAncestor = localStateCopyPreRequest;
       }
 
+      // TODO: we want to always set the local state before the ancestor state to avoid deletion on partial execution.
+      // TODO: Maybe we want partial sync to fail when updating objects that don't exist. Then for full sync we can merge the whole client state in.
+
       // Verify that the ancestor state (after updates) has the same hash as the server state
-      let ancestorHash = state.getAncestorStateChecksum();
+      let ancestorHash = SharedLib.commonUtils.getHash(tempAncestor);
 
       console.log(
         '[SYNC] CLIENT: ',
@@ -218,18 +226,13 @@ exp.sync = async function (fullSync) {
           );
           console.log(
             'Client calculated',
-            SharedLib.commonUtils.getHash(state.getAncestorState()),
+            SharedLib.commonUtils.getHash(ancestorHash),
             'Server has',
             SharedLib.commonUtils.getHash(serverState.base)
           );
 
-          console.log(JSON.stringify(state.getAncestorState(), null, 2));
-          console.log(
-            SharedLib.commonUtils.getObjectString(state.getAncestorState())
-          );
-
-          // Set the state back to what it was when we first did a sync
-          state.setAncestorState(ancestorStateCopy);
+          console.log(JSON.stringify(ancestorHash, null, 2));
+          console.log(SharedLib.commonUtils.getObjectString(ancestorHash));
           throw new Error(-3);
         } else {
           // Something went wrong with the patch-based sync, perhaps the server's cached data was incorrect
@@ -251,9 +254,6 @@ exp.sync = async function (fullSync) {
           console.warn(
             SharedLib.commonUtils.getObjectString(state.getLocalState())
           );
-
-          // Set the state back to what it was when we first did a sync
-          state.setAncestorState(ancestorStateCopy);
           throw new Error(-2);
         }
       } else {
@@ -263,14 +263,7 @@ exp.sync = async function (fullSync) {
       }
 
       // Copy
-      let newLocalState = JSON.parse(JSON.stringify(state.getAncestorState()));
-
-      // Apply any changes that were made during the request to the new local state (Presumably this will be a no-op most times)
-      newLocalState = SharedLib.objectMerge.patch(
-        newLocalState,
-        localChangesDuringRequest,
-        true
-      );
+      let newLocalState = JSON.parse(JSON.stringify(tempAncestor));
 
       // Apply any changes that were made during the request to the new local state (Presumably this will be a no-op most times)
       newLocalState = SharedLib.objectMerge.patch(
@@ -281,6 +274,10 @@ exp.sync = async function (fullSync) {
 
       // Set local state to a copy of ancestor state (w/ localChangesDuringRequest applied)
       setLocalStateNoSideEffects(newLocalState);
+
+      // Now set the ancestor, it's important to do this last as having an updated ancestor but not an updated local state would cause
+      // a patch with deletions possibly resulting in data loss.
+      state.setAncestorState(tempAncestor);
 
       console.log(
         '[SYNC] local',
@@ -354,7 +351,7 @@ exp.sync = async function (fullSync) {
       dialog.show_notification(
         'Auto sync failed with message "' +
           err.message +
-          `". App will continue to function, but your data won't be synced with the server. Consider backing up your data from the main menu to avoid data loss. Details: ` +
+          `". App will continue to function, but your data won't be synced with the server. Consider backing up your data by clicking "Export To File" on the main menu to avoid data loss. Details: ` +
           err,
         () => {}
       );
@@ -378,6 +375,7 @@ exp.resetState = function () {
 
   LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
   ANCESTOR_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+  INDEX = new StateIndex(LOCAL_DB_STATE);
 
   exp.saveApplicationStateToLocalStorage();
   exp.saveDbStateToLocalStorage();
@@ -385,6 +383,7 @@ exp.resetState = function () {
 
 exp.deleteAllData = function () {
   LOCAL_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
+  INDEX = new StateIndex(LOCAL_DB_STATE);
   onEdit();
 };
 
@@ -399,12 +398,14 @@ exp.getLocalStateChecksum = function () {
 exp.setLocalState = function (newState) {
   SharedLib.schemaValidation.validateSchema(newState, TLSchemas.CLIENT);
   LOCAL_DB_STATE = newState;
+  INDEX = new StateIndex(LOCAL_DB_STATE);
   onEdit();
 };
 
 let setLocalStateNoSideEffects = function (newState) {
   SharedLib.schemaValidation.validateSchema(newState, TLSchemas.CLIENT);
   LOCAL_DB_STATE = newState;
+  INDEX = new StateIndex(LOCAL_DB_STATE);
 };
 
 exp.getAncestorState = function () {
@@ -437,7 +438,7 @@ exp.getTeam = function (team_id, state) {
 
 exp.addTeam = function (teamName) {
   let localState = exp.getLocalState();
-  let team = exp.getNewTeam(teamName);
+  let team = getNewTeam(teamName);
   localState.teams.push(team);
   onEdit();
   return team;
@@ -595,16 +596,8 @@ exp.getOptimizationOverridesForPlayer = function (optimizationId, playerId) {
   }
 };
 
-exp.getOptimizationOverridePlateAppearance = function (
-  optimizationId,
-  playerId,
-  paId
-) {
-  let pas = exp.getOptimizationOverridesForPlayer(optimizationId, playerId);
-  let result = pas.find((pa) => {
-    return pa.id === paId;
-  });
-  return result;
+exp.getOptimizationOverridePlateAppearance = function (paId) {
+  return INDEX.getPaFromOptimization(paId);
 };
 
 exp.addOptimizationOverridePlateAppearance = function (
@@ -615,7 +608,7 @@ exp.addOptimizationOverridePlateAppearance = function (
   let allOverrides = optimization.overrideData;
 
   let playerOverrides = allOverrides[playerId];
-  let addedPa = this.getNewPlateAppearance(playerId);
+  let addedPa = getNewPlateAppearance(playerId);
 
   if (!playerOverrides) {
     allOverrides[playerId] = [addedPa];
@@ -765,7 +758,7 @@ exp.addGame = function (teamId, opposingTeamName) {
     lastLineupType = lastGame.lineupType;
     lastLineup = lastGame.lineup.slice();
   }
-  let game = exp.getNewGame(opposingTeamName, lastLineup, lastLineupType);
+  let game = getNewGame(opposingTeamName, lastLineup, lastLineupType);
   team.games.push(game);
   onEdit();
   return game;
@@ -892,14 +885,14 @@ exp.removeGame = function (game_id, team_id) {
   onEdit();
 };
 
-exp.setScore = function (game, inning, increment, scoreKey) {
+exp.setScoreAdjustment = function (game, inning, increment, scoreKey) {
   let teamScoreObj = game[scoreKey];
   if (teamScoreObj[inning] !== undefined) {
     teamScoreObj[inning] += increment;
   } else {
     teamScoreObj[inning] = increment;
   }
-  if (teamScoreObj[inning] <= 0) {
+  if (teamScoreObj[inning] === 0) {
     delete teamScoreObj[inning];
   }
 
@@ -912,7 +905,7 @@ exp.setScore = function (game, inning, increment, scoreKey) {
 exp.addPlateAppearance = function (playerId, gameId) {
   const game = exp.getGame(gameId);
   const plateAppearances = game.plateAppearances;
-  const plateAppearance = exp.getNewPlateAppearance(playerId);
+  const plateAppearance = getNewPlateAppearance(playerId);
   plateAppearances.push(plateAppearance);
   onEdit();
   return plateAppearance;
@@ -951,29 +944,11 @@ exp.replacePlateAppearance = function (paId, gameId, teamId, newPa) {
 };
 
 exp.getPlateAppearance = function (paId, state) {
-  // Check teams tree first
-  for (let team of (state || LOCAL_DB_STATE).teams) {
-    for (let game of team.games) {
-      for (let pa of game.plateAppearances) {
-        if (pa.id === paId) {
-          return decoratePlateAppearance(pa, game);
-        }
-      }
-    }
-  }
-
-  // Then check the overrides
-  for (let optimization of (state || LOCAL_DB_STATE).optimizations) {
-    for (let playerId in optimization.overrideData) {
-      for (let pa of optimization.overrideData[playerId]) {
-        if (pa.id === paId) {
-          return decoratePlateAppearance(pa, undefined, optimization);
-        }
-      }
-    }
-  }
-
-  return null;
+  const result = decoratePlateAppearance(
+    INDEX.getPa(paId),
+    INDEX.getGameForPa(paId)
+  );
+  return result;
 };
 
 exp.getAllPlateAppearancesForPlayer = function (playerId) {
@@ -1008,23 +983,73 @@ exp.getPlateAppearancesForPlayerInGame = function (playerId, game_id, state) {
   return game.plateAppearances.filter((pa) => pa.playerId === playerId);
 };
 
-exp.getThemScoreAtPa = function (paId) {
-  return 0;
+/**
+ * `paRunnerOverride` can be used to replace the runners of the paId for last inning calc purposes.
+ * This is useful when you want the outs of the the current PA to affect the calculation but the PA
+ * hasn't yet been saved to the global state.
+ */
+exp.isLastPaOfInning = function (paId, paOrigin, paRunnerOverride) {
+  if (paOrigin === 'optimization') {
+    return false; // TODO
+  }
+  const outsFromGame = exp.getOutsAtPa(paId, paOrigin);
+  let outsAtPa = outsFromGame;
+  let outsInPa = undefined;
+  if (paRunnerOverride) {
+    const outsFromThisSavedPa =
+      exp.getPlateAppearance(paId).runners.out?.length ?? 0;
+    outsInPa = paRunnerOverride.out?.length ?? 0;
+    outsAtPa = outsFromGame - outsFromThisSavedPa + outsInPa;
+  } else {
+    outsInPa = exp.getPlateAppearance(paId).runners.out?.length ?? 0;
+  }
+  return outsAtPa % 3 === 0 && outsInPa > 0;
 };
 
-exp.getUsScoreAtPa = function (paId) {
-  // Needs to work for overrides too
+exp.didPlayerScoreThisInning = function (paId) {
   const pa = exp.getPlateAppearance(paId);
+  const player = INDEX.getPlayer(pa.playerId);
+  const game = INDEX.getGameForPa(paId);
+  const gamePas = game.plateAppearances;
+
+  // Find this pa in game
+  let paIndex = undefined;
+  for (let i = 0; i < gamePas.length; i++) {
+    if (paId === gamePas[i].id) {
+      paIndex = i;
+      break;
+    }
+  }
+
+  // Look to see if the player scored in this or subsequent PAs in this inning
+  for (let i = paIndex; i < gamePas.length; i++) {
+    if (gamePas[i].runners.scored) {
+      if (gamePas[i].runners.scored.includes(player.id)) {
+        return true;
+      }
+    }
+    if (exp.isLastPaOfInning(gamePas[i].id, 'game')) {
+      return false;
+    }
+  }
+  return false;
+};
+
+exp.getUsScoreAtPa = function (paId, paOrigin) {
   let pas = undefined;
-  if (pa.game) {
-    pas = exp.getPlateAppearancesForGame(pa.game.id);
-  } else if (pa.optimization) {
+  if (paOrigin === 'optimization') {
+    return 0;
+    // TODO
+    const pa = INDEX.getPaFromOptimization(paId);
     pas = exp.getOptimizationOverridesForPlayer(
       pa.optimization.id,
       pa.playerId
     );
+  } else if (paOrigin === 'game') {
+    const pa = exp.getPlateAppearance(paId);
+    pas = exp.getPlateAppearancesForGame(pa.game.id);
   } else {
-    throw new Error("Can't find that PA " + paId);
+    throw new Error('Invalid origin ' + paOrigin);
   }
   let scoreUs = 0;
   for (let pa of pas) {
@@ -1037,20 +1062,21 @@ exp.getUsScoreAtPa = function (paId) {
   return scoreUs;
 };
 
-exp.getOutsAtPa = function (paId) {
-  // Needs to work for overrides too
-  const pa = exp.getPlateAppearance(paId);
+exp.getOutsAtPa = function (paId, paOrigin) {
   let pas = undefined;
-  if (pa.game) {
-    pas = exp.getPlateAppearancesForGame(pa.game.id);
-  } else if (pa.optimization) {
+  if (paOrigin === 'optimization') {
+    const pa = INDEX.getPaFromOptimization(paId);
     pas = exp.getOptimizationOverridesForPlayer(
-      pa.optimization.id,
+      INDEX.getOptimizationForPa(pa.id).id,
       pa.playerId
     );
+  } else if (paOrigin === 'game') {
+    const pa = exp.getPlateAppearance(paId);
+    pas = exp.getPlateAppearancesForGame(pa.game.id);
   } else {
-    throw new Error("Can't find that PA " + paId);
+    throw new Error('Invalid origin ' + paOrigin);
   }
+
   let outs = 0;
   for (let pa of pas) {
     outs += pa.runners['out']?.length ?? 0;
@@ -1064,10 +1090,9 @@ exp.getOutsAtPa = function (paId) {
 /**
  * Returns a plate appearance with the game object it's from (or optimization if it's an optimization override PA).
  */
-const decoratePlateAppearance = (pa, game, optimization) => ({
+const decoratePlateAppearance = (pa, game) => ({
   ...pa,
   game,
-  optimization,
   date: game?.date,
 });
 
@@ -1322,6 +1347,7 @@ exp.loadStateFromLocalStorage = function (loadState = true, loadApp = true) {
         if (localDbState && ancestorDbState) {
           LOCAL_DB_STATE = localDbState;
           ANCESTOR_DB_STATE = ancestorDbState;
+          INDEX = new StateIndex(LOCAL_DB_STATE);
         }
       } catch (e) {
         // We have bad data in ls, delete it all
@@ -1601,7 +1627,7 @@ exp.buildStatsObject = function (plateAppearances, playerId) {
 
   if (gamesLookup && Object.keys(gamesLookup).length > 0) {
     stats.outsPerGame = (
-      (stats.plateAppearances - stats.hits) /
+      (stats.plateAppearances - (stats.hits + stats.walks)) /
       Object.keys(gamesLookup).length
     ).toFixed(2);
   }

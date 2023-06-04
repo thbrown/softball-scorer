@@ -612,5 +612,21 @@
       "songStart": null
     }
   ],
-  "optimizations": []
+  "optimizations": [
+    {
+      "name": "Test Time",
+      "customOptionsData": {},
+      "overrideData": {},
+      "resultData": {},
+      "statusMessage": null,
+      "sendEmail": false,
+      "teamList": [],
+      "gameList": [],
+      "playerList": [],
+      "lineupType": 0,
+      "optimizerType": 1,
+      "inputSummaryData": {},
+      "id": "3NSGvYhAAtiCCc"
+    }
+  ]
 }

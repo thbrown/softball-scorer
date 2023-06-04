@@ -81,34 +81,36 @@ const ScoreChangeButton = ({ onScoreChange, increment, buttonText }) => {
   );
 };
 
-const TableCell = ({ whoseScore, inning, game, score }) => {
+const TableCell = ({ whoseScore, inning, game, derivedScore }) => {
   const { classes } = tableStyles();
 
   const handleScoreChange = (increment) => {
-    state.setScore(game, inning, increment, whoseScore);
+    state.setScoreAdjustment(game, inning, increment, whoseScore);
   };
 
-  const displayScore = (score ?? 0) + (game[whoseScore][inning] ?? 0);
+  const scoreAdjustment = game[whoseScore][inning];
+
+  const displayScore = (derivedScore ?? 0) + (scoreAdjustment ?? 0);
   const displayScoreContent =
-    game[whoseScore][inning] === undefined ? (
+    scoreAdjustment === undefined ? (
       <span>{displayScore}</span>
     ) : (
       <b>{displayScore}</b>
     );
   return (
     <td className={classes.tableCell}>
-      <div>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
         <ScoreChangeButton
-          increment={1}
-          buttonText="+"
+          increment={-1}
+          buttonText="-"
           onScoreChange={(increment) => {
             handleScoreChange(increment);
           }}
         />
         <div className={classes.scoreText}>{displayScoreContent}</div>
         <ScoreChangeButton
-          increment={-1}
-          buttonText="-"
+          increment={1}
+          buttonText="+"
           onScoreChange={(increment) => {
             handleScoreChange(increment);
           }}
@@ -118,82 +120,75 @@ const TableCell = ({ whoseScore, inning, game, score }) => {
   );
 };
 
+const Inning = ({ inning, game, derivedScoreForUs }) => {
+  const { classes } = tableStyles();
+  return (
+    <tr>
+      <td className={classes.tableCell}>{inning}</td>
+      <TableCell
+        inning={inning}
+        game={game}
+        whoseScore="scoreUs"
+        derivedScore={derivedScoreForUs[inning - 1]}
+      />
+      <TableCell
+        inning={inning}
+        game={game}
+        whoseScore="scoreThem"
+        derivedScore={0}
+      />
+    </tr>
+  );
+};
+
 const ScoreTable = ({ usName, themName, game }) => {
   const { classes } = tableStyles();
-  const scores = state.getInningScores(game.id);
+  const derivedScoreForUs = state.getInningScores(game.id);
   return (
     <table className={classes.table}>
       <thead>
         <tr>
-          <th
-            style={{ borderTop: 0, borderLeft: 0 }}
-            className={classes.tableCell}
-          ></th>
-          <th className={classes.tableCell}>1</th>
-          <th className={classes.tableCell}>2</th>
-          <th className={classes.tableCell}>3</th>
-          <th className={classes.tableCell}>4</th>
-          <th className={classes.tableCell}>5</th>
-          <th className={classes.tableCell}>6</th>
-          <th className={classes.tableCell}>7</th>
+          <th></th>
+          <th className={classes.tableCell}>{usName}</th>
+          <th className={classes.tableCell}>{themName}</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td className={classes.tableCell}>{usName}</td>
-          <TableCell
-            inning="1"
-            game={game}
-            whoseScore="scoreUs"
-            score={scores[0]}
-          />
-          <TableCell
-            inning="2"
-            game={game}
-            whoseScore="scoreUs"
-            score={scores[1]}
-          />
-          <TableCell
-            inning="3"
-            game={game}
-            whoseScore="scoreUs"
-            score={scores[2]}
-          />
-          <TableCell
-            inning="4"
-            game={game}
-            whoseScore="scoreUs"
-            score={scores[3]}
-          />
-          <TableCell
-            inning="5"
-            game={game}
-            whoseScore="scoreUs"
-            score={scores[4]}
-          />
-          <TableCell
-            inning="6"
-            game={game}
-            whoseScore="scoreUs"
-            score={scores[5]}
-          />
-          <TableCell
-            inning="7"
-            game={game}
-            whoseScore="scoreUs"
-            score={scores[6]}
-          />
-        </tr>
-        <tr>
-          <td className={classes.tableCell}>{themName}</td>
-          <TableCell inning="1" game={game} whoseScore="scoreThem" />
-          <TableCell inning="2" game={game} whoseScore="scoreThem" />
-          <TableCell inning="3" game={game} whoseScore="scoreThem" />
-          <TableCell inning="4" game={game} whoseScore="scoreThem" />
-          <TableCell inning="5" game={game} whoseScore="scoreThem" />
-          <TableCell inning="6" game={game} whoseScore="scoreThem" />
-          <TableCell inning="7" game={game} whoseScore="scoreThem" />
-        </tr>
+        <Inning
+          inning="1"
+          game={game}
+          derivedScoreForUs={derivedScoreForUs}
+        ></Inning>
+        <Inning
+          inning="2"
+          game={game}
+          derivedScoreForUs={derivedScoreForUs}
+        ></Inning>
+        <Inning
+          inning="3"
+          game={game}
+          derivedScoreForUs={derivedScoreForUs}
+        ></Inning>
+        <Inning
+          inning="4"
+          game={game}
+          derivedScoreForUs={derivedScoreForUs}
+        ></Inning>
+        <Inning
+          inning="5"
+          game={game}
+          derivedScoreForUs={derivedScoreForUs}
+        ></Inning>
+        <Inning
+          inning="6"
+          game={game}
+          derivedScoreForUs={derivedScoreForUs}
+        ></Inning>
+        <Inning
+          inning="7"
+          game={game}
+          derivedScoreForUs={derivedScoreForUs}
+        ></Inning>
       </tbody>
     </table>
   );

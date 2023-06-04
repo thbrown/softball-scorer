@@ -19,6 +19,7 @@ describe('migration', () => {
 
     console.log('Schema validation result', result);
     if (result !== 'UPDATED') {
+      console.warn(result);
       throw new Error(
         `Schema validation did not complete with the expected status. Status was: ${result} expected 'UPDATED'`
       );

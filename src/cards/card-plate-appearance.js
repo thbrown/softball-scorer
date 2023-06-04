@@ -130,12 +130,15 @@ class CardPlateAppearance extends React.Component {
     }.bind(this);
 
     this.handleButtonClick = function (result) {
-      const isFirstPAOfInning =
+      const isPreviousPaFirstPAOfInning =
         this.props.previousPlateAppearance === undefined ||
         this.props.previousPlateAppearance === null
           ? true
-          : this.isLastPaOfInning(this.props.previousPlateAppearance.id);
-      const previousRunners = isFirstPAOfInning
+          : state.isLastPaOfInning(
+              this.props.previousPlateAppearance.id,
+              this.props.origin
+            );
+      const previousRunners = isPreviousPaFirstPAOfInning
         ? {}
         : this.props.previousPlateAppearance?.runners ?? {};
 
@@ -243,9 +246,7 @@ class CardPlateAppearance extends React.Component {
           ) {
             newRunners['out'].push(previousRunners['1B']);
             newRunners['out'].push(previousRunners['2B']);
-            if (previousRunners['3B'] !== undefined) {
-              newRunners['scored'].push(previousRunners['3B']); // TODO: not scored
-            }
+            newRunners['3B'] = previousRunners['3B'];
           } else if (
             previousRunners['1B'] !== undefined &&
             previousRunners['3B'] !== undefined
@@ -275,9 +276,38 @@ class CardPlateAppearance extends React.Component {
           break;
       }
 
+      // If the last out of the inning will occur during this PA, don't auto count any scored runs
+      const cleanRunners = cleanObject(newRunners);
+      const outsAtPreviousPa = this.props.previousPlateAppearance
+        ? state.getOutsAtPa(
+            this.props.previousPlateAppearance.id,
+            this.props.origin
+          ) % 3
+        : 0;
+      const outsAtCurrentPa =
+        outsAtPreviousPa +
+        (cleanRunners['out'] ? cleanRunners['out'].length : 0);
+      if (outsAtCurrentPa >= 3 && cleanRunners['scored']?.length === 1) {
+        if (cleanRunners['3B'] === undefined) {
+          cleanRunners['3B'] = cleanRunners['scored'][0];
+          cleanRunners['scored'] = [];
+        } else if (cleanRunners['2B'] === undefined) {
+          cleanRunners['2B'] = cleanRunners['3B'];
+          cleanRunners['3B'] = cleanRunners['scored'][0];
+          cleanRunners['scored'] = [];
+        } else if (cleanRunners['1B'] === undefined) {
+          cleanRunners['1B'] = cleanRunners['2B'];
+          cleanRunners['2B'] = cleanRunners['3B'];
+          cleanRunners['3B'] = cleanRunners['scored'][0];
+          cleanRunners['scored'] = [];
+        } else {
+          logger.warn('Could not find a base for the runner!');
+        }
+      }
+
       this.setState({
         paResult: result,
-        runners: cleanObject(newRunners),
+        runners: cleanObject(cleanRunners),
       });
     };
 
@@ -599,21 +629,6 @@ class CardPlateAppearance extends React.Component {
     );
   }
 
-  isLastPaOfInning(paId, paRunnerOverride) {
-    const outsFromGame = state.getOutsAtPa(paId);
-    let outsAtPa = outsFromGame;
-    let outsInPa = undefined;
-    if (paRunnerOverride) {
-      const outsFromThisSavedPa =
-        this.props.plateAppearance.runners.out?.length ?? 0;
-      outsInPa = paRunnerOverride.out?.length ?? 0;
-      outsAtPa = outsFromGame - outsFromThisSavedPa + outsInPa;
-    } else {
-      outsInPa = state.getPlateAppearance(paId).runners.out?.length ?? 0;
-    }
-    return outsAtPa % 3 === 0 && outsInPa > 0;
-  }
-
   renderButtonList() {
     if (!this.props.player || !this.props.plateAppearance) {
       return (
@@ -763,12 +778,19 @@ class CardPlateAppearance extends React.Component {
 
     const paId = this.props.plateAppearance.id;
 
-    const isLastPAOfInning = this.isLastPaOfInning(paId, this.state.runners);
-    const isFirstPAOfInning =
+    const isLastPAOfInning = state.isLastPaOfInning(
+      paId,
+      this.props.origin,
+      this.state.runners
+    );
+    const isPreviousPaTheFirstPAOfInning =
       this.props.previousPlateAppearance === undefined ||
       this.props.previousPlateAppearance === null
         ? true
-        : this.isLastPaOfInning(this.props.previousPlateAppearance.id);
+        : state.isLastPaOfInning(
+            this.props.previousPlateAppearance.id,
+            this.props.origin
+          );
 
     // Determine runners object used to render
     const lastPaRunners = JSON.parse(
@@ -778,7 +800,8 @@ class CardPlateAppearance extends React.Component {
     delete lastPaRunners['scored'];
 
     const useLastPaRunners =
-      Object.keys(this.state.runners).length === 0 && !isFirstPAOfInning;
+      Object.keys(this.state.runners).length === 0 &&
+      !isPreviousPaTheFirstPAOfInning;
 
     const runners = useLastPaRunners ? lastPaRunners : this.state.runners;
 
@@ -954,14 +977,23 @@ class CardPlateAppearance extends React.Component {
     const runsFromThisSavedPa =
       this.props.plateAppearance.runners.scored?.length ?? 0;
     const runsFromState = this.state.runners.scored?.length ?? 0;
-    const runsFromGame = state.getUsScoreAtPa(paId);
+    const runsFromGame = state.getUsScoreAtPa(paId, this.props.origin);
     const runsAtPa = runsFromGame - runsFromThisSavedPa + runsFromState;
 
-    const outsFromGame = state.getOutsAtPa(paId);
+    const outsFromGame = state.getOutsAtPa(paId, this.props.origin);
     const outsFromThisSavedPa =
       this.props.plateAppearance.runners.out?.length ?? 0;
     const outsFromState = this.state.runners.out?.length ?? 0;
     const outsAtPa = outsFromGame - outsFromThisSavedPa + outsFromState;
+
+    // TODO: DUp code, also we need to get this by inning instead of over the whole game
+    const calculateScore = (scoreObj) => {
+      let totalScore = 0;
+      for (let inningNumber in scoreObj) {
+        totalScore += scoreObj[inningNumber]; // Overrides
+      }
+      return totalScore;
+    };
 
     const textInfo = (
       <div
@@ -971,8 +1003,17 @@ class CardPlateAppearance extends React.Component {
           position: 'relative',
         }}
       >
-        <div>Score: {`${runsAtPa}-${state.getThemScoreAtPa(paId)}`}</div>
-        <div>Inning: {Math.floor(outsAtPa / 3) + 1}</div>
+        <div>
+          Score:{' '}
+          {`${runsAtPa}-${
+            this.props.plateAppearance.game === undefined
+              ? 0
+              : calculateScore(this.props.plateAppearance.game.scoreThem)
+          }`}
+        </div>
+        <div>
+          Inning: {Math.floor(outsAtPa / 3) + 1 - (isLastPAOfInning ? 1 : 0)}
+        </div>
 
         <div>Outs: {isLastPAOfInning ? 3 : outsAtPa % 3}</div>
       </div>

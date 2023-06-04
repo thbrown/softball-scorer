@@ -47,12 +47,19 @@ let databaseGcpBuckets = class DatabaseGcpBuckets extends DatabaseCallsAbstractB
     this.blobMap[BlobLocation.PUBLIC_ID_LOOKUP] = this.publicIdLookupDir;
   }
 
-  async writeBlob(accountId, location, blobName, content, generation) {
+  async writeBlob(
+    accountId,
+    location,
+    blobName,
+    content,
+    schemaToValidate,
+    generation
+  ) {
     // Map location to file
     let targetLocation = this.blobMap[location];
     // Validate schema before write
-    if (location === BlobLocation.DATA) {
-      SharedLib.schemaValidation.validateSchema(content, TLSchemas.FULL);
+    if (schemaToValidate) {
+      SharedLib.schemaValidation.validateSchema(content, schemaToValidate);
     }
     // Now write the actual file
     fs.writeFileSync(
@@ -61,7 +68,7 @@ let databaseGcpBuckets = class DatabaseGcpBuckets extends DatabaseCallsAbstractB
     );
   }
 
-  async readBlob(accountId, location, blobName) {
+  async readBlob(accountId, location, blobName, schemaToValidate) {
     // Map location to file
     let targetLocation = this.blobMap[location];
     // Now read the actual file
@@ -70,22 +77,33 @@ let databaseGcpBuckets = class DatabaseGcpBuckets extends DatabaseCallsAbstractB
     );
 
     // Schema validation for data blob. TODO: should we have JSON schema for all blobs, not just data?
-    if (location === BlobLocation.DATA) {
+    if (
+      schemaToValidate === TLSchemas.FULL ||
+      schemaToValidate === TLSchemas.CLIENT ||
+      schemaToValidate === TLSchemas.EXPORT // I don't think we ever read EXPORT
+    ) {
       let result = SharedLib.schemaMigration.updateSchema(
         accountId,
         content,
-        'full',
+        SharedLib.schemaMigration.getMigration(schemaToValidate),
         logger
       );
 
       if (result === 'UPDATED') {
         // Check if a schema update is needed, if the schema has been upgraded, write the new data before progressing
-        await this.writeBlob(accountId, location, blobName, content, null);
+        await this.writeBlob(
+          accountId,
+          location,
+          blobName,
+          content,
+          isDataBlob,
+          null
+        );
         logger.log(accountId, 'Updated schema write-back successful');
       }
 
       // Validate schema after read
-      SharedLib.schemaValidation.validateSchema(content, TLSchemas.FULL);
+      SharedLib.schemaValidation.validateSchema(content, schemaToValidate);
     }
 
     return {

@@ -18,11 +18,18 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     }
   }
 
-  async writeBlob(accountId, location, blobName, content, generation) {
+  async writeBlob(
+    accountId,
+    location,
+    blobName,
+    content,
+    schemaToValidate,
+    generation
+  ) {
     throw new Error('writeBlob must be overridden by implementation');
   }
 
-  async readBlob(accountId, location, blobName) {
+  async readBlob(accountId, location, blobName, schemaToValidate) {
     throw new Error('readBlob must be overridden by implementation');
   }
 
@@ -60,7 +67,13 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     if (await this.exists(accountId, BlobLocation.EMAIL_LOOKUP, email)) {
       throw new HandledError('N/A', 400, 'Account already exists'); // TODO consider just sending an email to the user instead
     }
-    await this.writeBlob(accountId, BlobLocation.DATA, accountId, newData);
+    await this.writeBlob(
+      accountId,
+      BlobLocation.DATA,
+      accountId,
+      newData,
+      TLSchemas.FULL
+    );
     await this.writeBlob(
       accountId,
       BlobLocation.TOKEN_LOOKUP,
@@ -87,7 +100,12 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
   }
 
   async getAccountById(accountId) {
-    let dataBlob = await this.readBlob(accountId, BlobLocation.DATA, accountId);
+    let dataBlob = await this.readBlob(
+      accountId,
+      BlobLocation.DATA,
+      accountId,
+      TLSchemas.FULL
+    );
     return dataBlob.content.account;
   }
 
@@ -175,11 +193,22 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
   }
 
   async _getFullStateBlob(accountId) {
-    return await this.readBlob(accountId, BlobLocation.DATA, accountId);
+    return await this.readBlob(
+      accountId,
+      BlobLocation.DATA,
+      accountId,
+      TLSchemas.FULL
+    );
   }
 
   async setState(accountId, value) {
-    await this.writeBlob(accountId, BlobLocation.DATA, accountId, value);
+    await this.writeBlob(
+      accountId,
+      BlobLocation.DATA,
+      accountId,
+      value,
+      TLSchemas.FULL
+    );
   }
 
   async patchState(patch, accountId) {
@@ -190,7 +219,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     let newState = SharedLib.objectMerge.patch(
       currentStateBlob.content,
       patch,
-      false,
+      true,
       false,
       accountId,
       logger
@@ -201,6 +230,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
       BlobLocation.DATA,
       accountId,
       newState,
+      TLSchemas.FULL,
       currentStateBlob.generation
     );
   }
@@ -225,6 +255,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
       BlobLocation.DATA,
       accountId,
       stateBlob.content,
+      TLSchemas.FULL,
       stateBlob.generation
     );
   }
@@ -239,6 +270,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
       BlobLocation.DATA,
       accountId,
       stateBlob.content,
+      TLSchemas.FULL,
       stateBlob.generation
     );
   }
@@ -257,6 +289,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
       BlobLocation.DATA,
       accountId,
       stateBlob.content,
+      TLSchemas.FULL,
       stateBlob.generation
     );
     await this.deleteBlob(accountId, BlobLocation.TOKEN_LOOKUP, oldToken);
@@ -340,6 +373,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
           BlobLocation.DATA,
           accountId,
           state,
+          TLSchemas.FULL,
           stateBlob.generation
         );
         return true;
@@ -367,6 +401,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
           BlobLocation.DATA,
           accountId,
           state,
+          TLSchemas.FULL,
           stateBlob.generation
         );
         return;
@@ -439,6 +474,7 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
           BlobLocation.DATA,
           accountId,
           state,
+          TLSchemas.FULL,
           stateBlob.generation
         );
         return;
