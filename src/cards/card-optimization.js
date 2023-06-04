@@ -132,6 +132,24 @@ export default class CardOptimization extends React.Component {
       this.handleEstimation();
     }.bind(this);
 
+    this.areAllTeamsSelected = () => {
+      const allTeams = state.getLocalState().teams;
+      const selectedTeams = this.props.optimization.teamList;
+      return allTeams.every((team) => selectedTeams.includes(team.id));
+    };
+
+    this.handleTeamCheckboxAllClick = () => {
+      const allTeams = state.getLocalState().teams;
+      if (this.areAllTeamsSelected()) {
+        state.setOptimizationField(this.props.optimization.id, 'teamList', []);
+      } else {
+        state.setOptimizationField(this.props.optimization.id, 'teamList', [
+          ...allTeams.map((team) => team.id),
+        ]);
+      }
+      this.handleEstimation();
+    };
+
     this.handleSendEmailCheckbox = function () {
       if (this.props.optimization.sendEmail) {
         state.setOptimizationField(
@@ -985,7 +1003,31 @@ export default class CardOptimization extends React.Component {
               aria-hidden="true"
               style={{ paddingTop: '0px', paddingBottom: '0px' }}
             >
-              <div id="gamesMenu">{teamsCheckboxes}</div>
+              <div id="gamesMenu">
+                <div
+                  style={{
+                    display: 'flex',
+                  }}
+                >
+                  <div
+                    className="button tertiary-button"
+                    onClick={this.handleTeamCheckboxAllClick}
+                    style={{
+                      width: '120px',
+                    }}
+                  >
+                    {this.areAllTeamsSelected() ? 'Deselect All' : 'Select All'}
+                  </div>
+                </div>
+                {/* <input
+                    type="checkbox"
+                    // onChange={this.handleTeamCheckboxClick.bind(this, team)}
+                    checked={this.areAllTeamsSelected()}
+                    style={{ marginRight: '5px' }}
+                  /> */}
+                {/* {team.name} */}
+                {teamsCheckboxes}
+              </div>
             </dd>
             <dt>
               <div
