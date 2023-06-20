@@ -224,6 +224,8 @@ const Field = enhanceField((props) => {
         overflow: 'hidden',
       }}
     >
+      {/* HACK: The spray field indicators for the 2023 season are offset by 19px
+      because of a visual bug on the PA page. Should we move them up? */}
       <div
         style={{
           height: '19px',

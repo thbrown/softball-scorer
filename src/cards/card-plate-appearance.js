@@ -1036,14 +1036,6 @@ class CardPlateAppearance extends React.Component {
         {textInfo}
         {runnerObjects}
         <BallFieldSvg />
-        {/* <img
-          //draggable={true}
-          src="/assets/ballfield2.png"
-          alt="ballfield"
-          style={{
-            width: '100%',
-          }}
-        ></img> */}
         {indicators}
       </div>
     );
