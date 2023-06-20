@@ -217,10 +217,18 @@ const Field = enhanceField((props) => {
       }}
       style={{
         position: 'relative',
+        borderTop: '1px solid white',
+        borderBottom: '1px solid white',
         width: Math.min(window.innerWidth, BALL_FIELD_MAX_WIDTH) + 'px',
         height: Math.min(window.innerWidth, BALL_FIELD_MAX_WIDTH) + 'px',
+        overflow: 'hidden',
       }}
     >
+      <div
+        style={{
+          height: '19px',
+        }}
+      ></div>
       <BallFieldSvg />
       {indicators}
       {props.paTooltip ? (

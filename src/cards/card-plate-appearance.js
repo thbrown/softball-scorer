@@ -8,6 +8,7 @@ import { normalize, distance, cleanObject } from 'utils/functions';
 import { goBack } from 'actions/route';
 import { makeStyles } from 'css/helpers';
 import Card from 'elements/card';
+import BallFieldSvg from 'components/ball-field-svg';
 
 const LOCATION_DENOMINATOR = 32767;
 
@@ -301,7 +302,7 @@ class CardPlateAppearance extends React.Component {
           cleanRunners['3B'] = cleanRunners['scored'][0];
           cleanRunners['scored'] = [];
         } else {
-          logger.warn('Could not find a base for the runner!');
+          console.warn('Could not find a base for the runner!');
         }
       }
 
@@ -1001,6 +1002,7 @@ class CardPlateAppearance extends React.Component {
           display: 'flex',
           justifyContent: 'space-evenly',
           position: 'relative',
+          height: '19px',
         }}
       >
         <div>
@@ -1033,14 +1035,15 @@ class CardPlateAppearance extends React.Component {
       >
         {textInfo}
         {runnerObjects}
-        <img
+        <BallFieldSvg />
+        {/* <img
           //draggable={true}
           src="/assets/ballfield2.png"
           alt="ballfield"
           style={{
             width: '100%',
           }}
-        ></img>
+        ></img> */}
         {indicators}
       </div>
     );
