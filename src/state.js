@@ -1266,6 +1266,7 @@ exp.setAccountOptimizersList = function (newOptimizersArray) {
 // LOCAL STORAGE
 exp.saveDbStateToLocalStorage = function () {
   if (typeof Storage !== 'undefined') {
+    console.log('save local storage state');
     /*
     // Disable compression for now
     let compressedLocalState = LZString.compress(
@@ -1390,13 +1391,6 @@ exp.clearLocalStorage = function () {
 
 function onEdit() {
   reRender();
-  try {
-    exp.saveDbStateToLocalStorage();
-  } catch (e) {
-    console.warn('Could not persist edit locally, restoring. ', e);
-    exp.loadStateFromLocalStorage(true, false);
-    reRender();
-  }
   exp.scheduleSync();
 }
 
