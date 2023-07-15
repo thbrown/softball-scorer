@@ -1266,7 +1266,6 @@ exp.setAccountOptimizersList = function (newOptimizersArray) {
 // LOCAL STORAGE
 exp.saveDbStateToLocalStorage = function () {
   if (typeof Storage !== 'undefined') {
-    console.log('save local storage state');
     /*
     // Disable compression for now
     let compressedLocalState = LZString.compress(
