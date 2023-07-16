@@ -75,7 +75,7 @@ const state = exp;
 
 const internalLocalStorage = {
   setItem: async (key, value) => {
-    localForage.setItem(key, value);
+    return localForage.setItem(key, value);
   },
   getItem: async (key) => {
     const item = localForage.getItem(key);
