@@ -28,10 +28,10 @@ describe('[UI] Modify Game (add plate appearances)', () => {
   let wrapper = null;
   let teamId = TEAM_ID;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     state.setOffline();
     SharedLib.schemaMigration.updateSchema(null, mockData, 'client');
-    state.setLocalState(mockData);
+    await state.setLocalState(mockData);
     const { wrapper: localWrapper } = getPageWrapper();
     wrapper = localWrapper;
     setRoute(`/`);

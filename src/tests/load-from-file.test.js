@@ -11,20 +11,20 @@ Enzyme.configure({ adapter: new Adapter() });
 describe('[UI] Load from file', () => {
   let wrapper = null;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     state.setOffline();
     SharedLib.schemaMigration.updateSchema(null, mockData, 'client');
-    state.setLocalState(mockData);
+    await state.setLocalState(mockData);
     const { wrapper: localWrapper } = getPageWrapper();
     wrapper = localWrapper;
     setRoute(`/`);
   });
 
-  it('A user can import data', () => {
+  it('A user can import data', async () => {
     const { wrapper } = getPageWrapper();
     wrapper.find(`#load`).hostNodes().simulate('click');
     wrapper.find(`#theirChoice`).hostNodes().simulate('click');
     SharedLib.schemaMigration.updateSchema(null, mockData, 'client');
-    state.setLocalState(mockData);
+    await state.setLocalState(mockData);
   });
 });

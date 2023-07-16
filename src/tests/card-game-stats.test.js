@@ -12,10 +12,10 @@ describe('[UI] Game Stats', () => {
   let wrapper = null;
   let _isSessionValid = state.isSessionValid;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     state.setOffline();
     SharedLib.schemaMigration.updateSchema(null, mockData, 'client');
-    state.setLocalState(mockData);
+    await state.setLocalState(mockData);
     const { wrapper: localWrapper } = getPageWrapper();
     wrapper = localWrapper;
     setRoute(`/`);
