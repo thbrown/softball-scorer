@@ -73,15 +73,16 @@ let INDEX = new StateIndex(LOCAL_DB_STATE);
 
 const state = exp;
 
-const internalLocalStorage = {
+const internalLs = {
   setItem: async (key, value) => {
     return localForage.setItem(key, value);
   },
   getItem: async (key) => {
-    const item = localForage.getItem(key);
+    const item = await localForage.getItem(key);
     if (!item) {
       return localStorage.getItem(key);
     }
+    return item;
   },
   clear: async () => {
     return localForage.clear();
@@ -161,9 +162,7 @@ exp.sync = async function (fullSync) {
   setSyncState(SYNC_STATUS_ENUM.IN_PROGRESS);
   try {
     // Save a deep copy of the local state
-    let localStateCopyPreRequest = JSON.parse(
-      JSON.stringify(state.getLocalState())
-    );
+    let localStateCopyPreRequest = structuredClone(state.getLocalState());
     let localState = state.getLocalState();
 
     // Save the ancestor state so we can restore it if something goes wrong
@@ -1296,33 +1295,30 @@ exp.saveDbStateToLocalStorage = async function () {
     */
     SharedLib.schemaValidation.validateSchema(LOCAL_DB_STATE, TLSchemas.CLIENT);
 
-    await internalLocalStorage.setItem(
-      'SCHEMA_VERSION',
-      CURRENT_LS_SCHEMA_VERSION
-    );
-    await internalLocalStorage.setItem(
-      'LOCAL_DB_STATE',
-      JSON.stringify(LOCAL_DB_STATE)
-    );
-    await internalLocalStorage.setItem(
-      'ANCESTOR_DB_STATE',
-      JSON.stringify(ANCESTOR_DB_STATE)
-    );
+    try {
+      return Promise.all([
+        internalLs.setItem('SCHEMA_VERSION', CURRENT_LS_SCHEMA_VERSION),
+        internalLs.setItem('LOCAL_DB_STATE', JSON.stringify(LOCAL_DB_STATE)),
+        internalLs.setItem(
+          'ANCESTOR_DB_STATE',
+          JSON.stringify(ANCESTOR_DB_STATE)
+        ),
+      ]);
+    } catch (err) {
+      console.error('Error saveDbStateToLocalStorage', err);
+    }
   }
 };
 
 exp.saveApplicationStateToLocalStorage = async function () {
   if (typeof Storage !== 'undefined') {
-    await internalLocalStorage.setItem(
-      'SCHEMA_VERSION',
-      CURRENT_LS_SCHEMA_VERSION
-    );
+    await internalLs.setItem('SCHEMA_VERSION', CURRENT_LS_SCHEMA_VERSION);
     let applicationState = {
       online: online,
       sessionValid: sessionValid,
       activeUser: activeUser,
     };
-    await internalLocalStorage.setItem(
+    await internalLs.setItem(
       'APPLICATION_STATE',
       JSON.stringify(applicationState)
     );
@@ -1335,7 +1331,7 @@ exp.loadStateFromLocalStorage = async function (
 ) {
   if (typeof Storage !== 'undefined') {
     // These statements define local storage schema migrations
-    const version = await internalLocalStorage.getItem('SCHEMA_VERSION');
+    const version = await internalLs.getItem('SCHEMA_VERSION');
     if (version !== CURRENT_LS_SCHEMA_VERSION) {
       console.log(`Removing invalid localStorage data ${version}`);
       await exp.clearLocalStorage();
@@ -1347,7 +1343,7 @@ exp.loadStateFromLocalStorage = async function (
     if (loadState) {
       try {
         let localDbState = JSON.parse(
-          await internalLocalStorage.getItem('LOCAL_DB_STATE')
+          await internalLs.getItem('LOCAL_DB_STATE')
         );
         if (localDbState) {
           SharedLib.schemaMigration.updateSchema(null, localDbState, 'client');
@@ -1358,7 +1354,7 @@ exp.loadStateFromLocalStorage = async function (
         }
 
         let ancestorDbState = JSON.parse(
-          await internalLocalStorage.getItem('ANCESTOR_DB_STATE')
+          await internalLs.getItem('ANCESTOR_DB_STATE')
         );
         if (ancestorDbState) {
           SharedLib.schemaMigration.updateSchema(
@@ -1387,7 +1383,7 @@ exp.loadStateFromLocalStorage = async function (
     }
 
     if (loadApp) {
-      const stateJson = await internalLocalStorage.getItem('APPLICATION_STATE');
+      const stateJson = await internalLs.getItem('APPLICATION_STATE');
       if (stateJson) {
         const applicationState = JSON.parse(stateJson);
         online = applicationState.online ? applicationState.online : true;
@@ -1411,7 +1407,7 @@ exp.loadStateFromLocalStorage = async function (
 
 exp.clearLocalStorage = async function () {
   console.log('Clearing ls ');
-  return internalLocalStorage.clear();
+  return internalLs.clear();
 };
 
 // HELPERS
