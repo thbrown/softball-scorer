@@ -11,10 +11,10 @@ Enzyme.configure({ adapter: new Adapter() });
 describe('[UI] Spray', () => {
   let wrapper = null;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     state.setOffline();
     SharedLib.schemaMigration.updateSchema(null, mockData, 'client');
-    state.setLocalState(mockData);
+    await state.setLocalState(mockData);
     const { wrapper: localWrapper } = getPageWrapper();
     wrapper = localWrapper;
     setRoute(`/`);

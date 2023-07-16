@@ -15,10 +15,10 @@ const GAME_ID = '1';
 describe('[UI] Optimization', () => {
   let wrapper = null;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     state.setOffline();
     SharedLib.schemaMigration.updateSchema(null, mockData, 'client');
-    state.setLocalState(mockData);
+    await state.setLocalState(mockData);
     const { wrapper: localWrapper } = getPageWrapper();
     wrapper = localWrapper;
     window.scroll = () => void 0;

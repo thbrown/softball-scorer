@@ -4,7 +4,7 @@ import SharedLib from 'shared-lib';
 import results from 'plate-appearance-results';
 import { getShallowCopy, autoCorrelation, isStatSig } from 'utils/functions';
 import StateIndex from 'state-index';
-
+import localForage from 'localforage';
 import dialog from 'dialog';
 const TLSchemas = SharedLib.schemaValidation.TLSchemas;
 
@@ -72,6 +72,22 @@ let syncTimerTimestamp = null;
 let INDEX = new StateIndex(LOCAL_DB_STATE);
 
 const state = exp;
+
+const internalLs = {
+  setItem: async (key, value) => {
+    return localForage.setItem(key, value);
+  },
+  getItem: async (key) => {
+    const item = await localForage.getItem(key);
+    if (!item) {
+      return localStorage.getItem(key);
+    }
+    return item;
+  },
+  clear: async () => {
+    return localForage.clear();
+  },
+};
 
 // New objects shapes
 const getNewTeam = function (teamName) {
@@ -288,7 +304,7 @@ exp.sync = async function (fullSync) {
       reRender();
 
       // Write the most updated data to local storage
-      exp.saveDbStateToLocalStorage();
+      await exp.saveDbStateToLocalStorage();
     } else {
       throw new Error(response.status);
     }
@@ -366,7 +382,7 @@ exp.resetSyncState = function () {
   setSyncState(SYNC_STATUS_ENUM.UNKNOWN);
 };
 
-exp.resetState = function () {
+exp.resetState = async function () {
   setSyncState(SYNC_STATUS_ENUM.UNKNOWN);
 
   online = true;
@@ -377,8 +393,8 @@ exp.resetState = function () {
   ANCESTOR_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
   INDEX = new StateIndex(LOCAL_DB_STATE);
 
-  exp.saveApplicationStateToLocalStorage();
-  exp.saveDbStateToLocalStorage();
+  await exp.saveApplicationStateToLocalStorage();
+  await exp.saveDbStateToLocalStorage();
 };
 
 exp.deleteAllData = function () {
@@ -395,11 +411,11 @@ exp.getLocalStateChecksum = function () {
   return SharedLib.commonUtils.getHash(LOCAL_DB_STATE);
 };
 
-exp.setLocalState = function (newState) {
+exp.setLocalState = async function (newState) {
   SharedLib.schemaValidation.validateSchema(newState, TLSchemas.CLIENT);
   LOCAL_DB_STATE = newState;
   INDEX = new StateIndex(LOCAL_DB_STATE);
-  onEdit();
+  await onEdit();
 };
 
 let setLocalStateNoSideEffects = function (newState) {
@@ -1264,7 +1280,7 @@ exp.setAccountOptimizersList = function (newOptimizersArray) {
 };
 
 // LOCAL STORAGE
-exp.saveDbStateToLocalStorage = function () {
+exp.saveDbStateToLocalStorage = async function () {
   if (typeof Storage !== 'undefined') {
     /*
     // Disable compression for now
@@ -1281,45 +1297,56 @@ exp.saveDbStateToLocalStorage = function () {
     */
     SharedLib.schemaValidation.validateSchema(LOCAL_DB_STATE, TLSchemas.CLIENT);
 
-    localStorage.setItem('SCHEMA_VERSION', CURRENT_LS_SCHEMA_VERSION);
-    localStorage.setItem('LOCAL_DB_STATE', JSON.stringify(LOCAL_DB_STATE));
-    localStorage.setItem(
-      'ANCESTOR_DB_STATE',
-      JSON.stringify(ANCESTOR_DB_STATE)
-    );
+    try {
+      return Promise.all([
+        internalLs.setItem('SCHEMA_VERSION', CURRENT_LS_SCHEMA_VERSION),
+        internalLs.setItem('LOCAL_DB_STATE', JSON.stringify(LOCAL_DB_STATE)),
+        internalLs.setItem(
+          'ANCESTOR_DB_STATE',
+          JSON.stringify(ANCESTOR_DB_STATE)
+        ),
+      ]);
+    } catch (err) {
+      console.error('Error saveDbStateToLocalStorage', err);
+    }
   }
 };
 
-exp.saveApplicationStateToLocalStorage = function () {
+exp.saveApplicationStateToLocalStorage = async function () {
   if (typeof Storage !== 'undefined') {
-    localStorage.setItem('SCHEMA_VERSION', CURRENT_LS_SCHEMA_VERSION);
+    await internalLs.setItem('SCHEMA_VERSION', CURRENT_LS_SCHEMA_VERSION);
     let applicationState = {
       online: online,
       sessionValid: sessionValid,
       activeUser: activeUser,
     };
-    localStorage.setItem('APPLICATION_STATE', JSON.stringify(applicationState));
+    await internalLs.setItem(
+      'APPLICATION_STATE',
+      JSON.stringify(applicationState)
+    );
   }
 };
 
-exp.loadStateFromLocalStorage = function (loadState = true, loadApp = true) {
+exp.loadStateFromLocalStorage = async function (
+  loadState = true,
+  loadApp = true
+) {
   if (typeof Storage !== 'undefined') {
     // These statements define local storage schema migrations
-    if (localStorage.getItem('SCHEMA_VERSION') !== CURRENT_LS_SCHEMA_VERSION) {
-      console.log(
-        `Removing invalid localStorage data ${localStorage.getItem(
-          'SCHEMA_VERSION'
-        )}`
-      );
-      exp.clearLocalStorage();
-      exp.saveDbStateToLocalStorage();
-      exp.saveApplicationStateToLocalStorage();
+    const version = await internalLs.getItem('SCHEMA_VERSION');
+    if (version !== CURRENT_LS_SCHEMA_VERSION) {
+      console.log(`Removing invalid localStorage data ${version}`);
+      await exp.clearLocalStorage();
+      await exp.saveDbStateToLocalStorage();
+      await exp.saveApplicationStateToLocalStorage();
     }
 
     // Retrieve, update, and validate state. Do nothing if anything in this process fails.
     if (loadState) {
       try {
-        let localDbState = JSON.parse(localStorage.getItem('LOCAL_DB_STATE'));
+        let localDbState = JSON.parse(
+          await internalLs.getItem('LOCAL_DB_STATE')
+        );
         if (localDbState) {
           SharedLib.schemaMigration.updateSchema(null, localDbState, 'client');
           SharedLib.schemaValidation.validateSchema(
@@ -1329,7 +1356,7 @@ exp.loadStateFromLocalStorage = function (loadState = true, loadApp = true) {
         }
 
         let ancestorDbState = JSON.parse(
-          localStorage.getItem('ANCESTOR_DB_STATE')
+          await internalLs.getItem('ANCESTOR_DB_STATE')
         );
         if (ancestorDbState) {
           SharedLib.schemaMigration.updateSchema(
@@ -1358,10 +1385,9 @@ exp.loadStateFromLocalStorage = function (loadState = true, loadApp = true) {
     }
 
     if (loadApp) {
-      let applicationState = JSON.parse(
-        localStorage.getItem('APPLICATION_STATE')
-      );
-      if (applicationState) {
+      const stateJson = await internalLs.getItem('APPLICATION_STATE');
+      if (stateJson) {
+        const applicationState = JSON.parse(stateJson);
         online = applicationState.online ? applicationState.online : true;
         sessionValid = applicationState.sessionValid
           ? applicationState.sessionValid
@@ -1381,20 +1407,20 @@ exp.loadStateFromLocalStorage = function (loadState = true, loadApp = true) {
   reRender();
 };
 
-exp.clearLocalStorage = function () {
+exp.clearLocalStorage = async function () {
   console.log('Clearing ls ');
-  localStorage.clear();
+  return internalLs.clear();
 };
 
 // HELPERS
 
-function onEdit() {
+async function onEdit() {
   reRender();
   try {
-    exp.saveDbStateToLocalStorage();
+    await exp.saveDbStateToLocalStorage();
   } catch (e) {
     console.warn('Could not persist edit locally, restoring. ', e);
-    exp.loadStateFromLocalStorage(true, false);
+    await exp.loadStateFromLocalStorage(true, false);
     reRender();
   }
   exp.scheduleSync();
@@ -1697,14 +1723,14 @@ exp.getActiveUser = function () {
   return activeUser;
 };
 
-exp.setOffline = function () {
+exp.setOffline = async function () {
   online = false;
-  exp.saveApplicationStateToLocalStorage();
+  await exp.saveApplicationStateToLocalStorage();
 };
 
-exp.setActiveUser = function (user) {
+exp.setActiveUser = async function (user) {
   activeUser = user;
-  exp.saveApplicationStateToLocalStorage();
+  await exp.saveApplicationStateToLocalStorage();
 };
 
 exp.setStatusBasedOnHttpResponse = function (code, isAuthRequest) {
