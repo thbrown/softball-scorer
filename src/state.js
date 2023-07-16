@@ -162,7 +162,9 @@ exp.sync = async function (fullSync) {
   setSyncState(SYNC_STATUS_ENUM.IN_PROGRESS);
   try {
     // Save a deep copy of the local state
-    let localStateCopyPreRequest = structuredClone(state.getLocalState());
+    let localStateCopyPreRequest = JSON.parse(
+      JSON.stringify(state.getLocalState())
+    );
     let localState = state.getLocalState();
 
     // Save the ancestor state so we can restore it if something goes wrong
@@ -302,7 +304,7 @@ exp.sync = async function (fullSync) {
       reRender();
 
       // Write the most updated data to local storage
-      exp.saveDbStateToLocalStorage();
+      await exp.saveDbStateToLocalStorage();
     } else {
       throw new Error(response.status);
     }
@@ -380,7 +382,7 @@ exp.resetSyncState = function () {
   setSyncState(SYNC_STATUS_ENUM.UNKNOWN);
 };
 
-exp.resetState = function () {
+exp.resetState = async function () {
   setSyncState(SYNC_STATUS_ENUM.UNKNOWN);
 
   online = true;
@@ -391,8 +393,8 @@ exp.resetState = function () {
   ANCESTOR_DB_STATE = JSON.parse(JSON.stringify(INITIAL_STATE));
   INDEX = new StateIndex(LOCAL_DB_STATE);
 
-  exp.saveApplicationStateToLocalStorage();
-  exp.saveDbStateToLocalStorage();
+  await exp.saveApplicationStateToLocalStorage();
+  await exp.saveDbStateToLocalStorage();
 };
 
 exp.deleteAllData = function () {
@@ -1418,7 +1420,7 @@ async function onEdit() {
     await exp.saveDbStateToLocalStorage();
   } catch (e) {
     console.warn('Could not persist edit locally, restoring. ', e);
-    exp.loadStateFromLocalStorage(true, false);
+    await exp.loadStateFromLocalStorage(true, false);
     reRender();
   }
   exp.scheduleSync();

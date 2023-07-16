@@ -25,10 +25,10 @@ describe('Does the StateIndex class work', () => {
     expect(stateIndex.getGameForPa('2IHrEOVC4hfUTI')).not.toEqual(undefined);
   });
 
-  it('Lookup to deleted Plate Appearance will return undefined', () => {
+  it('Lookup to deleted Plate Appearance will return undefined', async () => {
     const stateObject = mockData;
     SharedLib.schemaMigration.updateSchema(null, stateObject, 'client');
-    state.setLocalState(mockData);
+    await state.setLocalState(mockData);
     const stateIndex = new StateIndex(stateObject);
     const game = stateIndex.getGameForPa('2IHrEOVC4hfUTI');
 

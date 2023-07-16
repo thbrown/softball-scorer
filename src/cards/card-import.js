@@ -70,7 +70,7 @@ const CardImport = () => {
     const file = fileInputRef.current.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = function (e) {
+      reader.onload = async function (e) {
         let parsedData;
         try {
           parsedData = JSON.parse(e.target.result);
@@ -112,7 +112,7 @@ const CardImport = () => {
             true
           );
 
-          state.setLocalState(patched);
+          await state.setLocalState(patched);
         } else if (loadType === 'theirs') {
           const localToPatch = SharedLib.objectMerge.diff(
             state.getLocalState(),
@@ -129,7 +129,7 @@ const CardImport = () => {
           // Changes in the patch win, so we need changes this from "export" to "client" manually
           patched.metadata.scope = 'client';
 
-          state.setLocalState(patched);
+          await state.setLocalState(patched);
         } else {
           dialog.show_notification(
             'Please select load type option before clicking "Load".'

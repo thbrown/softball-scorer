@@ -12,7 +12,7 @@ global.React = React;
 const container = document.createElement('div');
 document.body.prepend(container);
 
-let Main = (global.Main = {
+const Main = (global.Main = {
   render: () => void 0,
 });
 
@@ -56,10 +56,10 @@ const App = (props) => {
   );
 };
 
-(function () {
-  let root = ReactDOM.createRoot(container);
+state.loadStateFromLocalStorage().then(() => {
+  const root = ReactDOM.createRoot(container);
   root.render(<App />);
-})();
+});
 
 let _resize_timeout = null;
 window.addEventListener('resize', function () {
