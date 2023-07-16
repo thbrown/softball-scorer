@@ -1338,11 +1338,7 @@ exp.loadStateFromLocalStorage = async function (
     // These statements define local storage schema migrations
     const version = await internalLocalStorage.getItem('SCHEMA_VERSION');
     if (version !== CURRENT_LS_SCHEMA_VERSION) {
-      console.log(
-        `Removing invalid localStorage data ${internalLocalStorage.getItem(
-          'SCHEMA_VERSION'
-        )}`
-      );
+      console.log(`Removing invalid localStorage data ${version}`);
       await exp.clearLocalStorage();
       await exp.saveDbStateToLocalStorage();
       await exp.saveApplicationStateToLocalStorage();
