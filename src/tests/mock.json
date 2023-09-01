@@ -416,7 +416,17 @@
           "scoreUs": 0,
           "date": 1662826406,
           "lineupType": 2,
-          "plateAppearances": []
+          "plateAppearances": [
+            {
+              "id": "12P8g5t4CwcxXX",
+              "playerId": "1ajppp381cecS7",
+              "result": "1B",
+              "location": {
+                "x": 123,
+                "y": 456
+              }
+            }
+          ]
         },
         {
           "id": "3",
@@ -524,6 +534,11 @@
           "plateAppearances": []
         }
       ]
+    },
+    {
+      "id": "05iWarrdrfZ1ff",
+      "name": "The second team on the list",
+      "games": []
     }
   ],
   "players": [
@@ -627,6 +642,38 @@
       "optimizerType": 1,
       "inputSummaryData": {},
       "id": "3NSGvYhAAtiCCc"
+    },
+    {
+      "id": "3hLmu7ZyyDNXzi",
+      "name": "MagicOpt",
+      "customOptionsData": { "Innings": 4 },
+      "overrideData": {
+        "3XcBG4OeaNrgHs": [
+          {
+            "id": "18GBtGKEaMheiq",
+            "playerId": "3XcBG4OeaNrgHs",
+            "result": "Out",
+            "location": { "x": 13434, "y": 11075 },
+            "runners": { "out": ["3XcBG4OeaNrgHs"] }
+          },
+          {
+            "id": "3RLrHvbYmi4QT5",
+            "playerId": "3XcBG4OeaNrgHs",
+            "result": "1B",
+            "location": { "x": 18152, "y": 26737 },
+            "runners": { "1B": "3XcBG4OeaNrgHs" }
+          }
+        ]
+      },
+      "resultData": {},
+      "statusMessage": null,
+      "sendEmail": false,
+      "teamList": ["4i7WarrEmtZMxJ"],
+      "gameList": [],
+      "playerList": ["1ajppp381cecS7", "2JojDb9S2brbVF", "3XcBG4OeaNrgHs"],
+      "lineupType": 1,
+      "optimizerType": 1,
+      "inputSummaryData": {}
     }
   ]
 }

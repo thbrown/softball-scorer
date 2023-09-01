@@ -247,3 +247,33 @@ export const cleanObject = function (obj) {
   // Return the cleaned object
   return obj;
 };
+
+export function findLastIndex(arr, callback, startIndex) {
+  if (typeof callback !== 'function') {
+    throw new TypeError('callback must be a function. Was ' + typeof callback);
+  }
+
+  if (startIndex === undefined) {
+    startIndex = arr.length - 1;
+  } else {
+    if (typeof startIndex !== 'number') {
+      throw new TypeError(
+        'startIndex must be a number. Was ' + typeof startIndex
+      );
+    }
+
+    if (startIndex < 0) {
+      startIndex = arr.length + startIndex;
+    }
+  }
+
+  for (let i = startIndex; i >= 0; i--) {
+    if (callback(arr[i], i, arr)) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+Array.prototype.findLastIndex = findLastIndex;

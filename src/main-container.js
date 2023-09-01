@@ -70,14 +70,14 @@ export default class MainContainer extends expose.Component {
 
     // TODO: if(test) logic should be removed and we should find a way to mock problematic APIs
     if (!this.props.test) {
-      // Load data from localstorage synchronously
-      state.loadStateFromLocalStorage();
+      // Load data from browser storage
+      state.loadLocalState();
 
       // Reload from local storage each time after the window regains focus
       window.addEventListener(
         'focus',
         () => {
-          state.loadStateFromLocalStorage();
+          state.loadLocalState();
         },
         false
       );
