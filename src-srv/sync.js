@@ -71,7 +71,8 @@ const applyClientPatchChanges = async (accountId, data) => {
     logger.log(
       accountId,
       'Client patch. Number of patches: ',
-      data.patch.length
+      data.patch.length,
+      data.patch
     );
     await self.databaseCalls.patchState(data.patch, accountId);
 
@@ -126,6 +127,7 @@ const applyServerPatchChanges = async ({
 
     // Diff the ancestor and the localState (dbState) to get the patch we need to send back to the client
     let serverPatch = SharedLib.objectMerge.diff(serverAncestor, state);
+    console.warn('PATCH', serverPatch);
     logger.log(
       accountId,
       'Server Patch',

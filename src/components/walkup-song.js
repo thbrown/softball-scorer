@@ -1,6 +1,5 @@
 import expose from 'expose';
 import css from 'css';
-import DOM from 'react-dom-factories';
 
 export default class WalkupSong extends expose.Component {
   constructor(props) {
@@ -84,49 +83,50 @@ export default class WalkupSong extends expose.Component {
 
   render() {
     if (this.props.songLink) {
-      return DOM.div(
-        {
-          id: 'song',
-          key: 'song',
-          style: {
+      return (
+        <div
+          id="song"
+          key="song"
+          style={{
             position: 'relative',
             display: 'inline-block',
             borderRadius: css.borderRadius.small,
-          },
-        },
-        DOM.iframe({
-          key: 'currentBatterSong' + this.state.key,
-          id: 'currentBatterSong',
-          width: this.props.width,
-          height: this.props.height,
-          frameBorder: '0',
-          src: this.buildUrl(this.props.songLink, this.props.songStart),
-          allow: 'autoplay; encrypted-media',
-          sandbox: 'allow-scripts allow-same-origin',
-        }),
-        DOM.div({
-          key: 'songOverlay' + this.state.key,
-          id: 'songOverlay',
-          onClick: this.handleOverlayClick,
-          className: 'gone',
-          style: {
-            width: '100%',
-            height: '100%',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            zIndex: 2,
-            backgroundColor: 'black',
-            opacity: 0.1,
-          },
-        })
+          }}
+        >
+          <iframe
+            key={'currentBatterSong' + this.state.key}
+            id="currentBatterSong"
+            width={this.props.width}
+            height={this.props.height}
+            frameBorder="0"
+            src={this.buildUrl(this.props.songLink, this.props.songStart)}
+            allow="autoplay; encrypted-media"
+            sandbox="allow-scripts allow-same-origin"
+          />
+          <div
+            key={'songOverlay' + this.state.key}
+            id="songOverlay"
+            onClick={this.handleOverlayClick}
+            className="gone"
+            style={{
+              width: '100%',
+              height: '100%',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              zIndex: 2,
+              backgroundColor: 'black',
+              opacity: 0.1,
+            }}
+          />
+        </div>
       );
     } else {
-      return DOM.div(
-        {
-          id: 'song',
-          key: 'song',
-          style: {
+      return (
+        <div
+          id="song"
+          key="song"
+          style={{
             width: this.props.width,
             height: this.props.height,
             textAlign: 'center',
@@ -136,9 +136,10 @@ export default class WalkupSong extends expose.Component {
             display: 'flex',
             justifyContent: 'space-around',
             alignItems: 'center',
-          },
-        },
-        'No Song'
+          }}
+        >
+          No Song
+        </div>
       );
     }
   }

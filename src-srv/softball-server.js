@@ -1296,7 +1296,7 @@ module.exports = class SoftballServer {
         }
       } else {
         let errorId = Math.random().toString(36).substring(7);
-        logger.error(accountId, 'Sending Error', errorId, error);
+        logger.error(accountId, 'Server Error', errorId, error);
         res.setHeader('content-type', 'application/json');
         res
           .status(500)

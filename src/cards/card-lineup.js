@@ -1,5 +1,4 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 import expose from 'expose';
 import state from 'state';
 import dialog from 'dialog';
@@ -140,7 +139,7 @@ export default class CardLineup extends React.Component {
       elem.style.width = 'unset';
 
       const { new_position_index } = getInds(elem, index);
-      state.updateLineup(this.props.game.lineup, player.id, new_position_index);
+      state.updateLineup(this.props.game.id, player.id, new_position_index);
 
       this.simulateLineup();
     };

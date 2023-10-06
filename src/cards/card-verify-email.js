@@ -1,5 +1,4 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 import state from 'state';
 import dialog from 'dialog';
 import LeftHeaderButton from 'component-left-header-button';
@@ -63,47 +62,28 @@ export default class CardVerifyEmail extends React.Component {
   }
 
   renderPage() {
-    return DOM.div(
-      {
-        style: {
-          padding: '15px',
-        },
-      },
-      DOM.img({
-        id: 'score-spinner',
-        src: '/assets/spinner.gif',
-        style: {
-          visibility: 'unset',
-        },
-      }),
-      ' Verifying email... '
+    return (
+      <div style={{ padding: '15px' }}>
+        <img
+          id="score-spinner"
+          src="/assets/spinner.gif"
+          style={{ visibility: 'unset' }}
+        />
+        {' Verifying email... '}
+      </div>
     );
   }
 
   render() {
-    return DOM.div(
-      {
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {}),
-        DOM.div(
-          {
-            className: 'card-title-text-with-arrow',
-          },
-          'Email Verification'
-        ),
-        React.createElement(RightHeaderButton, {})
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderPage()
-      )
+    return (
+      <div>
+        <div className="card-title">
+          <LeftHeaderButton />
+          <div className="card-title-text-with-arrow">Email Verification</div>
+          <RightHeaderButton />
+        </div>
+        <div className="card-body">{this.renderPage()}</div>
+      </div>
     );
   }
 }

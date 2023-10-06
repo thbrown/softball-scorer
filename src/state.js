@@ -1,8 +1,15 @@
-import expose from 'expose';
 import network from 'network';
 import SharedLib from 'shared-lib';
 import results from 'plate-appearance-results';
-import { getShallowCopy, autoCorrelation, isStatSig } from 'utils/functions';
+import {
+  getShallowCopy,
+  autoCorrelation,
+  isStatSig,
+  reRender,
+  sleep,
+  getNextId,
+  getNextName,
+} from 'utils/functions';
 import StateIndex from 'state-index';
 import StateContainer from 'state-container';
 import { LsMigrationError, LsSchemaVersionError } from 'state-errors';
@@ -11,7 +18,7 @@ import dialog from 'dialog';
 import { LocalStorageStorage } from 'state-storage';
 const TLSchemas = SharedLib.schemaValidation.TLSchemas;
 
-// Constants
+// CONSTANTS
 const INITIAL_STATE = {
   account: {
     optimizers: [0, 1, 2],
@@ -52,107 +59,14 @@ const decoratePlateAppearance = (pa, game) => ({
   date: game?.date,
 });
 
-// HELPERS
-
-function reRender() {
-  expose.set_state('main', {
-    render: true,
-  });
-}
-
-// An async sleep function
-async function sleep(ms) {
-  return new Promise(function (resolve) {
-    setTimeout(function () {
-      resolve(ms);
-    }, ms);
-  });
-}
-
-// TODO: don't go through hex, just go dec to base62
-function dec2hex(dec) {
-  return ('0' + dec.toString(16)).substr(-2);
-}
-
-function getNextId() {
-  let len = 20;
-  var arr = new Uint8Array((len || 40) / 2);
-  crypto.getRandomValues(arr);
-  let hex = Array.from(arr, dec2hex).join('');
-  return SharedLib.idUtils.hexToBase62(hex).padStart(14, '0');
-}
-
-function getNextName(oldName) {
-  let newName = 'Duplicate of ' + oldName;
-  try {
-    // Try fancy renaming - like windows does when you copy a file
-    let regex = /\([\d]+\)$/; // There is a minor bug here with leading zeros
-    let matches = regex.exec(oldName);
-    if (matches?.length > 0) {
-      let nextNumber = parseInt(matches[0].slice(1, -1)) + 1;
-      let slicedOriginal = oldName.slice(0, -matches[0].length);
-      newName = `${slicedOriginal}(${nextNumber})`;
-    } else {
-      newName = `${oldName} (2)`;
-    }
-  } catch (e) {
-    console.warn('regex failure', e);
-  }
-  return newName;
-}
-
-/**
- * Perform a network request (internal - use requestAuth or request outside of this class).
- * Updates application state based on status code of the response
- */
-let _request = async function (
-  method,
-  url,
-  body,
-  controller,
-  overrideTimeout,
-  isAuth
-) {
-  try {
-    let response = await network.request(
-      method,
-      url,
-      body,
-      controller,
-      overrideTimeout
-    );
-    this.setStatusBasedOnHttpResponse(response.status, isAuth);
-    return response;
-  } catch (err) {
-    console.log('Encountered an error during network request');
-    console.log(err);
-    this.setOffline();
-    // We'll just return -1 to say that something went wrong with the network
-    const response = {};
-    response.status = -1;
-    response.body = {};
-    response.body.message = err;
-    return response;
-  }
-};
-
 /*
  * NOTE: Because we want all changes to the state to be done via the functions in this class
  * (as opposed to mutating objects that were returned from getters) we should consider deep
  * copying all objects returned by the getters, then recursively freezing them so the app
  * will throw an error when updates are done outside of this class.
  */
-
 export class GlobalState {
   constructor(stateContainer, index, storage = new LocalStorageStorage()) {
-    // Database State - Stored in memory, local storage, and persisted in the db
-    this.ANCESTOR_DB_STATE_CONT = new StateContainer(
-      JSON.parse(JSON.stringify(INITIAL_STATE))
-    );
-    this.LOCAL_DB_STATE_CONT = new StateContainer(
-      JSON.parse(JSON.stringify(INITIAL_STATE))
-    );
-
     // Application State - State that applies across windows/tabs. Stored in local storage and in memory.
     this.online = true;
     this.sessionValid = false;
@@ -164,6 +78,26 @@ export class GlobalState {
     this.syncTimer = null;
     this.syncTimerTimestamp = null;
 
+    // Database State - Stored in memory, local storage, and persisted in the db (default values)
+    if (stateContainer) {
+      const stateString = JSON.stringify(stateContainer.get());
+      const copyOfState = JSON.parse(stateString);
+      SharedLib.schemaMigration.updateSchema(null, copyOfState, 'client');
+      SharedLib.schemaValidation.validateSchema(copyOfState, TLSchemas.CLIENT);
+      this.ANCESTOR_DB_STATE_CONT = new StateContainer(
+        JSON.parse(JSON.stringify(copyOfState))
+      );
+      stateContainer.set(copyOfState);
+      this.LOCAL_DB_STATE_CONT = stateContainer;
+    } else {
+      this.ANCESTOR_DB_STATE_CONT = new StateContainer(
+        JSON.parse(JSON.stringify(INITIAL_STATE))
+      );
+      this.LOCAL_DB_STATE_CONT = new StateContainer(
+        JSON.parse(JSON.stringify(INITIAL_STATE))
+      );
+    }
+
     // Index for quick relationship lookups
     if (index) {
       this.INDEX = index;
@@ -172,11 +106,6 @@ export class GlobalState {
     }
 
     this.storage = storage;
-
-    // Maybe load state from the string
-    if (stateContainer !== undefined) {
-      this.loadStateFromString(JSON.stringify(stateContainer.get()));
-    }
   }
 
   getNewGame(opposingTeamName, lineup, lineupType) {
@@ -261,7 +190,7 @@ export class GlobalState {
 
       // Ship it
       //console.log(this.getAncestorState(), localState);
-      console.log('[SYNC] Syncing...', body);
+      console.log('[SYNC] Syncing...');
       const response = await this.requestAuth(
         'POST',
         'server/sync',
@@ -369,7 +298,7 @@ export class GlobalState {
         );
 
         // Set local state to a copy of ancestor state (w/ localChangesDuringRequest applied)
-        setLocalStateNoSideEffects(newLocalState);
+        this.setLocalStateNoSideEffects(newLocalState);
 
         // Now set the ancestor, it's important to do this last as having an updated ancestor but not an updated local state would cause
         // a patch with deletions possibly resulting in data loss.
@@ -444,6 +373,7 @@ export class GlobalState {
       } else {
         // Other 500s, 400s are probably bugs :(, tell the user something is wrong
         console.warn(`[SYNC] Probable bug encountered ${err}`);
+        console.warn(err.stack);
         dialog.show_notification(
           'Auto sync failed with message "' +
             err.message +
@@ -451,7 +381,7 @@ export class GlobalState {
             err,
           () => {}
         );
-        console.warn(e.stack);
+        console.warn(err.stack);
         this._setSyncState(SYNC_STATUS_ENUM.ERROR);
       }
       return err.message;
@@ -468,6 +398,8 @@ export class GlobalState {
     this.online = true;
     this.sessionValid = false;
     this.activeUser = null;
+
+    console.log('Resetting state');
 
     this.LOCAL_DB_STATE_CONT.set(JSON.parse(JSON.stringify(INITIAL_STATE)));
     this.ANCESTOR_DB_STATE_CONT.set(JSON.parse(JSON.stringify(INITIAL_STATE)));
@@ -505,7 +437,7 @@ export class GlobalState {
   }
 
   getAncestorState() {
-    return this.ANCESTOR_DB_STATE_CONT;
+    return this.ANCESTOR_DB_STATE_CONT.get();
   }
 
   setAncestorState(s) {
@@ -526,7 +458,6 @@ export class GlobalState {
 
   // TEAM
   getTeam(teamId) {
-    // TODO: is the spread operation going to be slow?
     const team = this.INDEX.getTeam(teamId);
     return team === undefined ? undefined : { ...team };
   }
@@ -745,7 +676,7 @@ export class GlobalState {
     const allOverrides = optimization.overrideData;
 
     const playerOverrides = allOverrides[playerId];
-    const addedPa = getNewPlateAppearance(playerId);
+    const addedPa = this.getNewPlateAppearance(playerId);
 
     if (!playerOverrides) {
       allOverrides[playerId] = [addedPa];
@@ -793,8 +724,8 @@ export class GlobalState {
   // GAME
 
   addGame(teamId, opposingTeamName) {
-    let new_state = this.getLocalState();
-    const team = this.getTeam(teamId, new_state);
+    const newState = this.getLocalState();
+    const team = this.getTeam(teamId, newState);
     let lastLineup = [];
     let lastLineupType = 0;
     if (team.games.length) {
@@ -802,41 +733,46 @@ export class GlobalState {
       lastLineupType = lastGame.lineupType;
       lastLineup = lastGame.lineup.slice();
     }
-    let game = getNewGame(opposingTeamName, lastLineup, lastLineupType);
+    const game = this.getNewGame(opposingTeamName, lastLineup, lastLineupType);
     team.games.push(game);
     this.INDEX.addGame(game.id, team.id);
     this._onEdit();
     return game;
   }
 
+  // TODO: we can't replace w/ a game we got from getGame because it now as "team" on it
   replaceGame(oldGameId, teamId, newGame) {
     const localState = this.getLocalState();
-    const oldGame = this.getGame(oldGameId);
-
-    const team = this.getTeam(teamId);
-    const teamIndex = localState.teams.indexOf(team);
-
-    const oldGameIndex = localState.teams[teamIndex].games.indexOf(oldGame);
+    const team = this.INDEX.getTeamForGame(oldGameId);
+    const teamIndex = this.INDEX.getTeamIndex(team.id);
+    const oldGameIndex = this.INDEX.getGameIndex(oldGameId);
     localState.teams[teamIndex].games[oldGameIndex] = newGame;
     this._onEdit();
   }
 
-  getGame(gameId, state) {
-    if (state === undefined) {
-      return {
-        ...this.INDEX.getGame(gameId),
-        team: this.INDEX.getTeamForGame(gameId),
-      };
+  getGameObjects(gameId) {
+    const game = this.getGame(gameId);
+    if (game === undefined) {
+      return undefined;
     }
-    for (let team of (state || this.getLocalState()).teams) {
-      for (let game of team.games) {
-        if (game.id === gameId) {
-          return game;
-        }
-      }
-    }
+    const team = this.INDEX.getTeamForGame(gameId);
+    return { game, team };
+  }
 
-    return null;
+  getGame(gameId, state) {
+    if (state !== undefined) {
+      throw new Error('State is deprecated');
+    }
+    const game = this.INDEX.getGame(gameId);
+    return game === undefined ? undefined : { ...game };
+  }
+
+  _getMutableGame(gameId) {
+    const localState = this.getLocalState();
+    const team = this.INDEX.getTeamForGame(gameId);
+    const teamIndex = this.INDEX.getTeamIndex(team.id);
+    const gameIndex = this.INDEX.getGameIndex(gameId);
+    return localState.teams[teamIndex].games[gameIndex];
   }
 
   getGamesWithPlayerInLineup(playerId, state) {
@@ -896,43 +832,38 @@ export class GlobalState {
   }
 
   setGameLineup(gameId, newLineup) {
-    const game = this.getGame(gameId);
-    game.lineup = newLineup; // Do we need to do a deep copy here?
+    const game = this._getMutableGame(gameId);
+    game.lineup = newLineup;
     this._onEdit();
   }
 
-  addPlayerToLineup(lineup, playerId) {
-    lineup.push(playerId);
+  addPlayerToLineup(gameId, playerId) {
+    const game = this._getMutableGame(gameId);
+    game.lineup.push(playerId);
     this._onEdit();
   }
 
-  updateLineup(lineup, playerId, newIndex) {
-    const ind = lineup.indexOf(playerId);
-    lineup.splice(ind, 1);
-    lineup.splice(newIndex, 0, playerId);
+  updateLineup(gameId, playerId, newIndex) {
+    const game = this._getMutableGame(gameId);
+    const playerIndex = game.lineup.indexOf(playerId);
+    game.lineup.splice(playerIndex, 1);
+    game.lineup.splice(newIndex, 0, playerId);
     this._onEdit();
   }
 
-  removePlayerFromLineup(lineup, playerId) {
-    const index = lineup.indexOf(playerId);
-    lineup.splice(index, 1);
+  removePlayerFromLineup(gameId, playerId) {
+    const game = this._getMutableGame(gameId);
+    const index = game.lineup.indexOf(playerId);
+    game.lineup.splice(index, 1);
     this._onEdit();
   }
 
-  removeGame(game_id, team_id) {
-    const new_state = this.getLocalState();
-    const team = this.getTeam(team_id);
-    const index = new_state.teams.indexOf(team);
-
-    team.games = team.games.filter((game) => {
-      return game.id !== game_id;
-    });
-
-    if (index > -1) {
-      new_state.teams[index] = team;
-    } else {
-      console.log('Game not found ' + game_id);
-    }
+  removeGame(gameId) {
+    const localState = this.getLocalState();
+    const team = this.INDEX.getTeamForGame(gameId);
+    const teamIndex = this.INDEX.getTeamIndex(team.id);
+    const gameIndex = this.INDEX.getGameIndex(gameId);
+    localState.teams[teamIndex].games.splice(gameIndex, 1);
     this._onEdit();
   }
 
@@ -954,58 +885,49 @@ export class GlobalState {
   // PLATE APPEARANCE
 
   addPlateAppearance(playerId, gameId) {
-    const game = this.getGame(gameId);
+    const { game, team } = this.getGameObjects(gameId);
     const plateAppearances = game.plateAppearances;
-    const plateAppearance = getNewPlateAppearance(playerId);
+    const plateAppearance = this.getNewPlateAppearance(playerId);
     plateAppearances.push(plateAppearance);
-    this.INDEX.addPlateAppearance(plateAppearance.id, game.team.id, team.id);
+    this.INDEX.addPlateAppearance(plateAppearance.id, team.id, game.id);
     this._onEdit();
     return plateAppearance;
   }
 
-  replacePlateAppearance(paId, gameId, teamId, newPa) {
+  replacePlateAppearance(plateAppearanceId, gameId, teamId, newPa) {
     const localState = this.getLocalState();
-
-    const team = this.getTeam(teamId);
-    const teamIndex = localState.teams.indexOf(team);
-
-    const game = this.getGame(gameId);
-    const gameIndex = localState.teams[teamIndex].games.indexOf(game);
-
-    const appearances =
-      localState.teams[teamIndex].games[gameIndex].plateAppearances;
-
-    let i = 0;
-    for (i = 0; i < appearances.length; i++) {
-      const pa = appearances[i];
-      if (pa.id === paId) {
-        break;
-      }
-    }
-    appearances.splice(i, 1, {
-      id: newPa.id,
-      playerId: newPa.playerId,
-      result: newPa.result,
-      location: {
-        x: newPa?.location?.x,
-        y: newPa?.location?.y,
-      },
-      runners: newPa.runners,
-    });
+    const team = this.INDEX.getTeamForPa(plateAppearanceId);
+    const teamIndex = this.INDEX.getTeamIndex(team.id);
+    const game = this.INDEX.getGameForPa(plateAppearanceId);
+    const gameIndex = this.INDEX.getGameIndex(game.id);
+    const paIndex = this.INDEX.getPaIndex(plateAppearanceId);
+    localState.teams[teamIndex].games[gameIndex].plateAppearances[paIndex] =
+      newPa;
     this._onEdit();
   }
 
   getPlateAppearance(paId, state) {
-    const result = decoratePlateAppearance(
-      this.INDEX.getPa(paId),
-      this.INDEX.getGameForPa(paId)
-    );
-    return result;
+    if (state) {
+      throw new Error('STATE IS DEPRECATED');
+    }
+    const pa = this.INDEX.getPa(paId);
+    return pa === undefined ? undefined : { ...pa };
+  }
+
+  getPlateAppearanceObjects(paId) {
+    const pa = this.INDEX.getPlateAppearance(paId);
+    const game = this.INDEX.getGameForPa(paId);
+    const team = this.INDEX.getTeamForPa(paId);
+    if (pa === undefined) {
+      return undefined;
+    }
+    console.warn('GOT PA', pa);
+    return { pa, game, team };
   }
 
   getAllPlateAppearancesForPlayer(playerId) {
     let allPAs = [];
-    let allTeams = state.getAllTeams();
+    let allTeams = this.getAllTeams();
     for (let team of allTeams) {
       let playerPAsOnTeam = this.getPlateAppearancesForPlayerOnTeam(
         playerId,
@@ -1099,7 +1021,8 @@ export class GlobalState {
       );
     } else if (paOrigin === 'game') {
       const pa = this.getPlateAppearance(paId);
-      pas = this.getPlateAppearancesForGame(pa.game.id);
+      const game = this.INDEX.getGameForPa(paId);
+      pas = this.getPlateAppearancesForGame(game.id);
     } else {
       throw new Error('Invalid origin ' + paOrigin);
     }
@@ -1123,8 +1046,8 @@ export class GlobalState {
         pa.playerId
       );
     } else if (paOrigin === 'game') {
-      const pa = this.getPlateAppearance(paId);
-      pas = this.getPlateAppearancesForGame(pa.game.id);
+      const game = this.INDEX.getGameForPa(paId);
+      pas = this.getPlateAppearancesForGame(game.id);
     } else {
       throw new Error('Invalid origin ' + paOrigin);
     }
@@ -1269,10 +1192,24 @@ export class GlobalState {
   }
 
   removePlateAppearance(plateAppearanceId, gameId) {
-    let game = this.INDEX.getGame(gameId);
-    game.plateAppearances = game.plateAppearances.filter((pa) => {
-      return pa.id !== plateAppearanceId;
-    });
+    const pa = this.getPlateAppearance(plateAppearanceId);
+    if (pa === undefined) {
+      throw new Error(
+        'Attempted to delete a plate appearance that does not exist'
+      );
+    }
+    const localState = this.getLocalState();
+    const team = this.INDEX.getTeamForPa(plateAppearanceId);
+    const teamIndex = this.INDEX.getTeamIndex(team.id);
+    const game = this.INDEX.getGameForPa(plateAppearanceId);
+    const gameIndex = this.INDEX.getGameIndex(game.id);
+    const paIndex = this.INDEX.getPaIndex(plateAppearanceId);
+
+    localState.teams[teamIndex].games[gameIndex].plateAppearances.splice(
+      paIndex,
+      1
+    );
+
     this._onEdit();
   }
 
@@ -1296,37 +1233,6 @@ export class GlobalState {
     if (this.getLocalState().account) {
       this.getLocalState().account.optimizers = newOptimizersArray;
       this._onEdit();
-    }
-  }
-
-  loadStateFromString(stateString) {
-    try {
-      let localDbState = JSON.parse(stateString);
-      if (localDbState) {
-        SharedLib.schemaMigration.updateSchema(null, localDbState, 'client');
-        SharedLib.schemaValidation.validateSchema(
-          localDbState,
-          TLSchemas.CLIENT
-        );
-      }
-
-      let ancestorDbState = JSON.parse(stateString);
-      if (ancestorDbState) {
-        SharedLib.schemaMigration.updateSchema(null, ancestorDbState, 'client');
-        SharedLib.schemaValidation.validateSchema(
-          ancestorDbState,
-          TLSchemas.CLIENT
-        );
-      }
-
-      // Apply changes if there were no errors - we want both of them to update or none of them
-      if (localDbState && ancestorDbState) {
-        this.LOCAL_DB_STATE_CONT.set(localDbState);
-        this.ANCESTOR_DB_STATE_CONT.set(ancestorDbState);
-      }
-    } catch (e) {
-      console.error(e, 'Could not parse string', stateString);
-      throw e;
     }
   }
 
@@ -1627,14 +1533,14 @@ export class GlobalState {
     try {
       if (loadState) {
         const savedState = this.storage.getDbState();
-        if (local && ancestor) {
+        if (savedState?.local && savedState?.ancestor) {
           this.LOCAL_DB_STATE_CONT.set(savedState.local);
           this.ANCESTOR_DB_STATE_CONT.set(savedState.ancestor);
         }
       }
     } catch (e) {
       if (e instanceof LsSchemaVersionError) {
-        console.log(e);
+        console.warn(e);
         this.storage.clearStorage();
         this.storage.saveDbState(this.getLocalState(), this.getAncestorState());
         this.storage.saveApplicationState(
@@ -1645,9 +1551,8 @@ export class GlobalState {
       } else if (e instanceof LsMigrationError) {
         // We have bad data in ls, delete it all
         console.warn('Error loading state from localstorage', e);
-        console.warn('Clearing ls');
         console.warn(e);
-        this.clearStorage();
+        this.storage.clearStorage();
       } else {
         throw e;
       }
@@ -1656,18 +1561,18 @@ export class GlobalState {
     if (loadApplicationState) {
       const applicationState = this.storage.getApplicationState();
       if (applicationState) {
-        online = applicationState.online ? applicationState.online : true;
-        sessionValid = applicationState.sessionValid
+        this.online = applicationState.online ? applicationState.online : true;
+        this.sessionValid = applicationState.sessionValid
           ? applicationState.sessionValid
           : false;
-        activeUser = applicationState.activeUser
+        this.activeUser = applicationState.activeUser
           ? applicationState.activeUser
           : null;
       } else {
         console.log('Tried to load null, falling back to defaults');
-        online = true;
-        sessionValid = false;
-        activeUser = null;
+        this.online = true;
+        this.sessionValid = false;
+        this.activeUser = null;
       }
     }
 
@@ -1726,7 +1631,7 @@ export class GlobalState {
     clearTimeout(this.syncTimer);
     this.syncTimerTimestamp = Date.now();
 
-    this.syncTimer = setTimeout(function () {
+    this.syncTimer = setTimeout(() => {
       if (
         this.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS ||
         currentState === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
@@ -1780,6 +1685,34 @@ export class GlobalState {
       if (!skipRender) {
         reRender();
       }
+    }
+  }
+
+  /**
+   * Perform a network request (internal - use requestAuth or request outside of this class).
+   * Updates application state based on status code of the response
+   */
+  async _request(method, url, body, controller, overrideTimeout, isAuth) {
+    try {
+      let response = await network.request(
+        method,
+        url,
+        body,
+        controller,
+        overrideTimeout
+      );
+      this.setStatusBasedOnHttpResponse(response.status, isAuth);
+      return response;
+    } catch (err) {
+      console.log('Encountered an error during network request');
+      console.log(err);
+      this.setOffline();
+      // We'll just return -1 to say that something went wrong with the network
+      const response = {};
+      response.status = -1;
+      response.body = {};
+      response.body.message = err;
+      return response;
     }
   }
 
@@ -1846,7 +1779,14 @@ export class GlobalState {
    * Will update the state's "isSessionValid" variable based on the call's success or failure
    */
   async requestAuth(method, url, body, controller, overrideTimeout) {
-    return await _request(method, url, body, controller, overrideTimeout, true);
+    return await this._request(
+      method,
+      url,
+      body,
+      controller,
+      overrideTimeout,
+      true
+    );
   }
 
   /**
@@ -1854,11 +1794,24 @@ export class GlobalState {
    * Will update the state's "isOnline" variable based on the call's success or failure
    */
   async request(method, url, body, controller, overrideTimeout) {
-    return await _request(method, url, body, controller, overrideTimeout, true);
+    return await this._request(
+      method,
+      url,
+      body,
+      controller,
+      overrideTimeout,
+      true
+    );
   }
 }
 
-// TODO: is this necessary???
-// window.state = exp;
+let activeGlobalState = new GlobalState();
 
-export default new GlobalState();
+export default activeGlobalState;
+export const getGlobalState = (input) => {
+  return activeGlobalState;
+};
+export const setGlobalState = (inputData) => {
+  const stateContainer = new StateContainer(inputData);
+  activeGlobalState = new GlobalState(stateContainer);
+};

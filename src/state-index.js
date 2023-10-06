@@ -4,7 +4,7 @@ import { findLastIndex } from 'utils/functions';
 /**
  * This class keeps track of a bunch of maps so that it's easy to lookup related objects in the global state.
  * The maps are of the form {id -> jsonPointer}
- * The json pointer points to the place in the state object where an object with the id existed (at a least some point).
+ * The json pointer points to the place in the state object where an object with the id existed (it may have been deleted).
  *
  * Using json pointers instead of references to the object itself has a couple of benefits:
  * 1) The garbage collector doesn't keep deleted objects around just because they are in the index
@@ -13,7 +13,7 @@ import { findLastIndex } from 'utils/functions';
  *
  * Rules for using:
  * Anytime something is added to the state, it needs to be added to the index as well. Call the appropriate add function immediately after adding it to the state.
- * Anytime something is delete to the state, it DOES NOT need to be removed from the index.
+ * Anytime something is delete from the state, it DOES NOT need to be removed from the index.
  * Anytime something in the state is mutated, no changes are needed in the index.
  *
  * This is built a little bit for perf reasons, but mostly to clean all the redundant loops out of the global state functions.
@@ -73,7 +73,9 @@ export default class StateIndex {
       } else {
         // Cache miss
         if (index[id] === undefined) {
-          console.warn("Couldn't find", id, 'in', Object.keys(index));
+          console.warn("Couldn't find", id, 'in', Object.keys(index), index);
+          console.warn('teams', this.teamLookup);
+          console.warn('games', this.gameLookup);
         } else {
           console.warn(
             "Couldn't find",
@@ -89,13 +91,18 @@ export default class StateIndex {
         return this._getFromIndex(id, index, validationIndex, true);
       }
     } else {
-      //console.log('FOUND', jsonPointer);
+      if (secondTry) {
+        console.warn('FOUND ON INDEX REBUILD', jsonPointer);
+      }
       return { value: result, jsonPointer };
     }
   }
 
   _buildIndex(location) {
-    console.log('REBUILDING STATE INDEX', location);
+    console.log(
+      'REBUILDING STATE INDEX',
+      location === undefined ? 'FULL' : location
+    );
     if (new Error().stack.match(/_buildIndex/g).length > 1) {
       console.log(new Error().stack);
       throw new Error('Detected recursion during index building');
@@ -114,7 +121,7 @@ export default class StateIndex {
         );*/
       }
     }
-    // TODO: we can pass and index into "findLastIndex" when rebuilding the entire index to improve re-build perf
+    // TODO: we can pass an index into "findLastIndex" when rebuilding the entire index to improve re-build perf
 
     // Index team tree
     for (let team of this.stateContainer.get().teams) {
@@ -205,7 +212,7 @@ export default class StateIndex {
       playerId,
       findLastIndex(
         this.getOptimization(optimizationId).overrideData[playerId],
-        (v) => v.id === playerId
+        (v) => v.id === paId
       )
     );
   }
@@ -225,6 +232,7 @@ export default class StateIndex {
   }
 
   getGame(gameId) {
+    //console.log(gameId, this.gameLookup);
     return this._getFromIndex(gameId, this.gameLookup)?.value;
   }
 

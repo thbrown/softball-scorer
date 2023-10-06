@@ -77,7 +77,7 @@ describe('sync', () => {
 
     if (clientChecksum !== serverChecksum) {
       // Checksums don't care about ordering, so they are the definitive answer
-      // If those don't match, we'll compare the strings because they are much easier to debug
+      // If those don't match, we'll compare the strings to see what's actually different
       console.log('Pre', beforeSyncCopy);
       console.log('Post', afterSyncCopy);
       console.log('Checksums', serverChecksum, clientChecksum);
@@ -142,7 +142,7 @@ describe('sync', () => {
     await performAndValidateSync(state);
 
     // Delete
-    state.removeGame(updatedGame.id, team.id);
+    state.removeGame(updatedGame.id);
     await performAndValidateSync(state);
   });
 
@@ -155,38 +155,33 @@ describe('sync', () => {
     // Create
     let team = state.addTeam('BigTeam');
     let game = state.addGame(team.id, 'BadGuys');
-    let lineup = game.lineup;
     for (let i = 0; i < 10; i++) {
       let player = state.addPlayer(`player${i}`, 'F');
-      state.addPlayerToLineup(lineup, player.id);
+      state.addPlayerToLineup(game.id, player.id);
       players.push(player);
     }
 
     // Edit -> remove players
-    lineup = state.getGame(game.id).lineup;
-    state.removePlayerFromLineup(lineup, players[2].id);
-    state.removePlayerFromLineup(lineup, players[4].id);
-    state.removePlayerFromLineup(lineup, players[5].id);
-    state.removePlayerFromLineup(lineup, players[9].id);
+    state.removePlayerFromLineup(game.id, players[2].id);
+    state.removePlayerFromLineup(game.id, players[4].id);
+    state.removePlayerFromLineup(game.id, players[5].id);
+    state.removePlayerFromLineup(game.id, players[9].id);
     await performAndValidateSync(state);
 
     // Edit -> add players
-
-    lineup = state.getGame(game.id).lineup;
     for (let i = 0; i < 4; i++) {
       let player = state.addPlayer(`addedPlayer${i}`, 'F');
-      state.addPlayerToLineup(lineup, player.id);
-      state.updateLineup(lineup, player.id, i * 2);
+      state.addPlayerToLineup(game.id, player.id);
+      state.updateLineup(game.id, player.id, i * 2);
     }
     await performAndValidateSync(state);
 
     // Edit -> re-order
-    lineup = state.getGame(game.id).lineup;
-    state.updateLineup(lineup, players[0].id, 1);
-    state.updateLineup(lineup, players[1].id, 3);
-    state.updateLineup(lineup, players[3].id, 4);
-    state.updateLineup(lineup, players[6].id, 5);
-    state.updateLineup(lineup, players[7].id, 6);
+    state.updateLineup(game.id, players[0].id, 1);
+    state.updateLineup(game.id, players[1].id, 3);
+    state.updateLineup(game.id, players[3].id, 4);
+    state.updateLineup(game.id, players[6].id, 5);
+    state.updateLineup(game.id, players[7].id, 6);
     await performAndValidateSync(state);
   });
 
@@ -200,10 +195,9 @@ describe('sync', () => {
     // Create
     let team = state.addTeam('BigTeam');
     let game = state.addGame(team.id, 'BadGuys');
-    let lineup = game.lineup;
     for (let i = 0; i < 5; i++) {
       let player = state.addPlayer(`player${i}`, 'F');
-      state.addPlayerToLineup(lineup, player.id);
+      state.addPlayerToLineup(game.id, player.id);
       players.push(player);
       for (let j = 0; j < 2; j++) {
         let pa = state.addPlateAppearance(player.id, game.id);
@@ -281,7 +275,7 @@ describe('sync', () => {
   });
   */
 
-  test.only('Ordering - This query includes both deletes and and insert, this tests to makes sure the resulting querys are sorted and performed in the right order', async () => {
+  test('Ordering - This query includes both deletes and and insert, this tests to makes sure the resulting querys are sorted and performed in the right order', async () => {
     state.deleteAllData();
     await performAndValidateSync(state);
 
@@ -291,14 +285,14 @@ describe('sync', () => {
     let players = [];
     for (let i = 0; i < 5; i++) {
       let player = state.addPlayer(`player${i}`, 'F');
-      state.addPlayerToLineup(game.lineup, player.id);
+      state.addPlayerToLineup(game.id, player.id);
       players.push(player);
     }
 
     await performAndValidateSync(state);
 
     // Blow away the old data for some new data
-    state.removeGame(game.id, team.id);
+    state.removeGame(game.id);
     state.removeTeam(team.id);
     for (let i = 0; i < 5; i++) {
       state.removePlayer(players[i].id);

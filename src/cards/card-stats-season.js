@@ -249,7 +249,9 @@ export default class CardStatsSeason extends React.Component {
 
     return (
       <CardSection>
-        <StickyTable>{tableElems}</StickyTable>
+        <StickyTable style={{ paddingBottom: '14px' }}>
+          {tableElems}
+        </StickyTable>
         <InnerSection
           style={{
             textAlign: 'center',

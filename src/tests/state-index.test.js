@@ -28,9 +28,14 @@ describe('Does the StateIndex class work', () => {
     const stateIndex = new StateIndex(stateContainer);
     const state = new GlobalState(stateContainer, stateIndex);
 
+    //console.warn('WARN', stateContainer.get().teams[0].games[0].id);
+
     // Delete the PA
     const game = stateIndex.getGameForPa('2IHrEOVC4hfUTI');
+    //console.warn('WARN', stateContainer.get().teams[0].games[0].id);
+
     state.removePlateAppearance('2IHrEOVC4hfUTI', game.id);
+    //console.warn('WARN', stateContainer.get().teams[0].games[0].id);
 
     // Make sure it's invalid in the index
     expect(stateIndex.getPa('2IHrEOVC4hfUTI')).toEqual(undefined);
@@ -64,5 +69,21 @@ describe('Does the StateIndex class work', () => {
     const stateContainer = new StateContainer(mockData);
     const stateIndex = new StateIndex(stateContainer);
     expect(stateIndex.getOptimization('3NSGvYhAAtiCCc')).not.toEqual(undefined);
+  });
+
+  it('Can select an Optimization for a PA', () => {
+    const stateContainer = new StateContainer(mockData);
+    const stateIndex = new StateIndex(stateContainer);
+    expect(stateIndex.getOptimizationForPa('3RLrHvbYmi4QT5')).not.toEqual(
+      undefined
+    );
+  });
+
+  it('Can select a PA from an optimization', () => {
+    const stateContainer = new StateContainer(mockData);
+    const stateIndex = new StateIndex(stateContainer);
+    expect(stateIndex.getPaFromOptimization('3RLrHvbYmi4QT5')).not.toEqual(
+      undefined
+    );
   });
 });

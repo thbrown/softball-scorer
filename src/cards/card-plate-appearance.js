@@ -78,6 +78,13 @@ class CardPlateAppearance extends React.Component {
       suspendTransition: false,
     };
 
+    console.log(
+      'RUNNERS',
+      this.state.runners,
+      props.plateAppearance.runners,
+      props.plateAppearance
+    );
+
     this.isNew = props.isNew;
 
     const buildPlateAppearance = () => {
@@ -605,7 +612,7 @@ class CardPlateAppearance extends React.Component {
         onDrag={this.onPlayerDrag.bind(this, adjBaseCoordinates)}
         position={{ x: x + 1, y: y - 20 }}
         disabled={disabled}
-        key={'dr-' + playerId}
+        key={'dr-' + playerId + x}
         onStop={this.onPlayerDragStop.bind(this, adjBaseCoordinates, playerId)}
         onStart={this.onPlayerDragStart}
       >

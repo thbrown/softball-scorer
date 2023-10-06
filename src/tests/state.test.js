@@ -120,4 +120,78 @@ describe('State Operations', () => {
       state.getOptimization(optimizationToEdit.id).overrideData.length
     ).toEqual(optimizationOverrideDataCount);
   });
+
+  it('Game CRUD', () => {
+    const stateContainer = new StateContainer(mockData);
+    const state = new GlobalState(stateContainer);
+
+    // Get a game (is immutable)
+    const existingGame = state.getGame('1');
+    const existingGameOpponent = existingGame.opponent;
+    existingGame.opponent = 'PizzaParty';
+    expect(state.getGame(existingGame.id).opponent).toEqual(
+      existingGameOpponent
+    );
+
+    // Add a game
+    const addedGame = state.addGame('4i7WarrEmtZMxJ', 'Denver Broncos');
+    expect(state.getGame(addedGame.id)).toBeDefined();
+
+    // Remove a game
+    state.removeGame('2');
+    expect(state.getGame('2')).toBeUndefined();
+
+    // Replace a game
+    const newOpponent = 'Kansas City Chiefs';
+    const oldGame = state.getGame('1');
+    const gameToEdit = state.getGame('1');
+    const numExistingPas = gameToEdit.plateAppearances.length;
+    gameToEdit.opponent = newOpponent;
+    state.replaceGame(oldGame.id, null, gameToEdit); // TODO: remove the second arg
+
+    expect(state.getGame(gameToEdit.id).opponent).toEqual(newOpponent);
+    expect(state.getGame(gameToEdit.id).plateAppearances.length).toEqual(
+      numExistingPas
+    );
+  });
+
+  it('PlateAppearance CRUD', () => {
+    const stateContainer = new StateContainer(mockData);
+    const state = new GlobalState(stateContainer);
+
+    // Get a plate appearance (is immutable)
+    const existingPlateAppearance = state.getPlateAppearance('1asNvNz984Ec4f');
+    const existingPlateAppearanceResult = existingPlateAppearance.result;
+    existingPlateAppearance.result = 'Out';
+    expect(state.getPlateAppearance(existingPlateAppearance.id).result).toEqual(
+      existingPlateAppearanceResult
+    );
+
+    // Add a plate appearance
+    const addedPlateAppearance = state.addPlateAppearance(
+      '3XcBG4OeaNrgHs',
+      '1'
+    );
+    expect(state.getPlateAppearance(addedPlateAppearance.id)).toBeDefined();
+
+    // Remove a game
+    state.removePlateAppearance('2IHrEOVC4hfUTI');
+    expect(state.getPlateAppearance('2IHrEOVC4hfUTI')).toBeUndefined();
+
+    // Replace a game
+    const newResult = 'HRo';
+    const oldPlateAppearance = state.getPlateAppearance('4UuyGMABG7tefx');
+    const plateAppearanceToEdit = state.getPlateAppearance('4UuyGMABG7tefx');
+    plateAppearanceToEdit.result = newResult;
+    state.replacePlateAppearance(
+      oldPlateAppearance.id,
+      null,
+      null,
+      plateAppearanceToEdit
+    ); // TODO: remove the second & third args
+
+    expect(state.getPlateAppearance(plateAppearanceToEdit.id).result).toEqual(
+      newResult
+    );
+  });
 });

@@ -1,5 +1,4 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 
 export default class YesNoCancelDialog extends React.Component {
   constructor(props) {
@@ -22,60 +21,24 @@ export default class YesNoCancelDialog extends React.Component {
   }
 
   render() {
-    return DOM.div(
-      {
-        className: 'dialog',
-      },
-      DOM.div(
-        {
-          className: 'dialog-text',
-        },
-        this.props.text
-      ),
-      DOM.div(
-        {
-          style: {
-            display: 'flex',
-            justifyContent: 'flex-end',
-          },
-        },
-        DOM.div(
-          {
-            className: 'button primary-button',
-            onClick: this.handleYesClick,
-          },
-          DOM.span(
-            {
-              className: 'no-select',
-            },
-            'Yes'
-          )
-        ),
-        DOM.div(
-          {
-            className: 'button primary-button',
-            onClick: this.handleNoClick,
-          },
-          DOM.span(
-            {
-              className: 'no-select',
-            },
-            'No'
-          )
-        ),
-        DOM.div(
-          {
-            className: 'button cancel-button',
-            onClick: this.handleCancelClick,
-          },
-          DOM.span(
-            {
-              className: 'no-select',
-            },
-            'Cancel'
-          )
-        )
-      )
+    return (
+      <div className="dialog">
+        <div className="dialog-text">{this.props.text}</div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <div className="button primary-button" onClick={this.handleYesClick}>
+            <span className="no-select">Yes</span>
+          </div>
+          <div className="button primary-button" onClick={this.handleNoClick}>
+            <span className="no-select">No</span>
+          </div>
+          <div
+            className="button cancel-button"
+            onClick={this.handleCancelClick}
+          >
+            <span className="no-select">Cancel</span>
+          </div>
+        </div>
+      </div>
     );
   }
 }

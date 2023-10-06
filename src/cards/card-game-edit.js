@@ -28,7 +28,7 @@ export default class CardGameEdit extends React.Component {
             : 'Are you sure you wish to discard changes to this game?',
           () => {
             if (props.isNew) {
-              state.removeGame(props.game.id, props.team.id);
+              state.removeGame(props.game.id);
             }
             if (type === 'home') {
               goHome();
@@ -59,7 +59,7 @@ export default class CardGameEdit extends React.Component {
         () => {
           // FIXME this causes a brief 404 to flash on the page
           goBack();
-          state.removeGame(props.game.id, props.team.id);
+          state.removeGame(props.game.id);
         }
       );
     };

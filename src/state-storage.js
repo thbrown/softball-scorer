@@ -30,6 +30,10 @@ export class LocalStorageStorage {
       localStorage.setItem("ANCESTOR_DB_STATE", compressedAncestorState);
       */
       SharedLib.schemaValidation.validateSchema(localState, TLSchemas.CLIENT);
+      SharedLib.schemaValidation.validateSchema(
+        ancestorState,
+        TLSchemas.CLIENT
+      );
 
       localStorage.setItem(SCHEMA_VERSION, CURRENT_LS_SCHEMA_VERSION);
       localStorage.setItem(LOCAL_DB_STATE, JSON.stringify(localState));
@@ -41,11 +45,11 @@ export class LocalStorageStorage {
     if (typeof Storage !== 'undefined') {
       // We could migrate the localstorage data here, or we can just be lazy and delete it
       if (localStorage.getItem(SCHEMA_VERSION) !== CURRENT_LS_SCHEMA_VERSION) {
-        console.warn(
-          `Invalid localStorage data ${localStorage.getItem(SCHEMA_VERSION)}`
-        );
+        console.warn(`Invalid localStorage data ${Object.keys(localStorage)}`);
         throw new LsSchemaVersionError(
-          'Out of date localstorage schema version'
+          `Out of date localstorage schema version was ${localStorage.getItem(
+            SCHEMA_VERSION
+          )} latest is ${CURRENT_LS_SCHEMA_VERSION}`
         );
       }
 
@@ -78,8 +82,8 @@ export class LocalStorageStorage {
         // Apply changes if there were no errors - we want both of them to update or none of them
         if (localDbState && ancestorDbState) {
           return {
-            local: this.LOCAL_DB_STATE_CONT.set(localDbState),
-            ancestor: this.ANCESTOR_DB_STATE_CONT.set(ancestorDbState),
+            local: localDbState,
+            ancestor: ancestorDbState,
           };
         }
       } catch (e) {
