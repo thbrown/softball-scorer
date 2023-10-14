@@ -523,7 +523,7 @@ export class GlobalState {
 
   addPlayer(playerName, gender) {
     const id = getNextId();
-    let new_state = this.getLocalState();
+    let newState = this.getLocalState();
     let player = {
       id: id,
       name: playerName,
@@ -531,7 +531,7 @@ export class GlobalState {
       songLink: null,
       songStart: null,
     };
-    new_getGlobalState().players.push(player);
+    newState.players.push(player);
     this.INDEX.addPlayer(player.id);
     this._onEdit();
     return player;

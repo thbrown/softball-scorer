@@ -4,7 +4,7 @@
 const configAccessor = require('../config-accessor');
 const SoftballServer = require('../softball-server');
 const testUtils = require('./test-utils.js');
-const state = require('../../src/getGlobalState().js').default;
+const getGlobalState = require('../../src/state.js').getGlobalState;
 const context = require('../context');
 const SharedLib = require('../../shared-lib');
 const utils = SharedLib.commonUtils;
@@ -99,45 +99,45 @@ describe('sync', () => {
 
   test('Sync - Players', async () => {
     getGlobalState().deleteAllData();
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Create
     let player = getGlobalState().addPlayer(`Mary`, 'F');
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Edit
     let updatedPlayer = JSON.parse(JSON.stringify(player));
     updatedPlayer.name = 'HailMary';
     getGlobalState().replacePlayer(player.id, updatedPlayer);
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Delete
     getGlobalState().removePlayer(updatedPlayer.id);
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
   });
 
   test('Sync - Team', async () => {
     getGlobalState().deleteAllData();
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Create
     let team = getGlobalState().addTeam('BigTeam');
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Edit
     let updatedTeam = JSON.parse(JSON.stringify(team));
     updatedTeam.name = 'ReallyBigTeam';
     getGlobalState().replaceTeam(team.id, updatedTeam);
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Delete
     getGlobalState().removeTeam(updatedTeam.id);
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
   });
 
   test('Sync - Game', async () => {
     getGlobalState().deleteAllData();
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Create
     let team = getGlobalState().addTeam('BigTeam');
@@ -147,16 +147,16 @@ describe('sync', () => {
     let updatedGame = JSON.parse(JSON.stringify(game));
     updatedGame.opponent = 'ActuallyTheseBadGuys';
     getGlobalState().replaceGame(updatedGame.id, team.id, updatedGame);
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Delete
     getGlobalState().removeGame(updatedGame.id);
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
   });
 
   test('Sync - Lineups', async () => {
     getGlobalState().deleteAllData();
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     let players = [];
 
@@ -174,7 +174,7 @@ describe('sync', () => {
     getGlobalState().removePlayerFromLineup(game.id, players[4].id);
     getGlobalState().removePlayerFromLineup(game.id, players[5].id);
     getGlobalState().removePlayerFromLineup(game.id, players[9].id);
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Edit -> add players
     for (let i = 0; i < 4; i++) {
@@ -182,7 +182,7 @@ describe('sync', () => {
       getGlobalState().addPlayerToLineup(game.id, player.id);
       getGlobalState().updateLineup(game.id, player.id, i * 2);
     }
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Edit -> re-order
     getGlobalState().updateLineup(game.id, players[0].id, 1);
@@ -190,12 +190,12 @@ describe('sync', () => {
     getGlobalState().updateLineup(game.id, players[3].id, 4);
     getGlobalState().updateLineup(game.id, players[6].id, 5);
     getGlobalState().updateLineup(game.id, players[7].id, 6);
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
   });
 
   test('Sync - Plate Appearances', async () => {
     getGlobalState().deleteAllData();
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     let players = [];
     let pas = [];
@@ -217,7 +217,7 @@ describe('sync', () => {
         pas.push(pa);
       }
     }
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Edit
     let replacementPa = JSON.parse(
@@ -269,11 +269,11 @@ describe('sync', () => {
       team.id,
       replacementPa
     );
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Delete
     getGlobalState().removePlateAppearance(pas[8].id, game.id);
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
   });
 
   // TODO: Optimizations
@@ -285,7 +285,7 @@ describe('sync', () => {
 
   test('Ordering - This query includes both deletes and and insert, this tests to makes sure the resulting querys are sorted and performed in the right order', async () => {
     getGlobalState().deleteAllData();
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Add a bunch of initial data
     let team = getGlobalState().addTeam('BigTeam');
@@ -297,7 +297,7 @@ describe('sync', () => {
       players.push(player);
     }
 
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Blow away the old data for some new data
     getGlobalState().removeGame(game.id);
@@ -306,6 +306,6 @@ describe('sync', () => {
       getGlobalState().removePlayer(players[i].id);
     }
     getGlobalState().addTeam('Actually this team');
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
   });
 });

@@ -26,16 +26,11 @@ describe('Does the StateIndex class work', () => {
   it('Lookup to deleted Plate Appearance will return undefined', () => {
     const stateContainer = new StateContainer(mockData);
     const stateIndex = new StateIndex(stateContainer);
-    const state = new GlobalState(stateContainer, stateIndex);
-
-    //console.warn('WARN', stateContainer.get().teams[0].games[0].id);
+    const globalState = new GlobalState(stateContainer, stateIndex);
 
     // Delete the PA
     const game = stateIndex.getGameForPa('2IHrEOVC4hfUTI');
-    //console.warn('WARN', stateContainer.get().teams[0].games[0].id);
-
-    getGlobalState().removePlateAppearance('2IHrEOVC4hfUTI', game.id);
-    //console.warn('WARN', stateContainer.get().teams[0].games[0].id);
+    globalState.removePlateAppearance('2IHrEOVC4hfUTI', game.id);
 
     // Make sure it's invalid in the index
     expect(stateIndex.getPa('2IHrEOVC4hfUTI')).toEqual(undefined);
