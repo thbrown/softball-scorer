@@ -1,5 +1,5 @@
 import React from 'react';
-import state from 'state';
+import { getGlobalState } from 'state';
 import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
 import { sortObjectsByDate, toClientDate } from 'utils/functions';
@@ -15,7 +15,7 @@ const GameList = (props) => {
   };
 
   const handleCreateClick = function () {
-    const game = state.addGame(props.team.id, '');
+    const game = getGlobalState().addGame(props.team.id, '');
     setRoute(`/teams/${props.team.id}/games/${game.id}/edit?isNew=true`);
   };
 

@@ -1,7 +1,7 @@
 import Enzyme from 'enzyme';
 import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
 import { getPageWrapper } from './test-helpers';
-import state from 'state';
+import { getGlobalState } from 'state';
 import { setRoute } from 'actions/route';
 import mockData from './mock.json';
 import SharedLib from 'shared-lib';
@@ -10,25 +10,25 @@ Enzyme.configure({ adapter: new Adapter() });
 
 describe('[UI] Game Stats', () => {
   let wrapper = null;
-  let _isSessionValid = state.isSessionValid;
+  let _isSessionValid = getGlobalState().isSessionValid;
 
   beforeAll(() => {
-    state.setOffline();
+    getGlobalState().setOffline();
     SharedLib.schemaMigration.updateSchema(null, mockData, 'client');
-    state.setLocalState(mockData);
+    getGlobalState().setLocalState(mockData);
     const { wrapper: localWrapper } = getPageWrapper();
     wrapper = localWrapper;
     setRoute(`/`);
   });
 
   beforeEach(() => {
-    state.isSessionValid = jest.fn().mockImplementation(() => {
+    getGlobalState().isSessionValid = jest.fn().mockImplementation(() => {
       return true;
     });
   });
 
   afterEach(() => {
-    state.isSessionValid = _isSessionValid;
+    getGlobalState().isSessionValid = _isSessionValid;
   });
 
   it('A user can navigate to the share page for a specific team team', () => {

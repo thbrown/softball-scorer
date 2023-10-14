@@ -2,7 +2,7 @@ import * as JsonPointer from 'jsonpointer';
 import { findLastIndex } from 'utils/functions';
 
 /**
- * This class keeps track of a bunch of maps so that it's easy to lookup related objects in the global state.
+ * This class keeps track of a bunch of maps so that it's easy to lookup related objects in the global getGlobalState().
  * The maps are of the form {id -> jsonPointer}
  * The json pointer points to the place in the state object where an object with the id existed (it may have been deleted).
  *
@@ -12,7 +12,7 @@ import { findLastIndex } from 'utils/functions';
  * re-build the index and try again to be safe, but it probably means the thing you are looking for has been deleted.
  *
  * Rules for using:
- * Anytime something is added to the state, it needs to be added to the index as well. Call the appropriate add function immediately after adding it to the state.
+ * Anytime something is added to the state, it needs to be added to the index as well. Call the appropriate add function immediately after adding it to the getGlobalState().
  * Anytime something is delete from the state, it DOES NOT need to be removed from the index.
  * Anytime something in the state is mutated, no changes are needed in the index.
  *
@@ -103,6 +103,7 @@ export default class StateIndex {
       'REBUILDING STATE INDEX',
       location === undefined ? 'FULL' : location
     );
+    const startTime = Date.now();
     if (new Error().stack.match(/_buildIndex/g).length > 1) {
       console.log(new Error().stack);
       throw new Error('Detected recursion during index building');
@@ -148,6 +149,8 @@ export default class StateIndex {
     for (let player of this.stateContainer.get().players) {
       this.addPlayer(player.id);
     }
+
+    console.log('REBUILDING TOOK', Date.now() - startTime, 'ms');
   }
 
   // =============== | ADDERS | ===================

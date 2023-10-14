@@ -1,6 +1,6 @@
 import React from 'react';
 import CardSection from 'elements/card-section';
-import state from 'state';
+import { getGlobalState } from 'state';
 import { makeStyles } from 'css/helpers';
 import css from 'css';
 
@@ -86,7 +86,7 @@ const TableCell = ({ whoseScore, inning, game, score }) => {
   const { classes } = tableStyles();
 
   const handleScoreChange = (increment) => {
-    state.setScore(game, inning, increment, whoseScore);
+    getGlobalState().setScore(game, inning, increment, whoseScore);
   };
 
   const displayScore = (score ?? 0) + (game[whoseScore][inning] ?? 0);
@@ -121,7 +121,7 @@ const TableCell = ({ whoseScore, inning, game, score }) => {
 
 const ScoreTable = ({ usName, themName, game }) => {
   const { classes } = tableStyles();
-  const scores = state.getInningScores(game.id);
+  const scores = getGlobalState().getInningScores(game.id);
   return (
     <table className={classes.table}>
       <thead>
@@ -215,12 +215,12 @@ const calculateScore = (scoreObj) => {
 const GameScorer = ({ teamId, gameId }) => {
   const { classes } = useGameScorerStyles();
 
-  const game = state.getGame(gameId);
-  const team = state.getTeam(teamId);
+  const game = getGlobalState().getGame(gameId);
+  const team = getGlobalState().getTeam(teamId);
 
   const usName = team.name;
   const themName = game.opponent;
-  const usDerivedScore = state
+  const usDerivedScore = getGlobalState()
     .getInningScores(game.id)
     .reduce((a, b) => a + b, 0);
 

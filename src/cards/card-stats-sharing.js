@@ -1,5 +1,5 @@
 import React from 'react';
-import state from 'state';
+import { getGlobalState } from 'state';
 import dialog from 'dialog';
 import { makeStyles } from 'css/helpers';
 import IconButton from '../elements/icon-button';
@@ -76,13 +76,13 @@ const CardStatsSharing = (props) => {
       teamId: props.team.id,
     };
 
-    let response = await state.requestAuth(
+    let response = await getGlobalState().requestAuth(
       'POST',
       `server/team-stats/edit`,
       JSON.stringify(body)
     );
     if (response.status === 204) {
-      await state.sync();
+      await getGlobalState().sync();
     } else {
       dialog.show_notification(
         `Error! We were not able to toggle this team's public visibility. Please try again later. ${
@@ -141,7 +141,7 @@ const CardStatsSharing = (props) => {
   }
 
   let content = null;
-  if (state.isSessionValid()) {
+  if (getGlobalState().isSessionValid()) {
     content = (
       <div className="auth-input-container">
         <div style={styles.publicLinkLabelBox}>

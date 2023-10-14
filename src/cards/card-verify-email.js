@@ -1,5 +1,5 @@
 import React from 'react';
-import state from 'state';
+import { getGlobalState } from 'state';
 import dialog from 'dialog';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
@@ -17,7 +17,7 @@ export default class CardVerifyEmail extends React.Component {
         token: this.token,
       };
 
-      let response = await state.request(
+      let response = await getGlobalState().request(
         'POST',
         `server/account/verify-email`,
         JSON.stringify(body)
@@ -26,13 +26,13 @@ export default class CardVerifyEmail extends React.Component {
       if (response.status === 204) {
         let message = `Thank you. Your email address has been verified. Please sign in.`;
         let redirect = '/menu/login';
-        if (state.isSessionValid()) {
+        if (getGlobalState().isSessionValid()) {
           message = `Thank you. Your email address has been verified.`;
           redirect = '/menu';
         }
         dialog.show_notification(message, function () {
           setRoute(redirect);
-          state.sync();
+          getGlobalState().sync();
         });
       } else if (response.status === 404) {
         dialog.show_notification(

@@ -15,7 +15,9 @@ export default class CardStatsSharing extends React.Component {
   render() {
     const games = sortObjectsByDate(this.props.team.games, { isAsc: false });
     const elems = games.map((game) => {
-      const teamStatsForGame = state.buildStatsObject(game.plateAppearances);
+      const teamStatsForGame = getGlobalState().buildStatsObject(
+        game.plateAppearances
+      );
       return (
         <ListButton
           key={'game-' + game.id}

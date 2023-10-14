@@ -34,7 +34,7 @@ describe('Does the StateIndex class work', () => {
     const game = stateIndex.getGameForPa('2IHrEOVC4hfUTI');
     //console.warn('WARN', stateContainer.get().teams[0].games[0].id);
 
-    state.removePlateAppearance('2IHrEOVC4hfUTI', game.id);
+    getGlobalState().removePlateAppearance('2IHrEOVC4hfUTI', game.id);
     //console.warn('WARN', stateContainer.get().teams[0].games[0].id);
 
     // Make sure it's invalid in the index

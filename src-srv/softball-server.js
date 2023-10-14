@@ -886,18 +886,18 @@ module.exports = class SoftballServer {
       // Filter out any deleted teams or games (since these can get out of sync)
       // TODO: Shouldn't this move to the server side?
       const filteredTeamList = teamIds.filter((teamId) =>
-        state.getTeam(teamId)
+        getGlobalState().getTeam(teamId)
       );
-      state.setOptimizationField(
+      getGlobalState().setOptimizationField(
         this.props.optimization.id,
         'teamList',
         filteredTeamList
       );
 
       const filteredGameList = gameIds.filter((gameId) =>
-        state.getTeam(gameId)
+        getGlobalState().getTeam(gameId)
       );
-      state.setOptimizationField(
+      getGlobalState().setOptimizationField(
         this.props.optimization.id,
         'gameList',
         filteredGameList
@@ -912,7 +912,7 @@ module.exports = class SoftballServer {
             overrideData[overridePlayerIds[i]];
         }
       }
-      state.setOptimizationField(
+      getGlobalState().setOptimizationField(
         this.props.optimization.id,
         'overrideData',
         filteredOverrides

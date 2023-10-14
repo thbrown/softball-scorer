@@ -1,4 +1,4 @@
-import state from 'state';
+import { getGlobalState } from 'state';
 import config from './config';
 
 const exp = {};

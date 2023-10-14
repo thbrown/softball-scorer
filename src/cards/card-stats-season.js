@@ -1,5 +1,5 @@
 import React from 'react';
-import state from 'state';
+import { getGlobalState } from 'state';
 import CardSection from 'elements/card-section';
 import { StickyTable, Row, Cell } from 'react-sticky-table';
 import css from 'css';
@@ -138,13 +138,14 @@ export default class CardStatsSeason extends React.Component {
 
   buildStatsObject(teamId, playerId) {
     const { team, inputState } = this.props;
-    const plateAppearances = state.getDecoratedPlateAppearancesForPlayerOnTeam(
-      playerId,
-      team,
-      inputState
-    );
-    const player = state.getPlayer(playerId, inputState);
-    return state.buildStatsObject(plateAppearances, player);
+    const plateAppearances =
+      getGlobalState().getDecoratedPlateAppearancesForPlayerOnTeam(
+        playerId,
+        team,
+        inputState
+      );
+    const player = getGlobalState().getPlayer(playerId, inputState);
+    return getGlobalState().buildStatsObject(plateAppearances, player);
   }
 
   renderStatsHeader() {
@@ -218,7 +219,7 @@ export default class CardStatsSeason extends React.Component {
 
     // TODO: Generate this once when the component mounts.  It's very redundant to do it
     // on each render
-    const s = inputState || state.getLocalState();
+    const s = inputState || getGlobalState().getLocalState();
 
     if (!team) {
       return this.renderNoTable();

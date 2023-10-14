@@ -1,5 +1,5 @@
 import { sortObjectsByDate } from './functions';
-import state from 'state';
+import { getGlobalState } from 'state';
 
 export const HIT_TYPE_FILTERS = {
   HITS: 'hits',
@@ -72,8 +72,7 @@ export function filterByLastGames(plateAppearances, lastNGames) {
  * added to a list on the player object
  */
 export const convertPlateAppearanceListToPlayerPlateAppearanceList = (
-  plateAppearances,
-  inputState
+  plateAppearances
 ) => {
   const ret = [];
   plateAppearances.forEach((pa) => {
@@ -82,7 +81,7 @@ export const convertPlateAppearanceListToPlayerPlateAppearanceList = (
     );
 
     if (!ret.find((p) => p.id === pa.playerId)) {
-      const player = state.getPlayer(pa.playerId, inputState);
+      const player = getGlobalState().getPlayer(pa.playerId);
       if (!player) {
         throw new Error(
           'No player with id ' + pa.playerId + ' could be found.'

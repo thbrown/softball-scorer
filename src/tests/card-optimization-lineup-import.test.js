@@ -1,13 +1,13 @@
 import Enzyme from 'enzyme';
 import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
 import { getPageWrapper } from './test-helpers';
-import state from 'state';
+import { getGlobalState } from 'state';
 import mockData from './mock.json';
 import { createOptimizationUI } from './create-edit-delete.test';
 import SharedLib from 'shared-lib';
 
 Enzyme.configure({ adapter: new Adapter() });
-state.setOffline();
+getGlobalState().setOffline();
 
 const TEAM_ID = '4i7WarrEmtZMxJ';
 const GAME_ID = '1';
@@ -16,9 +16,9 @@ describe('[UI] Optimization', () => {
   let wrapper = null;
 
   beforeAll(() => {
-    state.setOffline();
+    getGlobalState().setOffline();
     SharedLib.schemaMigration.updateSchema(null, mockData, 'client');
-    state.setLocalState(mockData);
+    getGlobalState().setLocalState(mockData);
     const { wrapper: localWrapper } = getPageWrapper();
     wrapper = localWrapper;
     window.scroll = () => void 0;
@@ -41,7 +41,8 @@ describe('[UI] Optimization', () => {
       .hostNodes()
       .simulate('click');
     wrapper.find('#confirm').hostNodes().simulate('click');
-    const { playerList, teamList } = state.getOptimization(optimizationId);
+    const { playerList, teamList } =
+      getGlobalState().getOptimization(optimizationId);
     expect(playerList.length).toEqual(10);
   });
 });

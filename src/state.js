@@ -15,7 +15,7 @@ import StateContainer from 'state-container';
 import { LsMigrationError, LsSchemaVersionError } from 'state-errors';
 
 import dialog from 'dialog';
-import { LocalStorageStorage } from 'state-storage';
+import { LocalStorageStorage, InMemoryStorage } from 'state-storage';
 const TLSchemas = SharedLib.schemaValidation.TLSchemas;
 
 // CONSTANTS
@@ -66,7 +66,12 @@ const decoratePlateAppearance = (pa, game) => ({
  * will throw an error when updates are done outside of this class.
  */
 export class GlobalState {
-  constructor(stateContainer, index, storage = new LocalStorageStorage()) {
+  constructor(
+    stateContainer,
+    index,
+    storage = new LocalStorageStorage(),
+    prohibitSync
+  ) {
     // Application State - State that applies across windows/tabs. Stored in local storage and in memory.
     this.online = true;
     this.sessionValid = false;
@@ -105,6 +110,7 @@ export class GlobalState {
       this.INDEX = new StateIndex(this.LOCAL_DB_STATE_CONT);
     }
 
+    this.prohibitSync = prohibitSync;
     this.storage = storage;
   }
 
@@ -154,6 +160,11 @@ export class GlobalState {
   // -3 failed on fullSync = true
   async sync(fullSync) {
     console.log('[SYNC] Sync requested', fullSync ? 'full' : 'patchOnly');
+
+    if (this.prohibitSync) {
+      console.warn('[SYNC] Sync skipped because prohibitSync was enabled');
+      return;
+    }
 
     while (
       this.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS ||
@@ -520,7 +531,7 @@ export class GlobalState {
       songLink: null,
       songStart: null,
     };
-    new_state.players.push(player);
+    new_getGlobalState().players.push(player);
     this.INDEX.addPlayer(player.id);
     this._onEdit();
     return player;
@@ -759,10 +770,7 @@ export class GlobalState {
     return { game, team };
   }
 
-  getGame(gameId, state) {
-    if (state !== undefined) {
-      throw new Error('State is deprecated');
-    }
+  getGame(gameId) {
     const game = this.INDEX.getGame(gameId);
     return game === undefined ? undefined : { ...game };
   }
@@ -906,10 +914,7 @@ export class GlobalState {
     this._onEdit();
   }
 
-  getPlateAppearance(paId, state) {
-    if (state) {
-      throw new Error('STATE IS DEPRECATED');
-    }
+  getPlateAppearance(paId) {
     const pa = this.INDEX.getPa(paId);
     return pa === undefined ? undefined : { ...pa };
   }
@@ -940,17 +945,17 @@ export class GlobalState {
     return allPAs;
   }
 
-  getPlateAppearancesForGame(gameId, state) {
-    const game = this.getGame(gameId, state);
+  getPlateAppearancesForGame(gameId) {
+    const game = this.getGame(gameId);
     if (!game) {
       return null;
     }
     return game.plateAppearances;
   }
 
-  getPlateAppearancesForPlayerInGame(playerId, game_id, state) {
-    const game = this.getGame(game_id, state);
-    const player = this.getPlayer(playerId, state);
+  getPlateAppearancesForPlayerInGame(playerId, game_id) {
+    const game = this.getGame(game_id);
+    const player = this.getPlayer(playerId);
     if (!game || !player) {
       return null;
     }
@@ -960,7 +965,7 @@ export class GlobalState {
   /**
    * `paRunnerOverride` can be used to replace the runners of the paId for last inning calc purposes.
    * This is useful when you want the outs of the the current PA to affect the calculation but the PA
-   * hasn't yet been saved to the global state.
+   * hasn't yet been saved to the global getGlobalState().
    */
   isLastPaOfInning(paId, paOrigin, paRunnerOverride) {
     if (paOrigin === 'optimization') {
@@ -1320,14 +1325,6 @@ export class GlobalState {
       ? paAutoCorResult.toFixed(2)
       : '-';
 
-    if (isStatSig(paAutoCorResult, hitOrNoHit.length)) {
-      console.log(
-        stats.name,
-        isStatSig(paAutoCorResult, hitOrNoHit.length),
-        hitOrNoHit
-      );
-    }
-
     // Serial correlation for games
     // TODO: we want this sorted by date right?
     let gamesLookup = {};
@@ -1357,13 +1354,6 @@ export class GlobalState {
       avgList.push(hits / count);
     });
     let autoCorResult = autoCorrelation(avgList, 1);
-    if (isStatSig(autoCorResult, avgList.length)) {
-      console.log(
-        stats.name,
-        isStatSig(autoCorResult, avgList.length),
-        avgList
-      );
-    }
     stats.gameAutocorrelation = isStatSig(autoCorResult, avgList.length)
       ? autoCorResult.toFixed(2)
       : '-';
@@ -1805,13 +1795,21 @@ export class GlobalState {
   }
 }
 
-let activeGlobalState = new GlobalState();
-
-export default activeGlobalState;
-export const getGlobalState = (input) => {
+const defaultState = new GlobalState();
+let activeGlobalState = defaultState;
+export const getGlobalState = () => {
   return activeGlobalState;
 };
 export const setGlobalState = (inputData) => {
   const stateContainer = new StateContainer(inputData);
-  activeGlobalState = new GlobalState(stateContainer);
+  activeGlobalState = new GlobalState(
+    stateContainer,
+    undefined,
+    new InMemoryStorage(),
+    true
+  );
+  console.log('[GLOBAL_STATE] setting global state', activeGlobalState);
+};
+export const resetGlobalState = () => {
+  activeGlobalState = defaultState;
 };

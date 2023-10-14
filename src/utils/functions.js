@@ -181,9 +181,12 @@ export const autoCorrelation = function (input, lag) {
 };
 
 export const logout = async function (state, dialog, setRoute) {
-  let response = await state.requestAuth('POST', 'server/account/logout');
+  let response = await getGlobalState().requestAuth(
+    'POST',
+    'server/account/logout'
+  );
   if (response.status === 204) {
-    state.resetState();
+    getGlobalState().resetState();
     dialog.show_notification('Logout successful.', function () {
       setRoute('/menu/login');
     });
@@ -193,7 +196,7 @@ export const logout = async function (state, dialog, setRoute) {
     // the server will invalidate the sid cookie next time any request succeeds.
     document.cookie =
       'nonHttpOnlyToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    state.resetState();
+    getGlobalState().resetState();
     dialog.show_notification('Logout successful.', function () {
       setRoute('/menu/login');
     });

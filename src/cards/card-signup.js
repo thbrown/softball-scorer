@@ -1,5 +1,5 @@
 import React from 'react';
-import state from 'state';
+import { getGlobalState } from 'state';
 import dialog from 'dialog';
 import Card from 'elements/card';
 import CardSection from 'elements/card-section';
@@ -63,19 +63,19 @@ export default class CardSignup extends React.Component {
         password: password.value,
         reCAPCHA: recapchaResult,
       };
-      let response = await state.request(
+      let response = await getGlobalState().request(
         'POST',
         'server/account/signup',
         JSON.stringify(body)
       );
       if (response.status === 204) {
         // Clear db state if the data in the app is from another account, otherwise the newly signed up account will now own that data
-        if (state.getActiveUser()) {
-          state.resetState();
+        if (getGlobalState().getActiveUser()) {
+          getGlobalState().resetState();
         } else {
-          state.resetSyncState();
+          getGlobalState().resetSyncState();
         }
-        state.setActiveUser(email.value);
+        getGlobalState().setActiveUser(email.value);
 
         dialog.show_notification(
           <div>
@@ -128,7 +128,7 @@ export default class CardSignup extends React.Component {
   }
 
   componentDidMount() {
-    let queryObject = state.getQueryObj();
+    let queryObject = getGlobalState().getQueryObj();
     let emailParam = queryObject.email;
     if (emailParam) {
       document.getElementById('email').value = decodeURIComponent(emailParam);
@@ -173,7 +173,7 @@ export default class CardSignup extends React.Component {
 
   renderSubmitButton() {
     const toRender = [];
-    if (!state.getActiveUser()) {
+    if (!getGlobalState().getActiveUser()) {
       toRender.push(
         <div
           key="info"

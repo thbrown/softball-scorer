@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import state from 'state';
+import { getGlobalState } from 'state';
 import dialog from 'dialog';
 import FileSaver from 'file-saver';
 import css from 'css';
@@ -38,9 +38,12 @@ class CardMenu extends Component {
     this.handleLogoutClick = async function () {
       dialog.show_confirm('Are you sure you want to log out?', async () => {
         // Do a sync if necessary
-        if (state.getSyncState() !== state.getSyncStateEnum().COMPLETE) {
+        if (
+          getGlobalState().getSyncState() !==
+          getGlobalState().getSyncStateEnum().COMPLETE
+        ) {
           let abort = true;
-          let status = await state.sync();
+          let status = await getGlobalState().sync();
           if (status !== 200) {
             let message = (
               <div>
@@ -88,7 +91,7 @@ class CardMenu extends Component {
         forceSyncText: 'Sync (In Progress)',
         forceSyncDisabled: true,
       });
-      const status = await state.sync();
+      const status = await getGlobalState().sync();
       if (status === 200) {
         this.setState({
           forceSyncText: 'Sync (Success)',
@@ -116,7 +119,7 @@ class CardMenu extends Component {
 
     this.handleSaveClick = function () {
       const today = new Date().getTime();
-      const clientData = state.getLocalState();
+      const clientData = getGlobalState().getLocalState();
       const exportData =
         SharedLib.schemaValidation.convertDocumentToExport(clientData);
       const blob = new Blob([JSON.stringify(exportData, null, 2)], {
@@ -146,10 +149,12 @@ class CardMenu extends Component {
           </div>
         </div>,
         () => {
-          let deferredPrompt = state.getAddToHomescreenPrompt().prompt();
+          let deferredPrompt = getGlobalState()
+            .getAddToHomescreenPrompt()
+            .prompt();
           // Wait for the user to respond to the prompt
           deferredPrompt.userChoice.then((choice) => {
-            state.setAddToHomescreenPrompt(null);
+            getGlobalState().setAddToHomescreenPrompt(null);
             if (choice.outcome === 'accepted') {
               console.log('User accepted the prompt');
             } else {
@@ -177,13 +182,15 @@ class CardMenu extends Component {
             alignItems: 'center',
           }}
         >
-          <Chip type={state.isOnline() ? 'SUCCESS' : 'WARNING'}>
-            {state.isOnline() ? 'Online' : 'Offline'}
+          <Chip type={getGlobalState().isOnline() ? 'SUCCESS' : 'WARNING'}>
+            {getGlobalState().isOnline() ? 'Online' : 'Offline'}
           </Chip>
           <Chip>
-            {state.getActiveUser() == null ? 'Guest' : state.getActiveUser()}
+            {getGlobalState().getActiveUser() == null
+              ? 'Guest'
+              : getGlobalState().getActiveUser()}
           </Chip>
-          {/* <div>'Time Till Sync: ' + state.getTimeTillSync()</div> */}
+          {/* <div>'Time Till Sync: ' + getGlobalState().getTimeTillSync()</div> */}
         </div>
         <HrTitle title="Application"></HrTitle>
         <ListButton
@@ -214,7 +221,7 @@ class CardMenu extends Component {
           Optimizations
         </ListButton>
         <HrTitle title="Data"></HrTitle>
-        {state.isSessionValid() ? (
+        {getGlobalState().isSessionValid() ? (
           <ListButton
             id="sync"
             className={
@@ -259,7 +266,7 @@ class CardMenu extends Component {
         >
           Settings
         </ListButton>
-        {state.isSessionValid() ? (
+        {getGlobalState().isSessionValid() ? (
           <ListButton
             id="logout"
             onClick={this.handleLogoutClick.bind(this)}
@@ -281,8 +288,10 @@ class CardMenu extends Component {
             Login/Signup
           </ListButton>
         )}
-        {state.getAddToHomescreenPrompt() && <HrTitle title="Site"></HrTitle>}
-        {state.getAddToHomescreenPrompt() && (
+        {getGlobalState().getAddToHomescreenPrompt() && (
+          <HrTitle title="Site"></HrTitle>
+        )}
+        {getGlobalState().getAddToHomescreenPrompt() && (
           <ListButton
             id="addToHomescreen"
             onClick={this.handleAddToHomeScreenClick.bind(this)}

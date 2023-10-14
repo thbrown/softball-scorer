@@ -9,7 +9,7 @@ const ANCESTOR_DB_STATE = 'ANCESTOR_DB_STATE';
 const TLSchemas = SharedLib.schemaValidation.TLSchemas;
 
 /**
- * Separate out the localstorage stuff from the state.
+ * Separate out the localstorage stuff from the getGlobalState().
  *
  * We should probably re-work this so that that ONLY the ls calls are here and the rest goes back in the main state class
  */
@@ -53,7 +53,7 @@ export class LocalStorageStorage {
         );
       }
 
-      // Retrieve, update, and validate state. Do nothing if anything in this process fails.
+      // Retrieve, update, and validate getGlobalState(). Do nothing if anything in this process fails.
       try {
         let localDbState = JSON.parse(localStorage.getItem(LOCAL_DB_STATE));
         if (localDbState) {
@@ -120,22 +120,36 @@ export class LocalStorageStorage {
 
 export class InMemoryStorage {
   saveDbState(localState, ancestorState) {
-    console.warn('NOT IMPLEMENTED');
+    this.localState = localState;
+    this.ancestorState = ancestorState;
   }
 
   getDbState() {
-    console.warn('NOT IMPLEMENTED');
+    return {
+      local: this.localDbState,
+      ancestor: this.ancestorDbState,
+    };
   }
 
-  saveApplicationState() {
-    console.warn('NOT IMPLEMENTED');
+  saveApplicationState(online, sessionValid, activeUser) {
+    this.online = online;
+    this.sessionValid = sessionValid;
+    this.activeUser = activeUser;
   }
 
   getApplicationState() {
-    console.warn('NOT IMPLEMENTED');
+    return {
+      online: this.online,
+      sessionValid: this.sessionValid,
+      activeUser: this.activeUser,
+    };
   }
 
   clearStorage() {
-    console.warn('NOT IMPLEMENTED');
+    this.localState = undefined;
+    this.ancestorState = undefined;
+    this.online = undefined;
+    this.sessionValid = undefined;
+    this.activeUser = undefined;
   }
 }

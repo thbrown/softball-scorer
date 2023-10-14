@@ -1,5 +1,5 @@
 import React from 'react';
-import state from 'state';
+import { getGlobalState } from 'state';
 import dialog from 'dialog';
 import Card from 'elements/card';
 import FloatingInput from 'elements/floating-input';
@@ -19,7 +19,7 @@ const CardTeamEdit = (props) => {
           : 'Are you sure you wish to discard changes to team?',
         () => {
           if (props.isNew) {
-            state.removeTeam(props.team.id);
+            getGlobalState().removeTeam(props.team.id);
           }
           if (type === 'home') {
             goHome();
@@ -38,7 +38,7 @@ const CardTeamEdit = (props) => {
   const handleConfirmClick = () => {
     const newTeam = { ...team };
     delete newTeam.copiedNotificationVisible;
-    state.replaceTeam(props.team.id, newTeam);
+    getGlobalState().replaceTeam(props.team.id, newTeam);
     goBack();
   };
 
@@ -52,7 +52,7 @@ const CardTeamEdit = (props) => {
       () => {
         // FIXME causes a brief 404 to flash on the page
         goBack();
-        state.removeTeam(props.team.id);
+        getGlobalState().removeTeam(props.team.id);
       }
     );
     return true;

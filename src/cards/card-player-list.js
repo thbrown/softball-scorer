@@ -1,5 +1,5 @@
 import React from 'react';
-import state from 'state';
+import { getGlobalState } from 'state';
 import { setRoute } from 'actions/route';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
@@ -21,7 +21,7 @@ class CardPlayerList extends React.Component {
     };
 
     this.handleCreateClick = function () {
-      const player = state.addPlayer('', 'M');
+      const player = getGlobalState().addPlayer('', 'M');
       setRoute(`/players/${player.id}/edit?isNew=true`);
     };
 
@@ -55,7 +55,7 @@ class CardPlayerList extends React.Component {
             paddingLeft: '10px',
           }}
         />
-        {state
+        {getGlobalState()
           .getAllPlayersAlphabetically()
           .slice()
           .filter((player) => {

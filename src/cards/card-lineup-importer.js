@@ -1,18 +1,18 @@
 import React from 'react';
 import Card from 'elements/card';
 import ListPicker from 'elements/list-picker';
-import state from 'state';
+import { getGlobalState } from 'state';
 import dialog from 'dialog';
 import { setRoute } from 'actions/route';
 
 const LineupPicker = ({ gameId, teamId }) => {
   const handleItemClick = (item) => {
-    const opt = state.getOptimization(item.id);
+    const opt = getGlobalState().getOptimization(item.id);
     try {
       const optResult = opt.resultData;
       let newLineup = [...optResult.flatLineup];
-      const game = state.getGame(gameId);
-      state.replaceGame(gameId, teamId, {
+      const game = getGlobalState().getGame(gameId);
+      getGlobalState().replaceGame(gameId, teamId, {
         ...game,
         lineup: newLineup,
       });
@@ -28,7 +28,7 @@ const LineupPicker = ({ gameId, teamId }) => {
     <Card title="Import Lineup">
       <ListPicker
         onClick={handleItemClick}
-        items={state
+        items={getGlobalState()
           .getAllOptimizations()
           .filter((opt) => {
             return opt.resultData !== '{}';

@@ -1,6 +1,6 @@
 import React from 'react';
 import dialog from 'dialog';
-import state from 'state';
+import { getGlobalState } from 'state';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import { setRoute } from 'actions/route';
@@ -41,7 +41,7 @@ export default class CardPasswordReset extends React.Component {
         password: password.value,
       };
 
-      let response = await state.request(
+      let response = await getGlobalState().request(
         'POST',
         `server/account/reset-password`,
         JSON.stringify(body)

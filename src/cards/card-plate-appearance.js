@@ -2,7 +2,7 @@ import React from 'react';
 import dialog from 'dialog';
 import Draggable from 'react-draggable';
 import results from 'plate-appearance-results';
-import state from 'state';
+import { getGlobalState } from 'state';
 import WalkupSong from 'components/walkup-song';
 import { normalize, distance, cleanObject } from 'utils/functions';
 import { goBack } from 'actions/route';
@@ -141,7 +141,7 @@ class CardPlateAppearance extends React.Component {
         this.props.previousPlateAppearance === undefined ||
         this.props.previousPlateAppearance === null
           ? true
-          : state.isLastPaOfInning(
+          : getGlobalState().isLastPaOfInning(
               this.props.previousPlateAppearance.id,
               this.props.origin
             );
@@ -286,7 +286,7 @@ class CardPlateAppearance extends React.Component {
       // If the last out of the inning will occur during this PA, don't auto count any scored runs
       const cleanRunners = cleanObject(newRunners);
       const outsAtPreviousPa = this.props.previousPlateAppearance
-        ? state.getOutsAtPa(
+        ? getGlobalState().getOutsAtPa(
             this.props.previousPlateAppearance.id,
             this.props.origin
           ) % 3
@@ -630,7 +630,7 @@ class CardPlateAppearance extends React.Component {
           }}
           className="triangle-border"
         >
-          {state.getPlayer(playerId).name}
+          {getGlobalState().getPlayer(playerId).name}
         </div>
       </Draggable>
     );
@@ -785,7 +785,7 @@ class CardPlateAppearance extends React.Component {
 
     const paId = this.props.plateAppearance.id;
 
-    const isLastPAOfInning = state.isLastPaOfInning(
+    const isLastPAOfInning = getGlobalState().isLastPaOfInning(
       paId,
       this.props.origin,
       this.state.runners
@@ -794,7 +794,7 @@ class CardPlateAppearance extends React.Component {
       this.props.previousPlateAppearance === undefined ||
       this.props.previousPlateAppearance === null
         ? true
-        : state.isLastPaOfInning(
+        : getGlobalState().isLastPaOfInning(
             this.props.previousPlateAppearance.id,
             this.props.origin
           );
@@ -984,10 +984,13 @@ class CardPlateAppearance extends React.Component {
     const runsFromThisSavedPa =
       this.props.plateAppearance.runners.scored?.length ?? 0;
     const runsFromState = this.state.runners.scored?.length ?? 0;
-    const runsFromGame = state.getUsScoreAtPa(paId, this.props.origin);
+    const runsFromGame = getGlobalState().getUsScoreAtPa(
+      paId,
+      this.props.origin
+    );
     const runsAtPa = runsFromGame - runsFromThisSavedPa + runsFromState;
 
-    const outsFromGame = state.getOutsAtPa(paId, this.props.origin);
+    const outsFromGame = getGlobalState().getOutsAtPa(paId, this.props.origin);
     const outsFromThisSavedPa =
       this.props.plateAppearance.runners.out?.length ?? 0;
     const outsFromState = this.state.runners.out?.length ?? 0;
