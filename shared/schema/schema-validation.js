@@ -79,7 +79,6 @@ export let validateSchema = function (inputJson, schemaId) {
         ' of type ' +
         typeAtPath;
     }
-
     throw new Error(errorMessage);
   }
 };

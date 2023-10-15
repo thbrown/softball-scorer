@@ -1,6 +1,6 @@
 import React from 'react';
 import dialog from 'dialog';
-import state from 'state';
+import { getGlobalState } from 'state';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
 import { goBack, setRoute } from 'actions/route';
@@ -19,7 +19,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
     this.homeOrBack = function () {};
 
     this.handleNewPaClick = function () {
-      let newPa = state.addOptimizationOverridePlateAppearance(
+      let newPa = getGlobalState().addOptimizationOverridePlateAppearance(
         this.props.optimization.id,
         this.props.player.id
       );
@@ -65,7 +65,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
       allOverrides[props.player.id] = overridesForPlayer;
 
       // Set it in the state
-      state.setOptimizationField(
+      getGlobalState().setOptimizationField(
         props.optimization.id,
         'overrideData',
         allOverrides
@@ -82,7 +82,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
             JSON.stringify(props.optimization.overrideData)
           );
           delete allOverrides[props.player.id];
-          state.setOptimizationField(
+          getGlobalState().setOptimizationField(
             props.optimization.id,
             'overrideData',
             allOverrides
@@ -135,11 +135,14 @@ export default class CardOptimizationStatsOverride extends React.Component {
       );
     }
 
-    let overrides = state.getOptimizationOverridesForPlayer(
+    let overrides = getGlobalState().getOptimizationOverridesForPlayer(
       this.props.optimization.id,
       this.props.player.id
     );
-    let overrideStats = state.buildStatsObject(overrides, this.props.player.id);
+    let overrideStats = getGlobalState().buildStatsObject(
+      overrides,
+      this.props.player.id
+    );
     let paDisplayList = [];
     for (let pa in overrides) {
       let paObject = overrides[pa];
@@ -180,8 +183,8 @@ export default class CardOptimizationStatsOverride extends React.Component {
     );
 
     let teamAtBatButtons = [];
-    for (let team of state.getAllTeams()) {
-      let teamPAs = state.getPlateAppearancesForPlayerOnTeam(
+    for (let team of getGlobalState().getAllTeams()) {
+      let teamPAs = getGlobalState().getPlateAppearancesForPlayerOnTeam(
         this.props.player.id,
         team.id
       );
@@ -190,7 +193,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
           <div
             onClick={this.handleAddPas.bind(
               this,
-              state.getPlateAppearancesForPlayerOnTeam(
+              getGlobalState().getPlateAppearancesForPlayerOnTeam(
                 this.props.player.id,
                 team.id
               )
@@ -269,12 +272,19 @@ export default class CardOptimizationStatsOverride extends React.Component {
         <div
           onClick={this.handleAddPas.bind(
             this,
-            state.getAllPlateAppearancesForPlayer(this.props.player.id)
+            getGlobalState().getAllPlateAppearancesForPlayer(
+              this.props.player.id
+            )
           )}
           className="button list-button"
         >
           Use All Available PA (
-          {state.getAllPlateAppearancesForPlayer(this.props.player.id).length})
+          {
+            getGlobalState().getAllPlateAppearancesForPlayer(
+              this.props.player.id
+            ).length
+          }
+          )
         </div>
         <div>{teamAtBatButtons}</div>
         <div>{this.renderSaveOptions(overrides)}</div>

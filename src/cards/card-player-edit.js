@@ -1,6 +1,6 @@
 import React from 'react';
 import dialog from 'dialog';
-import state from 'state';
+import { getGlobalState } from 'state';
 import FloatingInput from 'elements/floating-input';
 import WalkupSong from 'components/walkup-song';
 import Card from 'elements/card';
@@ -152,7 +152,7 @@ export default class CardPlayerEdit extends React.Component {
             : 'Are you sure you wish to discard changes to this player?',
           () => {
             if (props.isNew) {
-              state.removePlayer(props.player.id);
+              getGlobalState().removePlayer(props.player.id);
             }
             if (type === 'home') {
               goHome();
@@ -169,7 +169,7 @@ export default class CardPlayerEdit extends React.Component {
     };
 
     this.handleConfirmClick = function () {
-      state.replacePlayer(props.player.id, buildPlayer());
+      getGlobalState().replacePlayer(props.player.id, buildPlayer());
       goBack();
     };
 
@@ -183,7 +183,7 @@ export default class CardPlayerEdit extends React.Component {
           this.state.playerName +
           '"?',
         () => {
-          if (state.removePlayer(props.player.id)) {
+          if (getGlobalState().removePlayer(props.player.id)) {
             goBack();
           } else {
             dialog.show_notification(

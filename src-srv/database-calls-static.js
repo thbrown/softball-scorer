@@ -406,12 +406,12 @@ let databaseCalls = class DatabaseCalls {
     logger.log(accountId, 'getting optimization in progress count');
     let state = this.STATES[accountId];
     let count = 0;
-    for (let i = 0; i < state.optimizations.length; i++) {
+    for (let i = 0; i < getGlobalState().optimizations.length; i++) {
       if (
-        state.optimizations[i].status == 1 ||
-        state.optimizations[i].status == 2 ||
-        state.optimizations[i].status == 6 ||
-        state.optimizations[i].status == 7
+        getGlobalState().optimizations[i].status == 1 ||
+        getGlobalState().optimizations[i].status == 2 ||
+        getGlobalState().optimizations[i].status == 6 ||
+        getGlobalState().optimizations[i].status == 7
       ) {
         count++;
       }
@@ -437,15 +437,17 @@ let databaseCalls = class DatabaseCalls {
     let message = optionalMessage ? optionalMessage : null;
 
     let state = this.STATES[accountId];
-    for (let i = 0; i < state.optimizations.length; i++) {
-      if (state.optimizations[i].id === optimizationId) {
+    for (let i = 0; i < getGlobalState().optimizations.length; i++) {
+      if (getGlobalState().optimizations[i].id === optimizationId) {
         if (optionalPreviousStatus === undefined) {
-          state.optimizations[i].status = newStatus;
-          state.optimizations[i].statusMessage = message;
+          getGlobalState().optimizations[i].status = newStatus;
+          getGlobalState().optimizations[i].statusMessage = message;
           return true;
-        } else if (state.optimizations[i].status === optionalPreviousStatus) {
-          state.optimizations[i].status = newStatus;
-          state.optimizations[i].statusMessage = message;
+        } else if (
+          getGlobalState().optimizations[i].status === optionalPreviousStatus
+        ) {
+          getGlobalState().optimizations[i].status = newStatus;
+          getGlobalState().optimizations[i].statusMessage = message;
           return true;
         }
         return false;
@@ -455,7 +457,7 @@ let databaseCalls = class DatabaseCalls {
       'Optimization not found 5 ' +
         optimizationId +
         ' ' +
-        JSON.stringify(state.optimizations)
+        JSON.stringify(getGlobalState().optimizations)
     );
   }
 
@@ -463,11 +465,12 @@ let databaseCalls = class DatabaseCalls {
     optimizationId = SharedLib.idUtils.serverIdToClientId(optimizationId);
     logger.log(accountId, 'setting optimization result data', newResults);
     let state = this.STATES[accountId];
-    for (let i = 0; i < state.optimizations.length; i++) {
-      if (state.optimizations[i].id === optimizationId) {
+    for (let i = 0; i < getGlobalState().optimizations.length; i++) {
+      if (getGlobalState().optimizations[i].id === optimizationId) {
         // Postgres converts to stringified data on read, there is no such logic for static, so we'll just store it as a stringified object.
         // No need to stringify execution data because that stays on the server side.
-        state.optimizations[i].resultData = JSON.stringify(newResults);
+        getGlobalState().optimizations[i].resultData =
+          JSON.stringify(newResults);
         return;
       }
     }
@@ -478,9 +481,9 @@ let databaseCalls = class DatabaseCalls {
     optimizationId = SharedLib.idUtils.serverIdToClientId(optimizationId);
     logger.log(accountId, 'getting optimization status');
     let state = this.STATES[accountId];
-    for (let i = 0; i < state.optimizations.length; i++) {
-      if (state.optimizations[i].id === optimizationId) {
-        return state.optimizations[i].status;
+    for (let i = 0; i < getGlobalState().optimizations.length; i++) {
+      if (getGlobalState().optimizations[i].id === optimizationId) {
+        return getGlobalState().optimizations[i].status;
       }
     }
     logger.warn(accountId, 'no optimization found - getOptimizationStatus');
@@ -491,9 +494,9 @@ let databaseCalls = class DatabaseCalls {
     optimizationId = SharedLib.idUtils.serverIdToClientId(optimizationId);
     logger.log(accountId, 'getting optimization result data');
     let state = this.STATES[accountId];
-    for (let i = 0; i < state.optimizations.length; i++) {
-      if (state.optimizations[i].id === optimizationId) {
-        return state.optimizations[i].resultData;
+    for (let i = 0; i < getGlobalState().optimizations.length; i++) {
+      if (getGlobalState().optimizations[i].id === optimizationId) {
+        return getGlobalState().optimizations[i].resultData;
       }
     }
     logger.warn(accountId, 'no optimization found - getOptimizationResultData');
@@ -504,9 +507,9 @@ let databaseCalls = class DatabaseCalls {
     optimizationId = SharedLib.idUtils.serverIdToClientId(optimizationId);
     logger.log(accountId, 'getting optimization result data');
     let state = this.STATES[accountId];
-    for (let i = 0; i < state.optimizations.length; i++) {
-      if (state.optimizations[i].id === optimizationId) {
-        return state.optimizations[i];
+    for (let i = 0; i < getGlobalState().optimizations.length; i++) {
+      if (getGlobalState().optimizations[i].id === optimizationId) {
+        return getGlobalState().optimizations[i];
       }
     }
     logger.warn(accountId, 'no optimization found - getOptimizationDetails');
@@ -522,9 +525,9 @@ let databaseCalls = class DatabaseCalls {
       optimizationId
     );
     let state = this.STATES[accountId];
-    for (let i = 0; i < state.optimizations.length; i++) {
-      if (state.optimizations[i].id === optimizationId) {
-        return state.optimizations[i].executionData;
+    for (let i = 0; i < getGlobalState().optimizations.length; i++) {
+      if (getGlobalState().optimizations[i].id === optimizationId) {
+        return getGlobalState().optimizations[i].executionData;
       }
     }
     logger.warn(

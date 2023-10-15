@@ -1,7 +1,6 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 import dialog from 'dialog';
-import state from 'state';
+import { getGlobalState } from 'state';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 import { setRoute } from 'actions/route';
@@ -42,7 +41,7 @@ export default class CardPasswordReset extends React.Component {
         password: password.value,
       };
 
-      let response = await state.request(
+      let response = await getGlobalState().request(
         'POST',
         `server/account/reset-password`,
         JSON.stringify(body)
@@ -75,74 +74,56 @@ export default class CardPasswordReset extends React.Component {
   }
 
   renderAuthInterface() {
-    return DOM.div(
-      {
-        className: 'auth-input-container',
-      },
-      DOM.div(
-        {
-          className: 'text-div',
-        },
-        'Please complete the form to change your password'
-      ),
-      DOM.input({
-        key: 'password',
-        id: 'password',
-        className: 'auth-input',
-        placeholder: 'Password',
-        type: 'password',
-      }),
-      DOM.input({
-        key: 'passwordConfirm',
-        id: 'passwordConfirm',
-        className: 'auth-input',
-        placeholder: 'Confirm Password',
-        type: 'password',
-      }),
-      // TODO: capcha
-      this.renderSubmitButton()
+    return (
+      <div className="auth-input-container">
+        <div className="text-div">
+          Please complete the form to change your password
+        </div>
+        <input
+          key="password"
+          id="password"
+          className="auth-input"
+          placeholder="Password"
+          type="password"
+        />
+        <input
+          key="passwordConfirm"
+          id="passwordConfirm"
+          className="auth-input"
+          placeholder="Confirm Password"
+          type="password"
+        />
+        {this.renderSubmitButton()}
+      </div>
     );
   }
 
   renderSubmitButton() {
-    return DOM.div(
-      {
-        key: 'submit',
-        id: 'submit',
-        className: 'button primary-button',
-        onClick: this.handleSubmitClick.bind(this),
-        style: {
+    return (
+      <div
+        key="submit"
+        id="submit"
+        className="button primary-button"
+        onClick={this.handleSubmitClick.bind(this)}
+        style={{
           marginLeft: '0',
-        },
-      },
-      'Submit'
+        }}
+      >
+        Submit
+      </div>
     );
   }
 
   render() {
-    return DOM.div(
-      {
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {}),
-        DOM.div(
-          {
-            style: {},
-          },
-          'Reset Password'
-        ),
-        React.createElement(RightHeaderButton, {})
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderAuthInterface()
-      )
+    return (
+      <div>
+        <div className="card-title">
+          <LeftHeaderButton />
+          <div style={{}}>Reset Password</div>
+          <RightHeaderButton />
+        </div>
+        <div className="card-body">{this.renderAuthInterface()}</div>
+      </div>
     );
   }
 }

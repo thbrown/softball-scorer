@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import DataContainer from 'elements/data-container';
 import RouteContainer from 'elements/route-container';
 import MainContainer from 'main-container';
-import state from 'state';
+import { getGlobalState } from 'state';
 import routes from 'routes';
 import 'utils/polyfills';
 
@@ -29,8 +29,8 @@ const App = (props) => {
       onRequestComplete={async (data) => {
         if (data.email) {
           console.log(`[AUTH] Active User: ${data.email}`);
-          state.setActiveUser(data.email);
-          state.sync();
+          getGlobalState().setActiveUser(data.email);
+          getGlobalState().sync();
         } else {
           console.log(`[AUTH] Not logged in`);
         }

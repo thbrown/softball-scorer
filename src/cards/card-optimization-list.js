@@ -1,5 +1,5 @@
 import React from 'react';
-import state from 'state';
+import { getGlobalState } from 'state';
 import Card from 'elements/card';
 import { setRoute } from 'actions/route';
 import NoSelect from 'elements/no-select';
@@ -17,7 +17,7 @@ const CardOptimizationList = (props) => {
   };
   const handleCreateClick = (props) => {
     const d = new Date();
-    const optimization = state.addOptimization(
+    const optimization = getGlobalState().addOptimization(
       `${d.getMonth() + 1}/${d.getDate()} optimization`
     );
     setRoute(`/optimizations/${optimization.id}/edit?isNew=true`);
@@ -32,7 +32,7 @@ const CardOptimizationList = (props) => {
       >
         <NoSelect className="prevent-overflow">+ Add New Optimization</NoSelect>
       </ListButton>
-      {[...state.getLocalState().optimizations]
+      {[...getGlobalState().getLocalState().optimizations]
         .reverse()
         .map((optimization) => (
           <ListButton

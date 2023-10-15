@@ -1,4 +1,4 @@
-import state from 'state';
+import { getGlobalState } from 'state';
 
 const normalBattingOrder = function (plateAppearances, lineup, n) {
   var previousBatterLineupIndex = lineup.length - 1;
@@ -10,19 +10,19 @@ const normalBattingOrder = function (plateAppearances, lineup, n) {
     );
   }
   let nextBatterIndex = (previousBatterLineupIndex + n) % lineup.length;
-  return state.getPlayer(lineup[nextBatterIndex]);
+  return getGlobalState().getPlayer(lineup[nextBatterIndex]);
 };
 
 const genderAlternatingOrder = function (plateAppearances, lineup, n) {
   let targetBattersGender = '?';
   if (plateAppearances.length === 0) {
-    let firstBatterGender = state.getPlayer(lineup[0]).gender;
+    let firstBatterGender = getGlobalState().getPlayer(lineup[0]).gender;
     let otherGender = firstBatterGender === 'F' ? 'M' : 'F';
     targetBattersGender = n % 2 === 0 ? otherGender : firstBatterGender;
   } else {
     let mostRecentPlateAppearance =
       plateAppearances[plateAppearances.length - 1];
-    let mostRecentPlateAppearancePlayer = state.getPlayer(
+    let mostRecentPlateAppearancePlayer = getGlobalState().getPlayer(
       mostRecentPlateAppearance.playerId
     );
     let otherGender =
@@ -33,14 +33,14 @@ const genderAlternatingOrder = function (plateAppearances, lineup, n) {
 
   if (targetBattersGender === 'F') {
     let femalePlateApearances = plateAppearances.filter(
-      (pa) => state.getPlayer(pa.playerId).gender === 'F'
+      (pa) => getGlobalState().getPlayer(pa.playerId).gender === 'F'
     );
     let mostRecentFemalePlateAppearance =
       femalePlateApearances.length === 0
         ? null
         : femalePlateApearances[femalePlateApearances.length - 1];
     let femaleLineup = lineup
-      .map((playerId) => state.getPlayer(playerId))
+      .map((playerId) => getGlobalState().getPlayer(playerId))
       .filter((player) => player.gender === 'F')
       .map((player) => player.id);
     let startLookingIndex = mostRecentFemalePlateAppearance
@@ -48,21 +48,21 @@ const genderAlternatingOrder = function (plateAppearances, lineup, n) {
           (v) => v === mostRecentFemalePlateAppearance.playerId
         )
       : femaleLineup.length - 1;
-    return state.getPlayer(
+    return getGlobalState().getPlayer(
       femaleLineup[
         (startLookingIndex + Math.floor((n + 1) / 2)) % femaleLineup.length
       ]
     );
   } else {
     let malePlateApearances = plateAppearances.filter(
-      (pa) => state.getPlayer(pa.playerId).gender === 'M'
+      (pa) => getGlobalState().getPlayer(pa.playerId).gender === 'M'
     );
     let mostRecentMalePlateAppearance =
       malePlateApearances.length === 0
         ? null
         : malePlateApearances[malePlateApearances.length - 1];
     let maleLineup = lineup
-      .map((playerId) => state.getPlayer(playerId))
+      .map((playerId) => getGlobalState().getPlayer(playerId))
       .filter((player) => player.gender === 'M')
       .map((player) => player.id);
     let startLookingIndex = mostRecentMalePlateAppearance
@@ -70,7 +70,7 @@ const genderAlternatingOrder = function (plateAppearances, lineup, n) {
           (v) => v === mostRecentMalePlateAppearance.playerId
         )
       : maleLineup.length - 1;
-    return state.getPlayer(
+    return getGlobalState().getPlayer(
       maleLineup[
         (startLookingIndex + Math.floor((n + 1) / 2)) % maleLineup.length
       ]
@@ -83,8 +83,8 @@ let getNthBatter = function (game_id, n) {
     return null; // not supported
   }
 
-  let game = state.getGame(game_id);
-  let plateAppearances = state.getPlateAppearancesForGame(game_id);
+  let game = getGlobalState().getGame(game_id);
+  let plateAppearances = getGlobalState().getPlateAppearancesForGame(game_id);
 
   let type = game.lineupType;
   let lineup = game.lineup;

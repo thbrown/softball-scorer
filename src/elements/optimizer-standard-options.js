@@ -3,7 +3,7 @@ import FloatingSelect from 'elements/floating-select';
 import dialog from 'dialog';
 import { setRoute } from 'actions/route';
 import Loading from '../elements/loading';
-import state from 'state';
+import { getGlobalState } from 'state';
 import IconButton from './icon-button';
 import { showLineupTypeHelp } from 'utils/help-functions';
 
@@ -37,7 +37,7 @@ export default class OptimizerStandardOptions extends React.Component {
 
     this.onLineupChange = function (value) {
       this.props.onChange();
-      state.setOptimizationField(
+      getGlobalState().setOptimizationField(
         this.props.optimizationId,
         'lineupType',
         parseInt(value)
@@ -46,7 +46,7 @@ export default class OptimizerStandardOptions extends React.Component {
 
     this.onOptimizerChange = function (newOptimizerId) {
       this.props.onChange();
-      state.setOptimizationField(
+      getGlobalState().setOptimizationField(
         this.props.optimizationId,
         'optimizerType',
         parseInt(newOptimizerId)

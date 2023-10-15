@@ -1,7 +1,6 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 import expose from 'expose';
-import state from 'state';
+import { getGlobalState } from 'state';
 import dialog from 'dialog';
 import Draggable from 'react-draggable';
 import { setRoute } from 'actions/route';
@@ -88,7 +87,10 @@ export default class CardLineup extends React.Component {
         'Do you want to remove "' + player.name + '" from the lineup?',
         () => {
           this.simulateLineup();
-          state.removePlayerFromLineup(this.props.game.lineup, player.id);
+          getGlobalState().removePlayerFromLineup(
+            this.props.game.lineup,
+            player.id
+          );
         }
       );
       ev.stopPropagation();
@@ -107,7 +109,7 @@ export default class CardLineup extends React.Component {
     }.bind(this);
 
     this.handleNewPlateAppearanceClick = function (player, game_id, team_id) {
-      const plateAppearance = state.addPlateAppearance(
+      const plateAppearance = getGlobalState().addPlateAppearance(
         player.id,
         game_id,
         team_id
@@ -140,7 +142,11 @@ export default class CardLineup extends React.Component {
       elem.style.width = 'unset';
 
       const { new_position_index } = getInds(elem, index);
-      state.updateLineup(this.props.game.lineup, player.id, new_position_index);
+      getGlobalState().updateLineup(
+        this.props.game.id,
+        player.id,
+        new_position_index
+      );
 
       this.simulateLineup();
     };
@@ -171,7 +177,7 @@ export default class CardLineup extends React.Component {
       dialog.show_confirm(
         `This will take you to a page for setting up and running an "Optimization" for this lineup. After your optimization is done running, you can import the optimized lineup into this game by pressing "Import Lineup From Optimization".`,
         () => {
-          const optimization = state.addOptimization(
+          const optimization = getGlobalState().addOptimization(
             `Optimize lineup vs ${this.props.game.opponent}`,
             JSON.parse(JSON.stringify(this.props.game.lineup)),
             JSON.parse(JSON.stringify([this.props.team.id])),
@@ -222,10 +228,11 @@ export default class CardLineup extends React.Component {
 
     let lineup = [];
     for (let i = 0; i < this.props.game.lineup.length; i++) {
-      let plateAppearances = state.getPlateAppearancesForPlayerOnTeam(
-        this.props.game.lineup[i],
-        this.props.team.id
-      );
+      let plateAppearances =
+        getGlobalState().getPlateAppearancesForPlayerOnTeam(
+          this.props.game.lineup[i],
+          this.props.team.id
+        );
       let hits = [];
       for (let j = 0; j < plateAppearances.length; j++) {
         hits.push(plateAppearances[j].result);
@@ -330,8 +337,8 @@ export default class CardLineup extends React.Component {
     let pas = plateAppearances.map((pa, i) => {
       pa = pa || {};
 
-      const didPlayerScore = state.didPlayerScoreThisInning(pa.id);
-      const isLastPaOfInning = state.isLastPaOfInning(pa.id, 'game');
+      const didPlayerScore = getGlobalState().didPlayerScoreThisInning(pa.id);
+      const isLastPaOfInning = getGlobalState().isLastPaOfInning(pa.id, 'game');
 
       const resultElement = isLastPaOfInning ? (
         <b>{pa.result || ''}</b>
@@ -493,7 +500,7 @@ export default class CardLineup extends React.Component {
       this.props.game.lineup.length > 0;
     let showImportOptLineupButton =
       this.props.game.plateAppearances.length === 0 &&
-      state.getAllOptimizations().length > 0;
+      getGlobalState().getAllOptimizations().length > 0;
     if (showOptLineupButton || showImportOptLineupButton) {
       pageElems.push(
         <HrTitle key="optimization" title="Optimization"></HrTitle>
@@ -537,7 +544,7 @@ export default class CardLineup extends React.Component {
     let pageElems = [];
 
     // Find all plate appearances that don't belong to a player in the lineup
-    let allPlateAppearances = state.getPlateAppearancesForGame(
+    let allPlateAppearances = getGlobalState().getPlateAppearancesForGame(
       this.props.game.id
     );
     let nonLineupPlateAppearances = allPlateAppearances.filter(
@@ -570,7 +577,10 @@ export default class CardLineup extends React.Component {
         playersIdsNotInLineupWithPlateAppearances
       );
       playersIdsNotInLineup.forEach((playerId) => {
-        state.getPlateAppearancesForPlayerInGame(playerId, this.props.game.id);
+        getGlobalState().getPlateAppearancesForPlayerInGame(
+          playerId,
+          this.props.game.id
+        );
         pageElems.push(
           this.renderPlayerTile(playerId, this.props.game.id, null, NO_EDIT)
         );
@@ -581,11 +591,9 @@ export default class CardLineup extends React.Component {
   }
 
   renderPlayerTile(playerId, gameId, index, editable) {
-    const player = state.getPlayer(playerId);
-    const plateAppearances = state.getPlateAppearancesForPlayerInGame(
-      playerId,
-      gameId
-    );
+    const player = getGlobalState().getPlayer(playerId);
+    const plateAppearances =
+      getGlobalState().getPlateAppearancesForPlayerInGame(playerId, gameId);
     let elems = [];
     if (editable === FULL_EDIT) {
       elems.push(

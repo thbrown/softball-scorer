@@ -1,6 +1,6 @@
 import Enzyme from 'enzyme';
 import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
-import state from 'state';
+import { getGlobalState } from 'state';
 import { setRoute, setOnGoBack } from 'actions/route';
 import { getPageWrapper } from './test-helpers';
 
@@ -30,7 +30,7 @@ export const createTeamUI = (wrapper) => {
   wrapper.update();
 
   // when the Save button is pressed, the team should be in the state as the first team
-  const teams = state.getLocalState().teams;
+  const teams = getGlobalState().getLocalState().teams;
   const newTeam = teams[0];
   expect(newTeam).toBeTruthy();
   expect(newTeam.name).toEqual(TEST_TEAM_NAME);
@@ -59,7 +59,7 @@ export const createGameUI = (wrapper, teamId) => {
   wrapper.update();
 
   // the last game in the list for this team should be the newly-created game
-  const games = state.getTeam(teamId).games;
+  const games = getGlobalState().getTeam(teamId).games;
   const newGame = games.find((g) => g.opponent === TEST_GAME_NAME);
   expect(newGame).toBeTruthy();
   expect(newGame.opponent).toEqual(TEST_GAME_NAME);
@@ -84,7 +84,7 @@ export const createOptimizationUI = (wrapper) => {
   wrapper.find('#save').hostNodes().simulate('click');
   wrapper.update();
 
-  const optimizations = state.getLocalState().optimizations;
+  const optimizations = getGlobalState().getLocalState().optimizations;
   const newOptimization = optimizations[optimizations.length - 1];
   expect(newOptimization).toBeTruthy();
   expect(newOptimization.name).toEqual(TEST_OPTIMIZATION_NAME);
@@ -100,8 +100,8 @@ describe('[UI] Create/Edit/Delete', () => {
       setOnGoBack((path) => {
         setRoute(path);
       });
-      state.resetState();
-      state.setOffline();
+      getGlobalState().resetState();
+      getGlobalState().setOffline();
     });
 
     it('A user can create, edit, and delete a team', () => {
@@ -111,7 +111,7 @@ describe('[UI] Create/Edit/Delete', () => {
       wrapper.find(`#delete`).hostNodes().simulate('click');
       wrapper.find('#dialog-confirm').hostNodes().simulate('click');
 
-      expect(state.getLocalState().teams.length).toEqual(0);
+      expect(getGlobalState().getLocalState().teams.length).toEqual(0);
     });
   });
 
@@ -124,7 +124,7 @@ describe('[UI] Create/Edit/Delete', () => {
       wrapper.find(`#game-${newGame.id}-edit`).hostNodes().simulate('click');
       wrapper.find(`#delete`).hostNodes().simulate('click');
       wrapper.find('#dialog-confirm').hostNodes().simulate('click');
-      expect(state.getTeam(teamId).games.length).toEqual(0);
+      expect(getGlobalState().getTeam(teamId).games.length).toEqual(0);
     });
   });
 
@@ -148,7 +148,7 @@ describe('[UI] Create/Edit/Delete', () => {
         wrapper.find('#submit').simulate('click');
       });
 
-      const game = state.getGame(gameId);
+      const game = getGlobalState().getGame(gameId);
       expect(game.lineup.length).toEqual(TEST_PLAYERS.length);
 
       // copy the lineup so that the state does not modify this version of it.
@@ -159,7 +159,7 @@ describe('[UI] Create/Edit/Delete', () => {
         wrapper.find('#dialog-confirm').simulate('click');
       });
 
-      expect(state.getGame(gameId).lineup.length).toEqual(0);
+      expect(getGlobalState().getGame(gameId).lineup.length).toEqual(0);
       */
     });
   });
@@ -187,7 +187,7 @@ describe('[UI] Create/Edit/Delete', () => {
       wrapper.find('#delete').hostNodes().simulate('click');
       wrapper.find('#dialog-confirm').hostNodes().simulate('click');
 
-      expect(state.getLocalState().optimizations.length).toEqual(0);
+      expect(getGlobalState().getLocalState().optimizations.length).toEqual(0);
     });
   });
 });
