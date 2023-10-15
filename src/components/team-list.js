@@ -1,5 +1,5 @@
 import React from 'react';
-import state from 'state';
+import { getGlobalState } from 'state';
 import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
 import IconButton from '../elements/icon-button';
@@ -15,11 +15,11 @@ const TeamList = () => {
   };
 
   const handleCreateClick = () => {
-    const team = state.addTeam('');
+    const team = getGlobalState().addTeam('');
     setRoute(`/teams/${team.id}/edit?isNew=true`);
   };
 
-  const elems = state
+  const elems = getGlobalState()
     .getAllTeams()
     .reverse()
     .map((team) => {

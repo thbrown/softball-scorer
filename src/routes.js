@@ -1,5 +1,5 @@
 import React from 'react';
-import state from 'state';
+import { getGlobalState, setGlobalState, resetGlobalState } from 'state';
 import CardAccount from 'cards/card-account';
 import CardAuth from 'cards/card-auth';
 import CardLoading from 'cards/card-loading';
@@ -36,8 +36,6 @@ import { findPreviousObject } from 'utils/functions';
 // possibility to add '/app/' here?
 export const ROUTE_PREFIX = '';
 
-let routes;
-
 const assertStateObjects = function (...args) {
   let valid = true;
   const errors = [];
@@ -72,7 +70,7 @@ const renderWhileLoading = function ({ loading, error }) {
   };
 };
 
-routes = {
+const routes = {
   [`${ROUTE_PREFIX}/not-found`]: () => {
     return (
       <CardNotFound
@@ -122,7 +120,7 @@ routes = {
     return <CardTeams />;
   },
   [`${ROUTE_PREFIX}/teams/:teamId`]: ({ teamId, search }) => {
-    const team = state.getTeam(teamId);
+    const team = getGlobalState().getTeam(teamId);
     const { valid, errors } = assertStateObjects(team);
     if (!valid) {
       console.warn(errors);
@@ -132,7 +130,7 @@ routes = {
   },
   [`${ROUTE_PREFIX}/teams/:teamId/games`]: isSameRouteAs('/teams/:teamId'),
   [`${ROUTE_PREFIX}/teams/:teamId/edit`]: ({ teamId, search: { isNew } }) => {
-    const team = state.getTeam(teamId); // TODO: revisit this, what happens if this page is loaded via external link
+    const team = getGlobalState().getTeam(teamId); // TODO: revisit this, what happens if this page is loaded via external link
     const { valid, errors } = assertStateObjects(team);
     if (!valid) {
       console.warn(errors);
@@ -141,7 +139,7 @@ routes = {
     return <CardTeamEdit team={team} isNew={isNew} />;
   },
   [`${ROUTE_PREFIX}/teams/:teamId/stats`]: ({ teamId }) => {
-    const team = state.getTeam(teamId);
+    const team = getGlobalState().getTeam(teamId);
     const { valid, errors } = assertStateObjects(team);
     if (!valid) {
       console.warn(errors);
@@ -152,7 +150,7 @@ routes = {
     );
   },
   [`${ROUTE_PREFIX}/teams/:teamId/stats/:subtab`]: ({ teamId, subtab }) => {
-    const team = state.getTeam(teamId);
+    const team = getGlobalState().getTeam(teamId);
     const { valid, errors } = assertStateObjects(team);
     if (!valid) {
       console.warn(errors);
@@ -164,10 +162,13 @@ routes = {
     teamId,
     playerId,
   }) => {
-    const team = state.getTeam(teamId);
-    const player = state.getPlayer(playerId);
+    const team = getGlobalState().getTeam(teamId);
+    const player = getGlobalState().getPlayer(playerId);
     const decoratedPlayerPlateAppearances =
-      state.getDecoratedPlateAppearancesForPlayerOnTeam(playerId, teamId);
+      getGlobalState().getDecoratedPlateAppearancesForPlayerOnTeam(
+        playerId,
+        teamId
+      );
     const { valid, errors } = assertStateObjects(
       team,
       player,
@@ -186,8 +187,8 @@ routes = {
     );
   },
   [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId`]: ({ teamId, gameId }) => {
-    const team = state.getTeam(teamId);
-    const game = state.getGame(gameId);
+    const team = getGlobalState().getTeam(teamId);
+    const game = getGlobalState().getGame(gameId);
     const { valid, errors } = assertStateObjects(team, game);
     if (!valid) {
       console.warn(errors);
@@ -202,8 +203,8 @@ routes = {
     teamId,
     gameId,
   }) => {
-    const team = state.getTeam(teamId);
-    const game = state.getGame(gameId);
+    const team = getGlobalState().getTeam(teamId);
+    const game = getGlobalState().getGame(gameId);
     const { valid, errors } = assertStateObjects(team, game);
     if (!valid) {
       console.warn(errors);
@@ -215,8 +216,8 @@ routes = {
     teamId,
     gameId,
   }) => {
-    const team = state.getTeam(teamId);
-    const game = state.getGame(gameId);
+    const team = getGlobalState().getTeam(teamId);
+    const game = getGlobalState().getGame(gameId);
     const { valid, errors } = assertStateObjects(team, game);
     if (!valid) {
       console.warn(errors);
@@ -235,8 +236,8 @@ routes = {
     teamId,
     gameId,
   }) => {
-    const team = state.getTeam(teamId);
-    const game = state.getGame(gameId);
+    const team = getGlobalState().getTeam(teamId);
+    const game = getGlobalState().getGame(gameId);
     const { valid, errors } = assertStateObjects(team, game);
     if (!valid) {
       console.warn(errors);
@@ -248,8 +249,8 @@ routes = {
     teamId,
     gameId,
   }) => {
-    const team = state.getTeam(teamId);
-    const game = state.getGame(gameId);
+    const team = getGlobalState().getTeam(teamId);
+    const game = getGlobalState().getGame(gameId);
     const { valid, errors } = assertStateObjects(team, game);
     if (!valid) {
       console.warn(errors);
@@ -258,7 +259,7 @@ routes = {
 
     let onConfirm = (ev, targetTeam, targetGame) => {
       console.log('Importing', game.lineup);
-      state.setGameLineup(game.id, targetGame.lineup); // TODO: do we need to deep copy here?
+      getGlobalState().setGameLineup(game.id, targetGame.lineup); // TODO: do we need to deep copy here?
       goBack(2);
     };
 
@@ -277,8 +278,8 @@ routes = {
     teamId,
     gameId,
   }) => {
-    const team = state.getTeam(teamId);
-    const game = state.getGame(gameId);
+    const team = getGlobalState().getTeam(teamId);
+    const game = getGlobalState().getGame(gameId);
     const { valid, errors } = assertStateObjects(team, game);
     if (!valid) {
       console.warn(errors);
@@ -288,9 +289,9 @@ routes = {
     return (
       <CardPlayerSelect
         selected={game.lineup ? game.lineup : []}
-        players={state.getAllPlayersAlphabetically()}
+        players={getGlobalState().getAllPlayersAlphabetically()}
         onComplete={(players) => {
-          state.setGameLineup(game.id, players);
+          getGlobalState().setGameLineup(game.id, players);
         }}
         onImportClick={function () {
           setRoute(`/teams/${team.id}/games/${game.id}/import-lineup`);
@@ -303,8 +304,8 @@ routes = {
     gameId,
     search: { isNew },
   }) => {
-    const team = state.getTeam(teamId);
-    const game = state.getGame(gameId);
+    const team = getGlobalState().getTeam(teamId);
+    const game = getGlobalState().getGame(gameId);
     const { valid, errors } = assertStateObjects(team, game);
     if (!valid) {
       console.warn(errors);
@@ -314,18 +315,20 @@ routes = {
   },
   [`${ROUTE_PREFIX}/teams/:teamId/games/:gameId/lineup/plateAppearances/:plateAppearanceId`]:
     ({ teamId, gameId, plateAppearanceId, search: { isNew } }) => {
-      const team = state.getTeam(teamId);
-      const game = state.getGame(gameId);
+      const team = getGlobalState().getTeam(teamId);
+      const game = getGlobalState().getGame(gameId);
       const previousPlateAppearance = findPreviousObject(
-        state.getPlateAppearancesForGame(gameId),
+        getGlobalState().getPlateAppearancesForGame(gameId),
         plateAppearanceId
       );
-      const plateAppearance = state.getPlateAppearance(plateAppearanceId);
-      const plateAppearances = state.getPlateAppearancesForPlayerInGame(
-        plateAppearance?.playerId,
-        gameId
-      );
-      const player = state.getPlayer(plateAppearance?.playerId);
+      const plateAppearance =
+        getGlobalState().getPlateAppearance(plateAppearanceId);
+      const plateAppearances =
+        getGlobalState().getPlateAppearancesForPlayerInGame(
+          plateAppearance?.playerId,
+          gameId
+        );
+      const player = getGlobalState().getPlayer(plateAppearance?.playerId);
       const { valid, errors } = assertStateObjects(
         team,
         game,
@@ -343,10 +346,10 @@ routes = {
           team={team}
           game={game}
           remove={function () {
-            state.removePlateAppearance(plateAppearance.id, game.id);
+            getGlobalState().removePlateAppearance(plateAppearance.id, game.id);
           }}
           replace={function (newPa) {
-            state.replacePlateAppearance(
+            getGlobalState().replacePlateAppearance(
               plateAppearance.id,
               game.id,
               team.id,
@@ -370,7 +373,7 @@ routes = {
     return <CardPlayerList />;
   },
   [`${ROUTE_PREFIX}/players/:playerId`]: ({ playerId }) => {
-    const player = state.getPlayer(playerId);
+    const player = getGlobalState().getPlayer(playerId);
     const { valid, errors } = assertStateObjects(player);
     if (!valid) {
       console.warn(errors);
@@ -382,7 +385,7 @@ routes = {
     playerId,
     search: { isNew },
   }) => {
-    const player = state.getPlayer(playerId);
+    const player = getGlobalState().getPlayer(playerId);
     const { valid, errors } = assertStateObjects(player);
     if (!valid) {
       console.warn(errors);
@@ -392,20 +395,13 @@ routes = {
     return <CardPlayerEdit player={player} isNew={isNew} />;
   },
   [`${ROUTE_PREFIX}/optimizations`]: () => {
-    // Optimizations weren't a part of the original JSON state schema, so if somebody imports a file
-    // with the old schema the page will crash. This should be addressed properly by versioning for
-    // exported files. In the meantime, here is a band aid.
-    if (state.getAllOptimizations() === undefined) {
-      state.getLocalState().optimizations = [];
-      state.getAncestorState().optimizations = [];
-    }
     return <CardOptimizationList />;
   },
   [`${ROUTE_PREFIX}/optimizations/:optimizationId/edit`]: ({
     optimizationId,
     search: { isNew },
   }) => {
-    const optimization = state.getOptimization(optimizationId);
+    const optimization = getGlobalState().getOptimization(optimizationId);
     const { valid, errors } = assertStateObjects(optimization);
     if (!valid) {
       console.warn(errors);
@@ -414,7 +410,7 @@ routes = {
     return <CardOptimizationEdit optimization={optimization} isNew={isNew} />;
   },
   [`${ROUTE_PREFIX}/optimizations/:optimizationId`]: ({ optimizationId }) => {
-    const optimization = state.getOptimization(optimizationId);
+    const optimization = getGlobalState().getOptimization(optimizationId);
     const { valid, errors } = assertStateObjects(optimization);
     if (!valid) {
       console.warn(errors);
@@ -425,7 +421,7 @@ routes = {
   [`${ROUTE_PREFIX}/optimizations/:optimizationId/player-select`]: ({
     optimizationId,
   }) => {
-    const optimization = state.getOptimization(optimizationId);
+    const optimization = getGlobalState().getOptimization(optimizationId);
     const { valid, errors } = assertStateObjects(optimization);
     if (!valid) {
       console.warn(errors);
@@ -434,9 +430,13 @@ routes = {
     return (
       <CardPlayerSelect
         selected={optimization.playerList}
-        players={state.getAllPlayersAlphabetically()}
+        players={getGlobalState().getAllPlayersAlphabetically()}
         onComplete={(players) => {
-          state.setOptimizationField(optimization.id, 'playerList', players);
+          getGlobalState().setOptimizationField(
+            optimization.id,
+            'playerList',
+            players
+          );
         }}
         onImportClick={function () {
           setRoute(`/optimizations/${optimization.id}/import-lineup`);
@@ -447,14 +447,18 @@ routes = {
   [`${ROUTE_PREFIX}/optimizations/:optimizationId/import-lineup`]: ({
     optimizationId,
   }) => {
-    const optimization = state.getOptimization(optimizationId);
+    const optimization = getGlobalState().getOptimization(optimizationId);
     const { valid, errors } = assertStateObjects(optimization);
     if (!valid) {
       console.warn(errors);
       return <CardNotFound />;
     }
     let onConfirm = (ev, team, game) => {
-      state.setOptimizationField(optimization.id, 'playerList', game.lineup);
+      getGlobalState().setOptimizationField(
+        optimization.id,
+        'playerList',
+        game.lineup
+      );
       goBack(2);
     };
 
@@ -473,8 +477,8 @@ routes = {
     optimizationId,
     playerId,
   }) => {
-    const optimization = state.getOptimization(optimizationId);
-    const player = state.getPlayer(playerId);
+    const optimization = getGlobalState().getOptimization(optimizationId);
+    const player = getGlobalState().getPlayer(playerId);
     const { valid, errors } = assertStateObjects(optimization, player);
     if (!valid) {
       console.warn(errors);
@@ -489,16 +493,20 @@ routes = {
   },
   [`${ROUTE_PREFIX}/optimizations/:optimizationId/overrides/:playerId/plateAppearances/:plateAppearanceId`]:
     ({ optimizationId, playerId, plateAppearanceId, search: { isNew } }) => {
-      const optimization = state.getOptimization(optimizationId);
-      const player = state.getPlayer(playerId);
+      resetGlobalState();
+      const optimization = getGlobalState().getOptimization(optimizationId);
+      const player = getGlobalState().getPlayer(playerId);
 
-      const plateAppearances = state.getOptimizationOverridesForPlayer(
-        optimizationId,
-        playerId
-      );
+      const plateAppearances =
+        getGlobalState().getOptimizationOverridesForPlayer(
+          optimizationId,
+          playerId
+        );
 
       const plateAppearance =
-        state.getOptimizationOverridePlateAppearance(plateAppearanceId);
+        getGlobalState().getOptimizationOverridePlateAppearance(
+          plateAppearanceId
+        );
 
       const previousPlateAppearance = findPreviousObject(
         plateAppearances,
@@ -517,14 +525,14 @@ routes = {
       return (
         <CardPlateAppearance
           remove={function () {
-            state.removeOptimizationOverridePlateAppearance(
+            getGlobalState().removeOptimizationOverridePlateAppearance(
               optimizationId,
               playerId,
               plateAppearanceId
             );
           }}
           replace={function (newPa) {
-            state.replaceOptimizationOverridePlateAppearance(
+            getGlobalState().replaceOptimizationOverridePlateAppearance(
               optimizationId,
               playerId,
               newPa.id,
@@ -551,19 +559,19 @@ routes = {
     teamId,
   }) => {
     return renderWhileLoading({ loading, error })(() => {
-      const team = data.teams[0];
+      setGlobalState(data);
+      console.log(
+        '[GLOBAL_STATE] Global state teams',
+        getGlobalState().getAllTeams()
+      );
+      const team = getGlobalState().getAllTeams()[0];
       const { valid, errors } = assertStateObjects(team);
       if (!valid) {
         console.warn(errors);
         return <CardNotFound />;
       }
-      return (
-        <CardStatsPublic
-          team={team}
-          tab={CardStatsPublic.SEASON_TAB}
-          inputState={data}
-        />
-      );
+
+      return <CardStatsPublic team={team} tab={CardStatsPublic.SEASON_TAB} />;
     });
   },
   [`${ROUTE_PREFIX}/public-teams/:publicTeamId/stats/season`]: ({
@@ -575,6 +583,7 @@ routes = {
     tab,
   }) => {
     return renderWhileLoading({ loading, error })(() => {
+      setGlobalState(data);
       const team = data.teams[0];
       const { valid, errors } = assertStateObjects(team);
       if (!valid) {
@@ -599,6 +608,8 @@ routes = {
     tab,
   }) => {
     return renderWhileLoading({ loading, error })(() => {
+      setGlobalState(data);
+
       const team = data.teams[0];
       const game = team.games[0];
       const { valid, errors } = assertStateObjects(team); // Game can be undefined
@@ -624,14 +635,16 @@ routes = {
     playerId,
   }) => {
     return renderWhileLoading({ loading, error })(() => {
-      const player = data.players.reduce((prev, player) => {
-        return player.id === playerId ? player : prev;
-      }, null);
+      setGlobalState(data);
 
-      const team = data.teams[0];
+      //const player = data.players.reduce((prev, player) => {
+      //  return player.id === playerId ? player : prev;
+      //}, null);
+      const player = getGlobalState().getPlayer(playerId);
+      const team = getGlobalState().getAllTeams()[0];
 
       const decoratedPlayerPlateAppearances =
-        state.getDecoratedPlateAppearancesForPlayerOnTeam(
+        getGlobalState().getDecoratedPlateAppearancesForPlayerOnTeam(
           playerId,
           team.id,
           data
@@ -655,8 +668,9 @@ routes = {
     gameId,
   }) => {
     return renderWhileLoading({ loading, error })(() => {
+      setGlobalState(data);
       const team = data.teams[0];
-      const game = state.getGame(gameId, data);
+      const game = getGlobalState().getGame(gameId);
       const { valid, errors } = assertStateObjects(team, game);
       if (!valid) {
         console.warn(errors);
@@ -676,5 +690,16 @@ routes = {
     return <CardOptimizerSelect />;
   },
 };
+
+// All routes use the default globalState by default.
+// Individual routes can override this behavior in their respective functions.
+for (let i = 0; i < routes.length; i++) {
+  routes[i] = (inputArgs) => {
+    resetGlobalState();
+    console.log('[GLOBAL_STATE] resetting globalState');
+    routes[i](inputArgs);
+  };
+  console.log('[GLOBAL_STATE] replacing state with default fxn', i);
+}
 
 export default routes;

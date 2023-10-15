@@ -1,5 +1,4 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 
 export default class InputDialog extends React.Component {
   constructor(props) {
@@ -47,59 +46,35 @@ export default class InputDialog extends React.Component {
   }
 
   render() {
-    return DOM.div(
-      {
-        className: 'dialog',
-      },
-      DOM.div(
-        {
-          className: 'dialog-text',
-        },
-        this.getNodeOrDefaultText()
-      ),
-      DOM.textarea({
-        id: 'InputDialog-input',
-        onChange: this.handleInputChange,
-        placeholder: this.getNodeOrDefaultText(),
-        className: 'dialog-input-box',
-        style: {
-          whiteSpace: this.props.whiteSpace ? 'pre' : '',
-          height: this.props.node ? '360px' : '36px',
-          lineHeight: this.props.node ? undefined : '36px',
-        },
-      }),
-      DOM.div(
-        {
-          style: {
-            display: 'flex',
-            justifyContent: 'flex-end',
-          },
-        },
-        DOM.div(
-          {
-            className: 'button primary-button',
-            onClick: this.handleConfirmClick,
-          },
-          DOM.span(
-            {
-              className: 'no-select',
-            },
-            'Submit'
-          )
-        ),
-        DOM.div(
-          {
-            className: 'button tertiary-button',
-            onClick: this.handleCancelClick,
-          },
-          DOM.span(
-            {
-              className: 'no-select',
-            },
-            'Cancel'
-          )
-        )
-      )
+    return (
+      <div className="dialog">
+        <div className="dialog-text">{this.getNodeOrDefaultText()}</div>
+        <textarea
+          id="InputDialog-input"
+          onChange={this.handleInputChange}
+          placeholder={this.getNodeOrDefaultText()}
+          className="dialog-input-box"
+          style={{
+            whiteSpace: this.props.whiteSpace ? 'pre' : '',
+            height: this.props.node ? '360px' : '36px',
+            lineHeight: this.props.node ? undefined : '36px',
+          }}
+        />
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <div
+            className="button primary-button"
+            onClick={this.handleConfirmClick}
+          >
+            <span className="no-select">Submit</span>
+          </div>
+          <div
+            className="button tertiary-button"
+            onClick={this.handleCancelClick}
+          >
+            <span className="no-select">Cancel</span>
+          </div>
+        </div>
+      </div>
     );
   }
 }

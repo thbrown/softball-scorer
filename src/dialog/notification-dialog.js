@@ -1,5 +1,4 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
 
 export default class NotificationDialog extends React.Component {
   constructor(props) {
@@ -13,37 +12,23 @@ export default class NotificationDialog extends React.Component {
   }
 
   render() {
-    return DOM.div(
-      {
-        className: 'dialog',
-      },
-      DOM.div(
-        {
-          className: 'dialog-text',
-          style: { maxHeight: '70vh', overflow: 'auto' },
-        },
-        this.props.text
-      ),
-      DOM.div(
-        {
-          style: {
-            display: 'flex',
-            justifyContent: 'flex-end',
-          },
-        },
-        DOM.div(
-          {
-            className: 'button primary-button',
-            onClick: this.handleConfirmClick,
-          },
-          DOM.span(
-            {
-              className: 'no-select',
-            },
-            'Got it'
-          )
-        )
-      )
+    return (
+      <div className="dialog">
+        <div
+          className="dialog-text"
+          style={{ maxHeight: '70vh', overflow: 'auto' }}
+        >
+          {this.props.text}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <div
+            className="button primary-button"
+            onClick={this.handleConfirmClick}
+          >
+            <span className="no-select">Got it</span>
+          </div>
+        </div>
+      </div>
     );
   }
 }

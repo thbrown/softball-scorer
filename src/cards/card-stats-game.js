@@ -7,7 +7,7 @@ import IconButton from 'elements/icon-button';
 import theme from 'css/theme';
 import InnerSection from 'elements/inner-section';
 import FloatingSelect from 'elements/floating-select';
-import state from 'state';
+import { getGlobalState } from 'state';
 import CardSection from 'elements/card-section';
 
 const useStyles = makeStyles((css) => {
@@ -145,7 +145,7 @@ const CardStatsGame = ({
         />
       </InnerSection>
       <Spray
-        decoratedPlateAppearances={state.getDecoratedPlateAppearancesForGame(
+        decoratedPlateAppearances={getGlobalState().getDecoratedPlateAppearancesForGame(
           game,
           inputState
         )}

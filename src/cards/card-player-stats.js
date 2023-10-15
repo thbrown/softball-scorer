@@ -2,7 +2,7 @@ import React from 'react';
 import Card from 'elements/card';
 import { setRoute } from 'actions/route';
 import Spray from '../components/spray';
-import state from 'state';
+import { getGlobalState } from 'state';
 import css from 'css';
 import InnerSection from 'elements/inner-section';
 import IconButton from '../elements/icon-button';
@@ -11,16 +11,20 @@ import { showStatsHelp } from 'utils/help-functions';
 export default class CardPlayerStats extends React.Component {
   getSeasonalStats() {
     const playerStatsByTeam = [];
-    const allTeams = state.getAllTeams();
+    const allTeams = getGlobalState().getAllTeams();
     for (const team of allTeams) {
-      const playerPAsOnTeam = state.getDecoratedPlateAppearancesForPlayerOnTeam(
-        this.props.player.id,
-        team.id
-      );
+      const playerPAsOnTeam =
+        getGlobalState().getDecoratedPlateAppearancesForPlayerOnTeam(
+          this.props.player.id,
+          team.id
+        );
       if (playerPAsOnTeam.length !== 0) {
         playerStatsByTeam.push({
           teamName: team.name,
-          stats: state.buildStatsObject(playerPAsOnTeam, this.props.player.id),
+          stats: getGlobalState().buildStatsObject(
+            playerPAsOnTeam,
+            this.props.player.id
+          ),
         });
       }
     }
@@ -77,10 +81,13 @@ export default class CardPlayerStats extends React.Component {
       );
     }
 
-    const allPAs = state.getDecoratedPlateAppearancesForPlayer(
+    const allPAs = getGlobalState().getDecoratedPlateAppearancesForPlayer(
       this.props.player.id
     );
-    const allTimeStats = state.buildStatsObject(allPAs, this.props.player.id);
+    const allTimeStats = getGlobalState().buildStatsObject(
+      allPAs,
+      this.props.player.id
+    );
     seasonStats.push(
       <tr
         key={'season-alltime'}
@@ -134,7 +141,7 @@ export default class CardPlayerStats extends React.Component {
         }}
       >
         <Spray
-          decoratedPlateAppearances={state.getDecoratedPlateAppearancesForPlayer(
+          decoratedPlateAppearances={getGlobalState().getDecoratedPlateAppearancesForPlayer(
             this.props.player.id
           )}
         ></Spray>

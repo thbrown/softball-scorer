@@ -4,7 +4,7 @@
 const configAccessor = require('../config-accessor');
 const SoftballServer = require('../softball-server');
 const testUtils = require('./test-utils.js');
-const state = require('../../src/state.js').default;
+const getGlobalState = require('../../src/state.js').getGlobalState;
 const context = require('../context');
 const SharedLib = require('../../shared-lib');
 const utils = SharedLib.commonUtils;
@@ -55,7 +55,11 @@ describe('sync', () => {
   });
 
   let performAndValidateSync = async function (activeState) {
-    let beforeSyncCopy = JSON.stringify(state.getLocalState(), null, 2);
+    let beforeSyncCopy = JSON.stringify(
+      getGlobalState().getLocalState(),
+      null,
+      2
+    );
     let clientChecksum = activeState.getLocalStateChecksum();
     let responseStatus = await activeState.sync();
     expect(responseStatus).toEqual(200);
@@ -73,11 +77,15 @@ describe('sync', () => {
     delete activeState.getLocalState().account.emailConfirmed;
 
     let serverChecksum = activeState.getLocalStateChecksum();
-    let afterSyncCopy = JSON.stringify(state.getLocalState(), null, 2);
+    let afterSyncCopy = JSON.stringify(
+      getGlobalState().getLocalState(),
+      null,
+      2
+    );
 
     if (clientChecksum !== serverChecksum) {
       // Checksums don't care about ordering, so they are the definitive answer
-      // If those don't match, we'll compare the strings because they are much easier to debug
+      // If those don't match, we'll compare the strings to see what's actually different
       console.log('Pre', beforeSyncCopy);
       console.log('Post', afterSyncCopy);
       console.log('Checksums', serverChecksum, clientChecksum);
@@ -90,123 +98,117 @@ describe('sync', () => {
   };
 
   test('Sync - Players', async () => {
-    state.deleteAllData();
-    await performAndValidateSync(state);
+    getGlobalState().deleteAllData();
+    await performAndValidateSync(getGlobalState());
 
     // Create
-    let player = state.addPlayer(`Mary`, 'F');
-    await performAndValidateSync(state);
+    let player = getGlobalState().addPlayer(`Mary`, 'F');
+    await performAndValidateSync(getGlobalState());
 
     // Edit
     let updatedPlayer = JSON.parse(JSON.stringify(player));
     updatedPlayer.name = 'HailMary';
-    state.replacePlayer(player.id, updatedPlayer);
-    await performAndValidateSync(state);
+    getGlobalState().replacePlayer(player.id, updatedPlayer);
+    await performAndValidateSync(getGlobalState());
 
     // Delete
-    state.removePlayer(updatedPlayer.id);
-    await performAndValidateSync(state);
+    getGlobalState().removePlayer(updatedPlayer.id);
+    await performAndValidateSync(getGlobalState());
   });
 
   test('Sync - Team', async () => {
-    state.deleteAllData();
-    await performAndValidateSync(state);
+    getGlobalState().deleteAllData();
+    await performAndValidateSync(getGlobalState());
 
     // Create
-    let team = state.addTeam('BigTeam');
-    await performAndValidateSync(state);
+    let team = getGlobalState().addTeam('BigTeam');
+    await performAndValidateSync(getGlobalState());
 
     // Edit
     let updatedTeam = JSON.parse(JSON.stringify(team));
     updatedTeam.name = 'ReallyBigTeam';
-    state.replaceTeam(team.id, updatedTeam);
-    await performAndValidateSync(state);
+    getGlobalState().replaceTeam(team.id, updatedTeam);
+    await performAndValidateSync(getGlobalState());
 
     // Delete
-    state.removeTeam(updatedTeam.id);
-    await performAndValidateSync(state);
+    getGlobalState().removeTeam(updatedTeam.id);
+    await performAndValidateSync(getGlobalState());
   });
 
   test('Sync - Game', async () => {
-    state.deleteAllData();
-    await performAndValidateSync(state);
+    getGlobalState().deleteAllData();
+    await performAndValidateSync(getGlobalState());
 
     // Create
-    let team = state.addTeam('BigTeam');
-    let game = state.addGame(team.id, 'BadGuys');
+    let team = getGlobalState().addTeam('BigTeam');
+    let game = getGlobalState().addGame(team.id, 'BadGuys');
 
     // Edit
     let updatedGame = JSON.parse(JSON.stringify(game));
     updatedGame.opponent = 'ActuallyTheseBadGuys';
-    state.replaceGame(updatedGame.id, team.id, updatedGame);
-    await performAndValidateSync(state);
+    getGlobalState().replaceGame(updatedGame.id, team.id, updatedGame);
+    await performAndValidateSync(getGlobalState());
 
     // Delete
-    state.removeGame(updatedGame.id, team.id);
-    await performAndValidateSync(state);
+    getGlobalState().removeGame(updatedGame.id);
+    await performAndValidateSync(getGlobalState());
   });
 
   test('Sync - Lineups', async () => {
-    state.deleteAllData();
-    await performAndValidateSync(state);
+    getGlobalState().deleteAllData();
+    await performAndValidateSync(getGlobalState());
 
     let players = [];
 
     // Create
-    let team = state.addTeam('BigTeam');
-    let game = state.addGame(team.id, 'BadGuys');
-    let lineup = game.lineup;
+    let team = getGlobalState().addTeam('BigTeam');
+    let game = getGlobalState().addGame(team.id, 'BadGuys');
     for (let i = 0; i < 10; i++) {
-      let player = state.addPlayer(`player${i}`, 'F');
-      state.addPlayerToLineup(lineup, player.id);
+      let player = getGlobalState().addPlayer(`player${i}`, 'F');
+      getGlobalState().addPlayerToLineup(game.id, player.id);
       players.push(player);
     }
 
     // Edit -> remove players
-    lineup = state.getGame(game.id).lineup;
-    state.removePlayerFromLineup(lineup, players[2].id);
-    state.removePlayerFromLineup(lineup, players[4].id);
-    state.removePlayerFromLineup(lineup, players[5].id);
-    state.removePlayerFromLineup(lineup, players[9].id);
-    await performAndValidateSync(state);
+    getGlobalState().removePlayerFromLineup(game.id, players[2].id);
+    getGlobalState().removePlayerFromLineup(game.id, players[4].id);
+    getGlobalState().removePlayerFromLineup(game.id, players[5].id);
+    getGlobalState().removePlayerFromLineup(game.id, players[9].id);
+    await performAndValidateSync(getGlobalState());
 
     // Edit -> add players
-
-    lineup = state.getGame(game.id).lineup;
     for (let i = 0; i < 4; i++) {
-      let player = state.addPlayer(`addedPlayer${i}`, 'F');
-      state.addPlayerToLineup(lineup, player.id);
-      state.updateLineup(lineup, player.id, i * 2);
+      let player = getGlobalState().addPlayer(`addedPlayer${i}`, 'F');
+      getGlobalState().addPlayerToLineup(game.id, player.id);
+      getGlobalState().updateLineup(game.id, player.id, i * 2);
     }
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Edit -> re-order
-    lineup = state.getGame(game.id).lineup;
-    state.updateLineup(lineup, players[0].id, 1);
-    state.updateLineup(lineup, players[1].id, 3);
-    state.updateLineup(lineup, players[3].id, 4);
-    state.updateLineup(lineup, players[6].id, 5);
-    state.updateLineup(lineup, players[7].id, 6);
-    await performAndValidateSync(state);
+    getGlobalState().updateLineup(game.id, players[0].id, 1);
+    getGlobalState().updateLineup(game.id, players[1].id, 3);
+    getGlobalState().updateLineup(game.id, players[3].id, 4);
+    getGlobalState().updateLineup(game.id, players[6].id, 5);
+    getGlobalState().updateLineup(game.id, players[7].id, 6);
+    await performAndValidateSync(getGlobalState());
   });
 
   test('Sync - Plate Appearances', async () => {
-    state.deleteAllData();
-    await performAndValidateSync(state);
+    getGlobalState().deleteAllData();
+    await performAndValidateSync(getGlobalState());
 
     let players = [];
     let pas = [];
 
     // Create
-    let team = state.addTeam('BigTeam');
-    let game = state.addGame(team.id, 'BadGuys');
-    let lineup = game.lineup;
+    let team = getGlobalState().addTeam('BigTeam');
+    let game = getGlobalState().addGame(team.id, 'BadGuys');
     for (let i = 0; i < 5; i++) {
-      let player = state.addPlayer(`player${i}`, 'F');
-      state.addPlayerToLineup(lineup, player.id);
+      let player = getGlobalState().addPlayer(`player${i}`, 'F');
+      getGlobalState().addPlayerToLineup(game.id, player.id);
       players.push(player);
       for (let j = 0; j < 2; j++) {
-        let pa = state.addPlateAppearance(player.id, game.id);
+        let pa = getGlobalState().addPlateAppearance(player.id, game.id);
         pa.result = 'Out';
         pa.location = {
           x: 12141,
@@ -215,14 +217,14 @@ describe('sync', () => {
         pas.push(pa);
       }
     }
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Edit
     let replacementPa = JSON.parse(
-      JSON.stringify(state.getPlateAppearance(pas[1].id))
+      JSON.stringify(getGlobalState().getPlateAppearance(pas[1].id))
     );
     replacementPa.result = '2B';
-    state.replacePlateAppearance(
+    getGlobalState().replacePlateAppearance(
       replacementPa.id,
       game.id,
       team.id,
@@ -230,10 +232,10 @@ describe('sync', () => {
     );
 
     replacementPa = JSON.parse(
-      JSON.stringify(state.getPlateAppearance(pas[2].id))
+      JSON.stringify(getGlobalState().getPlateAppearance(pas[2].id))
     );
     replacementPa.result = null;
-    state.replacePlateAppearance(
+    getGlobalState().replacePlateAppearance(
       replacementPa.id,
       game.id,
       team.id,
@@ -241,13 +243,13 @@ describe('sync', () => {
     );
 
     replacementPa = JSON.parse(
-      JSON.stringify(state.getPlateAppearance(pas[3].id))
+      JSON.stringify(getGlobalState().getPlateAppearance(pas[3].id))
     );
     replacementPa.location = {
       x: null,
       y: null,
     };
-    state.replacePlateAppearance(
+    getGlobalState().replacePlateAppearance(
       replacementPa.id,
       game.id,
       team.id,
@@ -255,23 +257,23 @@ describe('sync', () => {
     );
 
     replacementPa = JSON.parse(
-      JSON.stringify(state.getPlateAppearance(pas[6].id))
+      JSON.stringify(getGlobalState().getPlateAppearance(pas[6].id))
     );
     replacementPa.location = {
       x: 1000,
       y: 3000,
     };
-    state.replacePlateAppearance(
+    getGlobalState().replacePlateAppearance(
       replacementPa.id,
       game.id,
       team.id,
       replacementPa
     );
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Delete
-    state.removePlateAppearance(pas[8].id, game.id);
-    await performAndValidateSync(state);
+    getGlobalState().removePlateAppearance(pas[8].id, game.id);
+    await performAndValidateSync(getGlobalState());
   });
 
   // TODO: Optimizations
@@ -281,29 +283,29 @@ describe('sync', () => {
   });
   */
 
-  test.only('Ordering - This query includes both deletes and and insert, this tests to makes sure the resulting querys are sorted and performed in the right order', async () => {
-    state.deleteAllData();
-    await performAndValidateSync(state);
+  test('Ordering - This query includes both deletes and and insert, this tests to makes sure the resulting querys are sorted and performed in the right order', async () => {
+    getGlobalState().deleteAllData();
+    await performAndValidateSync(getGlobalState());
 
     // Add a bunch of initial data
-    let team = state.addTeam('BigTeam');
-    let game = state.addGame(team.id, 'BadGuys');
+    let team = getGlobalState().addTeam('BigTeam');
+    let game = getGlobalState().addGame(team.id, 'BadGuys');
     let players = [];
     for (let i = 0; i < 5; i++) {
-      let player = state.addPlayer(`player${i}`, 'F');
-      state.addPlayerToLineup(game.lineup, player.id);
+      let player = getGlobalState().addPlayer(`player${i}`, 'F');
+      getGlobalState().addPlayerToLineup(game.id, player.id);
       players.push(player);
     }
 
-    await performAndValidateSync(state);
+    await performAndValidateSync(getGlobalState());
 
     // Blow away the old data for some new data
-    state.removeGame(game.id, team.id);
-    state.removeTeam(team.id);
+    getGlobalState().removeGame(game.id);
+    getGlobalState().removeTeam(team.id);
     for (let i = 0; i < 5; i++) {
-      state.removePlayer(players[i].id);
+      getGlobalState().removePlayer(players[i].id);
     }
-    state.addTeam('Actually this team');
-    await performAndValidateSync(state);
+    getGlobalState().addTeam('Actually this team');
+    await performAndValidateSync(getGlobalState());
   });
 });

@@ -305,10 +305,10 @@ test('Create RFC6902 compatible document', () => {
     '#112': { _name: 'Luke' },
     '#314': { _name: 'John' },
     '&order': {
-      112: '2',
-      314: '3',
-      321: '0',
-      427: '1',
+      112: 2,
+      314: 3,
+      321: 0,
+      427: 1,
     },
   };
 
@@ -322,7 +322,7 @@ test('Restore from RFC6902 compatible document', () => {
     '#427': { _name: 'Mark', _synoptic: true },
     '#112': { _name: 'Luke', _synoptic: true },
     '#314': { _name: 'John', _synoptic: false },
-    '&order': { 321: '0', 427: '1', 112: '2', 314: '3' },
+    '&order': { 321: 0, 427: 1, 112: 2, 314: 3 },
   };
 
   let expected = [
@@ -345,10 +345,10 @@ test('Tolerate misplaced &order keys', () => {
   ];
   let input = {
     '&order': {
-      112: '2',
-      314: '3',
-      321: '0',
-      427: '1',
+      112: 2,
+      314: 3,
+      321: 0,
+      427: 1,
     },
     '#321': { _name: 'Matthew' },
     '#427': { _name: 'Mark' },
@@ -406,8 +406,8 @@ test('Create and restore RFC6902 compatible nested document', () => {
         $A: { _name: 'Matt' },
         $B: { _name: 'Matthew' },
         '&order': {
-          A: '0',
-          B: '1',
+          A: 0,
+          B: 1,
         },
       },
       _404: false,
@@ -416,7 +416,7 @@ test('Create and restore RFC6902 compatible nested document', () => {
       _names: {
         $A: { _name: 'Mark' },
         '&order': {
-          A: '0',
+          A: 0,
         },
       },
       _404: false,
@@ -425,7 +425,7 @@ test('Create and restore RFC6902 compatible nested document', () => {
       _names: {
         $A: { _name: 'Luke' },
         '&order': {
-          A: '0',
+          A: 0,
         },
       },
       _404: false,
@@ -436,18 +436,18 @@ test('Create and restore RFC6902 compatible nested document', () => {
         $B: { _name: 'Johnny' },
         $C: { _name: 'Johnny Boy' },
         '&order': {
-          A: '0',
-          B: '1',
-          C: '2',
+          A: 0,
+          B: 1,
+          C: 2,
         },
       },
       _404: false,
     },
     '&order': {
-      112: '2',
-      314: '3',
-      321: '0',
-      427: '1',
+      112: 2,
+      314: 3,
+      321: 0,
+      427: 1,
     },
   };
 
