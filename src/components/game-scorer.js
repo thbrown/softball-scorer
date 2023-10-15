@@ -2,7 +2,6 @@ import React from 'react';
 import CardSection from 'elements/card-section';
 import { getGlobalState } from 'state';
 import { makeStyles } from 'css/helpers';
-import css from 'css';
 
 const useScorePaperStyles = makeStyles((css) => ({
   root: {

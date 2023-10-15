@@ -6,6 +6,11 @@ import css from 'css';
 import InnerSection from 'elements/inner-section';
 import IconButton from 'elements/icon-button';
 import { showStatsHelp } from 'utils/help-functions';
+import {
+  FilterStats,
+  FilterStatsModal,
+  getUrlFilterState,
+} from 'components/filter-stats';
 
 const DSC_CHAR = '▼'; //'\25bc';
 const ASC_CHAR = '▲'; //'\25be';
@@ -47,9 +52,17 @@ export default class CardStatsSeason extends React.Component {
   constructor(props) {
     super(props);
 
+    const search = new URLSearchParams(window.location.search);
+    let abFilter = parseInt(search.get('ab'));
+    if (isNaN(abFilter) || abFilter < 0) {
+      abFilter = 4;
+    }
+
     this.state = {
       sortField: 'atBats',
       sortDirection: 'DSC',
+      filterStateChanged: false,
+      filterState: getUrlFilterState(),
     };
 
     this.sortByState = (a, b) => {
@@ -101,6 +114,10 @@ export default class CardStatsSeason extends React.Component {
     this.handlePlayerClick = function (playerId) {
       this.props.onPlayerClick(playerId);
     }.bind(this);
+
+    this.setFilterState = (filterState) => {
+      this.setState({ filterState });
+    };
   }
 
   getHeaderText(statName) {
@@ -206,10 +223,15 @@ export default class CardStatsSeason extends React.Component {
     );
   }
 
-  renderNoTable() {
+  renderNoTable(reason) {
+    const reasons = {
+      noTeam: 'No team selected.',
+      noData: 'There is no data for this team.',
+      noFilteredData: 'All data has been filtered out.',
+    };
     return (
       <CardSection isCentered={true}>
-        There aren't any season stats for this team yet!
+        Cannot display season stats: {reasons[reason] ?? 'No data.'}
       </CardSection>
     );
   }
@@ -222,10 +244,12 @@ export default class CardStatsSeason extends React.Component {
     const s = inputState || getGlobalState().getLocalState();
 
     if (!team) {
-      return this.renderNoTable();
+      return this.renderNoTable('noTeam');
     }
 
-    const playerStatsList = s.players
+    const searchFilterState = this.state.filterState;
+
+    const playerStatsListBeforeFilter = s.players
       .filter((player) => {
         return team.games.reduce((result, game) => {
           return result || game.lineup.indexOf(player.id) > -1;
@@ -233,14 +257,22 @@ export default class CardStatsSeason extends React.Component {
       })
       .map((player) => {
         return this.buildStatsObject(team.id, player.id);
+      });
+
+    if (playerStatsListBeforeFilter.length === 0) {
+      return this.renderNoTable('noGames');
+    }
+
+    const playerStatsList = playerStatsListBeforeFilter
+      .filter((statsObj) => {
+        if (searchFilterState.filterChecked) {
+          return statsObj.plateAppearances >= searchFilterState.abFilter;
+        }
+        return true;
       })
       .sort((a, b) => {
         return this.sortByState(a, b);
       });
-
-    if (playerStatsList.length === 0) {
-      return this.renderNoTable();
-    }
 
     const tableElems = [this.renderStatsHeader()].concat(
       playerStatsList.map((playerStats) => {
@@ -250,44 +282,53 @@ export default class CardStatsSeason extends React.Component {
 
     return (
       <CardSection>
-        <StickyTable style={{ paddingBottom: '14px' }}>
-          {tableElems}
-        </StickyTable>
-        <InnerSection
-          style={{
-            textAlign: 'center',
-            color: css.colors.TEXT_GREY,
-            fontSize: css.typography.size.small,
-            marginTop: css.spacing.medium,
-          }}
-        >
-          <div>Tap a player name for season spray chart.</div>
-        </InnerSection>
-        <InnerSection
-          style={{
-            textAlign: 'center',
-            color: css.colors.TEXT_GREY,
-            fontSize: css.typography.size.small,
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <div>Curious about a particular stat?</div>
-            <IconButton
-              className="help-icon"
-              src="/assets/help.svg"
-              alt="info"
-              style={{ opacity: '50%' }}
-              onClick={showStatsHelp}
-              invert
-            />
-          </div>
-        </InnerSection>
+        {playerStatsList.length === 0 ? (
+          <>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-start',
+              }}
+            >
+              <FilterStatsModal setFilterState={this.setFilterState} />
+            </div>
+            {this.renderNoTable('noFilteredData')}
+          </>
+        ) : (
+          <>
+            <StickyTable>{tableElems}</StickyTable>
+            <InnerSection className="stats-footer">
+              <div>Tap a player name for season spray chart.</div>
+            </InnerSection>
+            <InnerSection className="stats-footer">
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <div>Curious about a particular stat?</div>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginLeft: '16px',
+                    textDecoration: 'underline',
+                    userSelect: 'none',
+                    cursor: 'pointer',
+                  }}
+                  onClick={showStatsHelp}
+                >
+                  <span>Click Here</span>
+                </div>
+              </div>
+            </InnerSection>
+            <InnerSection className="stats-footer">
+              <FilterStatsModal setFilterState={this.setFilterState} />
+            </InnerSection>
+          </>
+        )}
       </CardSection>
     );
   }

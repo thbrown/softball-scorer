@@ -25,14 +25,18 @@ export default class ConfirmDialog extends React.Component {
             className="button primary-button"
             onClick={this.handleConfirmClick}
           >
-            <span className="no-select">Yes</span>
+            <span className="no-select">
+              {this.props.confirmLabel ?? 'Yes'}
+            </span>
           </div>
           <div
             id="dialog-cancel"
             className="button tertiary-button"
             onClick={this.handleCancelClick}
           >
-            <span className="no-select">Cancel</span>
+            <span className="no-select">
+              {this.props.cancelLabel ?? 'Cancel'}
+            </span>
           </div>
         </div>
       </div>
