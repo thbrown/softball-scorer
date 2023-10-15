@@ -751,7 +751,6 @@ export class GlobalState {
     return game;
   }
 
-  // TODO: we can't replace w/ a game we got from getGame because it now as "team" on it
   replaceGame(oldGameId, teamId, newGame) {
     const localState = this.getLocalState();
     const team = this.INDEX.getTeamForGame(oldGameId);
@@ -926,7 +925,6 @@ export class GlobalState {
     if (pa === undefined) {
       return undefined;
     }
-    console.warn('GOT PA', pa);
     return { pa, game, team };
   }
 
