@@ -1,9 +1,8 @@
 import React from 'react';
-import DOM from 'react-dom-factories';
-import state from 'state';
+import { getGlobalState } from 'state';
 import dialog from 'dialog';
-import LeftHeaderButton from 'component-left-header-button';
-import RightHeaderButton from 'component-right-header-button';
+import Card from 'elements/card';
+import CardSection from 'elements/card-section';
 import config from 'config';
 import { setRoute } from 'actions/route';
 
@@ -64,19 +63,19 @@ export default class CardSignup extends React.Component {
         password: password.value,
         reCAPCHA: recapchaResult,
       };
-      let response = await state.request(
+      let response = await getGlobalState().request(
         'POST',
         'server/account/signup',
         JSON.stringify(body)
       );
       if (response.status === 204) {
         // Clear db state if the data in the app is from another account, otherwise the newly signed up account will now own that data
-        if (state.getActiveUser()) {
-          state.resetState();
+        if (getGlobalState().getActiveUser()) {
+          getGlobalState().resetState();
         } else {
-          state.resetSyncState();
+          getGlobalState().resetSyncState();
         }
-        state.setActiveUser(email.value);
+        getGlobalState().setActiveUser(email.value);
 
         dialog.show_notification(
           <div>
@@ -129,7 +128,7 @@ export default class CardSignup extends React.Component {
   }
 
   componentDidMount() {
-    let queryObject = state.getQueryObj();
+    let queryObject = getGlobalState().getQueryObj();
     let emailParam = queryObject.email;
     if (emailParam) {
       document.getElementById('email').value = decodeURIComponent(emailParam);
@@ -138,72 +137,64 @@ export default class CardSignup extends React.Component {
   }
 
   validateEmail(email) {
-    var re = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    var re =
+      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     return re.test(String(email).toLowerCase());
   }
-
   renderAuthInterface() {
-    return DOM.div(
-      {
-        className: 'auth-input-container',
-      },
-      DOM.input({
-        key: 'email',
-        id: 'email',
-        className: 'auth-input',
-        placeholder: 'Email',
-        type: 'email',
-      }),
-      DOM.input({
-        key: 'password',
-        id: 'password',
-        className: 'auth-input',
-        placeholder: 'Password',
-        type: 'password',
-      }),
-      DOM.input({
-        key: 'passwordConfirm',
-        id: 'passwordConfirm',
-        className: 'auth-input',
-        placeholder: 'Confirm Password',
-        type: 'password',
-      }),
-      DOM.div({
-        id: 'recapcha',
-        style: {
-          marginTop: '10px',
-        },
-      }),
-      this.renderSubmitButton()
+    return (
+      <div className="auth-input-container">
+        <input
+          key="email"
+          id="email"
+          className="auth-input"
+          placeholder="Email"
+          type="email"
+        />
+        <input
+          key="password"
+          id="password"
+          className="auth-input"
+          placeholder="Password"
+          type="password"
+        />
+        <input
+          key="passwordConfirm"
+          id="passwordConfirm"
+          className="auth-input"
+          placeholder="Confirm Password"
+          type="password"
+        />
+        <div id="recapcha" style={{ marginTop: '10px' }}></div>
+        {this.renderSubmitButton()}
+      </div>
     );
   }
 
   renderSubmitButton() {
-    // There is no active user, say that the data in this app will be associated with this account now
-    var toRender = [];
-    if (!state.getActiveUser()) {
+    const toRender = [];
+    if (!getGlobalState().getActiveUser()) {
       toRender.push(
-        DOM.div(
-          {
-            key: 'info',
-            style: {
-              marginTop: '10px',
-            },
-          },
-          'Any data you have entered so far will be available in your new account'
-        )
+        <div
+          key="info"
+          style={{
+            marginTop: '10px',
+          }}
+        >
+          Any data you have entered so far will be available in your new account
+        </div>
       );
     } else {
       toRender.push(
-        DOM.div(
-          {
-            key: 'info',
-            style: {
-              marginTop: '10px',
-            },
-          },
-          "Another account's data is loaded locally. Any data you see here will not be available in your new account."
-        )
+        <div
+          key="info"
+          style={{
+            marginTop: '10px',
+          }}
+        >
+          Another account's data is loaded locally. Any data you see here will
+          not be available in your new account.
+        </div>
       );
     }
 
@@ -227,7 +218,7 @@ export default class CardSignup extends React.Component {
             paddingRight: '10px',
           }}
           ref={this.submitButtonSpinner}
-        ></img>{' '}
+        />{' '}
         Submit
       </div>
     );
@@ -236,29 +227,12 @@ export default class CardSignup extends React.Component {
   }
 
   render() {
-    return DOM.div(
-      {
-        style: {},
-      },
-      DOM.div(
-        {
-          className: 'card-title',
-        },
-        React.createElement(LeftHeaderButton, {}),
-        DOM.div(
-          {
-            className: 'prevent-overflow card-title-text-with-arrow',
-          },
-          'Signup'
-        ),
-        React.createElement(RightHeaderButton, {})
-      ),
-      DOM.div(
-        {
-          className: 'card-body',
-        },
-        this.renderAuthInterface()
-      )
+    return (
+      <Card title="Signup">
+        <CardSection isCentered="true">
+          <div className="card-body">{this.renderAuthInterface()}</div>
+        </CardSection>
+      </Card>
     );
   }
 }

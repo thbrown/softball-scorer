@@ -76,7 +76,7 @@ const jsonPointer = require('jsonpointer');
  *  ii - Second document to diff (against i) to find the patch
  *  iii - Document to apply the patch too (also called the target)
  *
- *  [] - represents a document is an empty array (and maybe should have been converted into an empty object by the diff process instead)
+ *  [] - represents a document that is an empty array (and maybe should have been converted into an empty object by the diff process instead)
  *  {} - represents a document with at least one property beginning with '#' or '$' (which would signify that it's been converted from an array of objects w/ id properties)
  *
  *  i  - ii - iii - OP - STATUS - LABEL (if applicable)
@@ -414,11 +414,10 @@ const _toRFC6902 = function (input) {
       return [];
     } else if (typeof input[0] === 'number' || typeof input[0] === 'string') {
       // This is an array of numbers or strings, convert the array to an object
-      let outputObject = {};
-      let orderObject = {};
-      for (let elementIndex in input) {
-        let element = input[elementIndex];
-        let id = (typeof element === 'number' ? '%' : '@') + element;
+      const outputObject = {};
+      const orderObject = {};
+      for (const [elementIndex, element] of input.entries()) {
+        const id = (typeof element === 'number' ? '%' : '@') + element;
         outputObject[id] = '';
         orderObject[element] = elementIndex;
       }
@@ -435,11 +434,10 @@ const _toRFC6902 = function (input) {
       return outputArray;
     } else {
       // This is an array of objects with ids, convert the array to an object
-      let outputObject = {};
-      let orderObject = {};
-      for (let elementIndex in input) {
-        let element = input[elementIndex];
-        let id = (typeof element.id === 'number' ? '#' : '$') + element.id;
+      const outputObject = {};
+      const orderObject = {};
+      for (const [elementIndex, element] of input.entries()) {
+        const id = (typeof element.id === 'number' ? '#' : '$') + element.id;
         outputObject[id] = this._toRFC6902(element);
         orderObject[element.id] = elementIndex;
         delete outputObject[id]['_id'];
@@ -478,7 +476,7 @@ const _fromRFC6902 = function (input) {
   } else if (typeof input === 'object') {
     let keys = Object.keys(input);
     if (keys.length === 0) {
-      return {}; // TODO: does this need to be []? FLUP: might need to return either {} or []. Since we are returning {} here we'll make sure we convert any {} that should be [] in the patch before calling _fromRFC6902
+      return {}; // TODO: does this need to be []? ANSWER: might need to return either {} or []. Since we are returning {} here we'll make sure we convert any {} that should be [] in the patch before calling _fromRFC6902
     }
 
     // Get the first non-"&" key
@@ -496,8 +494,7 @@ const _fromRFC6902 = function (input) {
     } else if (firstLetterOfFirstKey === '%' || firstLetterOfFirstKey === '@') {
       let outputArray = [];
       let orderObject = input['&order'];
-      for (let keyIndex in keys) {
-        let key = keys[keyIndex];
+      for (const key of keys) {
         let first = key.substring(0, 1);
         if (first === '&') {
           // Internal key, skip
@@ -516,8 +513,7 @@ const _fromRFC6902 = function (input) {
         outputArray.push(element);
       }
       // Create order indexes for all anything that's in outputArray but not in orderObject
-      for (let outputObjectIndex in outputArray) {
-        let outputObject = outputArray[outputObjectIndex];
+      for (let [outputObjectIndex, outputObject] of outputArray.entries()) {
         if (orderObject[outputObject] === undefined) {
           orderObject[outputObject] = outputObjectIndex;
         }
@@ -525,8 +521,8 @@ const _fromRFC6902 = function (input) {
 
       // Sort outputArray based off orderObject
       const sortedOutputArray = outputArray.sort(function (a, b) {
-        const a1 = parseInt(orderObject[a]);
-        const b1 = parseInt(orderObject[b]);
+        const a1 = orderObject[a];
+        const b1 = orderObject[b];
         if (a1 < b1) {
           return -1;
         }
@@ -559,8 +555,7 @@ const _fromRFC6902 = function (input) {
         outputArray.push(object);
       }
       // Create order indexes for all anything that's in outputArray but not in orderObject
-      for (let outputObjectIndex in outputArray) {
-        let outputObject = outputArray[outputObjectIndex];
+      for (const [outputObjectIndex, outputObject] of outputArray.entries()) {
         if (orderObject[outputObject.id] === undefined) {
           orderObject[outputObject.id] = outputObjectIndex;
         }
@@ -568,8 +563,8 @@ const _fromRFC6902 = function (input) {
 
       // Sort outputArray based off orderObject
       const sortedOutputArray = outputArray.sort(function (a, b) {
-        const a1 = parseInt(orderObject[a.id]);
-        const b1 = parseInt(orderObject[b.id]);
+        const a1 = orderObject[a.id];
+        const b1 = orderObject[b.id];
         if (a1 < b1) {
           return -1;
         }

@@ -1,3 +1,5 @@
+import SharedLib from 'shared-lib';
+
 export const normalize = function (x, A, B, C, D) {
   return C + ((x - A) * (D - C)) / (B - A);
 };
@@ -179,9 +181,12 @@ export const autoCorrelation = function (input, lag) {
 };
 
 export const logout = async function (state, dialog, setRoute) {
-  let response = await state.requestAuth('POST', 'server/account/logout');
+  let response = await getGlobalState().requestAuth(
+    'POST',
+    'server/account/logout'
+  );
   if (response.status === 204) {
-    state.resetState();
+    getGlobalState().resetState();
     dialog.show_notification('Logout successful.', function () {
       setRoute('/menu/login');
     });
@@ -191,7 +196,7 @@ export const logout = async function (state, dialog, setRoute) {
     // the server will invalidate the sid cookie next time any request succeeds.
     document.cookie =
       'nonHttpOnlyToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    state.resetState();
+    getGlobalState().resetState();
     dialog.show_notification('Logout successful.', function () {
       setRoute('/menu/login');
     });
@@ -247,3 +252,81 @@ export const cleanObject = function (obj) {
   // Return the cleaned object
   return obj;
 };
+
+export function findLastIndex(arr, callback, startIndex) {
+  if (typeof callback !== 'function') {
+    throw new TypeError('callback must be a function. Was ' + typeof callback);
+  }
+
+  if (startIndex === undefined) {
+    startIndex = arr.length - 1;
+  } else {
+    if (typeof startIndex !== 'number') {
+      throw new TypeError(
+        'startIndex must be a number. Was ' + typeof startIndex
+      );
+    }
+
+    if (startIndex < 0) {
+      startIndex = arr.length + startIndex;
+    }
+  }
+
+  for (let i = startIndex; i >= 0; i--) {
+    if (callback(arr[i], i, arr)) {
+      return i;
+    }
+  }
+
+  console.warn("Couldn't find last index in ", arr, arr);
+  return -1;
+}
+
+export function reRender() {
+  expose.set_state('main', {
+    render: true,
+  });
+}
+
+// An async sleep function
+export async function sleep(ms) {
+  return new Promise(function (resolve) {
+    setTimeout(function () {
+      resolve(ms);
+    }, ms);
+  });
+}
+
+// TODO: don't go through hex, just go dec to base62
+export function dec2hex(dec) {
+  return ('0' + dec.toString(16)).substr(-2);
+}
+
+export function getNextId() {
+  let len = 20;
+  var arr = new Uint8Array((len || 40) / 2);
+  crypto.getRandomValues(arr);
+  let hex = Array.from(arr, dec2hex).join('');
+  return SharedLib.idUtils.hexToBase62(hex).padStart(14, '0');
+}
+
+export function getNextName(oldName) {
+  let newName = 'Duplicate of ' + oldName;
+  try {
+    // Try fancy renaming - like windows does when you copy a file
+    const regex = /\([\d]+\)$/; // There is a minor bug here with leading zeros
+    const matches = regex.exec(oldName);
+    if (matches?.length > 0) {
+      const nextNumber = parseInt(matches[0].slice(1, -1)) + 1;
+      const slicedOriginal = oldName.slice(0, -matches[0].length);
+      newName = `${slicedOriginal}(${nextNumber})`;
+    } else {
+      newName = `${oldName} (2)`;
+    }
+  } catch (e) {
+    console.warn('regex failure', e);
+  }
+  return newName;
+}
+
+Array.prototype.findLastIndex = findLastIndex;

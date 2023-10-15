@@ -1,6 +1,6 @@
 import React from 'react';
 import dialog from 'dialog';
-import state from 'state';
+import { getGlobalState } from 'state';
 import { setRoute } from 'actions/route';
 import Card from 'elements/card';
 import Loading from 'elements/loading';
@@ -41,7 +41,7 @@ export default class CardAuth extends React.Component {
               email: email,
             });
 
-            let response = await state.request(
+            let response = await getGlobalState().request(
               'POST',
               'server/account/reset-password-request',
               body
@@ -90,8 +90,11 @@ export default class CardAuth extends React.Component {
 
           // There is some data locally that's not associated with an account, ask if we should keep it
           let prompt = undefined;
-          console.log('ACTIVE USER', state.getActiveUser());
-          if (state.getActiveUser() === null && state.hasAnythingChanged()) {
+          console.log('ACTIVE USER', getGlobalState().getActiveUser());
+          if (
+            getGlobalState().getActiveUser() === null &&
+            getGlobalState().hasAnythingChanged()
+          ) {
             prompt = new Promise(function (resolve) {
               dialog.show_yes_no_cancel(
                 <div>
@@ -126,7 +129,7 @@ export default class CardAuth extends React.Component {
             return;
           }
 
-          let response = await state.request(
+          let response = await getGlobalState().request(
             'POST',
             'server/account/login',
             body
@@ -134,17 +137,18 @@ export default class CardAuth extends React.Component {
 
           if (response.status === 204) {
             if (
-              state.getActiveUser() === email.value ||
-              (state.getActiveUser() === null && keepLocalChanges === 'KEEP')
+              getGlobalState().getActiveUser() === email.value ||
+              (getGlobalState().getActiveUser() === null &&
+                keepLocalChanges === 'KEEP')
             ) {
               // Don't clear the db state if the user re-logs into the same account OR requested that we keep unowned local changes
-              state.resetSyncState();
+              getGlobalState().resetSyncState();
             } else {
-              state.resetState();
-              state.setActiveUser(email.value);
+              getGlobalState().resetState();
+              getGlobalState().setActiveUser(email.value);
             }
 
-            let status = await state.sync();
+            let status = await getGlobalState().sync();
             if (status === 200) {
               console.log('Done with sync');
               setRoute('/menu');

@@ -1,7 +1,7 @@
 import React from 'react';
 import dialog from 'dialog';
 import css from 'css';
-import state from 'state';
+import { getGlobalState } from 'state';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
 import { goBack, goHome, setRoute } from 'actions/route';
@@ -28,7 +28,7 @@ export default class CardGameEdit extends React.Component {
             : 'Are you sure you wish to discard changes to this game?',
           () => {
             if (props.isNew) {
-              state.removeGame(props.game.id, props.team.id);
+              getGlobalState().removeGame(props.game.id);
             }
             if (type === 'home') {
               goHome();
@@ -45,7 +45,9 @@ export default class CardGameEdit extends React.Component {
     };
 
     this.handleConfirmClick = () => {
-      state.replaceGame(props.game.id, props.team.id, { ...this.state });
+      getGlobalState().replaceGame(props.game.id, props.team.id, {
+        ...this.state,
+      });
       goBack();
     };
 
@@ -59,7 +61,7 @@ export default class CardGameEdit extends React.Component {
         () => {
           // FIXME this causes a brief 404 to flash on the page
           goBack();
-          state.removeGame(props.game.id, props.team.id);
+          getGlobalState().removeGame(props.game.id);
         }
       );
     };

@@ -1,6 +1,6 @@
 import React from 'react';
 import CardSection from 'elements/card-section';
-import state from 'state';
+import { getGlobalState } from 'state';
 import { makeStyles } from 'css/helpers';
 
 const useScorePaperStyles = makeStyles((css) => ({
@@ -85,7 +85,7 @@ const TableCell = ({ whoseScore, inning, game, derivedScore }) => {
   const { classes } = tableStyles();
 
   const handleScoreChange = (increment) => {
-    state.setScoreAdjustment(game, inning, increment, whoseScore);
+    getGlobalState().setScoreAdjustment(game, inning, increment, whoseScore);
   };
 
   const scoreAdjustment = game[whoseScore][inning];
@@ -143,7 +143,7 @@ const Inning = ({ inning, game, derivedScoreForUs }) => {
 
 const ScoreTable = ({ usName, themName, game }) => {
   const { classes } = tableStyles();
-  const derivedScoreForUs = state.getInningScores(game.id);
+  const derivedScoreForUs = getGlobalState().getInningScores(game.id);
   return (
     <table className={classes.table}>
       <thead>
@@ -213,12 +213,12 @@ const calculateScore = (scoreObj) => {
 const GameScorer = ({ teamId, gameId }) => {
   const { classes } = useGameScorerStyles();
 
-  const game = state.getGame(gameId);
-  const team = state.getTeam(teamId);
+  const game = getGlobalState().getGame(gameId);
+  const team = getGlobalState().getTeam(teamId);
 
   const usName = team.name;
   const themName = game.opponent;
-  const usDerivedScore = state
+  const usDerivedScore = getGlobalState()
     .getInningScores(game.id)
     .reduce((a, b) => a + b, 0);
 

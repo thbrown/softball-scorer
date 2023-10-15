@@ -1,5 +1,5 @@
 import React from 'react';
-import state from 'state';
+import { getGlobalState } from 'state';
 import css from 'css';
 import Card from 'elements/card';
 import { makeStyles } from 'css/helpers';
@@ -66,11 +66,11 @@ const toItems = (list) =>
 const LineupList = (props) => {
   const { classes } = useLineupListStyles();
   const handleTeamItemClick = (item) => {
-    props.setTeam(state.getTeam(item.id));
+    props.setTeam(getGlobalState().getTeam(item.id));
     window.scroll(0, 0);
   };
   const handleGameItemClick = (item) => {
-    props.setGame(state.getGame(item.id));
+    props.setGame(getGlobalState().getGame(item.id));
     window.scroll(0, 0);
   };
 
@@ -90,8 +90,8 @@ const LineupList = (props) => {
           itemClassName={classes.itemCustom}
           textClassName={classes.itemText}
           items={props.game.lineup.map((playerId) => ({
-            name: state.getPlayer(playerId).name,
-            id: state.getPlayer(playerId).id,
+            name: getGlobalState().getPlayer(playerId).name,
+            id: getGlobalState().getPlayer(playerId).id,
           }))}
           onClick={() => {}}
         />
@@ -138,7 +138,7 @@ const LineupList = (props) => {
       <>
         <div className={classes.title}> Pick a team </div>
         <ListPicker
-          items={toItems([...state.getLocalState().teams].reverse())}
+          items={toItems([...getGlobalState().getLocalState().teams].reverse())}
           onClick={handleTeamItemClick}
         />
       </>

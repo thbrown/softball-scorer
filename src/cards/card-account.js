@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import css from 'css';
-import state from 'state';
+import { getGlobalState } from 'state';
 import Card from 'elements/card';
 import dialog from 'dialog';
 import { setRoute } from 'actions/route';
@@ -18,7 +18,7 @@ export default class CardAccount extends Component {
       let buttonDiv = document.getElementById('email-validation');
       buttonDiv.classList.add('disabled');
 
-      let response = await state.request(
+      let response = await getGlobalState().request(
         'POST',
         'server/account/send-verification-email'
       );
@@ -55,8 +55,8 @@ export default class CardAccount extends Component {
           }
 
           // Yes, okay delete the data then do a sync
-          state.deleteAllData();
-          await state.sync();
+          getGlobalState().deleteAllData();
+          await getGlobalState().sync();
           dialog.show_notification('Data successfully deleted', function () {
             setRoute('/menu');
           });
@@ -82,7 +82,10 @@ export default class CardAccount extends Component {
           let buttonDiv = document.getElementById('delete-account');
           buttonDiv.classList.add('disabled');
 
-          let response = await state.requestAuth('DELETE', 'server/account');
+          let response = await getGlobalState().requestAuth(
+            'DELETE',
+            'server/account'
+          );
           let message;
           if (response.status === 204) {
             message = 'Your account has been deleted.';
@@ -112,9 +115,9 @@ export default class CardAccount extends Component {
 
   render() {
     const MAX_LOCAL_STORAGE = 5000; // To keep cross-browser behavior consistent, we'll lock this at 5MB, some browsers can do more
-    let localStorageUsage = state.getLocalStorageUsage();
+    let localStorageUsage = getGlobalState().getLocalStorageUsage();
 
-    let emailSection = state.isEmailValidated() ? undefined : (
+    let emailSection = getGlobalState().isEmailValidated() ? undefined : (
       <div>
         <HrTitle title="Email"></HrTitle>
         <div

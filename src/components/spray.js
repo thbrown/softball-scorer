@@ -11,7 +11,7 @@ import {
   filterByLastGames,
 } from 'utils/plateAppearanceFilters';
 import BallFieldSvg from './ball-field-svg';
-import state from 'state';
+import { getGlobalState } from 'state';
 
 const LOCATION_DENOMINATOR = 32767;
 const BALL_FIELD_MAX_WIDTH = 500;
@@ -108,7 +108,7 @@ const SprayTooltip = withStyles((theme) => ({
   const rows = [];
   const game = plateAppearance.game;
 
-  const player = state.getPlayer(plateAppearance.playerId);
+  const player = getGlobalState().getPlayer(plateAppearance.playerId);
 
   rows.push(
     <div key="result" className={classes.tooltipRow}>
