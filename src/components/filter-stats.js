@@ -134,29 +134,23 @@ export const FilterStatsModal = ({ setFilterState }) => {
   return (
     <>
       <div
-        className="button"
         style={{
-          height: '8px',
-          marginLeft: '0px',
-          paddingLeft: '4px',
+          display: 'flex',
+          alignItems: 'center',
+          textDecoration: 'underline',
+          userSelect: 'none',
+          cursor: 'pointer',
+          justifyContent: 'center',
         }}
         onClick={() => setOpen(true)}
       >
         <span
           style={{
-            fontSize: '0.8em',
             textDecoration: 'underline',
           }}
         >
-          Filter
+          Apply Filters
         </span>
-        <IconButton
-          src="/assets/filter.svg"
-          alt="filter"
-          style={{
-            opacity: '0.5',
-          }}
-        />
       </div>
       {open && modal}
     </>

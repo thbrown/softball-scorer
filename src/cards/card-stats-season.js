@@ -297,23 +297,10 @@ export default class CardStatsSeason extends React.Component {
         ) : (
           <>
             <StickyTable>{tableElems}</StickyTable>
-            <InnerSection
-              style={{
-                textAlign: 'center',
-                color: css.colors.TEXT_GREY,
-                fontSize: css.typography.size.small,
-                marginTop: css.spacing.large,
-              }}
-            >
+            <InnerSection className="stats-footer">
               <div>Tap a player name for season spray chart.</div>
             </InnerSection>
-            <InnerSection
-              style={{
-                textAlign: 'center',
-                color: css.colors.TEXT_GREY,
-                fontSize: css.typography.size.small,
-              }}
-            >
+            <InnerSection className="stats-footer">
               <div
                 style={{
                   display: 'flex',
@@ -334,26 +321,11 @@ export default class CardStatsSeason extends React.Component {
                   onClick={showStatsHelp}
                 >
                   <span>Click Here</span>
-                  <IconButton
-                    className="help-icon"
-                    src="/assets/help.svg"
-                    alt="info"
-                    style={{ opacity: '50%' }}
-                    containerStyle={{
-                      padding: '8px 4px',
-                    }}
-                    invert
-                  />
-                </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'flex-start',
-                  }}
-                >
-                  <FilterStatsModal setFilterState={this.setFilterState} />
                 </div>
               </div>
+            </InnerSection>
+            <InnerSection className="stats-footer">
+              <FilterStatsModal setFilterState={this.setFilterState} />
             </InnerSection>
           </>
         )}
