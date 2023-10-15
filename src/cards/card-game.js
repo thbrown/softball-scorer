@@ -15,7 +15,8 @@ export default class CardGame extends expose.Component {
 
     this.handleTabClick = (newTab) => {
       setRoute(
-        `/teams/${this.props.team.id}/games/${this.props.game.id}/${newTab}`
+        `/teams/${this.props.team.id}/games/${this.props.game.id}/${newTab}`,
+        true
       );
     };
   }

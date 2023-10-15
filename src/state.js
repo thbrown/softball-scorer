@@ -874,7 +874,7 @@ export class GlobalState {
     this._onEdit();
   }
 
-  setScore(game, inning, increment, scoreKey) {
+  setScoreAdjustment(game, inning, increment, scoreKey) {
     let teamScoreObj = game[scoreKey];
     if (teamScoreObj[inning] !== undefined) {
       teamScoreObj[inning] += increment;
