@@ -132,6 +132,30 @@ export default class CardOptimization extends React.Component {
       this.handleEstimation();
     }.bind(this);
 
+    this.areAllTeamsSelected = () => {
+      const allTeams = getGlobalState().getLocalState().teams;
+      const selectedTeams = this.props.optimization.teamList;
+      return allTeams.every((team) => selectedTeams.includes(team.id));
+    };
+
+    this.handleTeamCheckboxAllClick = () => {
+      const allTeams = getGlobalState().getLocalState().teams;
+      if (this.areAllTeamsSelected()) {
+        getGlobalState().setOptimizationField(
+          this.props.optimization.id,
+          'teamList',
+          []
+        );
+      } else {
+        getGlobalState().setOptimizationField(
+          this.props.optimization.id,
+          'teamList',
+          [...allTeams.map((team) => team.id)]
+        );
+      }
+      this.handleEstimation();
+    };
+
     this.handleSendEmailCheckbox = function () {
       if (this.props.optimization.sendEmail) {
         getGlobalState().setOptimizationField(
@@ -917,6 +941,20 @@ export default class CardOptimization extends React.Component {
       )}%)`;
     }
 
+    // Show bulk select/de-select if there are more than 4 teams
+    const bulkSelectButton =
+      getGlobalState().getLocalState().teams.length > 4 ? (
+        <div
+          className="button tertiary-button"
+          onClick={this.handleTeamCheckboxAllClick}
+          style={{
+            width: '120px',
+          }}
+        >
+          {this.areAllTeamsSelected() ? 'Deselect All' : 'Select All'}
+        </div>
+      ) : undefined;
+
     return (
       <div className="accordionContainer">
         <div className="text-div">
@@ -994,7 +1032,16 @@ export default class CardOptimization extends React.Component {
               aria-hidden="true"
               style={{ paddingTop: '0px', paddingBottom: '0px' }}
             >
-              <div id="gamesMenu">{teamsCheckboxes}</div>
+              <div id="gamesMenu">
+                <div
+                  style={{
+                    display: 'flex',
+                  }}
+                >
+                  {bulkSelectButton}
+                </div>
+                {teamsCheckboxes}
+              </div>
             </dd>
             <dt>
               <div
