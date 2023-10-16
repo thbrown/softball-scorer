@@ -133,19 +133,25 @@ export default class CardOptimization extends React.Component {
     }.bind(this);
 
     this.areAllTeamsSelected = () => {
-      const allTeams = state.getLocalState().teams;
+      const allTeams = getGlobalState().getLocalState().teams;
       const selectedTeams = this.props.optimization.teamList;
       return allTeams.every((team) => selectedTeams.includes(team.id));
     };
 
     this.handleTeamCheckboxAllClick = () => {
-      const allTeams = state.getLocalState().teams;
+      const allTeams = getGlobalState().getLocalState().teams;
       if (this.areAllTeamsSelected()) {
-        state.setOptimizationField(this.props.optimization.id, 'teamList', []);
+        getGlobalState().setOptimizationField(
+          this.props.optimization.id,
+          'teamList',
+          []
+        );
       } else {
-        state.setOptimizationField(this.props.optimization.id, 'teamList', [
-          ...allTeams.map((team) => team.id),
-        ]);
+        getGlobalState().setOptimizationField(
+          this.props.optimization.id,
+          'teamList',
+          [...allTeams.map((team) => team.id)]
+        );
       }
       this.handleEstimation();
     };
@@ -937,7 +943,7 @@ export default class CardOptimization extends React.Component {
 
     // Show bulk select/de-select if there are more than 4 teams
     const bulkSelectButton =
-      state.getLocalState().teams.length > 4 ? (
+      getGlobalState().getLocalState().teams.length > 4 ? (
         <div
           className="button tertiary-button"
           onClick={this.handleTeamCheckboxAllClick}

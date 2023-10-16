@@ -1368,7 +1368,6 @@ export class GlobalState {
         }
         if (results.getHitResults().includes(pa.result)) {
           stats.hits++;
-          if(pa.)
         }
 
         // RBIs don't count for double plays (TODO: they shouldn't count on errors either but we don't track that)
