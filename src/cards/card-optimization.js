@@ -926,6 +926,20 @@ export default class CardOptimization extends React.Component {
       )}%)`;
     }
 
+    // Show bulk select/de-select if there are more than 4 teams
+    const bulkSelectButton =
+      state.getLocalState().teams.length > 4 ? (
+        <div
+          className="button tertiary-button"
+          onClick={this.handleTeamCheckboxAllClick}
+          style={{
+            width: '120px',
+          }}
+        >
+          {this.areAllTeamsSelected() ? 'Deselect All' : 'Select All'}
+        </div>
+      ) : undefined;
+
     return (
       <div className="accordionContainer">
         <div className="text-div">
@@ -1009,15 +1023,7 @@ export default class CardOptimization extends React.Component {
                     display: 'flex',
                   }}
                 >
-                  <div
-                    className="button tertiary-button"
-                    onClick={this.handleTeamCheckboxAllClick}
-                    style={{
-                      width: '120px',
-                    }}
-                  >
-                    {this.areAllTeamsSelected() ? 'Deselect All' : 'Select All'}
-                  </div>
+                  {bulkSelectButton}
                 </div>
                 {teamsCheckboxes}
               </div>
