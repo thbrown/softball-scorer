@@ -1308,6 +1308,9 @@ export class GlobalState {
     stats.paAutocorrelation = '-';
     stats.paPerGame = 0;
     stats.outsPerGame = 0;
+    stats.runs = 0;
+    stats.rbi = 0;
+    stats.doublePlays = 0;
 
     // Serial correlation for plate appearances
     let hitOrNoHit = [];
@@ -1365,6 +1368,12 @@ export class GlobalState {
         }
         if (results.getHitResults().includes(pa.result)) {
           stats.hits++;
+          if(pa.)
+        }
+
+        // RBIs don't count for double plays (TODO: they shouldn't count on errors either but we don't track that)
+        if (pa.result !== 'DP') {
+          stats.rbi += pa.runners.scored?.length ?? 0;
         }
 
         if (pa.result === 'BB') {
@@ -1373,11 +1382,10 @@ export class GlobalState {
           stats.reachedOnError++;
         } else if (pa.result === 'FC') {
           stats.FCs++;
-        } else if (
-          pa.result === 'Out' ||
-          pa.result === 'TP' ||
-          pa.result === 'DP'
-        ) {
+        } else if (pa.result === 'DP') {
+          stats.directOuts++;
+          stats.doublePlays++;
+        } else if (pa.result === 'Out' || pa.result === 'TP') {
           stats.directOuts++;
         } else if (pa.result === 'SAC') {
           stats.SACs++;

@@ -342,10 +342,10 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     let message = optionalMessage ? optionalMessage : null;
     let stateBlob = await this._getFullStateBlob(accountId);
     let state = stateBlob.content;
-    for (let i = 0; i < getGlobalState().optimizations.length; i++) {
-      if (getGlobalState().optimizations[i].id === optimizationId) {
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
         // First confirm that the optimization is one of the allowed statuses
-        let curStatus = getGlobalState().optimizations[i].status;
+        let curStatus = state.optimizations[i].status;
         if (
           allowedPreviousStatus !== undefined &&
           !allowedPreviousStatus.has(curStatus)
@@ -361,12 +361,12 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
 
         // Set status, if provided
         if (newStatus !== undefined && newStatus != null) {
-          getGlobalState().optimizations[i].status = newStatus;
-          getGlobalState().optimizations[i].statusMessage = message;
+          state.optimizations[i].status = newStatus;
+          state.optimizations[i].statusMessage = message;
         }
         // Set pause, if provided
         if (pause === true || pause === false) {
-          getGlobalState().optimizations[i].pause = pause;
+          state.optimizations[i].pause = pause;
         }
         await this.writeBlob(
           accountId,
@@ -393,9 +393,9 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     }
     let stateBlob = await this._getFullStateBlob(accountId);
     let state = stateBlob.content;
-    for (let i = 0; i < getGlobalState().optimizations.length; i++) {
-      if (getGlobalState().optimizations[i].id === optimizationId) {
-        getGlobalState().optimizations[i].resultData = newResults;
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
+        state.optimizations[i].resultData = newResults;
         await this.writeBlob(
           accountId,
           BlobLocation.DATA,
@@ -414,9 +414,9 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     logger.log(accountId, 'getting optimization status');
     let stateBlob = await this._getFullStateBlob(accountId);
     let state = stateBlob.content;
-    for (let i = 0; i < getGlobalState().optimizations.length; i++) {
-      if (getGlobalState().optimizations[i].id === optimizationId) {
-        return getGlobalState().optimizations[i].status;
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
+        return state.optimizations[i].status;
       }
     }
     logger.warn(accountId, 'no optimization found - getOptimizationStatus');
@@ -426,9 +426,9 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     logger.log(accountId, 'getting optimization result data');
     let stateBlob = await this._getFullStateBlob(accountId);
     let state = stateBlob.content;
-    for (let i = 0; i < getGlobalState().optimizations.length; i++) {
-      if (getGlobalState().optimizations[i].id === optimizationId) {
-        return getGlobalState().optimizations[i].resultData;
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
+        return state.optimizations[i].resultData;
       }
     }
     logger.warn(accountId, 'no optimization found - getOptimizationResultData');
@@ -438,9 +438,9 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     logger.log(accountId, 'getting optimization result data');
     let stateBlob = await this._getFullStateBlob(accountId);
     let state = stateBlob.content;
-    for (let i = 0; i < getGlobalState().optimizations.length; i++) {
-      if (getGlobalState().optimizations[i].id === optimizationId) {
-        return getGlobalState().optimizations[i];
+    for (let i = 0; i < state.optimizations.length; i++) {
+      if (state.optimizations[i].id === optimizationId) {
+        return state.optimizations[i];
       }
     }
     logger.warn(
@@ -453,8 +453,8 @@ let databaseCalls = class DatabaseCallsAbstractBlob {
     logger.log(accountId, 'toggling public team', teamId, value);
     let stateBlob = await this._getFullStateBlob(accountId);
     let state = stateBlob.content;
-    for (let i = 0; i < getGlobalState().teams.length; i++) {
-      let team = getGlobalState().teams[i];
+    for (let i = 0; i < state.teams.length; i++) {
+      let team = state.teams[i];
       if (team.id === teamId) {
         team.publicIdEnabled = value;
         // Generate an id if needed
