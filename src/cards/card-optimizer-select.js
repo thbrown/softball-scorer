@@ -2,7 +2,7 @@ import React from 'react';
 import expose from 'expose';
 import Card from 'elements/card';
 import config from '../config';
-import state from 'state';
+import { getGlobalState } from 'state';
 import Loading from '../elements/loading';
 
 export default class CardOptimizerSelect extends expose.Component {
@@ -14,8 +14,8 @@ export default class CardOptimizerSelect extends expose.Component {
       config.optimizerGallery?.indexUrl || 'https://optimizers.softball.app/';
 
     this.onMessageReceived = function onMessageReceived(evt) {
-      state.setAccountOptimizersList(evt.data);
-      state.scheduleSync();
+      getGlobalState().setAccountOptimizersList(evt.data);
+      getGlobalState().scheduleSync();
       console.log('Selected optimizers', evt.data);
     };
   }
@@ -28,7 +28,7 @@ export default class CardOptimizerSelect extends expose.Component {
 
       // Send starting message
       let iframeWin = iframe.contentWindow;
-      let selectedOptimizers = state.getAccountOptimizersList();
+      let selectedOptimizers = getGlobalState().getAccountOptimizersList();
       iframeWin.postMessage(selectedOptimizers, this.baseUrl);
 
       // Hide the loading div

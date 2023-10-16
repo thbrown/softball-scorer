@@ -3,7 +3,7 @@ import FloatingInput from 'elements/floating-input';
 import FloatingSelect from 'elements/floating-select';
 import Loading from '../elements/loading';
 import dialog from 'dialog';
-import state from 'state';
+import { getGlobalState } from 'state';
 import IconButton from './icon-button';
 
 export default class OptimizerCustomOptions extends React.Component {
@@ -13,7 +13,7 @@ export default class OptimizerCustomOptions extends React.Component {
     this.onChange = function (longLabel) {
       return function (value) {
         this.props.onChange();
-        state.setOptimizationCustomOptionsDataField(
+        getGlobalState().setOptimizationCustomOptionsDataField(
           this.props.optimizationId,
           longLabel,
           value
@@ -24,7 +24,7 @@ export default class OptimizerCustomOptions extends React.Component {
     this.onChangeLiteral = function (longLabel, value) {
       return function () {
         this.props.onChange();
-        state.setOptimizationCustomOptionsDataField(
+        getGlobalState().setOptimizationCustomOptionsDataField(
           this.props.optimizationId,
           longLabel,
           value
@@ -61,7 +61,7 @@ export default class OptimizerCustomOptions extends React.Component {
         continue;
       }
 
-      let currentValue = state.getOptimizationCustomOptionsDataField(
+      let currentValue = getGlobalState().getOptimizationCustomOptionsDataField(
         this.props.optimizationId,
         value.longLabel
       );

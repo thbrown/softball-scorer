@@ -2,6 +2,7 @@ import React from 'react';
 import ListButton from 'elements/list-button';
 import { sortObjectsByDate, toClientDate } from 'utils/functions';
 import { setRoute } from 'actions/route';
+import state from 'state';
 
 export default class CardStatsSharing extends React.Component {
   constructor(props) {
@@ -15,7 +16,9 @@ export default class CardStatsSharing extends React.Component {
   render() {
     const games = sortObjectsByDate(this.props.team.games, { isAsc: false });
     const elems = games.map((game) => {
-      const teamStatsForGame = state.buildStatsObject(game.plateAppearances);
+      const teamStatsForGame = getGlobalState().buildStatsObject(
+        game.plateAppearances
+      );
       return (
         <ListButton
           key={'game-' + game.id}

@@ -1,7 +1,7 @@
 import React from 'react';
 import dialog from 'dialog';
 import SharedLib from 'shared-lib';
-import state from 'state';
+import { getGlobalState } from 'state';
 import Card from 'elements/card';
 import CardSection from 'elements/card-section';
 import { setRoute } from 'actions/route';
@@ -102,7 +102,7 @@ const CardImport = () => {
         if (loadType === 'mine') {
           const patchToLocal = SharedLib.objectMerge.diff(
             parsedData,
-            state.getLocalState()
+            getGlobalState().getLocalState()
           );
           let copy = JSON.parse(JSON.stringify(parsedData));
           let patched = SharedLib.objectMerge.patch(
@@ -112,13 +112,15 @@ const CardImport = () => {
             true
           );
 
-          state.setLocalState(patched);
+          getGlobalState().setLocalState(patched);
         } else if (loadType === 'theirs') {
           const localToPatch = SharedLib.objectMerge.diff(
-            state.getLocalState(),
+            getGlobalState().getLocalState(),
             parsedData
           );
-          let copy = JSON.parse(JSON.stringify(state.getLocalState()));
+          let copy = JSON.parse(
+            JSON.stringify(getGlobalState().getLocalState())
+          );
           let patched = SharedLib.objectMerge.patch(
             copy,
             localToPatch,
@@ -129,7 +131,7 @@ const CardImport = () => {
           // Changes in the patch win, so we need changes this from "export" to "client" manually
           patched.metadata.scope = 'client';
 
-          state.setLocalState(patched);
+          getGlobalState().setLocalState(patched);
         } else {
           dialog.show_notification(
             'Please select load type option before clicking "Load".'

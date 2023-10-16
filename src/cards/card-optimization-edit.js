@@ -1,5 +1,5 @@
 import React from 'react';
-import state from 'state';
+import { getGlobalState } from 'state';
 import dialog from 'dialog';
 import FloatingInput from 'elements/floating-input';
 import Card from 'elements/card';
@@ -27,7 +27,7 @@ const CardOptimizationEdit = (props) => {
           : 'Are you sure you wish to discard changes to this optimization?',
         () => {
           if (props.isNew) {
-            state.removeOptimization(props.optimization.id);
+            getGlobalState().removeOptimization(props.optimization.id);
           }
           if (type === 'home') {
             goHome();
@@ -44,7 +44,10 @@ const CardOptimizationEdit = (props) => {
   };
 
   const handleConfirmClick = function () {
-    state.replaceOptimization(props.optimization.id, buildOptimization());
+    getGlobalState().replaceOptimization(
+      props.optimization.id,
+      buildOptimization()
+    );
     setRoute('/optimizations');
   };
 
@@ -56,7 +59,7 @@ const CardOptimizationEdit = (props) => {
     dialog.show_confirm(
       'Are you sure you want to delete this optimization "' + optName + '"?',
       () => {
-        state.removeOptimization(props.optimization.id);
+        getGlobalState().removeOptimization(props.optimization.id);
         goBack();
       }
     );
@@ -68,7 +71,7 @@ const CardOptimizationEdit = (props) => {
         optName +
         '"? This will result in a new optimization with the same players, overrides, and selected games but with status NOT_STARTED. The existing optimization will not be affected.',
       () => {
-        state.duplicateOptimization(props.optimization.id);
+        getGlobalState().duplicateOptimization(props.optimization.id);
         goBack();
       }
     );

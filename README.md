@@ -36,6 +36,8 @@ If you are running the tests using gcp buckets as the cache or database, you'll 
 
 You can specify particular tests w/ wild cards e.g. `yarn test sync-integration*`
 
+Some tests can fail because due to port conflicts if you have other applications running (e.g. AoE2)
+
 ## Prod
 
 use `yarn build-css && yarn --cwd ./shared build && yarn build && yarn start`

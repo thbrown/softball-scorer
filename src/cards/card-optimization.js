@@ -1,6 +1,6 @@
 import React from 'react';
 import Card from 'elements/card';
-import state from 'state';
+import { getGlobalState } from 'state';
 import dialog from 'dialog';
 import { setRoute } from 'actions/route';
 import SharedLib from 'shared-lib';
@@ -55,7 +55,7 @@ export default class CardOptimization extends React.Component {
       clearTimeout(this.activeTime);
       this.activeTime = setTimeout(
         async function () {
-          await state.sync();
+          await getGlobalState().sync();
           this.enableAutoSync();
         }.bind(this),
         SYNC_DELAY_MS
@@ -116,14 +116,14 @@ export default class CardOptimization extends React.Component {
       let newSet = new Set(parsedTeams);
       if (parsedTeams.includes(team.id)) {
         newSet.delete(team.id);
-        state.setOptimizationField(
+        getGlobalState().setOptimizationField(
           this.props.optimization.id,
           'teamList',
           Array.from(newSet)
         );
       } else {
         newSet.add(team.id);
-        state.setOptimizationField(
+        getGlobalState().setOptimizationField(
           this.props.optimization.id,
           'teamList',
           Array.from(newSet)
@@ -152,13 +152,13 @@ export default class CardOptimization extends React.Component {
 
     this.handleSendEmailCheckbox = function () {
       if (this.props.optimization.sendEmail) {
-        state.setOptimizationField(
+        getGlobalState().setOptimizationField(
           this.props.optimization.id,
           'sendEmail',
           false
         );
       } else {
-        state.setOptimizationField(
+        getGlobalState().setOptimizationField(
           this.props.optimization.id,
           'sendEmail',
           true
@@ -176,7 +176,7 @@ export default class CardOptimization extends React.Component {
       const body = JSON.stringify({
         optimizationId: this.props.optimization.id,
       });
-      const response = await state.requestAuth(
+      const response = await getGlobalState().requestAuth(
         'POST',
         'server/pause-optimization',
         body
@@ -184,7 +184,7 @@ export default class CardOptimization extends React.Component {
       if (response.status === 204 || response.status === 200) {
         dialog.show_notification('Sent pause request.');
         // Do a sync, since the above call succeeded server has updated the optimization's status on it's end
-        await state.sync();
+        await getGlobalState().sync();
         return;
       } else if (response.status === 403) {
         dialog.show_notification(
@@ -256,7 +256,7 @@ export default class CardOptimization extends React.Component {
         }
       }
 
-      state.setOptimizationField(
+      getGlobalState().setOptimizationField(
         this.props.optimization.id,
         'customOptionsData',
         mergedOptions
@@ -267,12 +267,12 @@ export default class CardOptimization extends React.Component {
       const playerIds = this.props.optimization.playerList;
       const teamIds = this.props.optimization.teamList;
       const overrideData = this.props.optimization.overrideData;
-      const stats = state.getActiveStatsForAllPlayers(
+      const stats = getGlobalState().getActiveStatsForAllPlayers(
         overrideData,
         playerIds,
         teamIds
       );
-      state.setOptimizationField(
+      getGlobalState().setOptimizationField(
         this.props.optimization.id,
         'inputSummaryData',
         stats
@@ -306,7 +306,7 @@ export default class CardOptimization extends React.Component {
       }
 
       // Be sure the server has our optimization details before it tries to run the optimization
-      await state.sync();
+      await getGlobalState().sync();
 
       let isUnpause =
         this.props.optimization.status === OPTIMIZATION_STATUS_ENUM.PAUSED;
@@ -315,7 +315,7 @@ export default class CardOptimization extends React.Component {
         optimizationId: this.props.optimization.id,
         unpause: isUnpause,
       });
-      let response = await state.requestAuth(
+      let response = await getGlobalState().requestAuth(
         'POST',
         'server/start-optimization',
         body,
@@ -326,7 +326,7 @@ export default class CardOptimization extends React.Component {
         dialog.show_notification('Sent start request.');
 
         // Do a sync, since the call succeeded, the server has updated the optimization's status on it's end
-        await state.sync();
+        await getGlobalState().sync();
         buttonDiv.classList.remove('disabled');
         return;
       } else if (response.status === 403) {
@@ -418,7 +418,7 @@ export default class CardOptimization extends React.Component {
       }
 
       // Make sure the user is logged in
-      if (!state.isSessionValid()) {
+      if (!getGlobalState().isSessionValid()) {
         this.setState({
           estimatedCompletionTimeSec: null,
           estimateError:
@@ -428,7 +428,7 @@ export default class CardOptimization extends React.Component {
       }
 
       // Make sure the app has an internet connection
-      if (!state.isOnline()) {
+      if (!getGlobalState().isOnline()) {
         this.setState({
           estimatedCompletionTimeSec: null,
           estimateError: 'Lineup optimizations are not available offline.',
@@ -447,14 +447,17 @@ export default class CardOptimization extends React.Component {
 
       // Make sure each player has at least one PA
       for (let playerId of optimization.playerList) {
-        let overridePAs = state.getOptimizationOverridesForPlayer(
+        let overridePAs = getGlobalState().getOptimizationOverridesForPlayer(
           optimization.id,
           playerId
         );
         let gamePAs = [];
         for (let teamId of optimization.teamList) {
           gamePAs.push(
-            ...state.getPlateAppearancesForPlayerOnTeam(playerId, teamId)
+            ...getGlobalState().getPlateAppearancesForPlayerOnTeam(
+              playerId,
+              teamId
+            )
           );
         }
         let allPas = gamePAs.concat(overridePAs);
@@ -462,7 +465,7 @@ export default class CardOptimization extends React.Component {
           return pa.result !== null && pa.result !== undefined;
         });
         if (allPas.length === 0) {
-          let player = state.getPlayer(playerId);
+          let player = getGlobalState().getPlayer(playerId);
           this.setState({
             estimatedCompletionTimeSec: null,
             estimateError: `Player '${player.name}' is missing a plate appearance w/ a result. All players must have at least one scored plate appearance.`,
@@ -508,20 +511,20 @@ export default class CardOptimization extends React.Component {
         }
       }
 
-      state.setOptimizationField(
+      getGlobalState().setOptimizationField(
         this.props.optimization.id,
         'customOptionsData',
         mergedOptions
       );
 
       // Be sure the server has our optimization details before it tries to run the optimization
-      await state.sync();
+      await getGlobalState().sync();
 
       // Now send the actual request
       let body = JSON.stringify({
         optimizationId: this.props.optimization.id,
       });
-      let response = await state.requestAuth(
+      let response = await getGlobalState().requestAuth(
         'POST',
         'server/estimate-optimization',
         body,
@@ -627,10 +630,16 @@ export default class CardOptimization extends React.Component {
       const accordionChevron = e.currentTarget.children[0];
       if (accordionTitle.classList.contains('is-collapsed')) {
         this.setAccordionAria(accordionContent, accordionTitle, 'true');
-        state.editQueryObject(ACCORDION_QUERY_PARAM_PREFIX + index, true);
+        getGlobalState().editQueryObject(
+          ACCORDION_QUERY_PARAM_PREFIX + index,
+          true
+        );
       } else {
         this.setAccordionAria(accordionContent, accordionTitle, 'false');
-        state.editQueryObject(ACCORDION_QUERY_PARAM_PREFIX + index, null);
+        getGlobalState().editQueryObject(
+          ACCORDION_QUERY_PARAM_PREFIX + index,
+          null
+        );
       }
       accordionContent.classList.toggle('is-collapsed');
       accordionContent.classList.toggle('is-expanded');
@@ -643,7 +652,7 @@ export default class CardOptimization extends React.Component {
 
     // Attach listeners to the accordion (and click if necessary)
     // TODO eww, this is gross and incompatible with tests
-    let queryObject = state.getQueryObj();
+    let queryObject = getGlobalState().getQueryObj();
     let accordionToggles = document.querySelectorAll('.js-accordionTrigger');
     for (var i = 0, len = accordionToggles.length; i < len; i++) {
       if ('ontouchstart' in window) {
@@ -683,8 +692,8 @@ export default class CardOptimization extends React.Component {
     // Get optimizer info, tested to 300 calls, seems to work okay
     let prom = [];
     let optimizerIds = SharedLib.commonUtils.merge(
-      state.getAccountOptimizersList(),
-      state.getUsedOptimizers()
+      getGlobalState().getAccountOptimizersList(),
+      getGlobalState().getUsedOptimizers()
     );
     for (let i = 0; i < optimizerIds.length; i++) {
       prom.push(
@@ -748,7 +757,7 @@ export default class CardOptimization extends React.Component {
     const teamIds = optimization.teamList;
     const overrideData = optimization.overrideData;
 
-    const stats = state.getActiveStatsForAllPlayers(
+    const stats = getGlobalState().getActiveStatsForAllPlayers(
       overrideData,
       playerIds,
       teamIds
@@ -764,7 +773,7 @@ export default class CardOptimization extends React.Component {
         displayPlayer.isOverride = false;
       }
 
-      const player = state.getPlayer(playerIds[i]);
+      const player = getGlobalState().getPlayer(playerIds[i]);
       if (player) {
         displayPlayer.name = player.name;
       } else {
@@ -808,7 +817,7 @@ export default class CardOptimization extends React.Component {
     }
 
     // Build teams checkboxes
-    const allTeams = state.getLocalState().teams;
+    const allTeams = getGlobalState().getLocalState().teams;
     const teamsCheckboxes = [];
     const selectedTeams = optimization.teamList;
     const selectedTeamsSet = new Set(selectedTeams);
@@ -845,7 +854,7 @@ export default class CardOptimization extends React.Component {
         );
       }
       for (let i = 0; i < selectedTeams.length; i++) {
-        const team = state.getTeam(selectedTeams[i]);
+        const team = getGlobalState().getTeam(selectedTeams[i]);
         let teamName;
         if (!team) {
           teamName = '<Team was deleted>';
@@ -888,7 +897,7 @@ export default class CardOptimization extends React.Component {
 
     // Spinner (if necessary)
     let spinner = false;
-    if (state.isOnline() === false) {
+    if (getGlobalState().isOnline() === false) {
       spinner = (
         <div style={{ fontSize: '17px', color: colors.DISABLED }}>
           Offline - reconnect to see progress
@@ -1146,7 +1155,7 @@ export default class CardOptimization extends React.Component {
     let disabled = false;
 
     if (!this.state.optimizerData) {
-      if (state.isOnline()) {
+      if (getGlobalState().isOnline()) {
         toggleButtonText = 'Loading...';
       } else {
         toggleButtonText =
@@ -1253,7 +1262,9 @@ export default class CardOptimization extends React.Component {
             type="checkbox"
             onChange={this.handleSendEmailCheckbox}
             checked={optimization.sendEmail}
-            disabled={emailCheckboxDisabled || !state.isEmailValidated()}
+            disabled={
+              emailCheckboxDisabled || !getGlobalState().isEmailValidated()
+            }
             style={{
               transform: 'scale(1.2)',
             }}
@@ -1262,7 +1273,7 @@ export default class CardOptimization extends React.Component {
             style={{
               marginLeft: '4px',
               color: `${
-                emailCheckboxDisabled || !state.isEmailValidated()
+                emailCheckboxDisabled || !getGlobalState().isEmailValidated()
                   ? colors.DISABLED
                   : colors.BLACK
               }`,
@@ -1270,7 +1281,7 @@ export default class CardOptimization extends React.Component {
           >
             Send me an email when the simulation is complete.
           </span>
-          {state.isEmailValidated() ? null : (
+          {getGlobalState().isEmailValidated() ? null : (
             <IconButton
               alt="help"
               className="help-icon"
@@ -1292,7 +1303,9 @@ export default class CardOptimization extends React.Component {
   }
 
   render() {
-    let optimization = state.getOptimization(this.props.optimization.id);
+    let optimization = getGlobalState().getOptimization(
+      this.props.optimization.id
+    );
     return (
       <Card title={optimization.name}>
         {this.renderOptimizationPage(optimization)}

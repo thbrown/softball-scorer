@@ -1,5 +1,5 @@
 import React from 'react';
-import state from 'state';
+import { getGlobalState } from 'state';
 import Card from 'elements/card';
 import Select from 'react-select';
 import ListButton from 'elements/list-button';
@@ -21,7 +21,7 @@ export default class CardPlayerSelect extends React.Component {
 
     let startingValues = [];
     for (let i = 0; i < props.selected.length; i++) {
-      let player = state.getPlayer(props.selected[i]);
+      let player = getGlobalState().getPlayer(props.selected[i]);
       if (!player) {
         // Player may have been deleted, this should remove them going forward  (only applicable
         // for the optimization players list, players in a lineup can't be deleted)
@@ -126,7 +126,10 @@ export default class CardPlayerSelect extends React.Component {
     };
 
     this.onCreatePlayerClick = function () {
-      let newPlayer = state.addPlayer(this.state.typed, this.state.gender);
+      let newPlayer = getGlobalState().addPlayer(
+        this.state.typed,
+        this.state.gender
+      );
 
       // Duplicate options
       let optionsCopy = JSON.parse(JSON.stringify(this.state.options));

@@ -101,7 +101,7 @@ module.exports = class CacheCalls {
   /**
    * We want an account lock that expires after some period of time just in case some event
    * (unaccounted for error condition, app server shutdown, etc..) doesn't leave the accoutn
-   *  in a perminantly locked state.
+   *  in a perminantly locked getGlobalState().
    */
   async lockAccount(accountId) {
     // This redis function (lua)

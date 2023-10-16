@@ -2,7 +2,7 @@ import React from 'react';
 import expose from 'expose';
 import dialog from 'dialog';
 import noSleepImport from './lib/nosleep.js';
-import state from 'state';
+import { getGlobalState } from 'state';
 import CardNotFound from 'cards/card-not-found';
 import CardLoading from 'cards/card-loading';
 import DataContainer from 'elements/data-container';
@@ -70,14 +70,14 @@ export default class MainContainer extends expose.Component {
 
     // TODO: if(test) logic should be removed and we should find a way to mock problematic APIs
     if (!this.props.test) {
-      // Load data from localstorage synchronously
-      state.loadStateFromLocalStorage();
+      // Load data from browser storage
+      getGlobalState().loadLocalState();
 
       // Reload from local storage each time after the window regains focus
       window.addEventListener(
         'focus',
         () => {
-          state.loadStateFromLocalStorage();
+          getGlobalState().loadLocalState();
         },
         false
       );
@@ -94,7 +94,7 @@ export default class MainContainer extends expose.Component {
         'online',
         () => {
           // This event really just tells us if we are connected to a network, we need to actually talk to the server to know if we are online and authenticated
-          state.sync();
+          getGlobalState().sync();
         },
         false
       );
@@ -102,7 +102,7 @@ export default class MainContainer extends expose.Component {
       window.addEventListener(
         'offline',
         () => {
-          state.setOffline();
+          getGlobalState().setOffline();
         },
         false
       );
@@ -111,7 +111,7 @@ export default class MainContainer extends expose.Component {
         // Prevent Chrome 67 and earlier from automatically showing the prompt
         e.preventDefault();
         // Stash the event so it can be triggered later.
-        state.setAddToHomescreenPrompt(e);
+        getGlobalState().setAddToHomescreenPrompt(e);
       });
 
       // Analytics
@@ -148,7 +148,7 @@ export default class MainContainer extends expose.Component {
 
       // Sync on first load
       setTimeout(() => {
-        state.sync();
+        getGlobalState().sync();
       }, 1);
     }
   }
