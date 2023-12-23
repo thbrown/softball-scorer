@@ -918,6 +918,20 @@ export class GlobalState {
     return pa === undefined ? undefined : { ...pa };
   }
 
+  getNextPlateAppearance(paId) {
+    const game = this.INDEX.getGameForPa(paId);
+    const paIndex = this.INDEX.getPaIndex(paId);
+    return paIndex === game.lineup.length
+      ? undefined
+      : { ...game.lineup[paIndex + 1] };
+  }
+
+  getPreviousPlateAppearance(paId) {
+    const game = this.INDEX.getGameForPa(paId);
+    const paIndex = this.INDEX.getPaIndex(paId);
+    return paIndex === 0 ? undefined : { ...game.lineup[paIndex - 1] };
+  }
+
   getPlateAppearanceObjects(paId) {
     const pa = this.INDEX.getPlateAppearance(paId);
     const game = this.INDEX.getGameForPa(paId);
@@ -1311,6 +1325,16 @@ export class GlobalState {
     stats.runs = 0;
     stats.rbi = 0;
     stats.doublePlays = 0;
+    stats.hitsWithRunnersOn_000 = 0;
+    stats.hitsWithRunnersOn_100 = 0;
+    stats.hitsWithRunnersOn_010 = 0;
+    stats.hitsWithRunnersOn_110 = 0;
+    stats.hitsWithRunnersOn_111 = 0;
+    stats.missesWithRunnersOn_000 = 0;
+    stats.missesWithRunnersOn_000_100 = 0;
+    stats.missesWithRunnersOn_000_010 = 0;
+    stats.missesWithRunnersOn_000_110 = 0;
+    stats.missesWithRunnersOn_000_111 = 0;
 
     // Serial correlation for plate appearances
     let hitOrNoHit = [];
@@ -1359,11 +1383,12 @@ export class GlobalState {
       ? autoCorResult.toFixed(2)
       : '-';
 
+    // Per PA stats
     plateAppearances.forEach((pa) => {
       if (pa.result) {
         stats.plateAppearances++;
 
-        if (pa.result && !results.getNoAtBatResults().includes(pa.result)) {
+        if (!results.getNoAtBatResults().includes(pa.result)) {
           stats.atBats++;
         }
         if (results.getHitResults().includes(pa.result)) {
@@ -1411,8 +1436,91 @@ export class GlobalState {
             pa.result
           );
         }
+
+        // Runners on base avg - this uses the state object which might be an issue if we want this to eventually be in a web worker
+        const previousPa = this.getPreviousPlateAppearance(pa.id);
+        if (['1B', '2B', '3B', 'HRi', 'HRo'].includes(pa.result)) {
+          const prevRunners = previousPa?.runners;
+          if (prevRunners === undefined) {
+            stats.hitsWithRunnersOn_000++;
+          } else if (
+            previousPa.runners['1B'] &&
+            previousPa.runners['2B'] &&
+            previousPa.runners['3B']
+          ) {
+            stats.hitsWithRunnersOn_111++;
+          } else if (previousPa.runners['1B'] && previousPa.runners['2B']) {
+            stats.hitsWithRunnersOn_110++;
+          } else if (previousPa.runners['2B'] && previousPa.runners['3B']) {
+            stats.hitsWithRunnersOn_011++;
+          } else if (previousPa.runners['1B']) {
+            stats.hitsWithRunnersOn_100++;
+          } else if (previousPa.runners['2B']) {
+            stats.hitsWithRunnersOn_010++;
+          } else if (previousPa.runners['3B']) {
+            stats.hitsWithRunnersOn_001++;
+          } else {
+            stats.hitsWithRunnersOn_000++;
+          }
+        } else if (
+          previousPa &&
+          results.getNoAtBatResults().includes(previousPa.result)
+        ) {
+          const prevRunners = previousPa?.runners;
+          if (prevRunners === undefined) {
+            missesWithRunnersOn_000++;
+          } else if (
+            previousPa.runners['1B'] &&
+            previousPa.runners['2B'] &&
+            previousPa.runners['3B']
+          ) {
+            stats.missesWithRunnersOn_111++;
+          } else if (previousPa.runners['1B'] && previousPa.runners['2B']) {
+            stats.missesWithRunnersOn_110++;
+          } else if (previousPa.runners['2B'] && previousPa.runners['3B']) {
+            stats.missesWithRunnersOn_011++;
+          } else if (previousPa.runners['1B'] && previousPa.runners['3B']) {
+            stats.missesWithRunnersOn_101++;
+          } else if (previousPa.runners['1B']) {
+            stats.missesWithRunnersOn_100++;
+          } else if (previousPa.runners['2B']) {
+            stats.missesWithRunnersOn_010++;
+          } else if (previousPa.runners['3B']) {
+            stats.missesWithRunnersOn_001++;
+          } else {
+            stats.missesWithRunnersOn_000++;
+          }
+        }
       }
     });
+
+    const name = stats.name;
+    const A = (stats.hitsWithRunnersOn_000 / stats.missesWithRunnersOn_000)
+      .toFixed(3)
+      .substr(1);
+    const B = (stats.hitsWithRunnersOn_100 / stats.missesWithRunnersOn_100)
+      .toFixed(3)
+      .substr(1);
+    const C = (stats.hitsWithRunnersOn_010 / stats.missesWithRunnersOn_010)
+      .toFixed(3)
+      .substr(1);
+    const D = (stats.hitsWithRunnersOn_110 / stats.missesWithRunnersOn_110)
+      .toFixed(3)
+      .substr(1);
+    const E = (stats.hitsWithRunnersOn_001 / stats.missesWithRunnersOn_001)
+      .toFixed(3)
+      .substr(1);
+    const F = (stats.hitsWithRunnersOn_101 / stats.missesWithRunnersOn_101)
+      .toFixed(3)
+      .substr(1);
+    const G = (stats.hitsWithRunnersOn_011 / stats.missesWithRunnersOn_011)
+      .toFixed(3)
+      .substr(1);
+    const H = (stats.hitsWithRunnersOn_111 / stats.missesWithRunnersOn_111)
+      .toFixed(3)
+      .substr(1);
+
+    console.log(name, A, B, C, D, E, F, G, H);
 
     if (stats.atBats === 0) {
       stats.battingAverage = '-';
