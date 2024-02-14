@@ -129,14 +129,6 @@ export function percentageIncrease(start, end) {
     return null;
   }
 
-  console.warn(
-    'CALC',
-    start,
-    end,
-    Math.abs(start),
-    (end - start) / Math.abs(start)
-  );
-
   // Calculate the percentage increase formula: ((end - start) / start) * 100
   const percentageIncrease = (end - start) / Math.abs(start);
 

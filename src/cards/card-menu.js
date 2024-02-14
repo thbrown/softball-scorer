@@ -78,7 +78,7 @@ class CardMenu extends Component {
           }
         }
 
-        logout(state, dialog, setRoute);
+        logout(dialog, setRoute);
       });
     };
 

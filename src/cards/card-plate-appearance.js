@@ -8,6 +8,7 @@ import { normalize, distance, cleanObject } from 'utils/functions';
 import { goBack } from 'actions/route';
 import { makeStyles } from 'css/helpers';
 import Card from 'elements/card';
+import BallFieldSvg from 'components/ball-field-svg';
 
 const LOCATION_DENOMINATOR = 32767;
 
@@ -308,7 +309,7 @@ class CardPlateAppearance extends React.Component {
           cleanRunners['3B'] = cleanRunners['scored'][0];
           cleanRunners['scored'] = [];
         } else {
-          logger.warn('Could not find a base for the runner!');
+          console.warn('Could not find a base for the runner!');
         }
       }
 
@@ -349,6 +350,7 @@ class CardPlateAppearance extends React.Component {
           ((this.my - 10) / Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH)) *
             LOCATION_DENOMINATOR
         );
+        console.log('Drop', new_x, new_y);
         this.setState({
           dragging: false,
           paLocationX: new_x,
@@ -1011,6 +1013,7 @@ class CardPlateAppearance extends React.Component {
           display: 'flex',
           justifyContent: 'space-evenly',
           position: 'relative',
+          height: '19px',
         }}
       >
         <div>
@@ -1030,29 +1033,36 @@ class CardPlateAppearance extends React.Component {
     );
 
     return (
-      <div
-        id="ballfield"
-        style={{
-          position: 'relative',
-          borderTop: '1px solid white',
-          borderBottom: '1px solid white',
-          width: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + 'px',
-          height: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + 'px',
-          overflow: 'hidden',
-        }}
-      >
-        {textInfo}
-        {runnerObjects}
-        <img
-          //draggable={true}
-          src="/assets/ballfield2.png"
-          alt="ballfield"
+      <>
+        <div
+          id="game-numbers"
           style={{
-            width: '100%',
+            position: 'relative',
+            borderTop: '1px solid white',
+            borderBottom: '1px solid white',
+            width: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + 'px',
+            overflow: 'hidden',
           }}
-        ></img>
-        {indicators}
-      </div>
+        >
+          {textInfo}
+        </div>
+        <div
+          id="ballfield"
+          style={{
+            position: 'relative',
+            borderTop: '1px solid white',
+            borderBottom: '1px solid white',
+            width: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + 'px',
+            height: Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH) + 'px',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Caution: Rendering anything above BallFieldSvg in this div might mess up spray chart y locations */}
+          <BallFieldSvg />
+          {runnerObjects}
+          {indicators}
+        </div>
+      </>
     );
   }
 

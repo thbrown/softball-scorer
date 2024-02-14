@@ -1,4 +1,6 @@
 import SharedLib from 'shared-lib';
+import { getGlobalState } from 'state';
+import expose from 'expose';
 
 export const normalize = function (x, A, B, C, D) {
   return C + ((x - A) * (D - C)) / (B - A);
@@ -180,7 +182,7 @@ export const autoCorrelation = function (input, lag) {
   return r;
 };
 
-export const logout = async function (state, dialog, setRoute) {
+export const logout = async function (dialog, setRoute) {
   let response = await getGlobalState().requestAuth(
     'POST',
     'server/account/logout'

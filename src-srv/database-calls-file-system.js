@@ -96,7 +96,7 @@ let databaseGcpBuckets = class DatabaseGcpBuckets extends DatabaseCallsAbstractB
           location,
           blobName,
           content,
-          isDataBlob,
+          schemaToValidate,
           null
         );
         logger.log(accountId, 'Updated schema write-back successful');

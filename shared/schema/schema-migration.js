@@ -1,7 +1,7 @@
 import constants from '../utils/constants';
 import { TLSchemas } from './schema-validation';
 
-export const CURRENT_VERSION = 5;
+export const CURRENT_VERSION = 6;
 
 export const SchemaMigrationTypes = {
   EXPORT: 'export',
@@ -23,8 +23,10 @@ export const getMigration = function (tlSchema) {
  * For simplicity, version numbers consist of a single, serial integer value that conveys no semantic meaning about
  * the nature of the changes made between versions (e.g. version 1,2,3,4,5, etc...)
  *
- * To add a migration, add another if block to the bottom of this function. At a minimum you need to update the
+ * To add a migration, add another if-block to the bottom of this function. At a minimum you need to update the
  * metadata version of your document even if you are just adding fields.
+ *
+ * Update the CURRENT_VERSION const at the to pf this file.
  *
  * Then build shared `yarn --cwd ./shared build` and test with `yarn test schema-migration`
  *
@@ -32,7 +34,7 @@ export const getMigration = function (tlSchema) {
  * of those dependencies without busting migrations. Since there is no way to enforce dependencies don't change, it's a
  * recipe for data corruption.
  *
- * This function is run whenever we read data into the app (e.g from the data base, on file import, from localstorage, etc...)
+ * This function is run whenever we read data into the app (e.g from the database, on file import, from localstorage, etc...)
  *
  * @returns a string depending on the result of the migration:
  * "OKAY" - if json document is up-to-date and no action was taken
@@ -81,7 +83,10 @@ export const updateSchema = function (
       );
       return 'REFRESH';
     }
-    logger.log(accountId, 'Schema migration required ', version);
+    logger.log(
+      accountId,
+      `Schema migration required. Document version is ${version} but the current version is ${CURRENT_VERSION}`
+    );
 
     // Upgrade to version 1 (from undefined version)
     if (version === undefined) {
@@ -281,21 +286,46 @@ export const updateSchema = function (
         scope: inputScope,
       };
     }
+    console.log('V5 migration ');
 
-    /*
-    // Example migrations
     if (inputJson.metadata.version === 5) {
-      // Blah blah blah
+      // All pa hit locations after 1684735200 (~May 2023) should be adjusted up by 19px
+      for (let team of inputJson.teams) {
+        for (let game of team.games) {
+          if (game.date > 1684735200 && game.date < 1707952209) {
+            for (let pa of game.plateAppearances) {
+              const currentY = pa.location?.y;
+              if (currentY != null) {
+                pa.location.y = Math.min(
+                  Math.max(Math.floor(currentY - 1245.146), -656),
+                  32111 // Ballpark image denominator - 656
+                ); // This maps to 19 px (idk why everything is shifted by -656)
+              }
+            }
+          }
+        }
+      }
       inputJson.metadata = {
         version: 6,
         scope: inputScope,
       };
     }
 
+    /*
+    // Example migrations
+
     if (inputJson.metadata.version === 6) {
       // Blah blah blah
       inputJson.metadata = {
         version: 7,
+        scope: inputScope,
+      };
+    }
+
+    if (inputJson.metadata.version === 7) {
+      // Blah blah blah
+      inputJson.metadata = {
+        version: 8,
         scope: inputScope,
       };
     }
