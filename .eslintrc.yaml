@@ -23,6 +23,7 @@ rules:
       singleQuote: true
       tabWidth: 2
       trailingComma: 'es5'
+      endOfLine: auto
 
 overrides:
   - files: '**/*.test.js'
@@ -31,6 +32,3 @@ overrides:
       no-console: 0
       no-unused-vars: 0
       no-unused-expressions: 0
-
-error:
-  endOfLine: auto

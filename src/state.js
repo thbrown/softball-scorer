@@ -666,7 +666,6 @@ export class GlobalState {
     duplicatedOptimization.resultData = {};
     duplicatedOptimization.statusMessage = null;
     duplicatedOptimization.inputSummaryData = {};
-    duplicatedOptimization.name;
 
     // Read-only fields
     delete duplicatedOptimization.status;
@@ -923,17 +922,19 @@ export class GlobalState {
     const paIndex = this.INDEX.getPaIndex(paId);
     return paIndex === game.lineup.length
       ? undefined
-      : { ...game.lineup[paIndex + 1] };
+      : { ...game.plateAppearances[paIndex + 1] };
   }
 
   getPreviousPlateAppearance(paId) {
     const game = this.INDEX.getGameForPa(paId);
     const paIndex = this.INDEX.getPaIndex(paId);
-    return paIndex === 0 ? undefined : { ...game.lineup[paIndex - 1] };
+    return paIndex === 0
+      ? undefined
+      : { ...game.plateAppearances[paIndex - 1] };
   }
 
   getPlateAppearanceObjects(paId) {
-    const pa = this.INDEX.getPlateAppearance(paId);
+    const pa = this.INDEX.getPa(paId);
     const game = this.INDEX.getGameForPa(paId);
     const team = this.INDEX.getTeamForPa(paId);
     if (pa === undefined) {
@@ -1322,19 +1323,25 @@ export class GlobalState {
     stats.paAutocorrelation = '-';
     stats.paPerGame = 0;
     stats.outsPerGame = 0;
-    stats.runs = 0;
+    stats.runs = 0; // We can't calculate this without getting more PAs
     stats.rbi = 0;
     stats.doublePlays = 0;
     stats.hitsWithRunnersOn_000 = 0;
+    stats.hitsWithRunnersOn_001 = 0;
     stats.hitsWithRunnersOn_100 = 0;
     stats.hitsWithRunnersOn_010 = 0;
     stats.hitsWithRunnersOn_110 = 0;
+    stats.hitsWithRunnersOn_101 = 0;
+    stats.hitsWithRunnersOn_011 = 0;
     stats.hitsWithRunnersOn_111 = 0;
     stats.missesWithRunnersOn_000 = 0;
-    stats.missesWithRunnersOn_000_100 = 0;
-    stats.missesWithRunnersOn_000_010 = 0;
-    stats.missesWithRunnersOn_000_110 = 0;
-    stats.missesWithRunnersOn_000_111 = 0;
+    stats.missesWithRunnersOn_001 = 0;
+    stats.missesWithRunnersOn_100 = 0;
+    stats.missesWithRunnersOn_010 = 0;
+    stats.missesWithRunnersOn_110 = 0;
+    stats.missesWithRunnersOn_101 = 0;
+    stats.missesWithRunnersOn_011 = 0;
+    stats.missesWithRunnersOn_111 = 0;
 
     // Serial correlation for plate appearances
     let hitOrNoHit = [];
@@ -1439,9 +1446,15 @@ export class GlobalState {
 
         // Runners on base avg - this uses the state object which might be an issue if we want this to eventually be in a web worker
         const previousPa = this.getPreviousPlateAppearance(pa.id);
-        if (['1B', '2B', '3B', 'HRi', 'HRo'].includes(pa.result)) {
-          const prevRunners = previousPa?.runners;
-          if (prevRunners === undefined) {
+        const prevRunners = previousPa?.runners;
+        const dateWeStartedTrackingRunners = this.getPlateAppearanceObjects(
+          pa.id
+        ).game.date;
+        const isInvalidEntry = dateWeStartedTrackingRunners < 1672531200;
+        if (results.getHitResults().includes(pa.result)) {
+          if (isInvalidEntry) {
+            // We don't care about PAs before we started tracking base runners
+          } else if (prevRunners === undefined) {
             stats.hitsWithRunnersOn_000++;
           } else if (
             previousPa.runners['1B'] &&
@@ -1453,6 +1466,8 @@ export class GlobalState {
             stats.hitsWithRunnersOn_110++;
           } else if (previousPa.runners['2B'] && previousPa.runners['3B']) {
             stats.hitsWithRunnersOn_011++;
+          } else if (previousPa.runners['1B'] && previousPa.runners['3B']) {
+            stats.hitsWithRunnersOn_101++;
           } else if (previousPa.runners['1B']) {
             stats.hitsWithRunnersOn_100++;
           } else if (previousPa.runners['2B']) {
@@ -1462,13 +1477,11 @@ export class GlobalState {
           } else {
             stats.hitsWithRunnersOn_000++;
           }
-        } else if (
-          previousPa &&
-          results.getNoAtBatResults().includes(previousPa.result)
-        ) {
-          const prevRunners = previousPa?.runners;
-          if (prevRunners === undefined) {
-            missesWithRunnersOn_000++;
+        } else if (results.getNoHitResults().includes(pa.result)) {
+          if (isInvalidEntry) {
+            // We don't care about PAs before we started tracking base runners
+          } else if (prevRunners === undefined) {
+            stats.hitsWithRunnersOn_000++;
           } else if (
             previousPa.runners['1B'] &&
             previousPa.runners['2B'] &&
@@ -1494,43 +1507,14 @@ export class GlobalState {
       }
     });
 
-    const name = stats.name;
-    const A = (stats.hitsWithRunnersOn_000 / stats.missesWithRunnersOn_000)
-      .toFixed(3)
-      .substr(1);
-    const B = (stats.hitsWithRunnersOn_100 / stats.missesWithRunnersOn_100)
-      .toFixed(3)
-      .substr(1);
-    const C = (stats.hitsWithRunnersOn_010 / stats.missesWithRunnersOn_010)
-      .toFixed(3)
-      .substr(1);
-    const D = (stats.hitsWithRunnersOn_110 / stats.missesWithRunnersOn_110)
-      .toFixed(3)
-      .substr(1);
-    const E = (stats.hitsWithRunnersOn_001 / stats.missesWithRunnersOn_001)
-      .toFixed(3)
-      .substr(1);
-    const F = (stats.hitsWithRunnersOn_101 / stats.missesWithRunnersOn_101)
-      .toFixed(3)
-      .substr(1);
-    const G = (stats.hitsWithRunnersOn_011 / stats.missesWithRunnersOn_011)
-      .toFixed(3)
-      .substr(1);
-    const H = (stats.hitsWithRunnersOn_111 / stats.missesWithRunnersOn_111)
-      .toFixed(3)
-      .substr(1);
-
-    console.log(name, A, B, C, D, E, F, G, H);
-
     if (stats.atBats === 0) {
       stats.battingAverage = '-';
       stats.sluggingPercentage = '-';
     } else {
-      if (stats.hits === stats.atBats) {
-        stats.battingAverage = '1.000';
-      } else {
-        stats.battingAverage = (stats.hits / stats.atBats).toFixed(3).substr(1);
-      }
+      stats.battingAverage = SharedLib.commonUtils.calculateFormattedAverage(
+        stats.hits,
+        stats.atBats
+      );
       stats.sluggingPercentage = (stats.totalBasesByHit / stats.atBats).toFixed(
         3
       );
