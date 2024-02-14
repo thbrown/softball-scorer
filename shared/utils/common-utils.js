@@ -110,6 +110,39 @@ export const formatPercentage = function (value, decimalPlaces) {
   return (parseFloat(value) * 100).toFixed(decimalPlaces) + '%';
 };
 
+export const calculateFormattedAverage = function (numerator, denominator) {
+  if (denominator === 0) {
+    return '.000';
+  } else if (numerator === denominator) {
+    return '1.000';
+  } else {
+    return (numerator / denominator).toFixed(3).substr(1);
+  }
+};
+
+export function percentageIncrease(start, end) {
+  if (start === 0) {
+    // Avoid division by zero if the starting value is zero
+    console.warn(
+      'Cannot calculate percentage increase when the starting value is zero.'
+    );
+    return null;
+  }
+
+  console.warn(
+    'CALC',
+    start,
+    end,
+    Math.abs(start),
+    (end - start) / Math.abs(start)
+  );
+
+  // Calculate the percentage increase formula: ((end - start) / start) * 100
+  const percentageIncrease = (end - start) / Math.abs(start);
+
+  return formatPercentage(percentageIncrease);
+}
+
 export const sortJson = function sortJson(object) {
   if (Array.isArray(object)) {
     let result = [];

@@ -666,7 +666,6 @@ export class GlobalState {
     duplicatedOptimization.resultData = {};
     duplicatedOptimization.statusMessage = null;
     duplicatedOptimization.inputSummaryData = {};
-    duplicatedOptimization.name;
 
     // Read-only fields
     delete duplicatedOptimization.status;
@@ -918,8 +917,24 @@ export class GlobalState {
     return pa === undefined ? undefined : { ...pa };
   }
 
+  getNextPlateAppearance(paId) {
+    const game = this.INDEX.getGameForPa(paId);
+    const paIndex = this.INDEX.getPaIndex(paId);
+    return paIndex === game.lineup.length
+      ? undefined
+      : { ...game.plateAppearances[paIndex + 1] };
+  }
+
+  getPreviousPlateAppearance(paId) {
+    const game = this.INDEX.getGameForPa(paId);
+    const paIndex = this.INDEX.getPaIndex(paId);
+    return paIndex === 0
+      ? undefined
+      : { ...game.plateAppearances[paIndex - 1] };
+  }
+
   getPlateAppearanceObjects(paId) {
-    const pa = this.INDEX.getPlateAppearance(paId);
+    const pa = this.INDEX.getPa(paId);
     const game = this.INDEX.getGameForPa(paId);
     const team = this.INDEX.getTeamForPa(paId);
     if (pa === undefined) {
@@ -1308,9 +1323,25 @@ export class GlobalState {
     stats.paAutocorrelation = '-';
     stats.paPerGame = 0;
     stats.outsPerGame = 0;
-    stats.runs = 0;
+    stats.runs = 0; // We can't calculate this without getting more PAs
     stats.rbi = 0;
     stats.doublePlays = 0;
+    stats.hitsWithRunnersOn_000 = 0;
+    stats.hitsWithRunnersOn_001 = 0;
+    stats.hitsWithRunnersOn_100 = 0;
+    stats.hitsWithRunnersOn_010 = 0;
+    stats.hitsWithRunnersOn_110 = 0;
+    stats.hitsWithRunnersOn_101 = 0;
+    stats.hitsWithRunnersOn_011 = 0;
+    stats.hitsWithRunnersOn_111 = 0;
+    stats.missesWithRunnersOn_000 = 0;
+    stats.missesWithRunnersOn_001 = 0;
+    stats.missesWithRunnersOn_100 = 0;
+    stats.missesWithRunnersOn_010 = 0;
+    stats.missesWithRunnersOn_110 = 0;
+    stats.missesWithRunnersOn_101 = 0;
+    stats.missesWithRunnersOn_011 = 0;
+    stats.missesWithRunnersOn_111 = 0;
 
     // Serial correlation for plate appearances
     let hitOrNoHit = [];
@@ -1359,11 +1390,12 @@ export class GlobalState {
       ? autoCorResult.toFixed(2)
       : '-';
 
+    // Per PA stats
     plateAppearances.forEach((pa) => {
       if (pa.result) {
         stats.plateAppearances++;
 
-        if (pa.result && !results.getNoAtBatResults().includes(pa.result)) {
+        if (!results.getNoAtBatResults().includes(pa.result)) {
           stats.atBats++;
         }
         if (results.getHitResults().includes(pa.result)) {
@@ -1411,6 +1443,67 @@ export class GlobalState {
             pa.result
           );
         }
+
+        // Runners on base avg - this uses the state object which might be an issue if we want this to eventually be in a web worker
+        const previousPa = this.getPreviousPlateAppearance(pa.id);
+        const prevRunners = previousPa?.runners;
+        const dateWeStartedTrackingRunners = this.getPlateAppearanceObjects(
+          pa.id
+        ).game.date;
+        const isInvalidEntry = dateWeStartedTrackingRunners < 1672531200;
+        if (results.getHitResults().includes(pa.result)) {
+          if (isInvalidEntry) {
+            // We don't care about PAs before we started tracking base runners
+          } else if (prevRunners === undefined) {
+            stats.hitsWithRunnersOn_000++;
+          } else if (
+            previousPa.runners['1B'] &&
+            previousPa.runners['2B'] &&
+            previousPa.runners['3B']
+          ) {
+            stats.hitsWithRunnersOn_111++;
+          } else if (previousPa.runners['1B'] && previousPa.runners['2B']) {
+            stats.hitsWithRunnersOn_110++;
+          } else if (previousPa.runners['2B'] && previousPa.runners['3B']) {
+            stats.hitsWithRunnersOn_011++;
+          } else if (previousPa.runners['1B'] && previousPa.runners['3B']) {
+            stats.hitsWithRunnersOn_101++;
+          } else if (previousPa.runners['1B']) {
+            stats.hitsWithRunnersOn_100++;
+          } else if (previousPa.runners['2B']) {
+            stats.hitsWithRunnersOn_010++;
+          } else if (previousPa.runners['3B']) {
+            stats.hitsWithRunnersOn_001++;
+          } else {
+            stats.hitsWithRunnersOn_000++;
+          }
+        } else if (results.getNoHitResults().includes(pa.result)) {
+          if (isInvalidEntry) {
+            // We don't care about PAs before we started tracking base runners
+          } else if (prevRunners === undefined) {
+            stats.hitsWithRunnersOn_000++;
+          } else if (
+            previousPa.runners['1B'] &&
+            previousPa.runners['2B'] &&
+            previousPa.runners['3B']
+          ) {
+            stats.missesWithRunnersOn_111++;
+          } else if (previousPa.runners['1B'] && previousPa.runners['2B']) {
+            stats.missesWithRunnersOn_110++;
+          } else if (previousPa.runners['2B'] && previousPa.runners['3B']) {
+            stats.missesWithRunnersOn_011++;
+          } else if (previousPa.runners['1B'] && previousPa.runners['3B']) {
+            stats.missesWithRunnersOn_101++;
+          } else if (previousPa.runners['1B']) {
+            stats.missesWithRunnersOn_100++;
+          } else if (previousPa.runners['2B']) {
+            stats.missesWithRunnersOn_010++;
+          } else if (previousPa.runners['3B']) {
+            stats.missesWithRunnersOn_001++;
+          } else {
+            stats.missesWithRunnersOn_000++;
+          }
+        }
       }
     });
 
@@ -1418,11 +1511,10 @@ export class GlobalState {
       stats.battingAverage = '-';
       stats.sluggingPercentage = '-';
     } else {
-      if (stats.hits === stats.atBats) {
-        stats.battingAverage = '1.000';
-      } else {
-        stats.battingAverage = (stats.hits / stats.atBats).toFixed(3).substr(1);
-      }
+      stats.battingAverage = SharedLib.commonUtils.calculateFormattedAverage(
+        stats.hits,
+        stats.atBats
+      );
       stats.sluggingPercentage = (stats.totalBasesByHit / stats.atBats).toFixed(
         3
       );

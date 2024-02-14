@@ -7,6 +7,7 @@ import css from 'css';
 import InnerSection from 'elements/inner-section';
 import IconButton from '../elements/icon-button';
 import { showStatsHelp } from 'utils/help-functions';
+import RunnersInScoringPositionStats from '../components/runners-in-scoring-position-stats';
 
 export default class CardPlayerStats extends React.Component {
   getSeasonalStats() {
@@ -46,6 +47,7 @@ export default class CardPlayerStats extends React.Component {
         <th>PA</th>
         <th>Avg</th>
         <th>Slg</th>
+        <th>RBI</th>
         <th>2B</th>
         <th>3B</th>
         <th>HR</th>
@@ -70,6 +72,7 @@ export default class CardPlayerStats extends React.Component {
           <td>{season.stats.plateAppearances}</td>
           <td>{season.stats.battingAverage}</td>
           <td>{season.stats.sluggingPercentage}</td>
+          <td>{season.stats.rbi}</td>
           <td>{season.stats.doubles}</td>
           <td>{season.stats.triples}</td>
           <td>{season.stats.homeruns}</td>
@@ -180,6 +183,31 @@ export default class CardPlayerStats extends React.Component {
           >
             <tbody className="player-stats">{seasonStats}</tbody>
           </table>
+        </InnerSection>
+        <InnerSection
+          style={{
+            marginTop: css.spacing.xxSmall,
+            overflow: 'auto',
+            color: css.colors.TEXT_LIGHT,
+            backgroundColor: css.colors.PRIMARY_DARK,
+            borderRadius: css.borderRadius.medium,
+          }}
+        >
+          <div
+            style={{
+              fontSize: css.typography.size.medium,
+              paddingLeft: css.spacing.medium,
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <div style={{ paddingTop: '14px', paddingBottom: '14px' }}>
+              Hitting by Base Runners
+            </div>
+          </div>
+          <RunnersInScoringPositionStats
+            stats={allTimeStats}
+          ></RunnersInScoringPositionStats>
         </InnerSection>
       </Card>
     );

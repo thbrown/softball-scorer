@@ -149,7 +149,7 @@ The JSON schema files are named with the following suffixes. We can mix and matc
 
 These are the schema files we actually do the validation against, they reference the other schema files in the schema directory.
 
-- Full - All data associate with an account. This is what get's sent to the db layer.
+- Full - All data associate with an account. This is what gets sent to the db layer.
 - Client - Excludes private fields. This schema is used to validate the JSON document stored by the browser.
 - Export - Excludes the account node. Also excludes all private and all read-only fields. This schema is used to validate data handled by the export/import feature.
 
