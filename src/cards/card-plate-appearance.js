@@ -350,7 +350,6 @@ class CardPlateAppearance extends React.Component {
           ((this.my - 10) / Math.min(window.innerWidth, BALLFIELD_MAX_WIDTH)) *
             LOCATION_DENOMINATOR
         );
-        console.log('Drop', new_x, new_y);
         this.setState({
           dragging: false,
           paLocationX: new_x,
@@ -1058,8 +1057,8 @@ class CardPlateAppearance extends React.Component {
           }}
         >
           {/* Caution: Rendering anything above BallFieldSvg in this div might mess up spray chart y locations */}
-          <BallFieldSvg />
           {runnerObjects}
+          <BallFieldSvg />
           {indicators}
         </div>
       </>

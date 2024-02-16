@@ -290,15 +290,6 @@ export function reRender() {
   });
 }
 
-// An async sleep function
-export async function sleep(ms) {
-  return new Promise(function (resolve) {
-    setTimeout(function () {
-      resolve(ms);
-    }, ms);
-  });
-}
-
 // TODO: don't go through hex, just go dec to base62
 export function dec2hex(dec) {
   return ('0' + dec.toString(16)).substr(-2);

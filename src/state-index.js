@@ -50,7 +50,7 @@ export default class StateIndex {
 
   _getFromIndex(id, index, validationIndex, secondTry) {
     if (id === undefined) {
-      throw new Error('Undefined input id');
+      throw new Error('Undefined input id ');
     }
     const jsonPointer = index[id];
     //console.log('Getting from', jsonPointer);

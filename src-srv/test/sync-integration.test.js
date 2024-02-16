@@ -3,11 +3,18 @@
 
 const configAccessor = require('../config-accessor');
 const SoftballServer = require('../softball-server');
-const testUtils = require('./test-utils.js');
 const getGlobalState = require('../../src/state.js').getGlobalState;
 const context = require('../context');
 const SharedLib = require('../../shared-lib');
 const utils = SharedLib.commonUtils;
+const {
+  performAndValidateSync,
+  randomId,
+  signup,
+  login,
+  deleteAccount,
+  randomTestName,
+} = require('./test-utils.js');
 
 /**
  * This test requires an attached postgres database.
@@ -28,21 +35,22 @@ describe('sync', () => {
     context.setServer(server);
     server.start();
 
-    // Wait for services to start up (TODO: fix this)
+    // Wait for server to start up (TODO: fix this)
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    let email = `syncTest${testUtils.randomId(10)}@softball.app`;
+    let email = `syncTest${randomId(10)}@softball.app`;
     let accountPassword = 'pizza';
-    await testUtils.signup(email, accountPassword);
+    await signup(email, accountPassword);
 
-    sessionCookies = await testUtils.login(email, accountPassword);
+    sessionCookies = await login(email, accountPassword);
+    // eslint-disable-next-line no-undef
     authenticate(sessionCookies); // global, see jest-setup.js
     done();
   });
 
   afterAll(async (done) => {
     try {
-      await testUtils.deleteAccount(sessionCookies);
+      await deleteAccount(sessionCookies);
       await server.stop();
 
       // This isn't currently working for some reason (is this causing the open file handles after tests run?)
@@ -53,49 +61,6 @@ describe('sync', () => {
     }
     done();
   });
-
-  let performAndValidateSync = async function (activeState) {
-    let beforeSyncCopy = JSON.stringify(
-      getGlobalState().getLocalState(),
-      null,
-      2
-    );
-    let clientChecksum = activeState.getLocalStateChecksum();
-    let responseStatus = await activeState.sync();
-    expect(responseStatus).toEqual(200);
-
-    // Strip server-side generated fields
-    let teams = activeState.getLocalState().teams;
-    if (teams) {
-      for (let i = 0; i < teams.length; i++) {
-        delete teams[i].publicId;
-      }
-    }
-    delete activeState.getLocalState().account.accountId;
-    delete activeState.getLocalState().account.balance;
-    delete activeState.getLocalState().account.email;
-    delete activeState.getLocalState().account.emailConfirmed;
-
-    let serverChecksum = activeState.getLocalStateChecksum();
-    let afterSyncCopy = JSON.stringify(
-      getGlobalState().getLocalState(),
-      null,
-      2
-    );
-
-    if (clientChecksum !== serverChecksum) {
-      // Checksums don't care about ordering, so they are the definitive answer
-      // If those don't match, we'll compare the strings to see what's actually different
-      console.log('Pre', beforeSyncCopy);
-      console.log('Post', afterSyncCopy);
-      console.log('Checksums', serverChecksum, clientChecksum);
-      expect(utils.sortJson(JSON.parse(afterSyncCopy))).toEqual(
-        utils.sortJson(JSON.parse(beforeSyncCopy))
-      );
-    }
-
-    console.log('Sync assertions successful');
-  };
 
   test('Sync - Players', async () => {
     getGlobalState().deleteAllData();

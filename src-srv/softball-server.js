@@ -1325,15 +1325,6 @@ module.exports = class SoftballServer {
       };
     }
 
-    // An async sleep function
-    async function sleep(ms) {
-      return new Promise(function (resolve, reject) {
-        setTimeout(function () {
-          resolve(ms);
-        }, ms);
-      });
-    }
-
     function initSecondAuthToken(req, res) {
       try {
         // Make the cookie
@@ -1508,7 +1499,7 @@ module.exports = class SoftballServer {
 
         if (!success) {
           logger.log(accountId, 'Account already locked, retrying in 200ms');
-          await sleep(200); // TODO: Do we need a random backoff?
+          await SharedLib.commonUtils.sleep(200); // TODO: Do we need a random backoff?
           counter++;
         }
 

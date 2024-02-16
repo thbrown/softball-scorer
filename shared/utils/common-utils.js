@@ -159,6 +159,14 @@ export const isObject = function isObject(input) {
   return typeof input === 'object' && input !== null && !Array.isArray(input);
 };
 
+export const sleep = async function (ms) {
+  return new Promise(function (resolve) {
+    setTimeout(function () {
+      resolve(ms);
+    }, ms);
+  });
+};
+
 const exp = {
   factorial,
   binomial,

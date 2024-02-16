@@ -38,7 +38,7 @@ class FileSystemSessionStore extends Store {
       return;
     }
     let content = JSON.parse(fs.readFileSync(target));
-    logger.log('?', 'Session ', content);
+    //logger.log('?', 'Session ', content);
 
     cb(null, content);
   }

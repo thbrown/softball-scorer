@@ -3,14 +3,6 @@ const logger = require('./logger');
 const SharedLib = require('../shared-lib');
 const context = require('./context');
 
-async function sleep(ms) {
-  return new Promise(function (resolve, reject) {
-    setTimeout(function () {
-      resolve(ms);
-    }, ms);
-  });
-}
-
 const lockAccount = async function (accountId) {
   let success = false;
   let counter = 0;
@@ -21,7 +13,7 @@ const lockAccount = async function (accountId) {
 
     if (!success) {
       logger.log(accountId, 'Account already locked, retrying in 200ms');
-      await sleep(200); // TODO: Do we need a random backoff?
+      await SharedLib.commonUtils.sleep(200); // TODO: Do we need a random backoff?
       counter++;
     }
 
@@ -169,7 +161,7 @@ const sync = async ({ accountId, data, sessionId }) => {
 
   await lockAccount(accountId);
   // For testing locks
-  // await sleep(10000);
+  // await SharedLib.commonUtils.sleep(10000);
   try {
     let { changesMade } = await applyClientPatchChanges(accountId, data);
     const state = await self.databaseCalls.getClientState(accountId);

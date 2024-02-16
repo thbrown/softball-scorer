@@ -174,7 +174,7 @@ export class GlobalState {
       console.log(
         '[SYNC] waiting for in progress sync to finish ' + this.getSyncState()
       );
-      await sleep(500); // TODO: debounce
+      await SharedLib.commonUtils.sleep(500); // TODO: debounce
     }
     // Kill any scheduled syncs
     clearTimeout(this.syncTimer);
@@ -1898,14 +1898,21 @@ export const getGlobalState = () => {
   return activeGlobalState;
 };
 export const setGlobalState = (inputData) => {
-  const stateContainer = new StateContainer(inputData);
+  const stateContainer =
+    inputData == null ? null : new StateContainer(inputData);
   activeGlobalState = new GlobalState(
     stateContainer,
     undefined,
     new InMemoryStorage(),
     true
   );
-  console.log('[GLOBAL_STATE] setting global state', activeGlobalState);
+  console.log('[GLOBAL_STATE] setting global state' /*, activeGlobalState*/);
+};
+export const setGlobalStateRaw = (globalStateObject) => {
+  activeGlobalState = globalStateObject;
+  console.log(
+    '[GLOBAL_STATE] setting global state raw' /*, activeGlobalState*/
+  );
 };
 export const resetGlobalState = () => {
   activeGlobalState = defaultState;
