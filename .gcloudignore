@@ -10,4 +10,4 @@
 
 # Client-side config must be incorporated into the build artifacts (unlike the server side config) 
 # So here we explicitly don't ignore it even though it's .gitignore
-!src/config.js
+!client/src/config.js

@@ -1,46 +1,71 @@
-# Web app for recording batting data and optimizing lineups.
+# Softball.app
+## A web app for live recording batting data and leveraging that data to optimize lineups for Softball teams.  And walkup songs too ☻!
 
 Live at https://softball.app/
 
-## Usage:
+## Run/Build
 
-1. Clone this repo `git clone https://github.com/thbrown/softball-scorer.git`.
-2. Install node.js (14.0.0+) and npm. Older versions of node _wont_ work.
-   Ubuntu:
+1. Install yarn `[sudo] npm install -g yarn`
+2. From this repo's root directory, run `install.sh`.
+3. From this repo's root directory run `start.sh`.
+4. Visit http://localhost:8889 in your browser.
+5. Setup any optional features using the sections below if desired (not necessary).
+
+## Format/Lint
+
+Check for format errors:
+`yarn fmt:check`
+
+Fix format errors:
+`yarn fmt:fix`
+
+Check for lint errors:
+`yarn lint:check`
+
+Fix lint errors:
+`yarn lint:fix`
+
+## Testing
+
+By default vitest runs in watch mode.  If you want to run tests with a "pass"/"fail" then run the :prod version.
 
 ```
-sudo apt-get install curl
-curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+# run all tests
+yarn test
+
+# run client tests
+cd client
+yarn test
+
+
+#run server tests
+cd server
+yarn test
 ```
 
-3. Install yarn `[sudo] npm install -g yarn`
-4. From this repo's root directory, run `yarn`.
-5. Setup any optional features using the sections below if desired.
-6. Build client source (dev mode), and start the server (no css build). From the root directory:  
-   `yarn bundle && yarn start`
-7. Visit http://localhost:8888 in your browser.
+You can run tests one module at a time with npx:
+
+`cd client`
+`npx vitest run <file-name>`
+
+TODO: Figure out how to do this directly from vscode
 
 ## Dev
 
-use `yarn watch` if you want to start both dev server and softball.app server at the same time in the same terminal
-use `yarn start` and `yarn bundle-watch` if you want to start both servers but each in their own terminal
-use `yarn bundle` to build webpack, but skip the terser/css steps.
+use `yarn start` if you want to start both dev server and softball.app server at the same time in the same terminal.
 
-## Tests
+Alternatively, with two terminals you can run `yarn start:client` and `yarn start:server` or go into the respective directories and run `yarn start`.
 
-`yarn test`
+If you would like to run the prod build do the following.
 
-Integration tests not run with jest's "runInBand" flag will fail (this flag is used automatically if you use the build script above).
+```
+# build client js code, which produces <git root>/build/*
+yarn build
 
-If you are running the tests using gcp buckets as the cache or database, you'll need to account for longer network calls by extending the test timeout `--testTimeout=30000`
-
-You can specify particular tests w/ wild cards e.g. `yarn test sync-integration*`
-
-Some tests can fail because due to port conflicts if you have other applications running (e.g. AoE2)
-
-## Prod
-
-use `yarn build-css && yarn --cwd ./shared build && yarn build && yarn start`
+# run server in prod mode which serves from <git root>/build/*
+cd server
+yarn start:prod
+```
 
 ## Optional features
 
@@ -171,24 +196,6 @@ Each of the top-level schemas described above contain a metadata property at the
 1. If you've added read-only or private fields you may need to write code to prevent insecure patches in `./src-srv/patch-manager.js`
 1. Write your code to use your new schema!
 
-### Format/Lint
-
-`npm i prettier -g`
-
-`npm i eslint -g`
-
-`npm i eslint-plugin-react@latest -g`
-
-### Format all files
-
-From the root directory:
-`npx prettier --write ./`
-
-Then prevent minified assets from being formatted:
-`git checkout assets`
-
-export APP_WRITE_LOG_TO_FILE=true
-
 ### Google Cloud Build
 
 Note: this is broken, because the file structure has changed. Should be fixable, but isn't as important because the new GCP free instance manage memory better and can build the app just fine.
@@ -196,5 +203,8 @@ Note: this is broken, because the file structure has changed. Should be fixable,
 Cloud build:
 
 ```
-`./gcp-build.sh && yarn start`
+cd scripts
+./gcp-build.sh
+cd ..
+yarn start
 ```

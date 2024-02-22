@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "types": ["node"],
+    "target": "ES6",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": false,
+    "lib": ["dom", "ES2017", "ES2021"],
+    "removeComments": true,
+    "sourceMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "strictNullChecks": true,
+    "noImplicitAny": false,
+    "experimentalDecorators": true,
+    "jsx": "react",
+    "esModuleInterop": true,
+    "pretty": true
+  },
+  "references": [],
+  "include": ["./**/*"]
+}

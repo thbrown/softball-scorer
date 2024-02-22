@@ -1,0 +1,64 @@
+{
+  "$id": "http://softball.app/schemas/game",
+  "title": "Game",
+  "type": "object",
+  "description": "Information about an individual game",
+  "required": [
+    "id",
+    "opponent",
+    "lineup",
+    "date",
+    "scoreUs",
+    "scoreThem",
+    "lineupType",
+    "plateAppearances"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Random 64-bit unique identifier for this game"
+    },
+    "opponent": {
+      "type": "string",
+      "description": "Human identifier for the team. App prompts for the name of the opposing team. May not be unique."
+    },
+    "date": {
+      "type": "integer",
+      "description": "Epoch timestamp in seconds when the game was created, not necessarily played."
+    },
+    "scoreUs": {
+      "type": "object",
+      "description": "Number of runs scored by this team in this game in each inning",
+      "patternProperties": {
+        "^[0-9]+$": { "type": "number" }
+      }
+    },
+    "scoreThem": {
+      "type": "object",
+      "description": "Number of runs scored by this team's opponent in each inning",
+      "patternProperties": {
+        "^[0-9]+$": { "type": "number" }
+      }
+    },
+    "lineup": {
+      "type": "array",
+      "description": "Batting lineup for this game",
+      "items": {
+        "type": "string"
+      }
+    },
+    "lineupType": {
+      "type": "integer",
+      "description": "The type of the lineup used for this game. Typically this is a team-wide setting but specifying it under games allows for exceptions (e.g. tournaments w/ different rules). Different lineup types have different rules about what makes them valid (e.g. ALTERNATING_GENDER lineup must never bat two males or two females in a row)"
+    },
+    "plateAppearances": {
+      "type": "array",
+      "description": "All plate appearances that occurred during this game",
+      "items": {
+        "type": "object",
+        "unevaluatedProperties": false,
+        "$ref": "http://softball.app/schemas/plate-appearance"
+      }
+    }
+  }
+}

@@ -1,8 +1,7 @@
 node_modules
-build/*
+build
 assets/main.css
 certs/
-src/workers/service-worker.js
 package-lock.json
 src-srv/config.js
 src/config.js
@@ -11,7 +10,7 @@ config-common.js
 *.sublime-workspace
 src-srv/logs
 logs/*
-.vscode
+server/logs/*
 softball-sim.jar
 java.log
 cred.json
@@ -24,4 +23,11 @@ database/*
 session/*
 emergency-dump-*
 .yarn
+
 coverage
+server/database/*
+server/session/*
+workers/service-worker.js
+client/build
+client/config/
+server/src/optimizations-temp/

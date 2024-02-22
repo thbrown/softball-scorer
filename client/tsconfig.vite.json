@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./src/",
+    "types": ["node"],
+    "target": "ES2021",
+    "module": "amd",
+    "moduleResolution": "node",
+    "outFile": "./main.js",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": false,
+    "lib": ["dom", "ES2017", "ES2021"],
+    "removeComments": true,
+    "sourceMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "strictNullChecks": true,
+    "noImplicitAny": false,
+    "experimentalDecorators": true,
+    "jsx": "react",
+    "jsxFactory": "h",
+    "jsxFragmentFactory": "Fragment",
+    "esModuleInterop": true,
+    "pretty": true
+  },
+  "references": [],
+  "include": ["./src/**/*"]
+}

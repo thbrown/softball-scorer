@@ -1,0 +1,679 @@
+{
+  "account": {
+    "optimizers": [1, 0, 2, 4],
+    "accountId": "1",
+    "email": "robert@jordan.com",
+    "emailConfirmed": false,
+    "balance": 2000
+  },
+  "metadata": {
+    "version": 2,
+    "scope": "client"
+  },
+  "teams": [
+    {
+      "id": "4i7WarrEmtZMxJ",
+      "name": "Team of the Dragon",
+      "games": [
+        {
+          "id": "1",
+          "opponent": "Darkfriends",
+          "lineup": [
+            "3XcBG4OeaNrgHs",
+            "5t7RegcwU6GWQ4",
+            "5LubX8hY1J9qbi",
+            "1Z1tPWhLnGJ9Gs",
+            "55DMxux2F3TvER",
+            "2JojDb9S2brbVF",
+            "3hw09h7XgjfMK7",
+            "4e2viYmTSLfKFv",
+            "2iTjqxkl8o92IJ",
+            "1ajppp381cecS7"
+          ],
+          "date": 1562826405,
+          "lineupType": 2,
+          "scoreThem": 0,
+          "scoreUs": 0,
+          "plateAppearances": [
+            {
+              "id": "1pupriMTKbq2Se",
+              "playerId": "3XcBG4OeaNrgHs",
+              "result": "1B",
+              "location": {
+                "x": 10944,
+                "y": 14745
+              }
+            },
+            {
+              "id": "3jLZ4mKJGpdHkZ",
+              "playerId": "5t7RegcwU6GWQ4",
+              "result": "2B",
+              "location": {
+                "x": 13565,
+                "y": 6946
+              }
+            },
+            {
+              "id": "5jgJ5xQmDLalwH",
+              "playerId": "5LubX8hY1J9qbi",
+              "result": "Out",
+              "location": {
+                "x": 11009,
+                "y": 18480
+              }
+            },
+            {
+              "id": "5iZ31SDy3uke8M",
+              "playerId": "1Z1tPWhLnGJ9Gs",
+              "result": "Out",
+              "location": {
+                "x": 19922,
+                "y": 19332
+              }
+            },
+            {
+              "id": "29MmiYYdjdhkFH",
+              "playerId": "55DMxux2F3TvER",
+              "result": "1B",
+              "location": {
+                "x": 9240,
+                "y": 16711
+              }
+            },
+            {
+              "id": "4qegIoeF0JVtXJ",
+              "playerId": "2JojDb9S2brbVF",
+              "result": "2B",
+              "location": {
+                "x": 21298,
+                "y": 6553
+              }
+            },
+            {
+              "id": "1QHrSraPIlhohK",
+              "playerId": "3hw09h7XgjfMK7",
+              "result": "1B",
+              "location": {
+                "x": 25033,
+                "y": 19529
+              }
+            },
+            {
+              "id": "0Yf53oSrRsZmhS",
+              "playerId": "4e2viYmTSLfKFv",
+              "result": "E",
+              "location": {
+                "x": 20446,
+                "y": 7667
+              }
+            },
+            {
+              "id": "2rE5BYIB7vWxGY",
+              "playerId": "2iTjqxkl8o92IJ",
+              "result": "E",
+              "location": {
+                "x": 9567,
+                "y": 10878
+              }
+            },
+            {
+              "id": "4UuyGMABG7tefx",
+              "playerId": "1ajppp381cecS7",
+              "result": "2B",
+              "location": {
+                "x": 24771,
+                "y": 12058
+              }
+            },
+            {
+              "id": "2IHrEOVC4hfUTI",
+              "playerId": "3XcBG4OeaNrgHs",
+              "result": "1B",
+              "location": {
+                "x": 8126,
+                "y": 13958
+              }
+            },
+            {
+              "id": "5ToNmeBQmSti1e",
+              "playerId": "5t7RegcwU6GWQ4",
+              "result": "HRo",
+              "location": {
+                "x": 7864,
+                "y": 2949
+              }
+            },
+            {
+              "id": "23sPXvkAIRlXZe",
+              "playerId": "5LubX8hY1J9qbi",
+              "result": "Out",
+              "location": {
+                "x": 8060,
+                "y": 15334
+              }
+            },
+            {
+              "id": "2RIyFscW4D6gXS",
+              "playerId": "1Z1tPWhLnGJ9Gs",
+              "result": "Out",
+              "location": {
+                "x": 21101,
+                "y": 14745
+              }
+            },
+            {
+              "id": "0uwbFxQ9xnCnKV",
+              "playerId": "55DMxux2F3TvER",
+              "result": "1B",
+              "location": {
+                "x": 8912,
+                "y": 15924
+              }
+            },
+            {
+              "id": "4YAXgcUk3FlzfS",
+              "playerId": "2JojDb9S2brbVF",
+              "result": "3B",
+              "location": {
+                "x": 20446,
+                "y": 8257
+              }
+            },
+            {
+              "id": "5iHx971cKNqExA",
+              "playerId": "3hw09h7XgjfMK7",
+              "result": "SAC",
+              "location": {
+                "x": 24247,
+                "y": 14351
+              }
+            },
+            {
+              "id": "0DeeqoIbunTU5H",
+              "playerId": "4e2viYmTSLfKFv",
+              "result": "2B",
+              "location": {
+                "x": 24837,
+                "y": 11402
+              }
+            },
+            {
+              "id": "3V2jZE3wV0P1o2",
+              "playerId": "2iTjqxkl8o92IJ",
+              "result": "1B",
+              "location": {
+                "x": 8978,
+                "y": 12779
+              }
+            },
+            {
+              "id": "1asNvNz984Ec4f",
+              "playerId": "1ajppp381cecS7",
+              "result": "1B",
+              "location": {
+                "x": 7077,
+                "y": 13041
+              }
+            },
+            {
+              "id": "4XKGISwB7QtwP4",
+              "playerId": "3XcBG4OeaNrgHs",
+              "result": "1B",
+              "location": {
+                "x": 8388,
+                "y": 15334
+              }
+            },
+            {
+              "id": "2wpkjtTNKmHgeY",
+              "playerId": "5t7RegcwU6GWQ4",
+              "result": "Out",
+              "location": {
+                "x": 10616,
+                "y": 6094
+              }
+            },
+            {
+              "id": "3M2zRJuphRxieV",
+              "playerId": "5LubX8hY1J9qbi",
+              "result": "3B",
+              "location": {
+                "x": 983,
+                "y": 15859
+              }
+            },
+            {
+              "id": "4PqM5TtfrzenYh",
+              "playerId": "1Z1tPWhLnGJ9Gs",
+              "result": "1B",
+              "location": {
+                "x": 21888,
+                "y": 13762
+              }
+            },
+            {
+              "id": "4O1fKgSCM7utbU",
+              "playerId": "55DMxux2F3TvER",
+              "result": "HRo",
+              "location": {
+                "x": 589,
+                "y": 851
+              }
+            },
+            {
+              "id": "47Ia8L6kRxL2hK",
+              "playerId": "2JojDb9S2brbVF",
+              "result": "Out",
+              "location": {
+                "x": 17694,
+                "y": 20512
+              }
+            },
+            {
+              "id": "2mVqTjIJCX2Wsr",
+              "playerId": "3hw09h7XgjfMK7",
+              "result": "Out",
+              "location": {
+                "x": 23985,
+                "y": 12582
+              }
+            },
+            {
+              "id": "4gJFTAgNDLVfZP",
+              "playerId": "4e2viYmTSLfKFv",
+              "result": "Out",
+              "location": {
+                "x": 17759,
+                "y": 21495
+              }
+            },
+            {
+              "id": "0EqcVjAsXfzCXP",
+              "playerId": "2iTjqxkl8o92IJ",
+              "result": "1B",
+              "location": {
+                "x": 7864,
+                "y": 12779
+              }
+            },
+            {
+              "id": "39AND6zg8BSTB6",
+              "playerId": "1ajppp381cecS7",
+              "result": "1B",
+              "location": {
+                "x": 15466,
+                "y": 11665
+              }
+            },
+            {
+              "id": "3l0DJtEPHkBITp",
+              "playerId": "3XcBG4OeaNrgHs",
+              "result": "1B",
+              "location": {
+                "x": 8650,
+                "y": 13958
+              }
+            },
+            {
+              "id": "4D3O0HOJbMPT1f",
+              "playerId": "5t7RegcwU6GWQ4",
+              "result": "HRo",
+              "location": {
+                "x": 14548,
+                "y": 3211
+              }
+            },
+            {
+              "id": "3ulZVQNnS5t5pb",
+              "playerId": "5LubX8hY1J9qbi",
+              "result": "3B",
+              "location": {
+                "x": 30538,
+                "y": 16383
+              }
+            },
+            {
+              "id": "1aJ8x6vAGPOp1r",
+              "playerId": "1Z1tPWhLnGJ9Gs",
+              "result": "Out",
+              "location": {
+                "x": 20774,
+                "y": 17694
+              }
+            },
+            {
+              "id": "4dOF5sHUVBIjf8",
+              "playerId": "55DMxux2F3TvER",
+              "result": "Out",
+              "location": {
+                "x": 16055,
+                "y": 29555
+              }
+            },
+            {
+              "id": "4JVeZ6CgdxyN2U",
+              "playerId": "2JojDb9S2brbVF",
+              "result": "SAC",
+              "location": {
+                "x": 10026,
+                "y": 6487
+              }
+            },
+            {
+              "id": "3LKPuPxS95sEtE",
+              "playerId": "3hw09h7XgjfMK7",
+              "result": "FC",
+              "location": {
+                "x": 19856,
+                "y": 17956
+              }
+            },
+            {
+              "id": "4T2WaMrH62z03g",
+              "playerId": "4e2viYmTSLfKFv",
+              "result": "E",
+              "location": {
+                "x": 14089,
+                "y": 20250
+              }
+            },
+            {
+              "id": "4cokwdCtPMUnPN",
+              "playerId": "2iTjqxkl8o92IJ",
+              "result": "Out",
+              "location": {
+                "x": 24640,
+                "y": 16186
+              }
+            },
+            {
+              "id": "12P8g5t4CwcxBD",
+              "playerId": "1ajppp381cecS7",
+              "result": "2B",
+              "location": {
+                "x": 12189,
+                "y": 7667
+              }
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "opponent": "The Forsaken",
+          "lineup": [
+            "3XcBG4OeaNrgHs",
+            "5t7RegcwU6GWQ4",
+            "5LubX8hY1J9qbi",
+            "1Z1tPWhLnGJ9Gs",
+            "55DMxux2F3TvER",
+            "2JojDb9S2brbVF",
+            "3hw09h7XgjfMK7",
+            "4e2viYmTSLfKFv",
+            "2iTjqxkl8o92IJ",
+            "1ajppp381cecS7"
+          ],
+          "scoreThem": 0,
+          "scoreUs": 0,
+          "date": 1662826406,
+          "lineupType": 2,
+          "plateAppearances": [
+            {
+              "id": "12P8g5t4CwcxXX",
+              "playerId": "1ajppp381cecS7",
+              "result": "1B",
+              "location": {
+                "x": 123,
+                "y": 456
+              }
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "opponent": "Seanchan V1",
+          "lineup": [
+            "3XcBG4OeaNrgHs",
+            "5t7RegcwU6GWQ4",
+            "5LubX8hY1J9qbi",
+            "1Z1tPWhLnGJ9Gs",
+            "55DMxux2F3TvER",
+            "2JojDb9S2brbVF",
+            "3hw09h7XgjfMK7",
+            "4e2viYmTSLfKFv",
+            "2iTjqxkl8o92IJ",
+            "1ajppp381cecS7"
+          ],
+          "scoreThem": 0,
+          "scoreUs": 0,
+          "date": 1562826407,
+          "lineupType": 2,
+          "plateAppearances": []
+        },
+        {
+          "id": "4",
+          "opponent": "The Children of the Light",
+          "lineup": [
+            "3XcBG4OeaNrgHs",
+            "5t7RegcwU6GWQ4",
+            "5LubX8hY1J9qbi",
+            "1Z1tPWhLnGJ9Gs",
+            "55DMxux2F3TvER",
+            "2JojDb9S2brbVF",
+            "3hw09h7XgjfMK7",
+            "4e2viYmTSLfKFv",
+            "2iTjqxkl8o92IJ",
+            "1ajppp381cecS7"
+          ],
+          "scoreThem": 0,
+          "scoreUs": 0,
+          "date": 1562826408,
+          "lineupType": 4,
+          "plateAppearances": []
+        },
+        {
+          "id": "5",
+          "opponent": "Eliada's Bully Club",
+          "lineup": [
+            "3XcBG4OeaNrgHs",
+            "5t7RegcwU6GWQ4",
+            "5LubX8hY1J9qbi",
+            "1Z1tPWhLnGJ9Gs",
+            "55DMxux2F3TvER",
+            "2JojDb9S2brbVF",
+            "3hw09h7XgjfMK7",
+            "4e2viYmTSLfKFv",
+            "2iTjqxkl8o92IJ",
+            "1ajppp381cecS7"
+          ],
+          "scoreThem": 0,
+          "scoreUs": 0,
+          "date": 1562826409,
+          "lineupType": 4,
+          "plateAppearances": []
+        },
+        {
+          "id": "6",
+          "opponent": "Simple Brigands",
+          "lineup": [
+            "3XcBG4OeaNrgHs",
+            "5t7RegcwU6GWQ4",
+            "5LubX8hY1J9qbi",
+            "1Z1tPWhLnGJ9Gs",
+            "55DMxux2F3TvER",
+            "2JojDb9S2brbVF",
+            "3hw09h7XgjfMK7",
+            "4e2viYmTSLfKFv",
+            "2iTjqxkl8o92IJ",
+            "1ajppp381cecS7"
+          ],
+          "scoreThem": 0,
+          "scoreUs": 0,
+          "date": 1562826409,
+          "lineupType": 4,
+          "plateAppearances": []
+        },
+        {
+          "id": "7",
+          "opponent": "The Black Tower Bois",
+          "lineup": [
+            "3XcBG4OeaNrgHs",
+            "5t7RegcwU6GWQ4",
+            "5LubX8hY1J9qbi",
+            "1Z1tPWhLnGJ9Gs",
+            "55DMxux2F3TvER",
+            "2JojDb9S2brbVF",
+            "3hw09h7XgjfMK7",
+            "4e2viYmTSLfKFv",
+            "2iTjqxkl8o92IJ",
+            "1ajppp381cecS7"
+          ],
+          "scoreThem": 0,
+          "scoreUs": 0,
+          "date": 1162826409,
+          "lineupType": 4,
+          "plateAppearances": []
+        }
+      ]
+    },
+    {
+      "id": "05iWarrdrfZ1ff",
+      "name": "The second team on the list",
+      "games": []
+    }
+  ],
+  "players": [
+    {
+      "id": "55DMxux2F3TvER",
+      "name": "Rand",
+      "gender": "M",
+      "songLink": null,
+      "songStart": null
+    },
+    {
+      "id": "5LubX8hY1J9qbi",
+      "name": "Mat",
+      "gender": "M",
+      "songLink": null,
+      "songStart": null
+    },
+    {
+      "id": "3hw09h7XgjfMK7",
+      "name": "Perrin",
+      "gender": "M",
+      "songLink": null,
+      "songStart": null
+    },
+    {
+      "id": "1Z1tPWhLnGJ9Gs",
+      "name": "Egwene",
+      "gender": "F",
+      "songLink": null,
+      "songStart": null
+    },
+    {
+      "id": "2JojDb9S2brbVF",
+      "name": "Naenyve",
+      "gender": "F",
+      "songLink": null,
+      "songStart": null
+    },
+    {
+      "id": "5t7RegcwU6GWQ4",
+      "name": "Moiraine",
+      "gender": "F",
+      "songLink": null,
+      "songStart": null
+    },
+    {
+      "id": "3XcBG4OeaNrgHs",
+      "name": "Lan",
+      "gender": "M",
+      "songLink": null,
+      "songStart": null
+    },
+    {
+      "id": "4e2viYmTSLfKFv",
+      "name": "Faile",
+      "gender": "F",
+      "songLink": null,
+      "songStart": null
+    },
+    {
+      "id": "4RU3Lh3zwMKAKY",
+      "name": "Min",
+      "gender": "F",
+      "songLink": null,
+      "songStart": null
+    },
+    {
+      "id": "1ajppp381cecS7",
+      "name": "Avienda",
+      "gender": "F",
+      "songLink": null,
+      "songStart": null
+    },
+    {
+      "id": "2iTjqxkl8o92IJ",
+      "name": "Thom",
+      "gender": "M",
+      "songLink": null,
+      "songStart": null
+    },
+    {
+      "id": "4Rcpp3gb8iP45G",
+      "name": "Galad",
+      "gender": "M",
+      "songLink": null,
+      "songStart": null
+    }
+  ],
+  "optimizations": [
+    {
+      "name": "Test Time",
+      "customOptionsData": {},
+      "overrideData": {},
+      "resultData": {},
+      "statusMessage": null,
+      "sendEmail": false,
+      "teamList": [],
+      "gameList": [],
+      "playerList": [],
+      "lineupType": 0,
+      "optimizerType": 1,
+      "inputSummaryData": {},
+      "id": "3NSGvYhAAtiCCc"
+    },
+    {
+      "id": "3hLmu7ZyyDNXzi",
+      "name": "MagicOpt",
+      "customOptionsData": { "Innings": 4 },
+      "overrideData": {
+        "3XcBG4OeaNrgHs": [
+          {
+            "id": "18GBtGKEaMheiq",
+            "playerId": "3XcBG4OeaNrgHs",
+            "result": "Out",
+            "location": { "x": 13434, "y": 11075 },
+            "runners": { "out": ["3XcBG4OeaNrgHs"] }
+          },
+          {
+            "id": "3RLrHvbYmi4QT5",
+            "playerId": "3XcBG4OeaNrgHs",
+            "result": "1B",
+            "location": { "x": 18152, "y": 26737 },
+            "runners": { "1B": "3XcBG4OeaNrgHs" }
+          }
+        ]
+      },
+      "resultData": {},
+      "statusMessage": null,
+      "sendEmail": false,
+      "teamList": ["4i7WarrEmtZMxJ"],
+      "gameList": [],
+      "playerList": ["1ajppp381cecS7", "2JojDb9S2brbVF", "3XcBG4OeaNrgHs"],
+      "lineupType": 1,
+      "optimizerType": 1,
+      "inputSummaryData": {}
+    }
+  ]
+}
