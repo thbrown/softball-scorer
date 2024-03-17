@@ -12,7 +12,7 @@ jobs:
       - name: Install modules
         run: yarn
       - name: Build
-        run: yarn build-css && yarn --cwd ./shared build && yarn build
+        run: yarn build
       - name: Run tests
         run: yarn test
       - name: Tests ✅
