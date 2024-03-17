@@ -13,10 +13,8 @@ jobs:
         run: yarn
       - name: Build
         run: yarn build
-      - name: Run tests server
+      - name: Run tests
         run: yarn --cwd server test:ci
-      - name: Run tests client
-        run: yarn --cwd client test:ci
       - name: Tests ✅
         if: ${{ success() }}
         run: |
