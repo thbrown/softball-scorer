@@ -12,6 +12,7 @@
     "start:prod": "cd server && yarn start:prod",
     "build": "(cd client && yarn build)",
     "test": "(cd client && yarn test) && (cd server && yarn test)",
+    "test:ci": "(cd client && yarn test:ci) && (cd server && yarn test:ci)",
     "clean": "rm -rf node_modules client/node_modules server/node_modules shared-lib/node_modules build/ client/coverage server/coverage",
     "fmt:fix": "prettier client/src server/src shared-lib/src --write",
     "fmt:check": "prettier client/src server/src shared-lib/src --check",

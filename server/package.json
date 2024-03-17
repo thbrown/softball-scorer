@@ -8,7 +8,7 @@
     "start:prod": "tsx --no-cache --tsconfig ./tsconfig.json src/index.ts",
     "typecheck": "tsc",
     "test": "vitest --coverage run",
-    "test:prod": "vitest run",
+    "test:ci": "vitest run",
     "lint:check": "eslint --ext .ts,.js src",
     "lint:fix": "eslint --ext .ts,.js --fix src"
   },

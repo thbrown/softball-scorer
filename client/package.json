@@ -13,7 +13,7 @@
     "lint:check": "eslint --ext .ts,.tsx,.js,.jsx src",
     "lint:fix": "eslint --ext .ts,.tsx,.js,.jsx --fix src",
     "test": "vitest --coverage run",
-    "test:prod": "vitest run"
+    "test:ci": "vitest run"
   },
   "devDependencies": {
     "@testing-library/dom": "^9.0.1",
