@@ -1,4 +1,12 @@
-import { it, describe, expect, beforeAll, beforeEach, afterEach } from 'vitest';
+import {
+  it,
+  describe,
+  expect,
+  beforeAll,
+  beforeEach,
+  afterEach,
+  vitest,
+} from 'vitest';
 import Enzyme from 'enzyme';
 import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
 import { getPageWrapper } from './test-helpers';
@@ -23,7 +31,7 @@ describe('[UI] Game Stats', () => {
   });
 
   beforeEach(() => {
-    getGlobalState().isSessionValid = jest.fn().mockImplementation(() => {
+    getGlobalState().isSessionValid = vitest.fn().mockImplementation(() => {
       return true;
     });
   });
@@ -51,6 +59,6 @@ describe('[UI] Game Stats', () => {
       .hostNodes()
       .simulate('click');
 
-    expect(wrapper.find('input#publicIdEnabled')).toExist();
+    expect(Boolean(wrapper.find('input#publicIdEnabled'))).toBeTruthy();
   });
 });

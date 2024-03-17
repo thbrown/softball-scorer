@@ -12,7 +12,7 @@
     "typecheck": "tsc",
     "lint:check": "eslint --ext .ts,.tsx,.js,.jsx src",
     "lint:fix": "eslint --ext .ts,.tsx,.js,.jsx --fix src",
-    "test": "vitest --coverage",
+    "test": "vitest --coverage run",
     "test:prod": "vitest run"
   },
   "devDependencies": {

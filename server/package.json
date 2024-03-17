@@ -7,9 +7,8 @@
     "start": "cross-env DEVELOPMENT=true tsx watch --tsconfig ./tsconfig.json src/index.ts",
     "start:prod": "tsx --no-cache --tsconfig ./tsconfig.json src/index.ts",
     "typecheck": "tsc",
-    "test": "vitest --coverage",
+    "test": "vitest --coverage run",
     "test:prod": "vitest run",
-    "test:integration": "(cd integration-tests && vitest run)",
     "lint:check": "eslint --ext .ts,.js src",
     "lint:fix": "eslint --ext .ts,.js --fix src"
   },
