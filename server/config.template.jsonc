@@ -21,7 +21,7 @@
     "port": null,
     "password": null
   },
-  // If you enable redis, but don't set this, your sessions wont persist across app server restarts
+  // If you enable session caching, but don't set this, your sessions wont persist across app server restarts
   "session": {
     "secretkey": null
   },

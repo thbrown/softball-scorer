@@ -1,5 +1,5 @@
 // Module workers aren't supported in Firefox and though they are supposed to be supported in Chrome I can't get them to work.
-// We'll just copy and past the while lib for now
+// We'll just copy and paste the while lib for now
 //import LZString from 'lz-string';
 var LZString = (function () {
   function o(o, r) {

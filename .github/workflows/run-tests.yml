@@ -8,7 +8,7 @@ jobs:
         run: echo "Running tests on ${{ github.ref }} in ${{ github.repository }}."
       - uses: actions/checkout@v3
       - name: Copy configs
-        run: cp ./client/src/config.template.js ./client/src/config.js && cp ./server/config.template.json ./server/config.json
+        run: cp ./client/src/config.template.js ./client/src/config.js && cp ./server/config.template.jsonc ./server/config.jsonc
       - name: Install modules
         run: yarn
       - name: Build

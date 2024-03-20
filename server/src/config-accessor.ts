@@ -81,7 +81,7 @@ let optimizationCompute: OptimizationComputeService | null = null;
 let _config: Config | null = null;
 
 export const loadConfig = function () {
-  const configPath = path.resolve(__dirname, '../config.json');
+  const configPath = path.resolve(__dirname, '../config.jsonc');
   try {
     _config = JSON.parse(
       stripJsonComments(fs.readFileSync(configPath).toString())
