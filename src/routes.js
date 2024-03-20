@@ -169,6 +169,7 @@ const routes = {
         playerId,
         teamId
       );
+
     const { valid, errors } = assertStateObjects(
       team,
       player,
@@ -559,7 +560,7 @@ const routes = {
     teamId,
   }) => {
     return renderWhileLoading({ loading, error })(() => {
-      setGlobalState(data);
+      setGlobalState(data, `server/team-stats/${publicTeamId}`);
       console.log(
         '[GLOBAL_STATE] Global state teams',
         getGlobalState().getAllTeams()
@@ -570,6 +571,8 @@ const routes = {
         console.warn(errors);
         return <CardNotFound />;
       }
+
+      console.warn('ROUTE STATS 1 ', team);
 
       return <CardStatsPublic team={team} tab={CardStatsPublic.SEASON_TAB} />;
     });
@@ -583,13 +586,16 @@ const routes = {
     tab,
   }) => {
     return renderWhileLoading({ loading, error })(() => {
-      setGlobalState(data);
+      setGlobalState(data, `server/team-stats/${publicTeamId}`);
       const team = data.teams[0];
       const { valid, errors } = assertStateObjects(team);
       if (!valid) {
         console.warn(errors);
         return <CardNotFound />;
       }
+
+      console.warn('ROUTE STATS 2', team);
+
       return (
         <CardStatsPublic
           team={team}
@@ -608,7 +614,7 @@ const routes = {
     tab,
   }) => {
     return renderWhileLoading({ loading, error })(() => {
-      setGlobalState(data);
+      setGlobalState(data, `server/team-stats/${publicTeamId}`);
 
       const team = data.teams[0];
       const game = team.games[0];
@@ -635,7 +641,7 @@ const routes = {
     playerId,
   }) => {
     return renderWhileLoading({ loading, error })(() => {
-      setGlobalState(data);
+      setGlobalState(data, `server/team-stats/${publicTeamId}`);
 
       //const player = data.players.reduce((prev, player) => {
       //  return player.id === playerId ? player : prev;
@@ -668,7 +674,7 @@ const routes = {
     gameId,
   }) => {
     return renderWhileLoading({ loading, error })(() => {
-      setGlobalState(data);
+      setGlobalState(data, `server/team-stats/${publicTeamId}`);
       const team = data.teams[0];
       const game = getGlobalState().getGame(gameId);
       const { valid, errors } = assertStateObjects(team, game);

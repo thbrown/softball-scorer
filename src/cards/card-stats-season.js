@@ -265,6 +265,8 @@ export default class CardStatsSeason extends React.Component {
         return this.buildStatsObject(team.id, player.id);
       });
 
+    console.warn('Rendering CardStatsSeason', playerStatsListBeforeFilter);
+
     if (playerStatsListBeforeFilter.length === 0) {
       return this.renderNoTable('noGames');
     }

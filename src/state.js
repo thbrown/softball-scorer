@@ -70,7 +70,7 @@ export class GlobalState {
     stateContainer,
     index,
     storage = new LocalStorageStorage(),
-    prohibitSync
+    dataUrl
   ) {
     // Application State - State that applies across windows/tabs. Stored in local storage and in memory.
     this.online = true;
@@ -110,8 +110,9 @@ export class GlobalState {
       this.INDEX = new StateIndex(this.LOCAL_DB_STATE_CONT);
     }
 
-    this.prohibitSync = prohibitSync;
+    this.dataUrl = dataUrl;
     this.storage = storage;
+    this.syncHooks = {};
   }
 
   getNewGame(opposingTeamName, lineup, lineupType) {
@@ -144,7 +145,6 @@ export class GlobalState {
   }
 
   // SYNC
-
   syncStateToSyncStateName(syncState) {
     for (let i in SYNC_STATUS_ENUM) {
       if (syncState === SYNC_STATUS_ENUM[i]) {
@@ -158,11 +158,32 @@ export class GlobalState {
   // -1 network issue
   // -2 failed on fullSync = false
   // -3 failed on fullSync = true
-  async sync(fullSync) {
-    console.log('[SYNC] Sync requested', fullSync ? 'full' : 'patchOnly');
+  async sync(syncOptions) {
+    const fullSync = syncOptions?.fullSync ?? false;
+    const skipHooks = syncOptions?.skipHooks ?? false;
+    console.log(
+      '[SYNC] Sync requested',
+      fullSync ? 'full' : 'patchOnly',
+      this.dataUrl
+    );
 
-    if (this.prohibitSync) {
-      console.warn('[SYNC] Sync skipped because prohibitSync was enabled');
+    // If a dataURL was provided, we'll just load that data and skip all the sync stuff
+    if (this.dataUrl) {
+      console.warn(
+        '[SYNC] Alternate sync performed because dataURL was provided.'
+      );
+      const data = await this.request('GET', this.dataUrl);
+      console.log('MY DATA', data.body);
+      this.setLocalStateNoSideEffects(data.body);
+      this.setAncestorState(data.body);
+      console.log(
+        'NEW STATS',
+        this.buildStatsObject(
+          this.getAllPlateAppearancesForPlayer('00000000000001')
+        )
+      );
+
+      reRender();
       return;
     }
 
@@ -186,11 +207,6 @@ export class GlobalState {
         JSON.stringify(this.getLocalState())
       );
       let localState = this.getLocalState();
-
-      // Save the ancestor state so we can restore it if something goes wrong
-      //let ancestorStateCopy = JSON.parse(
-      //  JSON.stringify(this.getAncestorState())
-      //);
 
       // Get the patch ready to send to the server
       let body = {
@@ -296,6 +312,12 @@ export class GlobalState {
           console.log(
             '[SYNC] Sync was successful! (client and server checksums match)'
           );
+
+          if (!skipHooks) {
+            for (let syncHook of Object.values(this.syncHooks)) {
+              syncHook();
+            }
+          }
         }
 
         // Copy
@@ -369,7 +391,7 @@ export class GlobalState {
       } else if (+err.message === -2) {
         // Issue with patch based sync, re-try with a full sync
         console.warn('[SYNC] Issue with patch sync: attempting full sync');
-        return await this.sync(true);
+        return await this.sync({ fullSync: true });
       } else if (+err.message === 400) {
         console.warn('[SYNC] Issue with sync 400');
         dialog.show_notification(
@@ -395,9 +417,18 @@ export class GlobalState {
         console.warn(err.stack);
         this._setSyncState(SYNC_STATUS_ENUM.ERROR);
       }
+
       return err.message;
     }
   }
+
+  addSyncHook = (hookId, callback) => {
+    this.syncHooks[hookId] = callback;
+  };
+
+  removeSyncHook = (hookId) => {
+    delete this.syncHooks[hookId];
+  };
 
   resetSyncState() {
     this._setSyncState(SYNC_STATUS_ENUM.UNKNOWN);
@@ -451,8 +482,9 @@ export class GlobalState {
     return this.ANCESTOR_DB_STATE_CONT.get();
   }
 
-  setAncestorState(s) {
-    this.ANCESTOR_DB_STATE_CONT.set(s);
+  setAncestorState(newState) {
+    SharedLib.schemaValidation.validateSchema(newState, TLSchemas.CLIENT);
+    this.ANCESTOR_DB_STATE_CONT.set(newState);
   }
 
   getAncestorStateChecksum() {
@@ -1864,6 +1896,7 @@ export class GlobalState {
    * Perform a network request.
    * Will update the state's "isOnline" variable based on the call's success or failure
    * Will update the state's "isSessionValid" variable based on the call's success or failure
+   * TODO: this looks like the exact same thing sa s request, can we remove this?
    */
   async requestAuth(method, url, body, controller, overrideTimeout) {
     return await this._request(
@@ -1879,6 +1912,7 @@ export class GlobalState {
   /**
    * Perform a network request.
    * Will update the state's "isOnline" variable based on the call's success or failure
+   * Will update the state's "isSessionValid" variable based on the call's success or failure
    */
   async request(method, url, body, controller, overrideTimeout) {
     return await this._request(
@@ -1897,14 +1931,14 @@ let activeGlobalState = defaultState;
 export const getGlobalState = () => {
   return activeGlobalState;
 };
-export const setGlobalState = (inputData) => {
+export const setGlobalState = (inputData, dataUrl) => {
   const stateContainer =
     inputData == null ? null : new StateContainer(inputData);
   activeGlobalState = new GlobalState(
     stateContainer,
     undefined,
     new InMemoryStorage(),
-    true
+    dataUrl
   );
   console.log('[GLOBAL_STATE] setting global state' /*, activeGlobalState*/);
 };

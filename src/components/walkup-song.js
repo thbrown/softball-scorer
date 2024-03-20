@@ -1,10 +1,9 @@
-import expose from 'expose';
 import css from 'css';
+import React from 'react';
 
-export default class WalkupSong extends expose.Component {
+export default class WalkupSong extends React.Component {
   constructor(props) {
     super(props);
-    this.expose();
     this.key = 0;
     this.state = {
       key: 0,

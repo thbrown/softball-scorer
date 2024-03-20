@@ -25,8 +25,6 @@ const SharedLib = require('../shared-lib');
 const { readFile } = require('fs');
 const { sync } = require('./sync');
 
-const MONITORING_INTERVAL = 5000;
-
 module.exports = class SoftballServer {
   constructor(appPort, databaseCalls, cacheCalls, optimizationCompute) {
     this.databaseCalls = databaseCalls;
@@ -122,6 +120,8 @@ module.exports = class SoftballServer {
             'https://www.gstatic.com/recaptcha/',
             'https://www.google-analytics.com', // JSONP issues here? https://csp-evaluator.withgoogle.com/
             "'sha256-OHGELEzahSNrwMFzyUN05OBpNq1AOUmN5hPgB+af9p0='", // Google Analytics inline
+            'https://optimum-library-250223-default-rtdb.firebaseio.com',
+            'https://*.firebaseio.com',
             "'unsafe-eval'", // TODO: the stats page and some other things complain about missing this but it still works.
           ],
           connectSrc: [
@@ -132,12 +132,16 @@ module.exports = class SoftballServer {
             'https://www.google.com/recaptcha/api.js',
             'https://www.google-analytics.com',
             'https://i.ytimg.com',
+            'wss://optimum-library-250223-default-rtdb.firebaseio.com',
+            'https://*.firebaseio.com',
+            'wss://*.firebaseio.com',
           ],
           frameSrc: [
             'https://www.google.com/', // ReCapcha
             'https://thbrown.github.io/', // YouTube Proxy
             'https://optimizers.softball.app/', // Optimizers selection page
             'https://www.youtube-nocookie.com/', // YouTube Embeds
+            'https://*.firebaseio.com', // webRTC auto sync
             'http://localhost:8085/', // For testing optimizer selection locally
           ],
           mediaSrc: ['data:'], // This is for the noSleep lib, TODO: there might be a way to tighten this up

@@ -6,13 +6,17 @@ import CardStatsSeason from 'cards/card-stats-season';
 import HeaderTabs from 'elements/header-tabs';
 import Card from 'elements/card';
 import { getGlobalState } from 'state';
+import AutoUpdate from 'components/auto-update';
+import expose from 'expose';
 
-export default class CardStatsPublic extends React.Component {
+export default class CardStatsPublic extends expose.Component {
   static SEASON_TAB = 'season';
   static GAME_STATS_TAB = 'games';
 
   constructor(props) {
     super(props);
+
+    this.expose('public');
 
     this.handleTabClick = (tab) => {
       if (tab) {
@@ -26,6 +30,8 @@ export default class CardStatsPublic extends React.Component {
   }
 
   render() {
+    console.warn('Rendering CardStatsPublic', this.props);
+
     let tabToShow = null;
     if (this.props.tab === CardStatsPublic.GAME_STATS_TAB) {
       tabToShow = (
@@ -83,7 +89,7 @@ export default class CardStatsPublic extends React.Component {
             height: '28px',
           }}
         />
-
+        <AutoUpdate roomId={this.props.team.id} mode="sync"></AutoUpdate>
         <div style={{ marginTop: '6px' }}>{tabToShow}</div>
       </Card>
     );

@@ -1056,7 +1056,7 @@ class CardPlateAppearance extends React.Component {
             overflow: 'hidden',
           }}
         >
-          {/* Caution: Rendering anything above BallFieldSvg in this div might mess up spray chart y locations */}
+          {/* Caution: Rendering anything blocking above BallFieldSvg in this div might mess up spray chart y locations */}
           {runnerObjects}
           <BallFieldSvg />
           {indicators}

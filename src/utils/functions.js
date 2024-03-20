@@ -285,8 +285,9 @@ export function findLastIndex(arr, callback, startIndex) {
 }
 
 export function reRender() {
+  console.warn('SETTING MAIN RENDER TO', true);
   expose.set_state('main', {
-    render: true,
+    render: true, //!expose.get_state('main').render,
   });
 }
 

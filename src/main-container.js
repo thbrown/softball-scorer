@@ -20,16 +20,11 @@ const noSleep = new noSleepImport();
 
 // Long names overlap back button on AP page
 
-// Import file versioning (fix that page's css)
-
-// Delete account/data
 // Async localstorage interaction
 
-// Bad sql field in getState query results in unhandled promise rejection
 // Convert bad sync alert to native dialog
 
 // Optimization changes when status is not NOT_STATED
-// Optimization length limitations
 export default class MainContainer extends expose.Component {
   constructor(props) {
     super(props);
@@ -39,6 +34,10 @@ export default class MainContainer extends expose.Component {
       render: true,
       dialog: {},
     };
+  }
+
+  componentDidUpdate() {
+    console.warn('Main Updated!', this.state);
   }
 
   componentDidMount() {
@@ -157,15 +156,19 @@ export default class MainContainer extends expose.Component {
     const { renderRouteComponent, loading, ...props } = this.props;
     let CardComponent = null;
 
+    console.warn('Rendering MAIN COMPONENT', this.state.render);
+
     if (loading) {
       CardComponent = <CardLoading />;
     } else {
       try {
-        //TODO find a more elegant solution for routing/caching this data container
+        // TODO find a more elegant solution for routing/caching this data container
         if (
           props?.page?.slice(0, 14) === '/public-teams/' &&
           props.publicTeamId
         ) {
+          console.warn('Rendering DataContainer', this.state.render);
+
           CardComponent = (
             <DataContainer url={`server/team-stats/${this.props.publicTeamId}`}>
               {({ data, loading, error }) => {
