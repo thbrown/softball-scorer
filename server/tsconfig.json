@@ -18,7 +18,7 @@
     "esModuleInterop": true,
     "pretty": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
   },
   "references": [],
   "include": ["src/**/*", "test/**/*"]

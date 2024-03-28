@@ -22,7 +22,8 @@
     "esModuleInterop": true,
     "pretty": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true // https://github.com/vitejs/vite/issues/15714
   },
   "references": [],
   "include": ["src/**/*", "test/**/*"]
