@@ -292,7 +292,7 @@ export const updateSchema = function (
       // All pa hit locations after 1684735200 (~May 2023) should be adjusted up by 19px
       for (let team of inputJson.teams) {
         for (let game of team.games) {
-          if (game.date > 1684735200 && game.date < 1707952209) {
+          if (game.date > 1684735200 && game.date < 1710108028) {
             for (let pa of game.plateAppearances) {
               const currentY = pa.location?.y;
               if (currentY != null) {
