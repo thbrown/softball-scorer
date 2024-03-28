@@ -1,0 +1,56 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "cross-env DEVELOPMENT=true tsx watch --tsconfig ./tsconfig.json src/index.ts",
+    "start:prod": "tsx --no-cache --tsconfig ./tsconfig.json src/index.ts",
+    "typecheck": "tsc",
+    "test": "vitest --coverage run",
+    "test:ci": "vitest run",
+    "lint:check": "eslint --ext .ts,.js src",
+    "lint:fix": "eslint --ext .ts,.js --fix src"
+  },
+  "resolutions": {
+    "node-fetch": "^2.6.7"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^5.8.1",
+    "@types/express": "^4.17.21",
+    "acorn": "^8.0.4",
+    "ajv": "^8.11.0",
+    "base-x": "^3.0.6",
+    "bcrypt": "^5.0.0",
+    "body-parser": "^1.18.3",
+    "buffer": "^6.0.3",
+    "connect-redis": "^5.0.0",
+    "cookie-parser": "^1.4.4",
+    "cross-env": "^7.0.3",
+    "express": "^4.16.3",
+    "express-session": "^1.15.6",
+    "fast-json-patch": "^3.1.1",
+    "file-saver": "^2.0.0-rc.3",
+    "form-data": "^4.0.0",
+    "gcp-bucket-session-store": "^0.2.0",
+    "googleapis": "^66.0.0",
+    "got": "^11.8.0",
+    "helmet": "^4.2.0",
+    "jsonpointer": "^5.0.1",
+    "lz-string": "^1.4.4",
+    "mailgun.js": "^6.0.1",
+    "node-object-hash": "^2.3.10",
+    "passport": "^0.6.0",
+    "passport-local": "^1.0.0",
+    "process": "^0.11.10",
+    "reactify": "^1.1.1",
+    "redis": "^3.0.2",
+    "shared-lib": "1.0.0",
+    "strip-json-comments": "^5.0.1",
+    "uuid": "^8.3.1",
+    "zlib": "^1.0.5"
+  },
+  "devDependencies": {
+    "vite-plugin-pwa": "^0.19.5"
+  }
+}

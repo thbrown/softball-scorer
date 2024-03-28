@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "baseUrl": "src/",
+    "types": [
+      "node"
+    ],
+    "target": "ES2021",
+    "module": "es2020",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": false,
+    "lib": ["dom", "ES2017", "ES2021"],
+    "removeComments": true,
+    "sourceMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "strictNullChecks": true,
+    "noImplicitAny": false,
+    "jsx": "react",
+    "esModuleInterop": true,
+    "pretty": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true // https://github.com/vitejs/vite/issues/15714
+  },
+  "references": [],
+  "include": ["src/**/*", "test/**/*"]
+}

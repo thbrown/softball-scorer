@@ -1,0 +1,22 @@
+{
+  "name": "shared-lib",
+  "version": "1.0.0",
+  "description": "Shared assets for softball-scorer",
+  "main": "index.ts",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thbrown/softball-scorer.git"
+  },
+  "scripts": {
+    "lint": "eslint --ext .js,.ts,.tsx ."
+  },
+  "author": "Browns and Co.",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/thbrown/softball-scorer/issues"
+  },
+  "devDependencies": {
+    "ajv": "^8.12.0"
+  }
+}

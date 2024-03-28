@@ -1,0 +1,11 @@
+{
+  "typescript.validate.enable": true,
+  "javascript.validate.enable": true,
+  "cSpell.words": [
+    "apikey",
+    "javaversion",
+    "mailgun",
+    "recapcha",
+    "secretkey"
+  ]
+}
