@@ -41,31 +41,6 @@ export default class MainContainer extends expose.Component {
   }
 
   componentDidMount() {
-    // Register a service worker to support offline experience and quick subsequent page loads
-    if ('serviceWorker' in navigator) {
-      // When a new service worker is available, re-load the page
-      navigator.serviceWorker.oncontrollerchange = () => {
-        if (document.hidden) {
-          dialog.show_notification(
-            'Softball.app has been updated, this page will be automatically refreshed. You will not lose any data you have submitted.',
-            () => {
-              window.location.reload();
-            }
-          );
-        } else {
-          window.location.reload();
-        }
-      };
-
-      // The actual registration
-      window.addEventListener('load', function () {
-        // the service worker actively sabotages the webpack dev server
-        if (window.location.port !== '8889') {
-          console.log('[ServiceWorker] Load event');
-          navigator.serviceWorker.register('/service-worker.js');
-        }
-      });
-    }
 
     // TODO: if(test) logic should be removed and we should find a way to mock problematic APIs
     if (!this.props.test) {

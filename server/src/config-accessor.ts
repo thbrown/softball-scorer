@@ -84,11 +84,13 @@ export const loadConfig = function () {
   const configPath = path.resolve(__dirname, '../config.jsonc');
   try {
     _config = JSON.parse(
-      stripJsonComments(fs.readFileSync(configPath).toString())
+      stripJsonComments(fs.readFileSync(configPath).toString(), {
+        trailingCommas: true,
+      })
     );
   } catch (e) {
     console.error(e);
-    console.log(`Error: No ${configPath} file is present.`);
+    console.log(`Error: Could not read and parse config at ${configPath}.`);
     process.exit(1);
   }
 };
@@ -260,23 +262,23 @@ export const getSessionSecretKey = function () {
 
 export const getOptimizerDefinitionUrl = function (optimizerId) {
   const url =
-    getConfig().optimizerGallery.definitionsUrl ||
+    getConfig().optimizerGallery?.definitionsUrl ||
     'https://optimizers.softball.app/definitions';
   return url + '/' + optimizerId + '.json';
 };
 
 export const getYoutubeApiKey = function () {
-  return getConfig().youtube.apikey || undefined;
+  return getConfig().youtube?.apikey || undefined;
 };
 
 // Unused
 export const getAppOptimizationLockTTL = function () {
-  return getConfig().app.optimizationLockTTL || 30;
+  return getConfig().app?.optimizationLockTTL || 30;
 };
 
 // Unused
 export const getAppOptimizationSweeperPeriod = function () {
-  return getConfig().app.optimizationSweeperPeriod || 120;
+  return getConfig().app?.optimizationSweeperPeriod || 120;
 };
 
 // Logger must access the config directly because it we can't require modules that use the logger before the logger is configured

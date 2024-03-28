@@ -27,14 +27,6 @@ import {
   OptimizationComputeService,
 } from './service-types';
 
-const MONITORING_INTERVAL = 5000;
-
-// Serve from the build directory in production, the root in development
-const staticDir = path.resolve(
-  __dirname,
-  '../../' + (process.env.DEVELOPMENT === 'true' ? '' : 'build')
-);
-
 declare global {
   //eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
@@ -156,7 +148,7 @@ export class SoftballServer {
       cb(null, sessionInfo);
     });
 
-    // Prep the web server
+    // Prep the app/web servers
     const app = express();
     const server = http.createServer(app);
     // Middleware
@@ -185,6 +177,7 @@ export class SoftballServer {
             'https://www.gstatic.com/recaptcha/',
             'https://www.google-analytics.com', // JSONP issues here? https://csp-evaluator.withgoogle.com/
             "'sha256-OHGELEzahSNrwMFzyUN05OBpNq1AOUmN5hPgB+af9p0='", // Google Analytics inline
+            "'sha256-at/O9nqHPhIYutoNh7ehr92tZ3kWDuKEP4duFZjXkLA='", // Service-worker registration in index.html
             "'unsafe-eval'", // TODO: the stats page and some other things complain about missing this but it still works.
           ],
           connectSrc: [
@@ -216,7 +209,14 @@ export class SoftballServer {
         },
       })
     );
-    //app.use(helmet.referrerPolicy({ policy: "same-origin" })); // This breaks embeded youtube on ios safari
+    //app.use(helmet.referrerPolicy({ policy: "same-origin" })); // This breaks embedded youtube on ios safari
+
+    // Web server stuff (we might want ot break this into it's own server at some point)
+    // Serve from the build directory in production, the root in development
+    const staticDir = path.resolve(
+      __dirname,
+      process.env.DEVELOPMENT === 'true' ? '../../client/public' : '../../build'
+    );
 
     logger.dev('using staticDir', staticDir);
     app.use(express.static(staticDir));
@@ -224,9 +224,10 @@ export class SoftballServer {
       res.sendFile(path.resolve(__dirname, staticDir + '/index.html'));
     });
 
+    // Now app server stuff
     app.use(
       bodyParser.json({
-        limit: '3mb',
+        limit: '5mb',
         type: ['json', 'application/json', 'application/csp-report'],
       })
     );
@@ -652,33 +653,8 @@ export class SoftballServer {
       })
     );
 
-    // We moved the service worker, the old service worker can intercept the request to get the new service worker resulting in a stale site.
-    // We'll serve a no-op service worker at the old spot. Plus we'll add a "Clear-Site-Data" header to destroy the old service worker.
-    // That header was the only thing I could get to work on mobile chrome.
-    const resolveServiceWorker = function (req, res) {
-      logger.dev('?', 'Sending storage clear header');
-      res.set('Clear-Site-Data', 'storage');
-      res.set('Content-Type', 'application/javascript');
-      res.status(200).send(`// sw.js
-
-      self.addEventListener('install', () => {
-        self.skipWaiting();
-      });
-      
-      self.addEventListener('activate', () => {
-        self.clients.matchAll({
-          type: 'window'
-        }).then(windowClients => {
-          windowClients.forEach((windowClient) => {
-            windowClient.navigate(windowClient.url);
-          });
-        });
-      });`);
-      logger.dev('?', 'Sent storage clear header');
-    };
-    app.get('/service-worker', resolveServiceWorker);
-    app.get('/service-worker.js', resolveServiceWorker);
-
+    // TODO: Incorporate the workers into the main bundle so we don't have to serve them seperatley like this.
+    // https://stackoverflow.com/questions/5408406/web-workers-without-a-separate-javascript-file
     app.get('/web-workers/:fileName', function (req, res) {
       res.set('Content-Type', 'application/javascript');
       readFile(
@@ -691,10 +667,6 @@ export class SoftballServer {
           }
         }
       );
-    });
-
-    app.get('/server/manifest', function (req, res) {
-      res.redirect('/manifest.json');
     });
 
     app.delete(
@@ -1303,21 +1275,33 @@ export class SoftballServer {
       res.status(204).send();
     });
 
-    // The root should return the whole app
-    app.get(
-      '/',
-      wrapForErrorProcessing((req, res) => {
-        res.sendFile(staticDir + '/index.html');
-      })
-    );
-
     // Everything else loads the react app and is processed on the client side
     app.get(
       '*',
       wrapForErrorProcessing((req, res) => {
-        logger.warn('', 'unanticipated url', req.originalUrl);
-        // res.sendFile(staticDir + '/index.html');
-        res.redirect('/index.html');
+        const url = req.originalUrl;
+        const dontWarnList = [
+          '/menu/',
+          '/menu/import',
+          '/account/',
+          '/players/',
+          '/optimizations/',
+          '/teams/',
+          '/teams/*/games/*',
+          '/teams/*/games/*/scorer',
+          '/teams/*/games/*/lineup',
+          '/teams/*/games/*/lineup/plateAppearances/*',
+        ];
+        const dontWarn = dontWarnList.some((endpoint) => {
+          const regex = new RegExp('^' + endpoint.replace(/\*/g, '.*') + '$');
+          return regex.test(url);
+        });
+        if (!dontWarn) {
+          logger.warn('', 'unanticipated url', req.originalUrl);
+        } else {
+          logger.log('', 'app reload', req.originalUrl);
+        }
+        res.sendFile(staticDir + '/index.html');
       })
     );
 

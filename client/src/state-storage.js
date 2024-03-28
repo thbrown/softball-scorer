@@ -47,7 +47,7 @@ export class LocalStorageStorage {
       if (localStorage.getItem(SCHEMA_VERSION) !== CURRENT_LS_SCHEMA_VERSION) {
         console.warn(`Invalid localStorage data ${Object.keys(localStorage)}`);
         throw new LsSchemaVersionError(
-          `Out of date localstorage schema version was ${localStorage.getItem(
+          `Out of date or empty localstorage schema. Version was ${localStorage.getItem(
             SCHEMA_VERSION
           )} latest is ${CURRENT_LS_SCHEMA_VERSION}`
         );

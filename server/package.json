@@ -49,5 +49,8 @@
     "strip-json-comments": "^5.0.1",
     "uuid": "^8.3.1",
     "zlib": "^1.0.5"
+  },
+  "devDependencies": {
+    "vite-plugin-pwa": "^0.19.5"
   }
 }

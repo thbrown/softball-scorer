@@ -1,5 +1,6 @@
 # Softball.app
-## A web app for live recording batting data and leveraging that data to optimize lineups for Softball teams.  And walkup songs too ☻!
+
+## A web app for live recording batting data and leveraging that data to optimize lineups for Softball teams. And walkup songs too ☻!
 
 Live at https://softball.app/
 
@@ -27,7 +28,7 @@ Fix lint errors:
 
 ## Testing
 
-By default vitest runs in watch mode.  If you want to run tests with a "pass"/"fail" then run the :prod version.
+By default vitest runs in watch mode. If you want to run tests with a "pass"/"fail" then run the :prod version.
 
 ```
 # run all tests
@@ -36,7 +37,6 @@ yarn test
 # run client tests
 cd client
 yarn test
-
 
 #run server tests
 cd server
@@ -52,20 +52,39 @@ TODO: Figure out how to do this directly from vscode
 
 ## Dev
 
+Dev mode starts its own web server to serve client assets and proxies and app server requests to the app server.
+
 use `yarn start` if you want to start both dev server and softball.app server at the same time in the same terminal.
 
 Alternatively, with two terminals you can run `yarn start:client` and `yarn start:server` or go into the respective directories and run `yarn start`.
+
+## Prod
+
+Production uses the app server to serve all client web assets.
 
 If you would like to run the prod build do the following.
 
 ```
 # build client js code, which produces <git root>/build/*
-yarn build
+`yarn build`
 
 # run server in prod mode which serves from <git root>/build/*
-cd server
-yarn start:prod
+`yarn start:prod`
+
+# All together
+`yarn build && yarn start:prod`
 ```
+
+## Deploy
+
+1. Login to Google Cloud Platform
+2. Open a web ssh session on the compute instance the application is running on
+3. Type `screen -r`
+4. Kill the (ctrl+c)
+5. `git pull`
+6. Update any config (uncommon)
+7. `yarn build && yarn start:prod`
+8. Detach screen session (ctrl+A, ctrl+D)
 
 ## Optional features
 
@@ -103,7 +122,6 @@ If you are running from a gcp compute instance, you can set "access scope" on in
 If you are running on a local developer instance, you can auth with your Google credentials using the following command (using gcloud command line tools):
 
 ```
-
 gcloud auth application-default login
 
 ```
@@ -114,7 +132,7 @@ If you still get errors about permissions after setting IAM, you'll need to chec
 
 For details and other ways to authenticate, see https://cloud.google.com/docs/authentication/provide-credentials-adc
 
-### Nginx
+### Nginx (as reverse proxy)
 
 #### Linux
 
@@ -145,18 +163,16 @@ TODO
 Get an api key from mailgun then you put that API key in the server config file (`src-srv/config.js`) which is generated from `config-template.js` when start the app server for the first time.
 
 ```
-
 email: {
 apiKey: 'yourapikeygoeshere',
-domain: 'mg.softball.app', // Example domain
+domain: 'mg.softball.app',
 restrictEmailsToDomain: 'softball.app', // Only allow emails to softball.app (in development we don't want to email randos by accident, set to null in production)
 },
-
 ```
 
 ## Development:
 
-### Data Storage and JSON Schema
+### Schema
 
 Data is passed to the backend via JSON and database implementations are responsible for persisting it.
 
@@ -170,12 +186,12 @@ The JSON schema files are named with the following suffixes. We can mix and matc
 - private - This filed will never be sent ot the client.
 - read-only - This field cen be read by the client but can not be updated by the client via sync (the patch(..) method in the db files).
 
-### Top level schemas
+#### Top level schemas
 
 These are the schema files we actually do the validation against, they reference the other schema files in the schema directory.
 
 - Full - All data associate with an account. This is what gets sent to the db layer.
-- Client - Excludes private fields. This schema is used to validate the JSON document stored by the browser.
+- Client - Excludes private fields (e.g. password hashes). This schema is used to validate the JSON document stored by the browser.
 - Export - Excludes the account node. Also excludes all private and all read-only fields. This schema is used to validate data handled by the export/import feature.
 
 Note: JSON schema allows for the specification of a "readOnly" keyword. We don't use it because it doesn't have any affect on validation and the recommendation is to use the readOnly property to perform pre-processing (https://github.com/ajv-validator/ajv/issues/909) and generate READ or WRITE schemas accordingly. I don't want to write a JSON parser that does this, so we'll just define our read-only fields in their own files.
@@ -195,6 +211,11 @@ Each of the top-level schemas described above contain a metadata property at the
 1. If you've added read-only or private fields you may need to write code to convert between different schema types in `./shared/schema/schema-validation.js`
 1. If you've added read-only or private fields you may need to write code to prevent insecure patches in `./src-srv/patch-manager.js`
 1. Write your code to use your new schema!
+
+#### Service Worker
+
+This app contains a service worker that's used to enable offline access. The service worker is only generated and used for production builds of the app.
+You can enabled debugging (of the production code) by un-commenting `//mode: 'develop',` in the client vite config.
 
 ### Google Cloud Build
 

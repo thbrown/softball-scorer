@@ -1039,7 +1039,7 @@ export default class CardOptimization extends React.Component {
                     display: 'flex',
                   }}
                 >
-                  {bulkSelectButton}
+                  {optimization.status === OPTIMIZATION_STATUS_ENUM.NOT_STARTED ? bulkSelectButton : undefined}
                 </div>
                 {teamsCheckboxes}
               </div>

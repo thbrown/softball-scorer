@@ -112,7 +112,7 @@ const gcpOps = class GcpOps {
         );
       } catch (e) {
         // Caller checks fof 404
-        logger.error('Error reading blob', e);
+        logger.warn('Error reading blob', e.message);
         throw e;
       }
 
