@@ -77,21 +77,39 @@ If you would like to run the prod build do the following.
 
 ## Deploy
 
+From scratch:
+
+```
+# Create a new GCP compute instance (debian):
+sudo apt-get install -y git-core
+sudo apt-get install curl
+git clone lone https://github.com/thbrown/softball-sim.git
+curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install screen
+screen
+yarn
+yarn build # or `./gcp-build.sh` if you encounter get memory limitations with local build
+yarn start:prod
+# Detach screen session (ctrl+A, ctrl+D)
+```
+
+On an already running machine:
+
 1. Login to Google Cloud Platform
 2. Open a web ssh session on the compute instance the application is running on
 3. Type `screen -r`
-4. Kill the (ctrl+c)
+4. Kill the app/web server (ctrl+c)
 5. `git pull`
 6. Update any config (uncommon)
-7. `yarn build && yarn start:prod`
-8. Detach screen session (ctrl+A, ctrl+D)
+7. `yarn build` or `./gcp-build.sh` if you encounter get memory limitations with local build && yarn start:prod`
+8. `yarn start:prod`
+9. Detach screen session (ctrl+A, ctrl+D)
 
 ## Optional features
 
 The app will run without any of these enabled, but you can enable these for a production-like experience:
 
 - Cloud storage for persistent storage (uses file system storage by default - see `./database` after using the app)
-- Redis for caching/locking (uses in-memory caching/locking by default)
 - Nginx as a reverse proxy to enable TLS and rate limiting (no reverse proxy by default, un-encrypted, runs on port 8888, no rate limiting)
 - Cloud compute for running optimizations
 - Email via mailgun
@@ -99,6 +117,7 @@ The app will run without any of these enabled, but you can enable these for a pr
 ### Cloud storage setup
 
 1. Acquire a Google Cloud Platform (GCP) account.
+1. Install the google cloud SDK (https://cloud.google.com/sdk/docs/install-sdk)
 1. In the server `config.js` of this app, specify `GcpBuckets` mode and bucket names, like so:
 
 ```

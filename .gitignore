@@ -12,6 +12,7 @@ database/*
 session/*
 server/database/*
 server/session/*
+server/src/optimizations-temp/*
 
 logs/*
 server/logs/*
@@ -33,7 +34,6 @@ coverage
 workers/service-worker.js
 client/build
 client/config/
-server/src/optimizations-temp/
 src-srv/logs
 config-common.js
 *.sublime-project

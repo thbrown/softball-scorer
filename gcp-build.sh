@@ -16,13 +16,8 @@ PROJECT=$(gcloud config list --format 'value(core.project)' 2>/dev/null)
 echo "Building Project ${PROJECT}"
 gcloud builds submit --config cloudbuild.yml
 
-## TODO: this does not copy over the webworker files from build directory. Change this to copy the whole build directory.
-echo "Pulling build artifacts from storage bucket"
-gsutil cp "gs://${PROJECT}_cloudbuild/build/index.html" ./build
-gsutil cp "gs://${PROJECT}_cloudbuild/build/main.js" ./build
-gsutil cp "gs://${PROJECT}_cloudbuild/build/main.css" ./assets
-gsutil cp "gs://${PROJECT}_cloudbuild/workers" ./workers
-gsutil cp "gs://${PROJECT}_cloudbuild/shared-lib" ./shared-lib
+## Copy the build directory to local
+echo "Pulling build artifacts from storage bucket ${PROJECT}"
+rm -r ./build
+gsutil cp -r "gs://${PROJECT}_cloudbuild/build" ./
 
-# Uncomment this if you just want a defalt config, it will override the local
-#gsutil cp gs://optimum-library-250223_cloudbuild/build/config.js ./src-srv

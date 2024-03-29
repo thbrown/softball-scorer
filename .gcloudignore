@@ -1,0 +1,19 @@
+# This file is used when going a gcp cloud build, to limit what files are uploaded to the build server
+# See https://cloud.google.com/sdk/gcloud/reference/topic/gcloudignore
+
+.git
+/node_modules/
+/client/node_modules/
+/server/node_modules/
+/server/config.jsonc
+/server/src/optimizations-temp
+/build/
+
+/database/*
+/session/*
+/server/database/*
+/server/session/*
+/server/src/optimizations-temp/*
+
+# Ignore everything we've specified in the git ignore file (not sure this is working)
+!include:.gitignore
