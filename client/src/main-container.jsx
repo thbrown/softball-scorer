@@ -41,7 +41,6 @@ export default class MainContainer extends expose.Component {
   }
 
   componentDidMount() {
-
     // TODO: if(test) logic should be removed and we should find a way to mock problematic APIs
     if (!this.props.test) {
       // Load data from browser storage
@@ -135,7 +134,7 @@ export default class MainContainer extends expose.Component {
       CardComponent = <CardLoading />;
     } else {
       try {
-        //TODO find a more elegant solution for routing/caching this data container
+        // TODO find a more elegant solution for routing/caching this data container
         if (
           props?.page?.slice(0, 14) === '/public-teams/' &&
           props.publicTeamId

@@ -9,33 +9,22 @@ export default class CardPlayerSelect extends React.Component {
   constructor(props) {
     super(props);
 
-    const players = this.props.players;
-    let options = [];
-    for (let playerIndex = 0; playerIndex < players.length; playerIndex++) {
-      let entry = {
-        value: players[playerIndex].id,
-        label: players[playerIndex].name,
-      };
-      options.push(entry);
+    function mapPlayersToEntry(selectedPlayerIds) {
+      return selectedPlayerIds
+        .map((playerId) => getGlobalState().getPlayer(playerId))
+        .filter((player) => player !== null)
+        .map((player) => ({ value: player.id, label: player.name }));
     }
 
-    let startingValues = [];
-    for (let i = 0; i < props.selected.length; i++) {
-      let player = getGlobalState().getPlayer(props.selected[i]);
-      if (!player) {
-        // Player may have been deleted, this should remove them going forward  (only applicable
-        // for the optimization players list, players in a lineup can't be deleted)
-        continue;
-      }
-      let entry = {
-        value: player.id,
-        label: player.name,
-      };
-      startingValues.push(entry);
+    function mapEntriesToPlayerId(entries) {
+      return entries.map((entry) => entry.value);
     }
+
+    const options = mapPlayersToEntry(this.props.players.map((p) => p.id));
+    const startingValues = mapPlayersToEntry(props.selected);
 
     this.state = {
-      players: Array.from(startingValues.slice(0).map((v) => v.value)),
+      selectedPlayers: startingValues,
       options: options,
       startingValues: startingValues,
       typed: '',
@@ -66,7 +55,7 @@ export default class CardPlayerSelect extends React.Component {
     };
 
     this.handleConfirmClick = function () {
-      props.onComplete(this.state.players);
+      props.onComplete(mapEntriesToPlayerId(this.state.selectedPlayers));
       goBack();
     };
 
@@ -79,20 +68,17 @@ export default class CardPlayerSelect extends React.Component {
     };
 
     this.handleBackOrHome = function () {
-      props.onComplete(this.state.players);
+      props.onComplete(mapEntriesToPlayerId(this.state.selectedPlayers));
     };
 
     this.onChange = function (selectedOptions) {
       if (selectedOptions) {
-        let valuesOnly = Array.from(
-          selectedOptions.slice(0).map((v) => v.value)
-        );
         this.setState({
-          players: valuesOnly,
+          selectedPlayers: selectedOptions,
         });
       } else {
         this.setState({
-          players: [],
+          selectedPlayers: [],
         });
       }
     };
@@ -137,6 +123,18 @@ export default class CardPlayerSelect extends React.Component {
       this.setState({
         options: optionsCopy,
       });
+
+      // Add the player to the selection list
+      this.setState((prevState) => ({
+        selectedPlayers: [
+          ...prevState.selectedPlayers,
+          {
+            value: newPlayer.id,
+            label: newPlayer.name,
+          },
+        ],
+        typed: '',
+      }));
     };
 
     this.noOptionsMessage = function () {
@@ -233,6 +231,8 @@ export default class CardPlayerSelect extends React.Component {
           defaultValue={this.state.startingValues}
           menuIsOpen={this.state.menuIsOpen}
           placeholder={"Type a player's name..."}
+          value={this.state.selectedPlayers}
+          inputValue={this.state.typed}
         />
       </div>
     );
