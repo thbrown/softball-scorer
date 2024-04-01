@@ -271,32 +271,41 @@ export default class StateIndex {
   // =============== | INDEX GETTERS | ==================
 
   getTeamIndex(teamId) {
-    return StateIndex._splitJsonPointer(this._getTeam(teamId)).at(-1);
+    const team = this._getTeam(teamId);
+    if (team === undefined) return undefined;
+    return StateIndex._splitJsonPointer(team).at(-1);
   }
-
+  
   getPlayerIndex(playerId) {
-    return StateIndex._splitJsonPointer(this._getPlayer(playerId)).at(-1);
+    const player = this._getPlayer(playerId);
+    if (player === undefined) return undefined;
+    return StateIndex._splitJsonPointer(player).at(-1);
   }
-
+  
   getOptimizationIndex(optimizationId) {
-    return StateIndex._splitJsonPointer(
-      this._getOptimization(optimizationId)
-    ).at(-1);
+    const optimization = this._getOptimization(optimizationId);
+    if (optimization === undefined) return undefined;
+    return StateIndex._splitJsonPointer(optimization).at(-1);
   }
-
+  
   getGameIndex(gameId) {
-    return StateIndex._splitJsonPointer(this._getGame(gameId)).at(-1);
+    const game = this._getGame(gameId);
+    if (game === undefined) return undefined;
+    return StateIndex._splitJsonPointer(game).at(-1);
   }
-
+  
   getPaIndex(paId) {
-    return StateIndex._splitJsonPointer(this._getPa(paId)).at(-1);
+    const pa = this._getPa(paId);
+    if (pa === undefined) return undefined;
+    return StateIndex._splitJsonPointer(pa).at(-1);
   }
-
+  
   getPaFromOptimizationIndex(paId) {
-    return StateIndex._splitJsonPointer(this._getPaFromOptimization(paId)).at(
-      -1
-    );
+    const pa = this._getPaFromOptimization(paId);
+    if (pa === undefined) return undefined;
+    return StateIndex._splitJsonPointer(pa).at(-1);
   }
+  
 
   // =============== | POINTER GETTERS (internal) | ==================
 

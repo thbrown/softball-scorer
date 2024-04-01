@@ -725,7 +725,7 @@ export class GlobalState {
     const allOverrides = optimization.overrideData;
     const playerOverrides = allOverrides[playerId];
 
-    const paIndex = this.INDEX.getOptimizationIndex(paId);
+    const paIndex = this.INDEX.getPaFromOptimizationIndex(paId);
     playerOverrides[paIndex] = paToAdd;
     this._onEdit();
   }
@@ -919,6 +919,9 @@ export class GlobalState {
   getNextPlateAppearance(paId) {
     const game = this.INDEX.getGameForPa(paId);
     const paIndex = this.INDEX.getPaIndex(paId);
+    if(game === undefined || paIndex === undefined) {
+      return undefined;
+    }
     return paIndex === game.lineup.length
       ? undefined
       : { ...game.plateAppearances[paIndex + 1] };
@@ -927,6 +930,9 @@ export class GlobalState {
   getPreviousPlateAppearance(paId) {
     const game = this.INDEX.getGameForPa(paId);
     const paIndex = this.INDEX.getPaIndex(paId);
+    if(game === undefined || paIndex === undefined) {
+      return undefined;
+    }
     return paIndex === 0
       ? undefined
       : { ...game.plateAppearances[paIndex - 1] };
@@ -1445,62 +1451,64 @@ export class GlobalState {
 
         // Runners on base avg - this uses the state object which might be an issue if we want this to eventually be in a web worker
         const previousPa = this.getPreviousPlateAppearance(pa.id);
-        const prevRunners = previousPa?.runners;
-        const dateWeStartedTrackingRunners = this.getPlateAppearanceObjects(
-          pa.id
-        ).game.date;
-        const isInvalidEntry = dateWeStartedTrackingRunners < 1672531200;
-        if (results.getHitResults().includes(pa.result)) {
-          if (isInvalidEntry) {
-            // We don't care about PAs before we started tracking base runners
-          } else if (prevRunners === undefined) {
-            stats.hitsWithRunnersOn_000++;
-          } else if (
-            previousPa.runners['1B'] &&
-            previousPa.runners['2B'] &&
-            previousPa.runners['3B']
-          ) {
-            stats.hitsWithRunnersOn_111++;
-          } else if (previousPa.runners['1B'] && previousPa.runners['2B']) {
-            stats.hitsWithRunnersOn_110++;
-          } else if (previousPa.runners['2B'] && previousPa.runners['3B']) {
-            stats.hitsWithRunnersOn_011++;
-          } else if (previousPa.runners['1B'] && previousPa.runners['3B']) {
-            stats.hitsWithRunnersOn_101++;
-          } else if (previousPa.runners['1B']) {
-            stats.hitsWithRunnersOn_100++;
-          } else if (previousPa.runners['2B']) {
-            stats.hitsWithRunnersOn_010++;
-          } else if (previousPa.runners['3B']) {
-            stats.hitsWithRunnersOn_001++;
-          } else {
-            stats.hitsWithRunnersOn_000++;
-          }
-        } else if (results.getNoHitResults().includes(pa.result)) {
-          if (isInvalidEntry) {
-            // We don't care about PAs before we started tracking base runners
-          } else if (prevRunners === undefined) {
-            stats.hitsWithRunnersOn_000++;
-          } else if (
-            previousPa.runners['1B'] &&
-            previousPa.runners['2B'] &&
-            previousPa.runners['3B']
-          ) {
-            stats.missesWithRunnersOn_111++;
-          } else if (previousPa.runners['1B'] && previousPa.runners['2B']) {
-            stats.missesWithRunnersOn_110++;
-          } else if (previousPa.runners['2B'] && previousPa.runners['3B']) {
-            stats.missesWithRunnersOn_011++;
-          } else if (previousPa.runners['1B'] && previousPa.runners['3B']) {
-            stats.missesWithRunnersOn_101++;
-          } else if (previousPa.runners['1B']) {
-            stats.missesWithRunnersOn_100++;
-          } else if (previousPa.runners['2B']) {
-            stats.missesWithRunnersOn_010++;
-          } else if (previousPa.runners['3B']) {
-            stats.missesWithRunnersOn_001++;
-          } else {
-            stats.missesWithRunnersOn_000++;
+        if(previousPa !== undefined) { // PAs in optimization overrides are don't have previous PAs
+          const prevRunners = previousPa?.runners;
+          const dateWeStartedTrackingRunners = this.getPlateAppearanceObjects(
+            pa.id
+          ).game.date;
+          const isInvalidEntry = dateWeStartedTrackingRunners < 1672531200;
+          if (results.getHitResults().includes(pa.result)) {
+            if (isInvalidEntry) {
+              // We don't care about PAs before we started tracking base runners
+            } else if (prevRunners === undefined) {
+              stats.hitsWithRunnersOn_000++;
+            } else if (
+              previousPa.runners['1B'] &&
+              previousPa.runners['2B'] &&
+              previousPa.runners['3B']
+            ) {
+              stats.hitsWithRunnersOn_111++;
+            } else if (previousPa.runners['1B'] && previousPa.runners['2B']) {
+              stats.hitsWithRunnersOn_110++;
+            } else if (previousPa.runners['2B'] && previousPa.runners['3B']) {
+              stats.hitsWithRunnersOn_011++;
+            } else if (previousPa.runners['1B'] && previousPa.runners['3B']) {
+              stats.hitsWithRunnersOn_101++;
+            } else if (previousPa.runners['1B']) {
+              stats.hitsWithRunnersOn_100++;
+            } else if (previousPa.runners['2B']) {
+              stats.hitsWithRunnersOn_010++;
+            } else if (previousPa.runners['3B']) {
+              stats.hitsWithRunnersOn_001++;
+            } else {
+              stats.hitsWithRunnersOn_000++;
+            }
+          } else if (results.getNoHitResults().includes(pa.result)) {
+            if (isInvalidEntry) {
+              // We don't care about PAs before we started tracking base runners
+            } else if (prevRunners === undefined) {
+              stats.hitsWithRunnersOn_000++;
+            } else if (
+              previousPa.runners['1B'] &&
+              previousPa.runners['2B'] &&
+              previousPa.runners['3B']
+            ) {
+              stats.missesWithRunnersOn_111++;
+            } else if (previousPa.runners['1B'] && previousPa.runners['2B']) {
+              stats.missesWithRunnersOn_110++;
+            } else if (previousPa.runners['2B'] && previousPa.runners['3B']) {
+              stats.missesWithRunnersOn_011++;
+            } else if (previousPa.runners['1B'] && previousPa.runners['3B']) {
+              stats.missesWithRunnersOn_101++;
+            } else if (previousPa.runners['1B']) {
+              stats.missesWithRunnersOn_100++;
+            } else if (previousPa.runners['2B']) {
+              stats.missesWithRunnersOn_010++;
+            } else if (previousPa.runners['3B']) {
+              stats.missesWithRunnersOn_001++;
+            } else {
+              stats.missesWithRunnersOn_000++;
+            }
           }
         }
       }
