@@ -157,7 +157,9 @@ export const getCacheService = async function () {
     }
   } else if (mode === 'Memory') {
     cache = new CacheCallsMemory();
-  } else {
+  } else if (mode === 'FileSystem') {
+    cache = new CacheCallsFileSystem();
+  }  else {
     cache = new CacheCallsFileSystem();
     logger.warn(
       '',

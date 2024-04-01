@@ -14,6 +14,8 @@ server/database/*
 server/session/*
 server/src/optimizations-temp/*
 
+schema-json/schema-ts
+
 logs/*
 server/logs/*
 

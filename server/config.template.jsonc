@@ -9,21 +9,13 @@
     "optimizationLockTTL": null
   },
   "database": {
-    "mode": "FileSystem",
-    "host": null,
-    "port": null,
-    "username": null,
-    "password": null,
-    "database": null
+    "mode": "FileSystem"
   },
   "cache": {
-    "host": null,
-    "port": null,
-    "password": null
+    "mode": "FileSystem"
   },
-  // If you enable session caching, but don't set this, your sessions wont persist across app server restarts
   "session": {
-    "secretkey": null
+    "secretkey": "default-key"
   },
   "recapcha": {
     "secretkey": null
@@ -41,8 +33,7 @@
     "port": null
   },
   "optimizationCompute": {
-    "mode": "local",
-    "params": null
+    "mode": "local"
   },
   "youtube": {
     "apikey": null
@@ -51,3 +42,4 @@
     "definitionsUrl": null
   }
 }
+

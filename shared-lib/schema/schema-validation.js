@@ -41,11 +41,11 @@ const ajv = new Ajv({
 
 export let validateSchemaNoThrow = function (inputJson, schemaId) {
   let validateSchemaObj = ajv.getSchema(
-    `http://softball.app/schemas/${schemaId}`
+    `/schema-json/${schemaId}`
   );
 
   if (!validateSchemaObj) {
-    throw new Error('The specified schema does not exist: ' + schemaId);
+    throw new Error('The specified schema does not exist: ' + schemaId + " " + validateSchemaObj);
   }
 
   const result = validateSchemaObj(inputJson);

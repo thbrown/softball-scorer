@@ -17,6 +17,7 @@
     "url": "https://github.com/thbrown/softball-scorer/issues"
   },
   "devDependencies": {
-    "ajv": "^8.12.0"
+    "ajv": "^8.12.0",
+    "json-schema-to-typescript": "^13.1.2"
   }
 }
