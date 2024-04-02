@@ -9,6 +9,9 @@
 /server/src/optimizations-temp
 /build/
 
+softball-sim.jar
+logs
+
 /database/*
 /session/*
 /server/database/*

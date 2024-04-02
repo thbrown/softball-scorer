@@ -13,6 +13,11 @@
 
 PROJECT=$(gcloud config list --format 'value(core.project)' 2>/dev/null)
 
+# Delete contents of the build bucket
+echo "Deleting old build files in gs://${PROJECT}_cloudbuild"
+gsutil -m rm -r "gs://${PROJECT}_cloudbuild/*"
+
+# Start a new build
 echo "Building Project ${PROJECT}"
 gcloud builds submit --config cloudbuild.yml
 
@@ -20,4 +25,3 @@ gcloud builds submit --config cloudbuild.yml
 echo "Pulling build artifacts from storage bucket ${PROJECT}"
 rm -r ./build
 gsutil cp -r "gs://${PROJECT}_cloudbuild/build" ./
-
