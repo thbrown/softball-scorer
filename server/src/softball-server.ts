@@ -226,8 +226,9 @@ export class SoftballServer {
 
     // Now app server stuff
     app.use(
+      // This is also limited by nginx in prod
       bodyParser.json({
-        limit: '5mb',
+        limit: '10mb',
         type: ['json', 'application/json', 'application/csp-report'],
       })
     );

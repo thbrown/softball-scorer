@@ -7,7 +7,6 @@
 import baseX from 'base-x';
 const BASE62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const bs62 = baseX(BASE62);
-import buffer from 'buffer';
 import crypto from 'crypto';
 
 // Client ids are 14 chars base 62 (e.g. 1CHDaeMNJlrvWW)
@@ -24,7 +23,7 @@ const clientIdToServerId = function (clientId, accountId) {
 // account id of the account this entity belongs to (e.g. 000000010000d3d7203977664fdb23cf)
 const serverIdToClientId = function (serverId) {
   return bs62
-    .encode(buffer.from(serverId.replace(/-/g, '').substr(12), 'hex'))
+    .encode(Buffer.from(serverId.replace(/-/g, '').substr(12), 'hex'))
     .padStart(14, '0');
 };
 
