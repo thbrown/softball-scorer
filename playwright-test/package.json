@@ -1,0 +1,16 @@
+{
+  "name": "playwright-test",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "playwright": "^1.42.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.42.1",
+    "@types/node": "^20.12.3"
+  },
+  "scripts": {
+    "start": "cd.. && ./start.sh",
+    "test": "npx playwright test"
+  }
+}

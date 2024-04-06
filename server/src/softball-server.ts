@@ -26,6 +26,7 @@ import {
   DatabaseService,
   OptimizationComputeService,
 } from './service-types';
+import { config } from 'process';
 
 declare global {
   //eslint-disable-next-line @typescript-eslint/no-namespace
@@ -422,33 +423,35 @@ export class SoftballServer {
         checkRequiredField(req.body.password, 'password');
         checkFieldLength(req.body.password, 320);
 
-        checkRequiredField(req.body.reCAPCHA, 'reCAPCHA');
-        if (configAccessor.getRecapchaSecretKey()) {
-          try {
-            const recapchaResponse = await got.post(
-              `https://www.google.com/recaptcha/api/siteverify?secret=${configAccessor.getRecapchaSecretKey()}&response=${
-                req.body.reCAPCHA
-              }`
-            );
-            const recapchaResponseBody = JSON.parse(recapchaResponse.body);
-            if (!recapchaResponseBody.success) {
-              throw new HandledError(
-                'N/A',
-                400,
-                "We don't serve their kind here",
-                recapchaResponse.body
+        if (configAccessor.getRecapchaSecretKey() == null) {
+          checkRequiredField(req.body.reCAPCHA, 'reCAPCHA');
+          if (configAccessor.getRecapchaSecretKey()) {
+            try {
+              const recapchaResponse = await got.post(
+                `https://www.google.com/recaptcha/api/siteverify?secret=${configAccessor.getRecapchaSecretKey()}&response=${
+                  req.body.reCAPCHA
+                }`
               );
-            }
-          } catch (error) {
-            if (error instanceof HandledError) {
-              throw error;
-            } else {
-              throw new HandledError(
-                'N/A',
-                500,
-                'Failed to get recapcha approval from Google',
-                error
-              );
+              const recapchaResponseBody = JSON.parse(recapchaResponse.body);
+              if (!recapchaResponseBody.success) {
+                throw new HandledError(
+                  'N/A',
+                  400,
+                  "We don't serve their kind here",
+                  recapchaResponse.body
+                );
+              }
+            } catch (error) {
+              if (error instanceof HandledError) {
+                throw error;
+              } else {
+                throw new HandledError(
+                  'N/A',
+                  500,
+                  'Failed to get recapcha approval from Google',
+                  error
+                );
+              }
             }
           }
         }

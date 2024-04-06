@@ -99,7 +99,7 @@ export default class CardAuth extends React.Component {
               dialog.show_yes_no_cancel(
                 <div>
                   Would you like to keep the data you entered here while you
-                  weren't logged in?
+                  weren&apos;t logged in?
                   <div style={{ margin: '1rem' }}>
                     <div>
                       Selecting <b>no</b> will delete the local data
@@ -107,7 +107,7 @@ export default class CardAuth extends React.Component {
                     </div>
                     <div>
                       Selecting <b>yes</b> will merge local data with your
-                      account's data.
+                      account&apos;s data.
                     </div>
                   </div>
                 </div>,
@@ -207,6 +207,7 @@ export default class CardAuth extends React.Component {
             placeholder="Email"
             className="page-width-input"
             disabled={this.state.logInInProgress}
+            autoComplete="username"
           />
           <input
             type="password"
@@ -215,6 +216,7 @@ export default class CardAuth extends React.Component {
             placeholder="Password"
             className="page-width-input"
             disabled={this.state.logInInProgress}
+            autoComplete="current-password"
           />
           <button
             type="submit"
@@ -237,8 +239,8 @@ export default class CardAuth extends React.Component {
         <hr style={{ margin: '16px' }}></hr>
         <div>
           <button
-            key="signup"
-            id="signup"
+            key="create-account"
+            id="create-account"
             className="button list-button page-width-input"
             onClick={this.handleSignupClick}
           >

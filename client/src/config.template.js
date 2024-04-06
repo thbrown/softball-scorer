@@ -3,7 +3,7 @@
  **/
 const config = {
   recapcha: {
-    sitekey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI', // This site key will always pass
+    sitekey: null, //'6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI', // This site key will always pass
   },
   network: {
     timeout: 10000,

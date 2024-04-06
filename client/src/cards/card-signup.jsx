@@ -17,8 +17,11 @@ export default class CardSignup extends React.Component {
     this.handleSubmitClick = async function () {
       let email = document.getElementById('email');
       let password = document.getElementById('password');
-      let passwordConfirm = document.getElementById('passwordConfirm');
-      let recapchaResult = window.grecaptcha.getResponse(this.recapchaId);
+      let passwordConfirm = document.getElementById('password-confirm');
+      let recapchaResult =
+        config.recapcha.sitekey == null
+          ? 'dummy'
+          : window.grecaptcha.getResponse(this.recapchaId);
 
       if (
         !email.value ||
@@ -36,7 +39,7 @@ export default class CardSignup extends React.Component {
           return !map[field];
         });
         dialog.show_notification(
-          'Please fill out the following required fields: ' +
+          'Okay Please fill out the following required fields: ' +
             missingFields.join(', ')
         );
         return;
@@ -110,7 +113,9 @@ export default class CardSignup extends React.Component {
         window.grecaptcha.render
       ) {
         this.recapchaId = window.grecaptcha.render('recapcha', {
-          sitekey: config.recapcha.sitekey,
+          sitekey:
+            config.recapcha.sitekey ??
+            '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
         });
 
         // Apparently CSP and reCAPCHA are a disaster in Chrome. Because we can't get the styling from Google, we'll just hide the annoying box that shows up. That's the styling we care about most.
@@ -141,6 +146,7 @@ export default class CardSignup extends React.Component {
       /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     return re.test(String(email).toLowerCase());
   }
+
   renderAuthInterface() {
     return (
       <div className="auth-input-container">
@@ -159,8 +165,8 @@ export default class CardSignup extends React.Component {
           type="password"
         />
         <input
-          key="passwordConfirm"
-          id="passwordConfirm"
+          key="password-confirm"
+          id="password-confirm"
           className="auth-input"
           placeholder="Confirm Password"
           type="password"
@@ -192,8 +198,8 @@ export default class CardSignup extends React.Component {
             marginTop: '10px',
           }}
         >
-          Another account's data is loaded locally. Any data you see here will
-          not be available in your new account.
+          Another account&apos;`s data is loaded locally. Any data you see here
+          will not be available in your new account.
         </div>
       );
     }

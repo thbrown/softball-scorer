@@ -14,7 +14,7 @@ export default class CardPasswordReset extends React.Component {
 
     this.handleSubmitClick = async function () {
       const password = document.getElementById('password');
-      const passwordConfirm = document.getElementById('passwordConfirm');
+      const passwordConfirm = document.getElementById('password-confirm');
 
       if (!password.value || !passwordConfirm.value) {
         const map = {
@@ -87,8 +87,8 @@ export default class CardPasswordReset extends React.Component {
           type="password"
         />
         <input
-          key="passwordConfirm"
-          id="passwordConfirm"
+          key="password-confirm"
+          id="password-confirm"
           className="auth-input"
           placeholder="Confirm Password"
           type="password"
