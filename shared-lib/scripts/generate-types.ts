@@ -14,14 +14,6 @@ function changeExtensionToTs(filename: string) {
   return newFilename;
 }
 
-// async function createRefDirectory() {
-//   try {
-//     await fs.promises.mkdir(__dirname + '/../', { recursive: true });
-//   } catch (err) {
-//     console.error(`Error creating directory: ${err}`);
-//   }
-// }
-
 async function copySchemaFiles(filePaths: string[]) {
   for (const file of filePaths) {
     const fileContents = fs.readFileSync(file, 'utf8');
@@ -38,7 +30,6 @@ async function compileFile(file: string) {
   console.log(`Compile: ${file}`);
   return compileFromFile(file)
     .then((ts) => {
-      // fs.writeFileSync(path.resolve(outputDir, changeExtensionToTs(file)), ts);
       return ts;
     })
     .catch((err) => {
@@ -68,9 +59,6 @@ async function iterateFilesInDirectory(
 }
 
 const main = async () => {
-  // iterateFilesInDirectory(path.resolve(__dirname, '../schema-json/'));
-  // await Promise.all(promises);
-
   const inputJsonFiles = await iterateFilesInDirectory(
     path.resolve(__dirname, '../schema-json/')
   );
@@ -85,16 +73,5 @@ const main = async () => {
     );
   }
   console.log('done');
-
-  // compileFromFile(
-  //   '/mnt/c/progs/softball-scorer/shared-lib/schema-json/optimization.json'
-  // )
-  //   .then((ts) => {
-  //     console.log('DONE', ts);
-  //     // fs.writeFileSync(path.resolve(outputDir, changeExtensionToTs(file)), ts);
-  //   })
-  //   .catch((err) => {
-  //     console.error(`Error compiling file: ${err}`);
-  //   });
 };
 main();
