@@ -14,6 +14,15 @@ function changeExtensionToTs(filename: string) {
   return newFilename;
 }
 
+async function mkdirp(directoryPath: string) {
+  try {
+    await fs.promises.mkdir(directoryPath, { recursive: true });
+    console.log(`Directory ${directoryPath} created or already exists`);
+  } catch (err) {
+    console.error(`Error creating directory ${directoryPath}: ${err}`);
+  }
+}
+
 async function copySchemaFiles(filePaths: string[]) {
   for (const file of filePaths) {
     const fileContents = fs.readFileSync(file, 'utf8');
@@ -59,6 +68,7 @@ async function iterateFilesInDirectory(
 }
 
 const main = async () => {
+  await mkdirp(schemaRelDir);
   const inputJsonFiles = await iterateFilesInDirectory(
     path.resolve(__dirname, '../schema-json/')
   );
