@@ -7,6 +7,7 @@ import { setRoute } from 'actions/route';
 import css from 'css';
 import IconButton from '../elements/icon-button';
 import HrTitle from 'elements/hr-title';
+import { Game, PlateAppearance, Player, Team } from 'shared-lib/types';
 
 // Enum for player tile render options
 const FULL_EDIT = 'fullEdit';
@@ -16,8 +17,71 @@ const NO_EDIT = 'noEdit';
 const SIMULATION_TEXT = 'Estimating Lineup Score...';
 const PLAYER_TILE_HEIGHT = 43;
 
+interface CardLineupProps {
+  game: Game;
+  team: Team;
+}
+
+const hideHighlights = (skipTransition: boolean) => {
+  const highlights = Array.from(
+    document.getElementsByClassName('highlight')
+  ) as HTMLDivElement[];
+  for (let i = 0; i < highlights.length; i++) {
+    if (skipTransition) {
+      highlights[i].classList.add('no-transition');
+    }
+    highlights[i].style.visibility = 'hidden';
+    highlights[i].style.height = '0px';
+    if (skipTransition) {
+      // highlights[i].offsetHeight; // Trigger a reflow, otherwise transitions will still occur
+      highlights[i].classList.remove('no-transition');
+    }
+  }
+};
+
+const showHighlight = (i, skipTransition) => {
+  const elem = document.getElementById('highlight' + i);
+  if (elem) {
+    if (skipTransition) {
+      elem.classList.add('no-transition');
+    }
+    elem.style.visibility = 'visible';
+    elem.style.height = `${PLAYER_TILE_HEIGHT + 2}px`;
+    if (skipTransition) {
+      // elem.offsetHeight; // Trigger a reflow, otherwise transitions will still occur
+      elem.classList.remove('no-transition');
+    }
+  }
+};
+
+const getInds = (game: Game, elem: HTMLElement, index: number) => {
+  const deltaY = parseInt(elem.style.transform.slice(15)) - 15;
+  const diff = Math.floor(deltaY / PLAYER_TILE_HEIGHT) + 1;
+  let highlight_index = index + diff;
+  if (diff >= 0) {
+    highlight_index++;
+  }
+  if (highlight_index <= -1) {
+    highlight_index = 0;
+  }
+  if (highlight_index > game.lineup.length) {
+    highlight_index = game.lineup.length;
+  }
+  let new_position_index = highlight_index;
+  if (diff >= 0) {
+    new_position_index--;
+  }
+  return { highlight_index, new_position_index };
+};
+
 export default class CardLineup extends React.Component {
-  constructor(props) {
+  scoreSpinnerRef: React.RefObject<HTMLImageElement>;
+  scoreTextRef: React.RefObject<HTMLDivElement>;
+  locked: boolean;
+  props: CardLineupProps;
+  simWorker: Worker | undefined;
+
+  constructor(props: CardLineupProps) {
     super(props);
     this.state = {};
 
@@ -26,135 +90,87 @@ export default class CardLineup extends React.Component {
     this.scoreTextRef = React.createRef();
 
     this.locked =
-      this.locked || this.props.game.plateAppearances.length > 0 ? true : false;
+      this.locked || props.game.plateAppearances.length > 0 ? true : false;
+  }
+  clamp = function (num, min, max) {
+    return num <= min ? min : num >= max ? max : num;
+  };
 
-    const hideHighlights = (skipTransition) => {
-      let highlights = document.getElementsByClassName('highlight');
-      for (let i = 0; i < highlights.length; i++) {
-        if (skipTransition) {
-          highlights[i].classList.add('no-transition');
-        }
-        highlights[i].style.visibility = 'hidden';
-        highlights[i].style.height = '0px';
-        if (skipTransition) {
-          // highlights[i].offsetHeight; // Trigger a reflow, otherwise transitions will still occur
-          highlights[i].classList.remove('no-transition');
-        }
+  handleRemoveClick = function (player, ev) {
+    dialog.show_confirm(
+      'Do you want to remove "' + player.name + '" from the lineup?',
+      () => {
+        this.simulateLineup();
+        getGlobalState().removePlayerFromLineup(this.props.game.id, player.id);
       }
-    };
+    );
+    ev.stopPropagation();
+  };
 
-    const showHighlight = (i, skipTransition) => {
-      let elem = document.getElementById('highlight' + i);
-      if (elem) {
-        if (skipTransition) {
-          elem.classList.add('no-transition');
-        }
-        elem.style.visibility = 'visible';
-        elem.style.height = `${PLAYER_TILE_HEIGHT + 2}px`;
-        if (skipTransition) {
-          // elem.offsetHeight; // Trigger a reflow, otherwise transitions will still occur
-          elem.classList.remove('no-transition');
-        }
-      }
-    };
+  handleCreateClick = function () {
+    setRoute(
+      `/teams/${this.props.team.id}/games/${this.props.game.id}/player-select`
+    );
+  }.bind(this);
 
-    const getInds = (elem, index) => {
-      const deltaY = parseInt(elem.style.transform.slice(15)) - 15;
-      const diff = Math.floor(deltaY / PLAYER_TILE_HEIGHT) + 1;
-      let highlight_index = index + diff;
-      if (diff >= 0) {
-        highlight_index++;
-      }
-      if (highlight_index <= -1) {
-        highlight_index = 0;
-      }
-      if (highlight_index > this.props.game.lineup.length) {
-        highlight_index = this.props.game.lineup.length;
-      }
-      let new_position_index = highlight_index;
-      if (diff >= 0) {
-        new_position_index--;
-      }
-      return { highlight_index, new_position_index };
-    };
+  handleBoxClick = function (plateAppearanceId) {
+    setRoute(
+      `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearanceId}`
+    );
+  }.bind(this);
 
-    this.clamp = function (num, min, max) {
-      return num <= min ? min : num >= max ? max : num;
-    };
+  handleNewPlateAppearanceClick = function (player: Player, game_id: string) {
+    const plateAppearance = getGlobalState().addPlateAppearance(
+      player.id,
+      game_id
+    );
+    setRoute(
+      `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearance.id}?isNew=true`
+    );
+  }.bind(this);
 
-    this.handleRemoveClick = function (player, ev) {
-      dialog.show_confirm(
-        'Do you want to remove "' + player.name + '" from the lineup?',
-        () => {
-          this.simulateLineup();
-          getGlobalState().removePlayerFromLineup(
-            this.props.game.lineup,
-            player.id
-          );
-        }
-      );
-      ev.stopPropagation();
-    };
-
-    this.handleCreateClick = function () {
-      setRoute(
-        `/teams/${this.props.team.id}/games/${this.props.game.id}/player-select`
-      );
-    }.bind(this);
-
-    this.handleBoxClick = function (plateAppearanceId) {
-      setRoute(
-        `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearanceId}`
-      );
-    }.bind(this);
-
-    this.handleNewPlateAppearanceClick = function (player, game_id, team_id) {
-      const plateAppearance = getGlobalState().addPlateAppearance(
-        player.id,
-        game_id,
-        team_id
-      );
-      setRoute(
-        `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearance.id}?isNew=true`
-      );
-    }.bind(this);
-
-    this.handleDragStart = function (player, index) {
-      this.setState({
-        dragging: true,
-      });
-      const elem = document.getElementById('lineup_' + player.id);
+  handleDragStart = function (player, index) {
+    this.setState({
+      dragging: true,
+    });
+    const elem = document.getElementById('lineup_' + player.id);
+    if (elem) {
       elem.style['z-index'] = 100;
       elem.style.position = 'absolute';
       elem.style.width = '90%';
-      this.handleDrag(player, index, true);
-    };
+    }
+    this.handleDrag(player, index, true);
+  };
 
-    this.handleDragStop = function (player, index) {
-      this.setState({
-        dragging: false,
-      });
-      hideHighlights(true);
-      const elem = document.getElementById('lineup_' + player.id);
+  handleDragStop = function (player, index) {
+    this.setState({
+      dragging: false,
+    });
+    hideHighlights(true);
+    const elem = document.getElementById('lineup_' + player.id);
+    if (elem) {
       elem.style['z-index'] = 1;
-      elem.style.position = null;
-      elem.style['margin-top'] = null;
+      elem.style.position = 'unset';
+      elem.style['margin-top'] = 'unset';
       elem.style.width = 'unset';
 
-      const { new_position_index } = getInds(elem, index);
+      const { new_position_index } = getInds(this.props.game, elem, index);
       getGlobalState().updateLineup(
         this.props.game.id,
         player.id,
         new_position_index
       );
+    }
 
-      this.simulateLineup();
-    };
+    this.simulateLineup();
+  };
 
-    this.handleDrag = function (player, index, skipTransition) {
-      hideHighlights(skipTransition);
-      const elem = document.getElementById('lineup_' + player.id);
-      const { highlight_index } = getInds(elem, index);
+  handleDrag = function (player, index, skipTransition) {
+    hideHighlights(skipTransition);
+
+    const elem = document.getElementById('lineup_' + player.id);
+    if (elem) {
+      const { highlight_index } = getInds(this.props.game, elem, index);
       showHighlight(highlight_index, skipTransition);
 
       // This fixes and issue that causes the element, while being dragged, to jump up the
@@ -164,39 +180,39 @@ export default class CardLineup extends React.Component {
       } else {
         elem.style['margin-top'] = null;
       }
-    };
+    }
+  };
 
-    this.handleLockToggle = function () {
-      this.locked = !this.locked;
-      expose.set_state('main', {
-        render: true,
-      });
-    }.bind(this);
+  handleLockToggle = function () {
+    this.locked = !this.locked;
+    expose.set_state('main', {
+      render: true,
+    });
+  }.bind(this);
 
-    this.handleCreateOptimization = function () {
-      dialog.show_confirm(
-        `This will take you to a page for setting up and running an "Optimization" for this lineup. After your optimization is done running, you can import the optimized lineup into this game by pressing "Import Lineup From Optimization".`,
-        () => {
-          const optimization = getGlobalState().addOptimization(
-            `Optimize lineup vs ${this.props.game.opponent}`,
-            JSON.parse(JSON.stringify(this.props.game.lineup)),
-            JSON.parse(JSON.stringify([this.props.team.id])),
-            this.props.game.lineupType
-          );
-          setRoute(
-            `/optimizations/${optimization.id}?acc0=true&acc1=true&acc2=true`
-          ); //edit?isNew=true
-        }
-      );
-    }.bind(this);
-
-    // Prevent ios from scrolling while dragging
-    this.handlePreventTouchmoveWhenDragging = function (event) {
-      if (this.state.dragging) {
-        event.preventDefault();
+  handleCreateOptimization = function () {
+    dialog.show_confirm(
+      `This will take you to a page for setting up and running an "Optimization" for this lineup. After your optimization is done running, you can import the optimized lineup into this game by pressing "Import Lineup From Optimization".`,
+      () => {
+        const optimization = getGlobalState().addOptimization(
+          `Optimize lineup vs ${this.props.game.opponent}`,
+          JSON.parse(JSON.stringify(this.props.game.lineup)),
+          JSON.parse(JSON.stringify([this.props.team.id])),
+          this.props.game.lineupType
+        );
+        setRoute(
+          `/optimizations/${optimization.id}?acc0=true&acc1=true&acc2=true`
+        ); //edit?isNew=true
       }
-    };
-  }
+    );
+  }.bind(this);
+
+  // Prevent ios from scrolling while dragging
+  handlePreventTouchmoveWhenDragging = function (event) {
+    if (this.state.dragging) {
+      event.preventDefault();
+    }
+  };
 
   simulateLineup() {
     // Stop existing web workers
@@ -204,14 +220,14 @@ export default class CardLineup extends React.Component {
       this.simWorker.terminate();
     }
 
-    let workerUrl = new URL(
+    const workerUrl = new URL(
       'web-workers/simulation-worker.js',
       window.location.origin
     );
     this.simWorker = new Worker(workerUrl);
     this.simWorker.onmessage = function (e) {
-      let data = JSON.parse(e.data);
-      let elem = this.scoreTextRef.current;
+      const data = JSON.parse(e.data);
+      const elem = this.scoreTextRef.current;
       elem.innerHTML = `Estimated Score: ${data.score.toFixed(3)} runs (took ${
         data.time
       }ms)`;
@@ -220,32 +236,37 @@ export default class CardLineup extends React.Component {
     }.bind(this);
 
     // Tell web worker to start computing lineup estimated score
-    let scoreSpinner = this.scoreSpinnerRef.current;
-    scoreSpinner.style.visibility = 'unset';
+    const scoreSpinner = this.scoreSpinnerRef.current;
+    if (scoreSpinner) {
+      scoreSpinner.style.visibility = 'unset';
+    }
 
-    let simulatedScoreDiv = this.scoreTextRef.current;
-    simulatedScoreDiv.innerHTML = SIMULATION_TEXT;
+    const simulatedScoreDiv = this.scoreTextRef.current;
+    if (simulatedScoreDiv) {
+      simulatedScoreDiv.innerHTML = SIMULATION_TEXT;
+    }
 
-    let lineup = [];
+    const lineup: (string | null)[][] = [];
     for (let i = 0; i < this.props.game.lineup.length; i++) {
-      let plateAppearances =
+      const plateAppearances: PlateAppearance[] =
         getGlobalState().getPlateAppearancesForPlayerOnTeam(
           this.props.game.lineup[i],
           this.props.team.id
         );
-      let hits = [];
+      const hits: (string | null)[] = [];
       for (let j = 0; j < plateAppearances.length; j++) {
         hits.push(plateAppearances[j].result);
       }
-      let hitterData = {};
+      const hitterData: Record<string, unknown> = {};
       hitterData.historicHits = hits;
       lineup.push(hits);
     }
 
-    let message = {};
-    message.iterations = 1000000;
-    message.innings = 7;
-    message.lineup = lineup;
+    const message = {
+      iterations: 1000000,
+      innings: 7,
+      lineup,
+    };
     this.simWorker.postMessage(JSON.stringify(message));
   }
 
@@ -323,18 +344,20 @@ export default class CardLineup extends React.Component {
   }
 
   componentWillUnmount() {
-    this.simWorker.terminate();
-    window.document.body.removeEventListener(
-      'touchmove',
-      this.handlePreventTouchmoveWhenDragging.bind(this),
-      {
-        passive: false,
-      }
-    );
+    if (this.simWorker) {
+      this.simWorker.terminate();
+      window.document.body.removeEventListener(
+        'touchmove',
+        this.handlePreventTouchmoveWhenDragging.bind(this),
+        {
+          passive: false,
+        } as EventListenerOptions
+      );
+    }
   }
 
   renderPlateAppearanceBoxes(player, plateAppearances, editable) {
-    let pas = plateAppearances.map((pa, i) => {
+    const pas = plateAppearances.map((pa, i) => {
       pa = pa || {};
 
       const didPlayerScore = getGlobalState().didPlayerScoreThisInning(pa.id);
@@ -419,12 +442,12 @@ export default class CardLineup extends React.Component {
       );
       return (
         <div className="page-error">
-          'Lineup: No game, team, or lineup exists.'
+          &apos;Lineup: No game, team, or lineup exists.&apos;
         </div>
       );
     }
 
-    let pageElems = [];
+    let pageElems: React.JSX.Element[] = [];
 
     if (this.props.game.lineup.length === 0) {
       pageElems = pageElems.concat(
@@ -459,7 +482,7 @@ export default class CardLineup extends React.Component {
           );
           acc.push(next);
           return acc;
-        }, [])
+        }, [] as React.JSX.Element[])
     );
 
     pageElems.push(
@@ -495,10 +518,10 @@ export default class CardLineup extends React.Component {
       );
     }
 
-    let showOptLineupButton =
+    const showOptLineupButton =
       this.props.game.plateAppearances.length === 0 &&
       this.props.game.lineup.length > 0;
-    let showImportOptLineupButton =
+    const showImportOptLineupButton =
       this.props.game.plateAppearances.length === 0 &&
       getGlobalState().getAllOptimizations().length > 0;
     if (showOptLineupButton || showImportOptLineupButton) {
@@ -541,13 +564,13 @@ export default class CardLineup extends React.Component {
   }
 
   renderNonLineupAtBats() {
-    let pageElems = [];
+    const pageElems: React.JSX.Element[] = [];
 
     // Find all plate appearances that don't belong to a player in the lineup
-    let allPlateAppearances = getGlobalState().getPlateAppearancesForGame(
+    const allPlateAppearances = getGlobalState().getPlateAppearancesForGame(
       this.props.game.id
     );
-    let nonLineupPlateAppearances = allPlateAppearances.filter(
+    const nonLineupPlateAppearances = allPlateAppearances.filter(
       (plateAppearance) => {
         let value = true;
         this.props.game.lineup.forEach((playerInLineupId) => {
@@ -568,12 +591,12 @@ export default class CardLineup extends React.Component {
       );
 
       // Get unique player ids
-      let playersIdsNotInLineupWithPlateAppearances = {};
+      const playersIdsNotInLineupWithPlateAppearances = {};
       nonLineupPlateAppearances.forEach((value) => {
         playersIdsNotInLineupWithPlateAppearances[value.playerId] = true;
       });
 
-      let playersIdsNotInLineup = Object.keys(
+      const playersIdsNotInLineup = Object.keys(
         playersIdsNotInLineupWithPlateAppearances
       );
       playersIdsNotInLineup.forEach((playerId) => {
@@ -590,11 +613,16 @@ export default class CardLineup extends React.Component {
     return <div>{pageElems}</div>;
   }
 
-  renderPlayerTile(playerId, gameId, index, editable) {
+  renderPlayerTile(
+    playerId: string,
+    gameId: string,
+    index: number | null,
+    editable: string
+  ) {
     const player = getGlobalState().getPlayer(playerId);
     const plateAppearances =
       getGlobalState().getPlateAppearancesForPlayerInGame(playerId, gameId);
-    let elems = [];
+    const elems: React.JSX.Element[] = [];
     if (editable === FULL_EDIT) {
       elems.push(
         <div key="handle" className="player-drag-handle">
@@ -605,6 +633,7 @@ export default class CardLineup extends React.Component {
                 width: '24px',
                 height: '24px',
                 margin: '-10px',
+                marginTop: 'unset',
               }}
               viewBox="0 0 24 24"
             >
@@ -615,7 +644,13 @@ export default class CardLineup extends React.Component {
       );
     }
     elems.push(
-      <div key="name" className="player-name prevent-overflow">
+      <div
+        key="name"
+        className="player-name prevent-overflow"
+        style={{
+          transform: 'translateY(2px)',
+        }}
+      >
         {player.name}
       </div>
     );

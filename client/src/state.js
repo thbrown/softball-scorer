@@ -752,6 +752,11 @@ export class GlobalState {
   replaceGame(oldGameId, teamId, newGame) {
     const localState = this.getLocalState();
     const team = this.INDEX.getTeamForGame(oldGameId);
+    if (team === undefined) {
+      const msg = `Failed to replaceGame, failed to get team for game id '${gameId}', the game does not exist`;
+      console.error(msg);
+      throw new Error(msg);
+    }
     const teamIndex = this.INDEX.getTeamIndex(team.id);
     const oldGameIndex = this.INDEX.getGameIndex(oldGameId);
     localState.teams[teamIndex].games[oldGameIndex] = newGame;
@@ -775,6 +780,11 @@ export class GlobalState {
   _getMutableGame(gameId) {
     const localState = this.getLocalState();
     const team = this.INDEX.getTeamForGame(gameId);
+    if (team === undefined) {
+      const msg = `Failed to _getMutableGame, failed to get team for game id '${gameId}', the game does not exist`;
+      console.error(msg);
+      throw new Error(msg);
+    }
     const teamIndex = this.INDEX.getTeamIndex(team.id);
     const gameIndex = this.INDEX.getGameIndex(gameId);
     return localState.teams[teamIndex].games[gameIndex];
@@ -866,6 +876,11 @@ export class GlobalState {
   removeGame(gameId) {
     const localState = this.getLocalState();
     const team = this.INDEX.getTeamForGame(gameId);
+    if (team === undefined) {
+      const msg = `Failed to removeGame, failed to get team for game id '${gameId}', the game does not exist`;
+      console.error(msg);
+      throw new Error(msg);
+    }
     const teamIndex = this.INDEX.getTeamIndex(team.id);
     const gameIndex = this.INDEX.getGameIndex(gameId);
     localState.teams[teamIndex].games.splice(gameIndex, 1);
@@ -919,7 +934,7 @@ export class GlobalState {
   getNextPlateAppearance(paId) {
     const game = this.INDEX.getGameForPa(paId);
     const paIndex = this.INDEX.getPaIndex(paId);
-    if(game === undefined || paIndex === undefined) {
+    if (game === undefined || paIndex === undefined) {
       return undefined;
     }
     return paIndex === game.lineup.length
@@ -930,7 +945,7 @@ export class GlobalState {
   getPreviousPlateAppearance(paId) {
     const game = this.INDEX.getGameForPa(paId);
     const paIndex = this.INDEX.getPaIndex(paId);
-    if(game === undefined || paIndex === undefined) {
+    if (game === undefined || paIndex === undefined) {
       return undefined;
     }
     return paIndex === 0
@@ -1451,7 +1466,8 @@ export class GlobalState {
 
         // Runners on base avg - this uses the state object which might be an issue if we want this to eventually be in a web worker
         const previousPa = this.getPreviousPlateAppearance(pa.id);
-        if(previousPa !== undefined) { // PAs in optimization overrides are don't have previous PAs
+        if (previousPa !== undefined) {
+          // PAs in optimization overrides are don't have previous PAs
           const prevRunners = previousPa?.runners;
           const dateWeStartedTrackingRunners = this.getPlateAppearanceObjects(
             pa.id

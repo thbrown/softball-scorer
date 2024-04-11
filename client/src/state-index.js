@@ -275,37 +275,36 @@ export default class StateIndex {
     if (team === undefined) return undefined;
     return StateIndex._splitJsonPointer(team).at(-1);
   }
-  
+
   getPlayerIndex(playerId) {
     const player = this._getPlayer(playerId);
     if (player === undefined) return undefined;
     return StateIndex._splitJsonPointer(player).at(-1);
   }
-  
+
   getOptimizationIndex(optimizationId) {
     const optimization = this._getOptimization(optimizationId);
     if (optimization === undefined) return undefined;
     return StateIndex._splitJsonPointer(optimization).at(-1);
   }
-  
+
   getGameIndex(gameId) {
     const game = this._getGame(gameId);
     if (game === undefined) return undefined;
     return StateIndex._splitJsonPointer(game).at(-1);
   }
-  
+
   getPaIndex(paId) {
     const pa = this._getPa(paId);
     if (pa === undefined) return undefined;
     return StateIndex._splitJsonPointer(pa).at(-1);
   }
-  
+
   getPaFromOptimizationIndex(paId) {
     const pa = this._getPaFromOptimization(paId);
     if (pa === undefined) return undefined;
     return StateIndex._splitJsonPointer(pa).at(-1);
   }
-  
 
   // =============== | POINTER GETTERS (internal) | ==================
 
