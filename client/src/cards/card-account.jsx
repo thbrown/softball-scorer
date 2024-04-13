@@ -89,7 +89,7 @@ export default class CardAccount extends Component {
           let message;
           if (response.status === 204) {
             message = 'Your account has been deleted.';
-            logout(state, dialog, setRoute);
+            logout(getGlobalState(), dialog, setRoute);
           } else if (response.status === 400) {
             message =
               'App encountered a problem while deleting your account. Try again later.';

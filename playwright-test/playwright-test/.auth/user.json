@@ -1,0 +1,76 @@
+{
+  "cookies": [
+    {
+      "name": "_ga",
+      "value": "GA1.1.46480904.1712988459",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1747548458.63664,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_gid",
+      "value": "GA1.1.1710813605.1712988459",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1713074858,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "nonHttpOnlyToken",
+      "value": "e7ad6f17-0ccd-4e82-94a2-31ab9eaea1d4",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1747548459.938245,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "softball.sid",
+      "value": "s%3Ah824zETUP98CP5Mr7K5zIo8UitoVK-CN.7eEULuuX6IRMDeDvtbuEGSpxEA2ncbnMBYv4V2yjQCo",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1747548459.938389,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:8889",
+      "localStorage": [
+        {
+          "name": "APPLICATION_STATE",
+          "value": "{\"online\":true,\"sessionValid\":true,\"activeUser\":\"integration-test-1712988457160@softball.app\"}"
+        },
+        {
+          "name": "ANCESTOR_DB_STATE",
+          "value": "{\"account\":{\"optimizers\":[0,1,2]},\"teams\":[],\"players\":[],\"optimizations\":[],\"metadata\":{\"scope\":\"client\",\"version\":6}}"
+        },
+        {
+          "name": "SCHEMA_VERSION",
+          "value": "7"
+        },
+        {
+          "name": "LOCAL_DB_STATE",
+          "value": "{\"account\":{\"optimizers\":[0,1,2]},\"teams\":[],\"players\":[],\"optimizations\":[],\"metadata\":{\"scope\":\"client\",\"version\":6}}"
+        }
+      ]
+    },
+    {
+      "origin": "https://www.google.com",
+      "localStorage": [
+        {
+          "name": "rc::a",
+          "value": "MW50c3YxdXV3MHRucQ=="
+        }
+      ]
+    }
+  ]
+}

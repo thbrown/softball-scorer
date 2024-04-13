@@ -21,7 +21,6 @@ const noSleep = new window.NoSleep();
 
 // Import file versioning (fix that page's css)
 
-// Delete account/data
 // Async localstorage interaction
 
 // Bad sql field in getState query results in unhandled promise rejection

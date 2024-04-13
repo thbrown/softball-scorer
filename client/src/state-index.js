@@ -73,10 +73,11 @@ export default class StateIndex {
       } else {
         // Cache miss
         if (index[id] === undefined) {
-          console.warn("Couldn't find", id, 'in', Object.keys(index), index);
-          console.warn('teams', this.teamLookup);
-          console.warn('games', this.gameLookup);
+          //console.warn("Couldn't find", id, 'in', Object.keys(index), index);
+          //console.warn('teams', this.teamLookup);
+          //console.warn('games', this.gameLookup);
         } else {
+          /*
           console.warn(
             "Couldn't find",
             id,
@@ -85,6 +86,7 @@ export default class StateIndex {
             'in',
             Object.keys(index)
           );
+          */
         }
 
         this._buildIndex(index[id]);
@@ -92,7 +94,7 @@ export default class StateIndex {
       }
     } else {
       if (secondTry) {
-        console.warn('FOUND ON INDEX REBUILD', jsonPointer);
+        console.log('FOUND ON INDEX REBUILD', jsonPointer);
       }
       return { value: result, jsonPointer };
     }
@@ -275,37 +277,36 @@ export default class StateIndex {
     if (team === undefined) return undefined;
     return StateIndex._splitJsonPointer(team).at(-1);
   }
-  
+
   getPlayerIndex(playerId) {
     const player = this._getPlayer(playerId);
     if (player === undefined) return undefined;
     return StateIndex._splitJsonPointer(player).at(-1);
   }
-  
+
   getOptimizationIndex(optimizationId) {
     const optimization = this._getOptimization(optimizationId);
     if (optimization === undefined) return undefined;
     return StateIndex._splitJsonPointer(optimization).at(-1);
   }
-  
+
   getGameIndex(gameId) {
     const game = this._getGame(gameId);
     if (game === undefined) return undefined;
     return StateIndex._splitJsonPointer(game).at(-1);
   }
-  
+
   getPaIndex(paId) {
     const pa = this._getPa(paId);
     if (pa === undefined) return undefined;
     return StateIndex._splitJsonPointer(pa).at(-1);
   }
-  
+
   getPaFromOptimizationIndex(paId) {
     const pa = this._getPaFromOptimization(paId);
     if (pa === undefined) return undefined;
     return StateIndex._splitJsonPointer(pa).at(-1);
   }
-  
 
   // =============== | POINTER GETTERS (internal) | ==================
 

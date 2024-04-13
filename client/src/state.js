@@ -287,7 +287,9 @@ export class GlobalState {
             );
 
             console.warn(
-              SharedLib.commonUtils.getObjectString(this.getLocalState())
+              SharedLib.commonUtils.insertNewlines(
+                SharedLib.commonUtils.getObjectString(this.getLocalState())
+              )
             );
             throw new Error(-2);
           }
@@ -919,7 +921,7 @@ export class GlobalState {
   getNextPlateAppearance(paId) {
     const game = this.INDEX.getGameForPa(paId);
     const paIndex = this.INDEX.getPaIndex(paId);
-    if(game === undefined || paIndex === undefined) {
+    if (game === undefined || paIndex === undefined) {
       return undefined;
     }
     return paIndex === game.lineup.length
@@ -930,7 +932,7 @@ export class GlobalState {
   getPreviousPlateAppearance(paId) {
     const game = this.INDEX.getGameForPa(paId);
     const paIndex = this.INDEX.getPaIndex(paId);
-    if(game === undefined || paIndex === undefined) {
+    if (game === undefined || paIndex === undefined) {
       return undefined;
     }
     return paIndex === 0
@@ -1451,7 +1453,8 @@ export class GlobalState {
 
         // Runners on base avg - this uses the state object which might be an issue if we want this to eventually be in a web worker
         const previousPa = this.getPreviousPlateAppearance(pa.id);
-        if(previousPa !== undefined) { // PAs in optimization overrides are don't have previous PAs
+        if (previousPa !== undefined) {
+          // PAs in optimization overrides are don't have previous PAs
           const prevRunners = previousPa?.runners;
           const dateWeStartedTrackingRunners = this.getPlateAppearanceObjects(
             pa.id

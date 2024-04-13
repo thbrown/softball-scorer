@@ -166,3 +166,11 @@ export const sleep = async function (ms) {
     }, ms);
   });
 };
+
+export const insertNewlines = function (str, maxLength = 120) {
+  var result = '';
+  for (var i = 0; i < str.length; i += maxLength) {
+    result += str.substring(i, i + maxLength) + '\n';
+  }
+  return result;
+};
