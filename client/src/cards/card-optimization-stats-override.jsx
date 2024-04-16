@@ -116,6 +116,23 @@ export default class CardOptimizationStatsOverride extends React.Component {
             </div>
           </ListButton>
         )}
+        <ListButton
+          id="next"
+          type="primary-button"
+          onClick={() => {
+            goBack();
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <IconButton src="/assets/check.svg" alt="check" />
+            <span>Confirm</span>
+          </div>
+        </ListButton>
       </>
     );
   }
@@ -192,6 +209,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
       if (teamPAs.length > 0) {
         teamAtBatButtons.push(
           <div
+            key={`team-${team.id}`}
             onClick={this.handleAddPas.bind(
               this,
               getGlobalState().getPlateAppearancesForPlayerOnTeam(
@@ -200,9 +218,12 @@ export default class CardOptimizationStatsOverride extends React.Component {
               )
             )}
             className="button list-button"
+            style={{
+              justifyContent: 'flex-start',
+            }}
           >
-            Use All
-            <b style={{ paddingLeft: '3px', paddingRight: '3px' }}>
+            Use{' '}
+            <b style={{ paddingLeft: '7px', paddingRight: '7px' }}>
               {team.name}
             </b>
             PAs ({teamPAs.length})
@@ -278,6 +299,9 @@ export default class CardOptimizationStatsOverride extends React.Component {
             )
           )}
           className="button list-button"
+          style={{
+            justifyContent: 'flex-start',
+          }}
         >
           Use All Available PA (
           {

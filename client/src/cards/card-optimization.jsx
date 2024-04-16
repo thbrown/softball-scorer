@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import Card from 'elements/card';
 import { getGlobalState } from 'state';
 import dialog from 'dialog';
@@ -14,6 +14,7 @@ const colors = css.colors;
 import Cooldown from 'components/cooldown';
 import IconButton from '../elements/icon-button';
 import { showEmailHelp } from 'utils/help-functions';
+import OptimizationPlayerStatsTable from 'components/optimization-player-stats-table';
 
 const OPTIMIZATION_STATUS_ENUM_INVERSE =
   SharedLib.constants.OPTIMIZATION_STATUS_ENUM_INVERSE;
@@ -741,88 +742,6 @@ export default class CardOptimization extends React.Component {
       optimization.status
     );
 
-    // Build players table
-    const playerTable = [];
-    playerTable.push(
-      <tr key="header" className="title">
-        <th height="35">Name</th>
-        <th width="40">Outs</th>
-        <th width="35">1B</th>
-        <th width="35">2B</th>
-        <th width="35">3B</th>
-        <th width="35">HR</th>
-        {isOptEditable ? (
-          <th width="48" />
-        ) : (
-          false // Don't show the last column for already started optimizations
-        )}
-      </tr>
-    );
-
-    const displayPlayers = [];
-    const playerIds = optimization.playerList;
-    const teamIds = optimization.teamList;
-    const overrideData = optimization.overrideData;
-
-    const stats = getGlobalState().getActiveStatsForAllPlayers(
-      overrideData,
-      playerIds,
-      teamIds
-    );
-    for (let i = 0; i < playerIds.length; i++) {
-      const displayPlayer = {};
-      Object.assign(displayPlayer, stats[playerIds[i]]);
-
-      const existingOverride = overrideData[playerIds[i]];
-      if (existingOverride && existingOverride.length !== 0) {
-        displayPlayer.isOverride = true;
-      } else {
-        displayPlayer.isOverride = false;
-      }
-
-      const player = getGlobalState().getPlayer(playerIds[i]);
-      if (player) {
-        displayPlayer.name = player.name;
-      } else {
-        displayPlayer.name = '<Player was deleted>';
-      }
-      displayPlayer.playerId = playerIds[i];
-      displayPlayers.push(displayPlayer);
-    }
-
-    for (let i = 0; i < displayPlayers.length; i++) {
-      playerTable.push(
-        <tr
-          key={'row' + i}
-          className={displayPlayers[i].isOverride ? 'overridden' : undefined}
-        >
-          <td height="48" className="name">
-            {displayPlayers[i].name}
-          </td>
-          <td>{displayPlayers[i].outs}</td>
-          <td>{displayPlayers[i].singles}</td>
-          <td>{displayPlayers[i].doubles}</td>
-          <td>{displayPlayers[i].triples}</td>
-          <td>{displayPlayers[i].homeruns}</td>
-          {isOptEditable ? (
-            <td height="48">
-              <img
-                src="/assets/tune-black.svg"
-                alt=">"
-                className="tableButton"
-                onClick={this.handleOverrideClick.bind(
-                  this,
-                  displayPlayers[i].playerId
-                )}
-              />
-            </td>
-          ) : (
-            false // Don't show override column for optimizations that have already started
-          )}
-        </tr>
-      );
-    }
-
     // Build teams checkboxes
     const allTeams = getGlobalState().getLocalState().teams;
     const teamsCheckboxes = [];
@@ -993,9 +912,11 @@ export default class CardOptimization extends React.Component {
               aria-hidden="true"
             >
               <div id="player-accordion-content">
-                <table className="playerTable">
-                  <tbody>{playerTable}</tbody>
-                </table>
+                <OptimizationPlayerStatsTable
+                  optimization={optimization}
+                  isOptEditable={isOptEditable}
+                  handleOverrideClick={this.handleOverrideClick}
+                />
                 {isOptEditable ? (
                   <div
                     id="edit-players"
@@ -1039,7 +960,9 @@ export default class CardOptimization extends React.Component {
                     display: 'flex',
                   }}
                 >
-                  {optimization.status === OPTIMIZATION_STATUS_ENUM.NOT_STARTED ? bulkSelectButton : undefined}
+                  {optimization.status === OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+                    ? bulkSelectButton
+                    : undefined}
                 </div>
                 {teamsCheckboxes}
               </div>
