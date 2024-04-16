@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import Card from 'elements/card';
 import { getGlobalState } from 'state';
 import dialog from 'dialog';
