@@ -212,14 +212,14 @@ export class SoftballServer {
     );
     //app.use(helmet.referrerPolicy({ policy: "same-origin" })); // This breaks embedded youtube on ios safari
 
-    // Web server stuff (we might want ot break this into it's own server at some point)
+    // Web server stuff (we might want to break this into it's own server at some point)
     // Serve from the build directory in production, the root in development
     const staticDir = path.resolve(
       __dirname,
       process.env.DEVELOPMENT === 'true' ? '../../client/public' : '../../build'
     );
 
-    logger.dev('using staticDir', staticDir);
+    logger.dev('serving staticDir', staticDir);
     app.use(express.static(staticDir));
     app.use('/index.html', (req, res) => {
       res.sendFile(path.resolve(__dirname, staticDir + '/index.html'));
