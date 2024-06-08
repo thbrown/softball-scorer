@@ -615,7 +615,7 @@ export default class CardLineup extends React.Component {
       );
     }
     elems.push(
-      <div key="name" className="player-name prevent-overflow">
+      <div key="name" style={this.locked ? {width: "25%"} : {width: "80%"}}className={"player-name prevent-overflow"}>
         {player.name}
       </div>
     );
