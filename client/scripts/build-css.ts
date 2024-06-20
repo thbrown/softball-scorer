@@ -5,7 +5,10 @@ import css from '../src/css/theme';
 
 function build_css(cb) {
   const pre_css_folder = path.resolve(__dirname, '../src/css/');
-  const dest_css_filename = path.resolve(__dirname, '../../assets/main.css');
+  const dest_css_filename = path.resolve(
+    __dirname,
+    '../public/assets/main.css'
+  );
 
   const _output_file = function (output) {
     console.log('pre.css output: ', dest_css_filename);
