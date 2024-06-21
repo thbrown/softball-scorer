@@ -126,6 +126,7 @@ export default class WalkupSong extends expose.Component {
         <div
           id="song"
           key="song"
+          onClick={this.props.noSongClickHandler}
           style={{
             width: this.props.width,
             height: this.props.height,
@@ -138,7 +139,7 @@ export default class WalkupSong extends expose.Component {
             alignItems: 'center',
           }}
         >
-          No Song
+          Pick Song
         </div>
       );
     }
