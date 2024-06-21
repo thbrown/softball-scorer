@@ -7,6 +7,7 @@ import WalkupSong from 'components/walkup-song';
 import { normalize, distance, cleanObject } from 'utils/functions';
 import { goBack } from 'actions/route';
 import { makeStyles } from 'css/helpers';
+import { setRoute } from 'actions/route';
 import Card from 'elements/card';
 import BallFieldSvg from 'components/ball-field-svg';
 
@@ -1147,10 +1148,14 @@ class CardPlateAppearance extends React.Component {
   }
 
   renderWalkupSong() {
+    const noSongClickHandler = () => {
+      setRoute(`/players/${this.props.player.id}/edit`);
+    };
     return (
       <WalkupSong
         songLink={this.props.player.songLink}
         songStart={this.props.player.songStart}
+        noSongClickHandler={noSongClickHandler}
         width={48}
         height={48}
       ></WalkupSong>
