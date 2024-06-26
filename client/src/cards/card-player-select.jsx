@@ -9,11 +9,15 @@ export default class CardPlayerSelect extends React.Component {
   constructor(props) {
     super(props);
 
-    function mapPlayersToEntry(selectedPlayerIds) {
-      return selectedPlayerIds
+    function mapPlayersToEntry(players) {
+      return players
         .map((playerId) => getGlobalState().getPlayer(playerId))
         .filter((player) => player !== null)
-        .map((player) => ({ value: player.id, label: player.name }));
+        .map((player) => ({
+          value: player.id,
+          label: player.name,
+          gender: player.gender,
+        }));
     }
 
     function mapEntriesToPlayerId(entries) {
@@ -169,23 +173,28 @@ export default class CardPlayerSelect extends React.Component {
 
     // https://react-select.com/styles
     this.customStyles = {
-      option: (provided) => {
+      option: (providedStyles) => {
         const modifications = {
           padding: 15,
         };
-        return Object.assign(provided, modifications);
+        return Object.assign(providedStyles, modifications);
       },
-      multiValue: (provided) => {
+      multiValue: (providedStyles, { data }) => {
         const modifications = {
           padding: 8,
         };
-        return Object.assign(provided, modifications);
+        if (data.gender === 'M') {
+          modifications.backgroundColor = '#ecf1f4';
+        } else if (data.gender == 'F') {
+          modifications.backgroundColor = '#f4ebee';
+        }
+        return Object.assign(providedStyles, modifications);
       },
-      menu: (provided) => {
+      menu: (providedStyles) => {
         const modifications = {
           padding: 1,
         };
-        return Object.assign(provided, modifications);
+        return Object.assign(providedStyles, modifications);
       },
     };
   }
