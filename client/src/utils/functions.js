@@ -187,6 +187,7 @@ export const logout = async function (dialog, setRoute) {
     'POST',
     'server/account/logout'
   );
+  console.log('LOGGING OUT', response.status);
   if (response.status === 204) {
     getGlobalState().resetState();
     dialog.show_notification('Logout successful.', function () {

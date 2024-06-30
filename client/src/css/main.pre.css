@@ -1189,6 +1189,7 @@ Scrolling is ~10-20x smoother.
 .player-stats td,
 .player-stats th {
   padding-right: $css.spacing.xSmall;
+  color: $css.colors.TEXT_LIGHT;
 }
 
 .stats-footer {

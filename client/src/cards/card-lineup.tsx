@@ -228,9 +228,8 @@ export default class CardLineup extends React.Component {
     this.simWorker.onmessage = function (e) {
       const data = JSON.parse(e.data);
       const elem = this.scoreTextRef.current;
-      elem.innerHTML = `Estimated Score: ${data.score.toFixed(3)} runs (took ${
-        data.time
-      }ms)`;
+      elem.innerHTML = `Estimated Score: ${data.score.toFixed(3)} runs (took ${data.time
+        }ms)`;
 
       this.scoreSpinnerRef.current.style.visibility = 'hidden';
     }.bind(this);
@@ -646,11 +645,8 @@ export default class CardLineup extends React.Component {
     elems.push(
       <div
         key="name"
-        className="player-name prevent-overflow"
-        style={{
-          transform: 'translateY(2px)',
-        }}
-      >
+        style={this.locked ? { width: "25%", transform: 'translateY(2px)' } : { width: "85%", transform: 'translateY(2px)' }}
+        className="player-name prevent-overflow">
         {player.name}
       </div>
     );

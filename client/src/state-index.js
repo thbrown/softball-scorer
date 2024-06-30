@@ -73,10 +73,11 @@ export default class StateIndex {
       } else {
         // Cache miss
         if (index[id] === undefined) {
-          console.warn("Couldn't find", id, 'in', Object.keys(index), index);
-          console.warn('teams', this.teamLookup);
-          console.warn('games', this.gameLookup);
+          //console.warn("Couldn't find", id, 'in', Object.keys(index), index);
+          //console.warn('teams', this.teamLookup);
+          //console.warn('games', this.gameLookup);
         } else {
+          /*
           console.warn(
             "Couldn't find",
             id,
@@ -85,6 +86,7 @@ export default class StateIndex {
             'in',
             Object.keys(index)
           );
+          */
         }
 
         this._buildIndex(index[id]);
@@ -92,7 +94,7 @@ export default class StateIndex {
       }
     } else {
       if (secondTry) {
-        console.warn('FOUND ON INDEX REBUILD', jsonPointer);
+        console.log('FOUND ON INDEX REBUILD', jsonPointer);
       }
       return { value: result, jsonPointer };
     }

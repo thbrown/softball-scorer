@@ -105,7 +105,8 @@ const applyServerPatchChanges = async ({
   logger.log(
     accountId,
     'Retrieving ancestor. Success: ',
-    serverAncestor !== undefined
+    serverAncestor !== undefined,
+    data.type
     //JSON.stringify(serverAncestor, null, 2)
   );
 
@@ -128,7 +129,12 @@ const applyServerPatchChanges = async ({
 
     // Diff the ancestor and the localState (dbState) to get the patch we need to send back to the client
     const serverPatch = SharedLib.objectMerge.diff(serverAncestor, state);
-    logger.log(accountId, 'Server Patch', getPatchDetails(serverPatch));
+    logger.log(
+      accountId,
+      'Server Patch',
+      getPatchDetails(serverPatch),
+      serverPatch // TODO: 2 chars but 0 patches???
+    );
 
     patch = serverPatch;
   } else {
@@ -145,11 +151,14 @@ const applyServerPatchChanges = async ({
     // The browser specifically requested a full sync, something must have gone wrong with the patch sync.
     // Print the state string so we can compare what went wrong with the browser's version
     if (data.type === 'full') {
+      // Human readable
+      logger.warn(accountId, 'state', JSON.stringify(state, null, 2));
+      // Debug string
       logger.warn(
         accountId,
-        'State',
-        SharedLib.commonUtils.getObjectString(state),
-        JSON.stringify(state, null, 2)
+        SharedLib.commonUtils.insertNewlines(
+          SharedLib.commonUtils.getObjectString(state)
+        )
       );
     }
 
@@ -261,5 +270,5 @@ const getPatchDetails = function (patch) {
     `Char Length: ${JSON.stringify(patch).length}`,
   ]
     .filter((v) => v !== null)
-    .join(',');
+    .join(', ');
 };

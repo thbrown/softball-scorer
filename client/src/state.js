@@ -287,7 +287,9 @@ export class GlobalState {
             );
 
             console.warn(
-              SharedLib.commonUtils.getObjectString(this.getLocalState())
+              SharedLib.commonUtils.insertNewlines(
+                SharedLib.commonUtils.getObjectString(this.getLocalState())
+              )
             );
             throw new Error(-2);
           }

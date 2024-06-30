@@ -31,22 +31,42 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
+  timeout: 100000,
 
   /* Configure projects for major browsers */
   projects: [
+    { name: 'setup', testMatch: /.*\.setup\.ts/, teardown: 'teardown' },
+    { name: 'account', testMatch: /.*\.account\.ts/ },
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright-test/.auth/user.json',
+      },
+      dependencies: ['setup'],
     },
-
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: {
+        ...devices['Desktop Firefox'],
+        storageState: 'playwright-test/.auth/user.json',
+      },
+      dependencies: ['setup'],
     },
-
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      use: {
+        ...devices['Desktop Safari'],
+        storageState: 'playwright-test/.auth/user.json',
+      },
+      dependencies: ['setup'],
+    },
+    {
+      name: 'teardown',
+      use: {
+        storageState: 'playwright-test/.auth/user.json',
+      },
+      testMatch: /.*\.teardown\.ts/,
     },
 
     /* Test against mobile viewports. */
