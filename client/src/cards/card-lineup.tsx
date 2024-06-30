@@ -149,10 +149,10 @@ export default class CardLineup extends React.Component {
     hideHighlights(true);
     const elem = document.getElementById('lineup_' + player.id);
     if (elem) {
-      elem.style['z-index'] = 1;
-      elem.style.position = 'unset';
-      elem.style['margin-top'] = 'unset';
-      elem.style.width = 'unset';
+      elem.style['z-index'] = 'inherit';
+      elem.style.position = 'inherit';
+      elem.style['margin-top'] = '5px';
+      elem.style.width = 'inherit';
 
       const { new_position_index } = getInds(this.props.game, elem, index);
       getGlobalState().updateLineup(
