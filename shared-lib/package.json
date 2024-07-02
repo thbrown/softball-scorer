@@ -9,7 +9,8 @@
     "url": "git+https://github.com/thbrown/softball-scorer.git"
   },
   "scripts": {
-    "lint": "eslint --ext .js,.ts,.tsx ."
+    "lint": "eslint --ext .js,.ts,.tsx .",
+    "generate-types": "node --import tsx scripts/generate-types.ts"
   },
   "author": "Browns and Co.",
   "license": "UNLICENSED",
@@ -17,6 +18,7 @@
     "url": "https://github.com/thbrown/softball-scorer/issues"
   },
   "devDependencies": {
-    "ajv": "^8.12.0"
+    "ajv": "^8.12.0",
+    "json-schema-to-typescript": "^13.1.2"
   }
 }
