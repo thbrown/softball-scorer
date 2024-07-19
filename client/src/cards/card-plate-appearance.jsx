@@ -360,7 +360,7 @@ class CardPlateAppearance extends React.Component {
     };
 
     // Prevent ios from scrolling while dragging
-    this.handlePreventTouchmoveWhenDragging = function (event) {
+    this.handlePreventTouchMoveWhenDragging = function (event) {
       if (this.state.dragging) {
         event.preventDefault();
       }
@@ -498,7 +498,7 @@ class CardPlateAppearance extends React.Component {
   componentDidMount() {
     window.document.body.addEventListener(
       'touchmove',
-      this.handlePreventTouchmoveWhenDragging.bind(this),
+      this.handlePreventTouchMoveWhenDragging.bind(this),
       {
         passive: false,
       }
@@ -552,7 +552,7 @@ class CardPlateAppearance extends React.Component {
   componentWillUnmount() {
     window.document.body.removeEventListener(
       'touchmove',
-      this.handlePreventTouchmoveWhenDragging.bind(this),
+      this.handlePreventTouchMoveWhenDragging.bind(this),
       {
         passive: false,
       }
@@ -1019,9 +1019,9 @@ class CardPlateAppearance extends React.Component {
         <div>
           Score:{' '}
           {`${runsAtPa}-${
-            this.props.plateAppearance.game === undefined
+            this.props.game === undefined
               ? 0
-              : calculateScore(this.props.plateAppearance.game.scoreThem)
+              : calculateScore(this.props.game.scoreThem)
           }`}
         </div>
         <div>
