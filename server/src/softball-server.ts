@@ -103,6 +103,7 @@ export class SoftballServer {
           passwordField: 'password',
         },
         async function (email, password, cb) {
+          email = email.toLowerCase();
           logger.log('', 'Checking credentials...', email);
 
           try {
@@ -466,16 +467,12 @@ export class SoftballServer {
 
         const hashedPassword = await bcrypt.hash(req.body.password, 12);
         const account = await this.databaseCalls.signup(
-          req.body.email,
+          getEmail(req),
           hashedPassword,
           tokenHash
         );
 
-        await sendEmailValidationEmail(
-          account.accountId,
-          req.body.email,
-          token
-        );
+        await sendEmailValidationEmail(account.accountId, getEmail(req), token);
 
         logger.log(account.accountId, 'Authenticating after successful signup');
         await logIn(account, req, res);
@@ -489,9 +486,9 @@ export class SoftballServer {
       wrapForErrorProcessing(async (req, res, next) => {
         checkRequiredField(req.body.email, 'email');
         const account = await this.databaseCalls.getAccountFromEmail(
-          req.body.email
+          getEmail(req)
         );
-        logger.log('', 'Reset password request for', req.body.email);
+        logger.log('', 'Reset password request for', getEmail(req));
         if (account) {
           const token = await generateToken();
           const tokenHash = crypto
@@ -507,7 +504,7 @@ export class SoftballServer {
 
           (await configAccessor.getEmailService()).sendMessage(
             account.accountId,
-            req.body.email,
+            getEmail(req),
             'Softball.app Password Reset',
             `Somebody tried to reset the password for the softball.app (https://softball.app) account associated with this email address. Please click this link to reset the password: https://softball.app/account/password-reset/${token} If you did not request this message or if you no longer want to reset your password, please ignore this email. This reset link will expire in 24 hours.`,
             passwordResetEmailHtml(
@@ -522,7 +519,7 @@ export class SoftballServer {
           logger.warn(
             'N/A',
             'Password reset: No such email found',
-            req.body.email
+            getEmail(req)
           );
           res.status(404).send();
         }
@@ -1421,6 +1418,10 @@ export class SoftballServer {
           `Field ${fieldName} is required but was not specified`
         );
       }
+    }
+
+    function getEmail(request) {
+      return request.body.email.toLowerCase();
     }
 
     async function logIn(account, req, res) {
