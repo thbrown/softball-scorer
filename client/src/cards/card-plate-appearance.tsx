@@ -526,7 +526,6 @@ class CardPlateAppearance extends React.Component<any, any> {
     if (this.my > parseInt(ballfield.style.height) + 20) {
       this.my = undefined;
       this.mx = undefined;
-      console.log('cancel');
     } else if (this.my > parseInt(ballfield.style.height)) {
       this.my = parseInt(ballfield.style.height);
     }
