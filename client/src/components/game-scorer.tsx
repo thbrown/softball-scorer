@@ -204,7 +204,7 @@ const useGameScorerStyles = makeStyles((css) => ({
 
 const calculateScore = (scoreObj) => {
   let totalScore = 0;
-  for (let inningNumber in scoreObj) {
+  for (const inningNumber in scoreObj) {
     totalScore += scoreObj[inningNumber]; // Overrides
   }
   return totalScore;
