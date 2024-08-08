@@ -1,5 +1,6 @@
 import expose from 'expose';
 import css from 'css';
+import React from 'react';
 
 export default class WalkupSong extends expose.Component {
   constructor(props) {
