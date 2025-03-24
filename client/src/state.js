@@ -754,6 +754,11 @@ export class GlobalState {
   replaceGame(oldGameId, teamId, newGame) {
     const localState = this.getLocalState();
     const team = this.INDEX.getTeamForGame(oldGameId);
+    if (team === undefined) {
+      const msg = `Failed to replaceGame, failed to get team for game id '${gameId}', the game does not exist`;
+      console.error(msg);
+      throw new Error(msg);
+    }
     const teamIndex = this.INDEX.getTeamIndex(team.id);
     const oldGameIndex = this.INDEX.getGameIndex(oldGameId);
     localState.teams[teamIndex].games[oldGameIndex] = newGame;
@@ -777,6 +782,11 @@ export class GlobalState {
   _getMutableGame(gameId) {
     const localState = this.getLocalState();
     const team = this.INDEX.getTeamForGame(gameId);
+    if (team === undefined) {
+      const msg = `Failed to _getMutableGame, failed to get team for game id '${gameId}', the game does not exist`;
+      console.error(msg);
+      throw new Error(msg);
+    }
     const teamIndex = this.INDEX.getTeamIndex(team.id);
     const gameIndex = this.INDEX.getGameIndex(gameId);
     return localState.teams[teamIndex].games[gameIndex];
@@ -868,6 +878,11 @@ export class GlobalState {
   removeGame(gameId) {
     const localState = this.getLocalState();
     const team = this.INDEX.getTeamForGame(gameId);
+    if (team === undefined) {
+      const msg = `Failed to removeGame, failed to get team for game id '${gameId}', the game does not exist`;
+      console.error(msg);
+      throw new Error(msg);
+    }
     const teamIndex = this.INDEX.getTeamIndex(team.id);
     const gameIndex = this.INDEX.getGameIndex(gameId);
     localState.teams[teamIndex].games.splice(gameIndex, 1);

@@ -38,3 +38,4 @@ src-srv/logs
 config-common.js
 *.sublime-project
 *.sublime-workspace
+schema-json-relative/

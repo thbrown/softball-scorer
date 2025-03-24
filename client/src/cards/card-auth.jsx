@@ -79,13 +79,13 @@ export default class CardAuth extends React.Component {
         logInInProgress: true,
       });
       try {
-        let email = document.getElementById('username');
-        let password = document.getElementById('password');
+        let emailValue = document.getElementById('username').value;
+        let passwordValue = document.getElementById('password').value;
 
-        if (email.value && password.value) {
+        if (emailValue && passwordValue) {
           let body = JSON.stringify({
-            email: email.value,
-            password: password.value,
+            email: emailValue,
+            password: passwordValue,
           });
 
           // There is some data locally that's not associated with an account, ask if we should keep it
@@ -137,7 +137,7 @@ export default class CardAuth extends React.Component {
 
           if (response.status === 204) {
             if (
-              getGlobalState().getActiveUser() === email.value ||
+              getGlobalState().getActiveUser() === emailValue ||
               (getGlobalState().getActiveUser() === null &&
                 keepLocalChanges === 'KEEP')
             ) {
@@ -145,7 +145,7 @@ export default class CardAuth extends React.Component {
               getGlobalState().resetSyncState();
             } else {
               getGlobalState().resetState();
-              getGlobalState().setActiveUser(email.value);
+              getGlobalState().setActiveUser(emailValue);
             }
 
             let status = await getGlobalState().sync();
@@ -166,8 +166,8 @@ export default class CardAuth extends React.Component {
           }
         } else {
           let map = {
-            Email: email.value,
-            Password: password.value,
+            Email: emailValue,
+            Password: passwordValue,
           };
           let missingFields = Object.keys(map).filter((field) => {
             return !map[field];
@@ -201,7 +201,7 @@ export default class CardAuth extends React.Component {
           }}
         >
           <input
-            type="text"
+            type="email"
             name="username"
             id="username"
             placeholder="Email"
