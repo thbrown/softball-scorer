@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import dialog from 'dialog';
 import Draggable from 'react-draggable';
 import results from 'plate-appearance-results';
@@ -10,6 +10,7 @@ import { makeStyles } from 'css/helpers';
 import { setRoute } from 'actions/route';
 import Card from 'elements/card';
 import BallFieldSvg from 'components/ball-field-svg';
+import { PlateAppearance } from 'shared-lib/types';
 
 const LOCATION_DENOMINATOR = 32767;
 
@@ -317,7 +318,7 @@ class CardPlateAppearance extends React.Component<any, any> {
     });
   };
 
-  handleToggleResultOptions() {
+  handleToggleResultOptions = () => {
     const update =
       this.state.resultOptionsPage === RESULT_OPTIONS_DEFAULT
         ? RESULT_OPTIONS_EXTRA
@@ -325,7 +326,7 @@ class CardPlateAppearance extends React.Component<any, any> {
     this.setState({
       resultOptionsPage: update,
     });
-  }
+  };
 
   handleDragStart = (ev) => {
     const element = document.getElementById('baseball');
@@ -461,7 +462,7 @@ class CardPlateAppearance extends React.Component<any, any> {
       draggableData.y,
       adjustedBaseCoords
     );
-    const runnerLocation = ref?.current.getAttribute('loc');
+    const runnerLocation = ref?.current.getAttribute('id');
 
     // Move the runners and update the state!
     const newRunners = JSON.parse(JSON.stringify(this.state.runners));
@@ -910,7 +911,7 @@ class CardPlateAppearance extends React.Component<any, any> {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          // loc="1B"
+          id="1B"
           className="player-location gone"
         >
           <div style={{ marginTop: '13px', marginLeft: '13px' }}>1B</div>
@@ -925,7 +926,7 @@ class CardPlateAppearance extends React.Component<any, any> {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          // loc="2B"
+          id="2B"
           className="player-location gone"
         >
           <div style={{ marginTop: '13px', marginLeft: '13px' }}>2B</div>
@@ -940,7 +941,7 @@ class CardPlateAppearance extends React.Component<any, any> {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          // loc="3B"
+          id="3B"
           className="player-location gone"
         >
           <div style={{ marginTop: '13px', marginLeft: '13px' }}>3B</div>
@@ -955,7 +956,7 @@ class CardPlateAppearance extends React.Component<any, any> {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          // loc="scored"
+          id="scored"
           className="player-location gone"
         >
           <div
@@ -974,7 +975,7 @@ class CardPlateAppearance extends React.Component<any, any> {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          // loc="out"
+          id="out"
           className="player-location gone"
         >
           <div
@@ -983,56 +984,6 @@ class CardPlateAppearance extends React.Component<any, any> {
             Out
           </div>
         </div>
-      </div>
-    );
-
-    // For this PA, ignore outs/runs from the global state and use the values in the local component state
-    const runsFromThisSavedPa =
-      this.props.plateAppearance.runners.scored?.length ?? 0;
-    const runsFromState = this.state.runners.scored?.length ?? 0;
-    const runsFromGame = getGlobalState().getUsScoreAtPa(
-      paId,
-      this.props.origin
-    );
-    const runsAtPa = runsFromGame - runsFromThisSavedPa + runsFromState;
-
-    const outsFromGame = getGlobalState().getOutsAtPa(paId, this.props.origin);
-    const outsFromThisSavedPa =
-      this.props.plateAppearance.runners.out?.length ?? 0;
-    const outsFromState = this.state.runners.out?.length ?? 0;
-    const outsAtPa = outsFromGame - outsFromThisSavedPa + outsFromState;
-
-    // TODO: DUp code, also we need to get this by inning instead of over the whole game
-    const calculateScore = (scoreObj) => {
-      let totalScore = 0;
-      for (const inningNumber in scoreObj) {
-        totalScore += scoreObj[inningNumber]; // Overrides
-      }
-      return totalScore;
-    };
-
-    const textInfo = (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-evenly',
-          position: 'relative',
-          height: '19px',
-        }}
-      >
-        <div>
-          Score:{' '}
-          {`${runsAtPa}-${
-            this.props.plateAppearance.game === undefined
-              ? 0
-              : calculateScore(this.props.plateAppearance.game.scoreThem)
-          }`}
-        </div>
-        <div>
-          Inning: {Math.floor(outsAtPa / 3) + 1 - (isLastPAOfInning ? 1 : 0)}
-        </div>
-
-        <div>Outs: {isLastPAOfInning ? 3 : outsAtPa % 3}</div>
       </div>
     );
 
@@ -1048,7 +999,12 @@ class CardPlateAppearance extends React.Component<any, any> {
             overflow: 'hidden',
           }}
         >
-          {textInfo}
+          <ScoreInfo
+            paId={paId}
+            plateAppearance={this.props.plateAppearance}
+            runners={this.state.runners}
+            origin={this.props.origin}
+          />
         </div>
         <div
           id="ballfield"
@@ -1214,6 +1170,67 @@ class CardPlateAppearance extends React.Component<any, any> {
 const CardPlateAppearanceWrapper = (props) => {
   const classes = useStyles();
   return <CardPlateAppearance {...props} classes={classes} />;
+};
+
+type ScoreInfoProps = {
+  paId: string;
+  plateAppearance: PlateAppearance;
+  runners: PlateAppearance['runners'];
+  origin: string;
+};
+
+const ScoreInfo = (props: ScoreInfoProps) => {
+  const { paId, plateAppearance, runners, origin } = props;
+
+  const getScoreData = useCallback(() => {
+    const runsFromThisSavedPa = plateAppearance.runners?.scored?.length ?? 0;
+    const runsFromState = runners?.scored?.length ?? 0;
+    const runsFromGame = getGlobalState().getUsScoreAtPa(paId, origin);
+    const scoreUsAtPa = runsFromGame - runsFromThisSavedPa + runsFromState;
+
+    const scoreThemAtPa = getGlobalState().getOverrideRunsAtPa(
+      paId,
+      origin
+    ).them;
+
+    const outsFromGame = getGlobalState().getOutsAtPa(paId, origin);
+    const outsFromThisSavedPa = plateAppearance.runners?.out?.length ?? 0;
+    const outsFromState = runners?.out?.length ?? 0;
+    const outsAtPa = outsFromGame - outsFromThisSavedPa + outsFromState;
+
+    const isLastPAOfInning = getGlobalState().isLastPaOfInning(paId, origin);
+    const inning = Math.floor(outsAtPa / 3) + 1 - (isLastPAOfInning ? 1 : 0);
+    const outsInInning = isLastPAOfInning ? 3 : outsAtPa % 3;
+
+    return {
+      scoreUsAtPa,
+      scoreThemAtPa,
+      outsAtPa,
+      inning,
+      outsInInning,
+    };
+  }, [paId, plateAppearance.runners, runners, origin]);
+
+  if (origin === 'optimization') {
+    return null;
+  }
+
+  const scoreData = getScoreData();
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-evenly',
+        position: 'relative',
+        height: '19px',
+      }}
+    >
+      <div>Score: {`${scoreData.scoreUsAtPa}-${scoreData.scoreThemAtPa}`}</div>
+      <div>Inning: {scoreData.inning}</div>
+      <div>Outs: {scoreData.outsInInning}</div>
+    </div>
+  );
 };
 
 export default CardPlateAppearanceWrapper;

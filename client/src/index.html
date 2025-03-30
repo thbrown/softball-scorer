@@ -1,14 +1,5 @@
 <html>
   <head>
-    <!-- Any changes to this script tag will require updating the hash for the script CSP policy in softball-server-->
-    <script>
-      if('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          console.log("[ServiceWorker] Registering service worker")
-          navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
-        })
-      }
-    </script>
     <style>
       body {
         margin: 0;
@@ -37,7 +28,7 @@
       }
     </style>
     <title>Softball App</title>
-    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="manifest" href="/manifest.webmanifest" />
     <link
       rel="apple-touch-icon"
       sizes="180x180"
@@ -97,7 +88,7 @@
   </head>
   <body>
     <!-- <script src="/socket.io/socket.io.js"></script> -->
-    <script src="/assets/nosleep.js" ></script>
+    <script src="/assets/nosleep.js"></script>
     <script type="module" src="./index.tsx"></script>
     <script
       async
