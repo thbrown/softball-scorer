@@ -10,7 +10,7 @@ Live at https://softball.app/
 2. From this repo's root directory, run `install.sh`.
 3. From this repo's root directory run `start.sh`.
 4. Visit http://localhost:8889 in your browser.
-5. Setup any optional features using the sections below if desired (not necessary).
+5. Setup any optional features using the sections below.
 
 ## Format/Lint
 
@@ -195,7 +195,7 @@ restrictEmailsToDomain: 'softball.app', // Only allow emails to softball.app (in
 
 Data is passed to the backend via JSON and database implementations are responsible for persisting it.
 
-The JSON schemas for this application are defined in `/shared/schema` and are defined using JSON Shema (https://json-schema.org/specification.html)
+The JSON schemas for this application are defined in `/shared/schema` and are defined using JSON Schema (https://json-schema.org/specification.html)
 
 #### Types of fields
 
