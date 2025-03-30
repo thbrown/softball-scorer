@@ -1054,15 +1054,17 @@ export class GlobalState {
     if (paOrigin === 'optimization') {
       return 0;
       // TODO
-      const pa = this.INDEX.getPaFromOptimization(paId);
-      pas = this.getOptimizationOverridesForPlayer(
-        pa.optimization.id,
-        pa.playerId
-      );
+      //const pa = this.INDEX.getPaFromOptimization(paId);
+      //pas = this.getOptimizationOverridesForPlayer(
+      //  pa.optimization.id,
+      //  pa.playerId
+      //);
     } else if (paOrigin === 'game') {
-      const pa = this.getPlateAppearance(paId);
+      // Calculate scored runs
       const game = this.INDEX.getGameForPa(paId);
       pas = this.getPlateAppearancesForGame(game.id);
+
+      // TODO: how does 'score them' do this?
     } else {
       throw new Error('Invalid origin ' + paOrigin);
     }
@@ -1073,8 +1075,33 @@ export class GlobalState {
         break;
       }
     }
-    // TODO: account for overrides in each inning
-    return scoreUs;
+    return scoreUs + this.getOverrideRunsAtPa(paId, paOrigin).us;
+  }
+
+  getOverrideRunsAtPa(paId, paOrigin) {
+    let resultUs = 0;
+    let resultThem = 0;
+    const outs = this.getOutsAtPa(paId, paOrigin);
+
+    if (paOrigin === 'optimization') {
+      throw new Error('Score for optimization PAs not implemented');
+    } else if (paOrigin === 'game') {
+      const game = this.INDEX.getGameForPa(paId);
+      const innings = outs === 0 ? 1 : Math.ceil(outs / 3);
+      for (let inning of Object.keys(game.scoreUs)) {
+        if (parseInt(inning) <= innings) {
+          resultUs += game.scoreUs[inning];
+        }
+      }
+      for (let inning of Object.keys(game.scoreThem)) {
+        if (parseInt(inning) <= innings) {
+          resultThem += game.scoreThem[inning];
+        }
+      }
+      return { us: resultUs, them: resultThem };
+    } else {
+      throw new Error('Invalid origin ' + paOrigin);
+    }
   }
 
   getOutsAtPa(paId, paOrigin) {
@@ -1231,7 +1258,7 @@ export class GlobalState {
     this._onEdit();
   }
 
-  removePlateAppearance(plateAppearanceId, gameId) {
+  removePlateAppearance(plateAppearanceId) {
     const pa = this.getPlateAppearance(plateAppearanceId);
     if (pa === undefined) {
       throw new Error(
