@@ -1198,3 +1198,14 @@ Scrolling is ~10-20x smoother.
   font-size: $css.typography.size.small;
   padding-top: $css.spacing.large;
 }
+
+.button-list-pa {
+
+}
+/* when size is less than or eq 375px */
+@media (max-width: 375px) {
+  .button-list-pa {
+    transform-origin: left;
+    transform: scale(0.9);
+  }
+}
