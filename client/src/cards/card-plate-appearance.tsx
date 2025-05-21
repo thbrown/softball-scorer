@@ -689,7 +689,7 @@ class CardPlateAppearance extends React.Component<any, any> {
     );
 
     return (
-      <div>
+      <div className="button-list-pa">
         <div
           className={
             this.state.resultOptionsPage === RESULT_OPTIONS_DEFAULT
@@ -1116,8 +1116,8 @@ class CardPlateAppearance extends React.Component<any, any> {
         songLink={this.props.player.songLink}
         songStart={this.props.player.songStart}
         noSongClickHandler={noSongClickHandler}
-        width={48}
-        height={48}
+        width={100}
+        height={150}
       ></WalkupSong>
     );
   }
@@ -1153,11 +1153,16 @@ class CardPlateAppearance extends React.Component<any, any> {
           {this.renderButtonList()}
           {this.renderField(imageSrcForCurrentPa)}
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div style={{ paddingLeft: '18px' }}>
+            <div style={{ paddingLeft: '18px', width: '82px' }}>
               {this.renderBaseball(imageSrcForCurrentPa)}
             </div>
             {this.renderActionsButtons()}
-            <div style={{ paddingRight: '24px' }}>
+            <div
+              style={{
+                transformOrigin: 'top',
+                transform: 'scale(0.5)',
+              }}
+            >
               {this.renderWalkupSong()}
             </div>
           </div>
