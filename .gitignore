@@ -39,3 +39,8 @@ config-common.js
 *.sublime-project
 *.sublime-workspace
 schema-json-relative/
+
+# Claude Code temporary directories
+tmpclaude-*-cwd
+playwright-test/tmpclaude-*-cwd
+.claude/

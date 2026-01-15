@@ -2,40 +2,40 @@
   "cookies": [
     {
       "name": "_ga",
-      "value": "GA1.1.46480904.1712988459",
+      "value": "GA1.1.767233532.1768441869",
       "domain": "localhost",
       "path": "/",
-      "expires": 1747548458.63664,
+      "expires": 1803001868.631221,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
       "name": "_gid",
-      "value": "GA1.1.1710813605.1712988459",
+      "value": "GA1.1.1583645938.1768441869",
       "domain": "localhost",
       "path": "/",
-      "expires": 1713074858,
+      "expires": 1768528268,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
       "name": "nonHttpOnlyToken",
-      "value": "e7ad6f17-0ccd-4e82-94a2-31ab9eaea1d4",
+      "value": "d5766240-b2b5-4e2d-b2b9-ab6560eea555",
       "domain": "localhost",
       "path": "/",
-      "expires": 1747548459.938245,
+      "expires": 1803001870.359229,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
       "name": "softball.sid",
-      "value": "s%3Ah824zETUP98CP5Mr7K5zIo8UitoVK-CN.7eEULuuX6IRMDeDvtbuEGSpxEA2ncbnMBYv4V2yjQCo",
+      "value": "s%3AGS84JVVMGywtq8Mm1N3_Buaj48Q26hYu.emwi8DrgIJ%2Belo%2B5wI0Iac%2B0md%2BRs5y4KuVXLNeUGDI",
       "domain": "localhost",
       "path": "/",
-      "expires": 1747548459.938389,
+      "expires": 1803001870.359372,
       "httpOnly": true,
       "secure": false,
       "sameSite": "Lax"
@@ -47,7 +47,7 @@
       "localStorage": [
         {
           "name": "APPLICATION_STATE",
-          "value": "{\"online\":true,\"sessionValid\":true,\"activeUser\":\"integration-test-1712988457160@softball.app\"}"
+          "value": "{\"online\":true,\"sessionValid\":true,\"activeUser\":\"integration-test-1768441866351@softball.app\"}"
         },
         {
           "name": "ANCESTOR_DB_STATE",
@@ -60,15 +60,6 @@
         {
           "name": "LOCAL_DB_STATE",
           "value": "{\"account\":{\"optimizers\":[0,1,2]},\"teams\":[],\"players\":[],\"optimizations\":[],\"metadata\":{\"scope\":\"client\",\"version\":6}}"
-        }
-      ]
-    },
-    {
-      "origin": "https://www.google.com",
-      "localStorage": [
-        {
-          "name": "rc::a",
-          "value": "MW50c3YxdXV3MHRucQ=="
         }
       ]
     }

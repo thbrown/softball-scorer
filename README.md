@@ -30,6 +30,8 @@ Fix lint errors:
 
 By default vitest runs in watch mode. If you want to run tests with a "pass"/"fail" then run the :prod version.
 
+### Unit tests
+
 ```
 # run all tests
 yarn test
@@ -48,7 +50,15 @@ You can run tests one module at a time with npx:
 `cd client`
 `npx vitest run <file-name>`
 
-TODO: Figure out how to do this directly from vscode
+### Playwright UI tests
+
+To run the client and server must be running `../start.sh`
+
+From the root directory invoke `(cd ./playwright-test && npx playwright test)` to run the UI tests headless
+
+or
+
+`(cd ./playwright-test && npx playwright test --headed)` to watch the tests run in the browser
 
 ## Dev
 
