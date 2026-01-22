@@ -54,9 +54,9 @@ TODO: Figure out how to do this directly from vscode
 
 Dev mode starts its own web server to serve client assets and proxies and app server requests to the app server.
 
-use `yarn start` if you want to start both dev server and softball.app server at the same time in the same terminal.
+use `yarn start` if you want to start both dev server and softball.app server at the same time in the same terminal. This also starts a CSS watcher that auto-regenerates CSS variables when `theme.js` changes.
 
-Alternatively, with two terminals you can run `yarn start:client` and `yarn start:server` or go into the respective directories and run `yarn start`.
+Alternatively, with two terminals you can run `yarn start:client` and `yarn start:server` or go into the respective directories and run `yarn start`. If you're editing `theme.js` frequently, run `cd client && yarn watch:css` in a third terminal for auto-regeneration.
 
 ## Prod
 
@@ -74,6 +74,35 @@ If you would like to run the prod build do the following.
 # All together
 `yarn build && yarn start:prod`
 ```
+
+## CSS Build System
+
+The application uses CSS Variables (CSS Custom Properties) generated from the theme configuration.
+
+### How it works
+
+1. **Theme Source**: `client/src/css/theme.js` is the single source of truth for design tokens (colors, spacing, typography, etc.)
+2. **Generation**: Running `yarn generate:css-vars` converts theme.js into `client/src/css/variables.css` with CSS variables
+3. **Usage**: CSS files use `var(--color-primary)` syntax to reference theme values
+4. **Build Integration**: The `prebuild` hook automatically regenerates CSS variables before each build
+
+### Making CSS Changes
+
+**To modify theme values:**
+1. Edit `client/src/css/theme.js`
+2. In dev mode (`yarn start`): CSS variables auto-regenerate and hot-reload ✨
+3. For manual generation: Run `yarn generate:css-vars` (or `cd client && yarn generate:css-vars`)
+
+**To modify styles:**
+- Edit `client/src/css/main.css` directly (uses CSS variables)
+- Changes will hot-reload automatically in development mode
+
+### Files
+
+- `client/src/css/theme.js` - Design tokens (colors, spacing, etc.)
+- `client/src/css/variables.css` - Generated CSS variables (do not edit directly)
+- `client/src/css/main.css` - Main stylesheet
+- `client/scripts/generate-css-vars.js` - Generation script
 
 ## Deploy
 

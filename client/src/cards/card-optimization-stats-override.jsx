@@ -6,8 +6,6 @@ import ListButton from 'elements/list-button';
 import { goBack, setRoute } from 'actions/route';
 import SharedLib from 'shared-lib';
 import IconButton from '../elements/icon-button';
-import css from 'css';
-const colors = css.colors;
 
 const constants = SharedLib.constants;
 
@@ -192,7 +190,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
       >
         <div
           style={{
-            backgroundColor: colors.PRIMARY_LIGHT,
+            backgroundColor: 'var(--color-primary-light)',
           }}
         >
           <span className="no-select">+</span>
@@ -247,7 +245,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
             Plate Appearances for{' '}
             <span
               style={{
-                color: colors.PRIMARY_DARK,
+                color: 'var(--color-primary-dark)',
                 fontWeight: 'bold',
               }}
             >
@@ -266,7 +264,7 @@ export default class CardOptimizationStatsOverride extends React.Component {
 
         <div
           style={{
-            background: colors.BACKGROUND,
+            background: 'var(--color-background)',
             margin: '20px 0',
           }}
         >

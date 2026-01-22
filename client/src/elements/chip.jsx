@@ -1,12 +1,10 @@
 import React from 'react';
-import css from 'css';
-const colors = css.colors;
 
 const typeToColor = {
   NEUTRAL: undefined,
-  SUCCESS: colors.PRIMARY,
-  ERROR: colors.DELETE,
-  WARNING: colors.SECONDARY,
+  SUCCESS: 'var(--color-primary)',
+  ERROR: 'var(--color-delete)',
+  WARNING: 'var(--color-secondary)',
 };
 
 const Chip = (props) => {

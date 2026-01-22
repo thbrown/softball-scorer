@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { getGlobalState } from 'state';
 import dialog from 'dialog';
 import FileSaver from 'file-saver';
-import css from 'css';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
@@ -196,27 +195,18 @@ class CardMenu extends Component {
         <ListButton
           id="teams"
           onClick={this.handleTeamsClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BG,
-          }}
         >
           Teams
         </ListButton>
         <ListButton
           id="players"
           onClick={this.handlePlayersClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BG,
-          }}
         >
           Players
         </ListButton>
         <ListButton
           id="optimizations"
           onClick={this.handleOptimizationsClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BG,
-          }}
         >
           Optimizations
         </ListButton>
@@ -239,9 +229,6 @@ class CardMenu extends Component {
           id="save"
           className={'list-item'}
           onClick={this.handleSaveClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BG,
-          }}
         >
           Export To File
         </ListButton>
@@ -249,9 +236,6 @@ class CardMenu extends Component {
           id="load"
           className={'list-item'}
           onClick={this.handleLoadClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BG,
-          }}
         >
           Import From File
         </ListButton>
@@ -260,9 +244,6 @@ class CardMenu extends Component {
           id="details"
           className={'list-item'}
           onClick={this.handleDetailsClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BG,
-          }}
         >
           Settings
         </ListButton>

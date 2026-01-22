@@ -6,7 +6,10 @@
   "scripts": {
     "start": "vite serve src --config ./vite.config.ts",
     "start:dev": "yarn start",
-    "build": "yarn typecheck && yarn build:css && yarn clean && vite build src --config ./vite.config.ts",
+    "watch:css": "node scripts/watch-css-vars.js",
+    "generate:css-vars": "node scripts/generate-css-vars.js",
+    "prebuild": "yarn generate:css-vars",
+    "build": "yarn typecheck && yarn clean && vite build src --config ./vite.config.ts",
     "build:css": "tsx scripts/build-css",
     "clean": "rm -rf ../build",
     "typecheck": "tsc",

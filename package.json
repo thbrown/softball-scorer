@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "yarn start:dev",
-    "start:dev": "concurrently -n srv,client \"yarn start:server\" \"yarn start:client\"",
+    "start:dev": "concurrently --kill-others -n srv,client,css \"yarn start:server\" \"yarn start:client\" \"cd client && yarn watch:css\"",
     "start:client": "cd client && yarn start",
     "start:server": "cd server && yarn start",
     "start:prod": "cd server && yarn start:prod",
