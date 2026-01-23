@@ -218,9 +218,6 @@ class CardMenu extends Component {
               'list-item' + (this.state.forceSyncDisabled ? ' disabled' : '')
             }
             onClick={this.handleSyncClick.bind(this)}
-            style={{
-              backgroundColor: css.colors.BG,
-            }}
           >
             {this.state.forceSyncText}
           </ListButton>
@@ -251,9 +248,6 @@ class CardMenu extends Component {
           <ListButton
             id="logout"
             onClick={this.handleLogoutClick.bind(this)}
-            style={{
-              backgroundColor: css.colors.BG,
-            }}
           >
             Logout
           </ListButton>
@@ -262,9 +256,6 @@ class CardMenu extends Component {
             id="login"
             className={'list-item'}
             onClick={this.handleLoginClick.bind(this)}
-            style={{
-              backgroundColor: css.colors.BG,
-            }}
           >
             Login/Signup
           </ListButton>

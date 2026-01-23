@@ -425,7 +425,7 @@ class CardPlateAppearance extends React.Component<any, any> {
       draggableData.y,
       adjustedBaseCoords
     );
-    const runnerLocation = ref?.current.getAttribute('loc');
+    const runnerLocation = ref?.current.getAttribute('data-loc');
 
     // Move the runners and update the state!
     // Only update if we have a valid location (player was dropped on a base)
@@ -882,7 +882,7 @@ class CardPlateAppearance extends React.Component<any, any> {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          loc="1B"
+          data-loc="1B"
           className="player-location gone"
         >
           <div style={{ marginTop: '13px', marginLeft: '13px' }}>1B</div>
@@ -897,7 +897,7 @@ class CardPlateAppearance extends React.Component<any, any> {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          loc="2B"
+          data-loc="2B"
           className="player-location gone"
         >
           <div style={{ marginTop: '13px', marginLeft: '13px' }}>2B</div>
@@ -912,7 +912,7 @@ class CardPlateAppearance extends React.Component<any, any> {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          loc="3B"
+          data-loc="3B"
           className="player-location gone"
         >
           <div style={{ marginTop: '13px', marginLeft: '13px' }}>3B</div>
@@ -927,7 +927,7 @@ class CardPlateAppearance extends React.Component<any, any> {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          loc="scored"
+          data-loc="scored"
           className="player-location gone"
         >
           <div
@@ -946,7 +946,7 @@ class CardPlateAppearance extends React.Component<any, any> {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          loc="out"
+          data-loc="out"
           className="player-location gone"
         >
           <div
