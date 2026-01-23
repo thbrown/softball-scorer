@@ -1349,7 +1349,7 @@ export class SoftballServer {
         }
       } else {
         const errorId = Math.random().toString(36).substring(7);
-        console.log('err', error, error.stack);
+        logger.error(accountId, 'err', error, error.stack);
         logger.error(accountId, 'Server Error', errorId, error);
         res.setHeader('content-type', 'application/json');
         res

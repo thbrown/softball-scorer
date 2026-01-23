@@ -354,7 +354,7 @@ const routes = {
           team={team}
           game={game}
           remove={function () {
-            getGlobalState().removePlateAppearance(plateAppearance.id, game.id);
+            getGlobalState().removePlateAppearance(plateAppearance.id);
           }}
           replace={function (newPa) {
             getGlobalState().replacePlateAppearance(
