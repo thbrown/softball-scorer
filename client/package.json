@@ -6,7 +6,10 @@
   "scripts": {
     "start": "vite serve src --config ./vite.config.ts",
     "start:dev": "yarn start",
-    "build": "yarn typecheck && yarn build:css && yarn clean && vite build src --config ./vite.config.ts",
+    "watch:css": "node scripts/watch-css-vars.js",
+    "generate:css-vars": "node scripts/generate-css-vars.js",
+    "prebuild": "yarn generate:css-vars",
+    "build": "yarn typecheck && yarn clean && vite build src --config ./vite.config.ts",
     "build:css": "tsx scripts/build-css",
     "clean": "rm -rf ../build",
     "typecheck": "tsc",
@@ -23,10 +26,13 @@
     "@vitejs/plugin-react": "^3.1.0",
     "@vitest/ui": "^0.29.7",
     "@wojtekmaj/enzyme-adapter-react-17": "^0.8.0",
+    "autoprefixer": "^10.4.14",
     "cross-env": "^7.0.3",
     "enzyme": "^3.11.0",
     "happy-dom": "^8.9.0",
     "lz-string": "^1.4.4",
+    "postcss": "^8.4.24",
+    "postcss-import": "^15.1.0",
     "react": "18.2.0",
     "react-autosuggest": "^10.0.4",
     "react-dom": "18.2.0",
@@ -37,7 +43,6 @@
     "recompose": "^0.30.0",
     "rollup-plugin-copy": "^3.5.0",
     "shared-lib": "1.0.0",
-    "uglifycss": "^0.0.29",
     "vite-plugin-node-polyfills": "^0.21.0"
   }
 }

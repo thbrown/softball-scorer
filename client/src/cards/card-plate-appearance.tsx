@@ -6,7 +6,6 @@ import { getGlobalState } from 'state';
 import WalkupSong from 'components/walkup-song';
 import { normalize, distance, cleanObject } from 'utils/functions';
 import { goBack } from 'actions/route';
-import { makeStyles } from 'css/helpers';
 import { setRoute } from 'actions/route';
 import Card from 'elements/card';
 import BallFieldSvg from 'components/ball-field-svg';
@@ -20,41 +19,6 @@ const PLAYER_LOCATION_SIZE = 48;
 
 const RESULT_OPTIONS_DEFAULT = 0;
 const RESULT_OPTIONS_EXTRA = 1;
-
-const useStyles = makeStyles((theme) => ({
-  buttonRow: {
-    display: 'flex',
-    justifyContent: 'flex-start',
-    margin: '4px 10px',
-  },
-  buttonRowExtra: {
-    display: 'flex',
-    justifyContent: 'flex-start',
-    margin: '4px 10px',
-  },
-  button: {
-    cursor: 'default',
-    padding: theme.spacing.medium,
-    color: theme.colors.TEXT_DARK,
-    border: `2px solid ${theme.colors.SECONDARY}`,
-    background: theme.colors.WHITE,
-    borderRadius: theme.borderRadius.small,
-    textAlign: 'center',
-    fontSize: theme.typography.size.large,
-    width: '48px',
-    margin: '2px',
-    [`@media (max-width:${theme.breakpoints.sm})`]: {
-      fontSize: theme.typography.size.medium,
-      padding: '6px',
-      margin: '0px',
-    },
-  },
-  buttonSelected: {
-    color: theme.colors.TEXT_LIGHT,
-    backgroundColor: theme.colors.PRIMARY_DARK,
-    borderColor: theme.colors.PRIMARY_DARK,
-  },
-}));
 
 // Locations of the bases (from the upper left of the image in px) while the image is full sized
 const BASE_COORDINATES = {
@@ -462,15 +426,23 @@ class CardPlateAppearance extends React.Component<any, any> {
       draggableData.y,
       adjustedBaseCoords
     );
-    const runnerLocation = ref?.current.getAttribute('id');
+    const runnerLocation = ref?.current.getAttribute('data-loc');
 
     // Move the runners and update the state!
-    const newRunners = JSON.parse(JSON.stringify(this.state.runners));
-    this.moveRunner(newRunners, playerId, runnerLocation);
-    this.setState({
-      runners: cleanObject(newRunners),
-      suspendTransition: false,
-    });
+    // Only update if we have a valid location (player was dropped on a base)
+    if (runnerLocation) {
+      const newRunners = JSON.parse(JSON.stringify(this.state.runners));
+      this.moveRunner(newRunners, playerId, runnerLocation);
+      this.setState({
+        runners: cleanObject(newRunners),
+        suspendTransition: false,
+      });
+    } else {
+      // Player wasn't dropped on a valid base, just reset suspendTransition
+      this.setState({
+        suspendTransition: false,
+      });
+    }
   };
 
   onPlayerDrag(adjustedBaseCoords, mouseEvent, draggableData) {
@@ -664,9 +636,9 @@ class CardPlateAppearance extends React.Component<any, any> {
           id={'result-' + result}
           key={`${i} ${result}`}
           className={
-            this.props.classes.classes.button +
+            'pa-button' +
             (this.state.paResult === result
-              ? ' ' + this.props.classes.classes.buttonSelected
+              ? ' pa-button-selected'
               : '')
           }
           onClick={this.handleButtonClick.bind(this, result)}
@@ -681,7 +653,7 @@ class CardPlateAppearance extends React.Component<any, any> {
       <div
         id={'result-toggle'}
         key={`result-toggle`}
-        className={this.props.classes.classes.button}
+        className="pa-button"
         onClick={this.handleToggleResultOptions}
       >
         <span className="no-select">...</span>
@@ -693,8 +665,8 @@ class CardPlateAppearance extends React.Component<any, any> {
         <div
           className={
             this.state.resultOptionsPage === RESULT_OPTIONS_DEFAULT
-              ? this.props.classes.classes.buttonRow
-              : this.props.classes.classes.buttonRowExtra
+              ? 'pa-button-row'
+              : 'pa-button-row-extra'
           }
         >
           {elems.slice(0, elems.length / 2)}
@@ -702,8 +674,8 @@ class CardPlateAppearance extends React.Component<any, any> {
         <div
           className={
             this.state.resultOptionsPage === RESULT_OPTIONS_DEFAULT
-              ? this.props.classes.classes.buttonRow
-              : this.props.classes.classes.buttonRowExtra
+              ? 'pa-button-row'
+              : 'pa-button-row-extra'
           }
         >
           {elems.slice(elems.length / 2, elems.length)}
@@ -911,7 +883,7 @@ class CardPlateAppearance extends React.Component<any, any> {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          id="1B"
+          data-loc="1B"
           className="player-location gone"
         >
           <div style={{ marginTop: '13px', marginLeft: '13px' }}>1B</div>
@@ -926,7 +898,7 @@ class CardPlateAppearance extends React.Component<any, any> {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          id="2B"
+          data-loc="2B"
           className="player-location gone"
         >
           <div style={{ marginTop: '13px', marginLeft: '13px' }}>2B</div>
@@ -941,7 +913,7 @@ class CardPlateAppearance extends React.Component<any, any> {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          id="3B"
+          data-loc="3B"
           className="player-location gone"
         >
           <div style={{ marginTop: '13px', marginLeft: '13px' }}>3B</div>
@@ -956,7 +928,7 @@ class CardPlateAppearance extends React.Component<any, any> {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          id="scored"
+          data-loc="scored"
           className="player-location gone"
         >
           <div
@@ -975,7 +947,7 @@ class CardPlateAppearance extends React.Component<any, any> {
             width: PLAYER_LOCATION_SIZE,
             height: PLAYER_LOCATION_SIZE,
           }}
-          id="out"
+          data-loc="out"
           className="player-location gone"
         >
           <div
@@ -1173,8 +1145,7 @@ class CardPlateAppearance extends React.Component<any, any> {
 }
 
 const CardPlateAppearanceWrapper = (props) => {
-  const classes = useStyles();
-  return <CardPlateAppearance {...props} classes={classes} />;
+  return <CardPlateAppearance {...props} />;
 };
 
 type ScoreInfoProps = {

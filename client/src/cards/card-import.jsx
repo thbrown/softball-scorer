@@ -5,58 +5,10 @@ import { getGlobalState } from 'state';
 import Card from 'elements/card';
 import CardSection from 'elements/card-section';
 import { setRoute } from 'actions/route';
-import { makeStyles } from 'css/helpers';
-import css from 'css';
 
 const TLSchemas = SharedLib.schemaValidation.TLSchemas;
 
-const useStyles = makeStyles((theme) => {
-  return {
-    fileInputContainer: {
-      display: 'flex',
-      justifyContent: 'center',
-      flexDirection: 'row',
-      position: 'relative',
-    },
-    fileInputButton: {
-      width: '100%',
-      color: theme.colors.TEXT_DARK,
-      background: theme.colors.BACKGROUND,
-      border: '2px dotted ' + theme.colors.PRIMARY_LIGHT,
-    },
-    fileInput: {
-      position: 'absolute',
-      left: 0,
-      opacity: 0,
-      top: 0,
-      bottom: 0,
-      width: '100%',
-      cursor: 'pointer',
-    },
-    radioButtonsContainer: {
-      display: 'flex',
-      justifyContent: 'center',
-      flexDirection: 'row',
-      marginTop: theme.spacing.small,
-      margin: '1rem',
-    },
-    loadButton: {
-      width: '120px',
-    },
-    loadButtonDisabled: {
-      width: '120px',
-      backgroundColor: theme.colors.DISABLED,
-      cursor: 'default',
-      // prevents the default button hover
-      '&:hover': {
-        filter: 'brightness(100%)',
-      },
-    },
-  };
-});
-
 const CardImport = () => {
-  const { classes } = useStyles();
   const [fileName, setFileName] = React.useState(null);
   const [loadType, setLoadType] = React.useState('mine');
   const fileInputRef = React.useRef(null);
@@ -162,7 +114,7 @@ const CardImport = () => {
                 <span
                   style={{
                     textDecoration: 'underline',
-                    color: css.colors.PRIMARY_DARK,
+                    color: 'var(--color-primary-dark)',
                   }}
                 >
                   Softball.app's
@@ -173,9 +125,9 @@ const CardImport = () => {
             </b>
           </div>
           <br></br>
-          <div className={classes.fileInputContainer}>
+          <div className="import-file-input-container">
             <input
-              className={classes.fileInput}
+              className="import-file-input"
               ref={fileInputRef}
               type="file"
               name="fileData"
@@ -184,7 +136,7 @@ const CardImport = () => {
             />
             <label
               htmlFor="fileData"
-              className={'button ' + classes.fileInputButton}
+              className="button import-file-input-button"
             >
               {fileName
                 ? fileName
@@ -192,7 +144,7 @@ const CardImport = () => {
             </label>
           </div>
           <div>Next, select what happens in case of a merge conflict:</div>
-          <div className={classes.radioButtonsContainer}>
+          <div className="import-radio-buttons-container">
             <div className="radio-button-option">
               <input
                 id="myChoice"
@@ -221,12 +173,12 @@ const CardImport = () => {
             </div>
           </div>
           <div>Lastly, click the load button to make it official:</div>
-          <div className={classes.fileInputContainer}>
+          <div className="import-file-input-container">
             <div
               id="load"
               className={
                 'button primary-button ' +
-                (fileName ? classes.loadButton : classes.loadButtonDisabled)
+                (fileName ? 'import-load-button' : 'import-load-button-disabled')
               }
               onClick={handleLoadClick}
             >

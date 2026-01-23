@@ -1,6 +1,4 @@
 import React from 'react';
-import css from 'css';
-const colors = css.colors;
 
 /*
 src: string
@@ -16,7 +14,7 @@ const IconButton = (props) => {
     <div
       className="hover"
       style={{
-        background: props.hideBackground ? undefined : colors.SEMI_TRANSPARENT,
+        background: props.hideBackground ? undefined : 'var(--color-semi-transparent)',
         filter: invert ? 'invert(1)' : undefined,
         width: '24px',
         height: '24px',

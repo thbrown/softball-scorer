@@ -1,5 +1,4 @@
 import React from 'react';
-import theme from '../css/theme';
 
 export default class HrTitle extends React.Component {
   render() {
@@ -14,7 +13,7 @@ export default class HrTitle extends React.Component {
       >
         <div
           style={{
-            borderBottom: '2px solid ' + theme.colors.PRIMARY,
+            borderBottom: '2px solid var(--color-primary)',
             borderTop: '2px solid transparent',
             width: '5%',
           }}
@@ -31,7 +30,7 @@ export default class HrTitle extends React.Component {
         </div>
         <div
           style={{
-            borderBottom: '2px solid ' + theme.colors.PRIMARY,
+            borderBottom: '2px solid var(--color-primary)',
             borderTop: '2px solid transparent',
             width: 'calc(100% - 5% - 100px)',
           }}

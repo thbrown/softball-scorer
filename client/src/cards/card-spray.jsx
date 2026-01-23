@@ -2,7 +2,6 @@ import React from 'react';
 import Card from 'elements/card';
 import { setRoute } from 'actions/route';
 import Spray from '../components/spray';
-import css from 'css/theme';
 
 export default class CardSpray extends React.Component {
   render() {
@@ -24,7 +23,7 @@ export default class CardSpray extends React.Component {
             maxWidth: '500px',
             padding: '0.75rem',
             textAlign: 'center',
-            color: css.colors.TEXT_GREY,
+            color: 'var(--color-text-grey)',
           }}
         >
           Tap a location to see information about the plate appearance.

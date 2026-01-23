@@ -1,6 +1,5 @@
 import React from 'react';
 import { compose, withHandlers } from 'recompose';
-import { makeStyles } from 'css/helpers';
 import NoSelect from 'elements/no-select';
 import ListButton from 'elements/list-button';
 
@@ -12,17 +11,7 @@ const enhance = compose(
   })
 );
 
-const useListPickerStyles = makeStyles((theme) => ({
-  listItemFloat: {
-    float: 'right',
-    marginRight: '5px',
-    fontSize: '12px',
-    marginTop: '6px',
-  },
-}));
-
 const ListPicker = (props) => {
-  const { classes } = useListPickerStyles();
 
   if (props.items.length === 0) {
     return (
@@ -49,7 +38,7 @@ const ListPicker = (props) => {
               {item.name}
             </NoSelect>
             {item.floatName ? (
-              <span className={classes.listItemFloat}>
+              <span className="list-item-float">
                 <NoSelect>{item.floatName}</NoSelect>
               </span>
             ) : (

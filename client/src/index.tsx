@@ -7,6 +7,7 @@ import { getGlobalState } from 'state';
 import routes from 'routes';
 import 'utils/polyfills';
 import dialog from 'dialog';
+import './css/main.css';
 
 const global = window as any;
 global.React = React;
