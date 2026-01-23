@@ -4,7 +4,6 @@ import { getGlobalState } from 'state';
 import dialog from 'dialog';
 import Draggable from 'react-draggable';
 import { setRoute } from 'actions/route';
-import css from 'css';
 import IconButton from '../elements/icon-button';
 import HrTitle from 'elements/hr-title';
 import { Game, PlateAppearance, Player, Team } from 'shared-lib/types';
@@ -228,8 +227,9 @@ export default class CardLineup extends React.Component {
     this.simWorker.onmessage = function (e) {
       const data = JSON.parse(e.data);
       const elem = this.scoreTextRef.current;
-      elem.innerHTML = `Estimated Score: ${data.score.toFixed(3)} runs (took ${data.time
-        }ms)`;
+      elem.innerHTML = `Estimated Score: ${data.score.toFixed(3)} runs (took ${
+        data.time
+      }ms)`;
 
       this.scoreSpinnerRef.current.style.visibility = 'hidden';
     }.bind(this);
@@ -304,7 +304,7 @@ export default class CardLineup extends React.Component {
             invert
             style={{
               height: '18px',
-              paddingTop: css.spacing.xxSmall,
+              paddingTop: 'var(--spacing-xx-small)',
             }}
           />
           <span>Lineup Order Unlocked</span>
@@ -399,7 +399,7 @@ export default class CardLineup extends React.Component {
             this.props.team.id
           )}
         >
-          <div style={{ backgroundColor: css.colors.PRIMARY_LIGHT }}>
+          <div style={{ backgroundColor: 'var(--color-primary-light)' }}>
             <span className="no-select">+</span>
           </div>
         </div>
@@ -645,8 +645,13 @@ export default class CardLineup extends React.Component {
     elems.push(
       <div
         key="name"
-        style={this.locked ? { width: "25%", transform: 'translateY(2px)' } : { width: "85%", transform: 'translateY(2px)' }}
-        className="player-name prevent-overflow">
+        style={
+          this.locked
+            ? { width: '25%', transform: 'translateY(1px)' }
+            : { width: '85%', transform: 'translateY(1px)' }
+        }
+        className="player-name prevent-overflow"
+      >
         {player.name}
       </div>
     );

@@ -1,5 +1,4 @@
 import expose from 'expose';
-import css from 'css';
 import React from 'react';
 
 export default class WalkupSong extends expose.Component {
@@ -91,7 +90,7 @@ export default class WalkupSong extends expose.Component {
           style={{
             position: 'relative',
             display: 'inline-block',
-            borderRadius: css.borderRadius.small,
+            borderRadius: 'var(--border-radius-small)',
           }}
         >
           <iframe
@@ -132,9 +131,9 @@ export default class WalkupSong extends expose.Component {
             width: this.props.width,
             height: this.props.height,
             textAlign: 'center',
-            color: css.colors.TEXT_LIGHT,
-            backgroundColor: css.colors.SECONDARY,
-            borderRadius: css.borderRadius.small,
+            color: 'var(--color-text-light)',
+            backgroundColor: 'var(--color-secondary)',
+            borderRadius: 'var(--border-radius-small)',
             display: 'flex',
             justifyContent: 'space-around',
             alignItems: 'center',

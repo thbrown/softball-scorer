@@ -1,5 +1,9 @@
-// Color Theme
-// https://material.io/tools/color/#!/?view.left=0&view.right=0&primary.color=4caf50&secondary.color=775447
+// Design System Theme
+// This file is the single source of truth for the design system.
+// It's used to generate CSS variables in client/src/css/variables.css
+// Run `yarn generate:css-vars` after making changes here.
+//
+// Color Theme: https://material.io/tools/color/#!/?view.left=0&view.right=0&primary.color=4caf50&secondary.color=775447
 
 const theme = {
   // e8e8e8 - grey

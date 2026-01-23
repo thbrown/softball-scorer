@@ -44,3 +44,4 @@ schema-json-relative/
 tmpclaude-*-cwd
 playwright-test/tmpclaude-*-cwd
 .claude/
+.*

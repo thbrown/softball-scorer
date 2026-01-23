@@ -1,65 +1,8 @@
 import React from 'react';
 import { getGlobalState } from 'state';
 import dialog from 'dialog';
-import { makeStyles } from 'css/helpers';
 import IconButton from '../elements/icon-button';
-import css from 'css';
 import Loading from 'elements/loading';
-
-const useStatsSharingStyles = makeStyles((css) => ({
-  publicLink: {
-    fontSize: css.typography.size.xSmall,
-    padding: css.spacing.xxSmall,
-    backgroundColor: css.colors.INVISIBLE,
-    color: css.colors.TEXT_DARK,
-    border: '0px',
-    resize: 'none',
-    whiteSpace: 'unset',
-    overflowWrap: 'unset',
-    overflow: 'hidden',
-    fontFamily: 'inherit',
-  },
-  publicLinkLabelBox: {
-    margin: '1rem 0',
-    fontSize: css.typography.size.medium,
-    display: 'flex',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-  },
-  publicLinkLabel: {
-    paddingRight: css.spacing.xxSmall,
-  },
-  publicLinkLineItem: {
-    padding: css.spacing.xxSmall,
-  },
-  publicLinkCopyButton: {
-    width: css.sizes.ICON,
-    cursor: 'pointer',
-  },
-  publicLinkCopiedText: {
-    opacity: 1,
-    transition: 'transition: all 0.5s ease-out',
-  },
-  publicLinkContainer: {
-    color: css.colors.TEXT_DARK,
-    backgroundColor: css.colors.BACKGROUND,
-    borderRadius: css.borderRadius.small,
-    display: 'flex',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginTop: css.spacing.xSmall,
-    overflow: 'hidden',
-  },
-  publicLinkCheckbox: {
-    width: '1rem',
-    height: '1rem',
-    marginRight: css.spacing.xSmall,
-  },
-  helpText: {
-    color: css.colors.TEXT_GREY,
-    fontSize: css.typography.size.small,
-  },
-}));
 
 const CardStatsSharing = (props) => {
   const [loading, setLoading] = React.useState(false);
@@ -110,7 +53,6 @@ const CardStatsSharing = (props) => {
     copyText.blur();
   };
 
-  const { styles } = useStatsSharingStyles();
   const { publicId, publicIdEnabled } = props.team;
   const publicLink = `${window.location.origin}/public-teams/${publicId}/stats`;
 
@@ -134,7 +76,7 @@ const CardStatsSharing = (props) => {
         id="publicIdEnabled"
         type="checkbox"
         checked={!!publicIdEnabled}
-        style={styles.publicLinkCheckbox}
+        className="public-link-checkbox"
         onChange={handlePublicLinkEnabledClicked}
       />
     );
@@ -144,32 +86,32 @@ const CardStatsSharing = (props) => {
   if (getGlobalState().isSessionValid()) {
     content = (
       <div className="auth-input-container">
-        <div style={styles.publicLinkLabelBox}>
-          <label htmlFor="publicIdEnabled" style={styles.publicLinkLabel}>
+        <div className="public-link-label-box">
+          <label htmlFor="publicIdEnabled" className="public-link-label">
             Enable Public Link for Team Stats Sharing
           </label>
           {checkboxContent}
           {copiedNotificationVisible && (
-            <span style={styles.publicLinkCopiedText} className="fade-out">
+            <span className="public-link-copied-text fade-out">
               Link copied
             </span>
           )}
         </div>
         <div>
-          <div style={{ ...styles.helpText, margin: '1rem 0px' }}>
+          <div className="stats-sharing-help-text" style={{ margin: '1rem 0px' }}>
             A public link is one you can share with others - teammates, fans,
             etc. Anyone with the link can view this team's stats (updated live).
             Team stats can be hidden at any time by unchecking the checkbox.
           </div>
-          <div style={{ ...styles.helpText, margin: '1rem 0px' }}></div>
+          <div className="stats-sharing-help-text" style={{ margin: '1rem 0px' }}></div>
         </div>
         {publicIdEnabled && (
-          <div style={styles.publicLinkContainer}>
-            <div style={styles.publicLinkLineItem}>
+          <div className="public-link-container">
+            <div className="public-link-line-item">
               <span>
                 <IconButton
                   onClick={handleCopyClick}
-                  style={styles.publicLinkCopyButton}
+                  className="public-link-copy-button"
                   src="/assets/copy.svg"
                   alt="copy"
                   invert
@@ -182,7 +124,7 @@ const CardStatsSharing = (props) => {
               readOnly
               size={publicLink.length}
               value={publicLink}
-              style={styles.publicLink}
+              className="public-link"
             />
           </div>
         )}
@@ -202,7 +144,7 @@ const CardStatsSharing = (props) => {
   return (
     <div
       style={{
-        margin: '0px ' + css.spacing.xxSmall,
+        margin: '0px var(--spacing-xx-small)',
       }}
     >
       {content}

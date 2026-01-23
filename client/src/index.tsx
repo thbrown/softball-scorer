@@ -7,6 +7,7 @@ import { getGlobalState } from 'state';
 import routes from 'routes';
 import 'utils/polyfills';
 import dialog from 'dialog';
+import './css/main.css';
 
 const global = window as any;
 global.React = React;
@@ -27,7 +28,16 @@ const App = (props) => {
 
   useMemo(() => {
     if ('serviceWorker' in navigator) {
-      console.log('[ServiceWorker] Refresh dialog activated');
+      console.log('[ServiceWorker] Event registration activated');
+
+      // Register the service worker when the page is loaded
+      window.addEventListener('load', () => {
+        console.log('[ServiceWorker] Registering service worker');
+        navigator.serviceWorker.register('/service-worker.js', {
+          scope: '/',
+        });
+      });
+
       // Register a service worker to support offline experience and quick subsequent page loads
       // When a new service worker is available, re-load the page
       navigator.serviceWorker.oncontrollerchange = () => {

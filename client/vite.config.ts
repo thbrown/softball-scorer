@@ -136,8 +136,8 @@ export default defineConfig((...args) => {
       proxy: {
         '^/server/.*': srvUrl,
         '^/web-workers/.*': srvUrl,
-        '^/service-worker.js': srvUrl,
-        '^/manifest.webmanifest': srvUrl,
+        //'^/service-worker.js': srvUrl,
+        //'^/manifest.webmanifest': srvUrl,
       },
     },
   };

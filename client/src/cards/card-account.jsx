@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import css from 'css';
 import { getGlobalState } from 'state';
 import Card from 'elements/card';
 import dialog from 'dialog';
@@ -124,9 +123,6 @@ export default class CardAccount extends Component {
           id="email-validation"
           className="list-button button left"
           onClick={this.handleEmailValidationClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BG,
-          }}
         >
           Re-send email validation email
         </div>
@@ -180,9 +176,6 @@ export default class CardAccount extends Component {
           id="delete-data"
           className="list-button button left"
           onClick={this.handleDeleteDataClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BG,
-          }}
         >
           Delete all data
         </div>
@@ -190,9 +183,6 @@ export default class CardAccount extends Component {
           id="delete-account"
           className="list-button button left"
           onClick={this.handleDeleteAccountClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BG,
-          }}
         >
           Delete account
         </div>
