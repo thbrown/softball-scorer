@@ -1,6 +1,6 @@
 import hasher from 'node-object-hash';
 
-export const factorial = function (n) {
+export const factorial = function (n: number): number {
   if (n < 0 || n > 20) {
     throw Error('Factorial out of range' + n);
   }
@@ -12,7 +12,7 @@ export const factorial = function (n) {
   return fact[n];
 };
 
-export const binomial = function (n, k) {
+export const binomial = function (n: number, k: number): number {
   if (n === 0) {
     return 0;
   }
@@ -20,13 +20,13 @@ export const binomial = function (n, k) {
     return 0;
   }
   return (
-    exports.factorial(n) / (exports.factorial(k) * exports.factorial(n - k))
+    factorial(n) / (factorial(k) * factorial(n - k))
   );
 };
 
 // https://stackoverflow.com/questions/8211744/convert-time-interval-given-in-seconds-into-more-human-readable-form
-export const secondsToString = function (seconds) {
-  function numberEnding(number) {
+export const secondsToString = function (seconds: number): string {
+  function numberEnding(number: number): string {
     return number > 1 ? 's' : '';
   }
 
@@ -54,7 +54,7 @@ export const secondsToString = function (seconds) {
 };
 
 // Calculate the hash of the data and return the result as a base64 string
-export const getHash = function (data, logger) {
+export const getHash = function (data: unknown): string {
   // I've tried other hashes here (like javascript xxHash) but md5 is faster in the browser and much faster on the server.
   var objectHasher = hasher({
     alg: 'md5',
@@ -74,7 +74,7 @@ export const getHash = function (data, logger) {
 };
 
 // Get the string representation of an object for hashing, sorts properties of objects so representation is stable
-export const getObjectString = function (data) {
+export const getObjectString = function (data: unknown): string {
   var objectHasher = hasher({
     alg: 'md5',
     sort: true,
@@ -86,15 +86,15 @@ export const getObjectString = function (data) {
 };
 
 // Concatenate arrays and remove duplicates
-export const merge = function (array1, array2) {
+export const merge = function <T>(array1: T[], array2: T[]): T[] {
   return [...new Set([...array1, ...array2])];
 };
 
-export const truncate = function (str, n) {
+export const truncate = function (str: string, n: number): string {
   return str.length > n ? str.substr(0, n - 1) : str;
 };
 
-export const round = function (toRound, decimalPlaces) {
+export const round = function (toRound: number, decimalPlaces?: number): number {
   decimalPlaces = decimalPlaces ? decimalPlaces : 0;
   return (
     Math.round(toRound * Math.pow(10, decimalPlaces)) /
@@ -102,15 +102,15 @@ export const round = function (toRound, decimalPlaces) {
   );
 };
 
-export const formatPercentage = function (value, decimalPlaces) {
+export const formatPercentage = function (value: number | string, decimalPlaces?: number): string {
   decimalPlaces = decimalPlaces ? decimalPlaces : 0;
-  if (isNaN(value)) {
+  if (isNaN(Number(value))) {
     return '-%';
   }
-  return (parseFloat(value) * 100).toFixed(decimalPlaces) + '%';
+  return (parseFloat(String(value)) * 100).toFixed(decimalPlaces) + '%';
 };
 
-export const calculateFormattedAverage = function (numerator, denominator) {
+export const calculateFormattedAverage = function (numerator: number, denominator: number): string {
   if (denominator === 0) {
     return '.000';
   } else if (numerator === denominator) {
@@ -120,7 +120,7 @@ export const calculateFormattedAverage = function (numerator, denominator) {
   }
 };
 
-export function percentageIncrease(start, end) {
+export function percentageIncrease(start: number, end: number): string | null {
   if (start === 0) {
     // Avoid division by zero if the starting value is zero
     console.warn(
@@ -135,9 +135,9 @@ export function percentageIncrease(start, end) {
   return formatPercentage(percentageIncrease);
 }
 
-export const sortJson = function sortJson(object) {
+export const sortJson = function sortJson(object: unknown): unknown {
   if (Array.isArray(object)) {
-    let result = [];
+    let result: unknown[] = [];
     for (let el of object) {
       result.push(sortJson(el));
     }
@@ -145,9 +145,9 @@ export const sortJson = function sortJson(object) {
   } else if (isObject(object)) {
     let keys = Object.keys(object);
     keys.sort();
-    var newObject = {};
+    var newObject: Record<string, unknown> = {};
     for (let key of keys) {
-      newObject[key] = sortJson(object[key]);
+      newObject[key] = sortJson((object as Record<string, unknown>)[key]);
     }
     return newObject;
   } else {
@@ -155,11 +155,11 @@ export const sortJson = function sortJson(object) {
   }
 };
 
-export const isObject = function isObject(input) {
+export const isObject = function isObject(input: unknown): input is Record<string, unknown> {
   return typeof input === 'object' && input !== null && !Array.isArray(input);
 };
 
-export const sleep = async function (ms) {
+export const sleep = async function (ms: number): Promise<number> {
   return new Promise(function (resolve) {
     setTimeout(function () {
       resolve(ms);
@@ -167,7 +167,7 @@ export const sleep = async function (ms) {
   });
 };
 
-export const insertNewlines = function (str, maxLength = 120) {
+export const insertNewlines = function (str: string, maxLength: number = 120): string {
   var result = '';
   for (var i = 0; i < str.length; i += maxLength) {
     result += str.substring(i, i + maxLength) + '\n';

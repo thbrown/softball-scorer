@@ -7,10 +7,12 @@ export const SchemaMigrationTypes = {
   EXPORT: 'export',
   FULL: 'full',
   CLIENT: 'client',
-};
+} as const;
 
-export const getMigration = function (tlSchema) {
-  const schemaNameMigrationMap = {};
+export type SchemaMigrationTypeValue = (typeof SchemaMigrationTypes)[keyof typeof SchemaMigrationTypes];
+
+export const getMigration = function (tlSchema: string): string | undefined {
+  const schemaNameMigrationMap: Record<string, string> = {};
   schemaNameMigrationMap[TLSchemas.EXPORT] = SchemaMigrationTypes.EXPORT;
   schemaNameMigrationMap[TLSchemas.FULL] = SchemaMigrationTypes.FULL;
   schemaNameMigrationMap[TLSchemas.CLIENT] = SchemaMigrationTypes.CLIENT;
@@ -42,21 +44,27 @@ export const getMigration = function (tlSchema) {
  * "ERROR" - if there was an error while attempting to update the json document's schema
  * "REFRESH" - if the document's version is newer than the current app version
  */
+interface MigrationLogger {
+  warn: (...val: unknown[]) => void;
+  log: (...val: unknown[]) => void;
+}
+
 export const updateSchema = function (
-  accountId,
-  inputJson,
-  inputScope, // full, export, or client
-  logger = {
-    warn: function (...val) {
-      val.shift(); // remove accountId
+  accountId: string | number | null,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  inputJson: any,
+  inputScope: string, // full, export, or client
+  logger: MigrationLogger = {
+    warn: function (...val: unknown[]) {
+      (val as unknown[]).shift(); // remove accountId
       console.warn(...val);
     },
-    log: function (...val) {
-      val.shift();
+    log: function (...val: unknown[]) {
+      (val as unknown[]).shift();
       console.log(...val);
     },
   }
-) {
+): 'OKAY' | 'UPDATED' | 'ERROR' | 'REFRESH' {
   try {
     let version = inputJson?.metadata?.version;
     let scope = inputJson?.metadata?.scope;
@@ -221,7 +229,7 @@ export const updateSchema = function (
       }
 
       // Copy and pasting this code from utils instead of introducing a dependency
-      const sortObjectsByDate = function (listInput, { isAsc, eqCb }) {
+      const sortObjectsByDate = function (listInput: any[], { isAsc, eqCb }: { isAsc: boolean; eqCb?: (a: any, b: any) => number }) {
         const list = listInput.slice();
         return list.sort((a, b) => {
           if (a.date === b.date) {

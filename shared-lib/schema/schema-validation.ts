@@ -13,12 +13,15 @@ import * as schemaAccount from '../schema-json/account.json';
 import * as schemaAccountPrivate from '../schema-json/account-private.json';
 import * as schemaAccountReadOnly from '../schema-json/account-read-only.json';
 import * as jsonPointer from 'jsonpointer';
+import type { ErrorObject } from 'ajv/dist/2020';
 
 export const TLSchemas = {
   EXPORT: 'top-level-export',
   CLIENT: 'top-level-client',
   FULL: 'top-level-full',
-};
+} as const;
+
+export type TLSchemaValue = (typeof TLSchemas)[keyof typeof TLSchemas];
 
 const ajv = new Ajv({
   allowUnionTypes: true,
@@ -39,7 +42,7 @@ const ajv = new Ajv({
   ],
 });
 
-export let validateSchemaNoThrow = function (inputJson, schemaId) {
+export let validateSchemaNoThrow = function (inputJson: unknown, schemaId: string): { result: boolean; errors?: ErrorObject[] | null } {
   let validateSchemaObj = ajv.getSchema(
     `http://softball.app/schemas/${schemaId}`
   );
@@ -56,7 +59,7 @@ export let validateSchemaNoThrow = function (inputJson, schemaId) {
   }
 };
 
-export let validateSchema = function (inputJson, schemaId) {
+export let validateSchema = function (inputJson: unknown, schemaId: string): void {
   let result = validateSchemaNoThrow(inputJson, schemaId);
   if (result.errors && result.errors.length > 0) {
     console.log('Validation result', result);
@@ -65,7 +68,7 @@ export let validateSchema = function (inputJson, schemaId) {
     // Adding the value at instancePath helps a lot in debugging
     for (let error of result.errors) {
       let path = error.instancePath;
-      let valueAtPath = jsonPointer.get(inputJson, path);
+      let valueAtPath: unknown = jsonPointer.get(inputJson as object, path);
       let typeAtPath = typeof valueAtPath;
       if (typeof valueAtPath === 'object' && valueAtPath !== null) {
         valueAtPath = JSON.stringify(valueAtPath, null, 2);
@@ -83,7 +86,8 @@ export let validateSchema = function (inputJson, schemaId) {
   }
 };
 
-export let convertDocumentToClient = function (inputJson) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export let convertDocumentToClient = function (inputJson: any) {
   if (inputJson.metadata.scope !== 'full') {
     throw new Error('Invalid inputJson ' + inputJson.metadata.scope);
   }
@@ -99,7 +103,8 @@ export let convertDocumentToClient = function (inputJson) {
   return inputJson;
 };
 
-export let convertDocumentToExport = function (inputJson) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export let convertDocumentToExport = function (inputJson: any) {
   if (
     inputJson.metadata.scope !== 'full' &&
     inputJson.metadata.scope !== 'client'

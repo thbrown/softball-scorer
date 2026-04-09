@@ -1,5 +1,6 @@
-const objectMerge = require('../utils/object-merge.js');
-const utils = require('../utils/common-utils.js');
+import { test, expect } from 'vitest';
+import objectMerge from '../utils/object-merge';
+import * as utils from '../utils/common-utils';
 
 test('PATCH: Arrays maintain ordering on patch', () => {
   const BASE = {

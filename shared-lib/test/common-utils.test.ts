@@ -1,4 +1,5 @@
-const utils = require('../utils/common-utils');
+import { test, expect } from 'vitest';
+import * as utils from '../utils/common-utils';
 
 test('Nested object sorting works', () => {
   const BASE = {

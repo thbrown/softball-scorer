@@ -1,9 +1,9 @@
-let fs = require('fs');
-const schemaValidation = require('../../shared-lib').schemaValidation;
-const schemaMigration = require('../../shared-lib').schemaMigration;
-const TLSchemas = require('../../shared-lib').schemaValidation.TLSchemas;
+import { describe, test, expect } from 'vitest';
+import fs from 'fs';
+import { schemaValidation, schemaMigration } from '../../shared-lib';
+const { TLSchemas } = schemaValidation;
 
-let deepCopy = function (input) {
+let deepCopy = function <T>(input: T): T {
   return JSON.parse(JSON.stringify(input));
 };
 
@@ -11,7 +11,7 @@ describe('migration', () => {
   test('Migration and schema validation', async () => {
     // Get out-dated JSON data from the file system
     let content = JSON.parse(
-      fs.readFileSync(__dirname + '/data/migration-test-data.json')
+      fs.readFileSync(__dirname + '/data/migration-test-data.json', 'utf-8')
     );
 
     // Update the schema
@@ -55,7 +55,7 @@ describe('Validation', () => {
   test('Account must not contain extra properties', async () => {
     // Get old schema document and update.
     let stringContent = JSON.parse(
-      fs.readFileSync(__dirname + '/data/migration-test-data.json')
+      fs.readFileSync(__dirname + '/data/migration-test-data.json', 'utf-8')
     );
 
     // Full
@@ -64,7 +64,7 @@ describe('Validation', () => {
     schemaMigration.updateSchema(null, content, 'full');
     let r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.FULL);
     expect(r.result).toEqual(false);
-    expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
+    expect(r.errors![0].message).toEqual('must NOT have unevaluated properties');
 
     // Client
     content = deepCopy(stringContent);
@@ -72,7 +72,7 @@ describe('Validation', () => {
     schemaMigration.updateSchema(null, content, 'client');
     r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.CLIENT);
     expect(r.result).toEqual(false);
-    expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
+    expect(r.errors![0].message).toEqual('must NOT have unevaluated properties');
 
     // Export (doesn't contain account)
   });
@@ -80,7 +80,7 @@ describe('Validation', () => {
   test('Optimization must not contain extra properties', async () => {
     // Get old schema document and update.
     let stringContent = JSON.parse(
-      fs.readFileSync(__dirname + '/data/migration-test-data.json')
+      fs.readFileSync(__dirname + '/data/migration-test-data.json', 'utf-8')
     );
 
     // Full
@@ -89,7 +89,7 @@ describe('Validation', () => {
     schemaMigration.updateSchema(null, content, 'full');
     let r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.FULL);
     expect(r.result).toEqual(false);
-    expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
+    expect(r.errors![0].message).toEqual('must NOT have unevaluated properties');
 
     // Client
     content = deepCopy(stringContent);
@@ -97,7 +97,7 @@ describe('Validation', () => {
     schemaMigration.updateSchema(null, content, 'client');
     r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.CLIENT);
     expect(r.result).toEqual(false);
-    expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
+    expect(r.errors![0].message).toEqual('must NOT have unevaluated properties');
 
     // Export
     // Export no longer contains optimization data
@@ -106,7 +106,7 @@ describe('Validation', () => {
   test('Team must not contain extra properties', async () => {
     // Get old schema document and update.
     let stringContent = JSON.parse(
-      fs.readFileSync(__dirname + '/data/migration-test-data.json')
+      fs.readFileSync(__dirname + '/data/migration-test-data.json', 'utf-8')
     );
 
     // Full
@@ -115,7 +115,7 @@ describe('Validation', () => {
     schemaMigration.updateSchema(null, content, 'full');
     let r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.FULL);
     expect(r.result).toEqual(false);
-    expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
+    expect(r.errors![0].message).toEqual('must NOT have unevaluated properties');
 
     // Client
     content = deepCopy(stringContent);
@@ -123,7 +123,7 @@ describe('Validation', () => {
     schemaMigration.updateSchema(null, content, 'client');
     r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.CLIENT);
     expect(r.result).toEqual(false);
-    expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
+    expect(r.errors![0].message).toEqual('must NOT have unevaluated properties');
 
     // Export
     content = deepCopy(stringContent);
@@ -131,13 +131,13 @@ describe('Validation', () => {
     schemaMigration.updateSchema(null, content, 'export');
     r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.EXPORT);
     expect(r.result).toEqual(false);
-    expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
+    expect(r.errors![0].message).toEqual('must NOT have unevaluated properties');
   });
 
   test('Game must not contain extra properties', async () => {
     // Get old schema document and update.
     let stringContent = JSON.parse(
-      fs.readFileSync(__dirname + '/data/migration-test-data.json')
+      fs.readFileSync(__dirname + '/data/migration-test-data.json', 'utf-8')
     );
 
     // Full
@@ -146,7 +146,7 @@ describe('Validation', () => {
     schemaMigration.updateSchema(null, content, 'full');
     let r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.FULL);
     expect(r.result).toEqual(false);
-    expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
+    expect(r.errors![0].message).toEqual('must NOT have unevaluated properties');
 
     // Client
     content = deepCopy(stringContent);
@@ -154,7 +154,7 @@ describe('Validation', () => {
     schemaMigration.updateSchema(null, content, 'client');
     r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.CLIENT);
     expect(r.result).toEqual(false);
-    expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
+    expect(r.errors![0].message).toEqual('must NOT have unevaluated properties');
 
     // Export
     content = deepCopy(stringContent);
@@ -162,13 +162,13 @@ describe('Validation', () => {
     schemaMigration.updateSchema(null, content, 'export');
     r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.EXPORT);
     expect(r.result).toEqual(false);
-    expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
+    expect(r.errors![0].message).toEqual('must NOT have unevaluated properties');
   });
 
   test('PlateAppearances must not contain extra properties', async () => {
     // Get old schema document and update.
     let stringContent = JSON.parse(
-      fs.readFileSync(__dirname + '/data/migration-test-data.json')
+      fs.readFileSync(__dirname + '/data/migration-test-data.json', 'utf-8')
     );
 
     // Full
@@ -177,7 +177,7 @@ describe('Validation', () => {
     schemaMigration.updateSchema(null, content, 'full');
     let r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.FULL);
     expect(r.result).toEqual(false);
-    expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
+    expect(r.errors![0].message).toEqual('must NOT have unevaluated properties');
 
     // Client
     content = deepCopy(stringContent);
@@ -185,7 +185,7 @@ describe('Validation', () => {
     schemaMigration.updateSchema(null, content, 'client');
     r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.CLIENT);
     expect(r.result).toEqual(false);
-    expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
+    expect(r.errors![0].message).toEqual('must NOT have unevaluated properties');
 
     // Export
     content = deepCopy(stringContent);
@@ -193,7 +193,7 @@ describe('Validation', () => {
     schemaMigration.updateSchema(null, content, 'export');
     r = schemaValidation.validateSchemaNoThrow(content, TLSchemas.EXPORT);
     expect(r.result).toEqual(false);
-    expect(r.errors[0].message).toEqual('must NOT have unevaluated properties');
+    expect(r.errors![0].message).toEqual('must NOT have unevaluated properties');
   });
 });
 
@@ -201,7 +201,7 @@ describe('Conversion', () => {
   test('Convert full to client', async () => {
     // Get old schema document and update.
     let content = JSON.parse(
-      fs.readFileSync(__dirname + '/data/migration-test-data.json')
+      fs.readFileSync(__dirname + '/data/migration-test-data.json', 'utf-8')
     );
     schemaMigration.updateSchema(null, content, 'full');
     schemaValidation.validateSchema(content, TLSchemas.FULL);
@@ -211,7 +211,7 @@ describe('Conversion', () => {
   test('Convert full to export', async () => {
     // Get old schema document and update.
     let content = JSON.parse(
-      fs.readFileSync(__dirname + '/data/migration-test-data.json')
+      fs.readFileSync(__dirname + '/data/migration-test-data.json', 'utf-8')
     );
     schemaMigration.updateSchema(null, content, 'full');
     schemaValidation.validateSchema(content, TLSchemas.FULL);
@@ -221,7 +221,7 @@ describe('Conversion', () => {
   test('Convert client to export', async () => {
     // Get old schema document and update.
     let content = JSON.parse(
-      fs.readFileSync(__dirname + '/data/migration-test-data.json')
+      fs.readFileSync(__dirname + '/data/migration-test-data.json', 'utf-8')
     );
     schemaMigration.updateSchema(null, content, 'client');
     schemaValidation.validateSchema(content, TLSchemas.CLIENT);

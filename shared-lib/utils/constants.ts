@@ -51,11 +51,12 @@ export const OPTIMIZATION_TYPE_ENUM = Object.freeze({
   SORT_BY_AVERAGE: 4,
 });
 
-export const invertOptStatusSet = function (inputSet) {
-  let output = new Set();
+export const invertOptStatusSet = function (inputSet: Set<number | undefined>): Set<number> {
+  let output = new Set<number>();
   for (let key in OPTIMIZATION_STATUS_ENUM) {
-    if (!inputSet.has(OPTIMIZATION_STATUS_ENUM[key])) {
-      output.add(OPTIMIZATION_STATUS_ENUM[key]);
+    const value = OPTIMIZATION_STATUS_ENUM[key as keyof typeof OPTIMIZATION_STATUS_ENUM];
+    if (!inputSet.has(value)) {
+      output.add(value);
     }
   }
   return output;
@@ -63,12 +64,12 @@ export const invertOptStatusSet = function (inputSet) {
 
 // Flip enums for reverse lookups
 let optStatuses = Object.keys(OPTIMIZATION_STATUS_ENUM);
-let inverse = {};
+let inverse: Record<string, string> = {};
 for (let i = 0; i < optStatuses.length; i++) {
   let englishValue = optStatuses[i];
-  inverse[OPTIMIZATION_STATUS_ENUM[englishValue]] = englishValue;
+  inverse[OPTIMIZATION_STATUS_ENUM[englishValue as keyof typeof OPTIMIZATION_STATUS_ENUM]] = englishValue;
 }
-inverse[undefined] = 'NOT_STARTED'; // undefined is treated the same as NOT_STARTED
+inverse['undefined'] = 'NOT_STARTED'; // undefined is treated the same as NOT_STARTED
 export const OPTIMIZATION_STATUS_ENUM_INVERSE = inverse;
 
 const exp = {

@@ -1,6 +1,9 @@
 import * as commonUtils from './common-utils';
-import jsonpatch from 'fast-json-patch';
+import jsonpatch, { Operation } from 'fast-json-patch';
 import jsonPointer from 'jsonpointer';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type JsonValue = any;
 
 /**
  * JSON patch spec RFC6902 doesn't quite work for us for three reasons.
@@ -103,16 +106,16 @@ import jsonPointer from 'jsonpointer';
  *
  * TODO: Think about making this an interface. I don't know what other implementation we would used here but it's a nice abstraction.
  */
-const diff = function (mine, theirs) {
+const diff = function (mine: JsonValue, theirs: JsonValue): Operation[] {
   // Do the RFC6902 conversion an diffing
-  mine = this._toRFC6902(mine);
-  theirs = this._toRFC6902(theirs);
+  mine = _toRFC6902(mine);
+  theirs = _toRFC6902(theirs);
   let patchObj = jsonpatch.compare(mine, theirs, false);
 
   // Post processing for SCENARIO A (see documentation at the top of this class)
   // If we are replacing an object, convert the replacement to an addition by re-diffing our target with a {}
   // [] - {} - ?
-  let updatedPatch = [];
+  let updatedPatch: Operation[] = [];
   for (let patchStep of patchObj) {
     if (patchStep.op === 'replace') {
       let destinationMine = jsonPointer.get(mine, patchStep.path);
@@ -185,18 +188,23 @@ const diff = function (mine, theirs) {
   return patchObj;
 };
 
+interface Logger {
+  error: (...val: unknown[]) => void;
+  warn?: (...val: unknown[]) => void;
+}
+
 const patch = function (
-  toPatch,
-  patchObj,
-  skipOperationOnNonExistent,
-  skipDeletes,
-  accountId,
-  logger = {
-    error: function (...val) {
+  toPatch: JsonValue,
+  patchObj: Operation[],
+  skipOperationOnNonExistent?: boolean,
+  skipDeletes?: boolean,
+  accountId?: string | number | null,
+  logger: Logger = {
+    error: function (...val: unknown[]) {
       console.warn(...val);
     },
   }
-) {
+): JsonValue {
   //console.warn('APPLYING PATCH', patchObj.length);
 
   // Empty patch indicates no changes
@@ -205,7 +213,7 @@ const patch = function (
   }
 
   // Convert to RFC6902 compatible document
-  toPatch = this._toRFC6902(toPatch, patchObj, toPatch);
+  toPatch = _toRFC6902(toPatch);
 
   // Fix for SCENARIO B (see documentation at the top of this class)
   // Convert the target to an empty object before doing any additions or subtractions
@@ -233,7 +241,7 @@ const patch = function (
 
   // Only perform operations on json elements that exist
   if (skipOperationOnNonExistent) {
-    let updatedPatch = [];
+    let updatedPatch: Operation[] = [];
     for (let patchStep of patchObj) {
       // Keep any add operations
       if (patchStep.op === 'add') {
@@ -256,7 +264,7 @@ const patch = function (
   // Don't do any removals (aka perform a merge)
   // Even though this is a merge, we'll still do replacements. The 'mine' end of the diff wins on a conflict.
   if (skipDeletes) {
-    let updatedPatch = [];
+    let updatedPatch: Operation[] = [];
     for (let patchStep of patchObj) {
       // Don't do any removal or replacements
       if (patchStep.op === 'remove') {
@@ -297,7 +305,7 @@ const patch = function (
       }
     }
 
-    return this._fromRFC6902(patched.newDocument);
+    return _fromRFC6902(patched.newDocument);
   } catch (e) {
     logger.error(e);
     logger.error(accountId, 'BAD PATCH' /*JSON.stringify(toPatch, null, 2)*/);
@@ -312,20 +320,20 @@ const patch = function (
  * @returns the patch with any forbidden operations removed
  */
 let filterPatch = function (
-  patch,
-  forbiddenKeySet,
-  accountId,
-  logger = {
-    warn: function (...val) {
+  patch: Operation[],
+  forbiddenKeySet: Set<string>,
+  accountId?: string | number | null,
+  logger: { warn: (...val: unknown[]) => void } = {
+    warn: function (...val: unknown[]) {
       console.log(...val);
     },
   }
-) {
-  let filteredPatch = [];
+): Operation[] {
+  let filteredPatch: Operation[] = [];
 
   for (let patchElement of patch) {
     // First, find any patches that have forbidden keys in their path
-    let badToken = undefined;
+    let badToken: string | undefined = undefined;
     let tokens = patchElement.path.split('/');
     for (let token of tokens) {
       let nonPrefixedToken = token.substring(1); // Remove prefix ($, #, _, or *)
@@ -345,7 +353,7 @@ let filterPatch = function (
     }
 
     // Second, find any patches that have forbidden keys in their values attribute
-    let isValidValue = _isValueValid(patchElement.value, forbiddenKeySet);
+    let isValidValue = _isValueValid('value' in patchElement ? patchElement.value : undefined, forbiddenKeySet);
     if (!isValidValue) {
       logger.warn(
         accountId,
@@ -363,7 +371,7 @@ let filterPatch = function (
   return filteredPatch;
 };
 
-let _isValueValid = function (toCheck, forbiddenKeySet) {
+let _isValueValid = function (toCheck: JsonValue, forbiddenKeySet: Set<string>): boolean {
   if (toCheck === null || typeof toCheck !== 'object') {
     // Primitives are okay
     return true;
@@ -405,7 +413,7 @@ let _isValueValid = function (toCheck, forbiddenKeySet) {
  * [{id:1}, {id:2}, {id:3}]
  * {#1:{},#2:{},#3:{},&order:{}}
  */
-const _toRFC6902 = function (input) {
+const _toRFC6902 = function (input: JsonValue): JsonValue {
   if (input === undefined || input === null) {
     return input;
   } else if (Array.isArray(input)) {
@@ -427,9 +435,9 @@ const _toRFC6902 = function (input) {
       return outputObject;
     } else if (input[0].id === undefined) {
       // This is an array of some other primitive (boolean, arrays, undefined, null, etc.) or objects without an id, keep it as an array
-      let outputArray = [];
+      let outputArray: JsonValue[] = [];
       for (let element of input) {
-        outputArray.push(this._toRFC6902(element));
+        outputArray.push(_toRFC6902(element));
       }
       return outputArray;
     } else {
@@ -438,7 +446,7 @@ const _toRFC6902 = function (input) {
       const orderObject = {};
       for (const [elementIndex, element] of input.entries()) {
         const id = (typeof element.id === 'number' ? '#' : '$') + element.id;
-        outputObject[id] = this._toRFC6902(element);
+        outputObject[id] = _toRFC6902(element);
         orderObject[element.id] = elementIndex;
         delete outputObject[id]['_id'];
       }
@@ -455,7 +463,7 @@ const _toRFC6902 = function (input) {
     let outputObject = {};
     for (let key of keys) {
       let idKey = (typeof key === 'number' ? '*' : '_') + key; // TODO: remove this, it will always be a string
-      outputObject[idKey] = this._toRFC6902(input[key]);
+      outputObject[idKey] = _toRFC6902(input[key]);
     }
     return outputObject;
   } else {
@@ -463,14 +471,14 @@ const _toRFC6902 = function (input) {
   }
 };
 
-const _fromRFC6902 = function (input) {
+const _fromRFC6902 = function (input: JsonValue): JsonValue {
   if (input === undefined || input === null) {
     return input;
   } else if (Array.isArray(input)) {
     // Arrays stay the same
-    let outputArray = [];
+    let outputArray: JsonValue[] = [];
     for (let element of input) {
-      outputArray.push(this._fromRFC6902(element));
+      outputArray.push(_fromRFC6902(element));
     }
     return outputArray;
   } else if (typeof input === 'object') {
@@ -480,7 +488,7 @@ const _fromRFC6902 = function (input) {
     }
 
     // Get the first non-"&" key
-    let firstLetterOfFirstKey = undefined;
+    let firstLetterOfFirstKey: string | undefined = undefined;
     for (let i = 0; i < keys.length; i++) {
       let keyFirstChar = keys[i].substring(0, 1);
       if (keyFirstChar !== '&') {
@@ -492,7 +500,7 @@ const _fromRFC6902 = function (input) {
       // No non-"&" keys found - we are unnecessarily specifying order
       return {};
     } else if (firstLetterOfFirstKey === '%' || firstLetterOfFirstKey === '@') {
-      let outputArray = [];
+      let outputArray: (string | number)[] = [];
       let orderObject = input['&order'];
       for (const key of keys) {
         let first = key.substring(0, 1);
@@ -533,7 +541,7 @@ const _fromRFC6902 = function (input) {
       });
       return sortedOutputArray;
     } else if (firstLetterOfFirstKey === '$' || firstLetterOfFirstKey === '#') {
-      let outputArray = [];
+      let outputArray: JsonValue[] = [];
       let orderObject = input['&order'];
       for (let key of keys) {
         let first = key.substring(0, 1);
@@ -550,7 +558,7 @@ const _fromRFC6902 = function (input) {
           );
         }
         let rest = key.substring(1);
-        let object = this._fromRFC6902(input[key]);
+        let object = _fromRFC6902(input[key]);
         object.id = first === '#' ? parseFloat(rest) : rest;
         outputArray.push(object);
       }
@@ -589,7 +597,7 @@ const _fromRFC6902 = function (input) {
         }
         let rest = key.substring(1);
         outputObject[first === '*' ? parseFloat(rest) : rest] =
-          this._fromRFC6902(input[key]);
+          _fromRFC6902(input[key]);
       }
       return outputObject;
     } else {
