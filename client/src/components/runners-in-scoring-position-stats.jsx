@@ -49,7 +49,7 @@ export default class RunnersInScoringPositionStats extends Component {
         <th>Avg</th>
         <th>% Diff</th>
       </tr>,
-      <tr>
+      <tr key="all-pas">
         <td>All PAs</td>
         <td>{allHits}</td>
         <td>{allHits + allMisses}</td>
@@ -61,7 +61,7 @@ export default class RunnersInScoringPositionStats extends Component {
         </td>
         <td>-</td>
       </tr>,
-      <tr>
+      <tr key="no-runners">
         <td>No Runners</td>
         <td>{stats.hitsWithRunnersOn_000}</td>
         <td>{stats.hitsWithRunnersOn_000 + stats.missesWithRunnersOn_000}</td>
@@ -79,7 +79,7 @@ export default class RunnersInScoringPositionStats extends Component {
           )}
         </td>
       </tr>,
-      <tr>
+      <tr key="any-runners">
         <td>Any Runners</td>
         <td>{hitsRunnersOn}</td>
         <td>{hitsRunnersOn + missesRunnersOn}</td>
@@ -96,7 +96,7 @@ export default class RunnersInScoringPositionStats extends Component {
           )}
         </td>
       </tr>,
-      <tr>
+      <tr key="risp">
         <td>RISP</td>
         <td>{hitsRISP}</td>
         <td>{hitsRISP + missesRISP}</td>
@@ -113,7 +113,7 @@ export default class RunnersInScoringPositionStats extends Component {
           )}
         </td>
       </tr>,
-      <tr>
+      <tr key="1b">
         <td>1B</td>
         <td>{stats.hitsWithRunnersOn_100}</td>
         <td>{stats.missesWithRunnersOn_100 + stats.hitsWithRunnersOn_100}</td>
@@ -131,7 +131,7 @@ export default class RunnersInScoringPositionStats extends Component {
           )}
         </td>
       </tr>,
-      <tr>
+      <tr key="2b">
         <td>2B</td>
         <td>{stats.hitsWithRunnersOn_010}</td>
         <td>{stats.missesWithRunnersOn_010 + stats.hitsWithRunnersOn_010}</td>
@@ -149,7 +149,7 @@ export default class RunnersInScoringPositionStats extends Component {
           )}
         </td>
       </tr>,
-      <tr>
+      <tr key="3b">
         <td>3B</td>
         <td>{stats.hitsWithRunnersOn_001}</td>
         <td>{stats.missesWithRunnersOn_001 + stats.hitsWithRunnersOn_001}</td>
@@ -167,7 +167,7 @@ export default class RunnersInScoringPositionStats extends Component {
           )}
         </td>
       </tr>,
-      <tr>
+      <tr key="1b-2b">
         <td>1B, 2B</td>
         <td>{stats.hitsWithRunnersOn_110}</td>
         <td>{stats.missesWithRunnersOn_110 + stats.hitsWithRunnersOn_110}</td>
@@ -185,7 +185,7 @@ export default class RunnersInScoringPositionStats extends Component {
           )}
         </td>
       </tr>,
-      <tr>
+      <tr key="2b-3b">
         <td>2B, 3B</td>
         <td>{stats.hitsWithRunnersOn_011}</td>
         <td>{stats.missesWithRunnersOn_011 + stats.hitsWithRunnersOn_011}</td>
@@ -203,7 +203,7 @@ export default class RunnersInScoringPositionStats extends Component {
           )}
         </td>
       </tr>,
-      <tr>
+      <tr key="1b-3b">
         <td>1B, 3B</td>
         <td>{stats.hitsWithRunnersOn_101}</td>
         <td>{stats.missesWithRunnersOn_101 + stats.hitsWithRunnersOn_101}</td>
@@ -221,7 +221,7 @@ export default class RunnersInScoringPositionStats extends Component {
           )}
         </td>
       </tr>,
-      <tr>
+      <tr key="1b-2b-3b">
         <td>1B, 2B, 3B</td>
         <td>{stats.hitsWithRunnersOn_111}</td>
         <td>{stats.missesWithRunnersOn_111 + stats.hitsWithRunnersOn_111}</td>

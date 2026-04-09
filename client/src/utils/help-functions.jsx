@@ -71,21 +71,21 @@ export const showStatsHelp = () => {
       <div style={rowStyle}>
         <span style={labelStyle}>rG</span>{' '}
         <span>
-          Autocorrelation of batting average across games. In other words, how a
+          {`Autocorrelation of batting average across games. In other words, how a
           players AVG in one game is correlated with their average in the next
           game. It measures a player's "streakiness". It's a value between -1
           and 1. Value is only displayed if the correlation is statistically
-          significant (alpha of .05).
+          significant (alpha of .05).`}
         </span>
       </div>
       <div style={rowStyle}>
         <span style={labelStyle}>rPA</span>{' '}
         <span>
-          Autocorrelation of batting average across games. In other words, how
+          {`Autocorrelation of batting average across games. In other words, how
           the result of a PA (hit/no hit) is correlated with the result of the
           subsequent PA. It measures a player's "streakiness". It's a value
           between -1 and 1. Value is only displayed if the correlation is
-          statistically significant (alpha of .05).
+          statistically significant (alpha of .05).`}
         </span>
       </div>
       <div style={rowStyle}>

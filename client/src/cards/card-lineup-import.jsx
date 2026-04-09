@@ -150,7 +150,7 @@ const CardImport = (props) => {
   const [team, setTeam] = React.useState(null);
   const [game, setGame] = React.useState(null);
 
-  const handleBackClick = (props) => () => {
+  const handleBackClick = () => () => {
     // Back means different things in each stage of the import wizard
     let skipDefaultBack = false;
     if (game) {

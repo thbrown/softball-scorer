@@ -13,6 +13,7 @@ export * as objectMerge from './utils/object-merge';
 export * as constants from './utils/constants';
 export * as schemaMigration from './schema/schema-migration';
 export * as schemaValidation from './schema/schema-validation';
+export * from './types';
 
 const exp = {
   commonOptimizationResults,

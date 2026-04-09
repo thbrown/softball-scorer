@@ -65,7 +65,36 @@ const BASE_COORDINATES = {
   out: { top: 410, left: 55 },
 };
 
-class CardPlateAppearance extends React.Component<any, any> {
+interface CardPlateAppearanceProps {
+  plateAppearance: PlateAppearance;
+  isNew: boolean;
+  remove: () => void;
+  replace: (pa: PlateAppearance) => void;
+  previousPlateAppearance?: PlateAppearance | null;
+  origin: string;
+  player: Player;
+  classes: {
+    classes: {
+      button: string;
+      buttonSelected: string;
+      [key: string]: string;
+    };
+  };
+}
+
+interface CardPlateAppearanceState {
+  resultOptionsPage: number;
+  paResult: string | null;
+  paLocationX: number | null;
+  paLocationY: number | null;
+  runners: Record<string, string | string[]>;
+  suspendTransition: boolean;
+}
+
+class CardPlateAppearance extends React.Component<
+  CardPlateAppearanceProps,
+  CardPlateAppearanceState
+> {
   isNew = false;
   mx: number | undefined;
   my: number | undefined;
@@ -367,14 +396,18 @@ class CardPlateAppearance extends React.Component<any, any> {
   };
 
   baseRefs = {
-    '1B': React.createRef(),
-    '2B': React.createRef(),
-    '3B': React.createRef(),
-    scored: React.createRef(),
-    out: React.createRef(),
-  } as any;
+    '1B': React.createRef<HTMLDivElement>(),
+    '2B': React.createRef<HTMLDivElement>(),
+    '3B': React.createRef<HTMLDivElement>(),
+    scored: React.createRef<HTMLDivElement>(),
+    out: React.createRef<HTMLDivElement>(),
+  };
 
-  getClosestBase(xCoord, yCoord, adjBaseCoordinates): any {
+  getClosestBase(
+    xCoord: number,
+    yCoord: number,
+    adjBaseCoordinates: Record<string, { left: number; top: number }>
+  ): React.RefObject<HTMLDivElement> | undefined {
     const candidates = {
       '1B': {
         dist: distance(
@@ -561,7 +594,7 @@ class CardPlateAppearance extends React.Component<any, any> {
       this.handlePreventTouchmoveWhenDragging,
       {
         passive: false,
-      } as any
+      } as AddEventListenerOptions
     );
 
     window.removeEventListener('mouseup', this.onmouseup);

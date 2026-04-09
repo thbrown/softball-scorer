@@ -2,13 +2,26 @@ import React from 'react';
 import LeftHeaderButton from 'component-left-header-button';
 import RightHeaderButton from 'component-right-header-button';
 
+interface LeftHeaderButtonProps {
+  id?: string;
+  style?: React.CSSProperties;
+  onClick?: () => boolean | void;
+}
+
+interface RightHeaderButtonProps {
+  style?: React.CSSProperties;
+  onPress?: () => void;
+  onClick?: () => boolean | void;
+  showBlogLink?: boolean;
+}
+
 interface CardProps {
   title: string;
   enableLeftHeader: boolean;
   enableRightHeader: boolean;
-  leftHeaderProps: any;
-  rightHeaderProps: any;
-  titleProps: any;
+  leftHeaderProps: LeftHeaderButtonProps;
+  rightHeaderProps: RightHeaderButtonProps;
+  titleProps: React.HTMLAttributes<HTMLDivElement>;
   noFade: boolean;
   style?: React.CSSProperties;
 }

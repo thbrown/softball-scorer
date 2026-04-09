@@ -158,14 +158,14 @@ const CardImport = () => {
                   margin: '0px 16px',
                 }}
               >
-                Import data data that's been downloaded from{' '}
+                Import data data that&apos;s been downloaded from{' '}
                 <span
                   style={{
                     textDecoration: 'underline',
                     color: css.colors.PRIMARY_DARK,
                   }}
                 >
-                  Softball.app's
+                  Softball.app&apos;s
                 </span>{' '}
                 export feature. Any data imported here will be merged with your
                 existing data.

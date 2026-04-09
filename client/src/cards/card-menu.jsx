@@ -136,16 +136,16 @@ class CardMenu extends Component {
       dialog.show_confirm(
         <div>
           <b>
-            Would you like to add Softball.app to your home screen as a
-            standalone app?
+            {`Would you like to add Softball.app to your home screen as a
+            standalone app?`}
           </b>
           <div style={{ marginTop: '1rem' }}>
-            Tapping yes will cause your browser to issue an 'Add to Home Screen'
-            prompt.
+            {`Tapping yes will cause your browser to issue an 'Add to Home Screen'
+            prompt.`}
           </div>
           <div>
-            If you dismiss the browser's prompt, this menu option will disappear
-            for a while.
+            {`If you dismiss the browser's prompt, this menu option will disappear
+            for a while.`}
           </div>
         </div>,
         () => {

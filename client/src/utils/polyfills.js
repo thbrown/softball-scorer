@@ -2,7 +2,7 @@
 // from: https://github.com/jserz/js_piece/blob/master/DOM/ParentNode/prepend()/prepend().md
 (function (arr) {
   arr.forEach(function (item) {
-    if (item.hasOwnProperty('prepend')) {
+    if (Object.prototype.hasOwnProperty.call(item, 'prepend')) {
       return;
     }
     Object.defineProperty(item, 'prepend', {
