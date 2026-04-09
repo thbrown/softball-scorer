@@ -1,6 +1,13 @@
 import React from 'react';
 
-const NoSelect = ({ className, style, div, children }) => {
+interface NoSelectProps {
+  className?: string;
+  style?: React.CSSProperties;
+  div?: boolean;
+  children?: React.ReactNode;
+}
+
+const NoSelect = ({ className, style, div, children }: NoSelectProps) => {
   return div ? (
     <div
       style={{ userSelect: 'none', ...(style ?? {}) }}

@@ -2,25 +2,14 @@ import React from 'react';
 
 const MAX_WIDTH = 800;
 
-const createDiv = (getStyle) => {
-  return (props) => {
-    const style = getStyle(props);
-    const newProps = Object.keys(props).reduce((acc, key) => {
-      if (['style', 'id', 'key'].includes(key)) {
-        acc[key] = props[key];
-      }
-      return acc;
-    }, {});
-    console.log('render div with style', style);
-    return (
-      <div style={style} {...newProps}>
-        {props.children}
-      </div>
-    );
-  };
-};
+interface RootProps {
+  id?: string;
+  style?: React.CSSProperties;
+  onClick?: (ev: React.MouseEvent) => void;
+  children?: React.ReactNode;
+}
 
-const Root = (props) => {
+const Root = (props: RootProps) => {
   return (
     <div
       id={props.id}
@@ -42,7 +31,12 @@ const Root = (props) => {
   );
 };
 
-const InnerRoot = (props) => {
+interface InnerRootProps {
+  maxWidth?: string;
+  children?: React.ReactNode;
+}
+
+const InnerRoot = (props: InnerRootProps) => {
   return (
     <div
       style={{
@@ -59,7 +53,11 @@ const InnerRoot = (props) => {
   );
 };
 
-const ButtonsContainer = (props) => {
+interface ButtonsContainerProps {
+  children?: React.ReactNode;
+}
+
+const ButtonsContainer = (props: ButtonsContainerProps) => {
   return (
     <div
       style={{
@@ -73,6 +71,18 @@ const ButtonsContainer = (props) => {
   );
 };
 
+interface ModalProps {
+  title?: string;
+  onConfirm?: () => void;
+  confirmText?: string;
+  onCancel?: () => void;
+  cancelText?: string;
+  open?: boolean;
+  maxWidth?: string;
+  body?: React.ReactNode;
+  children?: React.ReactNode;
+}
+
 const Modal = ({
   title,
   onConfirm,
@@ -83,7 +93,7 @@ const Modal = ({
   maxWidth,
   body,
   children,
-}) => {
+}: ModalProps) => {
   return (
     <Root
       id="modal"

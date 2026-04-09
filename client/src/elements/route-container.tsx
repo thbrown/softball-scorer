@@ -1,13 +1,19 @@
 import React from 'react';
 import expose from 'expose';
 
-export function routeMatches(url, path, state) {
+interface RouteState {
+  [key: string]: unknown;
+}
+
+type RouteComponent = React.ComponentType<Record<string, unknown>>;
+
+export function routeMatches(url: string, path: string, state: RouteState): boolean {
   // Remove any url params so they don't affect the matching
   url = url.split('?')[0];
 
   const urlArray = url.split('/');
   const pathArray = path.split('/');
-  const pathVariables = {};
+  const pathVariables: Record<string, string> = {};
 
   if (pathArray.length !== urlArray.length) {
     return false;
@@ -28,9 +34,14 @@ export function routeMatches(url, path, state) {
   return true;
 }
 
-export function getRouteState(url, routes) {
+interface RouteResult {
+  state?: RouteState;
+  renderRouteComponent?: RouteComponent;
+}
+
+export function getRouteState(url: string, routes: Record<string, RouteComponent>): RouteResult {
   for (let routeName in routes) {
-    const state = {};
+    const state: RouteState = {};
     const doesMatch = routeMatches(url, routeName, state);
     if (doesMatch) {
       return {
@@ -51,20 +62,32 @@ export function getRouteState(url, routes) {
   return {};
 }
 
-export default class RouteContainer extends expose.Component {
-  constructor(props) {
+interface RouteContainerProps {
+  routes?: Record<string, RouteComponent>;
+  routeId?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  children: (props: any) => React.ReactNode;
+  [key: string]: unknown;
+}
+
+interface RouteContainerState {
+  path: string;
+}
+
+export default class RouteContainer extends expose.Component<RouteContainerProps, RouteContainerState> {
+  constructor(props: RouteContainerProps) {
     super(props);
     this.state = {
       path: window?.location?.pathname || '/',
     };
-    this.exposeOverwrite('router' + this.props.routeId);
+    this.exposeOverwrite('router' + (this.props.routeId ?? ''));
   }
 
   render() {
     const { routes, ...props } = this.props;
     const { state, renderRouteComponent } = getRouteState(
       this.state.path,
-      this.props.routes
+      this.props.routes ?? {}
     );
     const search = window?.location?.search?.slice(1);
     const routeProps = {
@@ -72,8 +95,8 @@ export default class RouteContainer extends expose.Component {
       renderRouteComponent,
       ...state,
       search: search
-        ? search.split('&').reduce((ret, keyValPair) => {
-            let [key, value] = keyValPair.split('=');
+        ? search.split('&').reduce((ret: Record<string, string | boolean>, keyValPair: string) => {
+            let [key, value]: [string, string | boolean] = keyValPair.split('=') as [string, string];
             if (value === 'true') {
               value = true;
             } else if (value === 'false') {
@@ -87,8 +110,3 @@ export default class RouteContainer extends expose.Component {
     return <>{this.props.children({ ...props, ...routeProps })}</>;
   }
 }
-
-RouteContainer.defaultProps = {
-  routes: {},
-  routeId: '',
-};

@@ -22,6 +22,20 @@ const useHeaderTabsStyles = makeStyles((css) => ({
   },
 }));
 
+interface TabName {
+  value: string;
+  label: string;
+}
+
+interface HeaderTabsProps {
+  tab: string;
+  tabNames: TabName[];
+  handleTabClick: (value: string) => void;
+  invert?: boolean;
+  style?: React.CSSProperties;
+  tabStyle?: React.CSSProperties;
+}
+
 const HeaderTabs = ({
   tab,
   tabNames,
@@ -29,7 +43,7 @@ const HeaderTabs = ({
   invert,
   style,
   tabStyle,
-}) => {
+}: HeaderTabsProps) => {
   const { classes } = useHeaderTabsStyles();
 
   // HACK: this is brutal

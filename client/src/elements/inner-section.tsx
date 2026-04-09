@@ -1,6 +1,10 @@
 import React from 'react';
 
-const InnerSection = (props) => {
+interface InnerSectionProps extends React.HTMLAttributes<HTMLDivElement> {
+  children?: React.ReactNode;
+}
+
+const InnerSection = (props: InnerSectionProps) => {
   const style = {
     margin: 'auto',
     maxWidth: '500px',

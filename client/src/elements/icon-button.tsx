@@ -2,21 +2,30 @@ import React from 'react';
 import css from 'css';
 const colors = css.colors;
 
-/*
-src: string
-alt: string
-hideBackground?: boolean
-invert?: boolean
-id?: string
-onClick?: () => void
-*/
-const IconButton = (props) => {
-  const { hideBackground, invert, opacity, containerStyle, ...rest } = props;
+interface IconButtonProps {
+  src: string;
+  alt?: string;
+  hideBackground?: boolean;
+  invert?: boolean;
+  opacity?: number;
+  id?: string;
+  onClick?: () => void;
+  containerStyle?: React.CSSProperties;
+  [key: string]: unknown;
+}
+
+const IconButton = ({
+  hideBackground = true,
+  invert,
+  opacity,
+  containerStyle,
+  ...rest
+}: IconButtonProps) => {
   return (
     <div
       className="hover"
       style={{
-        background: props.hideBackground ? undefined : colors.SEMI_TRANSPARENT,
+        background: hideBackground ? undefined : colors.SEMI_TRANSPARENT,
         filter: invert ? 'invert(1)' : undefined,
         width: '24px',
         height: '24px',
@@ -28,10 +37,6 @@ const IconButton = (props) => {
       <img alt="img" {...rest} />
     </div>
   );
-};
-
-IconButton.defaultProps = {
-  hideBackground: true,
 };
 
 export default IconButton;

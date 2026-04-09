@@ -4,9 +4,24 @@ import { makeStyles } from 'css/helpers';
 import NoSelect from 'elements/no-select';
 import ListButton from 'elements/list-button';
 
+interface ListPickerItem {
+  id: string;
+  name: string;
+  floatName?: string;
+}
+
+interface ListPickerProps {
+  items: ListPickerItem[];
+  onClick: (item: ListPickerItem) => void;
+  itemClassName?: string;
+  textClassName?: string;
+  // injected by recompose
+  handleItemClick?: (item: ListPickerItem) => () => void;
+}
+
 const enhance = compose(
   withHandlers({
-    handleItemClick: (props) => (item) => () => {
+    handleItemClick: (props: ListPickerProps) => (item: ListPickerItem) => () => {
       props.onClick(item);
     },
   })
@@ -21,7 +36,8 @@ const useListPickerStyles = makeStyles((theme) => ({
   },
 }));
 
-const ListPicker = (props) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ListPicker = (props: any) => {
   const { classes } = useListPickerStyles();
 
   if (props.items.length === 0) {
@@ -33,7 +49,7 @@ const ListPicker = (props) => {
   }
   return (
     <div>
-      {props.items.map((item, i) => (
+      {props.items.map((item: ListPickerItem, i: number) => (
         <ListButton
           id={'list-' + item.id}
           key={item.id + i}
@@ -63,12 +79,5 @@ const ListPicker = (props) => {
 };
 
 const ListPickerEnhanced = enhance(ListPicker);
-
-// an item is { name, id, ?floatName }
-ListPickerEnhanced.defaultProps = {
-  onClick: () => {},
-  items: [],
-  itemClassName: '',
-};
 
 export default ListPickerEnhanced;
