@@ -2,15 +2,23 @@ import React from 'react';
 
 let expose_ctr = 0;
 
-export const states = {};
+interface ExposedEntry {
+  setState: (state: Record<string, unknown>) => void;
+  getState: () => Record<string, unknown>;
+}
 
-export class Component extends React.Component {
-  constructor(props) {
+export const states: Record<string, ExposedEntry> = {};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export class Component<P = any, S = any> extends React.Component<P, S> {
+  _expose_id: string | null;
+
+  constructor(props: P) {
     super(props);
     this._expose_id = null;
   }
 
-  exposeOverwrite(id) {
+  exposeOverwrite(id?: string) {
     if (!id) {
       this._expose_id = 'state' + expose_ctr;
       expose_ctr++;
@@ -19,7 +27,7 @@ export class Component extends React.Component {
     }
   }
 
-  expose(id) {
+  expose(id?: string) {
     if (!id) {
       this._expose_id = 'state' + expose_ctr;
       expose_ctr++;
@@ -39,10 +47,10 @@ export class Component extends React.Component {
     if (this._expose_id) {
       states[this._expose_id] = {
         setState: (state) => {
-          this.setState(state);
+          this.setState(state as S);
         },
         getState: () => {
-          return this.state;
+          return this.state as Record<string, unknown>;
         },
       };
     } else {
@@ -61,12 +69,12 @@ export class Component extends React.Component {
   }
 }
 
-export const set_state = function (id, state) {
+export const set_state = function (id: string, state: Record<string, unknown>) {
   if (states[id]) {
     states[id].setState(state);
   }
 };
-export const get_state = function (id) {
+export const get_state = function (id: string): Record<string, unknown> {
   if (states[id]) {
     return states[id].getState();
   } else {
@@ -82,4 +90,4 @@ const exp = {
 };
 
 export default exp;
-window.expose = exp;
+(window as unknown as Record<string, unknown>).expose = exp;

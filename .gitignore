@@ -6,7 +6,7 @@ assets/main.css
 .yarn
 
 server/config.jsonc
-client/src/config.js
+client/src/config.ts
 
 database/*
 session/*

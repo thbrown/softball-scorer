@@ -1,37 +1,47 @@
 import { sortObjectsByDate } from './functions';
 import { getGlobalState } from 'state';
+import type { PlateAppearance, Player, Game } from 'shared-lib';
+import type { PlayerId } from 'types/branded-ids';
 
 export const HIT_TYPE_FILTERS = {
   HITS: 'hits',
   OUTS: 'outs',
   EXTRA_BASE_HITS: '2+hits',
-};
+} as const;
 
-const hits = {
+type HitTypeFilter = (typeof HIT_TYPE_FILTERS)[keyof typeof HIT_TYPE_FILTERS];
+
+const hits: Record<string, boolean> = {
   '1B': true,
   '2B': true,
   '3B': true,
   HRo: true,
   HRi: true,
 };
-const extraHits = {
+const extraHits: Record<string, boolean> = {
   '2B': true,
   '3B': true,
   HRo: true,
   HRi: true,
 };
 
-export function filterByHitType(plateAppearances, hitType) {
+interface PAWithGame extends PlateAppearance {
+  game: Game & { date: number; id: string; opponent: string };
+  date: number;
+  id: string;
+}
+
+export function filterByHitType(plateAppearances: PAWithGame[], hitType: HitTypeFilter): PAWithGame[] | undefined {
   if (hitType === HIT_TYPE_FILTERS.HITS) {
-    return plateAppearances.filter((pa) => !!hits[pa.result]);
+    return plateAppearances.filter((pa) => !!hits[pa.result!]);
   } else if (hitType === HIT_TYPE_FILTERS.OUTS) {
-    return plateAppearances.filter((pa) => !hits[pa.result]);
+    return plateAppearances.filter((pa) => !hits[pa.result!]);
   } else if (hitType === HIT_TYPE_FILTERS.EXTRA_BASE_HITS) {
-    return plateAppearances.filter((pa) => !!extraHits[pa.result]);
+    return plateAppearances.filter((pa) => !!extraHits[pa.result!]);
   }
 }
 
-export function filterByLastGames(plateAppearances, lastNGames) {
+export function filterByLastGames(plateAppearances: PAWithGame[], lastNGames: number): PAWithGame[] {
   // TODO can we do this server side?
   plateAppearances = sortObjectsByDate(plateAppearances, {
     eqCb: (a, b) => {
@@ -44,8 +54,8 @@ export function filterByLastGames(plateAppearances, lastNGames) {
   });
 
   let gameCtr = 0;
-  let currentGame = null;
-  const ret = [];
+  let currentGame: PAWithGame['game'] | null = null;
+  const ret: PAWithGame[] = [];
   for (let i = 0; i < plateAppearances.length; i++) {
     const pa = plateAppearances[i];
     if (pa.game) {
@@ -67,21 +77,25 @@ export function filterByLastGames(plateAppearances, lastNGames) {
   return ret;
 }
 
+interface PlayerWithPAs extends Player {
+  plateAppearances: PAWithGame[];
+}
+
 /**
  * convert a 1d list of plate appearances to a list of players with each plate appearance
  * added to a list on the player object
  */
 export const convertPlateAppearanceListToPlayerPlateAppearanceList = (
-  plateAppearances
-) => {
-  const ret = [];
+  plateAppearances: PAWithGame[]
+): PlayerWithPAs[] => {
+  const ret: PlayerWithPAs[] = [];
   plateAppearances.forEach((pa) => {
     let playerInList = ret.find(
       (playerInList) => playerInList.id === pa.playerId
     );
 
     if (!ret.find((p) => p.id === pa.playerId)) {
-      const player = getGlobalState().getPlayer(pa.playerId);
+      const player = getGlobalState().getPlayer(pa.playerId as PlayerId);
       if (!player) {
         throw new Error(
           'No player with id ' + pa.playerId + ' could be found.'
@@ -95,7 +109,7 @@ export const convertPlateAppearanceListToPlayerPlateAppearanceList = (
       ret.push(playerInList);
     }
 
-    playerInList.plateAppearances.push(pa);
+    playerInList!.plateAppearances.push(pa);
   });
 
   return ret;

@@ -2,9 +2,11 @@ import React from 'react';
 import theme from './theme';
 
 let ctr = 0;
-const cache = {};
+const cache: Record<string, string> = {};
 
-const toCssCase = (value) => {
+type StyleRules = Record<string, React.CSSProperties>;
+
+const toCssCase = (value: string): string => {
   let ret = '';
   for (let i = 0; i < value.length; i++) {
     const ch = value[i];
@@ -18,8 +20,8 @@ const toCssCase = (value) => {
   return ret;
 };
 
-const toClassNames = (styles) => {
-  const ret = {};
+const toClassNames = (styles: StyleRules): Record<string, string> => {
+  const ret: Record<string, string> = {};
   const style = document.createElement('style');
   style.type = 'text/css';
   let sheet = '';
@@ -37,7 +39,7 @@ const toClassNames = (styles) => {
     cache[serialized] = className;
     let rules = '';
     for (const styleKey in s) {
-      rules += `${toCssCase(styleKey)}: ${s[styleKey]}; `;
+      rules += `${toCssCase(styleKey)}: ${(s as Record<string, string>)[styleKey]}; `;
     }
     sheet += `.${className} { ${rules}} `;
     ret[name] = className;
@@ -50,8 +52,12 @@ const toClassNames = (styles) => {
   return ret;
 };
 
-export const makeStyles = (func) => {
-  return (props) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type StyleFunc = (theme: typeof import('./theme').default, props?: any) => StyleRules;
+
+export const makeStyles = (func: StyleFunc) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (props?: any) => {
     return {
       styles: func(theme, props),
       classes: toClassNames(func(theme, props)),
@@ -59,10 +65,17 @@ export const makeStyles = (func) => {
   };
 };
 
-export const withStyles = (s) => {
+export interface WithStylesProps {
+  classes: Record<string, string>;
+  styles: StyleRules;
+}
+
+export const withStyles = (s: StyleFunc) => {
   const useStyles = makeStyles(s);
-  return (Element) => {
-    return (props) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (Element: React.ComponentType<any>) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (props: any) => {
       const { classes, styles } = useStyles(props);
       return <Element classes={classes} styles={styles} {...props} />;
     };
