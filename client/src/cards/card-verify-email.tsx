@@ -54,7 +54,7 @@ export default class CardVerifyEmail extends React.Component<CardVerifyEmailProp
       } else {
         dialog.show_notification(
           `We were unable to verify your email. ${
-            response.body ? response.body.message : ''
+            response.body ? (response.body as any).message : ''
           }`,
           function () {
             setRoute('/menu');

@@ -1,4 +1,4 @@
-module.exports = function (resultHtml, optimizationLink) {
+export default function (passwordResetLink: string): string {
   return `<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
   <head>
@@ -220,7 +220,7 @@ module.exports = function (resultHtml, optimizationLink) {
           
     <div class="v-text-align" style="color: #000000; line-height: 140%; text-align: left; word-wrap: break-word;">
       <p style="font-size: 14px; line-height: 140%;"><span style="font-size: 32px; line-height: 44.8px;"><span style="color: #000000; font-size: 32px; line-height: 44.8px;"><strong>Softball.app</strong></span></span></p>
-  <p style="font-size: 14px; line-height: 140%;"><span style="font-size: 12px; line-height: 16.8px;"><span style="font-size: 22px; line-height: 30.8px;">Optimization Complete</span><br /></span></p>
+  <p style="font-size: 14px; line-height: 140%;"><span style="font-size: 12px; line-height: 16.8px;"><span style="font-size: 22px; line-height: 30.8px;">Password Reset</span><br /></span></p>
     </div>
   
         </td>
@@ -296,21 +296,7 @@ module.exports = function (resultHtml, optimizationLink) {
         <td style="overflow-wrap:break-word;word-break:break-word;padding:10px;font-family:arial,helvetica,sans-serif;" align="left">
           
     <div class="v-text-align" style="color: #000000; line-height: 140%; text-align: left; word-wrap: break-word;">
-      <p style="font-size: 14px; line-height: 140%;">Your optimization has finished running! Here are the results:</p>
-    </div>
-  
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  
-  <table id="u_content_html_1" class="u_content_html" style="font-family:arial,helvetica,sans-serif;" role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0">
-    <tbody>
-      <tr>
-        <td style="overflow-wrap:break-word;word-break:break-word;padding:10px;font-family:arial,helvetica,sans-serif;" align="left">
-          
-    <div>
-      ${resultHtml}
+      <p style="font-size: 14px; line-height: 140%;">Hello! Sombody tried to reset the password for the Softball.app (https://softball.app) account associated with this email address. Please click the button below to reset the password:</p>
     </div>
   
         </td>
@@ -324,12 +310,26 @@ module.exports = function (resultHtml, optimizationLink) {
         <td style="overflow-wrap:break-word;word-break:break-word;padding:10px;font-family:arial,helvetica,sans-serif;" align="left">
           
   <div class="v-text-align" align="center">
-    <!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-spacing: 0; border-collapse: collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;font-family:arial,helvetica,sans-serif;"><tr><td class="v-text-align" style="font-family:arial,helvetica,sans-serif;" align="center"><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${optimizationLink}" style="height:36px; v-text-anchor:middle; width:118px;" arcsize="11%" stroke="f" fillcolor="#087f23"><w:anchorlock/><center style="color:#FFFFFF;font-family:arial,helvetica,sans-serif;"><![endif]-->
-      <a href="${optimizationLink}" target="_blank" class="v-size-width" style="box-sizing: border-box;display: inline-block;font-family:arial,helvetica,sans-serif;text-decoration: none;-webkit-text-size-adjust: none;text-align: center;color: #FFFFFF; background-color: #087f23; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; width:auto; max-width:100%; overflow-wrap: break-word; word-break: break-word; word-wrap:break-word; mso-border-alt: none;">
-        <span class="v-padding" style="display:block;padding:10px 20px;line-height:120%;"><span style="font-size: 14px; line-height: 16.8px;">Open In App</span></span>
+    <!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-spacing: 0; border-collapse: collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;font-family:arial,helvetica,sans-serif;"><tr><td class="v-text-align" style="font-family:arial,helvetica,sans-serif;" align="center"><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${passwordResetLink}" style="height:36px; v-text-anchor:middle; width:142px;" arcsize="11%" stroke="f" fillcolor="#087f23"><w:anchorlock/><center style="color:#FFFFFF;font-family:arial,helvetica,sans-serif;"><![endif]-->
+      <a href="${passwordResetLink}" target="_blank" class="v-size-width" style="box-sizing: border-box;display: inline-block;font-family:arial,helvetica,sans-serif;text-decoration: none;-webkit-text-size-adjust: none;text-align: center;color: #FFFFFF; background-color: #087f23; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; width:auto; max-width:100%; overflow-wrap: break-word; word-break: break-word; word-wrap:break-word; mso-border-alt: none;">
+        <span class="v-padding" style="display:block;padding:10px 20px;line-height:120%;"><span style="font-size: 14px; line-height: 16.8px;">Reset Password</span></span>
       </a>
     <!--[if mso]></center></v:roundrect></td></tr></table><![endif]-->
   </div>
+  
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  
+  <table id="u_content_text_6" class="u_content_text" style="font-family:arial,helvetica,sans-serif;" role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0">
+    <tbody>
+      <tr>
+        <td style="overflow-wrap:break-word;word-break:break-word;padding:10px;font-family:arial,helvetica,sans-serif;" align="left">
+          
+    <div class="v-text-align" style="color: #000000; line-height: 140%; text-align: left; word-wrap: break-word;">
+      <p style="font-size: 14px; line-height: 140%;"><span style="font-size: 14px; line-height: 19.6px;">If you did not request this message or if you no longer want to reset your password, please ignore this email. This reset link will expire in 24 hours.</span></p>
+    </div>
   
         </td>
       </tr>

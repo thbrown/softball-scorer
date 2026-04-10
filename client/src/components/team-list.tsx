@@ -3,13 +3,14 @@ import { getGlobalState } from 'state';
 import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
 import IconButton from '../elements/icon-button';
+import { Team } from 'shared-lib/types/team';
 
 const TeamList = () => {
-  const handleTeamClick = (team) => {
+  const handleTeamClick = (team: Team) => {
     setRoute(`/teams/${team.id}`);
   };
 
-  const handleEditClick = (team, ev) => {
+  const handleEditClick = (team: Team, ev: React.MouseEvent) => {
     setRoute(`/teams/${team.id}/edit`);
     ev.stopPropagation();
   };
@@ -22,7 +23,7 @@ const TeamList = () => {
   const elems = getGlobalState()
     .getAllTeams()
     .reverse()
-    .map((team) => {
+    .map((team: Team) => {
       return (
         <ListButton
           id={'team-' + team.id}
@@ -37,7 +38,7 @@ const TeamList = () => {
               src="/assets/edit.svg"
               alt="edit"
               id={'team-' + team.id + '-edit'}
-              onClick={handleEditClick.bind(this, team)}
+              onClick={(ev: React.MouseEvent) => handleEditClick(team, ev)}
               invert
               hideBackground
             />

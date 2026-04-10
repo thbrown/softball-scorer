@@ -4,29 +4,35 @@ import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
 import { sortObjectsByDate, toClientDate } from 'utils/functions';
 import IconButton from '../elements/icon-button';
+import { Team, Game } from 'shared-lib/types/team';
+import { TeamId } from 'types/branded-ids';
 
-const GameList = (props) => {
-  const handleGameClick = function (game) {
+interface GameListProps {
+  team: Team;
+}
+
+const GameList = (props: GameListProps) => {
+  const handleGameClick = function (game: Game) {
     setRoute(`/teams/${props.team.id}/games/${game.id}`); // TODO: always back to lineup?
   };
 
-  const handleEditClick = function (game) {
+  const handleEditClick = function (game: Game) {
     setRoute(`/teams/${props.team.id}/games/${game.id}/edit`);
   };
 
   const handleCreateClick = function () {
-    const game = getGlobalState().addGame(props.team.id, '');
+    const game = getGlobalState().addGame(props.team.id as TeamId, '');
     setRoute(`/teams/${props.team.id}/games/${game.id}/edit?isNew=true`);
   };
 
   const games = sortObjectsByDate(props.team.games, { isAsc: false });
 
-  const elems = games.map((game) => {
+  const elems = games.map((game: Game) => {
     return (
       <ListButton
         key={'game-' + game.id}
         id={'game-' + game.id}
-        onClick={handleGameClick.bind(this, game)}
+        onClick={() => handleGameClick(game)}
       >
         <div className="centered-row">
           <div className="prevent-overflow">
@@ -47,7 +53,7 @@ const GameList = (props) => {
               src="/assets/edit.svg"
               alt="edit"
               id={'game-' + game.id + '-edit'}
-              onClick={(ev) => {
+              onClick={(ev: React.MouseEvent) => {
                 handleEditClick(game);
                 ev.preventDefault();
                 ev.stopPropagation();

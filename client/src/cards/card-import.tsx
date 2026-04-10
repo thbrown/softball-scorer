@@ -57,23 +57,24 @@ const useStyles = makeStyles((theme) => {
 
 const CardImport = () => {
   const { classes } = useStyles();
-  const [fileName, setFileName] = React.useState(null);
+  const [fileName, setFileName] = React.useState<string | null>(null);
   const [loadType, setLoadType] = React.useState('mine');
-  const fileInputRef = React.useRef(null);
-  const handleFileInputChange = (ev) => {
-    setFileName(ev.target.files[0].name);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const handleFileInputChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    setFileName(ev.target.files![0].name);
   };
-  const handleRadioClick = (ev) => {
+  const handleRadioClick = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setLoadType(ev.target.value);
   };
   const handleLoadClick = () => {
-    const file = fileInputRef.current.files[0];
+    const file = fileInputRef.current!.files![0];
     if (file) {
       const reader = new FileReader();
       reader.onload = function (e) {
-        let parsedData;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let parsedData: any;
         try {
-          parsedData = JSON.parse(e.target.result);
+          parsedData = JSON.parse(e.target!.result as string);
 
           // Update the schema
           let result = SharedLib.schemaMigration.updateSchema(
@@ -93,7 +94,7 @@ const CardImport = () => {
           );
         } catch (exception) {
           dialog.show_notification(
-            'There was an error while parsing file input: ' + exception.message
+            'There was an error while parsing file input: ' + (exception as Error).message
           );
           console.error(exception);
           return;
@@ -148,7 +149,7 @@ const CardImport = () => {
   };
   return (
     <Card title="Load from File">
-      <CardSection isCentered="true">
+      <CardSection isCentered={true}>
         <div style={{ maxWidth: '500px' }}>
           <div>
             <b>

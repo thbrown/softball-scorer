@@ -3,9 +3,15 @@ import InnerSection from 'elements/inner-section';
 import IconButton from 'elements/icon-button';
 import { useModal } from 'hooks';
 
-export const getUrlFilterState = () => {
+interface FilterState {
+  filterChecked: boolean;
+  abFilter: number;
+  filterStateChanged?: boolean;
+}
+
+export const getUrlFilterState = (): FilterState => {
   const search = new URLSearchParams(window.location.search);
-  let abFilter = parseInt(search.get('ab'));
+  let abFilter = parseInt(search.get('ab') || '');
   if (isNaN(abFilter) || abFilter < 0) {
     abFilter = 4;
   }
@@ -16,7 +22,7 @@ export const getUrlFilterState = () => {
   };
 };
 
-const FilterLabel = (labelProps) => {
+const FilterLabel = (labelProps: React.LabelHTMLAttributes<HTMLLabelElement>) => {
   return (
     <label
       {...labelProps}
@@ -31,10 +37,16 @@ const FilterLabel = (labelProps) => {
 };
 
 // should this reset every time or be stored in local storage?
-let cachedFilterState = null;
+let cachedFilterState: FilterState | null = null;
 
-const FilterStats = ({ setFilterState, setLocalFilterState, filterState }) => {
-  const handleEnableFilterChange = (ev) => {
+interface FilterStatsProps {
+  setFilterState: (state: FilterState) => void;
+  setLocalFilterState: (state: FilterState) => void;
+  filterState: FilterState;
+}
+
+const FilterStats = ({ setFilterState, setLocalFilterState, filterState }: FilterStatsProps) => {
+  const handleEnableFilterChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setLocalFilterState({
       ...filterState,
       filterChecked: ev.target.checked,
@@ -42,10 +54,10 @@ const FilterStats = ({ setFilterState, setLocalFilterState, filterState }) => {
     });
   };
 
-  const handleAbFilterChange = (ev) => {
+  const handleAbFilterChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setLocalFilterState({
       ...filterState,
-      abFilter: ev.target.value ?? 0,
+      abFilter: parseInt(ev.target.value) || 0,
       filterStateChanged: true,
     });
   };
@@ -90,8 +102,12 @@ const FilterStats = ({ setFilterState, setLocalFilterState, filterState }) => {
   );
 };
 
-export const FilterStatsModal = ({ setFilterState }) => {
-  const [filterState, setLocalFilterState] = React.useState(
+interface FilterStatsModalProps {
+  setFilterState: (state: FilterState) => void;
+}
+
+export const FilterStatsModal = ({ setFilterState }: FilterStatsModalProps) => {
+  const [filterState, setLocalFilterState] = React.useState<FilterState>(
     cachedFilterState ?? getUrlFilterState()
   );
 
@@ -106,8 +122,8 @@ export const FilterStatsModal = ({ setFilterState }) => {
     ),
     onConfirm: () => {
       const search = new URLSearchParams(window.location.search);
-      search.set('filter', filterState.filterChecked);
-      search.set('ab', filterState.abFilter);
+      search.set('filter', String(filterState.filterChecked));
+      search.set('ab', String(filterState.abFilter));
       const searchInd = window.location.pathname.indexOf('?');
       const newUrl =
         window.location.protocol +
@@ -120,7 +136,7 @@ export const FilterStatsModal = ({ setFilterState }) => {
         '?' +
         search.toString();
       window.history.replaceState({ path: newUrl }, '', newUrl);
-      const newFilterState = {
+      const newFilterState: FilterState = {
         ...filterState,
         filterStateChanged: false,
       };

@@ -5,6 +5,7 @@ import Select from 'react-select';
 import ListButton from 'elements/list-button';
 import { goBack, setRoute } from 'actions/route';
 import type { Player } from 'shared-lib';
+import { PlayerId } from 'types/branded-ids';
 
 interface PlayerSelectOption {
   value: string;
@@ -39,7 +40,7 @@ export default class CardPlayerSelect extends React.Component<
 
     const mapPlayersToEntry = (players: string[]): PlayerSelectOption[] => {
       return players
-        .map((playerId) => getGlobalState().getPlayer(playerId))
+        .map((playerId) => getGlobalState().getPlayer(playerId as PlayerId))
         .filter((player): player is Player => player !== null)
         .map((player) => ({
           value: player.id,

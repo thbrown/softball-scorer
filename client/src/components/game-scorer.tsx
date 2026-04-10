@@ -213,8 +213,8 @@ const calculateScore = (scoreObj) => {
 const GameScorer = ({ teamId, gameId }) => {
   const { classes } = useGameScorerStyles();
 
-  const game = getGlobalState().getGame(gameId);
-  const team = getGlobalState().getTeam(teamId);
+  const game = getGlobalState().getGame(gameId)!;
+  const team = getGlobalState().getTeam(teamId)!;
 
   const usName = team.name;
   const themName = game.opponent;

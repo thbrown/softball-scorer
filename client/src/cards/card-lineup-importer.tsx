@@ -4,15 +4,27 @@ import ListPicker from 'elements/list-picker';
 import { getGlobalState } from 'state';
 import dialog from 'dialog';
 import { setRoute } from 'actions/route';
+import { GameId, OptimizationId, TeamId } from 'types/branded-ids';
 
-const LineupPicker = ({ gameId, teamId }) => {
-  const handleItemClick = (item) => {
-    const opt = getGlobalState().getOptimization(item.id);
+interface LineupPickerProps {
+  gameId: string;
+  teamId: string;
+}
+
+interface ListPickerItem {
+  id: string;
+  name: string;
+}
+
+const LineupPicker = ({ gameId, teamId }: LineupPickerProps) => {
+  const handleItemClick = (item: ListPickerItem) => {
+    const opt = getGlobalState().getOptimization(item.id as OptimizationId);
     try {
-      const optResult = opt.resultData;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const optResult = opt!.resultData as any;
       let newLineup = [...optResult.flatLineup];
-      const game = getGlobalState().getGame(gameId);
-      getGlobalState().replaceGame(gameId, teamId, {
+      const game = getGlobalState().getGame(gameId as GameId)!;
+      getGlobalState().replaceGame(gameId as GameId, teamId as TeamId, {
         ...game,
         lineup: newLineup,
       });
@@ -31,7 +43,8 @@ const LineupPicker = ({ gameId, teamId }) => {
         items={getGlobalState()
           .getAllOptimizations()
           .filter((opt) => {
-            return opt.resultData !== '{}';
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return (opt.resultData as any) !== '{}';
           })
           .reverse()
           .map(({ name, id }) => {

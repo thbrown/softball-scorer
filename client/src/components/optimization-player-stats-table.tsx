@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import type { Optimization } from 'shared-lib';
 import { getGlobalState } from 'state';
+import { PlayerId } from 'types/branded-ids';
 
 interface DisplayPlayer {
   isOverride: boolean;
@@ -104,7 +105,7 @@ const OptimizationPlayerStatsTable = (props: {
       displayPlayer.isOverride = false;
     }
 
-    const player = getGlobalState().getPlayer(playerIds[i]);
+    const player = getGlobalState().getPlayer(playerIds[i] as PlayerId);
     if (player) {
       displayPlayer.name = player.name;
     } else {

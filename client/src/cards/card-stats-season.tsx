@@ -122,7 +122,7 @@ export default class CardStatsSeason extends React.Component<
     };
 
     this.handleStatsClick = (sortField: string): void => {
-      const newState = Object.assign({}, this.state);
+      const newState = Object.assign({}, this.state) as CardStatsSeasonState;
       if (newState.sortField === sortField) {
         newState.sortDirection =
           newState.sortDirection === 'DSC' ? 'ASC' : 'DSC';
@@ -185,10 +185,10 @@ export default class CardStatsSeason extends React.Component<
     const plateAppearances =
       getGlobalState().getDecoratedPlateAppearancesForPlayerOnTeam(
         playerId,
-        team,
+        (team as Team),
         inputState
       );
-    const player = getGlobalState().getPlayer(playerId, inputState);
+    const player = getGlobalState().getPlayer(playerId);
     return getGlobalState().buildStatsObject(plateAppearances, player);
   };
 
@@ -231,7 +231,7 @@ export default class CardStatsSeason extends React.Component<
           <div
             className={this.getCellClassName(statName)}
             onClick={
-              !i ? (): void => this.handlePlayerClick(playerStats.id) : null
+              !i ? (): void => this.handlePlayerClick(playerStats.id) : undefined
             }
           >
             <span style={{ userSelect: 'none' }}>{playerStats[statName]}</span>
@@ -361,7 +361,3 @@ export default class CardStatsSeason extends React.Component<
   }
 }
 
-CardStatsSeason.defaultProps = {
-  team: null,
-  inputState: null,
-};

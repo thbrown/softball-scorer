@@ -84,7 +84,7 @@ const CardTeamEdit: React.FC<CardTeamEditProps> = (props) => {
     >
       <div className="auth-input-container">
         <FloatingInput
-          maxLength="50"
+          maxLength={50}
           label="Team Name"
           onChange={handleNameChange}
           defaultValue={props.team.name}

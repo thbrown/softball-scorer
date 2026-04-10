@@ -1,6 +1,6 @@
 import network, { type NetworkResponse } from 'network';
 import SharedLib from 'shared-lib';
-import results from 'plate-appearance-results';
+import results, { type PlateAppearanceResult } from 'plate-appearance-results';
 import {
   getShallowCopy,
   autoCorrelation,
@@ -313,7 +313,7 @@ export class GlobalState {
         console.log('[SYNC] Local changes', localChangesDuringRequest);
 
         // Update the ancestor if updates were received from the server
-        let tempAncestor = undefined;
+        let tempAncestor: TopLevelClient | undefined = undefined;
         if (serverState.base) {
           // The entire state was sent, we can just save it directly
           tempAncestor = serverState.base;
@@ -323,7 +323,7 @@ export class GlobalState {
 
           localStateCopyPreRequest = SharedLib.objectMerge.patch(
             localStateCopyPreRequest,
-            serverState.patch
+            serverState.patch as any
           );
 
           // The local state with the server updates is the new ancestor
@@ -570,7 +570,7 @@ export class GlobalState {
   }
 
   // TEAM
-  getTeam(teamId: TeamId): Team | undefined {
+  getTeam(teamId: TeamId | string): Team | undefined {
     const team = this.INDEX.getTeam(teamId);
     return team === undefined ? undefined : { ...team };
   }
@@ -610,7 +610,7 @@ export class GlobalState {
   }
 
   // PLAYER
-  getPlayer(playerId: PlayerId): Player | undefined {
+  getPlayer(playerId: PlayerId | string): Player | undefined {
     const player = this.INDEX.getPlayer(playerId);
     return player === undefined ? undefined : { ...player };
   }
@@ -665,7 +665,7 @@ export class GlobalState {
   }
 
   // OPTIMIZATION
-  getOptimization(optimizationId: OptimizationId): Optimization | undefined {
+  getOptimization(optimizationId: OptimizationId | string): Optimization | undefined {
     const opt = this.INDEX.getOptimization(optimizationId);
     return opt === undefined ? undefined : { ...opt };
   }
@@ -750,7 +750,7 @@ export class GlobalState {
     if (fieldValue === undefined) {
       delete customOptionsData[fieldName];
     } else {
-      customOptionsData[fieldName] = fieldValue;
+      customOptionsData[fieldName] = fieldValue as string | number | boolean | unknown[] | null;
     }
     optimization.customOptionsData = customOptionsData;
     this._onEdit();
@@ -932,7 +932,7 @@ export class GlobalState {
     return { game, team };
   }
 
-  getGame(gameId: GameId): Game | undefined {
+  getGame(gameId: GameId | string): Game | undefined {
     const game = this.INDEX.getGame(gameId);
     return game === undefined ? undefined : { ...game };
   }
@@ -1127,7 +1127,7 @@ export class GlobalState {
     this._onEdit();
   }
 
-  getPlateAppearance(paId: PlateAppearanceId): PlateAppearance | undefined {
+  getPlateAppearance(paId: PlateAppearanceId | string): PlateAppearance | undefined {
     const pa = this.INDEX.getPa(paId);
     return pa === undefined ? undefined : { ...pa };
   }
@@ -1629,14 +1629,15 @@ export class GlobalState {
    */
   buildStatsObject(
     plateAppearances: PlateAppearance[],
-    playerId: PlayerId | Player
+    playerId?: PlayerId | Player | string
   ): StatsObject {
     const player =
       typeof playerId === 'string'
         ? this.getPlayer(playerId as PlayerId)
         : playerId;
 
-    const stats: Partial<StatsObject> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const stats: StatsObject = {} as any;
     stats.id = player ? player.id : undefined;
     stats.name = player ? player.name : undefined;
     stats.plateAppearances = 0;
@@ -1679,11 +1680,11 @@ export class GlobalState {
     stats.missesWithRunnersOn_111 = 0;
 
     // Serial correlation for plate appearances
-    const hitOrNoHit = [];
+    const hitOrNoHit: number[] = [];
     plateAppearances.forEach((pa) => {
-      if (['E', 'FC', 'Out', 'TP', 'DP', 'K', 'Ʞ', 'SAC'].includes(pa.result)) {
+      if (['E', 'FC', 'Out', 'TP', 'DP', 'K', 'Ʞ', 'SAC'].includes(pa.result as string)) {
         hitOrNoHit.push(0);
-      } else if (['1B', '2B', '3B', 'HRi', 'HRo'].includes(pa.result)) {
+      } else if (['1B', '2B', '3B', 'HRi', 'HRo'].includes(pa.result as string)) {
         hitOrNoHit.push(1);
       }
     });
@@ -1731,10 +1732,10 @@ export class GlobalState {
       if (pa.result) {
         stats.plateAppearances++;
 
-        if (!results.getNoAtBatResults().includes(pa.result)) {
+        if (!results.getNoAtBatResults().includes(pa.result as PlateAppearanceResult)) {
           stats.atBats++;
         }
-        if (results.getHitResults().includes(pa.result)) {
+        if (results.getHitResults().includes(pa.result as PlateAppearanceResult)) {
           stats.hits++;
         }
 
@@ -1788,54 +1789,54 @@ export class GlobalState {
           const paObjects = this.getPlateAppearanceObjects(pa.id);
           const dateWeStartedTrackingRunners = paObjects?.game?.date ?? 0;
           const isInvalidEntry = dateWeStartedTrackingRunners < 1672531200;
-          if (results.getHitResults().includes(pa.result)) {
+          if (results.getHitResults().includes(pa.result as PlateAppearanceResult)) {
             if (isInvalidEntry) {
               // We don't care about PAs before we started tracking base runners
             } else if (prevRunners === undefined) {
               stats.hitsWithRunnersOn_000++;
             } else if (
-              previousPa.runners['1B'] &&
-              previousPa.runners['2B'] &&
-              previousPa.runners['3B']
+              prevRunners['1B'] &&
+              prevRunners['2B'] &&
+              prevRunners['3B']
             ) {
               stats.hitsWithRunnersOn_111++;
-            } else if (previousPa.runners['1B'] && previousPa.runners['2B']) {
+            } else if (prevRunners['1B'] && prevRunners['2B']) {
               stats.hitsWithRunnersOn_110++;
-            } else if (previousPa.runners['2B'] && previousPa.runners['3B']) {
+            } else if (prevRunners['2B'] && prevRunners['3B']) {
               stats.hitsWithRunnersOn_011++;
-            } else if (previousPa.runners['1B'] && previousPa.runners['3B']) {
+            } else if (prevRunners['1B'] && prevRunners['3B']) {
               stats.hitsWithRunnersOn_101++;
-            } else if (previousPa.runners['1B']) {
+            } else if (prevRunners['1B']) {
               stats.hitsWithRunnersOn_100++;
-            } else if (previousPa.runners['2B']) {
+            } else if (prevRunners['2B']) {
               stats.hitsWithRunnersOn_010++;
-            } else if (previousPa.runners['3B']) {
+            } else if (prevRunners['3B']) {
               stats.hitsWithRunnersOn_001++;
             } else {
               stats.hitsWithRunnersOn_000++;
             }
-          } else if (results.getNoHitResults().includes(pa.result)) {
+          } else if (results.getNoHitResults().includes(pa.result as PlateAppearanceResult)) {
             if (isInvalidEntry) {
               // We don't care about PAs before we started tracking base runners
             } else if (prevRunners === undefined) {
               stats.hitsWithRunnersOn_000++;
             } else if (
-              previousPa.runners['1B'] &&
-              previousPa.runners['2B'] &&
-              previousPa.runners['3B']
+              prevRunners['1B'] &&
+              prevRunners['2B'] &&
+              prevRunners['3B']
             ) {
               stats.missesWithRunnersOn_111++;
-            } else if (previousPa.runners['1B'] && previousPa.runners['2B']) {
+            } else if (prevRunners['1B'] && prevRunners['2B']) {
               stats.missesWithRunnersOn_110++;
-            } else if (previousPa.runners['2B'] && previousPa.runners['3B']) {
+            } else if (prevRunners['2B'] && prevRunners['3B']) {
               stats.missesWithRunnersOn_011++;
-            } else if (previousPa.runners['1B'] && previousPa.runners['3B']) {
+            } else if (prevRunners['1B'] && prevRunners['3B']) {
               stats.missesWithRunnersOn_101++;
-            } else if (previousPa.runners['1B']) {
+            } else if (prevRunners['1B']) {
               stats.missesWithRunnersOn_100++;
-            } else if (previousPa.runners['2B']) {
+            } else if (prevRunners['2B']) {
               stats.missesWithRunnersOn_010++;
-            } else if (previousPa.runners['3B']) {
+            } else if (prevRunners['3B']) {
               stats.missesWithRunnersOn_001++;
             } else {
               stats.missesWithRunnersOn_000++;

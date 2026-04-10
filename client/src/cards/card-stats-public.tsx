@@ -12,7 +12,7 @@ interface CardStatsPublicProps {
   team: Team | null;
   tab: string;
   game?: Game | null;
-  inputState?: unknown;
+  inputState?: any;
   state?: unknown | null;
 }
 
@@ -32,10 +32,10 @@ export default class CardStatsPublic extends React.Component<CardStatsPublicProp
 
     this.handleTabClick = (tab: string) => {
       if (tab) {
-        setRoute(`/public-teams/${this.props.team.publicId}/stats/${tab}`);
+        setRoute(`/public-teams/${this.props.team?.publicId}/stats/${tab}`);
       } else {
         setRoute(
-          `/public-teams/${this.props.team.publicId}/stats/${CardStatsPublic.SEASON_TAB}`
+          `/public-teams/${this.props.team?.publicId}/stats/${CardStatsPublic.SEASON_TAB}`
         );
       }
     };

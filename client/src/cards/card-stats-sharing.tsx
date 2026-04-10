@@ -61,13 +61,21 @@ const useStatsSharingStyles = makeStyles((css) => ({
   },
 }));
 
-const CardStatsSharing = (props) => {
+interface CardStatsSharingProps {
+  team: {
+    id: string;
+    publicId?: string;
+    publicIdEnabled?: boolean;
+  };
+}
+
+const CardStatsSharing = (props: CardStatsSharingProps) => {
   const [loading, setLoading] = React.useState(false);
   const [copiedNotificationVisible, setCopiedNotificationVisible] =
     React.useState(false);
-  const publicLinkRef = React.useRef(null);
+  const publicLinkRef = React.useRef<HTMLInputElement>(null);
 
-  const handlePublicLinkEnabledClicked = async (ev) => {
+  const handlePublicLinkEnabledClicked = async (ev: React.ChangeEvent<HTMLInputElement>) => {
     // Show spinner
     setLoading(true);
 
@@ -86,7 +94,7 @@ const CardStatsSharing = (props) => {
     } else {
       dialog.show_notification(
         `Error! We were not able to toggle this team's public visibility. Please try again later. ${
-          response.body ? response.body.message : ''
+          response.body ? (response.body as Record<string, string>).message : ''
         }`,
         function () {
           // Do nothing
@@ -99,14 +107,14 @@ const CardStatsSharing = (props) => {
   };
 
   const handleCopyClick = () => {
-    const copyText = publicLinkRef.current;
+    const copyText = publicLinkRef.current!;
     copyText.select();
     document.execCommand('copy');
     setCopiedNotificationVisible(true);
     setTimeout(() => {
       setCopiedNotificationVisible(false);
     }, 2999);
-    window.getSelection().removeAllRanges();
+    window.getSelection()?.removeAllRanges();
     copyText.blur();
   };
 
@@ -115,7 +123,7 @@ const CardStatsSharing = (props) => {
   const publicLink = `${window.location.origin}/public-teams/${publicId}/stats`;
 
   // Checkbox or spinner
-  let checkboxContent = '';
+  let checkboxContent: React.ReactNode = '';
   if (loading) {
     // Show the loading page if there is no optimizer data
     checkboxContent = (
@@ -140,7 +148,7 @@ const CardStatsSharing = (props) => {
     );
   }
 
-  let content = null;
+  let content: React.ReactNode = null;
   if (getGlobalState().isSessionValid()) {
     content = (
       <div className="auth-input-container">

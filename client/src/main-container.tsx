@@ -8,7 +8,8 @@ import DataContainer from 'elements/data-container';
 import { Dialog } from 'dialog';
 import config from './config';
 
-const noSleep = new window.NoSleep();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const noSleep = new (window as any).NoSleep();
 
 // TODO
 // Text directions?
@@ -28,8 +29,24 @@ const noSleep = new window.NoSleep();
 
 // Optimization changes when status is not NOT_STATED
 // Optimization length limitations
-export default class MainContainer extends expose.Component {
-  constructor(props) {
+
+interface MainContainerProps {
+  test?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  renderRouteComponent?: (props: any) => React.ReactNode;
+  loading?: boolean;
+  page?: string;
+  publicTeamId?: string;
+  [key: string]: unknown;
+}
+
+interface MainContainerState {
+  render: boolean;
+  dialog: Record<string, unknown>;
+}
+
+export default class MainContainer extends expose.Component<MainContainerProps, MainContainerState> {
+  constructor(props: MainContainerProps) {
     super(props);
     this.expose('main');
 
@@ -87,23 +104,28 @@ export default class MainContainer extends expose.Component {
       });
 
       // Analytics
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const configAny = config as any;
       let trackingId =
-        config.analytics && config.analytics.trackingId
-          ? config.analytics.trackingId
+        configAny.analytics && configAny.analytics.trackingId
+          ? configAny.analytics.trackingId
           : undefined;
-      window.ga =
-        window.ga ||
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const w = window as any;
+      w.ga =
+        w.ga ||
         function () {
-          (window.ga.q = window.ga.q || []).push(arguments);
+          (w.ga.q = w.ga.q || []).push(arguments);
         };
-      window.ga.l = +new Date();
-      window.ga('create', trackingId, 'auto');
-      window.ga('require', 'urlChangeTracker');
-      window.ga('require', 'cleanUrlTracker', {
+      w.ga.l = +new Date();
+      w.ga('create', trackingId, 'auto');
+      w.ga('require', 'urlChangeTracker');
+      w.ga('require', 'cleanUrlTracker', {
         stripQuery: true,
         indexFilename: 'index.html',
         trailingSlash: 'remove',
-        urlFieldsFilter: function (fieldsObj, parseUrl) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        urlFieldsFilter: function (fieldsObj: any, parseUrl: any) {
           fieldsObj.page = parseUrl(fieldsObj.page)
             .pathname.replace(/teams\/[a-zA-Z0-9]{14}/, 'teams/<team-id>')
             .replace(/player\/[a-zA-Z0-9]{14}/, 'player/<player-id>')
@@ -116,7 +138,7 @@ export default class MainContainer extends expose.Component {
           return fieldsObj;
         },
       });
-      window.ga('send', 'pageview');
+      w.ga('send', 'pageview');
 
       // Sync on first load
       setTimeout(() => {
@@ -127,7 +149,7 @@ export default class MainContainer extends expose.Component {
 
   render() {
     const { renderRouteComponent, loading, ...props } = this.props;
-    let CardComponent = null;
+    let CardComponent: React.ReactNode = null;
 
     if (loading) {
       CardComponent = <CardLoading />;
@@ -141,7 +163,7 @@ export default class MainContainer extends expose.Component {
           CardComponent = (
             <DataContainer url={`server/team-stats/${this.props.publicTeamId}`}>
               {({ data, loading, error }) => {
-                return renderRouteComponent({
+                return renderRouteComponent!({
                   ...props,
                   data,
                   loading,
@@ -151,7 +173,7 @@ export default class MainContainer extends expose.Component {
             </DataContainer>
           );
         } else {
-          CardComponent = renderRouteComponent(props);
+          CardComponent = renderRouteComponent!(props);
         }
       } catch (err) {
         // TODO fix multi-render that occurs when pressing the back button on edit page
@@ -161,13 +183,13 @@ export default class MainContainer extends expose.Component {
         // TODO tests that trip this with 404 errors when deleting content
         if (
           process.env.NODE_ENV !== 'test' &&
-          (true || window.ENABLE_VERBOSE_LOGGING)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (true || (window as any).ENABLE_VERBOSE_LOGGING)
         ) {
           console.error(renderRouteComponent, err);
         }
         CardComponent = (
           <CardNotFound
-            title={'Error'}
             message="This object either does not exist, has been deleted, or belongs to another account."
           />
         );

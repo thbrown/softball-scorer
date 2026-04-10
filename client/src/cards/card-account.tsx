@@ -66,8 +66,6 @@ export default class CardAccount extends Component<Record<string, never>> {
             setRoute('/menu');
           });
         },
-        '',
-        ''
       );
     };
 
@@ -95,7 +93,7 @@ export default class CardAccount extends Component<Record<string, never>> {
           let message;
           if (response.status === 204) {
             message = 'Your account has been deleted.';
-            logout(getGlobalState(), dialog, setRoute);
+            logout(dialog, setRoute);
           } else if (response.status === 400) {
             message =
               'App encountered a problem while deleting your account. Try again later.';
@@ -112,9 +110,7 @@ export default class CardAccount extends Component<Record<string, never>> {
           dialog.show_notification(message, function () {
             setRoute('/menu');
           });
-        },
-        '',
-        ''
+        }
       );
     };
   }
@@ -131,7 +127,7 @@ export default class CardAccount extends Component<Record<string, never>> {
           className="list-button button left"
           onClick={this.handleEmailValidationClick.bind(this)}
           style={{
-            backgroundColor: css.colors.BG,
+            backgroundColor: css.colors.BACKGROUND,
           }}
         >
           Re-send email validation email
@@ -187,7 +183,7 @@ export default class CardAccount extends Component<Record<string, never>> {
           className="list-button button left"
           onClick={this.handleDeleteDataClick.bind(this)}
           style={{
-            backgroundColor: css.colors.BG,
+            backgroundColor: css.colors.BACKGROUND,
           }}
         >
           Delete all data
@@ -197,7 +193,7 @@ export default class CardAccount extends Component<Record<string, never>> {
           className="list-button button left"
           onClick={this.handleDeleteAccountClick.bind(this)}
           style={{
-            backgroundColor: css.colors.BG,
+            backgroundColor: css.colors.BACKGROUND,
           }}
         >
           Delete account

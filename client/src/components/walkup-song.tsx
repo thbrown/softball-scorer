@@ -2,50 +2,65 @@ import expose from 'expose';
 import css from 'css';
 import React from 'react';
 
-export default class WalkupSong extends expose.Component {
-  constructor(props) {
+interface WalkupSongProps {
+  songLink?: string;
+  songStart?: number;
+  width?: number | string;
+  height?: number | string;
+  noSongClickHandler?: () => void;
+}
+
+interface WalkupSongState {
+  key: number;
+}
+
+export default class WalkupSong extends expose.Component<WalkupSongProps, WalkupSongState> {
+  monitor: ReturnType<typeof setInterval> | undefined;
+  forceRender: boolean;
+  startIframeClickDetect: () => void;
+  handleOverlayClick: () => void;
+  buildUrl: (songLink: string, songStart?: number) => string;
+
+  constructor(props: WalkupSongProps) {
     super(props);
     this.expose();
-    this.key = 0;
     this.state = {
       key: 0,
     };
+    this.forceRender = false;
 
-    this.startIframeClickDetect = function () {
+    this.startIframeClickDetect = () => {
       // Handle walkup song clicks
       clearInterval(this.monitor);
-      this.monitor = setInterval(
-        function () {
-          var elem = document.activeElement;
-          if (elem && elem.tagName === 'IFRAME') {
-            clearInterval(this.monitor);
-            document.getElementById('songOverlay').classList.remove('gone');
-          }
-        }.bind(this),
-        100
-      );
+      this.monitor = setInterval(() => {
+        var elem = document.activeElement;
+        if (elem && elem.tagName === 'IFRAME') {
+          clearInterval(this.monitor);
+          document.getElementById('songOverlay')!.classList.remove('gone');
+        }
+      }, 100);
     };
 
     this.startIframeClickDetect();
 
-    this.handleOverlayClick = function () {
+    this.handleOverlayClick = () => {
       // Reload song iframe
       this.forceRender = true;
       this.setState({
         key: Math.random(),
       });
-      document.getElementById('songOverlay').classList.add('gone');
+      document.getElementById('songOverlay')!.classList.add('gone');
       this.startIframeClickDetect();
-    }.bind(this);
+    };
 
-    this.buildUrl = function (songLink, songStart) {
+    this.buildUrl = (songLink: string, songStart?: number) => {
       return `https://thbrown.github.io/iframe-proxy/index.html?id=${songLink}&start=${
         songStart ? songStart : 0
       }`;
     };
   }
 
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps: WalkupSongProps) {
     if (
       nextProps.songLink !== this.props.songLink ||
       nextProps.songStart !== this.props.songStart ||
@@ -67,11 +82,11 @@ export default class WalkupSong extends expose.Component {
 
       // This is a way to prevent the iframe state changes from being persisted to browser history
       // Iframe reloads only add to history if they are attached to the DOM on change
-      let parent = frame.parentNode;
+      let parent = frame.parentNode!;
       parent.removeChild(frame);
       frame.setAttribute(
         'src',
-        this.buildUrl(this.props.songLink, this.props.songStart)
+        this.buildUrl(this.props.songLink!, this.props.songStart)
       );
       parent.appendChild(frame);
       this.startIframeClickDetect();

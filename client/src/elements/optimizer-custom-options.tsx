@@ -109,10 +109,10 @@ export default class OptimizerCustomOptions extends React.Component<OptimizerCus
           >
             <FloatingInput
               inputId={value.longLabel}
-              maxLength="50"
+              maxLength={50}
               label={value.longLabel}
               onChange={this.onChange(value.longLabel)}
-              defaultValue={currentValue}
+              defaultValue={currentValue as string}
               disabled={this.props.disabled}
               fullWidth
             />
@@ -147,7 +147,7 @@ export default class OptimizerCustomOptions extends React.Component<OptimizerCus
                   <input
                     type="radio"
                     name={value.longLabel}
-                    value={true}
+                    value="true"
                     id={'id-true-' + value.longLabel}
                     onClick={this.onChangeLiteral(value.longLabel, true)}
                     defaultChecked={currentValue === true}
@@ -159,7 +159,7 @@ export default class OptimizerCustomOptions extends React.Component<OptimizerCus
                   <input
                     type="radio"
                     name={value.longLabel}
-                    value={false}
+                    value="false"
                     id={'id-false-' + value.longLabel}
                     onClick={this.onChangeLiteral(value.longLabel, false)}
                     defaultChecked={currentValue !== true}
@@ -199,7 +199,7 @@ export default class OptimizerCustomOptions extends React.Component<OptimizerCus
               selectId={key}
               label={value.longLabel}
               initialValue={
-                currentValue === undefined ? value.defaultValue : currentValue
+                (currentValue === undefined ? value.defaultValue : currentValue) as string | number
               }
               onChange={this.onChange(value.longLabel)}
               values={options}
@@ -232,7 +232,7 @@ export default class OptimizerCustomOptions extends React.Component<OptimizerCus
               step={value.step}
               label={value.longLabel}
               onChange={this.onChange(value.longLabel)}
-              defaultValue={currentValue}
+              defaultValue={currentValue as string}
               disabled={this.props.disabled}
             />
 

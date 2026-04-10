@@ -23,9 +23,10 @@ interface ListButtonProps {
   children?: React.ReactNode;
   id?: string;
   type?: string;
-  onClick?: () => void;
+  onClick?: (ev?: React.MouseEvent) => void;
   style?: React.CSSProperties;
   className?: string;
+  [key: string]: unknown;
 }
 
 const ListButton = ({

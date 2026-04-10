@@ -41,7 +41,7 @@ export default class CardPlayerEdit extends React.Component<
     option: YouTubeOption,
     context: { context: string }
   ) => JSX.Element;
-  onYouTubeSelect: (query: string) => Promise<YouTubeOption[]>;
+  onYouTubeSelect: () => (query: string) => Promise<YouTubeOption[]>;
   homeOrBack: (type: string) => (cb?: () => void) => boolean | void;
   handleConfirmClick: () => void;
   handleCancelClick: () => void;
@@ -61,8 +61,8 @@ export default class CardPlayerEdit extends React.Component<
     this.state = {
       playerGender: props.player.gender,
       playerName: props.player.name,
-      playerSongLink: props.player.songLink,
-      playerSongStart: props.player.songStart,
+      playerSongLink: props.player.songLink ?? '',
+      playerSongStart: props.player.songStart ?? '',
       youTubeKey: 0, // Used as a react 'key' so we can reset the floating label when an a youtube search changes the field
     };
 
@@ -71,7 +71,7 @@ export default class CardPlayerEdit extends React.Component<
       player.name = this.state.playerName;
       player.gender = this.state.playerGender;
       player.songLink = this.state.playerSongLink;
-      player.songStart = parseInt(this.state.playerSongStart || 0);
+      player.songStart = parseInt(String(this.state.playerSongStart || 0));
       return player;
     };
 
@@ -83,10 +83,10 @@ export default class CardPlayerEdit extends React.Component<
       const url = `server/youtube?q=${searchTerms}`;
       let response = await network.request('GET', url);
 
-      const listOfVideos = response.body.items;
+      const listOfVideos = (response.body as any).items;
 
       // Filter so we just get what we want
-      let results = [];
+      let results: YouTubeOption[] = [];
       for (let i = 0; i < listOfVideos.length; i++) {
         results.push({
           label: listOfVideos[i].snippet.title,
@@ -284,7 +284,7 @@ export default class CardPlayerEdit extends React.Component<
     this.handleSongStartChange = function () {
       this.isPristine = false;
       this.setState({
-        playerSongStart: document.getElementById('songStart').value,
+        playerSongStart: (document.getElementById('songStart') as HTMLInputElement | null)?.value ?? '',
       });
     }.bind(this);
 
@@ -317,7 +317,7 @@ export default class CardPlayerEdit extends React.Component<
       }
     })();
     if (elem) {
-      elem.checked = true;
+      (elem as HTMLInputElement).checked = true;
     }
   }
 
@@ -366,9 +366,9 @@ export default class CardPlayerEdit extends React.Component<
                 value: this.state.playerSongLink,
               }}
               label={'Search YouTube / Paste YouTube Link'}
-              loadOptions={this.onYouTubeSelect()}
-              formatOptionLabel={this.formatOptionLabel}
-              onChange={this.handleYouTubeSelection}
+              loadOptions={this.onYouTubeSelect as any}
+              formatOptionLabel={this.formatOptionLabel as any}
+              onChange={this.handleYouTubeSelection as any}
               isValidNewOption={() => {
                 return false;
               }}
@@ -378,11 +378,11 @@ export default class CardPlayerEdit extends React.Component<
               inputId="songStart"
               label="Start time in seconds"
               type="number"
-              min="0"
-              step="1"
-              maxLength="50"
+              min={0}
+              step={1}
+              maxLength={50}
               onChange={this.handleSongStartChange}
-              defaultValue={this.state.playerSongStart || ''}
+              defaultValue={String(this.state.playerSongStart || '')}
             />
             <div id="songLabel" className="song-label">
               Preview
@@ -390,7 +390,7 @@ export default class CardPlayerEdit extends React.Component<
             <div id="songWrapper" className="song-preview-container">
               <WalkupSong
                 songLink={this.state.playerSongLink}
-                songStart={this.state.playerSongStart || ''}
+                songStart={Number(this.state.playerSongStart || 0)}
                 width={128}
                 height={128}
               ></WalkupSong>

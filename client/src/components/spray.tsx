@@ -1,5 +1,5 @@
 import React from 'react';
-import results from 'plate-appearance-results';
+import results, { PlateAppearanceResult } from 'plate-appearance-results';
 import { normalize } from 'utils/functions';
 import { compose, withState, withHandlers } from 'recompose';
 import css from 'css';
@@ -21,7 +21,24 @@ const TOOLTIP_WIDTH = window.innerWidth < 400 ? 125 : 175;
 const TOOLTIP_ROW_HEIGHT = 21;
 const TOOLTIP_PADDING = 10;
 
-const getHitPosition = (pa) => {
+interface PlateAppearanceLocation {
+  x: number | null;
+  y: number | null;
+}
+
+interface DecoratedPlateAppearance {
+  id: string;
+  playerId: string;
+  result: string | null;
+  location: PlateAppearanceLocation;
+  game?: {
+    opponent: string;
+    date: number;
+  };
+  [key: string]: unknown;
+}
+
+const getHitPosition = (pa: DecoratedPlateAppearance) => {
   const x = pa?.location?.x || 0;
   const y = pa?.location?.y || 0;
   const newX = Math.floor(
@@ -46,7 +63,7 @@ const getHitPosition = (pa) => {
   return { x: newX, y: newY };
 };
 
-const getTooltipPosition = ({ x, y }, tooltipRows) => {
+const getTooltipPosition = ({ x, y }: { x: number; y: number }, tooltipRows: number) => {
   const tooltipHeight = tooltipRows * TOOLTIP_ROW_HEIGHT + TOOLTIP_PADDING * 2;
   let positionX = 'Left';
   let positionY = 'Bottom';
@@ -70,7 +87,8 @@ const getTooltipPosition = ({ x, y }, tooltipRows) => {
   };
 };
 
-const SprayTooltip = withStyles((theme) => ({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SprayTooltip = withStyles((theme: any) => ({
   tooltip: {
     position: 'absolute',
     color: theme.colors.TEXT_DARK,
@@ -104,8 +122,9 @@ const SprayTooltip = withStyles((theme) => ({
     width: '100%',
     height: '100%',
   },
-}))(({ classes, plateAppearance }) => {
-  const rows = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+}))(({ classes, plateAppearance }: any) => {
+  const rows: React.ReactNode[] = [];
   const game = plateAppearance.game;
 
   const player = getGlobalState().getPlayer(plateAppearance.playerId);
@@ -152,15 +171,18 @@ const SprayTooltip = withStyles((theme) => ({
 const enhanceField = compose(
   withState('paTooltip', 'setTooltip', null),
   withHandlers({
-    showTooltip: (props) => (pa) => (ev) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    showTooltip: (props: any) => (pa: DecoratedPlateAppearance) => (ev: React.MouseEvent) => {
       props.setTooltip(pa);
       ev.stopPropagation();
     },
-    hideTooltip: (props) => () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    hideTooltip: (props: any) => () => {
       props.setTooltip(null);
     },
   }),
-  withStyles((theme) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  withStyles((theme: any) => ({
     ball: {
       position: 'absolute',
       width: BALL_SIZE + 'px',
@@ -169,15 +191,17 @@ const enhanceField = compose(
   }))
 );
 
-const Field = enhanceField((props) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Field = enhanceField((props: any) => {
   const indicators = props.decoratedPlateAppearances
-    .map((plateAppearance) => {
+    .map((plateAppearance: DecoratedPlateAppearance) => {
       const { x, y } = getHitPosition(plateAppearance);
       if (plateAppearance.location && x && y) {
-        const image = results.getNoHitResults().includes(plateAppearance.result)
+        const isOut = results.getNoHitResults().includes(plateAppearance.result as PlateAppearanceResult);
+        const image = isOut
           ? '/assets/baseball-out.svg'
           : '/assets/baseball-hit.svg';
-        const alt = results.getNoHitResults().includes(plateAppearance.result)
+        const alt = isOut
           ? 'out'
           : 'hit';
 
@@ -195,7 +219,7 @@ const Field = enhanceField((props) => {
               border:
                 plateAppearance === props.paTooltip
                   ? `1px solid ${css.colors.TEXT_LIGHT}`
-                  : null,
+                  : undefined,
             }}
           />
         );
@@ -203,7 +227,7 @@ const Field = enhanceField((props) => {
         return null;
       }
     })
-    .filter((component) => {
+    .filter((component: React.ReactNode) => {
       return !!component;
     });
 
@@ -236,14 +260,16 @@ const enhance = compose(
     plateAppearanceType: null,
   }),
   withHandlers({
-    setPastGamesFilter: (props) => (value) => (ev) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setPastGamesFilter: (props: any) => (value: number) => (ev: React.MouseEvent) => {
       props.setFilter({
         plateAppearanceType: props.filter.plateAppearanceType,
         pastGames: value === props.filter.pastGames ? null : value,
       });
       ev.preventDefault();
     },
-    setPlateAppearanceTypeFilter: (props) => (value) => (ev) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setPlateAppearanceTypeFilter: (props: any) => (value: string) => (ev: React.MouseEvent) => {
       props.setFilter({
         plateAppearanceType:
           value === props.filter.plateAppearanceType ? null : value,
@@ -252,7 +278,8 @@ const enhance = compose(
       ev.preventDefault();
     },
   }),
-  withStyles((theme) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  withStyles((theme: any) => ({
     sprayBody: {
       marginTop: css.spacing.xSmall,
       maxWidth: BALL_FIELD_MAX_WIDTH + 'px',
@@ -313,6 +340,7 @@ const enhance = compose(
   }))
 );
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Spray = ({
   classes,
   setPastGamesFilter,
@@ -320,7 +348,8 @@ const Spray = ({
   filter,
   decoratedPlateAppearances,
   hideFilter,
-}) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+}: any) => {
   if (!hideFilter && filter.pastGames) {
     decoratedPlateAppearances = filterByLastGames(
       decoratedPlateAppearances,

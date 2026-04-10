@@ -359,7 +359,7 @@ export function getNextName(oldName: string): string {
     // Try fancy renaming - like windows does when you copy a file
     const regex = /\([\d]+\)$/; // There is a minor bug here with leading zeros
     const matches = regex.exec(oldName);
-    if (matches?.length > 0) {
+    if (matches && matches.length > 0) {
       const nextNumber = parseInt(matches[0].slice(1, -1)) + 1;
       const slicedOriginal = oldName.slice(0, -matches[0].length);
       newName = `${slicedOriginal}(${nextNumber})`;

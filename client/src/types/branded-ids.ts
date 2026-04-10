@@ -1,13 +1,13 @@
-// Nominal brand using unique symbol
-declare const __brand: unique symbol;
-type Brand<K, T> = K & { readonly [__brand]: T };
-
 // Branded ID types
-export type PlayerId = Brand<string, 'PlayerId'>;
-export type TeamId = Brand<string, 'TeamId'>;
-export type GameId = Brand<string, 'GameId'>;
-export type OptimizationId = Brand<string, 'OptimizationId'>;
-export type PlateAppearanceId = Brand<string, 'PlateAppearanceId'>;
+// Using plain aliases for now since shared-lib types use plain `string` for IDs.
+// Once shared-lib is updated to use branded types, switch back to nominal branding:
+//   declare const __brand: unique symbol;
+//   type Brand<K, T> = K & { readonly [__brand]: T };
+export type PlayerId = string;
+export type TeamId = string;
+export type GameId = string;
+export type OptimizationId = string;
+export type PlateAppearanceId = string;
 
 // Factory functions (safe conversion from string)
 export const asPlayerId = (id: string): PlayerId => id as PlayerId;

@@ -1,5 +1,12 @@
 import React from 'react';
 
+declare global {
+  interface Window {
+    current_yes?: () => void;
+    current_no?: () => void;
+  }
+}
+
 interface YesNoCancelDialogProps {
   text: React.ReactNode;
   hide: () => void;
@@ -9,6 +16,10 @@ interface YesNoCancelDialogProps {
 }
 
 export default class YesNoCancelDialog extends React.Component<YesNoCancelDialogProps> {
+  handleYesClick: () => void;
+  handleNoClick: () => void;
+  handleCancelClick: () => void;
+
   constructor(props: YesNoCancelDialogProps) {
     super(props);
 

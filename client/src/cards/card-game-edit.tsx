@@ -107,7 +107,7 @@ export default class CardGameEdit extends React.Component<
         <div className="auth-input-container">
           <FloatingInput
             inputId="opponentName"
-            maxLength="50"
+            maxLength={50}
             label="Opponent"
             onChange={this.handleOpponentNameChange}
             defaultValue={this.props.game.opponent}

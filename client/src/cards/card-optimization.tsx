@@ -128,9 +128,9 @@ export default class CardOptimization extends React.Component<
         this.previousOptimizationStatus === undefined ||
         this.previousOptimizationStatus !== optimization.status
       ) {
-        this.previousOptimizationStatus = optimization.status;
+        this.previousOptimizationStatus = optimization.status as number;
         if (
-          PROGRESSING_OPTIMIZATION_STATUSES_ENUM.has(optimization.status) ||
+          (PROGRESSING_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(optimization.status as number) ||
           optimization.pause
         ) {
           this.enableAutoSync();
@@ -306,8 +306,8 @@ export default class CardOptimization extends React.Component<
 
       // Set inputSummaryData. For display purposes, keep a snapshot of the player's name and stats at the moment
       // the optimization was started. This protects us from future stat updates and player deletions.
-      const playerIds = this.props.optimization.playerList;
-      const teamIds = this.props.optimization.teamList;
+      const playerIds = this.props.optimization.playerList as string[];
+      const teamIds = this.props.optimization.teamList as string[];
       const overrideData = this.props.optimization.overrideData;
       const stats = getGlobalState().getActiveStatsForAllPlayers(
         overrideData,
@@ -355,7 +355,7 @@ export default class CardOptimization extends React.Component<
       await getGlobalState().sync();
 
       let isUnpause =
-        this.props.optimization.status === OPTIMIZATION_STATUS_ENUM.PAUSED;
+        (this.props.optimization.status as number) === OPTIMIZATION_STATUS_ENUM.PAUSED;
 
       let body = JSON.stringify({
         optimizationId: this.props.optimization.id,
@@ -365,7 +365,7 @@ export default class CardOptimization extends React.Component<
         'POST',
         'server/start-optimization',
         body,
-        null,
+        undefined,
         60000 // 1 minute timeout
       );
       if (response.status === 204 || response.status === 200) {
@@ -393,8 +393,8 @@ export default class CardOptimization extends React.Component<
         // Make sure email validation works
         // Make sure links show up in optimization dialogs
         if (
-          response.body.error &&
-          response.body.error === 'EMAIL_NOT_VERIFIED'
+          (response.body as any)?.error &&
+          (response.body as any)?.error === 'EMAIL_NOT_VERIFIED'
         ) {
           dialog.show_notification(
             <div>
@@ -423,7 +423,7 @@ export default class CardOptimization extends React.Component<
       fn: (controller: AbortController) => Promise<void>,
       delay: number
     ): DebounceController => {
-      let timer = 0;
+      let timer: ReturnType<typeof setTimeout> | number = 0;
       let isFetching = false;
       let controller = new AbortController();
 
@@ -465,7 +465,7 @@ export default class CardOptimization extends React.Component<
     ): Promise<void> => {
       // Only request a new completion time estimate if optimization status is startable
       let optimization = this.props.optimization;
-      if (!STARTABLE_OPTIMIZATION_STATUSES_ENUM.has(optimization.status)) {
+      if (!(STARTABLE_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(optimization.status as number)) {
         this.setState({
           estimatedCompletionTimeSec: null,
         });
@@ -501,13 +501,13 @@ export default class CardOptimization extends React.Component<
       }
 
       // Make sure each player has at least one PA
-      for (let playerId of optimization.playerList) {
+      for (let playerId of optimization.playerList as string[]) {
         let overridePAs = getGlobalState().getOptimizationOverridesForPlayer(
           optimization.id,
           playerId
         );
-        let gamePAs = [];
-        for (let teamId of optimization.teamList) {
+        let gamePAs: any[] = [];
+        for (let teamId of optimization.teamList as string[]) {
           gamePAs.push(
             ...getGlobalState().getPlateAppearancesForPlayerOnTeam(
               playerId,
@@ -523,7 +523,7 @@ export default class CardOptimization extends React.Component<
           let player = getGlobalState().getPlayer(playerId);
           this.setState({
             estimatedCompletionTimeSec: null,
-            estimateError: `Player '${player.name}' is missing a plate appearance w/ a result. All players must have at least one scored plate appearance.`,
+            estimateError: `Player '${player?.name}' is missing a plate appearance w/ a result. All players must have at least one scored plate appearance.`,
           });
           return;
         }
@@ -591,7 +591,7 @@ export default class CardOptimization extends React.Component<
           let responseBody = response.body;
           console.log('ESTIMATION RESPONSE', response);
           console.log('ESTIMATION BODY', responseBody);
-          let timeRemaining = responseBody?.estimatedTimeRemainingMs;
+          let timeRemaining = (responseBody as any)?.estimatedTimeRemainingMs;
           console.log('ESTIMATED TIME REMAINING', timeRemaining);
           console.log(
             'ESTIMATED TIME REMAINING',
@@ -623,7 +623,7 @@ export default class CardOptimization extends React.Component<
         );
         this.setState({
           estimatedCompletionTimeSec: null,
-          estimateError: 'Error: ' + response?.body?.message,
+          estimateError: 'Error: ' + (response?.body as any)?.message,
         });
       }
     };
@@ -660,7 +660,7 @@ export default class CardOptimization extends React.Component<
     this.onRenderUpdateOrMount();
 
     if (
-      STARTABLE_OPTIMIZATION_STATUSES_ENUM.has(this.props.optimization.status)
+      (STARTABLE_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(this.props.optimization.status as number)
     ) {
       this.handleEstimation();
     } else {
@@ -702,7 +702,7 @@ export default class CardOptimization extends React.Component<
     this.switchAccordion = (index: number, e: MouseEvent): void => {
       e.preventDefault();
       const accordionTitle =
-        (e.currentTarget as HTMLElement).parentNode?.parentNode?.nextElementSibling;
+        (e.currentTarget as HTMLElement).parentElement?.parentElement?.nextElementSibling;
       const accordionContent = e.currentTarget as HTMLElement;
       const accordionChevron = accordionContent.children[0];
 
@@ -717,7 +717,7 @@ export default class CardOptimization extends React.Component<
         );
         getGlobalState().editQueryObject(
           ACCORDION_QUERY_PARAM_PREFIX + index,
-          true
+          'true'
         );
       } else if (accordionTitle instanceof HTMLElement) {
         this.setAccordionAria(
@@ -727,7 +727,7 @@ export default class CardOptimization extends React.Component<
         );
         getGlobalState().editQueryObject(
           ACCORDION_QUERY_PARAM_PREFIX + index,
-          null
+          ''
         );
       }
       accordionContent.classList.toggle('is-collapsed');
@@ -775,7 +775,7 @@ export default class CardOptimization extends React.Component<
 
       // Always show the results tab if status is COMPLETE
       if (
-        this.props.optimization.status === OPTIMIZATION_STATUS_ENUM.COMPLETE &&
+        (this.props.optimization.status as number) === OPTIMIZATION_STATUS_ENUM.COMPLETE &&
         i === 3
       ) {
         (accordionToggles[3] as HTMLElement).click();
@@ -783,7 +783,7 @@ export default class CardOptimization extends React.Component<
     }
 
     // Get optimizer info, tested to 300 calls, seems to work okay
-    let prom = [];
+    let prom: Promise<any>[] = [];
     let optimizerIds = SharedLib.commonUtils.merge(
       getGlobalState().getAccountOptimizersList(),
       getGlobalState().getUsedOptimizers()
@@ -793,7 +793,8 @@ export default class CardOptimization extends React.Component<
         network.request(
           'GET',
           'server/optimizer-definition/' + optimizerIds[i],
-          null,
+          undefined,
+          undefined,
           60000 // 1 minute timeout
         )
       );
@@ -828,14 +829,13 @@ export default class CardOptimization extends React.Component<
   switchAccordion!: (index: number, e: MouseEvent) => void;
 
   renderOptimizationPage = (optimization: Optimization): JSX.Element => {
-    let isOptEditable = EDITABLE_OPTIMIZATION_STATUSES_ENUM.has(
-      optimization.status
-    );
+    const optStatus = optimization.status as number;
+    let isOptEditable = (EDITABLE_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(optStatus);
 
     // Build teams checkboxes
     const allTeams = getGlobalState().getLocalState().teams;
     const teamsCheckboxes: JSX.Element[] = [];
-    const selectedTeams = optimization.teamList;
+    const selectedTeams = optimization.teamList as string[];
     const selectedTeamsSet = new Set(selectedTeams);
     if (isOptEditable) {
       // What if there are not games/teams selected?
@@ -892,11 +892,11 @@ export default class CardOptimization extends React.Component<
       }
     }
 
-    let resultData = optimization.resultData;
+    let resultData = optimization.resultData as Record<string, any>;
 
     // Remaining time (if necessary)
     let remainingTime: JSX.Element | boolean = false;
-    if (optimization.status === OPTIMIZATION_STATUS_ENUM.IN_PROGRESS) {
+    if (optStatus === OPTIMIZATION_STATUS_ENUM.IN_PROGRESS) {
       if (resultData && resultData.estimatedTimeRemainingMs) {
         let timeInfo = `Approximately ${SharedLib.commonUtils.secondsToString(
           resultData.estimatedTimeRemainingMs / 1000
@@ -920,7 +920,7 @@ export default class CardOptimization extends React.Component<
         </div>
       );
     } else if (
-      PROGRESSING_OPTIMIZATION_STATUSES_ENUM.has(optimization.status) ||
+      (PROGRESSING_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(optStatus) ||
       optimization.pause
     ) {
       spinner = (
@@ -939,7 +939,7 @@ export default class CardOptimization extends React.Component<
     if (optimization.statusMessage) {
       statusMessage = optimization.statusMessage;
     } else if (
-      optimization.status === OPTIMIZATION_STATUS_ENUM.IN_PROGRESS &&
+      optStatus === OPTIMIZATION_STATUS_ENUM.IN_PROGRESS &&
       resultData &&
       resultData.countCompleted != undefined &&
       resultData.countTotal != undefined
@@ -969,7 +969,7 @@ export default class CardOptimization extends React.Component<
       <div className="accordionContainer">
         <div className="text-div">
           Status:{' '}
-          {OPTIMIZATION_STATUS_ENUM_INVERSE[optimization.status] +
+          {OPTIMIZATION_STATUS_ENUM_INVERSE[optStatus] +
             (optimization.pause ? ` - PAUSING` : '')}
           <br />
           {statusMessage}
@@ -1050,7 +1050,7 @@ export default class CardOptimization extends React.Component<
                     display: 'flex',
                   }}
                 >
-                  {optimization.status === OPTIMIZATION_STATUS_ENUM.NOT_STARTED
+                  {optStatus === OPTIMIZATION_STATUS_ENUM.NOT_STARTED
                     ? bulkSelectButton
                     : undefined}
                 </div>
@@ -1089,7 +1089,7 @@ export default class CardOptimization extends React.Component<
                     optimizationId={optimization.id}
                     lineupType={optimization.lineupType}
                     selectedOptimizerId={optimization.optimizerType}
-                    optimizerData={this.state.optimizerData}
+                    optimizerData={this.state.optimizerData ?? null}
                     onChange={this.handleEstimation}
                   ></StandardOptions>
                 </fieldset>
@@ -1106,7 +1106,7 @@ export default class CardOptimization extends React.Component<
                     disabled={!isOptEditable}
                     optimizationId={optimization.id}
                     selectedOptimizerId={optimization.optimizerType}
-                    optimizerData={this.state.optimizerData}
+                    optimizerData={this.state.optimizerData ?? null}
                     onChange={this.handleEstimation}
                   ></CustomOptions>
                 </fieldset>
@@ -1122,7 +1122,7 @@ export default class CardOptimization extends React.Component<
 
   renderResultsAccordion = (optimization: Optimization): JSX.Element => {
     let resultsStyle: Record<string, string> = {};
-    if (EDITABLE_OPTIMIZATION_STATUSES_ENUM.has(optimization.status)) {
+    if ((EDITABLE_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(optimization.status as number)) {
       resultsStyle = { display: 'none' };
     }
     return (
@@ -1142,7 +1142,7 @@ export default class CardOptimization extends React.Component<
                 className="chevron"
               />
               <NoSelect>
-                {optimization.status === OPTIMIZATION_STATUS_ENUM.COMPLETE
+                {(optimization.status as number) === OPTIMIZATION_STATUS_ENUM.COMPLETE
                   ? 'Final '
                   : 'Intermediate '}
                 Results
@@ -1167,6 +1167,7 @@ export default class CardOptimization extends React.Component<
   };
 
   renderFooter = (optimization: Optimization): JSX.Element => {
+    const footerStatus = optimization.status as number;
     let emailCheckboxDisabled: boolean | undefined;
     let toggleButtonText: string | undefined;
     let toggleButtonHandler: (() => Promise<void>) | undefined;
@@ -1184,17 +1185,17 @@ export default class CardOptimization extends React.Component<
       disabled = true;
     } else if (
       optimization.pause ||
-      optimization.status === OPTIMIZATION_STATUS_ENUM.COMPLETE
+      footerStatus === OPTIMIZATION_STATUS_ENUM.COMPLETE
     ) {
       // Show nothing
       showToggleButton = false;
-    } else if (STARTABLE_OPTIMIZATION_STATUSES_ENUM.has(optimization.status)) {
+    } else if ((STARTABLE_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(footerStatus)) {
       let textLookup: Record<number | string, string> = {};
       textLookup[OPTIMIZATION_STATUS_ENUM.PAUSED] = 'Resume Optimization';
       textLookup[OPTIMIZATION_STATUS_ENUM.ERROR] = 'Restart Optimization';
       textLookup['undefined'] = 'Start Optimization';
 
-      toggleButtonText = textLookup[optimization.status] || 'Start Optimization';
+      toggleButtonText = textLookup[footerStatus] || 'Start Optimization';
 
       emailCheckboxDisabled = false;
       toggleButtonHandler = this.handleStartClick;
@@ -1239,7 +1240,7 @@ export default class CardOptimization extends React.Component<
         );
       }
     } else if (
-      PROGRESSING_OPTIMIZATION_STATUSES_ENUM.has(optimization.status)
+      (PROGRESSING_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(footerStatus)
     ) {
       toggleButtonText = 'Pause Optimization';
       emailCheckboxDisabled = true;
@@ -1265,8 +1266,8 @@ export default class CardOptimization extends React.Component<
 
     let emailCheckbox: JSX.Element | undefined = undefined;
     if (
-      STARTABLE_OPTIMIZATION_STATUSES_ENUM.has(optimization.status) ||
-      PROGRESSING_OPTIMIZATION_STATUSES_ENUM.has(optimization.status)
+      (STARTABLE_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(footerStatus) ||
+      (PROGRESSING_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(footerStatus)
     ) {
       emailCheckbox = (
         <label
@@ -1325,7 +1326,7 @@ export default class CardOptimization extends React.Component<
   render(): JSX.Element {
     let optimization = getGlobalState().getOptimization(
       this.props.optimization.id
-    );
+    )!;
     return (
       <Card title={optimization.name}>
         {this.renderOptimizationPage(optimization)}

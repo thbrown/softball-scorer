@@ -5,7 +5,8 @@ import RightHeaderButton from 'component-right-header-button';
 interface LeftHeaderButtonProps {
   id?: string;
   style?: React.CSSProperties;
-  onClick?: () => boolean | void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onClick?: () => any;
 }
 
 interface RightHeaderButtonProps {
@@ -16,7 +17,7 @@ interface RightHeaderButtonProps {
 }
 
 interface CardProps {
-  title: string;
+  title: React.ReactNode;
   enableLeftHeader: boolean;
   enableRightHeader: boolean;
   leftHeaderProps: LeftHeaderButtonProps;

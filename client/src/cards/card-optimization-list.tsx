@@ -7,15 +7,18 @@ import ListButton from 'elements/list-button';
 import SharedLib from 'shared-lib';
 import IconButton from 'elements/icon-button';
 
-const CardOptimizationList = (props) => {
-  const handleOptimizationClick = (optimization) => () => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const CardOptimizationList = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleOptimizationClick = (optimization: any) => () => {
     setRoute(`/optimizations/${optimization.id}`);
   };
-  const handleEditClick = (optimization) => (ev) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleEditClick = (optimization: any) => (ev: React.MouseEvent) => {
     setRoute(`/optimizations/${optimization.id}/edit`);
     ev.stopPropagation();
   };
-  const handleCreateClick = (props) => {
+  const handleCreateClick = () => {
     const d = new Date();
     const optimization = getGlobalState().addOptimization(
       `${d.getMonth() + 1}/${d.getDate()} optimization`
@@ -34,7 +37,8 @@ const CardOptimizationList = (props) => {
       </ListButton>
       {[...getGlobalState().getLocalState().optimizations]
         .reverse()
-        .map((optimization) => (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map((optimization: any) => (
           <ListButton
             id={'optimization-' + optimization.id}
             key={optimization.id}

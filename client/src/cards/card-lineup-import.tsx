@@ -5,6 +5,8 @@ import Card from 'elements/card';
 import { makeStyles } from 'css/helpers';
 import ListPicker from 'elements/list-picker';
 import { sortObjectsByDate, toClientDate } from 'utils/functions';
+import { Team, Game } from 'shared-lib/types/team';
+import { TeamId, GameId, PlayerId } from 'types/branded-ids';
 
 const useLineupListStyles = makeStyles((theme) => ({
   title: {
@@ -55,22 +57,38 @@ const useLineupListStyles = makeStyles((theme) => ({
   },
 }));
 
-const toItems = (list) =>
+interface ListItem {
+  name: string;
+  id: string;
+  floatName?: string;
+  date?: number;
+}
+
+const toItems = (list: Array<{ name?: string; opponent?: string; id: string; date?: number }>): ListItem[] =>
   list.map((obj) => ({
-    name: obj.name || obj.opponent,
+    name: obj.name || obj.opponent || '',
     id: obj.id,
     floatName: obj.date ? toClientDate(obj.date) : undefined,
     date: obj.date,
   }));
 
-const LineupList = (props) => {
+interface LineupListProps {
+  team: Team | null;
+  setTeam: (team: Team | null) => void;
+  game: Game | null;
+  setGame: (game: Game | null) => void;
+  handleConfirmClick: (ev: React.MouseEvent, team: Team, game: Game) => void;
+  handleCancelClick: () => void;
+}
+
+const LineupList = (props: LineupListProps) => {
   const { classes } = useLineupListStyles();
-  const handleTeamItemClick = (item) => {
-    props.setTeam(getGlobalState().getTeam(item.id));
+  const handleTeamItemClick = (item: ListItem) => {
+    props.setTeam(getGlobalState().getTeam(item.id as TeamId) ?? null);
     window.scroll(0, 0);
   };
-  const handleGameItemClick = (item) => {
-    props.setGame(getGlobalState().getGame(item.id));
+  const handleGameItemClick = (item: ListItem) => {
+    props.setGame(getGlobalState().getGame(item.id as GameId) ?? null);
     window.scroll(0, 0);
   };
 
@@ -82,16 +100,16 @@ const LineupList = (props) => {
       <>
         <div className={classes.title}> Use this lineup? </div>
         <div className={classes.chipContainer}>
-          <div className={classes.chip}>{props.team.name}</div>
+          <div className={classes.chip}>{props.team!.name}</div>
           <span className={classes.vs}> vs. </span>
           <div className={classes.chip}>{props.game.opponent}</div>
         </div>
         <ListPicker
           itemClassName={classes.itemCustom}
           textClassName={classes.itemText}
-          items={props.game.lineup.map((playerId) => ({
-            name: getGlobalState().getPlayer(playerId).name,
-            id: getGlobalState().getPlayer(playerId).id,
+          items={props.game.lineup.map((playerId: string) => ({
+            name: getGlobalState().getPlayer(playerId as PlayerId)!.name,
+            id: getGlobalState().getPlayer(playerId as PlayerId)!.id,
           }))}
           onClick={() => {}}
         />
@@ -100,7 +118,7 @@ const LineupList = (props) => {
             id="confirm"
             className={'button primary-button ' + classes.actionButton}
             onClick={function wrapper(ev) {
-              return handleConfirmClick(ev, props.team, props.game);
+              return handleConfirmClick(ev, props.team!, props.game!);
             }}
           >
             Confirm
@@ -126,7 +144,7 @@ const LineupList = (props) => {
         </div>
         <ListPicker
           textClassName={classes.itemText}
-          items={sortObjectsByDate(toItems([...props.team.games]), {
+          items={sortObjectsByDate(toItems([...props.team.games]) as { date: number; id: string }[], {
             isAsc: false,
           })}
           onClick={handleGameItemClick}
@@ -146,9 +164,14 @@ const LineupList = (props) => {
   }
 };
 
-const CardImport = (props) => {
-  const [team, setTeam] = React.useState(null);
-  const [game, setGame] = React.useState(null);
+interface CardLineupImportProps {
+  handleConfirmClick: (ev: React.MouseEvent, team: Team, game: Game) => void;
+  handleCancelClick: () => void;
+}
+
+const CardImport = (props: CardLineupImportProps) => {
+  const [team, setTeam] = React.useState<Team | null>(null);
+  const [game, setGame] = React.useState<Game | null>(null);
 
   const handleBackClick = () => () => {
     // Back means different things in each stage of the import wizard

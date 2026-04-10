@@ -9,6 +9,7 @@ import InnerSection from 'elements/inner-section';
 import FloatingSelect from 'elements/floating-select';
 import { getGlobalState } from 'state';
 import CardSection from 'elements/card-section';
+import { Game, Team } from 'shared-lib/types/team';
 
 const useStyles = makeStyles((css) => {
   return {
@@ -79,18 +80,27 @@ const useStyles = makeStyles((css) => {
   };
 });
 
+interface CardStatsGameProps {
+  game: Game | null;
+  team: Team & { publicIdEnabled?: boolean; publicId?: string };
+  showGame: (gameId: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  inputState?: any;
+  isPublic?: boolean;
+  backNavUrl?: string;
+}
+
 const CardStatsGame = ({
   game,
   team,
   showGame,
   inputState,
   isPublic,
-  backNavUrl,
-}) => {
+}: CardStatsGameProps) => {
   const { classes, styles } = useStyles({});
   const [copiedNotificationVisible, setCopiedNotificationVisible] =
     React.useState(false);
-  const publicLinkRef = React.useRef(null);
+  const publicLinkRef = React.useRef<HTMLInputElement>(null);
   const publicIdEnabled = team.publicIdEnabled;
 
   const games = sortObjectsByDate(team.games, { isAsc: false });
@@ -105,24 +115,24 @@ const CardStatsGame = ({
   const publicLink = `${window.location.origin}/public-teams/${team.publicId}/stats/games/${game.id}`;
 
   const handleCopyClick = () => {
-    const copyText = publicLinkRef.current;
+    const copyText = publicLinkRef.current!;
     copyText.select();
     document.execCommand('copy');
     setCopiedNotificationVisible(true);
     setTimeout(() => {
       setCopiedNotificationVisible(false);
     }, 2999);
-    window.getSelection().removeAllRanges();
+    window.getSelection()?.removeAllRanges();
     copyText.blur();
   };
 
-  const handleGameSelectChange = (gameId) => {
+  const handleGameSelectChange = (gameId: string) => {
     showGame(gameId);
   };
 
   const playerPaList = convertPlateAppearanceListToPlayerPlateAppearanceList(
-    game.plateAppearances,
-    inputState
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    game.plateAppearances as any
   );
 
   return (
@@ -133,7 +143,7 @@ const CardStatsGame = ({
           label="Game"
           initialValue={game.id}
           onChange={handleGameSelectChange}
-          values={games.map((game) => {
+          values={games.map((game: Game) => {
             return {
               label: `Vs. ${game.opponent}, ${toClientDate(game.date)}`,
               value: game.id,
@@ -162,7 +172,7 @@ const CardStatsGame = ({
           }}
         >
           <h2>Results</h2>
-          {playerPaList.map((player) => {
+          {playerPaList.map((player: { id: string; name: string; plateAppearances: { id: string; result: string | null }[] }) => {
             return (
               <div className={classes.statRow} key={player.id}>
                 <div
@@ -173,7 +183,7 @@ const CardStatsGame = ({
                 >
                   {player.name}
                 </div>
-                {player.plateAppearances.map((pa) => {
+                {player.plateAppearances.map((pa: { id: string; result: string | null }) => {
                   return (
                     <div key={pa.id} className={classes.statCell}>
                       {pa.result}

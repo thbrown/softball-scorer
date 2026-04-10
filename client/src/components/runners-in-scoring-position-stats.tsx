@@ -2,7 +2,30 @@ import css from 'css';
 import React, { Component } from 'react';
 import SharedLib from 'shared-lib';
 
-export default class RunnersInScoringPositionStats extends Component {
+interface RunnerStats {
+  hitsWithRunnersOn_000: number;
+  hitsWithRunnersOn_100: number;
+  hitsWithRunnersOn_010: number;
+  hitsWithRunnersOn_001: number;
+  hitsWithRunnersOn_110: number;
+  hitsWithRunnersOn_011: number;
+  hitsWithRunnersOn_101: number;
+  hitsWithRunnersOn_111: number;
+  missesWithRunnersOn_000: number;
+  missesWithRunnersOn_100: number;
+  missesWithRunnersOn_010: number;
+  missesWithRunnersOn_001: number;
+  missesWithRunnersOn_110: number;
+  missesWithRunnersOn_011: number;
+  missesWithRunnersOn_101: number;
+  missesWithRunnersOn_111: number;
+}
+
+interface RISPProps {
+  stats: RunnerStats;
+}
+
+export default class RunnersInScoringPositionStats extends Component<RISPProps> {
   render() {
     const stats = this.props.stats;
 

@@ -7,6 +7,8 @@ interface NotificationDialogProps {
 }
 
 export default class NotificationDialog extends React.Component<NotificationDialogProps> {
+  handleConfirmClick: () => void;
+
   constructor(props: NotificationDialogProps) {
     super(props);
 

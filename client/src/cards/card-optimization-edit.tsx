@@ -95,7 +95,7 @@ const CardOptimizationEdit: React.FC<CardOptimizationEditProps> = (props) => {
           inputId="optimizationName"
           defaultValue={optName}
           label="Optimization Name"
-          onChange={(value) => handleOptimizationNameChange(value)}
+          onChange={(value) => handleOptimizationNameChange(value as string)}
         />
       </div>
       <ListButton id="save" type="primary-button" onClick={handleConfirmClick}>

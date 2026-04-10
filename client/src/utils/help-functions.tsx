@@ -27,11 +27,11 @@ export const showLineupTypeHelp = () => {
 };
 
 export const showStatsHelp = () => {
-  const rowStyle = {
+  const rowStyle: React.CSSProperties = {
     margin: '.5rem',
     display: 'flex',
   };
-  const labelStyle = {
+  const labelStyle: React.CSSProperties = {
     fontWeight: 'bold',
     width: '3rem',
     display: 'inline-block',

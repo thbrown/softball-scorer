@@ -6,6 +6,13 @@ import CardSection from 'elements/card-section';
 import config from 'config';
 import { setRoute } from 'actions/route';
 
+declare global {
+  interface Window {
+    grecaptcha: any;
+  }
+}
+declare let grecaptcha: any;
+
 export default class CardSignup extends React.Component<Record<string, never>> {
   recapchaId: number | Record<string, never>;
   submitButton: React.RefObject<HTMLDivElement>;
@@ -99,7 +106,7 @@ export default class CardSignup extends React.Component<Record<string, never>> {
         );
       } else {
         dialog.show_notification(
-          `There was a problem creating your account ${response.status} - ${response.body.message}`
+          `There was a problem creating your account ${response.status} - ${(response.body as any)?.message}`
         );
         console.log(response);
       }
@@ -244,7 +251,7 @@ export default class CardSignup extends React.Component<Record<string, never>> {
   render() {
     return (
       <Card title="Signup">
-        <CardSection isCentered="true">
+        <CardSection isCentered={true}>
           <div className="card-body">{this.renderAuthInterface()}</div>
         </CardSection>
       </Card>

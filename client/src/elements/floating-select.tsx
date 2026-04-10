@@ -7,7 +7,7 @@ interface SelectValue {
 }
 
 interface FloatingSelectProps {
-  selectId?: string | null;
+  selectId?: string;
   initialValue?: string | number;
   label?: string;
   disabled?: boolean;

@@ -15,6 +15,10 @@ interface InputDialogState {
 }
 
 export default class InputDialog extends React.Component<InputDialogProps, InputDialogState> {
+  handleInputChange: (ev: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  handleConfirmClick: () => void;
+  handleCancelClick: () => void;
+
   constructor(props: InputDialogProps) {
     super(props);
 
@@ -40,13 +44,15 @@ export default class InputDialog extends React.Component<InputDialogProps, Input
   }
 
   componentDidMount() {
-    document.getElementById('InputDialog-input').focus();
-    if (this.props.startingValue) {
-      document.getElementById('InputDialog-input').value =
-        this.props.startingValue;
-      this.setState({
-        value: this.props.startingValue,
-      });
+    const el = document.getElementById('InputDialog-input') as HTMLInputElement | null;
+    if (el) {
+      el.focus();
+      if (this.props.startingValue) {
+        el.value = this.props.startingValue;
+        this.setState({
+          value: this.props.startingValue,
+        });
+      }
     }
   }
 
@@ -60,13 +66,14 @@ export default class InputDialog extends React.Component<InputDialogProps, Input
   }
 
   render() {
+    const nodeOrDefault = this.getNodeOrDefaultText();
     return (
       <div className="dialog">
-        <div className="dialog-text">{this.getNodeOrDefaultText()}</div>
+        <div className="dialog-text">{nodeOrDefault}</div>
         <textarea
           id="InputDialog-input"
           onChange={this.handleInputChange}
-          placeholder={this.getNodeOrDefaultText()}
+          placeholder={typeof nodeOrDefault === 'string' ? nodeOrDefault : undefined}
           className="dialog-input-box"
           style={{
             whiteSpace: this.props.whiteSpace ? 'pre' : '',

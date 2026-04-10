@@ -1,14 +1,16 @@
 import React from 'react';
 
 interface FloatingInputProps {
-  inputId?: string | null;
+  inputId?: string;
   defaultValue?: string;
   label?: string;
   type?: string;
   min?: number;
+  max?: number;
   step?: number;
-  maxLength?: string;
+  maxLength?: number;
   disabled?: boolean;
+  fullWidth?: boolean;
   onChange?: (value: string | number) => void;
   values?: Record<string, unknown>;
 }

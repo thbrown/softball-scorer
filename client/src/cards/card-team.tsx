@@ -42,7 +42,7 @@ export default class CardTeam extends React.Component<CardTeamProps> {
         {this.props.tab === 'stats' ? (
           <CardStatsPrivate
             team={this.props.team}
-            tab={this.props.subtab}
+            tab={this.props.subtab ?? ''}
             game={this.props.game}
           />
         ) : (

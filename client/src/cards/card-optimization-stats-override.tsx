@@ -160,15 +160,15 @@ export default class CardOptimizationStatsOverride extends React.Component<
 
   renderPage = (): JSX.Element => {
     if (
-      !SharedLib.constants.EDITABLE_OPTIMIZATION_STATUSES_ENUM.has(
-        this.props.optimization.status
+      !(SharedLib.constants.EDITABLE_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(
+        this.props.optimization.status as number
       )
     ) {
       return (
         <div className="auth-input-container">
           {'This page is only available when optimization status is editable. Status is currently ' +
             constants.OPTIMIZATION_STATUS_ENUM_INVERSE[
-              this.props.optimization.status
+              this.props.optimization.status as number
             ]}
         </div>
       );

@@ -1,17 +1,18 @@
 import Modal from 'elements/modal';
 import React from 'react';
 
-// const {
-//   title,
-//   onConfirm,
-//   confirmText,
-//   onCancel,
-//   cancelText,
-//   maxWidth,
-//   body,
-//   children,
-// } = modalProps;
-export const useModal = (modalProps) => {
+interface UseModalProps {
+  title?: string;
+  onConfirm?: () => boolean | void;
+  confirmText?: string;
+  onCancel?: () => void;
+  cancelText?: string;
+  maxWidth?: string;
+  body?: React.ReactNode;
+  children?: React.ReactNode;
+}
+
+export const useModal = (modalProps: UseModalProps) => {
   const [open, setOpen] = React.useState(false);
 
   return {

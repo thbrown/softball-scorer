@@ -11,8 +11,24 @@ import Chip from 'elements/chip';
 import SharedLib from 'shared-lib';
 import { logout } from 'utils/functions';
 
-class CardMenu extends Component {
-  constructor(props) {
+interface CardMenuState {
+  forceSyncText: string;
+  forceSyncDisabled: boolean;
+}
+
+class CardMenu extends Component<Record<string, never>, CardMenuState> {
+  handleTeamsClick: () => void;
+  handlePlayersClick: () => void;
+  handleOptimizationsClick: () => void;
+  handleDetailsClick: () => void;
+  handleLogoutClick: () => void;
+  handleLoginClick: () => void;
+  handleSyncClick: () => void;
+  handleSaveClick: () => void;
+  handleLoadClick: () => void;
+  handleAddToHomeScreenClick: () => void;
+
+  constructor(props: Record<string, never>) {
     super(props);
     this.state = {
       forceSyncText: 'Force Sync',
@@ -35,7 +51,7 @@ class CardMenu extends Component {
       setRoute('/account');
     };
 
-    this.handleLogoutClick = async function () {
+    this.handleLogoutClick = async () => {
       dialog.show_confirm('Are you sure you want to log out?', async () => {
         // Do a sync if necessary
         if (
@@ -56,7 +72,7 @@ class CardMenu extends Component {
             );
             // Wait for user to select an option
             // TODO: make all dialogs return promises
-            await new Promise(function (resolve) {
+            await new Promise<void>(function (resolve) {
               dialog.show_confirm(
                 message,
                 () => {
@@ -86,7 +102,7 @@ class CardMenu extends Component {
       setRoute('/menu/login');
     };
 
-    this.handleSyncClick = async function () {
+    this.handleSyncClick = async () => {
       this.setState({
         forceSyncText: 'Sync (In Progress)',
         forceSyncDisabled: true,
@@ -149,11 +165,12 @@ class CardMenu extends Component {
           </div>
         </div>,
         () => {
-          let deferredPrompt = getGlobalState()
-            .getAddToHomescreenPrompt()
-            .prompt();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          let deferredPrompt = getGlobalState().getAddToHomescreenPrompt() as any;
+          deferredPrompt.prompt();
           // Wait for the user to respond to the prompt
-          deferredPrompt.userChoice.then((choice) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          deferredPrompt.userChoice.then((choice: any) => {
             getGlobalState().setAddToHomescreenPrompt(null);
             if (choice.outcome === 'accepted') {
               console.log('User accepted the prompt');
@@ -197,7 +214,7 @@ class CardMenu extends Component {
           id="teams"
           onClick={this.handleTeamsClick.bind(this)}
           style={{
-            backgroundColor: css.colors.BG,
+            backgroundColor: css.colors.BACKGROUND,
           }}
         >
           Teams
@@ -206,7 +223,7 @@ class CardMenu extends Component {
           id="players"
           onClick={this.handlePlayersClick.bind(this)}
           style={{
-            backgroundColor: css.colors.BG,
+            backgroundColor: css.colors.BACKGROUND,
           }}
         >
           Players
@@ -215,7 +232,7 @@ class CardMenu extends Component {
           id="optimizations"
           onClick={this.handleOptimizationsClick.bind(this)}
           style={{
-            backgroundColor: css.colors.BG,
+            backgroundColor: css.colors.BACKGROUND,
           }}
         >
           Optimizations
@@ -229,7 +246,7 @@ class CardMenu extends Component {
             }
             onClick={this.handleSyncClick.bind(this)}
             style={{
-              backgroundColor: css.colors.BG,
+              backgroundColor: css.colors.BACKGROUND,
             }}
           >
             {this.state.forceSyncText}
@@ -240,7 +257,7 @@ class CardMenu extends Component {
           className={'list-item'}
           onClick={this.handleSaveClick.bind(this)}
           style={{
-            backgroundColor: css.colors.BG,
+            backgroundColor: css.colors.BACKGROUND,
           }}
         >
           Export To File
@@ -250,7 +267,7 @@ class CardMenu extends Component {
           className={'list-item'}
           onClick={this.handleLoadClick.bind(this)}
           style={{
-            backgroundColor: css.colors.BG,
+            backgroundColor: css.colors.BACKGROUND,
           }}
         >
           Import From File
@@ -261,7 +278,7 @@ class CardMenu extends Component {
           className={'list-item'}
           onClick={this.handleDetailsClick.bind(this)}
           style={{
-            backgroundColor: css.colors.BG,
+            backgroundColor: css.colors.BACKGROUND,
           }}
         >
           Settings
@@ -271,7 +288,7 @@ class CardMenu extends Component {
             id="logout"
             onClick={this.handleLogoutClick.bind(this)}
             style={{
-              backgroundColor: css.colors.BG,
+              backgroundColor: css.colors.BACKGROUND,
             }}
           >
             Logout
@@ -282,7 +299,7 @@ class CardMenu extends Component {
             className={'list-item'}
             onClick={this.handleLoginClick.bind(this)}
             style={{
-              backgroundColor: css.colors.BG,
+              backgroundColor: css.colors.BACKGROUND,
             }}
           >
             Login/Signup

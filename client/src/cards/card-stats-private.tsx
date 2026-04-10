@@ -30,10 +30,10 @@ export default class CardStatsPrivate extends React.Component<CardStatsPrivatePr
 
     this.handleTabClick = (tab: string) => {
       if (tab) {
-        setRoute(`/teams/${this.props.team.id}/stats/${tab}`, true);
+        setRoute(`/teams/${this.props.team?.id}/stats/${tab}`, true);
       } else {
         setRoute(
-          `/teams/${this.props.team.id}/stats/${CardStatsPrivate.SEASON_TAB}`,
+          `/teams/${this.props.team?.id}/stats/${CardStatsPrivate.SEASON_TAB}`,
           true
         );
       }

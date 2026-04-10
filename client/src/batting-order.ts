@@ -6,7 +6,7 @@ export type LineupType = 0 | 1 | 2 | 3;
 
 const normalBattingOrder = function (
   plateAppearances: PlateAppearance[],
-  lineup: PlayerId[],
+  lineup: string[],
   n: number
 ): Player | undefined {
   let previousBatterLineupIndex = lineup.length - 1;
@@ -23,7 +23,7 @@ const normalBattingOrder = function (
 
 const genderAlternatingOrder = function (
   plateAppearances: PlateAppearance[],
-  lineup: PlayerId[],
+  lineup: string[],
   n: number
 ): Player | undefined {
   let targetBattersGender: 'M' | 'F' | '?' = '?';

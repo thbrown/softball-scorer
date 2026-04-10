@@ -1,5 +1,12 @@
 import React from 'react';
 
+declare global {
+  interface Window {
+    current_confirm?: () => void;
+    current_cancel?: () => void;
+  }
+}
+
 interface ConfirmDialogProps {
   text: React.ReactNode;
   hide: () => void;
@@ -10,6 +17,9 @@ interface ConfirmDialogProps {
 }
 
 export default class ConfirmDialog extends React.Component<ConfirmDialogProps> {
+  handleConfirmClick: () => void;
+  handleCancelClick: () => void;
+
   constructor(props: ConfirmDialogProps) {
     super(props);
 

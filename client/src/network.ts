@@ -83,7 +83,7 @@ const requestInternal = async function <T = unknown>(
           );*/
         } else {
           reject(
-            new Error('Something went wrong during the request: ' + err, err)
+            new Error('Something went wrong during the request: ' + err)
           );
         }
       } finally {

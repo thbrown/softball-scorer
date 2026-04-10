@@ -39,7 +39,7 @@ export default class CardGame extends expose.Component<CardGameProps> {
             handleTabClick={(tabValue) => {
               this.handleTabClick(tabValue);
             }}
-            tab={this.props.tab}
+            tab={this.props.tab ?? ''}
             tabNames={[
               { value: 'lineup', label: 'Lineup' },
               { value: 'scorer', label: 'Score' },

@@ -67,7 +67,7 @@ const App = (props) => {
   return (
     <DataContainer
       url="server/current-account"
-      onRequestComplete={async (data) => {
+      onRequestComplete={async (data: any) => {
         if (data.email) {
           console.log(`[AUTH] Active User: ${data.email}`);
           getGlobalState().setActiveUser(data.email);

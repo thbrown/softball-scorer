@@ -138,7 +138,7 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
     });
     const elem = document.getElementById('lineup_' + player.id);
     if (elem) {
-      (elem.style as Record<string, unknown>)['z-index'] = 100;
+      (elem.style as unknown as Record<string, unknown>)['z-index'] = 100;
       elem.style.position = 'absolute';
       elem.style.width = '90%';
     }
@@ -152,9 +152,9 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
     hideHighlights(true);
     const elem = document.getElementById('lineup_' + player.id);
     if (elem) {
-      (elem.style as Record<string, unknown>)['z-index'] = 'inherit';
+      (elem.style as unknown as Record<string, unknown>)['z-index'] = 'inherit';
       elem.style.position = 'inherit';
-      (elem.style as Record<string, unknown>)['margin-top'] = '5px';
+      (elem.style as unknown as Record<string, unknown>)['margin-top'] = '5px';
       elem.style.width = 'inherit';
 
       const { new_position_index } = getInds(this.props.game, elem, index);
@@ -179,9 +179,9 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
       // This fixes and issue that causes the element, while being dragged, to jump up the
       // width of a tile when the highlighted div above it in the dom was expanded
       if (highlight_index < index) {
-        (elem.style as Record<string, unknown>)['margin-top'] = `-${PLAYER_TILE_HEIGHT}px`;
+        (elem.style as unknown as Record<string, unknown>)['margin-top'] = `-${PLAYER_TILE_HEIGHT}px`;
       } else {
-        (elem.style as Record<string, unknown>)['margin-top'] = null;
+        (elem.style as unknown as Record<string, unknown>)['margin-top'] = null;
       }
     }
   };
@@ -321,7 +321,7 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
     Array.prototype.forEach.call(
       document.getElementsByClassName('lineup-row'),
       (elem: HTMLElement) => {
-        (elem.style as Record<string, unknown>)['touch-action'] = 'none';
+        (elem.style as unknown as Record<string, unknown>)['touch-action'] = 'none';
       }
     );
   }
@@ -330,7 +330,7 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
     Array.prototype.forEach.call(
       document.getElementsByClassName('lineup-row'),
       (elem: HTMLElement) => {
-        (elem.style as Record<string, unknown>)['touch-action'] = null;
+        (elem.style as unknown as Record<string, unknown>)['touch-action'] = null;
       }
     );
   }
@@ -572,7 +572,7 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
     // Find all plate appearances that don't belong to a player in the lineup
     const allPlateAppearances = getGlobalState().getPlateAppearancesForGame(
       this.props.game.id
-    );
+    ) ?? [];
     const nonLineupPlateAppearances = allPlateAppearances.filter(
       (plateAppearance) => {
         let value = true;
@@ -622,9 +622,9 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
     index: number | null,
     editable: string
   ) {
-    const player = getGlobalState().getPlayer(playerId);
+    const player = getGlobalState().getPlayer(playerId)!;
     const plateAppearances =
-      getGlobalState().getPlateAppearancesForPlayerInGame(playerId, gameId);
+      getGlobalState().getPlateAppearancesForPlayerInGame(playerId, gameId) ?? [];
     const elems: React.JSX.Element[] = [];
     if (editable === FULL_EDIT) {
       elems.push(

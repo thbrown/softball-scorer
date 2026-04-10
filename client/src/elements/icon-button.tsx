@@ -9,7 +9,7 @@ interface IconButtonProps {
   invert?: boolean;
   opacity?: number;
   id?: string;
-  onClick?: () => void;
+  onClick?: (ev?: React.MouseEvent) => void;
   containerStyle?: React.CSSProperties;
   [key: string]: unknown;
 }

@@ -70,7 +70,7 @@ export default class CardPasswordReset extends React.Component<CardPasswordReset
       } else {
         dialog.show_notification(
           `Error! We were not able to change your password. Please request another password reset. ${
-            response.body ? response.body.message : ''
+            response.body ? (response.body as any).message : ''
           }`,
           function () {
             setRoute('/menu/login');
