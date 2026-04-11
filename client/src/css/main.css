@@ -1,7 +1,9 @@
+@import './variables.css';
+
 
 body {
-  background: $css.colors.BACKGROUND;
-  color: $css.colors.TEXT_DARK;
+  background: var(--color-background);
+  color: var(--color-text-dark);
   position: absolute;
   width: 100%;
   margin: 0px;
@@ -50,7 +52,7 @@ hr {
 .card-body {
   max-width: 960px;
   margin: 0 auto;
-  background: $css.colors.WHITE;
+  background: var(--color-white);
   padding: 1rem 0 1rem 0;
   box-shadow: 0px 0px 10px rgb(0 0 0 / 25%);
   margin-bottom: 48px;
@@ -75,8 +77,8 @@ hr {
 .back-arrow,
 .lineup-row-button {
   cursor: pointer;
-  height: $css.sizes.ICON;
-  width: $css.sizes.ICON;
+  height: var(--size-icon);
+  width: var(--size-icon);
 }
 
 
@@ -84,10 +86,10 @@ hr {
   position: fixed;
   top: 0;
   width: 100%;
-  color: $css.colors.TEXT_LIGHT;
-  background-color: $css.colors.PRIMARY_DARK;
+  color: var(--color-text-light);
+  background-color: var(--color-primary-dark);
   margin-bottom: 2px;
-  font-size: $css.typography.size.xLarge;
+  font-size: var(--typography-size-x-large);
   text-align: center;
   line-height: 48px;
   height: 48px;
@@ -101,7 +103,7 @@ hr {
 
 .card-textbox {
   padding: 0.75rem 0.25rem;
-  color: $css.colors.TEXT_DARK;
+  color: var(--color-text-dark);
 }
 
 .card {
@@ -115,40 +117,40 @@ hr {
   cursor: default;
   padding: 12px;
   margin: 10px;
-  border-radius: $css.borderRadius.small;
-  color: $css.colors.TEXT_LIGHT;
-  background-color: $css.colors.SECONDARY;
+  border-radius: var(--border-radius-small);
+  color: var(--color-text-light);
+  background-color: var(--color-secondary);
   font-size: 20px;
 }
 
 .add-list-item {
-  background-color: $css.colors.PRIMARY;
-  color: $css.colors.TEXT_LIGHT;
+  background-color: var(--color-primary);
+  color: var(--color-text-light);
 }
 
 .table-row {
   display: flex;
   justify-content: space-around;
   font-size: 14px;
-  color: $css.colors.TEXT_LIGHT;
-  background-color: $css.colors.PRIMARY;
-  border-bottom: 1px solid $css.colors.PRIMARY_LIGHT;
+  color: var(--color-text-light);
+  background-color: var(--color-primary);
+  border-bottom: 1px solid var(--color-primary-light);
 }
 .table-cell {
-  border-right: 1px solid $css.colors.SECONDARY_LIGHT;
-  border-bottom: 1px solid $css.colors.SECONDARY_LIGHT;
-  padding: $css.spacing.xSmall;
+  border-right: 1px solid var(--color-secondary-light);
+  border-bottom: 1px solid var(--color-secondary-light);
+  padding: var(--spacing-x-small);
   min-width: 50px;
   height: 24px;
   line-height: 1.7;
 }
 .table-cell-header {
-  color: $css.colors.TEXT_DARK;
+  color: var(--color-text-dark);
   padding: 7px;
 }
 .table-cell-header-label {
-  color: $css.colors.TEXT_LIGHT;
-  background-color: $css.colors.PRIMARY_DARK;
+  color: var(--color-text-light);
+  background-color: var(--color-primary-dark);
 }
 
 .name-stat-cell {
@@ -157,8 +159,8 @@ hr {
   height: 24px;
   text-overflow: ellipsis;
   overflow: hidden;
-  color: $css.colors.TEXT_LIGHT;
-  background-color: $css.colors.PRIMARY_DARK;
+  color: var(--color-text-light);
+  background-color: var(--color-primary-dark);
 }
 
 .number-stat-cell {
@@ -185,15 +187,15 @@ hr {
 
 .lineup-row {
   touch-action: initial !important;
-  background-color: $css.colors.WHITE;
-  border-radius: $css.borderRadius.small;
-  color: $css.colors.TEXT_DARK;
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-small);
+  color: var(--color-text-dark);
   display: flex;
   justify-content: space-between;
   margin: 5px 5px;
   padding-left: 5px;
   min-width: calc(100% - 36px);
-  border: $css.border;
+  border: var(--border);
 }
 
 .player-drag-handle {
@@ -240,9 +242,9 @@ hr {
 }
 
 .scorer-row {
-  background-color: $css.colors.SECONDARY;
-  border-radius: $css.borderRadius.small;
-  color: $css.colors.TEXT_LIGHT;
+  background-color: var(--color-secondary);
+  border-radius: var(--border-radius-small);
+  color: var(--color-text-light);
   display: flex;
   justify-content: space-between;
   margin: 10px;
@@ -250,9 +252,9 @@ hr {
 }
 
 .future-batter-row {
-  background-color: $css.colors.SECONDARY;
-  border-radius: $css.borderRadius.small;
-  color: $css.colors.TEXT_LIGHT;
+  background-color: var(--color-secondary);
+  border-radius: var(--border-radius-small);
+  color: var(--color-text-light);
   display: flex;
   justify-content: space-between;
   margin: 10px;
@@ -263,12 +265,12 @@ hr {
 .lineup-box-end,
 .lineup-box {
   background-color: white;
-  color: $css.colors.TEXT_DARK;
+  color: var(--color-text-dark);
   height: 32px;
   width: 32px;
   font-size: 14px;
   line-height: 32px;
-  border: 1px solid $css.colors.TEXT_DARK;
+  border: 1px solid var(--color-text-dark);
   text-align: center;
 }
 
@@ -295,49 +297,49 @@ hr {
 .lineup-score-text {
   padding-left: 8px;
   padding-top: 2px;
-  color: $css.colors.TEXT_DARK;
+  color: var(--color-text-dark);
 }
 
 .dark-text {
-  color: $css.colors.TEXT_DARK;
+  color: var(--color-text-dark);
 }
 
 .light-text {
-  color: $css.colors.TEXT_LIGHT;
+  color: var(--color-text-light);
 }
 
 .grey-text {
-  color: $css.colors.TEXT_GREY;
+  color: var(--color-text-grey);
 }
 
 .result-button {
   cursor: default;
   width: 48px;
   padding: 12px;
-  color: $css.colors.TEXT_LIGHT;
-  border: 2px solid $css.colors.SECONDARY;
-  border-radius: $css.borderRadius.small;
+  color: var(--color-text-light);
+  border: 2px solid var(--color-secondary);
+  border-radius: var(--border-radius-small);
   text-align: center;
   font-size: 18px;
 }
 
 .disabled {
   pointer-events: none;
-  color: $css.colors.TEXT_GREY !important;
+  color: var(--color-text-grey) !important;
 }
 
 .radio-button {
   display: flex;
-  color: $css.colors.TEXT_LIGHT;
+  color: var(--color-text-light);
   font-size: 18px;
 }
 
 .group {
-  border: 1px $css.colors.SECONDARY_DARK solid;
-  border-radius: $css.borderRadius.small;
+  border: 1px var(--color-secondary-dark) solid;
+  border-radius: var(--border-radius-small);
   padding: 0px;
   margin-bottom: 8px;
-  color: $css.colors.TEXT_DARK;
+  color: var(--color-text-dark);
 }
 
 .group-legend {
@@ -359,7 +361,7 @@ hr {
 }
 
 .song-label {
-  color: $css.colors.TEXT_DARK;
+  color: var(--color-text-dark);
   font-size: 12px;
   padding: 0 16px 8px 0;
   margin-left: 2px;
@@ -371,7 +373,7 @@ hr {
   position: relative;
   margin: 10px;
   /* TODO Which color is this supposed to be?  */
-  color: $css.colors.TEXT_LIGHT;
+  color: var(--color-text-light);
   color: black;
 }
 
@@ -391,7 +393,7 @@ hr {
   height: 50px;
   padding-left: 10px;
   font-size: 18px;
-  border-radius: $css.borderRadius.small;
+  border-radius: var(--border-radius-small);
   margin: 2px;
 }
 
@@ -408,9 +410,9 @@ hr {
   position: absolute;
   top: 50px;
   width: 100%;
-  background-color: $css.colors.WHITE;
+  background-color: var(--color-white);
   font-size: 18px;
-  border-radius: $css.borderRadius.small;
+  border-radius: var(--border-radius-small);
   z-index: 2;
 }
 
@@ -427,7 +429,7 @@ hr {
 }
 
 .react-autosuggest__suggestion--highlighted {
-  background-color: $css.colors.SECONDARY_LIGHT;
+  background-color: var(--color-secondary-light);
 }
 
 .text-div {
@@ -452,9 +454,9 @@ hr {
 
 .dialog {
   max-width: 960px;
-  background-color: $css.colors.BACKGROUND;
-  border-radius: $css.borderRadius.medium;
-  color: $css.colors.TEXT_DARK;
+  background-color: var(--color-background);
+  border-radius: var(--border-radius-medium);
+  color: var(--color-text-dark);
   box-shadow: 0px 9px 25px 10px rgba(0, 0, 0, 0.5);
   padding: 16px;
   margin: 32px;
@@ -464,15 +466,15 @@ hr {
 }
 
 .dialog-text {
-  font-size: $css.typography.size.medium;
-  color: $css.colors.TEXT_DARK;
+  font-size: var(--typography-size-medium);
+  color: var(--color-text-dark);
 }
 
 .dialog-input-box {
-  background-color: $css.colors.WHITE;
-  border-radius: $css.borderRadius.small;
-  color: $css.colors.TEXT_DARK;
-  font-size: $css.typography.size.medium;
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-small);
+  color: var(--color-text-dark);
+  font-size: var(--typography-size-medium);
   margin-top: 24px;
   width: calc(100% - 18px);
 }
@@ -485,9 +487,9 @@ hr {
 }
 
 .button {
-  border-radius: $css.borderRadius.small;
+  border-radius: var(--border-radius-small);
   cursor: pointer;
-  font-size: $css.typography.size.medium;
+  font-size: var(--typography-size-medium);
   margin: 10px;
   text-align: center;
   min-width: 52px;
@@ -527,45 +529,45 @@ hr {
 }
 
 .primary-button {
-  background-color: $css.colors.PRIMARY_DARK;
-  border: 2px solid $css.colors.PRIMARY_DARK;
-  color: $css.colors.TEXT_LIGHT;
+  background-color: var(--color-primary-dark);
+  border: 2px solid var(--color-primary-dark);
+  color: var(--color-text-light);
 }
 
 .secondary-button {
-  background-color: $css.colors.PRIMARY;
-  border: 2px solid $css.colors.PRIMARY;
-  color: $css.colors.TEXT_DARK;
+  background-color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  color: var(--color-text-dark);
 }
 
 .tertiary-button {
-  background-color: $css.colors.BACKGROUND;
-  border: 2px solid $css.colors.BACKGROUND;
-  color: $css.colors.TEXT_DARK;
+  background-color: var(--color-background);
+  border: 2px solid var(--color-background);
+  color: var(--color-text-dark);
   border: solid 1px;
 }
 
 .cancel-button {
-  background-color: $css.colors.PRIMARY_LIGHT;
-  color: $css.colors.TEXT_LIGHT;
-  border: 2px solid $css.colors.PRIMARY_LIGHT;
+  background-color: var(--color-primary-light);
+  color: var(--color-text-light);
+  border: 2px solid var(--color-primary-light);
 }
 
 .delete-button {
-  background-color: $css.colors.DELETE;
-  border: 2px solid $css.colors.DELETE;
-  color: $css.colors.TEXT_LIGHT;
+  background-color: var(--color-delete);
+  border: 2px solid var(--color-delete);
+  color: var(--color-text-light);
 }
 
 .list-button {
-  background-color: $css.colors.WHITE;
-  border: $css.border;
+  background-color: var(--color-white);
+  border: var(--border);
   margin: 10px;
 }
 
 .edit-button {
-  background-color: $css.colors.WHITE;
-  border: $css.border;
+  background-color: var(--color-white);
+  border: var(--border);
   margin: 10px;
   justify-content: left;
 }
@@ -573,7 +575,7 @@ hr {
 .edit-button-icon {
   vertical-align: middle;
   margin-right: 12px;
-  background-color: $css.colors.SEMI_TRANSPARENT;
+  background-color: var(--color-semi-transparent);
 }
 
 .edit-button-label {
@@ -678,7 +680,7 @@ hr {
   height: 100%;
   overflow: hidden;
   box-sizing: border-box;
-  font-size: $css.typography.size.small;
+  font-size: var(--typography-size-small);
 }
 .sticky-table .sticky-table-corner {
   z-index: 4;
@@ -791,9 +793,9 @@ Scrolling is ~10-20x smoother.
 .icon-button {
   width: 48px;
   height: 48px;
-  border-radius: $css.borderRadius.medium;
+  border-radius: var(--border-radius-medium);
   margin-left: 3px;
-  background-color: $css.colors.PRIMARY_DARK;
+  background-color: var(--color-primary-dark);
   text-align: center;
 }
 
@@ -821,7 +823,7 @@ Scrolling is ~10-20x smoother.
   margin-bottom: 8px;
   padding: 4px 8px;
   position: relative;
-  border-radius: $css.borderRadius.small;
+  border-radius: var(--border-radius-small);
   background-color: white;
   width: 100%;
 }
@@ -903,13 +905,13 @@ Scrolling is ~10-20x smoother.
 
 .accordion dl,
 .accordion-list {
-  border: 1px solid $css.colors.BACKGROUND;
+  border: 1px solid var(--color-background);
   border-bottom: none;
 }
 
 .accordion dd,
 .accordion__panel {
-  background-color: $css.colors.BACKGROUND;
+  background-color: var(--color-background);
   font-size: 1em;
   margin-inline-start: 0px;
 }
@@ -919,22 +921,22 @@ Scrolling is ~10-20x smoother.
 
 .accordion {
   position: relative;
-  background-color: $css.colors.BACKGROUND;
+  background-color: var(--color-background);
 }
 
 .accordionTitle,
 .accordion__Heading {
-  background-color: $css.colors.WHITE;
+  background-color: var(--color-white);
   font-size: 20px;
   display: block;
-  color: $css.colors.TEXT_DARK;
+  color: var(--color-text-dark);
   transition: background-color 0.25s ease-in-out;
   border-top: 1px solid;
 }
 
 .accordionTitleActive,
 .accordionTitle.is-expanded {
-  background-color: darken($css.colors.PRIMARY, 10%);
+  background-color: #2d7230;
 }
 .accordionItem {
   height: auto;
@@ -1014,7 +1016,7 @@ Scrolling is ~10-20x smoother.
 #gamesMenu label {
   display: block;
   /* border: 1px solid black; */
-  font-size: $css.typography.size.medium;
+  font-size: var(--typography-size-medium);
   border-bottom: none;
   padding: 14px;
 }
@@ -1052,8 +1054,8 @@ Scrolling is ~10-20x smoother.
   /*position:relative;*/
   padding: 9px;
   /*margin:1em 0 3em;*/
-  border: 5px solid $css.colors.PRIMARY;
-  color: $css.colors.BACKGROUND;
+  border: 5px solid var(--color-primary);
+  color: var(--color-background);
   background:#fff;
   border-radius:10px;
   text-align:center;
@@ -1067,7 +1069,7 @@ Scrolling is ~10-20x smoother.
   left:40px; /* controls horizontal position */
   border-width:20px 20px 0;
   border-style:solid;
-  border-color:$css.colors.PRIMARY transparent;
+  border-color:var(--color-primary) transparent;
   /* reduce the damage in FF3.0 */
   display:block;
   width:0;
@@ -1081,7 +1083,7 @@ Scrolling is ~10-20x smoother.
   left:47px; /* value = (:before left) + (:before border-left) - (:after border-left) */
   border-width:13px 13px 0;
   border-style:solid;
-  border-color:$css.colors.BACKGROUND transparent;
+  border-color:var(--color-background) transparent;
   /* reduce the damage in FF3.0 */
   display:block;
   width:0;
@@ -1102,15 +1104,15 @@ Scrolling is ~10-20x smoother.
 .pie-timer {
   background: -webkit-linear-gradient(
     left,
-    $css.colors.PRIMARY 50%,
+    var(--color-primary) 50%,
     #f5f5f5 50%
-  ); /* $css.colors.BACKGROUND doesn't get substituted here, so I'm hardcoding #F5F5F5 */
+  ); /* var(--color-background) doesn't get substituted here, so I'm hardcoding #F5F5F5 */
   border-radius: 100%;
   height: 25px; /* Height and width */
   position: relative;
   width: 25px; /* Height and width */
-  -webkit-animation: time $css.config.SYNC_DELAY steps(200, start);
-  animation: time $css.config.SYNC_DELAY steps(200, start);
+  -webkit-animation: time var(--config-sync-delay) steps(200, start);
+  animation: time var(--config-sync-delay) steps(200, start);
   margin-top: 8px;
   display: inline-flex;
 }
@@ -1121,9 +1123,9 @@ Scrolling is ~10-20x smoother.
   position: absolute;
   top: 0;
   width: 50%;
-  -webkit-animation: pie-mask $css.config.SYNC_DELAY steps(100, start);
+  -webkit-animation: pie-mask var(--config-sync-delay) steps(100, start);
   -webkit-transform-origin: 100% 50%;
-  animation: pie-mask $css.config.SYNC_DELAY steps(100, start);
+  animation: pie-mask var(--config-sync-delay) steps(100, start);
   transform-origin: 100% 50%;
 }
 .pie-wrapper {
@@ -1138,22 +1140,22 @@ Scrolling is ~10-20x smoother.
 }
 @-webkit-keyframes pie-mask {
   0% {
-    background: $css.colors.BACKGROUND; /* Background colour */
+    background: var(--color-background); /* Background colour */
     -webkit-transform: rotate(0deg);
     transform: rotate(0deg);
   }
   50% {
-    background: $css.colors.BACKGROUND; /* Background colour */
+    background: var(--color-background); /* Background colour */
     -webkit-transform: rotate(-180deg);
     transform: rotate(-180deg);
   }
   50.01% {
-    background: $css.colors.PRIMARY; /* Foreground colour */
+    background: var(--color-primary); /* Foreground colour */
     -webkit-transform: rotate(0deg);
     transform: rotate(0deg);
   }
   100% {
-    background: $css.colors.PRIMARY; /* Foreground colour */
+    background: var(--color-primary); /* Foreground colour */
     -webkit-transform: rotate(-180deg);
     transform: rotate(-180deg);
   }
@@ -1161,10 +1163,10 @@ Scrolling is ~10-20x smoother.
 
 .chip {
   padding: 8px 16px;
-  background: $css.colors.BACKGROUND;
+  background: var(--color-background);
   text-align: center;
   display: inline-block;
-  border-radius: $css.borderRadius.xLarge;
+  border-radius: var(--border-radius-x-large);
   cursor: default;
 }
 
@@ -1188,15 +1190,517 @@ Scrolling is ~10-20x smoother.
 
 .player-stats td,
 .player-stats th {
-  padding-right: $css.spacing.xSmall;
-  color: $css.colors.TEXT_LIGHT;
+  padding-right: var(--spacing-x-small);
+  color: var(--color-text-light);
 }
 
 .stats-footer {
   text-align: center;
-  color: $css.colors.TEXT_GREY;
-  font-size: $css.typography.size.small;
-  padding-top: $css.spacing.large;
+  color: var(--color-text-grey);
+  font-size: var(--typography-size-small);
+  padding-top: var(--spacing-large);
+}
+
+/* List Picker Styles */
+.list-item-float {
+  float: right;
+  margin-right: 5px;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+/* Header Tabs Styles */
+.tab-container {
+  display: flex;
+  justify-content: space-between;
+  text-align: center;
+}
+
+.header-tab {
+  width: 45%;
+  transition: border 0.25s;
+  height: 42px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.header-tab-selected {
+  border-bottom: 5px solid var(--color-text-light);
+}
+
+.header-tab-unselected {
+  border-bottom: 5px solid var(--color-primary-dark);
+}
+
+/* Card Loading Styles */
+.loading-gif {
+  width: 100%;
+}
+
+.loading-gif-container {
+  width: 5rem;
+  margin: 5rem auto;
+}
+
+/* Stats Sharing Styles */
+.public-link {
+  font-size: var(--typography-size-x-small);
+  padding: var(--spacing-xx-small);
+  background-color: var(--color-invisible);
+  color: var(--color-text-dark);
+  border: 0px;
+  resize: none;
+  white-space: unset;
+  overflow-wrap: unset;
+  overflow: hidden;
+  font-family: inherit;
+}
+
+.public-link-label-box {
+  margin: 1rem 0;
+  font-size: var(--typography-size-medium);
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.public-link-label {
+  padding-right: var(--spacing-xx-small);
+}
+
+.public-link-line-item {
+  padding: var(--spacing-xx-small);
+}
+
+.public-link-copy-button {
+  width: var(--size-icon);
+  cursor: pointer;
+}
+
+.public-link-copied-text {
+  opacity: 1;
+  transition: all 0.5s ease-out;
+}
+
+.public-link-container {
+  color: var(--color-text-dark);
+  background-color: var(--color-background);
+  border-radius: var(--border-radius-small);
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: var(--spacing-x-small);
+  overflow: hidden;
+}
+
+.public-link-checkbox {
+  width: 1rem;
+  height: 1rem;
+  margin-right: var(--spacing-x-small);
+}
+
+.stats-sharing-help-text {
+  color: var(--color-text-grey);
+  font-size: var(--typography-size-small);
+}
+
+/* Game Stats Styles */
+.game-stats-heading-row {
+  text-align: center;
+  margin: 8px;
+  text-transform: uppercase;
+  font-size: 1rem;
+}
+
+.game-stats-row {
+  display: flex;
+}
+
+.game-stats-cell {
+  margin-right: 0.5rem;
+  width: 40px;
+  white-space: pre;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.game-stats-public-link {
+  font-size: var(--typography-size-x-small);
+  background-color: var(--color-invisible);
+  color: var(--color-text-dark);
+  border: 0px;
+  font-family: inherit;
+  resize: none;
+  white-space: unset;
+  overflow-wrap: unset;
+  overflow: hidden;
+}
+
+.game-stats-public-link-label-box {
+  font-size: var(--typography-size-large);
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.game-stats-public-link-label {
+  padding-right: var(--spacing-xx-small);
+}
+
+.game-stats-public-link-line-item {
+  padding: var(--spacing-xx-small);
+}
+
+.game-stats-public-link-copy-button {
+  width: var(--size-icon);
+  cursor: pointer;
+}
+
+.game-stats-public-link-copied-text {
+  opacity: 1;
+  transition: all 0.5s ease-out;
+}
+
+.game-stats-public-link-container {
+  color: var(--color-text-dark);
+  background-color: var(--color-background);
+  border-radius: var(--border-radius-small);
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: var(--spacing-xx-small);
+  margin-bottom: var(--spacing-xx-small);
+  overflow: hidden;
+  padding-right: var(--spacing-xx-small);
+}
+
+.game-stats-description {
+  padding: 1rem;
+  text-align: center;
+  color: var(--color-text-grey);
+}
+
+/* Lineup Import Styles */
+.lineup-import-title {
+  position: sticky;
+  left: 0px;
+  font-size: var(--typography-size-x-large);
+  text-align: center;
+  color: var(--color-text-dark);
+  padding: var(--spacing-x-small);
+  background-color: var(--color-background);
+  margin-bottom: var(--spacing-small);
+}
+
+.lineup-import-item-custom {
+  background-color: var(--color-primary-dark);
+  text-align: center;
+}
+
+.lineup-import-item-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: pre;
+}
+
+.lineup-import-action-button-container {
+  display: flex;
+  justify-content: center;
+}
+
+.lineup-import-action-button {
+  width: 180px;
+}
+
+.lineup-import-vs {
+  color: var(--color-text-light);
+  font-size: var(--typography-size-medium);
+}
+
+.lineup-import-chip-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: var(--spacing-x-small);
+}
+
+.lineup-import-chip {
+  padding: 15px;
+  margin-right: var(--spacing-xx-small);
+  margin-left: var(--spacing-xx-small);
+  color: var(--color-text-light);
+  background-color: var(--color-primary-dark);
+  border-radius: var(--border-radius-x-large);
+  font-size: var(--typography-size-medium);
+}
+
+/* Import Card Styles */
+.import-file-input-container {
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  position: relative;
+}
+
+.import-file-input-button {
+  width: 100%;
+  color: var(--color-text-dark);
+  background: var(--color-background);
+  border: 2px dotted var(--color-primary-light);
+}
+
+.import-file-input {
+  position: absolute;
+  left: 0;
+  opacity: 0;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  cursor: pointer;
+}
+
+.import-radio-buttons-container {
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  margin-top: var(--spacing-small);
+  margin: 1rem;
+}
+
+.import-load-button {
+  width: 120px;
+}
+
+.import-load-button-disabled {
+  width: 120px;
+  background-color: var(--color-disabled);
+  cursor: default;
+}
+
+.import-load-button-disabled:hover {
+  filter: brightness(100%);
+}
+
+/* Game Scorer Styles */
+.score-paper-root {
+  width: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: var(--border-radius-small);
+  padding: var(--spacing-small);
+  background-color: var(--color-primary);
+  color: var(--color-text-light);
+  box-shadow: var(--box-shadow-paper);
+}
+
+.score-paper-team-name {
+  font-size: 1rem;
+  color: var(--color-text-light);
+  text-align: center;
+}
+
+.score-paper-team-score {
+  font-family: score_boardregular, Arial, sans-serif;
+  font-size: 6rem;
+}
+
+.score-table {
+  color: var(--color-text-dark);
+  border-collapse: collapse;
+  margin: auto;
+}
+
+.score-table-cell {
+  text-align: center;
+  vertical-align: middle;
+  border: 3px solid;
+  border-color: var(--color-secondary);
+  min-width: 48px;
+  height: 48px;
+}
+
+.score-table-score-text {
+  padding: 4px;
+}
+
+.score-table-increment-button {
+  background-color: var(--color-primary);
+  color: var(--color-text-light);
+  padding: 0;
+  margin: 0;
+  min-width: 36px;
+  height: 36px;
+}
+
+.game-scorer-cards {
+  display: flex;
+  justify-content: space-around;
+  margin: var(--spacing-x-small) 0;
+}
+
+/* Plate Appearance Styles */
+.pa-button-row {
+  display: flex;
+  justify-content: flex-start;
+  margin: 4px 10px;
+}
+
+.pa-button-row-extra {
+  display: flex;
+  justify-content: flex-start;
+  margin: 4px 10px;
+}
+
+.pa-button {
+  cursor: default;
+  padding: var(--spacing-medium);
+  color: var(--color-text-dark);
+  border: 2px solid var(--color-secondary);
+  background: var(--color-white);
+  border-radius: var(--border-radius-small);
+  text-align: center;
+  font-size: var(--typography-size-large);
+  width: 48px;
+  margin: 2px;
+}
+
+@media (max-width: 600px) {
+  .pa-button {
+    font-size: var(--typography-size-medium);
+    padding: 6px;
+    margin: 0px;
+  }
+}
+
+.pa-button-selected {
+  color: var(--color-text-light);
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+/* Spray Chart Styles */
+.spray-tooltip {
+  position: absolute;
+  color: var(--color-text-dark);
+  background-color: var(--color-background);
+  border: 1px solid var(--color-secondary-light);
+  border-radius: var(--border-radius-small);
+  padding: 10px;
+  width: 175px;
+  line-height: 21px;
+}
+
+@media (max-width: 400px) {
+  .spray-tooltip {
+    width: 125px;
+  }
+}
+
+.spray-tooltip div:last-child {
+  border-bottom: 0px;
+}
+
+.spray-tooltip-row {
+  white-space: nowrap;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  max-width: 175px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-secondary-light);
+}
+
+@media (max-width: 400px) {
+  .spray-tooltip-row {
+    max-width: 125px;
+  }
+}
+
+.spray-tooltip-label {
+  font-weight: bold;
+  margin-right: var(--spacing-x-small);
+}
+
+.spray-tooltip-off {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.spray-ball {
+  position: absolute;
+  width: 20px;
+  box-sizing: border-box;
+}
+
+.spray-body {
+  margin-top: var(--spacing-x-small);
+  max-width: 500px;
+  margin: auto;
+}
+
+.spray-filter-area {
+  background-color: var(--color-primary-dark);
+  color: var(--color-text-light);
+  padding: var(--spacing-medium);
+  margin-top: var(--spacing-xx-small);
+  border-radius: var(--border-radius-medium);
+}
+
+.spray-title {
+  text-align: center;
+  font-size: var(--typography-size-x-large);
+  margin-bottom: var(--spacing-small);
+}
+
+.spray-subtitle {
+  font-size: var(--typography-size-medium);
+}
+
+.spray-filter-group {
+  margin-top: var(--spacing-x-small);
+  margin-bottom: var(--spacing-x-small);
+  display: flex;
+  justify-content: flex-start;
+}
+
+.spray-filter-button {
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  cursor: pointer;
+  background-color: var(--color-primary);
+  padding-top: var(--spacing-large);
+  padding-bottom: var(--spacing-large);
+  padding-left: var(--spacing-medium);
+  padding-right: var(--spacing-medium);
+  font-size: var(--typography-size-small);
+  border-radius: var(--border-radius-medium);
+  margin-right: var(--spacing-x-small);
+  opacity: 1;
+}
+
+.spray-filter-button:hover {
+  filter: brightness(80%);
+}
+
+.spray-filter-button-active {
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  cursor: pointer;
+  background-color: var(--color-primary-light);
+  padding-top: var(--spacing-large);
+  padding-bottom: var(--spacing-large);
+  padding-left: var(--spacing-medium);
+  padding-right: var(--spacing-medium);
+  font-size: var(--typography-size-small);
+  border-radius: var(--border-radius-medium);
+  margin-right: var(--spacing-x-small);
+}
+
+.spray-filter-button-active:hover {
+  filter: brightness(100%);
 }
 
 .button-list-pa {

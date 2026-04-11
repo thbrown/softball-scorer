@@ -1,24 +1,11 @@
 import React from 'react';
 import Card from 'elements/card';
-import { makeStyles } from 'css/helpers';
 import Loading from 'elements/loading';
-import css from 'css';
-const colors = css.colors;
 
 // This might be pointless now, but we can adjust this later for free
 const MS_BEFORE_LOADING_GIF_SHOWS = 1;
 
-const useCardLoadingStyles = makeStyles(() => ({
-  gif: {
-    width: '100%',
-  },
-  gifContainer: {
-    width: '5rem',
-    margin: '5rem auto',
-  },
-}));
 const CardLoading = () => {
-  const { classes } = useCardLoadingStyles();
   const [showGif, setShowGif] = React.useState(false);
   React.useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -37,13 +24,13 @@ const CardLoading = () => {
       enableLeftHeader={false}
       enableRightHeader={false}
       style={{
-        background: colors.BACKGROUND,
+        background: 'var(--color-background)',
         boxShadow: 'unset',
       }}
     >
       {showGif && (
-        <div className={classes.gifContainer}>
-          <Loading className={classes.gif} />
+        <div className="loading-gif-container">
+          <Loading className="loading-gif" />
         </div>
       )}
     </Card>

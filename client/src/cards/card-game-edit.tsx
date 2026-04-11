@@ -1,6 +1,5 @@
 import React from 'react';
 import dialog from 'dialog';
-import css from 'css';
 import { getGlobalState } from 'state';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
@@ -162,7 +161,7 @@ export default class CardGameEdit extends React.Component<
             <IconButton src="/assets/check.svg" alt="save" />
             <span
               style={{
-                marginLeft: css.spacing.xSmall,
+                marginLeft: 'var(--spacing-x-small)',
               }}
             >
               Save
@@ -183,7 +182,7 @@ export default class CardGameEdit extends React.Component<
             <IconButton src="/assets/cancel.svg" alt="cancel" invert />
             <span
               style={{
-                marginLeft: css.spacing.xSmall,
+                marginLeft: 'var(--spacing-x-small)',
               }}
             >
               Cancel
@@ -205,7 +204,7 @@ export default class CardGameEdit extends React.Component<
               <IconButton src="/assets/delete.svg" alt="delete" />
               <span
                 style={{
-                  marginLeft: css.spacing.xSmall,
+                  marginLeft: 'var(--spacing-x-small)',
                 }}
               >
                 Delete

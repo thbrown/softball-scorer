@@ -1,5 +1,4 @@
 import React from 'react';
-import theme from '../css/theme';
 
 interface HrTitleProps {
   title?: string;
@@ -19,7 +18,7 @@ export default class HrTitle extends React.Component<HrTitleProps> {
       >
         <div
           style={{
-            borderBottom: '2px solid ' + theme.colors.PRIMARY,
+            borderBottom: '2px solid var(--color-primary)',
             borderTop: '2px solid transparent',
             width: '5%',
           }}
@@ -36,7 +35,7 @@ export default class HrTitle extends React.Component<HrTitleProps> {
         </div>
         <div
           style={{
-            borderBottom: '2px solid ' + theme.colors.PRIMARY,
+            borderBottom: '2px solid var(--color-primary)',
             borderTop: '2px solid transparent',
             width: 'calc(100% - 5% - 100px)',
           }}

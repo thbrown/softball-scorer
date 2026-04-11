@@ -1,6 +1,5 @@
 import React from 'react';
 import { compose, withHandlers } from 'recompose';
-import { makeStyles } from 'css/helpers';
 import NoSelect from 'elements/no-select';
 import ListButton from 'elements/list-button';
 
@@ -27,18 +26,8 @@ const enhance = compose(
   })
 );
 
-const useListPickerStyles = makeStyles((theme) => ({
-  listItemFloat: {
-    float: 'right',
-    marginRight: '5px',
-    fontSize: '12px',
-    marginTop: '6px',
-  },
-}));
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ListPicker = (props: any) => {
-  const { classes } = useListPickerStyles();
 
   if (props.items.length === 0) {
     return (
@@ -65,7 +54,7 @@ const ListPicker = (props: any) => {
               {item.name}
             </NoSelect>
             {item.floatName ? (
-              <span className={classes.listItemFloat}>
+              <span className="list-item-float">
                 <NoSelect>{item.floatName}</NoSelect>
               </span>
             ) : (

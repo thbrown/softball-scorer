@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { getGlobalState } from 'state';
 import dialog from 'dialog';
 import FileSaver from 'file-saver';
-import css from 'css';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
 import { setRoute } from 'actions/route';
@@ -213,27 +212,18 @@ class CardMenu extends Component<Record<string, never>, CardMenuState> {
         <ListButton
           id="teams"
           onClick={this.handleTeamsClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BACKGROUND,
-          }}
         >
           Teams
         </ListButton>
         <ListButton
           id="players"
           onClick={this.handlePlayersClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BACKGROUND,
-          }}
         >
           Players
         </ListButton>
         <ListButton
           id="optimizations"
           onClick={this.handleOptimizationsClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BACKGROUND,
-          }}
         >
           Optimizations
         </ListButton>
@@ -245,9 +235,6 @@ class CardMenu extends Component<Record<string, never>, CardMenuState> {
               'list-item' + (this.state.forceSyncDisabled ? ' disabled' : '')
             }
             onClick={this.handleSyncClick.bind(this)}
-            style={{
-              backgroundColor: css.colors.BACKGROUND,
-            }}
           >
             {this.state.forceSyncText}
           </ListButton>
@@ -256,9 +243,6 @@ class CardMenu extends Component<Record<string, never>, CardMenuState> {
           id="save"
           className={'list-item'}
           onClick={this.handleSaveClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BACKGROUND,
-          }}
         >
           Export To File
         </ListButton>
@@ -266,9 +250,6 @@ class CardMenu extends Component<Record<string, never>, CardMenuState> {
           id="load"
           className={'list-item'}
           onClick={this.handleLoadClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BACKGROUND,
-          }}
         >
           Import From File
         </ListButton>
@@ -277,9 +258,6 @@ class CardMenu extends Component<Record<string, never>, CardMenuState> {
           id="details"
           className={'list-item'}
           onClick={this.handleDetailsClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BACKGROUND,
-          }}
         >
           Settings
         </ListButton>
@@ -287,9 +265,6 @@ class CardMenu extends Component<Record<string, never>, CardMenuState> {
           <ListButton
             id="logout"
             onClick={this.handleLogoutClick.bind(this)}
-            style={{
-              backgroundColor: css.colors.BACKGROUND,
-            }}
           >
             Logout
           </ListButton>
@@ -298,9 +273,6 @@ class CardMenu extends Component<Record<string, never>, CardMenuState> {
             id="login"
             className={'list-item'}
             onClick={this.handleLoginClick.bind(this)}
-            style={{
-              backgroundColor: css.colors.BACKGROUND,
-            }}
           >
             Login/Signup
           </ListButton>

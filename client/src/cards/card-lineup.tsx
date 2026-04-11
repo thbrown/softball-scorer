@@ -4,7 +4,6 @@ import { getGlobalState } from 'state';
 import dialog from 'dialog';
 import Draggable from 'react-draggable';
 import { setRoute } from 'actions/route';
-import css from 'css';
 import IconButton from '../elements/icon-button';
 import HrTitle from 'elements/hr-title';
 import { Game, PlateAppearance, Player, Team } from 'shared-lib/types';
@@ -309,7 +308,7 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
             invert
             style={{
               height: '18px',
-              paddingTop: css.spacing.xxSmall,
+              paddingTop: 'var(--spacing-xx-small)',
             }}
           />
           <span>Lineup Order Unlocked</span>
@@ -404,7 +403,7 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
             this.props.team.id
           )}
         >
-          <div style={{ backgroundColor: css.colors.PRIMARY_LIGHT }}>
+          <div style={{ backgroundColor: 'var(--color-primary-light)' }}>
             <span className="no-select">+</span>
           </div>
         </div>

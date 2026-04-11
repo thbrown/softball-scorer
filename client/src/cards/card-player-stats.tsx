@@ -3,7 +3,6 @@ import Card from 'elements/card';
 import { setRoute } from 'actions/route';
 import Spray from '../components/spray';
 import { getGlobalState } from 'state';
-import css from 'css';
 import InnerSection from 'elements/inner-section';
 import IconButton from '../elements/icon-button';
 import { showStatsHelp } from 'utils/help-functions';
@@ -169,17 +168,17 @@ export default class CardPlayerStats extends React.Component<
         ></Spray>
         <InnerSection
           style={{
-            marginTop: css.spacing.xxSmall,
+            marginTop: 'var(--spacing-xx-small)',
             overflow: 'auto',
-            color: css.colors.TEXT_LIGHT,
-            backgroundColor: css.colors.PRIMARY_DARK,
-            borderRadius: css.borderRadius.medium,
+            color: 'var(--color-text-light)',
+            backgroundColor: 'var(--color-primary-dark)',
+            borderRadius: 'var(--border-radius-medium)',
           }}
         >
           <div
             style={{
-              fontSize: css.typography.size.medium,
-              paddingLeft: css.spacing.medium,
+              fontSize: 'var(--typography-size-medium)',
+              paddingLeft: 'var(--spacing-medium)',
               display: 'flex',
               alignItems: 'center',
             }}
@@ -194,9 +193,9 @@ export default class CardPlayerStats extends React.Component<
           </div>
           <table
             style={{
-              fontSize: css.typography.size.small,
+              fontSize: 'var(--typography-size-small)',
               width: '100%',
-              padding: css.spacing.medium,
+              padding: 'var(--spacing-medium)',
               paddingTop: '0',
             }}
           >
@@ -205,17 +204,17 @@ export default class CardPlayerStats extends React.Component<
         </InnerSection>
         <InnerSection
           style={{
-            marginTop: css.spacing.xxSmall,
+            marginTop: 'var(--spacing-xx-small)',
             overflow: 'auto',
-            color: css.colors.TEXT_LIGHT,
-            backgroundColor: css.colors.PRIMARY_DARK,
-            borderRadius: css.borderRadius.medium,
+            color: 'var(--color-text-light)',
+            backgroundColor: 'var(--color-primary-dark)',
+            borderRadius: 'var(--border-radius-medium)',
           }}
         >
           <div
             style={{
-              fontSize: css.typography.size.medium,
-              paddingLeft: css.spacing.medium,
+              fontSize: 'var(--typography-size-medium)',
+              paddingLeft: 'var(--spacing-medium)',
               display: 'flex',
               alignItems: 'center',
             }}

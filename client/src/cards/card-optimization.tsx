@@ -9,8 +9,6 @@ import StandardOptions from 'elements/optimizer-standard-options';
 import CustomOptions from 'elements/optimizer-custom-options';
 import network from 'network';
 import Loading from 'elements/loading';
-import css from 'css';
-const colors = css.colors;
 import Cooldown from 'components/cooldown';
 import IconButton from '../elements/icon-button';
 import { showEmailHelp } from 'utils/help-functions';
@@ -916,7 +914,7 @@ export default class CardOptimization extends React.Component<
     let spinner: JSX.Element | boolean = false;
     if (getGlobalState().isOnline() === false) {
       spinner = (
-        <div style={{ fontSize: '17px', color: colors.DISABLED }}>
+        <div style={{ fontSize: '17px', color: 'var(--color-disabled)' }}>
           Offline - reconnect to see progress
         </div>
       );
@@ -929,8 +927,8 @@ export default class CardOptimization extends React.Component<
           ref={this.cooldownRef}
           size={33}
           duration={SYNC_DELAY_MS}
-          color={colors.PRIMARY}
-          backgroundColor={colors.WHITE}
+          color="var(--color-primary)"
+          backgroundColor="var(--color-white)"
         ></Cooldown>
       );
     }
@@ -1223,7 +1221,7 @@ export default class CardOptimization extends React.Component<
             }}
           >
             <div>(Estimated Completion Time: ⚠)</div>
-            <div style={{ padding: '.5rem', color: colors.CANCEL }}>
+            <div style={{ padding: '.5rem', color: 'var(--color-cancel)' }}>
               {this.state.estimateError}
             </div>
           </div>
@@ -1296,8 +1294,8 @@ export default class CardOptimization extends React.Component<
               marginLeft: '4px',
               color: `${
                 emailCheckboxDisabled || !getGlobalState().isEmailValidated()
-                  ? colors.DISABLED
-                  : colors.BLACK
+                  ? 'var(--color-disabled)'
+                  : 'var(--color-black)'
               }`,
             }}
           >

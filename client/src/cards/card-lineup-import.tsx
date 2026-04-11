@@ -1,61 +1,10 @@
 import React from 'react';
 import { getGlobalState } from 'state';
-import css from 'css';
 import Card from 'elements/card';
-import { makeStyles } from 'css/helpers';
 import ListPicker from 'elements/list-picker';
 import { sortObjectsByDate, toClientDate } from 'utils/functions';
 import { Team, Game } from 'shared-lib/types/team';
 import { TeamId, GameId, PlayerId } from 'types/branded-ids';
-
-const useLineupListStyles = makeStyles((theme) => ({
-  title: {
-    position: 'sticky',
-    left: '0px',
-    fontSize: theme.typography.size.xLarge,
-    textAlign: 'center',
-    color: theme.colors.TEXT_DARK,
-    padding: theme.spacing.xSmall,
-    backgroundColor: theme.colors.BACKGROUND,
-    // boxShadow: '0px 2px 5px 5px rgba(0,0,0,0.5)',
-    marginBottom: theme.spacing.small,
-  },
-  itemCustom: {
-    backgroundColor: theme.colors.PRIMARY_DARK,
-    textAlign: 'center',
-  },
-  itemText: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'pre',
-  },
-  actionButtonContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-  },
-  actionButton: {
-    width: '180px',
-  },
-  vs: {
-    color: theme.colors.TEXT_LIGHT,
-    fontSize: theme.typography.size.medium,
-  },
-  chipContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: theme.spacing.xSmall,
-  },
-  chip: {
-    padding: '15px',
-    marginRight: theme.spacing.xxSmall,
-    marginLeft: theme.spacing.xxSmall,
-    color: theme.colors.TEXT_LIGHT,
-    backgroundColor: theme.colors.PRIMARY_DARK,
-    borderRadius: css.borderRadius.xLarge,
-    fontSize: theme.typography.size.medium,
-  },
-}));
 
 interface ListItem {
   name: string;
@@ -82,7 +31,6 @@ interface LineupListProps {
 }
 
 const LineupList = (props: LineupListProps) => {
-  const { classes } = useLineupListStyles();
   const handleTeamItemClick = (item: ListItem) => {
     props.setTeam(getGlobalState().getTeam(item.id as TeamId) ?? null);
     window.scroll(0, 0);
@@ -98,25 +46,25 @@ const LineupList = (props: LineupListProps) => {
   if (props.game) {
     return (
       <>
-        <div className={classes.title}> Use this lineup? </div>
-        <div className={classes.chipContainer}>
-          <div className={classes.chip}>{props.team!.name}</div>
-          <span className={classes.vs}> vs. </span>
-          <div className={classes.chip}>{props.game.opponent}</div>
+        <div className="lineup-import-title"> Use this lineup? </div>
+        <div className="lineup-import-chip-container">
+          <div className="lineup-import-chip">{props.team!.name}</div>
+          <span className="lineup-import-vs"> vs. </span>
+          <div className="lineup-import-chip">{props.game.opponent}</div>
         </div>
         <ListPicker
-          itemClassName={classes.itemCustom}
-          textClassName={classes.itemText}
+          itemClassName="lineup-import-item-custom"
+          textClassName="lineup-import-item-text"
           items={props.game.lineup.map((playerId: string) => ({
             name: getGlobalState().getPlayer(playerId as PlayerId)!.name,
             id: getGlobalState().getPlayer(playerId as PlayerId)!.id,
           }))}
           onClick={() => {}}
         />
-        <div className={classes.actionButtonContainer}>
+        <div className="lineup-import-action-button-container">
           <div
             id="confirm"
-            className={'button primary-button ' + classes.actionButton}
+            className="button primary-button lineup-import-action-button"
             onClick={function wrapper(ev) {
               return handleConfirmClick(ev, props.team!, props.game!);
             }}
@@ -124,10 +72,10 @@ const LineupList = (props: LineupListProps) => {
             Confirm
           </div>
         </div>
-        <div className={classes.actionButtonContainer}>
+        <div className="lineup-import-action-button-container">
           <div
             id="cancel"
-            className={'button tertiary-button ' + classes.actionButton}
+            className="button tertiary-button lineup-import-action-button"
             onClick={handleCancelClick}
           >
             Cancel
@@ -138,12 +86,12 @@ const LineupList = (props: LineupListProps) => {
   } else if (props.team) {
     return (
       <>
-        <div className={classes.title}> Pick a game </div>
-        <div className={classes.chipContainer}>
-          <div className={classes.chip}>{props.team.name}</div>
+        <div className="lineup-import-title"> Pick a game </div>
+        <div className="lineup-import-chip-container">
+          <div className="lineup-import-chip">{props.team.name}</div>
         </div>
         <ListPicker
-          textClassName={classes.itemText}
+          textClassName="lineup-import-item-text"
           items={sortObjectsByDate(toItems([...props.team.games]) as { date: number; id: string }[], {
             isAsc: false,
           })}
@@ -154,7 +102,7 @@ const LineupList = (props: LineupListProps) => {
   } else {
     return (
       <>
-        <div className={classes.title}> Pick a team </div>
+        <div className="lineup-import-title"> Pick a team </div>
         <ListPicker
           items={toItems([...getGlobalState().getLocalState().teams].reverse())}
           onClick={handleTeamItemClick}

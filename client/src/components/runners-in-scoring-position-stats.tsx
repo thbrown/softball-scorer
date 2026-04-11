@@ -1,4 +1,3 @@
-import css from 'css';
 import React, { Component } from 'react';
 import SharedLib from 'shared-lib';
 
@@ -267,9 +266,9 @@ export default class RunnersInScoringPositionStats extends Component<RISPProps> 
     return (
       <table
         style={{
-          fontSize: css.typography.size.small,
+          fontSize: 'var(--typography-size-small)',
           width: '100%',
-          padding: css.spacing.medium,
+          padding: 'var(--spacing-medium)',
           paddingTop: '0',
         }}
       >

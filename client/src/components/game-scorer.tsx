@@ -1,72 +1,18 @@
 import React from 'react';
 import CardSection from 'elements/card-section';
 import { getGlobalState } from 'state';
-import { makeStyles } from 'css/helpers';
 import { asGameId } from 'types/branded-ids';
 
-const useScorePaperStyles = makeStyles((css) => ({
-  root: {
-    width: '120px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderRadius: css.borderRadius.small,
-    padding: css.spacing.small,
-    backgroundColor: css.colors.PRIMARY,
-    color: css.colors.TEXT_LIGHT,
-    boxShadow: css.boxShadow.paper,
-  },
-  teamName: {
-    fontSize: '1rem',
-    color: css.colors.TEXT_LIGHT,
-    textAlign: 'center',
-  },
-  teamScore: {
-    fontFamily: 'score_boardregular, Arial, sans-serif',
-    fontSize: '6rem',
-  },
-}));
-
 const ScorePaper = ({ score, name }) => {
-  const { classes } = useScorePaperStyles();
   return (
-    <div className={classes.root}>
-      <div className={classes.teamName}>{name}</div>
-      <div className={classes.teamScore}>{score}</div>
+    <div className="score-paper-root">
+      <div className="score-paper-team-name">{name}</div>
+      <div className="score-paper-team-score">{score}</div>
     </div>
   );
 };
 
-const tableStyles = makeStyles((css) => ({
-  table: {
-    color: css.colors.TEXT_DARK,
-    borderCollapse: 'collapse',
-    margin: 'auto',
-  },
-  tableCell: {
-    textAlign: 'center',
-    verticalAlign: 'middle',
-    border: '3px solid',
-    borderColor: css.colors.SECONDARY,
-    minWidth: '48px',
-    height: '48px',
-  },
-  scoreText: {
-    padding: '4px',
-  },
-  scoreIncrementButton: {
-    backgroundColor: css.colors.PRIMARY,
-    color: css.colors.TEXT_LIGHT,
-    padding: '0',
-    margin: '0',
-    minWidth: '36px',
-    height: '36px',
-  },
-}));
-
 const ScoreChangeButton = ({ onScoreChange, increment, buttonText }) => {
-  const { classes } = tableStyles();
   return (
     <div
       style={{ padding: '6px' }}
@@ -75,7 +21,7 @@ const ScoreChangeButton = ({ onScoreChange, increment, buttonText }) => {
         ev.preventDefault();
       }}
     >
-      <div className={classes.scoreIncrementButton + ' button'}>
+      <div className="score-table-increment-button button">
         {buttonText}
       </div>
     </div>
@@ -83,7 +29,6 @@ const ScoreChangeButton = ({ onScoreChange, increment, buttonText }) => {
 };
 
 const TableCell = ({ whoseScore, inning, game, derivedScore }) => {
-  const { classes } = tableStyles();
 
   const handleScoreChange = (increment) => {
     getGlobalState().setScoreAdjustment(game, inning, increment, whoseScore);
@@ -99,7 +44,7 @@ const TableCell = ({ whoseScore, inning, game, derivedScore }) => {
       <b>{displayScore}</b>
     );
   return (
-    <td className={classes.tableCell}>
+    <td className="score-table-cell">
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <ScoreChangeButton
           increment={-1}
@@ -108,7 +53,7 @@ const TableCell = ({ whoseScore, inning, game, derivedScore }) => {
             handleScoreChange(increment);
           }}
         />
-        <div className={classes.scoreText}>{displayScoreContent}</div>
+        <div className="score-table-score-text">{displayScoreContent}</div>
         <ScoreChangeButton
           increment={1}
           buttonText="+"
@@ -122,10 +67,9 @@ const TableCell = ({ whoseScore, inning, game, derivedScore }) => {
 };
 
 const Inning = ({ inning, game, derivedScoreForUs }) => {
-  const { classes } = tableStyles();
   return (
     <tr>
-      <td className={classes.tableCell}>{inning}</td>
+      <td className="score-table-cell">{inning}</td>
       <TableCell
         inning={inning}
         game={game}
@@ -143,15 +87,14 @@ const Inning = ({ inning, game, derivedScoreForUs }) => {
 };
 
 const ScoreTable = ({ usName, themName, game }) => {
-  const { classes } = tableStyles();
   const derivedScoreForUs = getGlobalState().getInningScores(game.id);
   return (
-    <table className={classes.table}>
+    <table className="score-table">
       <thead>
         <tr>
           <th></th>
-          <th className={classes.tableCell}>{usName}</th>
-          <th className={classes.tableCell}>{themName}</th>
+          <th className="score-table-cell">{usName}</th>
+          <th className="score-table-cell">{themName}</th>
         </tr>
       </thead>
       <tbody>
@@ -195,14 +138,6 @@ const ScoreTable = ({ usName, themName, game }) => {
   );
 };
 
-const useGameScorerStyles = makeStyles((css) => ({
-  cards: {
-    display: 'flex',
-    justifyContent: 'space-around',
-    margin: `${css.spacing.xSmall} 0`,
-  },
-}));
-
 const calculateScore = (scoreObj) => {
   let totalScore = 0;
   for (const inningNumber in scoreObj) {
@@ -212,10 +147,8 @@ const calculateScore = (scoreObj) => {
 };
 
 const GameScorer = ({ teamId, gameId }) => {
-  const { classes } = useGameScorerStyles();
-
-  const game = getGlobalState().getGame(gameId)!;
-  const team = getGlobalState().getTeam(teamId)!;
+  const game = getGlobalState().getGame(gameId);
+  const team = getGlobalState().getTeam(teamId);
 
   const usName = team.name;
   const themName = game.opponent;
@@ -231,7 +164,7 @@ const GameScorer = ({ teamId, gameId }) => {
 
   return (
     <CardSection>
-      <div className={classes.cards}>
+      <div className="game-scorer-cards">
         <ScorePaper name={usName} score={usScore} />
         <ScorePaper name={themName} score={themScore} />
       </div>

@@ -1,84 +1,13 @@
 import React from 'react';
 import Spray from 'components/spray';
-import { makeStyles } from 'css/helpers';
 import { sortObjectsByDate, toClientDate } from 'utils/functions';
 import { convertPlateAppearanceListToPlayerPlateAppearanceList } from 'utils/plateAppearanceFilters';
 import IconButton from 'elements/icon-button';
-import theme from 'css/theme';
 import InnerSection from 'elements/inner-section';
 import FloatingSelect from 'elements/floating-select';
 import { getGlobalState } from 'state';
 import CardSection from 'elements/card-section';
 import { Game, Team } from 'shared-lib/types/team';
-
-const useStyles = makeStyles((css) => {
-  return {
-    headingRow: {
-      textAlign: 'center',
-      margin: '8px',
-      textTransform: 'uppercase',
-      fontSize: '1rem',
-    },
-    statRow: {
-      display: 'flex',
-    },
-    statCell: {
-      marginRight: '0.5rem',
-      width: '40px',
-      whiteSpace: 'pre',
-      textOverflow: 'ellipsis',
-      overflow: 'hidden',
-    },
-    publicLink: {
-      fontSize: css.typography.size.xSmall,
-      backgroundColor: css.colors.INVISIBLE,
-      color: css.colors.TEXT_DARK,
-      border: '0px',
-      fontFamily: 'inherit',
-      resize: 'none',
-      whiteSpace: 'unset',
-      overflowWrap: 'unset',
-      overflow: 'hidden',
-    },
-    publicLinkLabelBox: {
-      fontSize: css.typography.size.large,
-      display: 'flex',
-      justifyContent: 'flex-start',
-      alignItems: 'center',
-    },
-    publicLinkLabel: {
-      paddingRight: css.spacing.xxSmall,
-    },
-    publicLinkLineItem: {
-      padding: css.spacing.xxSmall,
-    },
-    publicLinkCopyButton: {
-      width: css.sizes.ICON,
-      cursor: 'pointer',
-    },
-    publicLinkCopiedText: {
-      opacity: 1,
-      transition: 'transition: all 0.5s ease-out',
-    },
-    publicLinkContainer: {
-      color: css.colors.TEXT_DARK,
-      backgroundColor: css.colors.BACKGROUND,
-      borderRadius: css.borderRadius.small,
-      display: 'flex',
-      justifyContent: 'flex-start',
-      alignItems: 'center',
-      marginTop: css.spacing.xxSmall,
-      marginBottom: css.spacing.xxSmall,
-      overflow: 'hidden',
-      paddingRight: css.spacing.xxSmall,
-    },
-    description: {
-      padding: '1rem',
-      textAlign: 'center',
-      color: theme.colors.TEXT_GREY,
-    },
-  };
-});
 
 interface CardStatsGameProps {
   game: Game | null;
@@ -90,14 +19,15 @@ interface CardStatsGameProps {
   backNavUrl?: string;
 }
 
+
 const CardStatsGame = ({
   game,
   team,
   showGame,
   inputState,
   isPublic,
+  backNavUrl,
 }: CardStatsGameProps) => {
-  const { classes, styles } = useStyles({});
   const [copiedNotificationVisible, setCopiedNotificationVisible] =
     React.useState(false);
   const publicLinkRef = React.useRef<HTMLInputElement>(null);
@@ -163,20 +93,20 @@ const CardStatsGame = ({
       />
       <InnerSection
         style={{
-          marginBottom: theme.spacing.large,
+          marginBottom: 'var(--spacing-large)',
         }}
       >
         <div
           style={{
-            marginLeft: theme.spacing.large,
+            marginLeft: 'var(--spacing-large)',
           }}
         >
           <h2>Results</h2>
           {playerPaList.map((player: { id: string; name: string; plateAppearances: { id: string; result: string | null }[] }) => {
             return (
-              <div className={classes.statRow} key={player.id}>
+              <div className="game-stats-row" key={player.id}>
                 <div
-                  className={classes.statCell}
+                  className="game-stats-cell"
                   style={{
                     width: '120px',
                   }}
@@ -185,7 +115,7 @@ const CardStatsGame = ({
                 </div>
                 {player.plateAppearances.map((pa: { id: string; result: string | null }) => {
                   return (
-                    <div key={pa.id} className={classes.statCell}>
+                    <div key={pa.id} className="game-stats-cell">
                       {pa.result}
                     </div>
                   );
@@ -200,11 +130,11 @@ const CardStatsGame = ({
       {!isPublic && publicIdEnabled ? (
         <>
           <InnerSection
-            className={classes.description}
+            className="game-stats-description"
             style={{
               padding: '6px',
-              fontSize: theme.typography.size.small,
-              color: theme.colors.TEXT_GREY,
+              fontSize: 'var(--typography-size-small)',
+              color: 'var(--color-text-grey)',
             }}
           >
             Public link to this game:
@@ -212,17 +142,17 @@ const CardStatsGame = ({
 
           <InnerSection>
             {copiedNotificationVisible && (
-              <span style={styles.publicLinkCopiedText} className="fade-out">
+              <span className="game-stats-public-link-copied-text fade-out">
                 Link copied
               </span>
             )}
 
-            <div style={styles.publicLinkContainer}>
-              <div style={styles.publicLinkLineItem}>
+            <div className="game-stats-public-link-container">
+              <div className="game-stats-public-link-line-item">
                 <span>
                   <IconButton
                     onClick={handleCopyClick}
-                    style={styles.publicLinkCopyButton}
+                    className="game-stats-public-link-copy-button"
                     src="/assets/copy.svg"
                     alt="copy"
                     invert
@@ -235,7 +165,7 @@ const CardStatsGame = ({
                 readOnly
                 size={publicLink.length}
                 value={publicLink}
-                style={styles.publicLink}
+                className="game-stats-public-link"
               />
             </div>
           </InnerSection>

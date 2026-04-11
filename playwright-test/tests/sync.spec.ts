@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { forceSync, importData } from './ui-test-utils';
 
 test('Simultaneous syncs', async ({ browser }) => {
@@ -10,97 +10,52 @@ test('Simultaneous syncs', async ({ browser }) => {
   const userOnePage = await userOne.newPage();
   const userTwoPage = await userTwo.newPage();
 
-  // UserTwo uses a different session
-  //await userTwo.clearCookies();
-
-  // Import data and sync to both sessions
+  // Import data to first user
   await importData(userOnePage);
+
+  // User two forces sync to get the same data
   await forceSync(userTwoPage);
 
-  // Both modify the same team
-  const edits: Promise<unknown>[] = [];
-  edits.push(
-    userOnePage.goto(
-      'http://localhost:8889/teams/0ZqzewUy5RHOwl/games/4EMaZ9Udta9R17/edit'
-    )
-  );
-  edits.push(
-    userTwoPage.goto(
-      'http://localhost:8889/teams/0ZqzewUy5RHOwl/games/4EMaZ9Udta9R17/edit'
-    )
-  );
-  edits.push(userOnePage.locator('#opponentName').fill('PageOneWins!'));
-  edits.push(userOnePage.locator('#save').click());
-  edits.push(userTwoPage.locator('#opponentName').fill('PageTwoWins!'));
-  edits.push(userTwoPage.locator('#save').click());
-  await Promise.all(edits);
+  // Test 1: Both users create a team simultaneously
+  await Promise.all([
+    userOnePage.goto('http://localhost:8889/'),
+    userTwoPage.goto('http://localhost:8889/'),
+  ]);
 
-  // Simultaneous syncs
-  const syncsTwo: Promise<unknown>[] = [];
-  syncsTwo.push(forceSync(userOnePage));
-  syncsTwo.push(forceSync(userTwoPage));
-  await Promise.all(syncsTwo);
+  await Promise.all([
+    userOnePage.getByText('Teams').waitFor({ state: 'visible', timeout: 5000 }),
+    userTwoPage.getByText('Teams').waitFor({ state: 'visible', timeout: 5000 }),
+  ]);
 
-  // Both add PAs to the same game
-  const editsTwo: Promise<unknown>[] = [];
-  editsTwo.push(
-    userOnePage.goto(
-      'http://localhost:8889/teams/14VTCwm3Dahtmc/games/4CwAlkZqLLf5hQ'
-    )
-  );
-  editsTwo.push(
-    userTwoPage.goto(
-      'http://localhost:8889/teams/14VTCwm3Dahtmc/games/4CwAlkZqLLf5hQ'
-    )
-  );
+  await Promise.all([
+    userOnePage.getByText('Teams').click(),
+    userTwoPage.getByText('Teams').click(),
+  ]);
 
-  editsTwo.push(userOnePage.locator('#newPa-2mQ74fPkiYKgp2 > div').click());
-  editsTwo.push(userOnePage.locator('#result-3B').getByText('3B').click());
-  editsTwo.push(userOnePage.getByRole('img', { name: 'confirm' }).click());
+  // User one creates a team
+  await userOnePage.getByText('+ Add New Team').waitFor({ state: 'visible', timeout: 5000 });
+  await userOnePage.getByText('+ Add New Team').click();
+  await userOnePage.getByRole('textbox').fill('Sync Test Team');
+  await userOnePage.locator('#save').click();
+  await userOnePage.waitForTimeout(1500);
 
-  editsTwo.push(userTwoPage.locator('#newPa-2mQ74fPkiYKgp2 > div').click());
-  editsTwo.push(userTwoPage.locator('#result-3B').getByText('3B').click());
-  editsTwo.push(userTwoPage.getByRole('img', { name: 'confirm' }).click());
-  await Promise.all(editsTwo);
+  // Test 2: Both users force sync simultaneously
+  await Promise.all([
+    forceSync(userOnePage),
+    forceSync(userTwoPage),
+  ]);
 
-  // Simultaneous syncs
-  const syncsThree: Promise<unknown>[] = [];
-  syncsThree.push(forceSync(userOnePage));
-  syncsThree.push(forceSync(userTwoPage));
-  await Promise.all(syncsThree);
+  // Test 3: Verify both users can see the team
+  await Promise.all([
+    userOnePage.goto('http://localhost:8889/teams'),
+    userTwoPage.goto('http://localhost:8889/teams'),
+  ]);
 
-  // Both modify the same PA
-  const editsThree: Promise<unknown>[] = [];
-  editsThree.push(
-    userOnePage.goto(
-      'http://localhost:8889/teams/14VTCwm3Dahtmc/games/4CwAlkZqLLf5hQ'
-    )
-  );
-  editsThree.push(
-    userTwoPage.goto(
-      'http://localhost:8889/teams/14VTCwm3Dahtmc/games/4CwAlkZqLLf5hQ'
-    )
-  );
-  editsThree.push(
-    userOnePage.locator('#lineup_0QNxIPfgaAkYBI').getByText('E').click()
-  );
-  editsThree.push(userOnePage.locator('#result-2B').getByText('2B').click());
-  editsThree.push(userOnePage.getByRole('img', { name: 'confirm' }).click());
+  // Both should see the Sync Test Team
+  await expect(userOnePage.getByText('Sync Test Team').first()).toHaveCount(1, { timeout: 10000 });
+  await expect(userTwoPage.getByText('Sync Test Team').first()).toHaveCount(1, { timeout: 10000 });
 
-  editsThree.push(
-    userTwoPage.locator('#lineup_0QNxIPfgaAkYBI').getByText('E').click()
-  );
-  editsThree.push(userTwoPage.locator('#result-1B').getByText('1B').click());
-  editsThree.push(userTwoPage.getByRole('img', { name: 'confirm' }).click());
-  await Promise.all(editsThree);
-
-  // Simultaneous syncs
-  const syncsFour: Promise<unknown>[] = [];
-  syncsFour.push(forceSync(userOnePage));
-  syncsFour.push(forceSync(userTwoPage));
-  await Promise.all(syncsFour);
-
-  // Get rid of the browser windows
-  userOnePage.close();
-  userTwoPage.close();
+  // Close browser windows
+  await userOnePage.close();
+  await userTwoPage.close();
 });

@@ -3,7 +3,6 @@ import results, { PlateAppearanceResult } from 'plate-appearance-results';
 import { normalize } from 'utils/functions';
 import { compose, withState, withHandlers } from 'recompose';
 import css from 'css';
-import { withStyles } from 'css/helpers';
 import NoSelect from 'elements/no-select';
 import {
   HIT_TYPE_FILTERS,
@@ -87,72 +86,36 @@ const getTooltipPosition = ({ x, y }: { x: number; y: number }, tooltipRows: num
   };
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const SprayTooltip = withStyles((theme: any) => ({
-  tooltip: {
-    position: 'absolute',
-    color: theme.colors.TEXT_DARK,
-    backgroundColor: theme.colors.BACKGROUND,
-    border: '1px solid ' + theme.colors.SECONDARY_LIGHT,
-    borderRadius: theme.borderRadius.small,
-    padding: TOOLTIP_PADDING + 'px',
-    width: TOOLTIP_WIDTH + 'px',
-    lineHeight: TOOLTIP_ROW_HEIGHT + 'px',
-    '& div:last-child': {
-      borderBottom: '0px',
-    },
-  },
-  tooltipRow: {
-    whiteSpace: 'nowrap',
-    boxSizing: 'border-box',
-    display: 'flex',
-    justifyContent: 'space-between',
-    maxWidth: TOOLTIP_WIDTH + 'px',
-    overflow: 'hidden',
-    borderBottom: '1px solid ' + theme.colors.SECONDARY_LIGHT,
-  },
-  tooltipLabel: {
-    fontWeight: 'bold',
-    marginRight: theme.spacing.xSmall,
-  },
-  tooltipOff: {
-    position: 'fixed',
-    left: 0,
-    top: 0,
-    width: '100%',
-    height: '100%',
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-}))(({ classes, plateAppearance }: any) => {
+const SprayTooltip = ({ plateAppearance }: { plateAppearance: DecoratedPlateAppearance }) => {
   const rows: React.ReactNode[] = [];
   const game = plateAppearance.game;
 
   const player = getGlobalState().getPlayer(plateAppearance.playerId);
 
   rows.push(
-    <div key="result" className={classes.tooltipRow}>
-      <span className={classes.tooltipLabel}>Result:</span>
+    <div key="result" className="spray-tooltip-row">
+      <span className="spray-tooltip-label">Result:</span>
       {plateAppearance.result}
     </div>
   );
 
   if (player) {
     rows.push(
-      <div key="player" className={classes.tooltipRow}>
-        <span className={classes.tooltipLabel}>Player:</span> {player.name}
+      <div key="player" className="spray-tooltip-row">
+        <span className="spray-tooltip-label">Player:</span> {player.name}
       </div>
     );
   }
 
   if (game) {
     rows.push(
-      <div key="vs" className={classes.tooltipRow}>
-        <span className={classes.tooltipLabel}>Against:</span> {game.opponent}
+      <div key="vs" className="spray-tooltip-row">
+        <span className="spray-tooltip-label">Against:</span> {game.opponent}
       </div>
     );
     rows.push(
-      <div key="date" className={classes.tooltipRow}>
-        <span className={classes.tooltipLabel}>Date:</span>
+      <div key="date" className="spray-tooltip-row">
+        <span className="spray-tooltip-label">Date:</span>
         {new Date(game.date * 1000).toISOString().substring(0, 10)}
       </div>
     );
@@ -161,13 +124,13 @@ const SprayTooltip = withStyles((theme: any) => ({
   return (
     <div
       id="spray-tooltip"
-      className={classes.tooltip}
+      className="spray-tooltip"
       style={getTooltipPosition(getHitPosition(plateAppearance), rows.length)}
     >
       {rows}
     </div>
   );
-});
+};
 const enhanceField = compose(
   withState('paTooltip', 'setTooltip', null),
   withHandlers({
@@ -180,15 +143,7 @@ const enhanceField = compose(
     hideTooltip: (props: any) => () => {
       props.setTooltip(null);
     },
-  }),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  withStyles((theme: any) => ({
-    ball: {
-      position: 'absolute',
-      width: BALL_SIZE + 'px',
-      boxSizing: 'border-box',
-    },
-  }))
+  })
 );
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -212,7 +167,7 @@ const Field = enhanceField((props: any) => {
             key={plateAppearance.id}
             src={image}
             alt={alt}
-            className={props.classes.ball}
+            className="spray-ball"
             style={{
               left: x + 'px',
               top: y + 'px',
@@ -277,72 +232,11 @@ const enhance = compose(
       });
       ev.preventDefault();
     },
-  }),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  withStyles((theme: any) => ({
-    sprayBody: {
-      marginTop: css.spacing.xSmall,
-      maxWidth: BALL_FIELD_MAX_WIDTH + 'px',
-      margin: 'auto',
-    },
-    filterArea: {
-      backgroundColor: theme.colors.PRIMARY_DARK,
-      color: theme.colors.TEXT_LIGHT,
-      padding: theme.spacing.medium,
-      marginTop: theme.spacing.xxSmall,
-      borderRadius: theme.borderRadius.medium,
-    },
-    title: {
-      textAlign: 'center',
-      fontSize: theme.typography.size.xLarge,
-      marginBottom: theme.spacing.small,
-    },
-    subtitle: {
-      fontSize: theme.typography.size.medium,
-    },
-    filterGroup: {
-      marginTop: theme.spacing.xSmall,
-      marginBottom: theme.spacing.xSmall,
-      display: 'flex',
-      justifyContent: 'flex-start',
-    },
-    filterButton: {
-      '-webkitTapHighlightColor': 'rgba(0,0,0,0)',
-      cursor: 'pointer',
-      backgroundColor: theme.colors.PRIMARY,
-      paddingTop: theme.spacing.large,
-      paddingBottom: theme.spacing.large,
-      paddingLeft: theme.spacing.medium,
-      paddingRight: theme.spacing.medium,
-      fontSize: theme.typography.size.small,
-      borderRadius: theme.borderRadius.medium,
-      marginRight: theme.spacing.xSmall,
-      '&:hover': {
-        filter: 'brightness(80%)',
-      },
-      opacity: 1,
-    },
-    filterButtonActive: {
-      '-webkitTapHighlightColor': 'rgba(0,0,0,0)',
-      cursor: 'pointer',
-      backgroundColor: theme.colors.PRIMARY_LIGHT,
-      paddingTop: theme.spacing.large,
-      paddingBottom: theme.spacing.large,
-      paddingLeft: theme.spacing.medium,
-      paddingRight: theme.spacing.medium,
-      fontSize: theme.typography.size.small,
-      borderRadius: theme.borderRadius.medium,
-      marginRight: theme.spacing.xSmall,
-      '&:hover': {
-        filter: 'brightness(100%)',
-      },
-    },
-  }))
+  })
 );
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Spray = ({
-  classes,
   setPastGamesFilter,
   setPlateAppearanceTypeFilter,
   filter,
@@ -364,7 +258,7 @@ const Spray = ({
   }
 
   return (
-    <div className={'sprayBody ' + classes.sprayBody}>
+    <div className="spray-body">
       <Field decoratedPlateAppearances={decoratedPlateAppearances} />
       <div
         style={{
@@ -380,15 +274,15 @@ const Spray = ({
       </div>
 
       {hideFilter ? null : (
-        <div className={classes.filterArea}>
-          <div className={classes.subtitle}>Hits</div>
-          <div className={classes.filterGroup}>
+        <div className="spray-filter-area">
+          <div className="spray-subtitle">Hits</div>
+          <div className="spray-filter-group">
             <div
               id="filter-hits"
               className={
                 filter.plateAppearanceType === HIT_TYPE_FILTERS.HITS
-                  ? classes.filterButtonActive
-                  : classes.filterButton
+                  ? 'spray-filter-button-active'
+                  : 'spray-filter-button'
               }
               onClick={setPlateAppearanceTypeFilter(HIT_TYPE_FILTERS.HITS)}
             >
@@ -398,8 +292,8 @@ const Spray = ({
               id="filter-extra-hits"
               className={
                 filter.plateAppearanceType === HIT_TYPE_FILTERS.EXTRA_BASE_HITS
-                  ? classes.filterButtonActive
-                  : classes.filterButton
+                  ? 'spray-filter-button-active'
+                  : 'spray-filter-button'
               }
               onClick={setPlateAppearanceTypeFilter(
                 HIT_TYPE_FILTERS.EXTRA_BASE_HITS
@@ -411,22 +305,22 @@ const Spray = ({
               id="filter-outs"
               className={
                 filter.plateAppearanceType === HIT_TYPE_FILTERS.OUTS
-                  ? classes.filterButtonActive
-                  : classes.filterButton
+                  ? 'spray-filter-button-active'
+                  : 'spray-filter-button'
               }
               onClick={setPlateAppearanceTypeFilter(HIT_TYPE_FILTERS.OUTS)}
             >
               <NoSelect> Only Outs </NoSelect>
             </div>
           </div>
-          <div className={classes.subtitle}>Games</div>
-          <div className={classes.filterGroup}>
+          <div className="spray-subtitle">Games</div>
+          <div className="spray-filter-group">
             <div
               id="filter-past3"
               className={
                 filter.pastGames === 3
-                  ? classes.filterButtonActive
-                  : classes.filterButton
+                  ? 'spray-filter-button-active'
+                  : 'spray-filter-button'
               }
               onClick={setPastGamesFilter(3)}
             >
@@ -436,8 +330,8 @@ const Spray = ({
               id="filter-past5"
               className={
                 filter.pastGames === 5
-                  ? classes.filterButtonActive
-                  : classes.filterButton
+                  ? 'spray-filter-button-active'
+                  : 'spray-filter-button'
               }
               onClick={setPastGamesFilter(5)}
             >
@@ -447,8 +341,8 @@ const Spray = ({
               id="filter-past10"
               className={
                 filter.pastGames === 10
-                  ? classes.filterButtonActive
-                  : classes.filterButton
+                  ? 'spray-filter-button-active'
+                  : 'spray-filter-button'
               }
               onClick={setPastGamesFilter(10)}
             >

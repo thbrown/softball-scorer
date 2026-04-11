@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import css from 'css';
 import { getGlobalState } from 'state';
 import Card from 'elements/card';
 import dialog from 'dialog';
@@ -93,7 +92,7 @@ export default class CardAccount extends Component<Record<string, never>> {
           let message;
           if (response.status === 204) {
             message = 'Your account has been deleted.';
-            logout(dialog, setRoute);
+            await logout(dialog, setRoute);
           } else if (response.status === 400) {
             message =
               'App encountered a problem while deleting your account. Try again later.';
@@ -126,9 +125,6 @@ export default class CardAccount extends Component<Record<string, never>> {
           id="email-validation"
           className="list-button button left"
           onClick={this.handleEmailValidationClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BACKGROUND,
-          }}
         >
           Re-send email validation email
         </div>
@@ -182,9 +178,6 @@ export default class CardAccount extends Component<Record<string, never>> {
           id="delete-data"
           className="list-button button left"
           onClick={this.handleDeleteDataClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BACKGROUND,
-          }}
         >
           Delete all data
         </div>
@@ -192,9 +185,6 @@ export default class CardAccount extends Component<Record<string, never>> {
           id="delete-account"
           className="list-button button left"
           onClick={this.handleDeleteAccountClick.bind(this)}
-          style={{
-            backgroundColor: css.colors.BACKGROUND,
-          }}
         >
           Delete account
         </div>
