@@ -13,20 +13,21 @@ const CardImport = () => {
   const [loadType, setLoadType] = React.useState('mine');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const handleFileInputChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
-    setFileName(ev.target.files![0].name);
+    const file = ev.target.files?.[0];
+    if (file) setFileName(file.name);
   };
   const handleRadioClick = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setLoadType(ev.target.value);
   };
   const handleLoadClick = () => {
-    const file = fileInputRef.current!.files![0];
+    const file = fileInputRef.current?.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = function (e) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let parsedData: any;
         try {
-          parsedData = JSON.parse(e.target!.result as string);
+          parsedData = JSON.parse(e.target?.result as string);
 
           // Update the schema
           let result = SharedLib.schemaMigration.updateSchema(

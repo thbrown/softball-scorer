@@ -13,7 +13,7 @@ import Cooldown from 'components/cooldown';
 import IconButton from '../elements/icon-button';
 import { showEmailHelp } from 'utils/help-functions';
 import OptimizationPlayerStatsTable from 'components/optimization-player-stats-table';
-import type { Optimization } from 'shared-lib';
+import type { Optimization, Team } from 'shared-lib';
 import { asOptimizationId, asPlayerId, asTeamId } from 'types/branded-ids';
 
 const OPTIMIZATION_STATUS_ENUM_INVERSE =
@@ -52,8 +52,20 @@ export default class CardOptimization extends React.Component<
   activeTime: NodeJS.Timeout | undefined;
   cooldownRef: React.RefObject<any>;
   toggleOptimizationButtonRef: React.RefObject<HTMLDivElement>;
-  handleEstimation!: () => void;
-  cancelHandleEstimation!: () => void;
+  handleEstimation: () => void;
+  cancelHandleEstimation: () => void;
+  handleOverrideClick: (playerId: string) => void;
+  handleAddPlayerClick: () => void;
+  enableAutoSync: () => Promise<void>;
+  disableAutoSync: () => Promise<void>;
+  startAnimation: () => void;
+  onRenderUpdateOrMount: () => void;
+  handleTeamCheckboxClick: (team: Team) => void;
+  areAllTeamsSelected: () => boolean;
+  handleTeamCheckboxAllClick: () => void;
+  handleSendEmailCheckbox: () => void;
+  handlePauseClick: () => Promise<void>;
+  handleStartClick: () => Promise<void>;
 
   constructor(props: CardOptimizationProps) {
     super(props);
@@ -141,7 +153,7 @@ export default class CardOptimization extends React.Component<
       }
     };
 
-    this.handleTeamCheckboxClick = (team: any): void => {
+    this.handleTeamCheckboxClick = (team: Team): void => {
       let parsedTeams = this.props.optimization.teamList;
       let newSet = new Set(parsedTeams);
       if (parsedTeams.includes(team.id)) {
@@ -165,7 +177,7 @@ export default class CardOptimization extends React.Component<
     this.areAllTeamsSelected = (): boolean => {
       const allTeams = getGlobalState().getLocalState().teams;
       const selectedTeams = this.props.optimization.teamList;
-      return allTeams.every((team: any) => selectedTeams.includes(team.id));
+      return allTeams.every((team) => selectedTeams.includes(team.id));
     };
 
     this.handleTeamCheckboxAllClick = (): void => {
@@ -180,7 +192,7 @@ export default class CardOptimization extends React.Component<
         getGlobalState().setOptimizationField(
           asOptimizationId(this.props.optimization.id),
           'teamList',
-          [...allTeams.map((team: any) => team.id)]
+          [...allTeams.map((team) => team.id)]
         );
       }
       this.handleEstimation();
@@ -633,18 +645,6 @@ export default class CardOptimization extends React.Component<
     this.cancelHandleEstimation = debounced.cancel;
   }
 
-  handleOverrideClick!: (playerId: string) => void;
-  handleAddPlayerClick!: () => void;
-  enableAutoSync!: () => Promise<void>;
-  disableAutoSync!: () => Promise<void>;
-  startAnimation!: () => void;
-  onRenderUpdateOrMount!: () => void;
-  handleTeamCheckboxClick!: (team: any) => void;
-  areAllTeamsSelected!: () => boolean;
-  handleTeamCheckboxAllClick!: () => void;
-  handleSendEmailCheckbox!: () => void;
-  handlePauseClick!: () => Promise<void>;
-  handleStartClick!: () => Promise<void>;
 
   componentWillUnmount(): void {
     this.disableAutoSync();
@@ -665,82 +665,6 @@ export default class CardOptimization extends React.Component<
     } else {
       console.log('NOT STARTING ESTIMATE', this.props.optimization.status);
     }
-
-    this.skipClickDelay = (e: Event): void => {
-      e.preventDefault();
-      (e.target as HTMLElement).click();
-    };
-
-    this.setAriaAttr = (
-      el: HTMLElement,
-      ariaType: string,
-      newProperty: string
-    ): void => {
-      el.setAttribute(ariaType, newProperty);
-    };
-
-    this.setAccordionAria = (
-      el1: HTMLElement,
-      el2: HTMLElement,
-      expanded: string
-    ): void => {
-      switch (expanded) {
-        case 'true':
-          this.setAriaAttr(el1, 'aria-expanded', 'true');
-          this.setAriaAttr(el2, 'aria-hidden', 'false');
-          break;
-        case 'false':
-          this.setAriaAttr(el1, 'aria-expanded', 'false');
-          this.setAriaAttr(el2, 'aria-hidden', 'true');
-          break;
-        default:
-          break;
-      }
-    };
-
-    this.switchAccordion = (index: number, e: MouseEvent): void => {
-      e.preventDefault();
-      const accordionTitle =
-        (e.currentTarget as HTMLElement).parentElement?.parentElement?.nextElementSibling;
-      const accordionContent = e.currentTarget as HTMLElement;
-      const accordionChevron = accordionContent.children[0];
-
-      if (
-        accordionTitle?.classList.contains('is-collapsed') &&
-        accordionTitle instanceof HTMLElement
-      ) {
-        this.setAccordionAria(
-          accordionContent,
-          accordionTitle,
-          'true'
-        );
-        getGlobalState().editQueryObject(
-          ACCORDION_QUERY_PARAM_PREFIX + index,
-          'true'
-        );
-      } else if (accordionTitle instanceof HTMLElement) {
-        this.setAccordionAria(
-          accordionContent,
-          accordionTitle,
-          'false'
-        );
-        getGlobalState().editQueryObject(
-          ACCORDION_QUERY_PARAM_PREFIX + index,
-          ''
-        );
-      }
-      accordionContent.classList.toggle('is-collapsed');
-      accordionContent.classList.toggle('is-expanded');
-      if (accordionTitle) {
-        accordionTitle.classList.toggle('is-collapsed');
-        accordionTitle.classList.toggle('is-expanded');
-      }
-      accordionChevron.classList.toggle('chevronExpanded');
-
-      if (accordionTitle) {
-        accordionTitle.classList.toggle('animateIn');
-      }
-    };
 
     // Attach listeners to the accordion (and click if necessary)
     // TODO eww, this is gross and incompatible with tests
@@ -822,10 +746,59 @@ export default class CardOptimization extends React.Component<
       .catch((e: any) => console.warn('Error fetching optimizers:', e));
   }
 
-  skipClickDelay!: (e: Event) => void;
-  setAriaAttr!: (el: HTMLElement, ariaType: string, newProperty: string) => void;
-  setAccordionAria!: (el1: HTMLElement, el2: HTMLElement, expanded: string) => void;
-  switchAccordion!: (index: number, e: MouseEvent) => void;
+  skipClickDelay = (e: Event): void => {
+    e.preventDefault();
+    (e.target as HTMLElement).click();
+  };
+
+  setAriaAttr = (el: HTMLElement, ariaType: string, newProperty: string): void => {
+    el.setAttribute(ariaType, newProperty);
+  };
+
+  setAccordionAria = (el1: HTMLElement, el2: HTMLElement, expanded: string): void => {
+    switch (expanded) {
+      case 'true':
+        this.setAriaAttr(el1, 'aria-expanded', 'true');
+        this.setAriaAttr(el2, 'aria-hidden', 'false');
+        break;
+      case 'false':
+        this.setAriaAttr(el1, 'aria-expanded', 'false');
+        this.setAriaAttr(el2, 'aria-hidden', 'true');
+        break;
+      default:
+        break;
+    }
+  };
+
+  switchAccordion = (index: number, e: MouseEvent): void => {
+    e.preventDefault();
+    const accordionTitle =
+      (e.currentTarget as HTMLElement).parentElement?.parentElement?.nextElementSibling;
+    const accordionContent = e.currentTarget as HTMLElement;
+    const accordionChevron = accordionContent.children[0];
+
+    if (
+      accordionTitle?.classList.contains('is-collapsed') &&
+      accordionTitle instanceof HTMLElement
+    ) {
+      this.setAccordionAria(accordionContent, accordionTitle, 'true');
+      getGlobalState().editQueryObject(ACCORDION_QUERY_PARAM_PREFIX + index, 'true');
+    } else if (accordionTitle instanceof HTMLElement) {
+      this.setAccordionAria(accordionContent, accordionTitle, 'false');
+      getGlobalState().editQueryObject(ACCORDION_QUERY_PARAM_PREFIX + index, '');
+    }
+    accordionContent.classList.toggle('is-collapsed');
+    accordionContent.classList.toggle('is-expanded');
+    if (accordionTitle) {
+      accordionTitle.classList.toggle('is-collapsed');
+      accordionTitle.classList.toggle('is-expanded');
+    }
+    accordionChevron.classList.toggle('chevronExpanded');
+
+    if (accordionTitle) {
+      accordionTitle.classList.toggle('animateIn');
+    }
+  };
 
   renderOptimizationPage = (optimization: Optimization): JSX.Element => {
     const optStatus = optimization.status as number;

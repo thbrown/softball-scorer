@@ -45,7 +45,7 @@ export default class DataContainer extends Component<DataContainerProps, DataCon
           loading: false,
           ready: true,
         });
-        this.props.onRequestComplete!(body || {});
+        this.props.onRequestComplete?.(body || {});
       } else {
         const error = String((body as Record<string, unknown>)?.message || 'Bad status code: ' + status);
         this.setState({
@@ -54,7 +54,7 @@ export default class DataContainer extends Component<DataContainerProps, DataCon
           ready: true,
           error,
         });
-        this.props.onRequestError!(new Error(error));
+        this.props.onRequestError?.(new Error(error));
       }
     } catch (e) {
       this.setState({
@@ -63,7 +63,7 @@ export default class DataContainer extends Component<DataContainerProps, DataCon
         ready: true,
         error: e,
       });
-      this.props.onRequestError!(e);
+      this.props.onRequestError?.(e);
     }
   }
 

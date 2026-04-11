@@ -35,7 +35,7 @@ export default class WalkupSong extends expose.Component<WalkupSongProps, Walkup
         var elem = document.activeElement;
         if (elem && elem.tagName === 'IFRAME') {
           clearInterval(this.monitor);
-          document.getElementById('songOverlay')!.classList.remove('gone');
+          document.getElementById('songOverlay')?.classList.remove('gone');
         }
       }, 100);
     };
@@ -48,7 +48,7 @@ export default class WalkupSong extends expose.Component<WalkupSongProps, Walkup
       this.setState({
         key: Math.random(),
       });
-      document.getElementById('songOverlay')!.classList.add('gone');
+      document.getElementById('songOverlay')?.classList.add('gone');
       this.startIframeClickDetect();
     };
 
@@ -75,18 +75,17 @@ export default class WalkupSong extends expose.Component<WalkupSongProps, Walkup
   UNSAFE_componentWillUpdate() {
     let song = document.getElementById('songOverlay');
     let frame = document.getElementById('currentBatterSong');
+    const { songLink } = this.props;
 
-    if (song && frame) {
+    if (song && frame && songLink) {
       song.classList.add('gone');
 
       // This is a way to prevent the iframe state changes from being persisted to browser history
       // Iframe reloads only add to history if they are attached to the DOM on change
-      let parent = frame.parentNode!;
+      let parent = frame.parentNode;
+      if (!parent) return;
       parent.removeChild(frame);
-      frame.setAttribute(
-        'src',
-        this.buildUrl(this.props.songLink!, this.props.songStart)
-      );
+      frame.setAttribute('src', this.buildUrl(songLink, this.props.songStart));
       parent.appendChild(frame);
       this.startIframeClickDetect();
     }

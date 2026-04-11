@@ -8,8 +8,7 @@ import DataContainer from 'elements/data-container';
 import { Dialog } from 'dialog';
 import config from './config';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const noSleep = new (window as any).NoSleep();
+const noSleep = new window.NoSleep();
 
 // TODO
 // Text directions?
@@ -163,7 +162,7 @@ export default class MainContainer extends expose.Component<MainContainerProps, 
           CardComponent = (
             <DataContainer url={`server/team-stats/${this.props.publicTeamId}`}>
               {({ data, loading, error }) => {
-                return renderRouteComponent!({
+                return renderRouteComponent?.({
                   ...props,
                   data,
                   loading,
@@ -173,7 +172,7 @@ export default class MainContainer extends expose.Component<MainContainerProps, 
             </DataContainer>
           );
         } else {
-          CardComponent = renderRouteComponent!(props);
+          CardComponent = renderRouteComponent?.(props);
         }
       } catch (err) {
         // TODO fix multi-render that occurs when pressing the back button on edit page

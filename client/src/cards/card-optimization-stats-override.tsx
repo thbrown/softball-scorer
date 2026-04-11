@@ -25,12 +25,12 @@ export default class CardOptimizationStatsOverride extends React.Component<
   CardOptimizationStatsOverrideProps,
   CardOptimizationStatsOverrideState
 > {
-  homeOrBack!: () => void;
-  handleNewPaClick!: () => void;
-  handleExistingPaClick!: (paId: string) => void;
-  getHelpFunction!: () => () => void;
-  handleAddPas!: (toAdd: PlateAppearance[]) => void;
-  handleDeleteClick!: () => void;
+  homeOrBack: () => void;
+  handleNewPaClick: () => void;
+  handleExistingPaClick: (paId: string) => void;
+  getHelpFunction: () => () => void;
+  handleAddPas: (toAdd: PlateAppearance[]) => void;
+  handleDeleteClick: () => void;
 
   constructor(props: CardOptimizationStatsOverrideProps) {
     super(props);

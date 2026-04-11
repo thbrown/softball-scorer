@@ -6,12 +6,6 @@ import CardSection from 'elements/card-section';
 import config from 'config';
 import { setRoute } from 'actions/route';
 
-declare global {
-  interface Window {
-    grecaptcha: any;
-  }
-}
-declare let grecaptcha: any;
 
 export default class CardSignup extends React.Component<Record<string, never>> {
   recapchaId: number | Record<string, never>;

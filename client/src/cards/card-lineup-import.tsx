@@ -43,31 +43,31 @@ const LineupList = (props: LineupListProps) => {
   const handleConfirmClick = props.handleConfirmClick;
   const handleCancelClick = props.handleCancelClick;
 
-  if (props.game) {
+  if (props.game && props.team) {
+    const team = props.team;
+    const game = props.game;
     return (
       <>
         <div className="lineup-import-title"> Use this lineup? </div>
         <div className="lineup-import-chip-container">
-          <div className="lineup-import-chip">{props.team!.name}</div>
+          <div className="lineup-import-chip">{team.name}</div>
           <span className="lineup-import-vs"> vs. </span>
-          <div className="lineup-import-chip">{props.game.opponent}</div>
+          <div className="lineup-import-chip">{game.opponent}</div>
         </div>
         <ListPicker
           itemClassName="lineup-import-item-custom"
           textClassName="lineup-import-item-text"
-          items={props.game.lineup.map((playerId: string) => ({
-            name: getGlobalState().getPlayer(playerId as PlayerId)!.name,
-            id: getGlobalState().getPlayer(playerId as PlayerId)!.id,
-          }))}
+          items={game.lineup
+            .map((playerId: string) => getGlobalState().getPlayer(playerId as PlayerId))
+            .filter((p): p is NonNullable<typeof p> => p !== undefined)
+            .map((player) => ({ name: player.name, id: player.id }))}
           onClick={() => {}}
         />
         <div className="lineup-import-action-button-container">
           <div
             id="confirm"
             className="button primary-button lineup-import-action-button"
-            onClick={function wrapper(ev) {
-              return handleConfirmClick(ev, props.team!, props.game!);
-            }}
+            onClick={(ev) => handleConfirmClick(ev, team, game)}
           >
             Confirm
           </div>

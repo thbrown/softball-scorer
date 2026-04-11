@@ -149,7 +149,7 @@ export default class StateIndex {
       location === undefined ? 'FULL' : location
     );
     const startTime = Date.now();
-    if (new Error().stack!.match(/_buildIndex/g)!.length > 1) {
+    if ((new Error().stack?.match(/_buildIndex/g)?.length ?? 0) > 1) {
       console.log(new Error().stack);
       throw new Error('Detected recursion during index building');
     }
@@ -200,55 +200,53 @@ export default class StateIndex {
   }
 
   // =============== | ADDERS | ===================
-  addPlayer(playerId: string | PlayerId): void {
-    this.playerLookup[playerId as string] = StateIndex._buildJsonPointer(
+  addPlayer(playerId: string): void {
+    this.playerLookup[playerId] = StateIndex._buildJsonPointer(
       'players',
       findLastIndex(this.stateContainer.get().players, (v) => v.id === playerId)
     );
   }
 
-  addTeam(teamId: string | TeamId): void {
-    this.teamLookup[teamId as string] = StateIndex._buildJsonPointer(
+  addTeam(teamId: string): void {
+    this.teamLookup[teamId] = StateIndex._buildJsonPointer(
       'teams',
       findLastIndex(this.stateContainer.get().teams, (v) => v.id === teamId)
     );
   }
 
-  addGame(gameId: string | GameId, teamId: string | TeamId): void {
-    this.gameLookup[gameId as string] = StateIndex._buildJsonPointer(
+  addGame(gameId: string, teamId: string): void {
+    const team = this.getTeam(teamId);
+    if (!team) throw new Error(`Team not found in index: ${teamId}`);
+    this.gameLookup[gameId] = StateIndex._buildJsonPointer(
       'teams',
-      this.getTeamIndex(teamId as string),
+      this.getTeamIndex(teamId),
       'games',
-      findLastIndex(
-        this.getTeam(teamId as string)!.games,
-        (v) => v.id === gameId
-      )
+      findLastIndex(team.games, (v) => v.id === gameId)
     );
-    this.gameTeamLookup[gameId as string] = this.teamLookup[teamId as string];
+    this.gameTeamLookup[gameId] = this.teamLookup[teamId];
   }
 
-  addPlateAppearance(
-    paId: string | PlateAppearanceId,
-    teamId: string | TeamId,
-    gameId: string | GameId
-  ): void {
-    this.paLookup[paId as string] = StateIndex._buildJsonPointer(
+  addPlateAppearance(paId: string, teamId: string, gameId: string): void {
+    const game = this.getGame(gameId);
+    if (!game) throw new Error(`Game not found in index: ${gameId}`);
+    const gamePointer = this._getGame(gameId);
+    if (!gamePointer) throw new Error(`Game pointer not found in index: ${gameId}`);
+    const teamPointer = this._getTeam(teamId);
+    if (!teamPointer) throw new Error(`Team pointer not found in index: ${teamId}`);
+    this.paLookup[paId] = StateIndex._buildJsonPointer(
       'teams',
-      this.getTeamIndex(teamId as string),
+      this.getTeamIndex(teamId),
       'games',
-      this.getGameIndex(gameId as string),
+      this.getGameIndex(gameId),
       'plateAppearances',
-      findLastIndex(
-        this.getGame(gameId as string)!.plateAppearances,
-        (v) => v.id === paId
-      )
+      findLastIndex(game.plateAppearances, (v) => v.id === paId)
     );
-    this.paGameLookup[paId as string] = this._getGame(gameId as string)!;
-    this.paTeamLookup[paId as string] = this._getTeam(teamId as string)!;
+    this.paGameLookup[paId] = gamePointer;
+    this.paTeamLookup[paId] = teamPointer;
   }
 
-  addOptimization(optimizationId: string | OptimizationId): void {
-    this.optimizationLookup[optimizationId as string] =
+  addOptimization(optimizationId: string): void {
+    this.optimizationLookup[optimizationId] =
       StateIndex._buildJsonPointer(
         'optimizations',
         findLastIndex(
@@ -258,26 +256,22 @@ export default class StateIndex {
       );
   }
 
-  addPaToOptimization(
-    paId: string | PlateAppearanceId,
-    playerId: string | PlayerId,
-    optimizationId: string | OptimizationId
-  ): void {
+  addPaToOptimization(paId: string, playerId: string, optimizationId: string): void {
     // Lookup a optimization given a PA
-    this.paOptimizationLookup[paId as string] = StateIndex._buildJsonPointer(
+    this.paOptimizationLookup[paId] = StateIndex._buildJsonPointer(
       'optimizations',
-      this.getOptimizationIndex(optimizationId as string)
+      this.getOptimizationIndex(optimizationId)
     );
     // Look up a particular pa that lives in an override
-    this.paLookupTwo[paId as string] = StateIndex._buildJsonPointer(
+    const optimization = this.getOptimization(optimizationId);
+    if (!optimization) throw new Error(`Optimization not found in index: ${optimizationId}`);
+    this.paLookupTwo[paId] = StateIndex._buildJsonPointer(
       'optimizations',
-      this.getOptimizationIndex(optimizationId as string),
+      this.getOptimizationIndex(optimizationId),
       'overrideData',
-      playerId as string,
+      playerId,
       findLastIndex(
-        this.getOptimization(optimizationId as string)!.overrideData[
-          playerId as string
-        ],
+        optimization.overrideData[playerId],
         (v) => v.id === paId
       )
     );
@@ -287,212 +281,143 @@ export default class StateIndex {
 
   getTeam(teamId: TeamId): Team | undefined;
   getTeam(teamId: string): Team | undefined;
-  getTeam(teamId: TeamId | string): Team | undefined {
-    return this._getFromIndex<Team>(teamId as string, this.teamLookup)?.value;
+  getTeam(teamId: string): Team | undefined {
+    return this._getFromIndex<Team>(teamId, this.teamLookup)?.value;
   }
 
   getPlayer(playerId: PlayerId): Player | undefined;
   getPlayer(playerId: string): Player | undefined;
-  getPlayer(playerId: PlayerId | string): Player | undefined {
-    return this._getFromIndex<Player>(playerId as string, this.playerLookup)
-      ?.value;
+  getPlayer(playerId: string): Player | undefined {
+    return this._getFromIndex<Player>(playerId, this.playerLookup)?.value;
   }
 
   getOptimization(optimizationId: OptimizationId): Optimization | undefined;
+  getOptimization(optimizationId: OptimizationId): Optimization | undefined;
   getOptimization(optimizationId: string): Optimization | undefined;
-  getOptimization(
-    optimizationId: OptimizationId | string
-  ): Optimization | undefined {
-    return this._getFromIndex<Optimization>(
-      optimizationId as string,
-      this.optimizationLookup
-    )?.value;
+  getOptimization(optimizationId: string): Optimization | undefined {
+    return this._getFromIndex<Optimization>(optimizationId, this.optimizationLookup)?.value;
   }
 
   getGame(gameId: GameId): Game | undefined;
   getGame(gameId: string): Game | undefined;
-  getGame(gameId: GameId | string): Game | undefined {
-    //console.log(gameId, this.gameLookup);
-    return this._getFromIndex<Game>(gameId as string, this.gameLookup)?.value;
+  getGame(gameId: string): Game | undefined {
+    return this._getFromIndex<Game>(gameId, this.gameLookup)?.value;
   }
 
   getTeamForGame(gameId: GameId): Team | undefined;
   getTeamForGame(gameId: string): Team | undefined;
-  getTeamForGame(gameId: GameId | string): Team | undefined {
-    return this._getFromIndex<Team>(
-      gameId as string,
-      this.gameTeamLookup,
-      this.teamLookup
-    )?.value;
+  getTeamForGame(gameId: string): Team | undefined {
+    return this._getFromIndex<Team>(gameId, this.gameTeamLookup, this.teamLookup)?.value;
   }
 
   getPa(paId: PlateAppearanceId): PlateAppearance | undefined;
   getPa(paId: string): PlateAppearance | undefined;
-  getPa(paId: PlateAppearanceId | string): PlateAppearance | undefined {
-    return this._getFromIndex<PlateAppearance>(paId as string, this.paLookup)
-      ?.value;
+  getPa(paId: string): PlateAppearance | undefined {
+    return this._getFromIndex<PlateAppearance>(paId, this.paLookup)?.value;
   }
 
   getPaFromOptimization(paId: PlateAppearanceId): PlateAppearance | undefined;
   getPaFromOptimization(paId: string): PlateAppearance | undefined;
-  getPaFromOptimization(
-    paId: PlateAppearanceId | string
-  ): PlateAppearance | undefined {
-    return this._getFromIndex<PlateAppearance>(paId as string, this.paLookupTwo)
-      ?.value;
+  getPaFromOptimization(paId: string): PlateAppearance | undefined {
+    return this._getFromIndex<PlateAppearance>(paId, this.paLookupTwo)?.value;
   }
 
   getTeamForPa(paId: PlateAppearanceId): Team | undefined;
   getTeamForPa(paId: string): Team | undefined;
-  getTeamForPa(paId: PlateAppearanceId | string): Team | undefined {
-    return this._getFromIndex<Team>(
-      paId as string,
-      this.paTeamLookup,
-      this.teamLookup
-    )?.value;
+  getTeamForPa(paId: string): Team | undefined {
+    return this._getFromIndex<Team>(paId, this.paTeamLookup, this.teamLookup)?.value;
   }
 
   getGameForPa(paId: PlateAppearanceId): Game | undefined;
   getGameForPa(paId: string): Game | undefined;
-  getGameForPa(paId: PlateAppearanceId | string): Game | undefined {
-    return this._getFromIndex<Game>(
-      paId as string,
-      this.paGameLookup,
-      this.gameLookup
-    )?.value;
+  getGameForPa(paId: string): Game | undefined {
+    return this._getFromIndex<Game>(paId, this.paGameLookup, this.gameLookup)?.value;
   }
 
   getOptimizationForPa(paId: PlateAppearanceId): Optimization | undefined;
   getOptimizationForPa(paId: string): Optimization | undefined;
-  getOptimizationForPa(
-    paId: PlateAppearanceId | string
-  ): Optimization | undefined {
-    return this._getFromIndex<Optimization>(
-      paId as string,
-      this.paOptimizationLookup,
-      this.optimizationLookup
-    )?.value;
+  getOptimizationForPa(paId: string): Optimization | undefined {
+    return this._getFromIndex<Optimization>(paId, this.paOptimizationLookup, this.optimizationLookup)?.value;
   }
 
   // =============== | INDEX GETTERS | ==================
 
-  getTeamIndex(teamId: string | TeamId): string | undefined {
-    const team = this._getTeam(teamId as string);
+  getTeamIndex(teamId: string): string | undefined {
+    const team = this._getTeam(teamId);
     if (team === undefined) return undefined;
     return StateIndex._splitJsonPointer(team).at(-1);
   }
 
-  getPlayerIndex(playerId: string | PlayerId): string | undefined {
-    const player = this._getPlayer(playerId as string);
+  getPlayerIndex(playerId: string): string | undefined {
+    const player = this._getPlayer(playerId);
     if (player === undefined) return undefined;
     return StateIndex._splitJsonPointer(player).at(-1);
   }
 
-  getOptimizationIndex(
-    optimizationId: string | OptimizationId
-  ): string | undefined {
-    const optimization = this._getOptimization(optimizationId as string);
+  getOptimizationIndex(optimizationId: string): string | undefined {
+    const optimization = this._getOptimization(optimizationId);
     if (optimization === undefined) return undefined;
     return StateIndex._splitJsonPointer(optimization).at(-1);
   }
 
-  getGameIndex(gameId: string | GameId): string | undefined {
-    const game = this._getGame(gameId as string);
+  getGameIndex(gameId: string): string | undefined {
+    const game = this._getGame(gameId);
     if (game === undefined) return undefined;
     return StateIndex._splitJsonPointer(game).at(-1);
   }
 
-  getPaIndex(paId: string | PlateAppearanceId): string | undefined {
-    const pa = this._getPa(paId as string);
+  getPaIndex(paId: string): string | undefined {
+    const pa = this._getPa(paId);
     if (pa === undefined) return undefined;
     return StateIndex._splitJsonPointer(pa).at(-1);
   }
 
-  getPaFromOptimizationIndex(
-    paId: string | PlateAppearanceId
-  ): string | undefined {
-    const pa = this._getPaFromOptimization(paId as string);
+  getPaFromOptimizationIndex(paId: string): string | undefined {
+    const pa = this._getPaFromOptimization(paId);
     if (pa === undefined) return undefined;
     return StateIndex._splitJsonPointer(pa).at(-1);
   }
 
   // =============== | POINTER GETTERS (internal) | ==================
 
-  private _getTeam(teamId: string | TeamId): JsonPointerString | undefined {
-    return this._getFromIndex<Team>(teamId as string, this.teamLookup)
+  private _getTeam(teamId: string): JsonPointerString | undefined {
+    return this._getFromIndex<Team>(teamId, this.teamLookup)?.jsonPointer;
+  }
+
+  private _getPlayer(playerId: string): JsonPointerString | undefined {
+    return this._getFromIndex<Player>(playerId, this.playerLookup)?.jsonPointer;
+  }
+
+  private _getOptimization(optimizationId: string): JsonPointerString | undefined {
+    return this._getFromIndex<Optimization>(optimizationId, this.optimizationLookup)?.jsonPointer;
+  }
+
+  private _getGame(gameId: string): JsonPointerString | undefined {
+    return this._getFromIndex<Game>(gameId, this.gameLookup)?.jsonPointer;
+  }
+
+  private _getTeamForGame(gameId: string): Team | undefined {
+    return this._getFromIndex<Team>(gameId, this.gameTeamLookup, this.teamLookup)?.value;
+  }
+
+  private _getPa(paId: string): JsonPointerString | undefined {
+    return this._getFromIndex<PlateAppearance>(paId, this.paLookup)
       ?.jsonPointer;
   }
 
-  private _getPlayer(
-    playerId: string | PlayerId
-  ): JsonPointerString | undefined {
-    return this._getFromIndex<Player>(playerId as string, this.playerLookup)
-      ?.jsonPointer;
+  private _getPaFromOptimization(paId: string): JsonPointerString | undefined {
+    return this._getFromIndex<PlateAppearance>(paId, this.paLookupTwo)?.jsonPointer;
   }
 
-  private _getOptimization(
-    optimizationId: string | OptimizationId
-  ): JsonPointerString | undefined {
-    return this._getFromIndex<Optimization>(
-      optimizationId as string,
-      this.optimizationLookup
-    )?.jsonPointer;
+  private _getTeamForPa(paId: string): JsonPointerString | undefined {
+    return this._getFromIndex<Team>(paId, this.paTeamLookup, this.teamLookup)?.jsonPointer;
   }
 
-  private _getGame(gameId: string | GameId): JsonPointerString | undefined {
-    return this._getFromIndex<Game>(gameId as string, this.gameLookup)
-      ?.jsonPointer;
+  private _getGameForPa(paId: string): JsonPointerString | undefined {
+    return this._getFromIndex<Game>(paId, this.paGameLookup, this.gameLookup)?.jsonPointer;
   }
 
-  private _getTeamForGame(gameId: string | GameId): Team | undefined {
-    return this._getFromIndex<Team>(
-      gameId as string,
-      this.gameTeamLookup,
-      this.teamLookup
-    )?.value;
-  }
-
-  private _getPa(
-    paId: string | PlateAppearanceId
-  ): JsonPointerString | undefined {
-    return this._getFromIndex<PlateAppearance>(paId as string, this.paLookup)
-      ?.jsonPointer;
-  }
-
-  private _getPaFromOptimization(
-    paId: string | PlateAppearanceId
-  ): JsonPointerString | undefined {
-    return this._getFromIndex<PlateAppearance>(paId as string, this.paLookupTwo)
-      ?.jsonPointer;
-  }
-
-  private _getTeamForPa(
-    paId: string | PlateAppearanceId
-  ): JsonPointerString | undefined {
-    return this._getFromIndex<Team>(
-      paId as string,
-      this.paTeamLookup,
-      this.teamLookup
-    )?.jsonPointer;
-  }
-
-  private _getGameForPa(
-    paId: string | PlateAppearanceId
-  ): JsonPointerString | undefined {
-    return this._getFromIndex<Game>(
-      paId as string,
-      this.paGameLookup,
-      this.gameLookup
-    )?.jsonPointer;
-  }
-
-  private _getOptimizationForPa(
-    paId: string | PlateAppearanceId
-  ): JsonPointerString | undefined {
-    return this._getFromIndex<Optimization>(
-      paId as string,
-      this.paOptimizationLookup,
-      this.optimizationLookup
-    )?.jsonPointer;
+  private _getOptimizationForPa(paId: string): JsonPointerString | undefined {
+    return this._getFromIndex<Optimization>(paId, this.paOptimizationLookup, this.optimizationLookup)?.jsonPointer;
   }
 }

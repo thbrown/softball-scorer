@@ -34,6 +34,16 @@ export default class CardPlayerSelect extends React.Component<
   CardPlayerSelectState
 > {
   customStyles: Record<string, (base: any, state?: any) => any>;
+  onInputChange: (inputValue: string) => void;
+  handleRadioButtonChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleConfirmClick: () => void;
+  handleCancelClick: () => void;
+  handleBackClick: () => void;
+  handleBackOrHome: () => void;
+  onChange: (selectedOptions: PlayerSelectOption[] | null) => void;
+  adjustSpacerDivHeight: () => void;
+  onCreatePlayerClick: () => void;
+  noOptionsMessage: () => JSX.Element;
 
   constructor(props: CardPlayerSelectProps) {
     super(props);
@@ -279,16 +289,6 @@ export default class CardPlayerSelect extends React.Component<
     );
   };
 
-  onInputChange!: (inputValue: string) => void;
-  handleRadioButtonChange!: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  handleConfirmClick!: () => void;
-  handleCancelClick!: () => void;
-  handleBackClick!: () => void;
-  handleBackOrHome!: () => void;
-  onChange!: (selectedOptions: PlayerSelectOption[] | null) => void;
-  adjustSpacerDivHeight!: () => void;
-  onCreatePlayerClick!: () => void;
-  noOptionsMessage!: () => JSX.Element;
 
   render(): JSX.Element {
     return (

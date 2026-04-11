@@ -20,10 +20,12 @@ const LineupPicker = ({ gameId, teamId }: LineupPickerProps) => {
   const handleItemClick = (item: ListPickerItem) => {
     const opt = getGlobalState().getOptimization(item.id as OptimizationId);
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const optResult = opt!.resultData as any;
-      let newLineup = [...optResult.flatLineup];
-      const game = getGlobalState().getGame(gameId as GameId)!;
+      if (!opt) throw new Error('Optimization not found');
+      const flatLineup = opt.resultData['flatLineup'] as string[] | undefined;
+      if (!flatLineup) throw new Error('Optimization has no flatLineup result');
+      let newLineup = [...flatLineup];
+      const game = getGlobalState().getGame(gameId as GameId);
+      if (!game) throw new Error('Game not found');
       getGlobalState().replaceGame(gameId as GameId, teamId as TeamId, {
         ...game,
         lineup: newLineup,
@@ -42,10 +44,7 @@ const LineupPicker = ({ gameId, teamId }: LineupPickerProps) => {
         onClick={handleItemClick}
         items={getGlobalState()
           .getAllOptimizations()
-          .filter((opt) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return (opt.resultData as any) !== '{}';
-          })
+          .filter((opt) => opt.resultData['flatLineup'] !== undefined)
           .reverse()
           .map(({ name, id }) => {
             return { name, id };

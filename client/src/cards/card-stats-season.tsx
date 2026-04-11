@@ -1,5 +1,5 @@
 import React from 'react';
-import { getGlobalState } from 'state';
+import { getGlobalState, type StatsObject } from 'state';
 import CardSection from 'elements/card-section';
 import { StickyTable, Row, Cell } from 'react-sticky-table';
 import InnerSection from 'elements/inner-section';
@@ -72,6 +72,11 @@ export default class CardStatsSeason extends React.Component<
   CardStatsSeasonProps,
   CardStatsSeasonState
 > {
+  sortByState: (a: StatsObject, b: StatsObject) => number;
+  handleStatsClick: (sortField: string) => void;
+  handlePlayerClick: (playerId: string) => void;
+  setFilterState: (filterState: FilterState) => void;
+
   constructor(props: CardStatsSeasonProps) {
     super(props);
 
@@ -88,36 +93,33 @@ export default class CardStatsSeason extends React.Component<
       filterState: getUrlFilterState(),
     };
 
-    this.sortByState = (a: any, b: any): number => {
+    this.sortByState = (a: StatsObject, b: StatsObject): number => {
+      const field = this.state.sortField;
+      const aRow = a as unknown as Record<string, string | number>;
+      const bRow = b as unknown as Record<string, string | number>;
       if (this.state.sortDirection === 'DSC') {
-        if (isNaN(a[this.state.sortField]) || isNaN(b[this.state.sortField])) {
-          if (a[this.state.sortField] < b[this.state.sortField]) {
+        if (isNaN(aRow[field] as number) || isNaN(bRow[field] as number)) {
+          if (aRow[field] < bRow[field]) {
             return -1;
-          } else if (a[this.state.sortField] > b[this.state.sortField]) {
+          } else if (aRow[field] > bRow[field]) {
             return 1;
           } else {
             return 0;
           }
         } else {
-          return (
-            parseFloat(b[this.state.sortField]) -
-            parseFloat(a[this.state.sortField])
-          );
+          return parseFloat(bRow[field] as string) - parseFloat(aRow[field] as string);
         }
       } else {
-        if (isNaN(a[this.state.sortField]) || isNaN(b[this.state.sortField])) {
-          if (a[this.state.sortField] < b[this.state.sortField]) {
+        if (isNaN(aRow[field] as number) || isNaN(bRow[field] as number)) {
+          if (aRow[field] < bRow[field]) {
             return 1;
-          } else if (a[this.state.sortField] > b[this.state.sortField]) {
+          } else if (aRow[field] > bRow[field]) {
             return -1;
           } else {
             return 0;
           }
         } else {
-          return (
-            parseFloat(a[this.state.sortField]) -
-            parseFloat(b[this.state.sortField])
-          );
+          return parseFloat(aRow[field] as string) - parseFloat(bRow[field] as string);
         }
       }
     };
@@ -143,10 +145,6 @@ export default class CardStatsSeason extends React.Component<
     };
   }
 
-  sortByState!: (a: any, b: any) => number;
-  handleStatsClick!: (sortField: string) => void;
-  handlePlayerClick!: (playerId: string) => void;
-  setFilterState!: (filterState: FilterState) => void;
 
   getHeaderText = (statName: string): string => {
     if (statName === this.state.sortField) {

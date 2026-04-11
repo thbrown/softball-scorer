@@ -25,7 +25,10 @@ export default class Cooldown extends Component<CooldownProps> {
     this.id = undefined;
 
     this.startAnimation = () => {
-      let ctx = this.canvasRef.current!.getContext('2d')!;
+      const canvas = this.canvasRef.current;
+      if (!canvas) return;
+      let ctx = canvas.getContext('2d');
+      if (!ctx) return;;
 
       let size = props.size * QUALITY_RATIO;
       let padding = PADDING * QUALITY_RATIO;
