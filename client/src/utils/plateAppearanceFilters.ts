@@ -1,7 +1,7 @@
 import { sortObjectsByDate } from './functions';
 import { getGlobalState } from 'state';
 import type { PlateAppearance, Player, Game } from 'shared-lib';
-import type { PlayerId } from 'types/branded-ids';
+import type { PlayerId, PlateAppearanceId } from 'types/branded-ids';
 
 export const HIT_TYPE_FILTERS = {
   HITS: 'hits',
@@ -28,7 +28,7 @@ const extraHits: Record<string, boolean> = {
 interface PAWithGame extends PlateAppearance {
   game: Game & { date: number; id: string; opponent: string };
   date: number;
-  id: string;
+  id: PlateAppearanceId;
 }
 
 export function filterByHitType(plateAppearances: PAWithGame[], hitType: HitTypeFilter): PAWithGame[] | undefined {

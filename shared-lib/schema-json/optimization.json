@@ -20,6 +20,7 @@
   "properties": {
     "id": {
       "type": "string",
+      "tsType": "OptimizationId",
       "description": "Random 64-bit unique identifier for this optimization"
     },
     "name": {
@@ -60,15 +61,18 @@
     },
     "teamList": {
       "type": "array",
-      "description": "Array containing an array of team ids for which data will be used by the optimizer"
+      "description": "Array containing an array of team ids for which data will be used by the optimizer",
+      "items": { "type": "string", "tsType": "TeamId" }
     },
     "gameList": {
       "type": "array",
-      "description": "Array containing an array of game ids for which data will be used by the optimizer"
+      "description": "Array containing an array of game ids for which data will be used by the optimizer",
+      "items": { "type": "string", "tsType": "GameId" }
     },
     "playerList": {
       "type": "array",
-      "description": "Array containing an array of player ids that should be turned into an optimal lineup by the optimizer"
+      "description": "Array containing an array of player ids that should be turned into an optimal lineup by the optimizer",
+      "items": { "type": "string", "tsType": "PlayerId" }
     },
     "lineupType": {
       "type": "integer",

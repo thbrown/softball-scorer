@@ -6,6 +6,7 @@
   "properties": {
     "id": {
       "type": "string",
+      "tsType": "TeamId",
       "description": "Random 64-bit unique identifier for this team"
     },
     "name": {

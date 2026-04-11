@@ -7,10 +7,12 @@
   "properties": {
     "id": {
       "type": "string",
+      "tsType": "PlateAppearanceId",
       "description": "Random 64-bit unique identifier for this plate appearance"
     },
     "playerId": {
       "type": "string",
+      "tsType": "PlayerId",
       "description": "The id of the player who is the batter during the plate appearance"
     },
     "result": {

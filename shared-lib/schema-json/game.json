@@ -16,6 +16,7 @@
   "properties": {
     "id": {
       "type": "string",
+      "tsType": "GameId",
       "description": "Random 64-bit unique identifier for this game"
     },
     "opponent": {
@@ -44,7 +45,8 @@
       "type": "array",
       "description": "Batting lineup for this game",
       "items": {
-        "type": "string"
+        "type": "string",
+        "tsType": "PlayerId"
       }
     },
     "lineupType": {

@@ -32,7 +32,7 @@ import CardLineupImporter from 'cards/card-lineup-importer';
 import CardOptimizerSelect from 'cards/card-optimizer-select';
 import { goBack, setRoute } from 'actions/route';
 import { findPreviousObject } from 'utils/functions';
-import { asGameId, asPlayerId, asPlateAppearanceId, asOptimizationId, asTeamId } from 'types/branded-ids';
+import { asPlayerId } from 'types/branded-ids';
 
 // possibility to add '/app/' here?
 export const ROUTE_PREFIX = '';
@@ -260,7 +260,7 @@ const routes = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onConfirm = (ev: any, targetTeam: any, targetGame: any) => {
       console.log('Importing', game.lineup);
-      getGlobalState().setGameLineup(asGameId(game.id), targetGame.lineup); // TODO: do we need to deep copy here?
+      getGlobalState().setGameLineup(game.id, targetGame.lineup); // TODO: do we need to deep copy here?
       goBack(2);
     };
 
@@ -292,7 +292,7 @@ const routes = {
         selected={game.lineup ? game.lineup : []}
         players={getGlobalState().getAllPlayersAlphabetically()}
         onComplete={(players) => {
-          getGlobalState().setGameLineup(asGameId(game.id), players.map(asPlayerId));
+          getGlobalState().setGameLineup(game.id, players.map(asPlayerId));
         }}
         onImportClick={function () {
           setRoute(`/teams/${team.id}/games/${game.id}/import-lineup`);
@@ -331,7 +331,7 @@ const routes = {
 
       const plateAppearances = plateAppearance?.playerId
         ? getGlobalState().getPlateAppearancesForPlayerInGame(
-            asPlayerId(plateAppearance?.playerId),
+            plateAppearance?.playerId,
             gameId
           )
         : [];
@@ -357,13 +357,13 @@ const routes = {
           team={team}
           game={game}
           remove={function () {
-            getGlobalState().removePlateAppearance(asPlateAppearanceId(plateAppearance.id));
+            getGlobalState().removePlateAppearance(plateAppearance.id);
           }}
           replace={function (newPa) {
             getGlobalState().replacePlateAppearance(
-              asPlateAppearanceId(plateAppearance.id),
-              asGameId(game.id),
-              asTeamId(team.id),
+              plateAppearance.id,
+              game.id,
+              team.id,
               newPa
             );
           }}
@@ -440,11 +440,11 @@ const routes = {
     }
     return (
       <CardPlayerSelect
-        selected={optimization.playerList as string[]}
+        selected={optimization.playerList}
         players={getGlobalState().getAllPlayersAlphabetically()}
         onComplete={(players) => {
           getGlobalState().setOptimizationField(
-            asOptimizationId(optimization.id),
+            optimization.id,
             'playerList',
             players
           );
@@ -467,7 +467,7 @@ const routes = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onConfirm = (ev: any, team: any, game: any) => {
       getGlobalState().setOptimizationField(
-        asOptimizationId(optimization.id),
+        optimization.id,
         'playerList',
         game.lineup
       );
@@ -658,7 +658,7 @@ const routes = {
       const decoratedPlayerPlateAppearances =
         getGlobalState().getDecoratedPlateAppearancesForPlayerOnTeam(
           playerId,
-          asTeamId(team.id),
+          team.id,
           data
         );
 

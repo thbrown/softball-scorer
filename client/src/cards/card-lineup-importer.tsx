@@ -4,7 +4,7 @@ import ListPicker from 'elements/list-picker';
 import { getGlobalState } from 'state';
 import dialog from 'dialog';
 import { setRoute } from 'actions/route';
-import { GameId, OptimizationId, TeamId } from 'types/branded-ids';
+import { asPlayerId, GameId, OptimizationId, TeamId } from 'types/branded-ids';
 
 interface LineupPickerProps {
   gameId: string;
@@ -23,7 +23,7 @@ const LineupPicker = ({ gameId, teamId }: LineupPickerProps) => {
       if (!opt) throw new Error('Optimization not found');
       const flatLineup = opt.resultData['flatLineup'] as string[] | undefined;
       if (!flatLineup) throw new Error('Optimization has no flatLineup result');
-      let newLineup = [...flatLineup];
+      let newLineup = flatLineup.map(asPlayerId);
       const game = getGlobalState().getGame(gameId as GameId);
       if (!game) throw new Error('Game not found');
       getGlobalState().replaceGame(gameId as GameId, teamId as TeamId, {

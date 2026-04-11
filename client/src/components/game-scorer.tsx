@@ -1,7 +1,6 @@
 import React from 'react';
 import CardSection from 'elements/card-section';
 import { getGlobalState } from 'state';
-import { asGameId } from 'types/branded-ids';
 
 const ScorePaper = ({ score, name }) => {
   return (
@@ -153,7 +152,7 @@ const GameScorer = ({ teamId, gameId }) => {
   const usName = team.name;
   const themName = game.opponent;
   const usDerivedScore = getGlobalState()
-    .getInningScores(asGameId(game.id))
+    .getInningScores(game.id)
     .reduce((a, b) => a + b, 0);
 
   const overrideGameScoreUs = calculateScore(game.scoreUs);

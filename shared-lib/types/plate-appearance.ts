@@ -4,6 +4,7 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run json-schema-to-typescript to regenerate this file.
  */
+import type {TeamId, GameId, PlayerId, PlateAppearanceId, OptimizationId} from "./branded-ids";
 
 /**
  * Information about an individual plate appearance
@@ -12,11 +13,11 @@ export interface PlateAppearance {
   /**
    * Random 64-bit unique identifier for this plate appearance
    */
-  id: string;
+  id: PlateAppearanceId;
   /**
    * The id of the player who is the batter during the plate appearance
    */
-  playerId: string;
+  playerId: PlayerId;
   /**
    * The outcome of the plate appearance for the batter (e.g. BB, E, 1B, etc.)
    */

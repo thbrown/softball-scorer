@@ -7,6 +7,7 @@
   "properties": {
     "id": {
       "type": "string",
+      "tsType": "PlayerId",
       "description": "Random 64-bit unique identifier for this player"
     },
     "name": { "type": "string", "description": "Name of the player" },

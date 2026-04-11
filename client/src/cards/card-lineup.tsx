@@ -7,7 +7,8 @@ import { setRoute } from 'actions/route';
 import IconButton from '../elements/icon-button';
 import HrTitle from 'elements/hr-title';
 import { Game, PlateAppearance, Player, Team } from 'shared-lib/types';
-import { asPlayerId, asGameId, asPlateAppearanceId, asTeamId } from 'types/branded-ids';
+import { asPlayerId, asGameId } from 'types/branded-ids';
+import type { GameId } from 'types/branded-ids';
 
 // Enum for player tile render options
 const FULL_EDIT = 'fullEdit';
@@ -104,7 +105,7 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
       'Do you want to remove "' + player.name + '" from the lineup?',
       () => {
         this.simulateLineup();
-        getGlobalState().removePlayerFromLineup(asGameId(this.props.game.id), asPlayerId(player.id));
+        getGlobalState().removePlayerFromLineup(this.props.game.id, player.id);
       }
     );
     ev.stopPropagation();
@@ -122,10 +123,10 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
     );
   }.bind(this);
 
-  handleNewPlateAppearanceClick = function (player: Player, game_id: string) {
+  handleNewPlateAppearanceClick = function (player: Player, game_id: GameId) {
     const plateAppearance = getGlobalState().addPlateAppearance(
-      asPlayerId(player.id),
-      asGameId(game_id)
+      player.id,
+      game_id
     );
     setRoute(
       `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearance.id}?isNew=true`
@@ -159,8 +160,8 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
 
       const { new_position_index } = getInds(this.props.game, elem, index);
       getGlobalState().updateLineup(
-        asGameId(this.props.game.id),
-        asPlayerId(player.id),
+        this.props.game.id,
+        player.id,
         new_position_index
       );
     }
@@ -253,8 +254,8 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
     for (let i = 0; i < this.props.game.lineup.length; i++) {
       const plateAppearances: PlateAppearance[] =
         getGlobalState().getPlateAppearancesForPlayerOnTeam(
-          asPlayerId(this.props.game.lineup[i]),
-          asTeamId(this.props.team.id)
+          this.props.game.lineup[i],
+          this.props.team.id
         );
       const hits: (string | null)[] = [];
       for (let j = 0; j < plateAppearances.length; j++) {
@@ -363,8 +364,8 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
     const pas = plateAppearances.map((pa: PlateAppearance, i: number) => {
       pa = pa || {};
 
-      const didPlayerScore = getGlobalState().didPlayerScoreThisInning(asPlateAppearanceId(pa.id));
-      const isLastPaOfInning = getGlobalState().isLastPaOfInning(asPlateAppearanceId(pa.id), 'game');
+      const didPlayerScore = getGlobalState().didPlayerScoreThisInning(pa.id);
+      const isLastPaOfInning = getGlobalState().isLastPaOfInning(pa.id, 'game');
 
       const resultElement = isLastPaOfInning ? (
         <b>{pa.result || ''}</b>
@@ -571,7 +572,7 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
 
     // Find all plate appearances that don't belong to a player in the lineup
     const allPlateAppearances = getGlobalState().getPlateAppearancesForGame(
-      asGameId(this.props.game.id)
+      this.props.game.id
     ) ?? [];
     const nonLineupPlateAppearances = allPlateAppearances.filter(
       (plateAppearance) => {
@@ -605,7 +606,7 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
       playersIdsNotInLineup.forEach((playerId) => {
         getGlobalState().getPlateAppearancesForPlayerInGame(
           asPlayerId(playerId),
-          asGameId(this.props.game.id)
+          this.props.game.id
         );
         pageElems.push(
           this.renderPlayerTile(playerId, this.props.game.id, null, NO_EDIT)

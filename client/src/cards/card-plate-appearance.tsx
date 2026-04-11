@@ -10,7 +10,7 @@ import { setRoute } from 'actions/route';
 import Card from 'elements/card';
 import BallFieldSvg from 'components/ball-field-svg';
 import { PlateAppearance, Player } from 'shared-lib/types';
-import { asPlateAppearanceId } from 'types/branded-ids';
+import type { PlateAppearanceId } from 'types/branded-ids';
 
 const LOCATION_DENOMINATOR = 32767;
 
@@ -139,7 +139,7 @@ class CardPlateAppearance extends React.Component<
       this.props.previousPlateAppearance === null
         ? true
         : getGlobalState().isLastPaOfInning(
-            asPlateAppearanceId(this.props.previousPlateAppearance.id),
+            this.props.previousPlateAppearance.id,
             (this.props.origin as 'game' | 'optimization')
           );
     const previousRunners = isPreviousPaFirstPAOfInning
@@ -284,7 +284,7 @@ class CardPlateAppearance extends React.Component<
     const cleanRunners = cleanObject(newRunners);
     const outsAtPreviousPa = this.props.previousPlateAppearance
       ? getGlobalState().getOutsAtPa(
-          asPlateAppearanceId(this.props.previousPlateAppearance.id),
+          this.props.previousPlateAppearance.id,
           (this.props.origin as 'game' | 'optimization')
         ) % 3
       : 0;
@@ -798,7 +798,7 @@ class CardPlateAppearance extends React.Component<
       }
     });
 
-    const paId = asPlateAppearanceId(this.props.plateAppearance.id);
+    const paId = this.props.plateAppearance.id;
 
     const isLastPAOfInning = getGlobalState().isLastPaOfInning(
       paId,
@@ -810,7 +810,7 @@ class CardPlateAppearance extends React.Component<
       this.props.previousPlateAppearance === null
         ? true
         : getGlobalState().isLastPaOfInning(
-            asPlateAppearanceId(this.props.previousPlateAppearance.id),
+            this.props.previousPlateAppearance.id,
             (this.props.origin as 'game' | 'optimization')
           );
 
@@ -1185,7 +1185,7 @@ const CardPlateAppearanceWrapper = (props) => {
 };
 
 type ScoreInfoProps = {
-  paId: import('types/branded-ids').PlateAppearanceId;
+  paId: PlateAppearanceId;
   plateAppearance: PlateAppearance;
   runners: PlateAppearance['runners'];
   origin: 'game' | 'optimization';

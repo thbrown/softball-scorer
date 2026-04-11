@@ -4,6 +4,7 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run json-schema-to-typescript to regenerate this file.
  */
+import type {TeamId, GameId, PlayerId, PlateAppearanceId, OptimizationId} from "./branded-ids";
 
 /**
  * Information a player
@@ -12,7 +13,7 @@ export interface Player {
   /**
    * Random 64-bit unique identifier for this player
    */
-  id: string;
+  id: PlayerId;
   /**
    * Name of the player
    */

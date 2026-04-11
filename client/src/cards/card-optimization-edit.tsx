@@ -7,7 +7,6 @@ import ListButton from 'elements/list-button';
 import { goBack, goHome, setRoute } from 'actions/route';
 import IconButton from '../elements/icon-button';
 import type { Optimization } from 'shared-lib';
-import { asOptimizationId } from 'types/branded-ids';
 
 interface CardOptimizationEditProps {
   optimization: Optimization;
@@ -34,7 +33,7 @@ const CardOptimizationEdit: React.FC<CardOptimizationEditProps> = (props) => {
           : 'Are you sure you wish to discard changes to this optimization?',
         () => {
           if (props.isNew) {
-            getGlobalState().removeOptimization(asOptimizationId(props.optimization.id));
+            getGlobalState().removeOptimization(props.optimization.id);
           }
           if (type === 'home') {
             goHome();
@@ -52,7 +51,7 @@ const CardOptimizationEdit: React.FC<CardOptimizationEditProps> = (props) => {
 
   const handleConfirmClick = function (): void {
     getGlobalState().replaceOptimization(
-      asOptimizationId(props.optimization.id),
+      props.optimization.id,
       buildOptimization()
     );
     setRoute('/optimizations');
@@ -66,7 +65,7 @@ const CardOptimizationEdit: React.FC<CardOptimizationEditProps> = (props) => {
     dialog.show_confirm(
       'Are you sure you want to delete this optimization "' + optName + '"?',
       () => {
-        getGlobalState().removeOptimization(asOptimizationId(props.optimization.id));
+        getGlobalState().removeOptimization(props.optimization.id);
         goBack();
       }
     );
@@ -78,7 +77,7 @@ const CardOptimizationEdit: React.FC<CardOptimizationEditProps> = (props) => {
         optName +
         '"? This will result in a new optimization with the same players, overrides, and selected games but with status NOT_STARTED. The existing optimization will not be affected.',
       () => {
-        getGlobalState().duplicateOptimization(asOptimizationId(props.optimization.id));
+        getGlobalState().duplicateOptimization(props.optimization.id);
         goBack();
       }
     );

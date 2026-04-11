@@ -14,7 +14,6 @@ import IconButton from '../elements/icon-button';
 import { showEmailHelp } from 'utils/help-functions';
 import OptimizationPlayerStatsTable from 'components/optimization-player-stats-table';
 import type { Optimization, Team } from 'shared-lib';
-import { asOptimizationId, asPlayerId, asTeamId } from 'types/branded-ids';
 
 const OPTIMIZATION_STATUS_ENUM_INVERSE =
   SharedLib.constants.OPTIMIZATION_STATUS_ENUM_INVERSE;
@@ -159,14 +158,14 @@ export default class CardOptimization extends React.Component<
       if (parsedTeams.includes(team.id)) {
         newSet.delete(team.id);
         getGlobalState().setOptimizationField(
-          asOptimizationId(this.props.optimization.id),
+          this.props.optimization.id,
           'teamList',
           Array.from(newSet)
         );
       } else {
         newSet.add(team.id);
         getGlobalState().setOptimizationField(
-          asOptimizationId(this.props.optimization.id),
+          this.props.optimization.id,
           'teamList',
           Array.from(newSet)
         );
@@ -184,13 +183,13 @@ export default class CardOptimization extends React.Component<
       const allTeams = getGlobalState().getLocalState().teams;
       if (this.areAllTeamsSelected()) {
         getGlobalState().setOptimizationField(
-          asOptimizationId(this.props.optimization.id),
+          this.props.optimization.id,
           'teamList',
           []
         );
       } else {
         getGlobalState().setOptimizationField(
-          asOptimizationId(this.props.optimization.id),
+          this.props.optimization.id,
           'teamList',
           [...allTeams.map((team) => team.id)]
         );
@@ -201,13 +200,13 @@ export default class CardOptimization extends React.Component<
     this.handleSendEmailCheckbox = (): void => {
       if (this.props.optimization.sendEmail) {
         getGlobalState().setOptimizationField(
-          asOptimizationId(this.props.optimization.id),
+          this.props.optimization.id,
           'sendEmail',
           false
         );
       } else {
         getGlobalState().setOptimizationField(
-          asOptimizationId(this.props.optimization.id),
+          this.props.optimization.id,
           'sendEmail',
           true
         );
@@ -310,15 +309,15 @@ export default class CardOptimization extends React.Component<
       }
 
       getGlobalState().setOptimizationField(
-        asOptimizationId(this.props.optimization.id),
+        this.props.optimization.id,
         'customOptionsData',
         mergedOptions
       );
 
       // Set inputSummaryData. For display purposes, keep a snapshot of the player's name and stats at the moment
       // the optimization was started. This protects us from future stat updates and player deletions.
-      const playerIds = (this.props.optimization.playerList as string[]).map(asPlayerId);
-      const teamIds = (this.props.optimization.teamList as string[]).map(asTeamId);
+      const playerIds = this.props.optimization.playerList;
+      const teamIds = this.props.optimization.teamList;
       const overrideData = this.props.optimization.overrideData;
       const stats = getGlobalState().getActiveStatsForAllPlayers(
         overrideData,
@@ -326,7 +325,7 @@ export default class CardOptimization extends React.Component<
         teamIds
       );
       getGlobalState().setOptimizationField(
-        asOptimizationId(this.props.optimization.id),
+        this.props.optimization.id,
         'inputSummaryData',
         stats
       );
@@ -512,13 +511,13 @@ export default class CardOptimization extends React.Component<
       }
 
       // Make sure each player has at least one PA
-      for (let playerId of (optimization.playerList as string[]).map(asPlayerId)) {
+      for (let playerId of optimization.playerList) {
         let overridePAs = getGlobalState().getOptimizationOverridesForPlayer(
-          asOptimizationId(optimization.id),
+          optimization.id,
           playerId
         );
         let gamePAs: any[] = [];
-        for (let teamId of (optimization.teamList as string[]).map(asTeamId)) {
+        for (let teamId of optimization.teamList) {
           gamePAs.push(
             ...getGlobalState().getPlateAppearancesForPlayerOnTeam(
               playerId,
@@ -578,7 +577,7 @@ export default class CardOptimization extends React.Component<
       }
 
       getGlobalState().setOptimizationField(
-        asOptimizationId(this.props.optimization.id),
+        this.props.optimization.id,
         'customOptionsData',
         mergedOptions
       );
@@ -807,7 +806,7 @@ export default class CardOptimization extends React.Component<
     // Build teams checkboxes
     const allTeams = getGlobalState().getLocalState().teams;
     const teamsCheckboxes: JSX.Element[] = [];
-    const selectedTeams = optimization.teamList as string[];
+    const selectedTeams = optimization.teamList;
     const selectedTeamsSet = new Set(selectedTeams);
     if (isOptEditable) {
       // What if there are not games/teams selected?

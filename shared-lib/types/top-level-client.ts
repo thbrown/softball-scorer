@@ -4,6 +4,7 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run json-schema-to-typescript to regenerate this file.
  */
+import type {TeamId, GameId, PlayerId, PlateAppearanceId, OptimizationId} from "./branded-ids";
 
 /**
  * Data that gets sent the the client browser. Excludes private account info (password stuff)
@@ -77,7 +78,7 @@ export interface Player {
   /**
    * Random 64-bit unique identifier for this player
    */
-  id: string;
+  id: PlayerId;
   /**
    * Name of the player
    */
@@ -111,7 +112,7 @@ export interface Team {
   /**
    * Random 64-bit unique identifier for this team
    */
-  id: string;
+  id: TeamId;
   /**
    * Human identifier for this team. Opponent name is used by the app. May not be unique.
    */
@@ -129,7 +130,7 @@ export interface Game {
   /**
    * Random 64-bit unique identifier for this game
    */
-  id: string;
+  id: GameId;
   /**
    * Human identifier for the team. App prompts for the name of the opposing team. May not be unique.
    */
@@ -161,7 +162,7 @@ export interface Game {
   /**
    * Batting lineup for this game
    */
-  lineup: string[];
+  lineup: PlayerId[];
   /**
    * The type of the lineup used for this game. Typically this is a team-wide setting but specifying it under games allows for exceptions (e.g. tournaments w/ different rules). Different lineup types have different rules about what makes them valid (e.g. ALTERNATING_GENDER lineup must never bat two males or two females in a row)
    */
@@ -179,11 +180,11 @@ export interface PlateAppearance {
   /**
    * Random 64-bit unique identifier for this plate appearance
    */
-  id: string;
+  id: PlateAppearanceId;
   /**
    * The id of the player who is the batter during the plate appearance
    */
-  playerId: string;
+  playerId: PlayerId;
   /**
    * The outcome of the plate appearance for the batter (e.g. BB, E, 1B, etc.)
    */
@@ -232,7 +233,7 @@ export interface Optimization {
   /**
    * Random 64-bit unique identifier for this optimization
    */
-  id: string;
+  id: OptimizationId;
   /**
    * Human identifier, could be a nickname or a number. This may not be unique.
    */
@@ -269,15 +270,15 @@ export interface Optimization {
   /**
    * Array containing an array of team ids for which data will be used by the optimizer
    */
-  teamList: unknown[];
+  teamList: TeamId[];
   /**
    * Array containing an array of game ids for which data will be used by the optimizer
    */
-  gameList: unknown[];
+  gameList: GameId[];
   /**
    * Array containing an array of player ids that should be turned into an optimal lineup by the optimizer
    */
-  playerList: unknown[];
+  playerList: PlayerId[];
   /**
    * The type of the lineup the optimizer should return. Different lineup types have different rules about what makes them valid (e.g. ALTERNATING_GENDER lineup must never bat two males or two females in a row)
    */
@@ -301,11 +302,11 @@ export interface PlateAppearance1 {
   /**
    * Random 64-bit unique identifier for this plate appearance
    */
-  id: string;
+  id: PlateAppearanceId;
   /**
    * The id of the player who is the batter during the plate appearance
    */
-  playerId: string;
+  playerId: PlayerId;
   /**
    * The outcome of the plate appearance for the batter (e.g. BB, E, 1B, etc.)
    */

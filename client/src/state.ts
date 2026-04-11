@@ -1174,7 +1174,7 @@ export class GlobalState {
     for (const team of allTeams) {
       const playerPAsOnTeam = this.getPlateAppearancesForPlayerOnTeam(
         playerId,
-        asTeamId(team.id)
+        team.id
       );
       for (const pa of playerPAsOnTeam) {
         allPAs.push(pa);
@@ -1272,7 +1272,7 @@ export class GlobalState {
           return true;
         }
       }
-      if (this.isLastPaOfInning(asPlateAppearanceId(gamePas[i].id), 'game')) {
+      if (this.isLastPaOfInning(gamePas[i].id, 'game')) {
         return false;
       }
     }
@@ -1295,7 +1295,7 @@ export class GlobalState {
       if (!game) {
         return 0;
       }
-      pas = this.getPlateAppearancesForGame(asGameId(game.id));
+      pas = this.getPlateAppearancesForGame(game.id);
 
       // TODO: how does 'score them' do this?
     } else {
@@ -1354,13 +1354,13 @@ export class GlobalState {
       if (!optimization) {
         return 0;
       }
-      pas = this.getOptimizationOverridesForPlayer(asOptimizationId(optimization.id), asPlayerId(pa.playerId));
+      pas = this.getOptimizationOverridesForPlayer(optimization.id, pa.playerId);
     } else if (paOrigin === 'game') {
       const game = this.INDEX.getGameForPa(paId);
       if (!game) {
         return 0;
       }
-      pas = this.getPlateAppearancesForGame(asGameId(game.id));
+      pas = this.getPlateAppearancesForGame(game.id);
     } else {
       throw new Error('Invalid origin ' + paOrigin);
     }
@@ -1782,11 +1782,11 @@ export class GlobalState {
         }
 
         // Runners on base avg - this uses the state object which might be an issue if we want this to eventually be in a web worker
-        const previousPa = this.getPreviousPlateAppearance(asPlateAppearanceId(pa.id));
+        const previousPa = this.getPreviousPlateAppearance(pa.id);
         if (previousPa !== undefined) {
           // PAs in optimization overrides are don't have previous PAs
           const prevRunners = previousPa?.runners;
-          const paObjects = this.getPlateAppearanceObjects(asPlateAppearanceId(pa.id));
+          const paObjects = this.getPlateAppearanceObjects(pa.id);
           const dateWeStartedTrackingRunners = paObjects?.game?.date ?? 0;
           const isInvalidEntry = dateWeStartedTrackingRunners < 1672531200;
           if (results.getHitResults().includes(pa.result as PlateAppearanceResult)) {
@@ -1905,7 +1905,7 @@ export class GlobalState {
       } else {
         // Otherwise use the historical hitting data
         plateAppearances = this.getPlateAppearancesForPlayerInGameOrOnTeam(
-          asPlayerId(player.id),
+          player.id,
           teamIds,
           null // TODO: gameIds
         );
