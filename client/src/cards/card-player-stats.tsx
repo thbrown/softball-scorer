@@ -9,6 +9,7 @@ import IconButton from '../elements/icon-button';
 import { showStatsHelp } from 'utils/help-functions';
 import RunnersInScoringPositionStats from '../components/runners-in-scoring-position-stats';
 import type { Player, PlateAppearance } from 'shared-lib';
+import { asPlayerId, asTeamId } from 'types/branded-ids';
 
 interface PlayerTeamStats {
   teamName: string;
@@ -34,15 +35,15 @@ export default class CardPlayerStats extends React.Component<
     for (const team of allTeams) {
       const playerPAsOnTeam =
         getGlobalState().getDecoratedPlateAppearancesForPlayerOnTeam(
-          this.props.player.id,
-          team.id
+          asPlayerId(this.props.player.id),
+          asTeamId(team.id)
         );
       if (playerPAsOnTeam.length !== 0) {
         playerStatsByTeam.push({
           teamName: team.name,
           stats: getGlobalState().buildStatsObject(
             playerPAsOnTeam,
-            this.props.player.id
+            asPlayerId(this.props.player.id)
           ),
         });
       }
@@ -103,11 +104,11 @@ export default class CardPlayerStats extends React.Component<
     }
 
     const allPAs = getGlobalState().getDecoratedPlateAppearancesForPlayer(
-      this.props.player.id
+      asPlayerId(this.props.player.id)
     );
     const allTimeStats = getGlobalState().buildStatsObject(
       allPAs,
-      this.props.player.id
+      asPlayerId(this.props.player.id)
     );
     seasonStats.push(
       <tr
@@ -163,7 +164,7 @@ export default class CardPlayerStats extends React.Component<
       >
         <Spray
           decoratedPlateAppearances={getGlobalState().getDecoratedPlateAppearancesForPlayer(
-            this.props.player.id
+            asPlayerId(this.props.player.id)
           )}
         ></Spray>
         <InnerSection

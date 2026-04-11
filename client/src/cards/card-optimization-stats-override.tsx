@@ -9,6 +9,7 @@ import IconButton from '../elements/icon-button';
 import css from 'css';
 const colors = css.colors;
 import type { Optimization, Player, PlateAppearance } from 'shared-lib';
+import { asOptimizationId, asPlayerId, asTeamId } from 'types/branded-ids';
 
 const constants = SharedLib.constants;
 
@@ -42,8 +43,8 @@ export default class CardOptimizationStatsOverride extends React.Component<
 
     this.handleNewPaClick = (): void => {
       let newPa = getGlobalState().addOptimizationOverridePlateAppearance(
-        this.props.optimization.id,
-        this.props.player.id
+        asOptimizationId(this.props.optimization.id),
+        asPlayerId(this.props.player.id)
       );
       setRoute(
         `/optimizations/${this.props.optimization.id}/overrides/${this.props.player.id}/plateAppearances/${newPa.id}?isNew=true`
@@ -88,7 +89,7 @@ export default class CardOptimizationStatsOverride extends React.Component<
 
       // Set it in the state
       getGlobalState().setOptimizationField(
-        props.optimization.id,
+        asOptimizationId(props.optimization.id),
         'overrideData',
         allOverrides
       );
@@ -105,7 +106,7 @@ export default class CardOptimizationStatsOverride extends React.Component<
           );
           delete allOverrides[props.player.id];
           getGlobalState().setOptimizationField(
-            props.optimization.id,
+            asOptimizationId(props.optimization.id),
             'overrideData',
             allOverrides
           );
@@ -160,7 +161,7 @@ export default class CardOptimizationStatsOverride extends React.Component<
 
   renderPage = (): JSX.Element => {
     if (
-      !(SharedLib.constants.EDITABLE_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(
+      !(SharedLib.constants.EDITABLE_OPTIMIZATION_STATUSES_ENUM).has(
         this.props.optimization.status as number
       )
     ) {
@@ -175,8 +176,8 @@ export default class CardOptimizationStatsOverride extends React.Component<
     }
 
     let overrides = getGlobalState().getOptimizationOverridesForPlayer(
-      this.props.optimization.id,
-      this.props.player.id
+      asOptimizationId(this.props.optimization.id),
+      asPlayerId(this.props.player.id)
     );
     let overrideStats = getGlobalState().buildStatsObject(
       overrides,
@@ -216,8 +217,8 @@ export default class CardOptimizationStatsOverride extends React.Component<
     let teamAtBatButtons: JSX.Element[] = [];
     for (let team of getGlobalState().getAllTeams()) {
       let teamPAs = getGlobalState().getPlateAppearancesForPlayerOnTeam(
-        this.props.player.id,
-        team.id
+        asPlayerId(this.props.player.id),
+        asTeamId(team.id)
       );
       if (teamPAs.length > 0) {
         teamAtBatButtons.push(
@@ -226,8 +227,8 @@ export default class CardOptimizationStatsOverride extends React.Component<
             onClick={(): void =>
               this.handleAddPas(
                 getGlobalState().getPlateAppearancesForPlayerOnTeam(
-                  this.props.player.id,
-                  team.id
+                  asPlayerId(this.props.player.id),
+                  asTeamId(team.id)
                 )
               )
             }
@@ -309,7 +310,7 @@ export default class CardOptimizationStatsOverride extends React.Component<
           onClick={(): void =>
             this.handleAddPas(
               getGlobalState().getAllPlateAppearancesForPlayer(
-                this.props.player.id
+                asPlayerId(this.props.player.id)
               )
             )
           }
@@ -321,7 +322,7 @@ export default class CardOptimizationStatsOverride extends React.Component<
           Use All Available PA (
           {
             getGlobalState().getAllPlateAppearancesForPlayer(
-              this.props.player.id
+              asPlayerId(this.props.player.id)
             ).length
           }
           )

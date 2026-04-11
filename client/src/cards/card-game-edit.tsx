@@ -10,6 +10,7 @@ import FloatingSelect from 'elements/floating-select';
 import IconButton from '../elements/icon-button';
 import { showLineupTypeHelp } from 'utils/help-functions';
 import type { Game, Team } from 'shared-lib';
+import { asGameId, asTeamId } from 'types/branded-ids';
 
 interface CardGameEditProps {
   game: Game;
@@ -48,7 +49,7 @@ export default class CardGameEdit extends React.Component<
             : 'Are you sure you wish to discard changes to this game?',
           () => {
             if (props.isNew) {
-              getGlobalState().removeGame(props.game.id);
+              getGlobalState().removeGame(asGameId(props.game.id));
             }
             if (type === 'home') {
               goHome();
@@ -65,7 +66,7 @@ export default class CardGameEdit extends React.Component<
     };
 
     this.handleConfirmClick = () => {
-      getGlobalState().replaceGame(props.game.id, props.team.id, {
+      getGlobalState().replaceGame(asGameId(props.game.id), asTeamId(props.team.id), {
         ...this.state,
       });
       goBack();
@@ -81,7 +82,7 @@ export default class CardGameEdit extends React.Component<
         () => {
           // FIXME this causes a brief 404 to flash on the page
           goBack();
-          getGlobalState().removeGame(props.game.id);
+          getGlobalState().removeGame(asGameId(props.game.id));
         }
       );
     };

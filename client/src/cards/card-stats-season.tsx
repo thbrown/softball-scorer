@@ -6,6 +6,7 @@ import InnerSection from 'elements/inner-section';
 import { showStatsHelp } from 'utils/help-functions';
 import { FilterStatsModal, getUrlFilterState } from 'components/filter-stats';
 import type { Team, TopLevelClient } from 'shared-lib';
+import { asPlayerId } from 'types/branded-ids';
 
 const DSC_CHAR = '▼'; //'\25bc';
 const ASC_CHAR = '▲'; //'\25be';
@@ -184,7 +185,7 @@ export default class CardStatsSeason extends React.Component<
     const { team, inputState } = this.props;
     const plateAppearances =
       getGlobalState().getDecoratedPlateAppearancesForPlayerOnTeam(
-        playerId,
+        asPlayerId(playerId),
         (team as Team),
         inputState
       );

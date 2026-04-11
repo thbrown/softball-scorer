@@ -15,11 +15,11 @@ export const OPTIMIZATION_STATUS_ENUM = Object.freeze({
 });
 
 export const EDITABLE_OPTIMIZATION_STATUSES_ENUM = Object.freeze(
-  new Set([undefined, OPTIMIZATION_STATUS_ENUM.NOT_STARTED])
+  new Set<number | undefined>([undefined, OPTIMIZATION_STATUS_ENUM.NOT_STARTED])
 );
 
 export const STARTABLE_OPTIMIZATION_STATUSES_ENUM = Object.freeze(
-  new Set([
+  new Set<number | undefined>([
     undefined,
     OPTIMIZATION_STATUS_ENUM.NOT_STARTED,
     OPTIMIZATION_STATUS_ENUM.ERROR,
@@ -28,7 +28,7 @@ export const STARTABLE_OPTIMIZATION_STATUSES_ENUM = Object.freeze(
 );
 
 export const TERMINAL_OPTIMIZATION_STATUSES_ENUM = Object.freeze(
-  new Set([
+  new Set<number>([
     OPTIMIZATION_STATUS_ENUM.COMPLETE,
     OPTIMIZATION_STATUS_ENUM.PAUSED,
     OPTIMIZATION_STATUS_ENUM.ERROR,
@@ -36,7 +36,7 @@ export const TERMINAL_OPTIMIZATION_STATUSES_ENUM = Object.freeze(
 );
 
 export const PROGRESSING_OPTIMIZATION_STATUSES_ENUM = Object.freeze(
-  new Set([
+  new Set<number>([
     OPTIMIZATION_STATUS_ENUM.STARTING,
     OPTIMIZATION_STATUS_ENUM.ALLOCATING_RESOURCES,
     OPTIMIZATION_STATUS_ENUM.IN_PROGRESS,

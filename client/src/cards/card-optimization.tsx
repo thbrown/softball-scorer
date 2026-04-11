@@ -16,6 +16,7 @@ import IconButton from '../elements/icon-button';
 import { showEmailHelp } from 'utils/help-functions';
 import OptimizationPlayerStatsTable from 'components/optimization-player-stats-table';
 import type { Optimization } from 'shared-lib';
+import { asOptimizationId, asPlayerId, asTeamId } from 'types/branded-ids';
 
 const OPTIMIZATION_STATUS_ENUM_INVERSE =
   SharedLib.constants.OPTIMIZATION_STATUS_ENUM_INVERSE;
@@ -130,7 +131,7 @@ export default class CardOptimization extends React.Component<
       ) {
         this.previousOptimizationStatus = optimization.status as number;
         if (
-          (PROGRESSING_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(optimization.status as number) ||
+          (PROGRESSING_OPTIMIZATION_STATUSES_ENUM).has(optimization.status as number) ||
           optimization.pause
         ) {
           this.enableAutoSync();
@@ -148,14 +149,14 @@ export default class CardOptimization extends React.Component<
       if (parsedTeams.includes(team.id)) {
         newSet.delete(team.id);
         getGlobalState().setOptimizationField(
-          this.props.optimization.id,
+          asOptimizationId(this.props.optimization.id),
           'teamList',
           Array.from(newSet)
         );
       } else {
         newSet.add(team.id);
         getGlobalState().setOptimizationField(
-          this.props.optimization.id,
+          asOptimizationId(this.props.optimization.id),
           'teamList',
           Array.from(newSet)
         );
@@ -173,13 +174,13 @@ export default class CardOptimization extends React.Component<
       const allTeams = getGlobalState().getLocalState().teams;
       if (this.areAllTeamsSelected()) {
         getGlobalState().setOptimizationField(
-          this.props.optimization.id,
+          asOptimizationId(this.props.optimization.id),
           'teamList',
           []
         );
       } else {
         getGlobalState().setOptimizationField(
-          this.props.optimization.id,
+          asOptimizationId(this.props.optimization.id),
           'teamList',
           [...allTeams.map((team: any) => team.id)]
         );
@@ -190,13 +191,13 @@ export default class CardOptimization extends React.Component<
     this.handleSendEmailCheckbox = (): void => {
       if (this.props.optimization.sendEmail) {
         getGlobalState().setOptimizationField(
-          this.props.optimization.id,
+          asOptimizationId(this.props.optimization.id),
           'sendEmail',
           false
         );
       } else {
         getGlobalState().setOptimizationField(
-          this.props.optimization.id,
+          asOptimizationId(this.props.optimization.id),
           'sendEmail',
           true
         );
@@ -299,15 +300,15 @@ export default class CardOptimization extends React.Component<
       }
 
       getGlobalState().setOptimizationField(
-        this.props.optimization.id,
+        asOptimizationId(this.props.optimization.id),
         'customOptionsData',
         mergedOptions
       );
 
       // Set inputSummaryData. For display purposes, keep a snapshot of the player's name and stats at the moment
       // the optimization was started. This protects us from future stat updates and player deletions.
-      const playerIds = this.props.optimization.playerList as string[];
-      const teamIds = this.props.optimization.teamList as string[];
+      const playerIds = (this.props.optimization.playerList as string[]).map(asPlayerId);
+      const teamIds = (this.props.optimization.teamList as string[]).map(asTeamId);
       const overrideData = this.props.optimization.overrideData;
       const stats = getGlobalState().getActiveStatsForAllPlayers(
         overrideData,
@@ -315,7 +316,7 @@ export default class CardOptimization extends React.Component<
         teamIds
       );
       getGlobalState().setOptimizationField(
-        this.props.optimization.id,
+        asOptimizationId(this.props.optimization.id),
         'inputSummaryData',
         stats
       );
@@ -465,7 +466,7 @@ export default class CardOptimization extends React.Component<
     ): Promise<void> => {
       // Only request a new completion time estimate if optimization status is startable
       let optimization = this.props.optimization;
-      if (!(STARTABLE_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(optimization.status as number)) {
+      if (!(STARTABLE_OPTIMIZATION_STATUSES_ENUM).has(optimization.status as number)) {
         this.setState({
           estimatedCompletionTimeSec: null,
         });
@@ -501,13 +502,13 @@ export default class CardOptimization extends React.Component<
       }
 
       // Make sure each player has at least one PA
-      for (let playerId of optimization.playerList as string[]) {
+      for (let playerId of (optimization.playerList as string[]).map(asPlayerId)) {
         let overridePAs = getGlobalState().getOptimizationOverridesForPlayer(
-          optimization.id,
+          asOptimizationId(optimization.id),
           playerId
         );
         let gamePAs: any[] = [];
-        for (let teamId of optimization.teamList as string[]) {
+        for (let teamId of (optimization.teamList as string[]).map(asTeamId)) {
           gamePAs.push(
             ...getGlobalState().getPlateAppearancesForPlayerOnTeam(
               playerId,
@@ -567,7 +568,7 @@ export default class CardOptimization extends React.Component<
       }
 
       getGlobalState().setOptimizationField(
-        this.props.optimization.id,
+        asOptimizationId(this.props.optimization.id),
         'customOptionsData',
         mergedOptions
       );
@@ -660,7 +661,7 @@ export default class CardOptimization extends React.Component<
     this.onRenderUpdateOrMount();
 
     if (
-      (STARTABLE_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(this.props.optimization.status as number)
+      (STARTABLE_OPTIMIZATION_STATUSES_ENUM).has(this.props.optimization.status as number)
     ) {
       this.handleEstimation();
     } else {
@@ -830,7 +831,7 @@ export default class CardOptimization extends React.Component<
 
   renderOptimizationPage = (optimization: Optimization): JSX.Element => {
     const optStatus = optimization.status as number;
-    let isOptEditable = (EDITABLE_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(optStatus);
+    let isOptEditable = (EDITABLE_OPTIMIZATION_STATUSES_ENUM).has(optStatus);
 
     // Build teams checkboxes
     const allTeams = getGlobalState().getLocalState().teams;
@@ -920,7 +921,7 @@ export default class CardOptimization extends React.Component<
         </div>
       );
     } else if (
-      (PROGRESSING_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(optStatus) ||
+      (PROGRESSING_OPTIMIZATION_STATUSES_ENUM).has(optStatus) ||
       optimization.pause
     ) {
       spinner = (
@@ -1122,7 +1123,7 @@ export default class CardOptimization extends React.Component<
 
   renderResultsAccordion = (optimization: Optimization): JSX.Element => {
     let resultsStyle: Record<string, string> = {};
-    if ((EDITABLE_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(optimization.status as number)) {
+    if ((EDITABLE_OPTIMIZATION_STATUSES_ENUM).has(optimization.status as number)) {
       resultsStyle = { display: 'none' };
     }
     return (
@@ -1189,7 +1190,7 @@ export default class CardOptimization extends React.Component<
     ) {
       // Show nothing
       showToggleButton = false;
-    } else if ((STARTABLE_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(footerStatus)) {
+    } else if ((STARTABLE_OPTIMIZATION_STATUSES_ENUM).has(footerStatus)) {
       let textLookup: Record<number | string, string> = {};
       textLookup[OPTIMIZATION_STATUS_ENUM.PAUSED] = 'Resume Optimization';
       textLookup[OPTIMIZATION_STATUS_ENUM.ERROR] = 'Restart Optimization';
@@ -1240,7 +1241,7 @@ export default class CardOptimization extends React.Component<
         );
       }
     } else if (
-      (PROGRESSING_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(footerStatus)
+      (PROGRESSING_OPTIMIZATION_STATUSES_ENUM).has(footerStatus)
     ) {
       toggleButtonText = 'Pause Optimization';
       emailCheckboxDisabled = true;
@@ -1266,8 +1267,8 @@ export default class CardOptimization extends React.Component<
 
     let emailCheckbox: JSX.Element | undefined = undefined;
     if (
-      (STARTABLE_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(footerStatus) ||
-      (PROGRESSING_OPTIMIZATION_STATUSES_ENUM as Set<any>).has(footerStatus)
+      (STARTABLE_OPTIMIZATION_STATUSES_ENUM).has(footerStatus) ||
+      (PROGRESSING_OPTIMIZATION_STATUSES_ENUM).has(footerStatus)
     ) {
       emailCheckbox = (
         <label

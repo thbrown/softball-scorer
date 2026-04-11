@@ -11,6 +11,7 @@ import { setRoute } from 'actions/route';
 import Card from 'elements/card';
 import BallFieldSvg from 'components/ball-field-svg';
 import { PlateAppearance, Player } from 'shared-lib/types';
+import { asPlateAppearanceId } from 'types/branded-ids';
 
 const LOCATION_DENOMINATOR = 32767;
 
@@ -174,7 +175,7 @@ class CardPlateAppearance extends React.Component<
       this.props.previousPlateAppearance === null
         ? true
         : getGlobalState().isLastPaOfInning(
-            this.props.previousPlateAppearance.id,
+            asPlateAppearanceId(this.props.previousPlateAppearance.id),
             (this.props.origin as 'game' | 'optimization')
           );
     const previousRunners = isPreviousPaFirstPAOfInning
@@ -319,7 +320,7 @@ class CardPlateAppearance extends React.Component<
     const cleanRunners = cleanObject(newRunners);
     const outsAtPreviousPa = this.props.previousPlateAppearance
       ? getGlobalState().getOutsAtPa(
-          this.props.previousPlateAppearance.id,
+          asPlateAppearanceId(this.props.previousPlateAppearance.id),
           (this.props.origin as 'game' | 'optimization')
         ) % 3
       : 0;
@@ -825,7 +826,7 @@ class CardPlateAppearance extends React.Component<
       }
     });
 
-    const paId = this.props.plateAppearance.id;
+    const paId = asPlateAppearanceId(this.props.plateAppearance.id);
 
     const isLastPAOfInning = getGlobalState().isLastPaOfInning(
       paId,
@@ -837,7 +838,7 @@ class CardPlateAppearance extends React.Component<
       this.props.previousPlateAppearance === null
         ? true
         : getGlobalState().isLastPaOfInning(
-            this.props.previousPlateAppearance.id,
+            asPlateAppearanceId(this.props.previousPlateAppearance.id),
             (this.props.origin as 'game' | 'optimization')
           );
 
@@ -1213,7 +1214,7 @@ const CardPlateAppearanceWrapper = (props) => {
 };
 
 type ScoreInfoProps = {
-  paId: string;
+  paId: import('types/branded-ids').PlateAppearanceId;
   plateAppearance: PlateAppearance;
   runners: PlateAppearance['runners'];
   origin: 'game' | 'optimization';

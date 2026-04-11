@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import type { Optimization } from 'shared-lib';
 import { getGlobalState } from 'state';
-import { PlayerId } from 'types/branded-ids';
+import { PlayerId, asPlayerId, asTeamId } from 'types/branded-ids';
 
 interface DisplayPlayer {
   isOverride: boolean;
@@ -77,8 +77,8 @@ const OptimizationPlayerStatsTable = (props: {
   ];
 
   const displayPlayers: DisplayPlayer[] = [];
-  const playerIds = props.optimization.playerList as string[];
-  const teamIds = props.optimization.teamList as string[];
+  const playerIds = (props.optimization.playerList as string[]).map(asPlayerId);
+  const teamIds = (props.optimization.teamList as string[]).map(asTeamId);
   const overrideData = props.optimization.overrideData;
 
   // calculating stats is an expensive operation

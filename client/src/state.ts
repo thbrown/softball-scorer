@@ -1354,7 +1354,7 @@ export class GlobalState {
       if (!optimization) {
         return 0;
       }
-      pas = this.getOptimizationOverridesForPlayer(asOptimizationId(optimization.id), pa.playerId);
+      pas = this.getOptimizationOverridesForPlayer(asOptimizationId(optimization.id), asPlayerId(pa.playerId));
     } else if (paOrigin === 'game') {
       const game = this.INDEX.getGameForPa(paId);
       if (!game) {
@@ -1782,11 +1782,11 @@ export class GlobalState {
         }
 
         // Runners on base avg - this uses the state object which might be an issue if we want this to eventually be in a web worker
-        const previousPa = this.getPreviousPlateAppearance(pa.id);
+        const previousPa = this.getPreviousPlateAppearance(asPlateAppearanceId(pa.id));
         if (previousPa !== undefined) {
           // PAs in optimization overrides are don't have previous PAs
           const prevRunners = previousPa?.runners;
-          const paObjects = this.getPlateAppearanceObjects(pa.id);
+          const paObjects = this.getPlateAppearanceObjects(asPlateAppearanceId(pa.id));
           const dateWeStartedTrackingRunners = paObjects?.game?.date ?? 0;
           const isInvalidEntry = dateWeStartedTrackingRunners < 1672531200;
           if (results.getHitResults().includes(pa.result as PlateAppearanceResult)) {
@@ -1905,7 +1905,7 @@ export class GlobalState {
       } else {
         // Otherwise use the historical hitting data
         plateAppearances = this.getPlateAppearancesForPlayerInGameOrOnTeam(
-          player.id,
+          asPlayerId(player.id),
           teamIds,
           null // TODO: gameIds
         );

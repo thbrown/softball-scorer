@@ -5,6 +5,7 @@ import Loading from '../elements/loading';
 import dialog from 'dialog';
 import { getGlobalState } from 'state';
 import IconButton from './icon-button';
+import { asOptimizationId } from 'types/branded-ids';
 
 interface CustomOption {
   longLabel: string;
@@ -91,7 +92,7 @@ export default class OptimizerCustomOptions extends React.Component<OptimizerCus
       }
 
       let currentValue = getGlobalState().getOptimizationCustomOptionsDataField(
-        this.props.optimizationId,
+        asOptimizationId(this.props.optimizationId),
         value.longLabel
       );
       currentValue =

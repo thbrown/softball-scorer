@@ -8,6 +8,7 @@ import css from 'css';
 import IconButton from '../elements/icon-button';
 import HrTitle from 'elements/hr-title';
 import { Game, PlateAppearance, Player, Team } from 'shared-lib/types';
+import { asPlayerId, asGameId, asPlateAppearanceId, asTeamId } from 'types/branded-ids';
 
 // Enum for player tile render options
 const FULL_EDIT = 'fullEdit';
@@ -104,7 +105,7 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
       'Do you want to remove "' + player.name + '" from the lineup?',
       () => {
         this.simulateLineup();
-        getGlobalState().removePlayerFromLineup(this.props.game.id, player.id);
+        getGlobalState().removePlayerFromLineup(asGameId(this.props.game.id), asPlayerId(player.id));
       }
     );
     ev.stopPropagation();
@@ -124,8 +125,8 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
 
   handleNewPlateAppearanceClick = function (player: Player, game_id: string) {
     const plateAppearance = getGlobalState().addPlateAppearance(
-      player.id,
-      game_id
+      asPlayerId(player.id),
+      asGameId(game_id)
     );
     setRoute(
       `/teams/${this.props.team.id}/games/${this.props.game.id}/lineup/plateAppearances/${plateAppearance.id}?isNew=true`
@@ -138,7 +139,7 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
     });
     const elem = document.getElementById('lineup_' + player.id);
     if (elem) {
-      (elem.style as unknown as Record<string, unknown>)['z-index'] = 100;
+      elem.style.setProperty('z-index', '100');
       elem.style.position = 'absolute';
       elem.style.width = '90%';
     }
@@ -152,15 +153,15 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
     hideHighlights(true);
     const elem = document.getElementById('lineup_' + player.id);
     if (elem) {
-      (elem.style as unknown as Record<string, unknown>)['z-index'] = 'inherit';
+      elem.style.setProperty('z-index', 'inherit');
       elem.style.position = 'inherit';
-      (elem.style as unknown as Record<string, unknown>)['margin-top'] = '5px';
+      elem.style.setProperty('margin-top', '5px');
       elem.style.width = 'inherit';
 
       const { new_position_index } = getInds(this.props.game, elem, index);
       getGlobalState().updateLineup(
-        this.props.game.id,
-        player.id,
+        asGameId(this.props.game.id),
+        asPlayerId(player.id),
         new_position_index
       );
     }
@@ -179,9 +180,9 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
       // This fixes and issue that causes the element, while being dragged, to jump up the
       // width of a tile when the highlighted div above it in the dom was expanded
       if (highlight_index < index) {
-        (elem.style as unknown as Record<string, unknown>)['margin-top'] = `-${PLAYER_TILE_HEIGHT}px`;
+        elem.style.setProperty('margin-top', `-${PLAYER_TILE_HEIGHT}px`);
       } else {
-        (elem.style as unknown as Record<string, unknown>)['margin-top'] = null;
+        elem.style.removeProperty('margin-top');
       }
     }
   };
@@ -253,8 +254,8 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
     for (let i = 0; i < this.props.game.lineup.length; i++) {
       const plateAppearances: PlateAppearance[] =
         getGlobalState().getPlateAppearancesForPlayerOnTeam(
-          this.props.game.lineup[i],
-          this.props.team.id
+          asPlayerId(this.props.game.lineup[i]),
+          asTeamId(this.props.team.id)
         );
       const hits: (string | null)[] = [];
       for (let j = 0; j < plateAppearances.length; j++) {
@@ -321,7 +322,7 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
     Array.prototype.forEach.call(
       document.getElementsByClassName('lineup-row'),
       (elem: HTMLElement) => {
-        (elem.style as unknown as Record<string, unknown>)['touch-action'] = 'none';
+        elem.style.setProperty('touch-action', 'none');
       }
     );
   }
@@ -330,7 +331,7 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
     Array.prototype.forEach.call(
       document.getElementsByClassName('lineup-row'),
       (elem: HTMLElement) => {
-        (elem.style as unknown as Record<string, unknown>)['touch-action'] = null;
+        elem.style.removeProperty('touch-action');
       }
     );
   }
@@ -363,8 +364,8 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
     const pas = plateAppearances.map((pa: PlateAppearance, i: number) => {
       pa = pa || {};
 
-      const didPlayerScore = getGlobalState().didPlayerScoreThisInning(pa.id);
-      const isLastPaOfInning = getGlobalState().isLastPaOfInning(pa.id, 'game');
+      const didPlayerScore = getGlobalState().didPlayerScoreThisInning(asPlateAppearanceId(pa.id));
+      const isLastPaOfInning = getGlobalState().isLastPaOfInning(asPlateAppearanceId(pa.id), 'game');
 
       const resultElement = isLastPaOfInning ? (
         <b>{pa.result || ''}</b>
@@ -571,7 +572,7 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
 
     // Find all plate appearances that don't belong to a player in the lineup
     const allPlateAppearances = getGlobalState().getPlateAppearancesForGame(
-      this.props.game.id
+      asGameId(this.props.game.id)
     ) ?? [];
     const nonLineupPlateAppearances = allPlateAppearances.filter(
       (plateAppearance) => {
@@ -604,8 +605,8 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
       );
       playersIdsNotInLineup.forEach((playerId) => {
         getGlobalState().getPlateAppearancesForPlayerInGame(
-          playerId,
-          this.props.game.id
+          asPlayerId(playerId),
+          asGameId(this.props.game.id)
         );
         pageElems.push(
           this.renderPlayerTile(playerId, this.props.game.id, null, NO_EDIT)
@@ -622,9 +623,9 @@ export default class CardLineup extends React.Component<CardLineupProps, CardLin
     index: number | null,
     editable: string
   ) {
-    const player = getGlobalState().getPlayer(playerId)!;
+    const player = getGlobalState().getPlayer(asPlayerId(playerId))!;
     const plateAppearances =
-      getGlobalState().getPlateAppearancesForPlayerInGame(playerId, gameId) ?? [];
+      getGlobalState().getPlateAppearancesForPlayerInGame(asPlayerId(playerId), asGameId(gameId)) ?? [];
     const elems: React.JSX.Element[] = [];
     if (editable === FULL_EDIT) {
       elems.push(

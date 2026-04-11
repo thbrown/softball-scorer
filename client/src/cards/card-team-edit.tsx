@@ -7,6 +7,7 @@ import ListButton from 'elements/list-button';
 import { goBack, goHome } from 'actions/route';
 import IconButton from '../elements/icon-button';
 import type { Team } from 'shared-lib';
+import { asTeamId } from 'types/branded-ids';
 
 interface CardTeamEditProps {
   team: Team;
@@ -25,7 +26,7 @@ const CardTeamEdit: React.FC<CardTeamEditProps> = (props) => {
           : 'Are you sure you wish to discard changes to team?',
         () => {
           if (props.isNew) {
-            getGlobalState().removeTeam(props.team.id);
+            getGlobalState().removeTeam(asTeamId(props.team.id));
           }
           if (type === 'home') {
             goHome();
@@ -44,7 +45,7 @@ const CardTeamEdit: React.FC<CardTeamEditProps> = (props) => {
   const handleConfirmClick = () => {
     const newTeam = { ...team };
     delete newTeam.copiedNotificationVisible;
-    getGlobalState().replaceTeam(props.team.id, newTeam);
+    getGlobalState().replaceTeam(asTeamId(props.team.id), newTeam);
     goBack();
   };
 
@@ -58,7 +59,7 @@ const CardTeamEdit: React.FC<CardTeamEditProps> = (props) => {
       () => {
         // FIXME causes a brief 404 to flash on the page
         goBack();
-        getGlobalState().removeTeam(props.team.id);
+        getGlobalState().removeTeam(asTeamId(props.team.id));
       }
     );
     return true;

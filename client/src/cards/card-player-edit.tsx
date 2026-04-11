@@ -10,6 +10,7 @@ import network from 'network';
 import FloatingReactAsyncCreatableSelect from 'elements/floating-react-async-creatable-select';
 import IconButton from 'elements/icon-button';
 import type { Player } from 'shared-lib';
+import { asPlayerId } from 'types/branded-ids';
 
 interface YouTubeOption {
   label: string;
@@ -194,7 +195,7 @@ export default class CardPlayerEdit extends React.Component<
             : 'Are you sure you wish to discard changes to this player?',
           () => {
             if (props.isNew) {
-              getGlobalState().removePlayer(props.player.id);
+              getGlobalState().removePlayer(asPlayerId(props.player.id));
             }
             if (type === 'home') {
               goHome();
@@ -211,7 +212,7 @@ export default class CardPlayerEdit extends React.Component<
     };
 
     this.handleConfirmClick = function () {
-      getGlobalState().replacePlayer(props.player.id, buildPlayer());
+      getGlobalState().replacePlayer(asPlayerId(props.player.id), buildPlayer());
       goBack();
     };
 
@@ -225,7 +226,7 @@ export default class CardPlayerEdit extends React.Component<
           this.state.playerName +
           '"?',
         () => {
-          if (getGlobalState().removePlayer(props.player.id)) {
+          if (getGlobalState().removePlayer(asPlayerId(props.player.id))) {
             goBack();
           } else {
             dialog.show_notification(

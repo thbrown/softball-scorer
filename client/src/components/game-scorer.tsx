@@ -2,6 +2,7 @@ import React from 'react';
 import CardSection from 'elements/card-section';
 import { getGlobalState } from 'state';
 import { makeStyles } from 'css/helpers';
+import { asGameId } from 'types/branded-ids';
 
 const useScorePaperStyles = makeStyles((css) => ({
   root: {
@@ -219,7 +220,7 @@ const GameScorer = ({ teamId, gameId }) => {
   const usName = team.name;
   const themName = game.opponent;
   const usDerivedScore = getGlobalState()
-    .getInningScores(game.id)
+    .getInningScores(asGameId(game.id))
     .reduce((a, b) => a + b, 0);
 
   const overrideGameScoreUs = calculateScore(game.scoreUs);
