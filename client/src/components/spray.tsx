@@ -2,7 +2,6 @@ import React from 'react';
 import results, { PlateAppearanceResult } from 'plate-appearance-results';
 import { normalize } from 'utils/functions';
 import { compose, withState, withHandlers } from 'recompose';
-import css from 'css';
 import NoSelect from 'elements/no-select';
 import {
   HIT_TYPE_FILTERS,
@@ -173,7 +172,7 @@ const Field = enhanceField((props: any) => {
               top: y + 'px',
               border:
                 plateAppearance === props.paTooltip
-                  ? `1px solid ${css.colors.TEXT_LIGHT}`
+                  ? '1px solid var(--color-text-light)'
                   : undefined,
             }}
           />
@@ -264,10 +263,10 @@ const Spray = ({
         style={{
           margin: 'auto',
           maxWidth: '500px',
-          padding: css.spacing.xSmall,
+          padding: 'var(--spacing-x-small)',
           textAlign: 'center',
-          fontSize: css.typography.size.small,
-          color: css.colors.TEXT_GREY,
+          fontSize: 'var(--typography-size-small)',
+          color: 'var(--color-text-grey)',
         }}
       >
         Tap a ball to see info about the plate appearance.

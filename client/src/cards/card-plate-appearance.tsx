@@ -462,7 +462,7 @@ class CardPlateAppearance extends React.Component<
       draggableData.y,
       adjustedBaseCoords
     );
-    const runnerLocation = ref?.current.getAttribute('data-loc');
+    const runnerLocation = ref?.current?.getAttribute('data-loc');
 
     // Move the runners and update the state!
     // Only update if we have a valid location (player was dropped on a base)
