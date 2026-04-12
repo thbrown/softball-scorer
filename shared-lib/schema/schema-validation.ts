@@ -25,6 +25,7 @@ export type TLSchemaValue = (typeof TLSchemas)[keyof typeof TLSchemas];
 
 const ajv = new Ajv({
   allowUnionTypes: true,
+  keywords: ['tsType'],
   schemas: [
     schemaFull,
     schemaClient,
