@@ -5,27 +5,27 @@
  */
 
 :root {
-  --color-primary: #388e3c;
-  --color-primary-light: #6abf69;
-  --color-primary-dark: #00600f;
-  --color-secondary: #757575;
-  --color-secondary-light: #a4a4a4;
-  --color-secondary-dark: #494949;
-  --color-background: #F5F5F5;
-  --color-text-light: #FFFFFF;
-  --color-text-grey: #A4A4A4;
-  --color-text-dark: #000000;
-  --color-text-desc: rgba(0, 0, 0, 0.75);
-  --color-cancel: #B72A2A;
-  --color-delete: #B72A2A;
-  --color-white: #FFFFFF;
-  --color-black: #000000;
-  --color-invisible: rgba(0, 0, 0, 0);
-  --color-disabled: #aaa;
-  --color-semi-transparent: rgba(0, 0, 0, 0.25);
-  --size-icon: 24px;
-  --size-fixed-table-header-height: 28px;
-  --size-fixed-table-col-width: 80px;
+  --colors-primary: #388e3c;
+  --colors-primary-light: #6abf69;
+  --colors-primary-dark: #00600f;
+  --colors-secondary: #757575;
+  --colors-secondary-light: #a4a4a4;
+  --colors-secondary-dark: #494949;
+  --colors-background: #F5F5F5;
+  --colors-text-light: #FFFFFF;
+  --colors-text-grey: #A4A4A4;
+  --colors-text-dark: #000000;
+  --colors-text-desc: rgba(0, 0, 0, 0.75);
+  --colors-cancel: #B72A2A;
+  --colors-delete: #B72A2A;
+  --colors-white: #FFFFFF;
+  --colors-black: #000000;
+  --colors-invisible: rgba(0, 0, 0, 0);
+  --colors-disabled: #aaa;
+  --colors-semi-transparent: rgba(0, 0, 0, 0.25);
+  --sizes-icon: 24px;
+  --sizes-fixed-table-header-height: 28px;
+  --sizes-fixed-table-col-width: 80px;
   --typography-size-xx-small: 0.625rem;
   --typography-size-x-small: 0.75rem;
   --typography-size-small: 0.875rem;
