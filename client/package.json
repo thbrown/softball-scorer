@@ -7,7 +7,7 @@
     "start": "vite serve src --config ./vite.config.ts",
     "start:dev": "yarn start",
     "watch:css": "node scripts/watch-css-vars.js",
-    "generate:css-vars": "node scripts/generate-css-vars.js",
+    "generate:css-vars": "tsx scripts/generate-css-vars.ts",
     "prebuild": "yarn generate:css-vars",
     "build": "yarn typecheck && yarn clean && vite build src --config ./vite.config.ts",
     "build:css": "tsx scripts/build-css",

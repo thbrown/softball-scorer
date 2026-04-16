@@ -1,0 +1,161 @@
+import expose from 'expose';
+import React from 'react';
+
+interface WalkupSongProps {
+  songLink?: string;
+  songStart?: number;
+  width?: number | string;
+  height?: number | string;
+  noSongClickHandler?: () => void;
+}
+
+interface WalkupSongState {
+  key: number;
+}
+
+export default class WalkupSong extends expose.Component<WalkupSongProps, WalkupSongState> {
+  monitor: ReturnType<typeof setInterval> | undefined;
+  forceRender: boolean;
+  startIframeClickDetect: () => void;
+  handleOverlayClick: () => void;
+  buildUrl: (songLink: string, songStart?: number) => string;
+
+  constructor(props: WalkupSongProps) {
+    super(props);
+    this.expose();
+    this.state = {
+      key: 0,
+    };
+    this.forceRender = false;
+
+    this.startIframeClickDetect = () => {
+      // Handle walkup song clicks
+      clearInterval(this.monitor);
+      this.monitor = setInterval(() => {
+        var elem = document.activeElement;
+        if (elem && elem.tagName === 'IFRAME') {
+          clearInterval(this.monitor);
+          document.getElementById('songOverlay')?.classList.remove('gone');
+        }
+      }, 100);
+    };
+
+    this.startIframeClickDetect();
+
+    this.handleOverlayClick = () => {
+      // Reload song iframe
+      this.forceRender = true;
+      this.setState({
+        key: Math.random(),
+      });
+      document.getElementById('songOverlay')?.classList.add('gone');
+      this.startIframeClickDetect();
+    };
+
+    this.buildUrl = (songLink: string, songStart?: number) => {
+      return `https://thbrown.github.io/iframe-proxy/index.html?id=${songLink}&start=${
+        songStart ? songStart : 0
+      }`;
+    };
+  }
+
+  shouldComponentUpdate(nextProps: WalkupSongProps) {
+    if (
+      nextProps.songLink !== this.props.songLink ||
+      nextProps.songStart !== this.props.songStart ||
+      this.forceRender
+    ) {
+      this.forceRender = false;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  UNSAFE_componentWillUpdate() {
+    let song = document.getElementById('songOverlay');
+    let frame = document.getElementById('currentBatterSong');
+    const { songLink } = this.props;
+
+    if (song && frame && songLink) {
+      song.classList.add('gone');
+
+      // This is a way to prevent the iframe state changes from being persisted to browser history
+      // Iframe reloads only add to history if they are attached to the DOM on change
+      let parent = frame.parentNode;
+      if (!parent) return;
+      parent.removeChild(frame);
+      frame.setAttribute('src', this.buildUrl(songLink, this.props.songStart));
+      parent.appendChild(frame);
+      this.startIframeClickDetect();
+    }
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.monitor);
+  }
+
+  render() {
+    if (this.props.songLink) {
+      return (
+        <div
+          id="song"
+          key="song"
+          style={{
+            position: 'relative',
+            display: 'inline-block',
+            borderRadius: 'var(--border-radius-small)',
+          }}
+        >
+          <iframe
+            key={'currentBatterSong' + this.state.key}
+            id="currentBatterSong"
+            width={this.props.width}
+            height={this.props.height}
+            frameBorder="0"
+            src={this.buildUrl(this.props.songLink, this.props.songStart)}
+            allow="autoplay; encrypted-media"
+            sandbox="allow-scripts allow-same-origin"
+          />
+          <div
+            key={'songOverlay' + this.state.key}
+            id="songOverlay"
+            onClick={this.handleOverlayClick}
+            className="gone"
+            style={{
+              width: '100%',
+              height: '100%',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              zIndex: 2,
+              backgroundColor: 'black',
+              opacity: 0.1,
+            }}
+          />
+        </div>
+      );
+    } else {
+      return (
+        <div
+          id="song"
+          key="song"
+          onClick={this.props.noSongClickHandler}
+          style={{
+            width: this.props.width,
+            height: this.props.height,
+            textAlign: 'center',
+            color: 'var(--color-text-light)',
+            backgroundColor: 'var(--color-secondary)',
+            borderRadius: 'var(--border-radius-small)',
+            display: 'flex',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+          }}
+        >
+          Pick Song
+        </div>
+      );
+    }
+  }
+}

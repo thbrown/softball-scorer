@@ -4,6 +4,7 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run json-schema-to-typescript to regenerate this file.
  */
+import type {TeamId, GameId, PlayerId, PlateAppearanceId, OptimizationId} from "./branded-ids";
 
 /**
  * Account info that can be sent to the frontend/browser/client

@@ -9,13 +9,23 @@ import 'utils/polyfills';
 import dialog from 'dialog';
 import './css/main.css';
 
-const global = window as any;
-global.React = React;
+interface MainInterface {
+  render: () => void;
+}
+
+declare global {
+  interface Window {
+    React: typeof React;
+    Main: MainInterface;
+  }
+}
+
+window.React = React;
 
 const container = document.createElement('div');
 document.body.prepend(container);
 
-const Main = (global.Main = {
+const Main: MainInterface = (window.Main = {
   render: () => void 0,
 });
 
@@ -58,7 +68,7 @@ const App = (props) => {
   return (
     <DataContainer
       url="server/current-account"
-      onRequestComplete={async (data) => {
+      onRequestComplete={async (data: any) => {
         if (data.email) {
           console.log(`[AUTH] Active User: ${data.email}`);
           getGlobalState().setActiveUser(data.email);
@@ -93,7 +103,7 @@ const App = (props) => {
   root.render(<App />);
 })();
 
-let _resize_timeout: any = null;
+let _resize_timeout: ReturnType<typeof setTimeout> | null = null;
 window.addEventListener('resize', function () {
   if (_resize_timeout !== null) {
     clearTimeout(_resize_timeout);

@@ -4,12 +4,13 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run json-schema-to-typescript to regenerate this file.
  */
+import type {TeamId, GameId, PlayerId, PlateAppearanceId, OptimizationId} from "./branded-ids";
 
 export interface Optimization {
   /**
    * Random 64-bit unique identifier for this optimization
    */
-  id: string;
+  id: OptimizationId;
   /**
    * Human identifier, could be a nickname or a number. This may not be unique.
    */
@@ -46,15 +47,15 @@ export interface Optimization {
   /**
    * Array containing an array of team ids for which data will be used by the optimizer
    */
-  teamList: unknown[];
+  teamList: TeamId[];
   /**
    * Array containing an array of game ids for which data will be used by the optimizer
    */
-  gameList: unknown[];
+  gameList: GameId[];
   /**
    * Array containing an array of player ids that should be turned into an optimal lineup by the optimizer
    */
-  playerList: unknown[];
+  playerList: PlayerId[];
   /**
    * The type of the lineup the optimizer should return. Different lineup types have different rules about what makes them valid (e.g. ALTERNATING_GENDER lineup must never bat two males or two females in a row)
    */
@@ -78,11 +79,11 @@ export interface PlateAppearance {
   /**
    * Random 64-bit unique identifier for this plate appearance
    */
-  id: string;
+  id: PlateAppearanceId;
   /**
    * The id of the player who is the batter during the plate appearance
    */
-  playerId: string;
+  playerId: PlayerId;
   /**
    * The outcome of the plate appearance for the batter (e.g. BB, E, 1B, etc.)
    */

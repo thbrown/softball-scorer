@@ -9,7 +9,8 @@ import { goBack } from 'actions/route';
 import { setRoute } from 'actions/route';
 import Card from 'elements/card';
 import BallFieldSvg from 'components/ball-field-svg';
-import { PlateAppearance } from 'shared-lib/types';
+import { PlateAppearance, Player } from 'shared-lib/types';
+import type { PlateAppearanceId } from 'types/branded-ids';
 
 const LOCATION_DENOMINATOR = 32767;
 
@@ -29,7 +30,38 @@ const BASE_COORDINATES = {
   out: { top: 410, left: 55 },
 };
 
-class CardPlateAppearance extends React.Component<any, any> {
+interface CardPlateAppearanceProps {
+  plateAppearance: PlateAppearance;
+  plateAppearances: PlateAppearance[];
+  isNew: boolean;
+  remove: () => void;
+  replace: (pa: PlateAppearance) => void;
+  previousPlateAppearance?: PlateAppearance | null;
+  origin: string;
+  player: Player;
+  classes: {
+    classes: {
+      button: string;
+      buttonSelected: string;
+      [key: string]: string;
+    };
+  };
+}
+
+interface CardPlateAppearanceState {
+  resultOptionsPage: number;
+  paResult: string | null;
+  paLocationX: number | null;
+  paLocationY: number | null;
+  dragging?: boolean;
+  runners: Record<string, string | string[]>;
+  suspendTransition: boolean;
+}
+
+class CardPlateAppearance extends React.Component<
+  CardPlateAppearanceProps,
+  CardPlateAppearanceState
+> {
   isNew = false;
   mx: number | undefined;
   my: number | undefined;
@@ -108,7 +140,7 @@ class CardPlateAppearance extends React.Component<any, any> {
         ? true
         : getGlobalState().isLastPaOfInning(
             this.props.previousPlateAppearance.id,
-            this.props.origin
+            (this.props.origin as 'game' | 'optimization')
           );
     const previousRunners = isPreviousPaFirstPAOfInning
       ? {}
@@ -253,7 +285,7 @@ class CardPlateAppearance extends React.Component<any, any> {
     const outsAtPreviousPa = this.props.previousPlateAppearance
       ? getGlobalState().getOutsAtPa(
           this.props.previousPlateAppearance.id,
-          this.props.origin
+          (this.props.origin as 'game' | 'optimization')
         ) % 3
       : 0;
     const outsAtCurrentPa =
@@ -331,14 +363,18 @@ class CardPlateAppearance extends React.Component<any, any> {
   };
 
   baseRefs = {
-    '1B': React.createRef(),
-    '2B': React.createRef(),
-    '3B': React.createRef(),
-    scored: React.createRef(),
-    out: React.createRef(),
-  } as any;
+    '1B': React.createRef<HTMLDivElement>(),
+    '2B': React.createRef<HTMLDivElement>(),
+    '3B': React.createRef<HTMLDivElement>(),
+    scored: React.createRef<HTMLDivElement>(),
+    out: React.createRef<HTMLDivElement>(),
+  };
 
-  getClosestBase(xCoord, yCoord, adjBaseCoordinates): any {
+  getClosestBase(
+    xCoord: number,
+    yCoord: number,
+    adjBaseCoordinates: Record<string, { left: number; top: number }>
+  ): React.RefObject<HTMLDivElement> | undefined {
     const candidates = {
       '1B': {
         dist: distance(
@@ -426,7 +462,7 @@ class CardPlateAppearance extends React.Component<any, any> {
       draggableData.y,
       adjustedBaseCoords
     );
-    const runnerLocation = ref?.current.getAttribute('data-loc');
+    const runnerLocation = ref?.current?.getAttribute('data-loc');
 
     // Move the runners and update the state!
     // Only update if we have a valid location (player was dropped on a base)
@@ -448,7 +484,7 @@ class CardPlateAppearance extends React.Component<any, any> {
   onPlayerDrag(adjustedBaseCoords, mouseEvent, draggableData) {
     // Un-highlight all runner locations
     for (const entry in this.baseRefs) {
-      this.baseRefs[entry].current.classList.remove(
+      this.baseRefs[entry].current?.classList.remove(
         'player-location-highlight'
       );
     }
@@ -459,7 +495,7 @@ class CardPlateAppearance extends React.Component<any, any> {
       draggableData.y,
       adjustedBaseCoords
     );
-    ref.current.classList.add('player-location-highlight');
+    ref?.current?.classList.add('player-location-highlight');
   }
 
   onmouseup = (ev) => {
@@ -533,7 +569,7 @@ class CardPlateAppearance extends React.Component<any, any> {
       this.handlePreventTouchmoveWhenDragging,
       {
         passive: false,
-      } as any
+      } as AddEventListenerOptions
     );
 
     window.removeEventListener('mouseup', this.onmouseup);
@@ -610,7 +646,7 @@ class CardPlateAppearance extends React.Component<any, any> {
           }}
           className="triangle-border"
         >
-          {getGlobalState().getPlayer(playerId).name}
+          {getGlobalState().getPlayer(playerId)?.name}
         </div>
       </Draggable>
     );
@@ -713,8 +749,8 @@ class CardPlateAppearance extends React.Component<any, any> {
     // Add the indicators for all plate appearances for this player,
     // the current plate appearance will be displayed in a different color
     this.props.plateAppearances.forEach((value) => {
-      let x = -1;
-      let y = -1;
+      let x: number | null = -1;
+      let y: number | null = -1;
       let imageSrc = '/assets/baseball.svg';
 
       if (value.id === this.props.plateAppearance.id) {
@@ -728,7 +764,7 @@ class CardPlateAppearance extends React.Component<any, any> {
 
       const new_x = Math.floor(
         normalize(
-          x,
+          x ?? -1,
           0,
           LOCATION_DENOMINATOR,
           0,
@@ -737,7 +773,7 @@ class CardPlateAppearance extends React.Component<any, any> {
       );
       const new_y = Math.floor(
         normalize(
-          y,
+          y ?? -1,
           0,
           LOCATION_DENOMINATOR,
           0,
@@ -766,7 +802,7 @@ class CardPlateAppearance extends React.Component<any, any> {
 
     const isLastPAOfInning = getGlobalState().isLastPaOfInning(
       paId,
-      this.props.origin,
+      (this.props.origin as 'game' | 'optimization'),
       this.state.runners
     );
     const isPreviousPaTheFirstPAOfInning =
@@ -775,7 +811,7 @@ class CardPlateAppearance extends React.Component<any, any> {
         ? true
         : getGlobalState().isLastPaOfInning(
             this.props.previousPlateAppearance.id,
-            this.props.origin
+            (this.props.origin as 'game' | 'optimization')
           );
 
     // Determine runners object used to render
@@ -975,7 +1011,7 @@ class CardPlateAppearance extends React.Component<any, any> {
             paId={paId}
             plateAppearance={this.props.plateAppearance}
             runners={this.state.runners}
-            origin={this.props.origin}
+            origin={(this.props.origin as 'game' | 'optimization')}
           />
         </div>
         <div
@@ -1085,8 +1121,8 @@ class CardPlateAppearance extends React.Component<any, any> {
     };
     return (
       <WalkupSong
-        songLink={this.props.player.songLink}
-        songStart={this.props.player.songStart}
+        songLink={this.props.player.songLink ?? undefined}
+        songStart={this.props.player.songStart ?? undefined}
         noSongClickHandler={noSongClickHandler}
         width={100}
         height={150}
@@ -1097,7 +1133,7 @@ class CardPlateAppearance extends React.Component<any, any> {
   render() {
     const imageSrcForCurrentPa = results
       .getNoHitResults()
-      .includes(this.state.paResult)
+      .includes(this.state.paResult as any)
       ? '/assets/baseball-out.svg'
       : '/assets/baseball-hit.svg';
 
@@ -1149,10 +1185,10 @@ const CardPlateAppearanceWrapper = (props) => {
 };
 
 type ScoreInfoProps = {
-  paId: string;
+  paId: PlateAppearanceId;
   plateAppearance: PlateAppearance;
   runners: PlateAppearance['runners'];
-  origin: string;
+  origin: 'game' | 'optimization';
 };
 
 const ScoreInfo = (props: ScoreInfoProps) => {

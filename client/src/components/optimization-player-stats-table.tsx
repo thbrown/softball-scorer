@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-// import { Optimization } from 'shared-lib/types';
+import type { Optimization } from 'shared-lib';
 import { getGlobalState } from 'state';
 
 interface DisplayPlayer {
@@ -15,7 +15,7 @@ interface DisplayPlayer {
 
 const OptimizationPlayerStatsTable = (props: {
   isOptEditable: boolean;
-  optimization: any; // use Optimization type when the shared types are merged
+  optimization: Optimization;
   handleOverrideClick: (playerId: string) => void;
 }) => {
   // Build players table
@@ -76,8 +76,8 @@ const OptimizationPlayerStatsTable = (props: {
   ];
 
   const displayPlayers: DisplayPlayer[] = [];
-  const playerIds = props.optimization.playerList as string[];
-  const teamIds = props.optimization.teamList as string[];
+  const playerIds = props.optimization.playerList;
+  const teamIds = props.optimization.teamList;
   const overrideData = props.optimization.overrideData;
 
   // calculating stats is an expensive operation
