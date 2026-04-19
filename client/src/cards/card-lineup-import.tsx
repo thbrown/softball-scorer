@@ -92,7 +92,7 @@ const LineupList = (props: LineupListProps) => {
         </div>
         <ListPicker
           textClassName="lineup-import-item-text"
-          items={sortObjectsByDate(toItems([...props.team.games]) as { date: number; id: string }[], {
+          items={sortObjectsByDate(toItems([...props.team.games]), {
             isAsc: false,
           })}
           onClick={handleGameItemClick}
