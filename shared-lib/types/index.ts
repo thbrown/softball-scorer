@@ -1,30 +1,14 @@
-import { AccountPrivate } from './account-private';
-import { AccountReadOnly } from './account-read-only';
-import { Account } from './account';
-import { Game } from './game';
-import { OptimizationReadOnly } from './optimization-read-only';
-import { Optimization } from './optimization';
-import { Team } from './team';
-import { TeamReadOnly } from './team-read-only';
-import { PlateAppearance } from './plate-appearance';
-import { Player } from './player';
-import { TopLevelClient } from './top-level-client';
-import { TopLevelExport } from './top-level-export';
-import { TopLevelFull } from './top-level-full';
-
-export {
-  AccountPrivate,
-  AccountReadOnly,
-  Account,
-  Game,
-  OptimizationReadOnly,
-  Optimization,
-  Team,
-  TeamReadOnly,
-  PlateAppearance,
-  Player,
-  TopLevelClient,
-  TopLevelExport,
-  TopLevelFull,
-};
+export type { AccountPrivate } from './account-private';
+export type { AccountReadOnly } from './account-read-only';
+export type { Account } from './account';
+export type { Game } from './game';
+export type { OptimizationReadOnly } from './optimization-read-only';
+export type { Optimization } from './optimization';
+export type { Team } from './team';
+export type { TeamReadOnly } from './team-read-only';
+export type { PlateAppearance } from './plate-appearance';
+export type { Player } from './player';
+export type { TopLevelClient } from './top-level-client';
+export type { TopLevelExport } from './top-level-export';
+export type { TopLevelFull } from './top-level-full';
 export * from './branded-ids';

@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import results, { PlateAppearanceResult } from 'plate-appearance-results';
 import { normalize } from 'utils/functions';
-import { compose, withState, withHandlers } from 'recompose';
 import NoSelect from 'elements/no-select';
 import {
   HIT_TYPE_FILTERS,
@@ -130,24 +129,20 @@ const SprayTooltip = ({ plateAppearance }: { plateAppearance: DecoratedPlateAppe
     </div>
   );
 };
-const enhanceField = compose(
-  withState('paTooltip', 'setTooltip', null),
-  withHandlers({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    showTooltip: (props: any) => (pa: DecoratedPlateAppearance) => (ev: React.MouseEvent) => {
-      props.setTooltip(pa);
-      ev.stopPropagation();
-    },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    hideTooltip: (props: any) => () => {
-      props.setTooltip(null);
-    },
-  })
-);
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Field = enhanceField((props: any) => {
-  const indicators = props.decoratedPlateAppearances
+const Field = ({ decoratedPlateAppearances }: { decoratedPlateAppearances: DecoratedPlateAppearance[] }) => {
+  const [paTooltip, setTooltip] = useState<DecoratedPlateAppearance | null>(null);
+
+  const showTooltip = (pa: DecoratedPlateAppearance) => (ev: React.MouseEvent) => {
+    setTooltip(pa);
+    ev.stopPropagation();
+  };
+
+  const hideTooltip = () => {
+    setTooltip(null);
+  };
+
+  const indicators = decoratedPlateAppearances
     .map((plateAppearance: DecoratedPlateAppearance) => {
       const { x, y } = getHitPosition(plateAppearance);
       if (plateAppearance.location && x && y) {
@@ -162,7 +157,7 @@ const Field = enhanceField((props: any) => {
         return (
           <img
             id={'pa-' + plateAppearance.id}
-            onClick={props.showTooltip(plateAppearance)}
+            onClick={showTooltip(plateAppearance)}
             key={plateAppearance.id}
             src={image}
             alt={alt}
@@ -171,7 +166,7 @@ const Field = enhanceField((props: any) => {
               left: x + 'px',
               top: y + 'px',
               border:
-                plateAppearance === props.paTooltip
+                plateAppearance === paTooltip
                   ? '1px solid var(--color-text-light)'
                   : undefined,
             }}
@@ -189,8 +184,8 @@ const Field = enhanceField((props: any) => {
     <div
       id="spray-field"
       onClick={() => {
-        if (props.paTooltip) {
-          props.hideTooltip();
+        if (paTooltip) {
+          hideTooltip();
         }
       }}
       style={{
@@ -201,64 +196,58 @@ const Field = enhanceField((props: any) => {
     >
       <BallFieldSvg />
       {indicators}
-      {props.paTooltip ? (
-        <SprayTooltip plateAppearance={props.paTooltip} />
+      {paTooltip ? (
+        <SprayTooltip plateAppearance={paTooltip} />
       ) : null}
     </div>
   );
-});
+};
 
-const enhance = compose(
-  withState('filter', 'setFilter', {
+interface FilterState {
+  pastGames: number | null;
+  plateAppearanceType: string | null;
+}
+
+interface SprayProps {
+  decoratedPlateAppearances?: DecoratedPlateAppearance[];
+  hideFilter?: boolean;
+  backNavUrl?: string;
+}
+
+const Spray = ({ decoratedPlateAppearances = [], hideFilter }: SprayProps) => {
+  const [filter, setFilter] = useState<FilterState>({
     pastGames: null,
     plateAppearanceType: null,
-  }),
-  withHandlers({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setPastGamesFilter: (props: any) => (value: number) => (ev: React.MouseEvent) => {
-      props.setFilter({
-        plateAppearanceType: props.filter.plateAppearanceType,
-        pastGames: value === props.filter.pastGames ? null : value,
-      });
-      ev.preventDefault();
-    },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setPlateAppearanceTypeFilter: (props: any) => (value: string) => (ev: React.MouseEvent) => {
-      props.setFilter({
-        plateAppearanceType:
-          value === props.filter.plateAppearanceType ? null : value,
-        pastGames: props.filter.pastGames,
-      });
-      ev.preventDefault();
-    },
-  })
-);
+  });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Spray = ({
-  setPastGamesFilter,
-  setPlateAppearanceTypeFilter,
-  filter,
-  decoratedPlateAppearances,
-  hideFilter,
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-}: any) => {
+  const setPastGamesFilter = (value: number) => (ev: React.MouseEvent) => {
+    setFilter({
+      plateAppearanceType: filter.plateAppearanceType,
+      pastGames: value === filter.pastGames ? null : value,
+    });
+    ev.preventDefault();
+  };
+
+  const setPlateAppearanceTypeFilter = (value: string) => (ev: React.MouseEvent) => {
+    setFilter({
+      plateAppearanceType:
+        value === filter.plateAppearanceType ? null : value,
+      pastGames: filter.pastGames,
+    });
+    ev.preventDefault();
+  };
+
+  let filteredPAs = decoratedPlateAppearances;
   if (!hideFilter && filter.pastGames) {
-    decoratedPlateAppearances = filterByLastGames(
-      decoratedPlateAppearances,
-      filter.pastGames
-    );
+    filteredPAs = filterByLastGames(filteredPAs, filter.pastGames);
   }
   if (!hideFilter && filter.plateAppearanceType) {
-    decoratedPlateAppearances = filterByHitType(
-      decoratedPlateAppearances,
-      filter.plateAppearanceType
-    );
+    filteredPAs = filterByHitType(filteredPAs, filter.plateAppearanceType);
   }
 
   return (
     <div className="spray-body">
-      <Field decoratedPlateAppearances={decoratedPlateAppearances} />
+      <Field decoratedPlateAppearances={filteredPAs} />
       <div
         style={{
           margin: 'auto',
@@ -354,9 +343,4 @@ const Spray = ({
   );
 };
 
-Spray.defaultProps = {
-  decoratedPlateAppearances: [],
-  backNavUrl: '',
-};
-
-export default enhance(Spray);
+export default Spray;

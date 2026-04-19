@@ -1,13 +1,10 @@
 import { it, describe, expect, beforeAll, afterEach } from 'vitest';
-import Enzyme from 'enzyme';
-import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
 import { getPageWrapper } from './test-helpers';
 import { getGlobalState } from 'state';
 import mockData from './mock.json';
 import { createOptimizationUI } from './create-edit-delete.test';
 import SharedLib from 'shared-lib';
 
-Enzyme.configure({ adapter: new Adapter() });
 getGlobalState().setOffline();
 
 const TEAM_ID = '4i7WarrEmtZMxJ';

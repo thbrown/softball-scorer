@@ -1,18 +1,19 @@
-// const baseX = require('base-x');
-// const BASE62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-// const bs62 = baseX(BASE62);
-// const buffer = require('buffer').Buffer;
-// const crypto = require('crypto');
-
 import baseX from 'base-x';
 const BASE62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const bs62 = baseX(BASE62);
-import crypto from 'crypto';
+
+const toHex = (bytes: Uint8Array): string =>
+  Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+
+const fromHex = (hex: string): Uint8Array =>
+  Uint8Array.from(hex.match(/../g)!, (b) => parseInt(b, 16));
 
 // Client ids are 14 chars base 62 (e.g. 1CHDaeMNJlrvWW)
 const clientIdToServerId = function (clientId: string, accountId: number): string {
   let hexAccountId = accountId.toString(parseInt('16')).padStart(8, '0');
-  let hexId = bs62.decode(clientId).toString('hex');
+  let hexId = toHex(bs62.decode(clientId));
   let sizedHexId = hexId
     .substring(hexId.length - 24, hexId.length)
     .padStart(24, '0');
@@ -23,7 +24,7 @@ const clientIdToServerId = function (clientId: string, accountId: number): strin
 // account id of the account this entity belongs to (e.g. 000000010000d3d7203977664fdb23cf)
 const serverIdToClientId = function (serverId: string): string {
   return bs62
-    .encode(Buffer.from(serverId.replace(/-/g, '').substr(12), 'hex'))
+    .encode(fromHex(serverId.replace(/-/g, '').substr(12)))
     .padStart(14, '0');
 };
 
@@ -33,22 +34,17 @@ const getAccountIdFromServerId = function (serverId: string): number {
 };
 
 const hexToBase62 = function (hex: string): string {
-  // Filter out any dashes from uuids as well
-  return bs62.encode(Buffer.from(hex.replace(/-/g, ''), 'hex'));
+  return bs62.encode(fromHex(hex.replace(/-/g, '')));
 };
 
 const base62ToHex = function (hex: string): string {
-  return bs62.decode(hex).toString('hex');
+  return toHex(bs62.decode(hex));
 };
 
 const randomNBitId = async function (n: number = 64): Promise<string> {
-  return new Promise((resolve) => {
-    // 64 bits should allow us 100s of millions of non-colliding ids
-    // https://preshing.com/20110504/hash-collision-probabilities/
-    crypto.randomBytes(n / 8, function (err, buffer) {
-      resolve(bs62.encode(buffer));
-    });
-  });
+  const bytes = new Uint8Array(n / 8);
+  globalThis.crypto.getRandomValues(bytes);
+  return bs62.encode(bytes);
 };
 
 export default {

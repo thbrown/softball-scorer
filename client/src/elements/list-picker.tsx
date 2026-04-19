@@ -1,5 +1,4 @@
 import React from 'react';
-import { compose, withHandlers } from 'recompose';
 import NoSelect from 'elements/no-select';
 import ListButton from 'elements/list-button';
 
@@ -14,22 +13,15 @@ interface ListPickerProps {
   onClick: (item: ListPickerItem) => void;
   itemClassName?: string;
   textClassName?: string;
-  // injected by recompose
-  handleItemClick?: (item: ListPickerItem) => () => void;
 }
 
-const enhance = compose(
-  withHandlers({
-    handleItemClick: (props: ListPickerProps) => (item: ListPickerItem) => () => {
-      props.onClick(item);
-    },
-  })
-);
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ListPicker = (props: any) => {
-
-  if (props.items.length === 0) {
+const ListPicker = ({
+  items,
+  onClick,
+  itemClassName,
+  textClassName,
+}: ListPickerProps) => {
+  if (items.length === 0) {
     return (
       <div style={{ textAlign: 'center', margin: '10px', fontSize: '14pt' }}>
         No options available
@@ -38,18 +30,18 @@ const ListPicker = (props: any) => {
   }
   return (
     <div>
-      {props.items.map((item: ListPickerItem, i: number) => (
+      {items.map((item: ListPickerItem, i: number) => (
         <ListButton
           id={'list-' + item.id}
           key={item.id + i}
-          onClick={props.handleItemClick(item)}
-          className={'list-item ' + props.itemClassName}
+          onClick={() => onClick(item)}
+          className={'list-item ' + itemClassName}
         >
           <div className="centered-row">
             <NoSelect
               style={{ display: 'inline-block' }}
               div={true}
-              className={`prevent-overflow ${props.textClassName}`}
+              className={`prevent-overflow ${textClassName}`}
             >
               {item.name}
             </NoSelect>
@@ -67,6 +59,4 @@ const ListPicker = (props: any) => {
   );
 };
 
-const ListPickerEnhanced = enhance(ListPicker);
-
-export default ListPickerEnhanced;
+export default ListPicker;

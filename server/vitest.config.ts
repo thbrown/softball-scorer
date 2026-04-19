@@ -26,7 +26,7 @@ export default defineConfig((...args) => {
         ? new GithubActionsReporter()
         : 'default',
       coverage: {
-        provider: 'c8',
+        provider: 'v8',
         reporter: ['text-summary', 'lcov'],
         exclude: ['test/*', 'res/*', 'integration-tests/*'],
       },

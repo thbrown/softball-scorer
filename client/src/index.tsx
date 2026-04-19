@@ -37,7 +37,7 @@ const App = (props) => {
   };
 
   useMemo(() => {
-    if ('serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator && import.meta.env.PROD) {
       console.log('[ServiceWorker] Event registration activated');
 
       // Register the service worker when the page is loaded

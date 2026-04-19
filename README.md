@@ -6,8 +6,8 @@ Live at https://softball.app/
 
 ## Run/Build
 
-1. Install yarn `[sudo] npm install -g yarn`
-2. From this repo's root directory, run `install.sh`.
+1. Enable corepack `[sudo] npm install -g corepack && corepack enable`
+2. From this repo's root directory, run `yarn install`.
 3. From this repo's root directory run `start.sh`.
 4. Visit http://localhost:8889 in your browser.
 5. Setup any optional features using the sections below.
@@ -64,9 +64,9 @@ or
 
 Dev mode starts its own web server to serve client assets and proxies and app server requests to the app server.
 
-use `yarn start` if you want to start both dev server and softball.app server at the same time in the same terminal. This also starts a CSS watcher that auto-regenerates CSS variables when `theme.js` changes.
+use `yarn start` if you want to start both dev server and softball.app server at the same time in the same terminal. This also starts a CSS watcher that auto-regenerates CSS variables when `theme.ts` changes.
 
-Alternatively, with two terminals you can run `yarn start:client` and `yarn start:server` or go into the respective directories and run `yarn start`. If you're editing `theme.js` frequently, run `cd client && yarn watch:css` in a third terminal for auto-regeneration.
+Alternatively, with two terminals you can run `yarn start:client` and `yarn start:server` or go into the respective directories and run `yarn start`. If you're editing `theme.ts` frequently, run `cd client && yarn watch:css` in a third terminal for auto-regeneration.
 
 ## Prod
 
@@ -99,7 +99,7 @@ The application uses CSS Variables (CSS Custom Properties) generated from the th
 ### Making CSS Changes
 
 **To modify theme values:**
-1. Edit `client/src/css/theme.js`
+1. Edit `client/src/css/theme.ts`
 2. In dev mode (`yarn start`): CSS variables auto-regenerate and hot-reload ✨
 3. For manual generation: Run `yarn generate:css-vars` (or `cd client && yarn generate:css-vars`)
 
@@ -109,10 +109,10 @@ The application uses CSS Variables (CSS Custom Properties) generated from the th
 
 ### Files
 
-- `client/src/css/theme.js` - Design tokens (colors, spacing, etc.)
+- `client/src/css/theme.ts` - Design tokens (colors, spacing, etc.)
 - `client/src/css/variables.css` - Generated CSS variables (do not edit directly)
 - `client/src/css/main.css` - Main stylesheet
-- `client/scripts/generate-css-vars.js` - Generation script
+- `client/scripts/generate-css-vars.ts` - Generation script
 
 ## Deploy
 
@@ -272,8 +272,17 @@ Each of the top-level schemas described above contain a metadata property at the
 
 #### Service Worker
 
-This app contains a service worker that's used to enable offline access. The service worker is only generated and used for production builds of the app.
-You can enabled debugging (of the production code) by un-commenting `//mode: 'develop',` in the client vite config.
+This app contains a service worker that's used to enable offline access. The service worker is disabled in dev mode by default — registration is guarded by `import.meta.env.PROD` in `client/src/index.tsx`.
+
+To test the service worker in dev mode, change that condition in `index.tsx`:
+```ts
+// Change this:
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+// To this:
+if ('serviceWorker' in navigator) {
+```
+
+You can also enable Workbox debug output by un-commenting `//mode: 'develop',` in `client/vite.config.ts`.
 
 ### Google Cloud Build
 

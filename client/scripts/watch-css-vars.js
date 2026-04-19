@@ -1,5 +1,5 @@
 /**
- * Watch theme.js for changes and auto-regenerate CSS variables in dev mode
+ * Watch theme.ts for changes and auto-regenerate CSS variables in dev mode
  * This enables hot reload when theme values are modified
  */
 
@@ -7,17 +7,17 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const themeFile = path.join(__dirname, '../src/css/theme.js');
+const themeFile = path.join(__dirname, '../src/css/theme.ts');
 const variablesFile = path.join(__dirname, '../src/css/variables.css');
 
-console.log('👀 Watching theme.js for changes...');
+console.log('👀 Watching theme.ts for changes...');
 console.log(`   Theme: ${themeFile}`);
 console.log(`   Output: ${variablesFile}`);
 
 // Initial generation
 console.log('\n🔨 Generating initial CSS variables...');
 try {
-  execSync('node scripts/generate-css-vars.js', {
+  execSync('tsx scripts/generate-css-vars.ts', {
     cwd: path.join(__dirname, '..'),
     stdio: 'inherit'
   });
@@ -29,9 +29,9 @@ try {
 // Watch for changes
 fs.watch(themeFile, (eventType) => {
   if (eventType === 'change') {
-    console.log('\n🔄 theme.js changed, regenerating CSS variables...');
+    console.log('\n🔄 theme.ts changed, regenerating CSS variables...');
     try {
-      execSync('node scripts/generate-css-vars.js', {
+      execSync('tsx scripts/generate-css-vars.ts', {
         cwd: path.join(__dirname, '..'),
         stdio: 'inherit'
       });
@@ -42,4 +42,4 @@ fs.watch(themeFile, (eventType) => {
   }
 });
 
-console.log('\n✨ Watching for theme.js changes (Ctrl+C to stop)\n');
+console.log('\n✨ Watching for theme.ts changes (Ctrl+C to stop)\n');
