@@ -1278,7 +1278,7 @@ export class SoftballServer {
 
     // Everything else loads the react app and is processed on the client side
     app.get(
-      '*',
+      '/{*path}',
       wrapForErrorProcessing((req, res) => {
         const url = req.originalUrl;
         const dontWarnList = [

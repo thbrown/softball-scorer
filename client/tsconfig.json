@@ -2,7 +2,8 @@
   "compilerOptions": {
     "baseUrl": "src/",
     "types": [
-      "node"
+      "node",
+      "vite/client"
     ],
     "target": "ES2021",
     "module": "es2020",
@@ -12,7 +13,7 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "isolatedModules": false,
-    "lib": ["dom", "ES2017", "ES2021"],
+    "lib": ["dom", "ES2017", "ES2021", "ES2022.Array"],
     "removeComments": true,
     "sourceMap": true,
     "forceConsistentCasingInFileNames": true,

@@ -1,11 +1,9 @@
 import { it, describe, expect, beforeAll, afterEach } from 'vitest';
-import Enzyme from 'enzyme';
-import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
+import { act } from '@testing-library/react/pure';
 import { getGlobalState } from 'state';
 import { setRoute, setOnGoBack } from 'actions/route';
 import { getPageWrapper } from './test-helpers';
 
-Enzyme.configure({ adapter: new Adapter() });
 
 const TEST_TEAM_NAME = 'Test Team';
 const TEST_GAME_NAME = 'Test Opponent';
@@ -179,13 +177,14 @@ describe('[UI] Create/Edit/Delete', () => {
       wrapper.find('#accordion-games').hostNodes().simulate('click');
       wrapper.find('#accordion-options').hostNodes().simulate('click');
       // wrapper.find('#back-button').hostNodes().simulate('click');
-      setRoute('/optimizations');
-      wrapper.update();
+      act(() => { setRoute('/optimizations'); });
       wrapper
         .find(`#edit-optimization-${optimizationId}`)
         .hostNodes()
         .simulate('click');
+      wrapper.update();
       wrapper.find('#delete').hostNodes().simulate('click');
+      wrapper.update();
       wrapper.find('#dialog-confirm').hostNodes().simulate('click');
 
       expect(getGlobalState().getLocalState().optimizations.length).toEqual(0);

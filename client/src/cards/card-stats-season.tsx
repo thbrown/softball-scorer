@@ -1,7 +1,6 @@
 import React from 'react';
 import { getGlobalState, type StatsObject } from 'state';
 import CardSection from 'elements/card-section';
-import { StickyTable, Row, Cell } from 'react-sticky-table';
 import InnerSection from 'elements/inner-section';
 import { showStatsHelp } from 'utils/help-functions';
 import { FilterStatsModal, getUrlFilterState } from 'components/filter-stats';
@@ -194,7 +193,7 @@ export default class CardStatsSeason extends React.Component<
   renderStatsHeader = (): JSX.Element => {
     const elems = ['name'].concat(STATS_NAMES).map((statName) => {
       return (
-        <Cell key={statName}>
+        <th key={statName} style={{ padding: 0 }}>
           <div
             className={
               this.getCellClassName(statName) + ' table-cell-header-label'
@@ -205,28 +204,27 @@ export default class CardStatsSeason extends React.Component<
               {this.getHeaderText(statName)}
             </span>
           </div>
-        </Cell>
+        </th>
       );
     });
 
     return (
-      <Row
+      <tr
         key="header"
         style={{
           cursor: 'default',
-          display: 'flex',
           fontWeight: 'bold',
         }}
       >
         {elems}
-      </Row>
+      </tr>
     );
   };
 
   renderPlayerRow = (playerStats: any): JSX.Element => {
     const elems = ['name'].concat(STATS_NAMES).map((statName, i) => {
       return (
-        <Cell key={statName}>
+        <td key={statName} style={{ padding: 0 }}>
           <div
             className={this.getCellClassName(statName)}
             onClick={
@@ -235,17 +233,14 @@ export default class CardStatsSeason extends React.Component<
           >
             <span style={{ userSelect: 'none' }}>{playerStats[statName]}</span>
           </div>
-        </Cell>
+        </td>
       );
     });
 
     return (
-      <Row
-        key={playerStats.name}
-        style={{ cursor: 'default', display: 'flex' }}
-      >
+      <tr key={playerStats.name} style={{ cursor: 'default' }}>
         {elems}
-      </Row>
+      </tr>
     );
   };
 
@@ -300,11 +295,10 @@ export default class CardStatsSeason extends React.Component<
         return this.sortByState(a, b);
       });
 
-    const tableElems = [this.renderStatsHeader()].concat(
-      playerStatsList.map((playerStats: any) => {
-        return this.renderPlayerRow(playerStats);
-      })
-    );
+    const headerElem = this.renderStatsHeader();
+    const bodyElems = playerStatsList.map((playerStats: any) => {
+      return this.renderPlayerRow(playerStats);
+    });
 
     return (
       <CardSection>
@@ -322,7 +316,12 @@ export default class CardStatsSeason extends React.Component<
           </>
         ) : (
           <>
-            <StickyTable>{tableElems}</StickyTable>
+            <div className="stats-table-container">
+              <table className="stats-table">
+                <thead>{headerElem}</thead>
+                <tbody>{bodyElems}</tbody>
+              </table>
+            </div>
             <InnerSection className="stats-footer">
               <div>Tap a player name for season spray chart.</div>
             </InnerSection>

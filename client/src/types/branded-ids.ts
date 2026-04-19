@@ -1,11 +1,13 @@
 // Re-export nominal branded ID types and factory functions from shared-lib.
 // The actual Brand<T,B> definition lives in shared-lib/types/branded-ids.ts.
-export {
+export type {
   PlayerId,
   TeamId,
   GameId,
   OptimizationId,
   PlateAppearanceId,
+} from 'shared-lib';
+export {
   asPlayerId,
   asTeamId,
   asGameId,

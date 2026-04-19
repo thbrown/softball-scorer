@@ -9,7 +9,7 @@ const theme = {
   // e8e8e8 - grey
   // 0a7f23 - dark green
   // 164c09 - darker green
-  colors: {
+  color: {
     PRIMARY: '#388e3c',
     PRIMARY_LIGHT: '#6abf69',
     PRIMARY_DARK: '#00600f',
@@ -29,7 +29,7 @@ const theme = {
     DISABLED: '#aaa',
     SEMI_TRANSPARENT: 'rgba(0, 0, 0, 0.25)',
   },
-  sizes: {
+  size: {
     ICON: '24px',
     'fixed-table-header-height': '28px',
     'fixed-table-col-width': '80px',

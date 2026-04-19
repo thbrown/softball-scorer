@@ -14,14 +14,16 @@ export const normalize = function (
 
 // NOTE: Does not modify in place, it creates a new array and returns the result
 export const sortObjectsByDate = function <
-  T extends { date: number; id: string }
+  T extends { date?: number; id: string }
 >(
   listInput: T[],
   { isAsc, eqCb }: { isAsc?: boolean; eqCb?: (a: T, b: T) => number }
 ): T[] {
   const list = listInput.slice();
   return list.sort((a, b) => {
-    if (a.date === b.date) {
+    const dateA = a.date ?? 0;
+    const dateB = b.date ?? 0;
+    if (dateA === dateB) {
       if (eqCb) {
         return eqCb(a, b);
       } else {
@@ -29,9 +31,9 @@ export const sortObjectsByDate = function <
       }
     }
     if (isAsc) {
-      return a.date < b.date ? -1 : 1;
+      return dateA < dateB ? -1 : 1;
     } else {
-      return a.date < b.date ? 1 : -1;
+      return dateA < dateB ? 1 : -1;
     }
   });
 };

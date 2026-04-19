@@ -1,4 +1,4 @@
-import hasher from 'node-object-hash';
+import { hasher } from 'node-object-hash';
 
 export const factorial = function (n: number): number {
   if (n < 0 || n > 20) {

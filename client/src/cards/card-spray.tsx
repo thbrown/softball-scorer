@@ -37,8 +37,6 @@ export default class CardSpray extends React.Component<CardSprayProps> {
           Tap a location to see information about the plate appearance.
         </div>
         <Spray
-          team={this.props.team}
-          player={this.props.player}
           decoratedPlateAppearances={this.props.decoratedPlateAppearances}
         ></Spray>
       </Card>

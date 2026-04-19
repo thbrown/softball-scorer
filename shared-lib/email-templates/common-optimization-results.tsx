@@ -11,9 +11,9 @@ const getResultsAsJsx = function (result, inputSummaryData) {
 
   let optimizer = '-';
   let humanDetails = '-';
-  let bestScore = '-';
-  let bestPlayers = [];
-  let progress = '-';
+  let bestScore: string | number = '-';
+  let bestPlayers: React.JSX.Element[] = [];
+  let progress = <div>-</div>;
   let elapsedTime = '-';
   let lineupType = '-';
   if (resultData && resultData.lineup) {

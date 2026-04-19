@@ -7,14 +7,19 @@ jobs:
       - name: Greeting
         run: echo "Running tests on ${{ github.ref }} in ${{ github.repository }}."
       - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Enable corepack
+        run: corepack enable
       - name: Copy configs
         run: cp ./client/src/config.template.ts ./client/src/config.ts && cp ./server/config.template.jsonc ./server/config.jsonc
       - name: Install modules
-        run: yarn
+        run: yarn install
       - name: Build
         run: yarn build
       - name: Run tests
-        run: yarn --cwd server test:ci
+        run: yarn test:ci
       - name: Tests ✅
         if: ${{ success() }}
         run: |

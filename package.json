@@ -17,8 +17,7 @@
     "fmt:fix": "prettier client/src server/src shared-lib --write",
     "fmt:check": "prettier client/src server/src shared-lib --check",
     "lint:fix": "(cd client && yarn lint:fix) && (cd server && yarn lint:fix) && (cd shared-lib && yarn lint:fix)",
-    "lint:check": "(cd client && yarn lint:check) && (cd server && yarn lint:check) && (cd shared-lib && yarn lint:check)",
-    "postinstall": "(cd client && yarn) && (cd server && yarn) && (cd shared-lib && yarn)"
+    "lint:check": "(cd client && yarn lint:check) && (cd server && yarn lint:check) && (cd shared-lib && yarn lint:check)"
   },
   "repository": {
     "type": "git",
@@ -35,23 +34,23 @@
     "server",
     "shared-lib"
   ],
-  "dependencies": {},
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.57.0",
-    "@typescript-eslint/parser": "^7.0.2",
-    "@vitest/coverage-c8": "^0.29.7",
-    "concurrently": "^7.6.0",
-    "eslint": "^8.36.0",
-    "eslint-config-prettier": "^8.8.0",
+    "@typescript-eslint/eslint-plugin": "^8.58.2",
+    "@typescript-eslint/parser": "^8.58.2",
+    "@vitest/coverage-v8": "^4.1.4",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.25.1",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-config-react": "^1.1.7",
     "eslint-plugin-babel": "^5.3.1",
-    "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-react": "^7.32.2",
-    "prettier": "^2.2.1",
-    "tsx": "^4.7.1",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-react": "^7.37.5",
+    "prettier": "^3.8.3",
+    "tsx": "^4.21.0",
     "typescript": "^5.0.2",
-    "vite-tsconfig-paths": "^4.0.7",
-    "vitest": "^0.29.7",
-    "vitest-github-actions-reporter": "^0.10.0"
-  }
+    "vite": "^8.0.8",
+    "vitest": "^4.1.4",
+    "vitest-github-actions-reporter": "^0.11.1"
+  },
+  "packageManager": "yarn@4.14.0"
 }

@@ -1,3 +1,9 @@
+// Prevent @testing-library/react from unmounting renders between tests so that
+// tests sharing a wrapper across beforeAll/it blocks continue to work.
+process.env['RTL_SKIP_AUTO_CLEANUP'] = 'true';
+
+import { beforeEach } from 'vitest';
+
 // Setup for jest tests - provide node implementations for browser apis
 
 // const configAccessor = require('../src/config-accessor.js');
@@ -64,6 +70,12 @@ global.fetch = function (url, opts) {
   return fetch;
 };
 
+// happy-dom's requestAnimationFrame doesn't guard against undefined callbacks either.
+(global as any).requestAnimationFrame = (cb: FrameRequestCallback) => {
+  if (typeof cb === 'function') setTimeout(cb, 0);
+  return 0;
+};
+
 global.NoSleep = class NoSleepPolyfill {
   enable() {}
   disable() {}
@@ -73,7 +85,25 @@ global.NoSleep = class NoSleepPolyfill {
 delete (global as any).window.location;
 (global as any).window.location = {
   origin: `http://localhost:8888`,
+  pathname: '/',
 };
+
+// happy-dom dispatches popstate on history mutations (replaceState / pushState).
+// actions/route.ts registers window.onpopstate = () => setRoute(pathname), which
+// resets the React router state whenever the optimization card calls editQueryObject
+// (accordion open/close triggers replaceState for query-param tracking).
+// Routing in this app is driven by expose.set_state('router'), not browser history,
+// so we can safely make replaceState a no-op and suppress popstate entirely.
+// Must run in beforeEach so it re-applies after each test's module-level side-effects.
+beforeEach(() => {
+  // Suppress popstate so replaceState-based query tracking doesn't reset the route.
+  (global as any).window.onpopstate = () => {};
+  // Also neutralize replaceState itself — it's only used for accordion query params
+  // which are not relevant in the test environment.
+  if ((global as any).window.history?.replaceState) {
+    (global as any).window.history.replaceState = () => {};
+  }
+});
 
 // Webworkers - we'll need to actually make this fully featured to test web workers
 class MockWorker {

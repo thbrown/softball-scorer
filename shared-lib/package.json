@@ -17,8 +17,18 @@
   "bugs": {
     "url": "https://github.com/thbrown/softball-scorer/issues"
   },
+  "dependencies": {
+    "base-x": "^5.0.1",
+    "fast-json-patch": "^3.1.1",
+    "jsonpointer": "^5.0.1",
+    "node-object-hash": "^3.1.1"
+  },
   "devDependencies": {
+    "@types/react": "^18.2.57",
+    "@types/react-dom": "^18.2.19",
     "ajv": "^8.12.0",
-    "json-schema-to-typescript": "^13.1.2"
+    "json-schema-to-typescript": "^13.1.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   }
 }

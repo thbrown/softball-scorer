@@ -7,15 +7,12 @@ import {
   afterEach,
   vitest,
 } from 'vitest';
-import Enzyme from 'enzyme';
-import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
 import { getPageWrapper } from './test-helpers';
 import { getGlobalState } from 'state';
 import { setRoute } from 'actions/route';
 import mockData from './mock.json';
 import SharedLib from 'shared-lib';
 
-Enzyme.configure({ adapter: new Adapter() });
 
 describe('[UI] Game Stats', () => {
   let wrapper = null;

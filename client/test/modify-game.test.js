@@ -1,6 +1,4 @@
 import { it, describe, expect, beforeAll, afterEach } from 'vitest';
-import Enzyme from 'enzyme';
-import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
 import { getPageWrapper } from './test-helpers';
 import { getGlobalState } from 'state';
 import mockData from './mock.json';
@@ -8,7 +6,6 @@ import { createGameUI } from './create-edit-delete.test';
 import { setRoute } from 'actions/route';
 import SharedLib from 'shared-lib';
 
-Enzyme.configure({ adapter: new Adapter() });
 
 const TEAM_ID = '4i7WarrEmtZMxJ';
 

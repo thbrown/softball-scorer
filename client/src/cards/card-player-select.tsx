@@ -270,7 +270,6 @@ export default class CardPlayerSelect extends React.Component<
           isMulti
           styles={this.customStyles}
           options={this.state.options}
-          autosize={false}
           closeMenuOnSelect={false}
           blurInputOnSelect={false}
           backspaceRemovesValue={false}

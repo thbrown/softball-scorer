@@ -1,20 +1,13 @@
 import { defineConfig } from 'vitest/config';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import path from 'path';
 import GithubActionsReporter from 'vitest-github-actions-reporter';
 
 const absolutePathAliases: Record<string, string> = {};
 
 export default defineConfig((...args) => {
-  const rootPath = './';
-
   const config = {
-    plugins: [
-      tsconfigPaths({
-        projects: [rootPath + 'tsconfig.vitest.json'],
-      }),
-    ],
     resolve: {
+      tsconfigPaths: true,
       alias: {
         src: path.resolve('src/'),
         ...absolutePathAliases,
@@ -26,7 +19,7 @@ export default defineConfig((...args) => {
         ? new GithubActionsReporter()
         : 'default',
       coverage: {
-        provider: 'c8',
+        provider: 'v8',
         reporter: ['text-summary', 'lcov'],
         exclude: ['test/*', 'res/*', 'integration-tests/*'],
       },
