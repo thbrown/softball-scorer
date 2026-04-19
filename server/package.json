@@ -12,6 +12,10 @@
     "lint:check": "eslint --ext .ts,.js src",
     "lint:fix": "eslint --ext .ts,.js --fix src"
   },
+  "devDependencies": {
+    "vitest": "^4.1.4",
+    "vitest-github-actions-reporter": "^0.11.1"
+  },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",
     "@types/express": "^5.0.6",
