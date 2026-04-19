@@ -1,5 +1,4 @@
 import { defineConfig } from 'vitest/config';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import path from 'path';
 import { readdirSync } from 'fs';
 import react from '@vitejs/plugin-react';
@@ -22,9 +21,6 @@ export default defineConfig((...args) => {
 
   const config = {
     plugins: [
-      tsconfigPaths({
-        projects: [rootPath + 'tsconfig.vitest.json'],
-      }),
       react(),
     ],
     resolve: {

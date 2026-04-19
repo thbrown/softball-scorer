@@ -54,7 +54,7 @@ const makeEl = (elOrSelector) => {
         console.log(`[accordion] replaceState writable=${desc?.writable} | fn=${window.history.replaceState?.toString().slice(0,40)}`);
       }
       if (event === 'click') {
-        fireEvent.click(el);
+        act(() => { fireEvent.click(el); });
       } else if (event === 'change') {
         // Normalize value to string — DOM events always coerce to string, and
         // handlers in this codebase use parseInt/parseFloat to convert back.
