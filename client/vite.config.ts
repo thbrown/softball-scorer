@@ -105,6 +105,11 @@ export default defineConfig((...args) => {
     ],
     root: '.', // specified from the root.
     base: '/',
+    css: {
+      lightningcss: {
+        errorRecovery: true,
+      },
+    },
     resolve: {
       tsconfigPaths: true,
     },
@@ -114,7 +119,7 @@ export default defineConfig((...args) => {
       assetsDir: './',
       cssCodeSplit: false,
       copyPublicDir: true, // This was done by the copy plugin instead, why?
-      sourcemap: 'true',
+      sourcemap: true,
       rollupOptions: {
         plugins: [
           copy({

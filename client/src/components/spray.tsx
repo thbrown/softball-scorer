@@ -237,12 +237,12 @@ const Spray = ({ decoratedPlateAppearances = [], hideFilter }: SprayProps) => {
     ev.preventDefault();
   };
 
-  let filteredPAs = decoratedPlateAppearances;
+  let filteredPAs: DecoratedPlateAppearance[] = decoratedPlateAppearances;
   if (!hideFilter && filter.pastGames) {
-    filteredPAs = filterByLastGames(filteredPAs, filter.pastGames);
+    filteredPAs = filterByLastGames(filteredPAs as any, filter.pastGames) as unknown as DecoratedPlateAppearance[];
   }
   if (!hideFilter && filter.plateAppearanceType) {
-    filteredPAs = filterByHitType(filteredPAs, filter.plateAppearanceType);
+    filteredPAs = (filterByHitType(filteredPAs as any, filter.plateAppearanceType as any) ?? filteredPAs) as unknown as DecoratedPlateAppearance[];
   }
 
   return (
