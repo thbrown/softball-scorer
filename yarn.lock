@@ -3776,6 +3776,7 @@ __metadata:
     cross-env: "npm:^7.0.3"
     file-saver: "npm:^2.0.5"
     happy-dom: "npm:^20.9.0"
+    idb: "npm:^8.0.3"
     jsonpointer: "npm:^5.0.1"
     lz-string: "npm:^1.5.0"
     postcss: "npm:^8.5.10"
@@ -6286,6 +6287,13 @@ __metadata:
   version: 7.1.1
   resolution: "idb@npm:7.1.1"
   checksum: 10c0/72418e4397638797ee2089f97b45fc29f937b830bc0eb4126f4a9889ecf10320ceacf3a177fe5d7ffaf6b4fe38b20bbd210151549bfdc881db8081eed41c870d
+  languageName: node
+  linkType: hard
+
+"idb@npm:^8.0.3":
+  version: 8.0.3
+  resolution: "idb@npm:8.0.3"
+  checksum: 10c0/421cd9a3281b7564528857031cc33fd9e95753f8191e483054cb25d1ceea7303a0d1462f4f69f5b41606f0f066156999e067478abf2460dfcf9cab80dae2a2b2
   languageName: node
   linkType: hard
 

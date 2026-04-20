@@ -14,7 +14,11 @@ import StateContainer from 'state-container';
 import { LsMigrationError, LsSchemaVersionError } from './state-errors';
 
 import dialog from 'dialog';
-import { LocalStorageStorage, InMemoryStorage } from './state-storage';
+import {
+  IndexedDBStorage,
+  InMemoryStorage,
+  type StateStorage,
+} from './state-storage';
 import type {
   TopLevelClient,
   Game,
@@ -150,12 +154,12 @@ export class GlobalState {
   LOCAL_DB_STATE_CONT: StateContainer;
   INDEX: StateIndex;
   prohibitSync: boolean;
-  storage: LocalStorageStorage | InMemoryStorage;
+  storage: StateStorage;
 
   constructor(
     stateContainer?: StateContainer,
     index?: StateIndex,
-    storage: LocalStorageStorage | InMemoryStorage = new LocalStorageStorage(),
+    storage: StateStorage = new IndexedDBStorage(),
     prohibitSync = false
   ) {
     // Application State - State that applies across windows/tabs. Stored in local storage and in memory.
@@ -1959,10 +1963,10 @@ export class GlobalState {
     );
   }
 
-  loadLocalState(loadState = true, loadApplicationState = true): void {
+  async loadLocalState(loadState = true, loadApplicationState = true): Promise<void> {
     try {
       if (loadState) {
-        const savedState = this.storage.getDbState();
+        const savedState = await this.storage.getDbState();
         if (savedState?.local && savedState?.ancestor) {
           this.LOCAL_DB_STATE_CONT.set(savedState.local);
           this.ANCESTOR_DB_STATE_CONT.set(savedState.ancestor);
@@ -1979,9 +1983,7 @@ export class GlobalState {
           this.activeUser
         );
       } else if (e instanceof LsMigrationError) {
-        // We have bad data in ls, delete it all
-        console.warn('Error loading state from localstorage', e);
-        console.warn(e);
+        console.warn('Error loading state from storage', e);
         this.storage.clearStorage();
       } else {
         throw e;
@@ -1989,7 +1991,7 @@ export class GlobalState {
     }
 
     if (loadApplicationState) {
-      const applicationState = this.storage.getApplicationState();
+      const applicationState = await this.storage.getApplicationState();
       if (applicationState) {
         this.online = applicationState.online ? applicationState.online : true;
         this.sessionValid = applicationState.sessionValid
@@ -2095,13 +2097,7 @@ export class GlobalState {
 
   _onEdit(): void {
     reRender();
-    try {
-      this.storage.saveDbState(this.getLocalState(), this.getAncestorState());
-    } catch (e) {
-      console.warn('Could not persist edit locally, restoring. ', e);
-      this.loadLocalState(true, false);
-      reRender();
-    }
+    this.storage.saveDbState(this.getLocalState(), this.getAncestorState());
     this.scheduleSync();
   }
 
@@ -2158,61 +2154,28 @@ export class GlobalState {
     }
   }
 
-  getLocalStorageUsage(): { players: number; teams: number; optimizations: number; system: number; total: number } {
-    let total = 0;
-    let players = 0;
-    let teams = 0;
-    let optimizations = 0;
-    let xLen = 0;
-    let x: string;
-    for (x in localStorage) {
-      if (!Object.prototype.hasOwnProperty.call(localStorage, x)) {
-        continue;
-      }
-      xLen = (localStorage[x].length + x.length) * 2;
+  getStorageUsage(): { players: number; teams: number; optimizations: number; system: number; total: number } {
+    const state = this.getLocalState();
 
-      if (x === 'LOCAL_DB_STATE') {
-        const appState = JSON.parse(localStorage['LOCAL_DB_STATE']) as Record<string, unknown>;
-        for (const y in appState) {
-          const yLen = (JSON.stringify(appState[y]).length + y.length) * 2;
-          if (y === 'players') {
-            players += yLen;
-          } else if (y === 'teams') {
-            teams += yLen;
-          } else if (y === 'optimizations') {
-            optimizations += yLen;
-          }
-        }
-      }
-      total += xLen;
-      //console.log(x.substr(0, 50) + ' = ' + (xLen / 1024).toFixed(2) + ' KB');
-    }
+    const playersJson = JSON.stringify(state.players);
+    const teamsJson = JSON.stringify(state.teams);
+    const optimizationsJson = JSON.stringify(state.optimizations);
+    const totalJson = JSON.stringify(state);
 
-    // We multiply by 2 twice because:
-    // 1) UTF-16 requires 2 bytes per character
-    // 2) We need to store each character twice, both in local an ancestor
+    const players = playersJson.length * 2;
+    const teams = teamsJson.length * 2;
+    const optimizations = optimizationsJson.length * 2;
+    const total = totalJson.length * 2;
+    const system = total - players - teams - optimizations;
+
+    // We multiply by 2 because we store both local and ancestor copies
     return {
       players: (players / 1024) * 2,
       teams: (teams / 1024) * 2,
       optimizations: (optimizations / 1024) * 2,
-      system:
-        ((total - teams * 2 - players * 2 - optimizations * 2) / 1024) * 2,
+      system: (system / 1024) * 2,
       total: (total / 1024) * 2,
     };
-    /*
-  console.log('Playe = ' + ((players / 1024) * 2).toFixed(2) + ' KB');
-  console.log('Teams = ' + ((teams / 1024) * 2).toFixed(2) + ' KB');
-  console.log('Optim = ' + ((optimizations / 1024) * 2).toFixed(2) + ' KB');
-  console.log(
-    'Syste = ' +
-      (
-        ((total - teams * 2 - players * 2 - optimizations * 2) / 1024) *
-        2
-      ).toFixed(2) +
-      ' KB'
-  );
-  console.log('Total = ' + (total / 1024).toFixed(2) + ' KB');
-  */
   }
 
   /**

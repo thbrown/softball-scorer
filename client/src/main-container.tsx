@@ -7,6 +7,10 @@ import CardLoading from 'cards/card-loading';
 import DataContainer from 'elements/data-container';
 import { Dialog } from 'dialog';
 import config from './config';
+import {
+  IndexedDBStorage,
+  migrateLocalStorageToIDB,
+} from './state-storage';
 
 const noSleep = new window.NoSleep();
 
@@ -55,20 +59,33 @@ export default class MainContainer extends expose.Component<MainContainerProps, 
     };
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     // TODO: if(test) logic should be removed and we should find a way to mock problematic APIs
     if (!this.props.test) {
-      // Load data from browser storage
-      getGlobalState().loadLocalState();
+      // Initialize IndexedDB and migrate any existing localStorage data
+      const idbStorage = getGlobalState().storage as IndexedDBStorage;
+      await idbStorage.initialize();
+      await migrateLocalStorageToIDB(idbStorage);
 
-      // Reload from local storage each time after the window regains focus
+      // Load data from browser storage
+      await getGlobalState().loadLocalState();
+
+      // Reload from storage each time after the window regains focus
       window.addEventListener(
         'focus',
         () => {
-          getGlobalState().loadLocalState();
+          void getGlobalState().loadLocalState();
         },
         false
       );
+
+      // Sync immediately when the page is hidden (screen lock, app switch, tab hide)
+      // so pending edits aren't lost if the browser kills the page before the normal delay fires
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          getGlobalState().scheduleSync(0);
+        }
+      });
 
       // Enable wake lock. (must be wrapped in a user input event handler)
       document.addEventListener('click', enableNoSleep, false);
