@@ -1,3 +1,4 @@
+import { openDB, type IDBPDatabase } from 'idb';
 import SharedLib, { type TopLevelClient } from 'shared-lib';
 import { LsMigrationError, LsSchemaVersionError } from './state-errors';
 
@@ -21,37 +22,19 @@ export interface DbState {
 
 export interface StateStorage {
   saveDbState(localState: TopLevelClient, ancestorState: TopLevelClient): void;
-  getDbState(): DbState | undefined;
+  getDbState(): Promise<DbState | undefined>;
   saveApplicationState(
     online: boolean,
     sessionValid: boolean,
     activeUser: string | null
   ): void;
-  getApplicationState(): ApplicationState | null;
+  getApplicationState(): Promise<ApplicationState | null>;
   clearStorage(): void;
 }
 
-/**
- * Separate out the localstorage stuff from the getGlobalState().
- *
- * We should probably re-work this so that that ONLY the ls calls are here and the rest goes back in the main state class
- */
 export class LocalStorageStorage implements StateStorage {
   saveDbState(localState: TopLevelClient, ancestorState: TopLevelClient): void {
     if (typeof Storage !== 'undefined') {
-      /*
-      // Disable compression for now
-      let compressedLocalState = LZString.compress(
-        JSON.stringify(localState)
-      );
-      let compressedAncestorState = LZString.compress(
-        JSON.stringify(ancestorState)
-      );
-
-      localStorage.setItem("SCHEMA_VERSION", CURRENT_LS_SCHEMA_VERSION);
-      localStorage.setItem("LOCAL_DB_STATE", compressedLocalState);
-      localStorage.setItem("ANCESTOR_DB_STATE", compressedAncestorState);
-      */
       SharedLib.schemaValidation.validateSchema(localState, TLSchemas.CLIENT);
       SharedLib.schemaValidation.validateSchema(
         ancestorState,
@@ -64,9 +47,8 @@ export class LocalStorageStorage implements StateStorage {
     }
   }
 
-  getDbState(): DbState | undefined {
+  getDbState(): Promise<DbState | undefined> {
     if (typeof Storage !== 'undefined') {
-      // We could migrate the localstorage data here, or we can just be lazy and delete it
       if (localStorage.getItem(SCHEMA_VERSION) !== CURRENT_LS_SCHEMA_VERSION) {
         console.warn(`Invalid localStorage data ${Object.keys(localStorage)}`);
         throw new LsSchemaVersionError(
@@ -76,7 +58,6 @@ export class LocalStorageStorage implements StateStorage {
         );
       }
 
-      // Retrieve, update, and validate getGlobalState(). Do nothing if anything in this process fails.
       try {
         const localDbStateStr = localStorage.getItem(LOCAL_DB_STATE);
         let localDbState: TopLevelClient | null = null;
@@ -112,19 +93,18 @@ export class LocalStorageStorage implements StateStorage {
           }
         }
 
-        // Apply changes if there were no errors - we want both of them to update or none of them
         if (localDbState && ancestorDbState) {
-          return {
+          return Promise.resolve({
             local: localDbState,
             ancestor: ancestorDbState,
-          };
+          });
         }
       } catch (e) {
         console.warn(e);
         throw new LsMigrationError('Bad data in local storage');
       }
     }
-    return undefined;
+    return Promise.resolve(undefined);
   }
 
   saveApplicationState(
@@ -146,9 +126,9 @@ export class LocalStorageStorage implements StateStorage {
     }
   }
 
-  getApplicationState(): ApplicationState | null {
+  getApplicationState(): Promise<ApplicationState | null> {
     const appStateStr = localStorage.getItem('APPLICATION_STATE');
-    return appStateStr ? JSON.parse(appStateStr) : null;
+    return Promise.resolve(appStateStr ? JSON.parse(appStateStr) : null);
   }
 
   clearStorage(): void {
@@ -169,14 +149,14 @@ export class InMemoryStorage implements StateStorage {
     this.ancestorState = ancestorState;
   }
 
-  getDbState(): DbState | undefined {
+  getDbState(): Promise<DbState | undefined> {
     if (this.localState && this.ancestorState) {
-      return {
+      return Promise.resolve({
         local: this.localState,
         ancestor: this.ancestorState,
-      };
+      });
     }
-    return undefined;
+    return Promise.resolve(undefined);
   }
 
   saveApplicationState(
@@ -189,15 +169,15 @@ export class InMemoryStorage implements StateStorage {
     this.activeUser = activeUser;
   }
 
-  getApplicationState(): ApplicationState | null {
+  getApplicationState(): Promise<ApplicationState | null> {
     if (this.online !== undefined && this.sessionValid !== undefined) {
-      return {
+      return Promise.resolve({
         online: this.online,
         sessionValid: this.sessionValid,
         activeUser: this.activeUser ?? null,
-      };
+      });
     }
-    return null;
+    return Promise.resolve(null);
   }
 
   clearStorage(): void {
@@ -206,5 +186,168 @@ export class InMemoryStorage implements StateStorage {
     this.online = undefined;
     this.sessionValid = undefined;
     this.activeUser = undefined;
+  }
+}
+
+const IDB_NAME = 'softball-scorer-db';
+const IDB_VERSION = 1;
+
+export class IndexedDBStorage implements StateStorage {
+  private db: IDBPDatabase | null = null;
+
+  private pendingLocal?: TopLevelClient;
+  private pendingAncestor?: TopLevelClient;
+  private flushScheduled = false;
+  private pendingFlush: Promise<void> = Promise.resolve();
+
+  async initialize(): Promise<void> {
+    this.db = await openDB(IDB_NAME, IDB_VERSION, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains('meta')) {
+          db.createObjectStore('meta');
+        }
+        if (!db.objectStoreNames.contains('state')) {
+          db.createObjectStore('state');
+        }
+        if (!db.objectStoreNames.contains('appState')) {
+          db.createObjectStore('appState');
+        }
+      },
+    });
+  }
+
+  saveDbState(localState: TopLevelClient, ancestorState: TopLevelClient): void {
+    SharedLib.schemaValidation.validateSchema(localState, TLSchemas.CLIENT);
+    SharedLib.schemaValidation.validateSchema(ancestorState, TLSchemas.CLIENT);
+
+    this.pendingLocal = localState;
+    this.pendingAncestor = ancestorState;
+
+    if (!this.flushScheduled) {
+      this.flushScheduled = true;
+      this.pendingFlush = Promise.resolve().then(() => this._flush());
+    }
+  }
+
+  flush(): Promise<void> {
+    return this.pendingFlush;
+  }
+
+  private async _flush(): Promise<void> {
+    this.flushScheduled = false;
+    if (!this.db || !this.pendingLocal || !this.pendingAncestor) return;
+    const local = this.pendingLocal;
+    const ancestor = this.pendingAncestor;
+    try {
+      const tx = this.db.transaction(['meta', 'state'], 'readwrite');
+      tx.objectStore('meta').put(CURRENT_LS_SCHEMA_VERSION, SCHEMA_VERSION);
+      tx.objectStore('state').put(local, LOCAL_DB_STATE);
+      tx.objectStore('state').put(ancestor, ANCESTOR_DB_STATE);
+      await tx.done;
+    } catch (e) {
+      console.error('[IDB] Write failed:', e);
+    }
+  }
+
+  async getDbState(): Promise<DbState | undefined> {
+    if (!this.db) return undefined;
+
+    const version = await this.db.get('meta', SCHEMA_VERSION);
+    if (version === undefined) {
+      // No data stored yet
+      return undefined;
+    }
+    if (version !== CURRENT_LS_SCHEMA_VERSION) {
+      throw new LsSchemaVersionError(
+        `Out of date IDB schema. Version was ${version} latest is ${CURRENT_LS_SCHEMA_VERSION}`
+      );
+    }
+
+    try {
+      let localDbState: TopLevelClient | undefined = await this.db.get(
+        'state',
+        LOCAL_DB_STATE
+      );
+      let ancestorDbState: TopLevelClient | undefined = await this.db.get(
+        'state',
+        ANCESTOR_DB_STATE
+      );
+
+      if (!localDbState || !ancestorDbState) return undefined;
+
+      SharedLib.schemaMigration.updateSchema(null, localDbState, 'client');
+      SharedLib.schemaValidation.validateSchema(localDbState, TLSchemas.CLIENT);
+      SharedLib.schemaMigration.updateSchema(null, ancestorDbState, 'client');
+      SharedLib.schemaValidation.validateSchema(
+        ancestorDbState,
+        TLSchemas.CLIENT
+      );
+
+      return { local: localDbState, ancestor: ancestorDbState };
+    } catch (e) {
+      console.warn(e);
+      throw new LsMigrationError('Bad data in IndexedDB');
+    }
+  }
+
+  saveApplicationState(
+    online: boolean,
+    sessionValid: boolean,
+    activeUser: string | null
+  ): void {
+    if (!this.db) return;
+    const appState: ApplicationState = { online, sessionValid, activeUser };
+    this.db
+      .put('appState', appState, 'APPLICATION_STATE')
+      .catch((e) => console.error('[IDB] appState write failed:', e));
+  }
+
+  async getApplicationState(): Promise<ApplicationState | null> {
+    if (!this.db) return null;
+    return (await this.db.get('appState', 'APPLICATION_STATE')) ?? null;
+  }
+
+  clearStorage(): void {
+    this.pendingLocal = undefined;
+    this.pendingAncestor = undefined;
+    if (!this.db) return;
+    Promise.all([
+      this.db.clear('meta'),
+      this.db.clear('state'),
+      this.db.clear('appState'),
+    ]).catch((e) => console.error('[IDB] clear failed:', e));
+  }
+}
+
+export async function migrateLocalStorageToIDB(
+  idb: IndexedDBStorage
+): Promise<void> {
+  const existing = await idb.getDbState();
+  if (existing) return; // IDB already has data, skip migration
+
+  const ls = new LocalStorageStorage();
+  try {
+    const lsState = await ls.getDbState();
+    if (!lsState) return;
+
+    idb.saveDbState(lsState.local, lsState.ancestor);
+
+    const appState = await ls.getApplicationState();
+    if (appState) {
+      idb.saveApplicationState(
+        appState.online,
+        appState.sessionValid,
+        appState.activeUser
+      );
+    }
+
+    // Wait for the IDB transaction to fully commit before clearing localStorage
+    await idb.flush();
+
+    ls.clearStorage();
+    console.log('[IDB] Migrated data from localStorage to IndexedDB');
+  } catch (e) {
+    // No valid localStorage data or corrupt — start fresh
+    console.log('[IDB] No localStorage data to migrate:', e);
   }
 }

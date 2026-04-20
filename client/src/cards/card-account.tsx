@@ -116,7 +116,7 @@ export default class CardAccount extends Component<Record<string, never>> {
 
   render() {
     const MAX_LOCAL_STORAGE = 5000; // To keep cross-browser behavior consistent, we'll lock this at 5MB, some browsers can do more
-    let localStorageUsage = getGlobalState().getLocalStorageUsage();
+    let localStorageUsage = getGlobalState().getStorageUsage();
 
     let emailSection = getGlobalState().isEmailValidated() ? undefined : (
       <div>
