@@ -7,10 +7,6 @@ import CardLoading from 'cards/card-loading';
 import DataContainer from 'elements/data-container';
 import { Dialog } from 'dialog';
 import config from './config';
-import {
-  IndexedDBStorage,
-  migrateLocalStorageToIDB,
-} from './state-storage';
 
 const noSleep = new window.NoSleep();
 
@@ -62,12 +58,7 @@ export default class MainContainer extends expose.Component<MainContainerProps, 
   async componentDidMount() {
     // TODO: if(test) logic should be removed and we should find a way to mock problematic APIs
     if (!this.props.test) {
-      // Initialize IndexedDB and migrate any existing localStorage data
-      const idbStorage = getGlobalState().storage as IndexedDBStorage;
-      await idbStorage.initialize();
-      await migrateLocalStorageToIDB(idbStorage);
-
-      // Load data from browser storage
+      await getGlobalState().storage.initialize();
       await getGlobalState().loadLocalState();
 
       // Reload from storage each time after the window regains focus
