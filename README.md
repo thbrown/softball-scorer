@@ -1,298 +1,155 @@
 # Softball.app
 
-## A web app for live recording batting data and leveraging that data to optimize lineups for Softball teams. And walkup songs too ☻!
+A web app for live recording batting data and leveraging that data to optimize lineups for softball teams. And walkup songs too ☻!
 
 Live at https://softball.app/
 
-## Run/Build
+## Quick Start (local dev)
 
-1. Enable corepack `[sudo] npm install -g corepack && corepack enable`
-2. From this repo's root directory, run `yarn install`.
-3. From this repo's root directory run `start.sh`.
-4. Visit http://localhost:8889 in your browser.
-5. Setup any optional features using the sections below.
+1. Enable corepack: `corepack enable`
+2. `yarn install` (also copies config templates on first run)
+3. `yarn start`
+4. Visit http://localhost:8889
 
-## Format/Lint
+## Format / Lint
 
-Check for format errors:
-`yarn fmt:check`
-
-Fix format errors:
-`yarn fmt:fix`
-
-Check for lint errors:
-`yarn lint:check`
-
-Fix lint errors:
-`yarn lint:fix`
+```
+yarn fmt:check      # check formatting
+yarn fmt:fix        # auto-fix formatting
+yarn lint:check     # check lint
+yarn lint:fix       # auto-fix lint
+```
 
 ## Testing
 
-By default vitest runs in watch mode. If you want to run tests with a "pass"/"fail" then run the :prod version.
-
-### Unit tests
-
 ```
-# run all tests
-yarn test
-
-# run client tests
-cd client
-yarn test
-
-#run server tests
-cd server
-yarn test
+yarn test                        # all tests
+cd client && yarn test           # client only
+cd server && yarn test           # server only
+cd client && npx vitest run <file>  # single file
 ```
-
-You can run tests one module at a time with npx:
-
-`cd client`
-`npx vitest run <file-name>`
 
 ### Playwright UI tests
 
-To run the client and server must be running `../start.sh`
-
-From the root directory invoke `(cd ./playwright-test && npx playwright test)` to run the UI tests headless
-
-or
-
-`(cd ./playwright-test && npx playwright test --headed)` to watch the tests run in the browser
-
-## Dev
-
-Dev mode starts its own web server to serve client assets and proxies and app server requests to the app server.
-
-use `yarn start` if you want to start both dev server and softball.app server at the same time in the same terminal. This also starts a CSS watcher that auto-regenerates CSS variables when `theme.ts` changes.
-
-Alternatively, with two terminals you can run `yarn start:client` and `yarn start:server` or go into the respective directories and run `yarn start`. If you're editing `theme.ts` frequently, run `cd client && yarn watch:css` in a third terminal for auto-regeneration.
-
-## Prod
-
-Production uses the app server to serve all client web assets.
-
-If you would like to run the prod build do the following.
+Requires the app to be running (`yarn start`).
 
 ```
-# build client js code, which produces <git root>/build/*
-`yarn build`
-
-# run server in prod mode which serves from <git root>/build/*
-`yarn start:prod`
-
-# All together
-`yarn build && yarn start:prod`
+cd playwright-test && npx playwright test           # headless
+cd playwright-test && npx playwright test --headed  # with browser
 ```
 
-## CSS Build System
+## Dev mode
 
-The application uses CSS Variables (CSS Custom Properties) generated from the theme configuration.
+`yarn start` runs the Vite dev server, the app server, and a CSS variable watcher together.
 
-### How it works
+Alternatively run them separately:
+- `yarn start:client` — Vite dev server (http://localhost:8889)
+- `yarn start:server` — app server (http://localhost:8888)
+- `cd client && yarn watch:css` — regenerate CSS variables on theme changes
 
-1. **Theme Source**: `client/src/css/theme.js` is the single source of truth for design tokens (colors, spacing, typography, etc.)
-2. **Generation**: Running `yarn generate:css-vars` converts theme.js into `client/src/css/variables.css` with CSS variables
-3. **Usage**: CSS files use `var(--color-primary)` syntax to reference theme values
-4. **Build Integration**: The `prebuild` hook automatically regenerates CSS variables before each build
-
-### Making CSS Changes
-
-**To modify theme values:**
-1. Edit `client/src/css/theme.ts`
-2. In dev mode (`yarn start`): CSS variables auto-regenerate and hot-reload ✨
-3. For manual generation: Run `yarn generate:css-vars` (or `cd client && yarn generate:css-vars`)
-
-**To modify styles:**
-- Edit `client/src/css/main.css` directly (uses CSS variables)
-- Changes will hot-reload automatically in development mode
-
-### Files
-
-- `client/src/css/theme.ts` - Design tokens (colors, spacing, etc.)
-- `client/src/css/variables.css` - Generated CSS variables (do not edit directly)
-- `client/src/css/main.css` - Main stylesheet
-- `client/scripts/generate-css-vars.ts` - Generation script
-
-## Deploy
-
-From scratch:
+## Prod build
 
 ```
-# Create a new GCP compute instance (debian):
-sudo apt-get install -y git-core
-sudo apt-get install curl
-git clone lone https://github.com/thbrown/softball-sim.git
-curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install screen
-screen
-yarn
-yarn build # or `./gcp-build.sh` if you encounter get memory limitations with local build
-yarn start:prod
-# Detach screen session (ctrl+A, ctrl+D)
+yarn build          # compile client → build/
+yarn start:prod     # serve from build/ on port 8888
 ```
 
-On an already running machine:
+## CSS
 
-1. Login to Google Cloud Platform
-2. Open a web ssh session on the compute instance the application is running on
-3. Type `screen -r`
-4. Kill the app/web server (ctrl+c)
-5. `git pull`
-6. Update any config (uncommon)
-7. `yarn build` or `./gcp-build.sh` if you encounter get memory limitations with local build && yarn start:prod`
-8. `yarn start:prod`
-9. Detach screen session (ctrl+A, ctrl+D)
+Theme tokens live in `client/src/css/theme.ts`. The `prebuild` hook auto-generates `client/src/css/variables.css` before each build. In dev mode the watcher handles it automatically. To regenerate manually: `yarn generate:css-vars`.
+
+## Deploy (GCP)
+
+Run `deploy/setup.sh` on the VM — it works on both fresh instances and existing ones:
+
+```bash
+bash deploy/setup.sh
+```
+
+The script handles: system packages, Node.js 24, corepack/Yarn, git pull, `yarn install`, Cloud Build, Ops Agent (Cloud Logging), and starting the server in a `screen` session named `softball`.
+
+**Manual steps the script can't do:**
+1. Fill in secrets in `server/config.jsonc` (created from template on first run)
+2. Set `"logging": { "toFile": true, "format": "json" }` in `server/config.jsonc` to enable Cloud Logging
+3. Grant `roles/logging.logWriter` to the VM's service account (GCP Console → IAM)
+4. Nginx / SSL — set up separately if needed (see Optional features below)
+
+See `deploy/README.md` for Cloud Logging query examples and details.
 
 ## Optional features
 
-The app will run without any of these enabled, but you can enable these for a production-like experience:
+The app runs without any of these, but they're needed for a full production setup:
 
-- Cloud storage for persistent storage (uses file system storage by default - see `./database` after using the app)
-- Nginx as a reverse proxy to enable TLS and rate limiting (no reverse proxy by default, un-encrypted, runs on port 8888, no rate limiting)
-- Cloud compute for running optimizations
-- Email via mailgun
+### Cloud storage
 
-### Cloud storage setup
+In `server/config.jsonc`, set `database.mode` to `GcpBuckets` and supply bucket names:
 
-1. Acquire a Google Cloud Platform (GCP) account.
-1. Install the google cloud SDK (https://cloud.google.com/sdk/docs/install-sdk)
-1. In the server `config.js` of this app, specify `GcpBuckets` mode and bucket names, like so:
-
-```
-database: {
-   mode: 'GcpBuckets',
-   bucketNames: {
-      data: 'sba-data',
-      emailLookup: 'sba-email-lookup',
-      tokenLookup: 'sba-token-lookup',
-      publicIdLookup: 'sba-public-id-lookup',
-   },
-},
+```jsonc
+"database": {
+  "mode": "GcpBuckets",
+  "bucketNames": {
+    "data": "your-data-bucket",
+    "emailLookup": "your-email-lookup-bucket",
+    "tokenLookup": "your-token-lookup-bucket",
+    "publicIdLookup": "your-public-id-lookup-bucket"
+  }
+}
 ```
 
-1. Edit the bucket names, bucket names must be globally unique and these ones will be taken.
+Bucket names must be globally unique. On a GCP instance set the "Access Scope" to storage read/write. Locally, authenticate with `gcloud auth application-default login`.
 
-1. Auth your machine and set proper permissions so the storage calls will succeed:
+### Nginx (reverse proxy + TLS)
 
-If you are running from a gcp compute instance, you can set "access scope" on instance create. The "Access Scope" required to use GCP storage is read/write or full.
-
-If you are running on a local developer instance, you can auth with your Google credentials using the following command (using gcloud command line tools):
-
-```
-gcloud auth application-default login
-
+```bash
+sudo apt-get install nginx certbot python3-certbot-nginx
 ```
 
-You'll need to add the storage admin or editor rolls to the account you log in as.
+1. `sudo nano /etc/nginx/nginx.conf` — configure to proxy port 80 → localhost:8888; comment out all HTTPS blocks for now
+2. `sudo systemctl restart nginx`
+3. `sudo certbot certonly --nginx` — obtain TLS cert
+4. `sudo openssl dhparam -dsaparam 4096 -out /etc/ssl/certs/dhparam.pem` — generate DH params (improves security score); manually create the file first if the command fails
+5. `sudo nano /etc/nginx/nginx.conf` — uncomment the HTTPS blocks, point to the cert paths certbot printed
+6. `sudo systemctl restart nginx`
+7. Optionally enable auto-renewal: `sudo certbot renew --dry-run`
 
-If you still get errors about permissions after setting IAM, you'll need to check to make sure the bucket names in the config are globally unique.
+### Email (Mailgun)
 
-For details and other ways to authenticate, see https://cloud.google.com/docs/authentication/provide-credentials-adc
+In `server/config.jsonc`:
 
-### Nginx (as reverse proxy)
-
-#### Linux
-
-1. `sudo apt-get install nginx`
-1. `sudo nano /etc/nginx/nginx.conf`
-   Running on port 80, comment out all https related things
-   TODO: publish nginx config
-1. `sudo systemctl restart nginx`
-1. `sudo apt-get install certbot python-certbot-nginx`
-1. `sudo certbot certonly --nginx`
-1. `sudo openssl dhparam -dsaparam 4096 -out /etc/ssl/certs/dhparam.pem` Generate dhparam.pem to improve security score, make sure this exists after you create it or Nginx will fail to start. I had to manually create `/etc/ssl/certs/dhparam.pem` and then run the command.
-1. `sudo nano /etc/nginx/nginx.conf`
-   Add back all the commented out https stuff
-1. `sudo systemctl restart nginx`
-1. Shut down the server, move it to port 8888, restart it
-1. Optionally enable automatic renewals `sudo certbot renew --dry-run`
-
-#### Windows
-
-TODO
-
-### Cloud compute
-
-TODO
-
-### Email
-
-Get an api key from mailgun then you put that API key in the server config file (`src-srv/config.js`) which is generated from `config-template.js` when start the app server for the first time.
-
-```
-email: {
-apiKey: 'yourapikeygoeshere',
-domain: 'mg.softball.app',
-restrictEmailsToDomain: 'softball.app', // Only allow emails to softball.app (in development we don't want to email randos by accident, set to null in production)
-},
+```jsonc
+"email": {
+  "apiKey": "your-mailgun-key",
+  "domain": "mg.softball.app",
+  "restrictEmailsToDomain": null
+}
 ```
 
-## Development:
+### Cloud compute for optimizations
 
-### Schema
+Set `optimizationCompute.mode` to `"gcp"` in `server/config.jsonc` and supply the GCP params.
 
-Data is passed to the backend via JSON and database implementations are responsible for persisting it.
+## Schema
 
-The JSON schemas for this application are defined in `/shared/schema` and are defined using JSON Schema (https://json-schema.org/specification.html)
+Data is passed to the backend as JSON; all schemas are in `shared/schema` (JSON Schema format).
 
-#### Types of fields
+**Field access levels:**
+- `public` (no suffix) — client read/write
+- `private` — never sent to client
+- `read-only` — client can read but not patch
 
-The JSON schema files are named with the following suffixes. We can mix and match these in other schema files to get the validations we need.
+**Top-level schemas:**
+- `Full` — all data, used for DB layer
+- `Client` — excludes private fields, validated in browser
+- `Export` — excludes private and read-only fields, used for import/export
 
-- public (or no suffix) - Client has read/write access to the field.
-- private - This filed will never be sent ot the client.
-- read-only - This field cen be read by the client but can not be updated by the client via sync (the patch(..) method in the db files).
+Each schema has a `metadata` node with `version` (migration serial) and `scope`.
 
-#### Top level schemas
+**To modify the schema:**
+1. Edit files in `shared/schema`
+2. Add a migration in `shared/schema/schema-migration.js` and bump `CURRENT_VERSION`
+3. Update `shared/schema/schema-validation.js` for any new private/read-only fields
+4. Update `server/src/patch-manager.ts` if new fields need patch restrictions
 
-These are the schema files we actually do the validation against, they reference the other schema files in the schema directory.
+## Service worker
 
-- Full - All data associate with an account. This is what gets sent to the db layer.
-- Client - Excludes private fields (e.g. password hashes). This schema is used to validate the JSON document stored by the browser.
-- Export - Excludes the account node. Also excludes all private and all read-only fields. This schema is used to validate data handled by the export/import feature.
-
-Note: JSON schema allows for the specification of a "readOnly" keyword. We don't use it because it doesn't have any affect on validation and the recommendation is to use the readOnly property to perform pre-processing (https://github.com/ajv-validator/ajv/issues/909) and generate READ or WRITE schemas accordingly. I don't want to write a JSON parser that does this, so we'll just define our read-only fields in their own files.
-
-#### Schema metadata
-
-Each of the top-level schemas described above contain a metadata property at their root. The metadata node consists of two properties
-
-- Version - serial integer number, used in schema migration
-- Scope - what top-level schema the document should be validated against [full, client, or export]
-
-#### To modify the schema
-
-1. Make your changes to the json schema files located in `./shared/schema`.
-1. Define how existing JSON documents should be updated to match your new schema in `./shared/schema/schema-migration.js`
-1. Increment `CURRENT_VERSION` at the top of `./shared/schema/schema-migration.js`
-1. If you've added read-only or private fields you may need to write code to convert between different schema types in `./shared/schema/schema-validation.js`
-1. If you've added read-only or private fields you may need to write code to prevent insecure patches in `./src-srv/patch-manager.js`
-1. Write your code to use your new schema!
-
-#### Service Worker
-
-This app contains a service worker that's used to enable offline access. The service worker is disabled in dev mode by default — registration is guarded by `import.meta.env.PROD` in `client/src/index.tsx`.
-
-To test the service worker in dev mode, change that condition in `index.tsx`:
-```ts
-// Change this:
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-// To this:
-if ('serviceWorker' in navigator) {
-```
-
-You can also enable Workbox debug output by un-commenting `//mode: 'develop',` in `client/vite.config.ts`.
-
-### Google Cloud Build
-
-Note: this is broken, because the file structure has changed. Should be fixable, but isn't as important because the new GCP free instance manage memory better and can build the app just fine.
-
-Cloud build:
-
-```
-cd scripts
-./gcp-build.sh
-cd ..
-yarn start
-```
+The service worker is disabled in dev by default (guarded by `import.meta.env.PROD` in `client/src/index.tsx`). To test it in dev, remove that condition. Enable Workbox debug output by uncommenting `mode: 'develop'` in `client/vite.config.ts`.

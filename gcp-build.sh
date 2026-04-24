@@ -19,7 +19,7 @@ gsutil -m rm -r "gs://${PROJECT}_cloudbuild/*"
 
 # Start a new build
 echo "Building Project ${PROJECT}"
-gcloud builds submit --config cloudbuild.yml
+gcloud builds submit --config deploy/cloudbuild.yml
 
 ## Copy the build directory to local
 echo "Pulling build artifacts from storage bucket ${PROJECT}"

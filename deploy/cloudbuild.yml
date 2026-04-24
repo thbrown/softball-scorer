@@ -1,7 +1,10 @@
 steps:
-  - name: node:22
+  - name: node:24
+    entrypoint: corepack
+    args: ['enable']
+  - name: node:24
     entrypoint: yarn
-  - name: node:22
+  - name: node:24
     entrypoint: yarn
     args: ['build']
   - name: "gcr.io/cloud-builders/gcloud-slim"
