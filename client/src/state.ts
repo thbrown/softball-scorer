@@ -2066,9 +2066,10 @@ export class GlobalState {
     this.syncTimerTimestamp = Date.now();
 
     this.syncTimer = setTimeout(() => {
+      const stateAtFire = this.getSyncState();
       if (
-        this.getSyncState() === SYNC_STATUS_ENUM.IN_PROGRESS ||
-        currentState === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
+        stateAtFire === SYNC_STATUS_ENUM.IN_PROGRESS ||
+        stateAtFire === SYNC_STATUS_ENUM.IN_PROGRESS_AND_PENDING
       ) {
         console.log('[SYNC] There is already a sync in progress');
         this.scheduleSync(SYNC_DELAY_MS);
@@ -2202,7 +2203,8 @@ export class GlobalState {
 
   /**
    * Perform a network request.
-   * Will update the state's "isOnline" variable based on the call's success or failure
+   * Will update the state's "isOnline" variable based on the call's success or failure.
+   * Does NOT treat 401/403 as session-invalidating — use requestAuth for authenticated endpoints.
    */
   async request<T = unknown>(
     method: string,
@@ -2217,7 +2219,7 @@ export class GlobalState {
       body,
       controller,
       overrideTimeout,
-      true
+      false
     );
   }
 }

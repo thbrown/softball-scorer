@@ -71,11 +71,21 @@ export default class MainContainer extends expose.Component<MainContainerProps, 
       );
 
       // Sync immediately when the page is hidden (screen lock, app switch, tab hide)
-      // so pending edits aren't lost if the browser kills the page before the normal delay fires
+      // so pending edits aren't lost if the browser kills the page before the normal delay fires.
+      // We flush local storage first — the network sync may not complete before the browser
+      // kills the tab, but the IDB flush gives us a local recovery point.
       document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
+          void getGlobalState().storage.flush();
           getGlobalState().scheduleSync(0);
         }
+      });
+
+      // pagehide fires even when the browser is about to discard the tab entirely
+      // (iOS back/forward cache, mobile app-switch kill). Flush IDB synchronously-ish
+      // via the existing deferred write before we lose the chance.
+      window.addEventListener('pagehide', () => {
+        void getGlobalState().storage.flush();
       });
 
       // Enable wake lock. (must be wrapped in a user input event handler)

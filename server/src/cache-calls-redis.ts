@@ -5,8 +5,9 @@ import zlib from 'zlib';
 import logger from './logger';
 import { CacheService } from './service-types';
 
-const LOCK_EXPIRATION_SEC = 20;
+const LOCK_EXPIRATION_SEC = 120;
 const CACHE_TTL_SEC = 8 * 24 * 60 * 60; // 8 days, should cover weekly usage
+const ANCESTOR_TTL_SEC = CACHE_TTL_SEC;
 
 /**
  * This cache implementation uses redis to store sessions and data that must be shared between app servers
@@ -164,7 +165,9 @@ export default class CacheCalls implements CacheService {
       .toString('base64');
     await this.setAsync(
       `ancestor:acct:${accountId}:sess:${sessionId}`,
-      deflated
+      deflated,
+      'EX',
+      ANCESTOR_TTL_SEC
     );
   }
 

@@ -32,6 +32,9 @@ export interface StateStorage {
   ): void;
   getApplicationState(): Promise<ApplicationState | null>;
   clearStorage(): void;
+  // Wait for any pending asynchronous writes to land (e.g., the deferred IDB flush).
+  // Synchronous implementations may resolve immediately.
+  flush(): Promise<void>;
 }
 
 function migrateAndValidate(state: TopLevelClient): void {
@@ -127,6 +130,10 @@ export class LocalStorageStorage implements StateStorage {
   clearStorage(): void {
     localStorage.clear();
   }
+
+  flush(): Promise<void> {
+    return Promise.resolve();
+  }
 }
 
 export class InMemoryStorage implements StateStorage {
@@ -181,6 +188,10 @@ export class InMemoryStorage implements StateStorage {
     this.sessionValid = undefined;
     this.activeUser = undefined;
   }
+
+  flush(): Promise<void> {
+    return Promise.resolve();
+  }
 }
 
 const IDB_NAME = 'softball-scorer-db';
@@ -216,10 +227,27 @@ export class IndexedDBStorage implements StateStorage {
     if (existing) return;
 
     const ls = new LocalStorageStorage();
+    let lsState;
     try {
-      const lsState = await ls.getDbState();
-      if (!lsState) return;
+      lsState = await ls.getDbState();
+    } catch (e) {
+      if (e instanceof LsSchemaVersionError) {
+        // Stale LS schema — nothing to migrate, clear it so we don't re-hit this path
+        console.warn('[IDB] Skipping migration, localStorage has stale schema:', e);
+        ls.clearStorage();
+        return;
+      }
+      if (e instanceof LsMigrationError) {
+        // Corrupt LS data — surface to the caller so loadLocalState can reset and notify
+        console.warn('[IDB] localStorage data is unreadable, aborting migration');
+        throw e;
+      }
+      console.log('[IDB] Unexpected error reading localStorage:', e);
+      return;
+    }
+    if (!lsState) return;
 
+    try {
       this.saveDbState(lsState.local, lsState.ancestor);
 
       const appState = await ls.getApplicationState();
@@ -235,7 +263,7 @@ export class IndexedDBStorage implements StateStorage {
       ls.clearStorage();
       console.log('[IDB] Migrated data from localStorage to IndexedDB');
     } catch (e) {
-      console.log('[IDB] No localStorage data to migrate:', e);
+      console.warn('[IDB] Failed to migrate localStorage to IndexedDB:', e);
     }
   }
 
