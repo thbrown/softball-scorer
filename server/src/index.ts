@@ -5,6 +5,9 @@ import * as context from './context';
 
 // Fake top-level async
 async function runServer() {
+  // Initialize logging (opens the log-file stream if logging.toFile is enabled in config)
+  logger.initLogs();
+
   // Log on interruptions
   process.on('SIGINT', function () {
     logger.log('sys', 'SIGINT');

@@ -1,0 +1,36 @@
+# Google Cloud Ops Agent configuration for the softball.app server.
+#
+# Install on the VM as /etc/google-cloud-ops-agent/config.yaml, then:
+#   sudo systemctl restart google-cloud-ops-agent
+#
+# The server must be configured with `"logging": { "toFile": true, "format": "json" }`
+# in server/config.jsonc so it writes one structured JSON line per entry to the file
+# this agent tails.
+#
+# Adjust `include_paths` to match the absolute location of `server/logs/server.log`
+# on this VM.
+
+logging:
+  receivers:
+    softball_server:
+      type: files
+      include_paths:
+        - /home/*/softball-scorer/server/logs/server.log
+      record_log_file_path: false
+
+  processors:
+    # Parse the JSON line and promote fields (severity, time, accountId, etc.) into
+    # structured Cloud Logging fields. Entries keep their severity mapping and
+    # source location automatically because the logger emits Cloud-Logging-canonical
+    # field names.
+    parse_softball_json:
+      type: parse_json
+
+  service:
+    pipelines:
+      softball_pipeline:
+        receivers: [softball_server]
+        processors: [parse_softball_json]
+
+# Metrics pipeline left at defaults — the Ops Agent still collects host CPU/mem/disk
+# automatically without any config below this line.

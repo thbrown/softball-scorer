@@ -30,7 +30,12 @@
   },
   "logging": {
     "toFile": false,
-    "colorOff": false
+    "colorOff": false,
+    // "json" emits one structured JSON line per entry (recommended for production — Cloud
+    // Logging's Ops Agent parses these into queryable fields). "text" keeps the legacy
+    // tab-separated human-readable format. Omit to auto-select based on whether stdout is
+    // a TTY (dev terminal → text, systemd/screen-redirected/docker → json).
+    "format": null
   },
   "email": {
     "apiKey": null,
