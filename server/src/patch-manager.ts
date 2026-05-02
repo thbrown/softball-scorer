@@ -2,7 +2,10 @@ import logger from './logger';
 import SharedLib from 'shared-lib';
 
 // Don't add integers to PROHIBITED_KEYS, they will prohibit adds/edits to arrays at that index
-// TODO: it would be great if we could get this from the json schema (look for the readOnly property)
+// TODO: it would be great if we could get this from the json schema (look for the readOnly property).
+// Note: `resultData` cannot go here because clients legitimately include `resultData: {}` in the
+// initial add/duplicate optimization patch; filterPatch rejects any path or value containing a
+// prohibited key. Blocking post-creation mutations to resultData needs a path-aware filter.
 const PROHIBITED_KEYS = [
   'accountId', // Account
   'password',

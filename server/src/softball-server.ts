@@ -37,6 +37,8 @@ declare global {
       redirect: (url: string) => void;
       sendFile: (path: string) => void;
       set: (key: string, value: string) => void;
+      cookie: (name: string, value: string, options?: unknown) => this;
+      clearCookie: (name: string, options?: unknown) => this;
     }
     interface Request {
       originalUrl: string;
@@ -321,7 +323,9 @@ export class SoftballServer {
         } finally {
           await unlockAccount(accountId);
         }
-        res.status(200).send(`<pre>${JSON.stringify(state, null, 2)}</pre>`);
+        // Plain text to avoid HTML injection from user-controlled fields (team names, etc.)
+        res.set('Content-Type', 'text/plain; charset=utf-8');
+        res.status(200).send(JSON.stringify(state, null, 2));
       })
     );
 
@@ -410,8 +414,17 @@ export class SoftballServer {
         }
         const accountId = extractSessionInfo(req, 'accountId');
         logger.log(accountId, 'Logging out');
-        req.logout(function () {});
-        res.status(204).send();
+        req.logout(function () {
+          // Destroy the server-side session so the cookie can't be reused if intercepted
+          req.session.destroy(function (err) {
+            if (err) {
+              logger.warn(accountId, 'Error destroying session on logout', err);
+            }
+            res.clearCookie('softball.sid');
+            res.clearCookie('nonHttpOnlyToken');
+            res.status(204).send();
+          });
+        });
       })
     );
 
@@ -485,9 +498,17 @@ export class SoftballServer {
       '/server/account/reset-password-request',
       wrapForErrorProcessing(async (req, res, next) => {
         checkRequiredField(req.body.email, 'email');
-        const account = await this.databaseCalls.getAccountFromEmail(
-          getEmail(req)
-        );
+        let account;
+        try {
+          account = await this.databaseCalls.getAccountFromEmail(getEmail(req));
+        } catch (err) {
+          // Swallow "not found" so we don't leak whether an email is registered
+          if (err && (err.code === 'ENOENT' || err.code == '404' || err.code === 404)) {
+            account = undefined;
+          } else {
+            throw err;
+          }
+        }
         logger.log('', 'Reset password request for', getEmail(req));
         if (account) {
           const token = await generateToken();
@@ -511,18 +532,15 @@ export class SoftballServer {
               `https://softball.app/account/password-reset/${token}`
             )
           );
-
-          res.status(204).send();
         } else {
-          // TODO: Always send an email, even if no such email address was found.
-          // Emails that haven't been registered on the site will say so.
           logger.warn(
             'N/A',
             'Password reset: No such email found',
             getEmail(req)
           );
-          res.status(404).send();
         }
+        // Always 204 — do not leak whether the email exists
+        res.status(204).send();
       })
     );
 
@@ -542,11 +560,7 @@ export class SoftballServer {
           tokenHash
         );
         if (account) {
-          logger.log(
-            account.accountId,
-            'Password update received. Token',
-            req.body.token
-          );
+          logger.log(account.accountId, 'Password update received');
           // If the user reset their password, the email address is confirmed
           await this.databaseCalls.confirmEmail(account.accountId);
 
@@ -556,12 +570,7 @@ export class SoftballServer {
             hashedPassword
           );
 
-          logger.log(
-            '',
-            'Password successfully reset',
-            req.body.token,
-            hashedPassword
-          );
+          logger.log(account.accountId, 'Password successfully reset');
 
           // If an attacker somehow guesses the reset token and resets the password, they still don't know the email.
           // So, we wont log the password resetter in automatically. We can change this if we think it really affects
@@ -569,11 +578,7 @@ export class SoftballServer {
           // logIn(account, req, res);
           res.status(204).send();
         } else {
-          logger.warn(
-            '',
-            'Could not find account from reset token',
-            req.body.token
-          );
+          logger.warn('', 'Could not find account from reset token');
           res.status(404).send();
         }
       })
@@ -593,22 +598,14 @@ export class SoftballServer {
           tokenHash
         );
         if (account) {
-          logger.log(
-            account.account_id,
-            'Email verification received. Token',
-            req.body.token
-          );
+          logger.log(account.accountId, 'Email verification received');
           await this.databaseCalls.confirmEmail(account.accountId);
 
           // Don't log in automatically (for security over usability, is this worth the tradeoff?)
           // logIn(account, req, res);
           res.status(204).send();
         } else {
-          logger.warn(
-            '',
-            'Could not find account from reset token',
-            req.body.token
-          );
+          logger.warn('', 'Could not find account from email verification token');
           res.status(404).send();
         }
       })
@@ -748,7 +745,7 @@ export class SoftballServer {
         const targetApiKey = configAccessor.getOptParams().apiKey;
         checkRequiredField(req.body.optimizationId, 'optimizationId');
         checkRequiredField(req.body.accountId, 'accountId');
-        if (apiKey !== targetApiKey) {
+        if (!apiKeysMatch(apiKey, targetApiKey)) {
           const message = JSON.stringify({ message: 'Invalid api key' });
           logger.log(accountId, `Optimization update failure`, message);
           res.status(403).send(message);
@@ -1398,6 +1395,16 @@ export class SoftballServer {
           }
         });
       });
+    }
+
+    function apiKeysMatch(provided: unknown, expected: unknown): boolean {
+      if (typeof provided !== 'string' || typeof expected !== 'string') {
+        return false;
+      }
+      const a = Buffer.from(provided);
+      const b = Buffer.from(expected);
+      if (a.length !== b.length) return false;
+      return crypto.timingSafeEqual(a, b);
     }
 
     function checkFieldLength(field, maxLength) {

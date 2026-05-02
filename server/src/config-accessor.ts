@@ -51,6 +51,10 @@ export interface Config {
   logging: {
     toFile: boolean;
     colorOff: boolean;
+    // 'json' = one structured JSON line per entry (Cloud Logging / Ops Agent friendly).
+    // 'text' = legacy tab-separated format (with optional ANSI colors).
+    // null/omitted = auto-select: TTY stdout → text, otherwise → json.
+    format?: 'json' | 'text' | null;
   };
   email: {
     apiKey: null | string;

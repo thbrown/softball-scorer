@@ -162,6 +162,9 @@ export default class DatabaseCallsAbstractBlob {
         break;
       }
     }
+    if (!targetTeam) {
+      return undefined;
+    }
     result.teams.push(targetTeam);
 
     // Return undefined if publicIdEnabled is false
@@ -231,15 +234,34 @@ export default class DatabaseCallsAbstractBlob {
   }
 
   async getAccountFromTokenHash(passwordTokenHash) {
-    const tokenLookupJSONString: any = await this.readBlob(
-      null, // We don't know
-      BlobLocation.TOKEN_LOOKUP,
-      passwordTokenHash
-    );
+    let tokenLookupJSONString: any;
+    try {
+      tokenLookupJSONString = await this.readBlob(
+        null, // We don't know
+        BlobLocation.TOKEN_LOOKUP,
+        passwordTokenHash
+      );
+    } catch (err) {
+      if (err.code === 'ENOENT' || err.code == '404') {
+        return undefined;
+      }
+      throw err;
+    }
     const data: any = await this._getFullStateBlob(
       tokenLookupJSONString.content.accountId
     );
-    return data.content.account;
+    const account = data.content.account;
+    // Reject tokens that have been consumed (hash no longer matches) or expired
+    if (account.passwordTokenHash !== passwordTokenHash) {
+      return undefined;
+    }
+    if (
+      typeof account.passwordTokenExpiration === 'number' &&
+      Date.now() >= account.passwordTokenExpiration
+    ) {
+      return undefined;
+    }
+    return account;
   }
 
   async confirmEmail(accountId) {
@@ -261,6 +283,7 @@ export default class DatabaseCallsAbstractBlob {
   ) {
     const stateBlob = await this._getFullStateBlob(accountId);
     const account = stateBlob.content.account;
+    const consumedTokenHash = account.passwordTokenHash;
     account.passwordHash = newPasswordHash;
     account.passwordTokenExpiration = Date.now();
     await this.writeBlob(
@@ -271,6 +294,20 @@ export default class DatabaseCallsAbstractBlob {
       TLSchemas.FULL,
       stateBlob.generation
     );
+    // Invalidate the consumed token lookup so it can't be replayed. Done last so an
+    // upstream failure leaves a valid token for retry (expiration on the account blob
+    // is the authoritative invalidation signal checked by getAccountFromTokenHash).
+    if (consumedTokenHash) {
+      try {
+        await this.deleteBlob(
+          accountId,
+          BlobLocation.TOKEN_LOOKUP,
+          consumedTokenHash
+        );
+      } catch (err) {
+        if (err.code !== 'ENOENT' && err.code != '404') throw err;
+      }
+    }
   }
 
   async setPasswordTokenHash(accountId: string, tokenHash: string) {
