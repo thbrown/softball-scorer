@@ -24,15 +24,20 @@
 #      server/config.template.jsonc — the script copies it on first run but
 #      leaves all secret values as null.
 #
-#   4. SSL / nginx: HTTPS termination is not handled here. Set up nginx or a
-#      GCP load balancer separately if needed.
+#   4. dhparam: On first run, dhparam generation is very slow on a small VM.
+#      Consider generating locally and copying over before running this script:
+#        openssl dhparam -out dhparam.pem 2048
+#        gcloud compute scp dhparam.pem <instance>:/etc/ssl/certs/dhparam.pem ...
 # ---------------------------------------------------------------------------
 
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SCREEN_SESSION="softball"
+SERVICE_NAME="softball"
 NODE_MAJOR=24
+DOMAIN="softball.app"
+CERTBOT_EMAIL="softballdotapp@gmail.com"
 
 step() {
   echo ""
@@ -40,13 +45,13 @@ step() {
 }
 
 # ---------------------------------------------------------------------------
-step "1/9  System packages"
+step "1/11  System packages"
 # ---------------------------------------------------------------------------
 sudo apt-get update -qq
-sudo apt-get install -y -qq git curl lsof screen
+sudo apt-get install -y -qq git curl lsof screen nginx certbot python3-certbot-nginx
 
 # ---------------------------------------------------------------------------
-step "2/9  Node.js ${NODE_MAJOR}"
+step "2/11  Node.js ${NODE_MAJOR}"
 # ---------------------------------------------------------------------------
 if node --version 2>/dev/null | grep -q "^v${NODE_MAJOR}\."; then
   echo "Node $(node --version) already installed — skipping."
@@ -57,34 +62,30 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-step "3/9  Corepack (required for Yarn 4.x)"
+step "3/11  Corepack (required for Yarn 4.x)"
 # ---------------------------------------------------------------------------
 sudo corepack enable
 echo "corepack enabled."
 
 # ---------------------------------------------------------------------------
-step "4/9  Git pull"
+step "4/11  Git pull"
 # ---------------------------------------------------------------------------
 cd "$REPO_DIR"
 git pull
 
 # ---------------------------------------------------------------------------
-step "5/9  Yarn install"
+step "5/11  Yarn install"
 # ---------------------------------------------------------------------------
-# Corepack reads the packageManager field and installs yarn@4.x automatically.
 yarn install
 
 # ---------------------------------------------------------------------------
-step "6/9  GCP Cloud Build (builds the client and downloads artifacts)"
+step "6/11  GCP Cloud Build (builds the client and downloads artifacts)"
 # ---------------------------------------------------------------------------
 "$REPO_DIR/gcp-build.sh"
 
 # ---------------------------------------------------------------------------
-step "7/9  Server config"
+step "7/11  Server config"
 # ---------------------------------------------------------------------------
-# Config templates are copied by the postinstall hook (scripts/init-configs.js)
-# which already ran as part of `yarn install` above. Remind the user to fill
-# in secrets if server/config.jsonc is still using template defaults.
 if grep -q '"secretkey": null' "$REPO_DIR/server/config.jsonc" 2>/dev/null; then
   echo ""
   echo "  NOTICE: server/config.jsonc still contains null secret values."
@@ -94,37 +95,81 @@ if grep -q '"secretkey": null' "$REPO_DIR/server/config.jsonc" 2>/dev/null; then
 fi
 
 # ---------------------------------------------------------------------------
-step "8/9  Google Cloud Ops Agent (Cloud Logging)"
+step "8/11  nginx + dhparam"
+# ---------------------------------------------------------------------------
+# Generate dhparam if missing. Skipped if already present — generation is
+# very slow on small VMs; see manual step 4 above to pre-generate locally.
+if [ -f /etc/ssl/certs/dhparam.pem ]; then
+  echo "dhparam already exists — skipping generation."
+else
+  echo "Generating dhparam (2048-bit) with low CPU priority..."
+  echo "TIP: Pre-generate locally to skip this: see manual step 4 in this script."
+  sudo nice -n 19 openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
+fi
+
+# Deploy HTTP-only config if no cert yet (needed for certbot ACME challenge),
+# otherwise deploy the full HTTPS config.
+if sudo certbot certificates 2>/dev/null | grep -q "Domains:.*${DOMAIN}"; then
+  echo "SSL cert found — deploying full nginx config."
+  sudo cp "$REPO_DIR/deploy/nginx.conf" /etc/nginx/nginx.conf
+else
+  echo "No SSL cert yet — deploying HTTP-only config for ACME challenge."
+  sudo tee /etc/nginx/nginx.conf > /dev/null << NGINXEOF
+worker_processes 1;
+events { worker_connections 1024; }
+http {
+  server {
+    listen 80;
+    server_name ${DOMAIN};
+    location / { proxy_pass http://localhost:8888; }
+  }
+}
+NGINXEOF
+fi
+sudo nginx -t
+sudo systemctl enable nginx
+sudo systemctl reload-or-restart nginx
+echo "nginx configured and running."
+
+# ---------------------------------------------------------------------------
+step "9/11  SSL cert (Let's Encrypt)"
+# ---------------------------------------------------------------------------
+if sudo certbot certificates 2>/dev/null | grep -q "Domains:.*${DOMAIN}"; then
+  echo "Valid cert already exists — skipping acquisition."
+else
+  echo "Obtaining certificate for ${DOMAIN}..."
+  sudo certbot certonly --nginx -d "$DOMAIN" \
+    --non-interactive --agree-tos -m "$CERTBOT_EMAIL" \
+    --deploy-hook "systemctl reload nginx"
+  echo "Cert obtained — deploying full nginx config."
+  sudo cp "$REPO_DIR/deploy/nginx.conf" /etc/nginx/nginx.conf
+  sudo nginx -t && sudo systemctl reload nginx
+fi
+
+# ---------------------------------------------------------------------------
+step "10/11  Google Cloud Ops Agent (Cloud Logging)"
 # ---------------------------------------------------------------------------
 if ! systemctl is-active --quiet google-cloud-ops-agent 2>/dev/null; then
   echo "Installing Ops Agent..."
-  curl -sSO https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh
-  sudo bash add-google-cloud-ops-agent-repo.sh --also-install
-  rm -f add-google-cloud-ops-agent-repo.sh
+  curl -sSo /tmp/add-google-cloud-ops-agent-repo.sh \
+    https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh
+  sudo bash /tmp/add-google-cloud-ops-agent-repo.sh --also-install
+  rm -f /tmp/add-google-cloud-ops-agent-repo.sh
 else
   echo "Ops Agent already running."
 fi
-
-# Always refresh the agent config so changes to deploy/google-cloud-ops-agent.yaml
-# are picked up on subsequent runs.
 sudo cp "$REPO_DIR/deploy/google-cloud-ops-agent.yaml" /etc/google-cloud-ops-agent/config.yaml
 sudo systemctl restart google-cloud-ops-agent
 echo "Ops Agent config updated and restarted."
 
 # ---------------------------------------------------------------------------
-step "9/9  Starting server in screen session '${SCREEN_SESSION}'"
+step "11/11  systemd service"
 # ---------------------------------------------------------------------------
-# Kill any existing session so we start clean.
-if screen -list 2>/dev/null | grep -q "\.${SCREEN_SESSION}[[:space:]]"; then
-  echo "Stopping existing screen session..."
-  screen -S "$SCREEN_SESSION" -X quit || true
-  sleep 1
-fi
-
-# `exec bash` at the end keeps the window open if the server exits, so you
-# can read the crash output when you attach.
-screen -dmS "$SCREEN_SESSION" bash -c "cd '$REPO_DIR' && yarn start:prod; exec bash"
-echo "Server started."
+sudo cp "$REPO_DIR/deploy/softball.service" /etc/systemd/system/${SERVICE_NAME}.service
+sudo systemctl daemon-reload
+sudo systemctl enable "$SERVICE_NAME"
+sudo systemctl restart "$SERVICE_NAME"
+echo "Service started. Attach with: screen -r ${SCREEN_SESSION}"
 
 # ---------------------------------------------------------------------------
 echo ""
@@ -133,12 +178,11 @@ echo "  Setup complete!"
 echo ""
 echo "  Attach to server:  screen -r ${SCREEN_SESSION}"
 echo "  Follow logs:       tail -f ${REPO_DIR}/server/logs/server.log"
+echo "  Service status:    sudo systemctl status ${SERVICE_NAME}"
 echo ""
 echo "  MANUAL STEPS STILL REQUIRED (if not done already):"
 echo "  1. IAM: grant roles/logging.logWriter to the VM service account"
-echo "     GCP Console > IAM & Admin > VM service account > Add role"
 echo "  2. server/config.jsonc: set logging.toFile=true, format=\"json\""
 echo "  3. server/config.jsonc: fill in all secret/key fields"
-echo "  4. SSL/nginx: configure separately if HTTPS is needed"
 echo "================================================================"
 echo ""

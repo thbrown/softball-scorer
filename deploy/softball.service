@@ -1,0 +1,15 @@
+[Unit]
+Description=Softball App
+After=network.target
+
+[Service]
+Type=forking
+User=softballdotapp
+WorkingDirectory=/home/softballdotapp/softball-scorer
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/usr/bin/screen -dmS softball bash -c 'yarn start:prod; exec bash'
+ExecStop=-/usr/bin/screen -S softball -X quit
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
