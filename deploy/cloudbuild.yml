@@ -1,12 +1,7 @@
 steps:
   - name: node:24
-    entrypoint: corepack
-    args: ['enable']
-  - name: node:24
-    entrypoint: yarn
-  - name: node:24
-    entrypoint: yarn
-    args: ['build']
+    entrypoint: bash
+    args: ['-c', 'corepack enable && yarn install && yarn build']
   - name: "gcr.io/cloud-builders/gcloud-slim"
     args: [
       "storage",
