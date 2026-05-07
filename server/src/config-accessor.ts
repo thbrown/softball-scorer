@@ -259,9 +259,13 @@ export const getRecapchaSecretKey = function () {
 };
 
 export const getSessionSecretKey = function () {
-  return (
-    getConfig().session.secretkey || crypto.randomBytes(20).toString('hex')
-  );
+  const key = getConfig().session.secretkey;
+  if (!key) {
+    throw new Error(
+      'session.secretkey must be set in server/config.jsonc before starting the server'
+    );
+  }
+  return key;
 };
 
 export const getOptimizerDefinitionUrl = function (optimizerId) {

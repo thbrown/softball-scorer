@@ -247,7 +247,7 @@ export class SoftballServer {
           httpOnly: true,
           expires: new Date(253402300000000),
           sameSite: 'lax',
-          // Secure header is set by nginx reverse proxy
+          secure: process.env.DEVELOPMENT !== 'true',
         },
       })
     );
@@ -437,7 +437,7 @@ export class SoftballServer {
         checkRequiredField(req.body.password, 'password');
         checkFieldLength(req.body.password, 320);
 
-        if (configAccessor.getRecapchaSecretKey() == null) {
+        if (configAccessor.getRecapchaSecretKey() != null) {
           checkRequiredField(req.body.reCAPCHA, 'reCAPCHA');
           if (configAccessor.getRecapchaSecretKey()) {
             try {
@@ -654,17 +654,20 @@ export class SoftballServer {
     // TODO: Incorporate the workers into the main bundle so we don't have to serve them seperatley like this.
     // https://stackoverflow.com/questions/5408406/web-workers-without-a-separate-javascript-file
     app.get('/web-workers/:fileName', function (req, res) {
+      const workersDir = path.resolve(__dirname, '../../workers');
+      const target = path.resolve(workersDir, req.params.fileName);
+      if (!target.startsWith(workersDir + path.sep)) {
+        res.status(400).send();
+        return;
+      }
       res.set('Content-Type', 'application/javascript');
-      readFile(
-        path.resolve(__dirname, '../../workers/' + req.params.fileName),
-        (err, file) => {
-          if (err) {
-            res.status(404).send();
-          } else {
-            res.status(200).send(file.toString());
-          }
+      readFile(target, (err, file) => {
+        if (err) {
+          res.status(404).send();
+        } else {
+          res.status(200).send(file.toString());
         }
-      );
+      });
     });
 
     app.delete(
