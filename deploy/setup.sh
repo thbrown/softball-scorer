@@ -81,9 +81,17 @@ _check_permissions() {
   permissions_csv=$(printf '%s\n' "${CHECKS[@]}" | cut -d'|' -f1 | paste -sd,)
 
   local granted
+  local iam_err
   granted=$(gcloud projects test-iam-permissions "$project" \
     --permissions="$permissions_csv" \
-    --format="value(permissions)" 2>/dev/null) || true
+    --format="value(permissions)" 2>/tmp/iam_check_err) && iam_err=0 || iam_err=$?
+
+  if [ $iam_err -ne 0 ] || [ -z "$granted" ]; then
+    echo "  WARNING: Could not verify permissions (gcloud test-iam-permissions failed or returned empty)."
+    cat /tmp/iam_check_err 2>/dev/null | sed 's/^/    /'
+    echo "  Continuing anyway — the script will fail at the relevant step if a permission is missing."
+    return
+  fi
 
   local -a missing=()
   for entry in "${CHECKS[@]}"; do
