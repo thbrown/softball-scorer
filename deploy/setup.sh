@@ -200,9 +200,15 @@ else
   echo "dhparam installed."
 fi
 
+# Check for cert by file — more reliable than `certbot certificates` which
+# fails if another certbot instance is running (e.g. the renewal timer).
+_cert_exists() {
+  [ -f "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" ]
+}
+
 # Deploy HTTP-only config if no cert yet (needed for certbot ACME challenge),
 # otherwise deploy the full HTTPS config.
-if sudo certbot certificates 2>/dev/null | grep -q "Domains:.*${DOMAIN}"; then
+if _cert_exists; then
   echo "SSL cert found — deploying full nginx config."
   sudo cp "$REPO_DIR/deploy/nginx.conf" /etc/nginx/nginx.conf
 else
@@ -229,9 +235,20 @@ step "9/12  SSL cert (Let's Encrypt)"
 # ---------------------------------------------------------------------------
 if [ "${SKIP_SSL:-}" = "1" ]; then
   echo "SKIP_SSL=1 — skipping cert acquisition (test mode)."
-elif sudo certbot certificates 2>/dev/null | grep -q "Domains:.*${DOMAIN}"; then
+elif _cert_exists; then
   echo "Valid cert already exists — skipping acquisition."
 else
+  # Wait for any running certbot instance (e.g. the renewal timer) to finish.
+  echo "Waiting for any running certbot instance to finish..."
+  for i in $(seq 1 12); do
+    pgrep -x certbot > /dev/null || break
+    echo "  certbot still running (${i}/12) — waiting 5s..."
+    sleep 5
+  done
+  if pgrep -x certbot > /dev/null; then
+    echo "ERROR: certbot still running after 60s — aborting."
+    exit 1
+  fi
   echo "Obtaining certificate for ${DOMAIN}..."
   sudo certbot certonly --nginx -d "$DOMAIN" \
     --non-interactive --agree-tos -m "$CERTBOT_EMAIL" \
