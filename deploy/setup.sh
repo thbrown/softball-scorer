@@ -45,13 +45,69 @@ step() {
 }
 
 # ---------------------------------------------------------------------------
-step "1/11  System packages"
+step "0/12  IAM permissions check"
+# ---------------------------------------------------------------------------
+_check_permissions() {
+  local project
+  project=$(gcloud config list --format 'value(core.project)' 2>/dev/null)
+  if [ -z "$project" ]; then
+    echo "ERROR: Could not determine GCP project — is gcloud installed and authenticated?"
+    exit 1
+  fi
+
+  # Format: "PERMISSION|PURPOSE"
+  local -a CHECKS=(
+    "cloudbuild.builds.create|Cloud Build (gcp-build.sh)"
+    "cloudbuild.builds.get|Cloud Build (gcp-build.sh)"
+    "storage.objects.create|GCS build artifacts (gcp-build.sh)"
+    "storage.objects.delete|GCS build artifacts (gcp-build.sh)"
+    "storage.objects.get|GCS build artifacts (gcp-build.sh)"
+    "storage.objects.list|GCS build artifacts (gcp-build.sh)"
+    "logging.logEntries.create|Cloud Logging (Ops Agent)"
+  )
+
+  local permissions_csv
+  permissions_csv=$(printf '%s\n' "${CHECKS[@]}" | cut -d'|' -f1 | paste -sd,)
+
+  local granted
+  granted=$(gcloud projects test-iam-permissions "$project" \
+    --permissions="$permissions_csv" \
+    --format="value(permissions)" 2>/dev/null) || true
+
+  local -a missing=()
+  for entry in "${CHECKS[@]}"; do
+    local perm="${entry%%|*}"
+    local purpose="${entry##*|}"
+    if ! echo "$granted" | grep -qF "$perm"; then
+      missing+=("  ✗  ${perm}  (needed for: ${purpose})")
+    fi
+  done
+
+  if [ ${#missing[@]} -eq 0 ]; then
+    echo "  All required permissions present."
+    return
+  fi
+
+  echo ""
+  echo "ERROR: Missing permissions on the VM service account:"
+  for m in "${missing[@]}"; do echo "$m"; done
+  echo ""
+  echo "  Typical role fixes (GCP Console → IAM & Admin → VM service account):"
+  echo "    cloudbuild.*       → roles/cloudbuild.builds.editor"
+  echo "    storage.objects.*  → roles/storage.objectAdmin  (on the build bucket)"
+  echo "    logging.*          → roles/logging.logWriter"
+  exit 1
+}
+_check_permissions
+
+# ---------------------------------------------------------------------------
+step "1/12  System packages"
 # ---------------------------------------------------------------------------
 sudo apt-get update -qq
 sudo apt-get install -y -qq git curl lsof screen nginx certbot python3-certbot-nginx
 
 # ---------------------------------------------------------------------------
-step "2/11  Node.js ${NODE_MAJOR}"
+step "2/12  Node.js ${NODE_MAJOR}"
 # ---------------------------------------------------------------------------
 if node --version 2>/dev/null | grep -q "^v${NODE_MAJOR}\."; then
   echo "Node $(node --version) already installed — skipping."
@@ -62,29 +118,29 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-step "3/11  Corepack (required for Yarn 4.x)"
+step "3/12  Corepack (required for Yarn 4.x)"
 # ---------------------------------------------------------------------------
 sudo corepack enable
 echo "corepack enabled."
 
 # ---------------------------------------------------------------------------
-step "4/11  Git pull"
+step "4/12  Git pull"
 # ---------------------------------------------------------------------------
 cd "$REPO_DIR"
 git pull
 
 # ---------------------------------------------------------------------------
-step "5/11  Yarn install"
+step "5/12  Yarn install"
 # ---------------------------------------------------------------------------
 yarn install
 
 # ---------------------------------------------------------------------------
-step "6/11  GCP Cloud Build (builds the client and downloads artifacts)"
+step "6/12  GCP Cloud Build (builds the client and downloads artifacts)"
 # ---------------------------------------------------------------------------
 "$REPO_DIR/gcp-build.sh"
 
 # ---------------------------------------------------------------------------
-step "7/11  Server config"
+step "7/12  Server config"
 # ---------------------------------------------------------------------------
 if grep -q '"secretkey": null' "$REPO_DIR/server/config.jsonc" 2>/dev/null; then
   echo ""
@@ -95,7 +151,7 @@ if grep -q '"secretkey": null' "$REPO_DIR/server/config.jsonc" 2>/dev/null; then
 fi
 
 # ---------------------------------------------------------------------------
-step "8/11  nginx + dhparam"
+step "8/12  nginx + dhparam"
 # ---------------------------------------------------------------------------
 # Generate dhparam if missing. Skipped if already present — generation is
 # very slow on small VMs; see manual step 4 above to pre-generate locally.
@@ -132,9 +188,11 @@ sudo systemctl reload-or-restart nginx
 echo "nginx configured and running."
 
 # ---------------------------------------------------------------------------
-step "9/11  SSL cert (Let's Encrypt)"
+step "9/12  SSL cert (Let's Encrypt)"
 # ---------------------------------------------------------------------------
-if sudo certbot certificates 2>/dev/null | grep -q "Domains:.*${DOMAIN}"; then
+if [ "${SKIP_SSL:-}" = "1" ]; then
+  echo "SKIP_SSL=1 — skipping cert acquisition (test mode)."
+elif sudo certbot certificates 2>/dev/null | grep -q "Domains:.*${DOMAIN}"; then
   echo "Valid cert already exists — skipping acquisition."
 else
   echo "Obtaining certificate for ${DOMAIN}..."
@@ -147,7 +205,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-step "10/11  Google Cloud Ops Agent (Cloud Logging)"
+step "10/12  Google Cloud Ops Agent (Cloud Logging)"
 # ---------------------------------------------------------------------------
 if ! systemctl is-active --quiet google-cloud-ops-agent 2>/dev/null; then
   echo "Installing Ops Agent..."
@@ -163,7 +221,7 @@ sudo systemctl restart google-cloud-ops-agent
 echo "Ops Agent config updated and restarted."
 
 # ---------------------------------------------------------------------------
-step "11/11  systemd service"
+step "11/12  systemd service"
 # ---------------------------------------------------------------------------
 sudo cp "$REPO_DIR/deploy/softball.service" /etc/systemd/system/${SERVICE_NAME}.service
 sudo systemctl daemon-reload
