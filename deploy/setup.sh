@@ -35,10 +35,14 @@
 #      server/config.template.jsonc — the script copies it on first run but
 #      leaves all secret values as null.
 #
-#   4. dhparam: On first run, dhparam generation is very slow on a small VM.
-#      Consider generating locally and copying over before running this script:
-#        openssl dhparam -out dhparam.pem 2048
-#        gcloud compute scp dhparam.pem <instance>:/etc/ssl/certs/dhparam.pem ...
+#   4. dhparam: Normally generated once by Cloud Build and downloaded
+#      automatically in step 8. If you need to generate it manually instead:
+#        openssl dhparam -out /tmp/dhparam.pem 2048
+#        sudo mv /tmp/dhparam.pem /etc/ssl/certs/dhparam.pem
+#      Or copy from another machine:
+#        gcloud compute scp <other-instance>:/etc/ssl/certs/dhparam.pem /tmp/dhparam.pem --zone=us-central1-a
+#        sudo mv /tmp/dhparam.pem /etc/ssl/certs/dhparam.pem
+#
 # ---------------------------------------------------------------------------
 
 set -euo pipefail
@@ -77,17 +81,28 @@ _check_permissions() {
     "logging.logEntries.create|Cloud Logging (Ops Agent)"
   )
 
-  local permissions_csv
-  permissions_csv=$(printf '%s\n' "${CHECKS[@]}" | cut -d'|' -f1 | paste -sd,)
+  # Build JSON array of permission strings for the REST API call.
+  local perms_json
+  perms_json=$(printf '%s\n' "${CHECKS[@]}" | cut -d'|' -f1 \
+    | awk '{printf "%s\"%s\"", (NR>1?",":""), $0} END{print ""}' \
+    | sed 's/^/{"permissions":[/; s/$/]}/')
 
-  local granted
-  local iam_err
-  granted=$(gcloud projects test-iam-permissions "$project" \
-    --permissions="$permissions_csv" \
-    --format="value(permissions)" 2>/tmp/iam_check_err) && iam_err=0 || iam_err=$?
+  local token granted
+  token=$(gcloud auth print-access-token 2>/dev/null) || true
+  if [ -z "$token" ]; then
+    echo "  WARNING: Could not get gcloud access token — skipping permission check."
+    return
+  fi
 
-  if [ $iam_err -ne 0 ] || [ -z "$granted" ]; then
-    echo "  WARNING: Could not verify permissions (gcloud test-iam-permissions failed or returned empty)."
+  granted=$(curl -sf -X POST \
+    -H "Authorization: Bearer $token" \
+    -H "Content-Type: application/json" \
+    -d "$perms_json" \
+    "https://cloudresourcemanager.googleapis.com/v1/projects/${project}:testIamPermissions" \
+    2>/tmp/iam_check_err) || true
+
+  if [ -z "$granted" ]; then
+    echo "  WARNING: IAM permission check failed — skipping."
     cat /tmp/iam_check_err 2>/dev/null | sed 's/^/    /'
     echo "  Continuing anyway — the script will fail at the relevant step if a permission is missing."
     return
@@ -112,8 +127,8 @@ _check_permissions() {
   for m in "${missing[@]}"; do echo "$m"; done
   echo ""
   echo "  Typical role fixes (GCP Console → IAM & Admin → VM service account):"
-  echo "    cloudbuild.*       → roles/cloudbuild.builds.editor"
-  echo "    storage.objects.*  → roles/storage.objectAdmin  (on the build bucket)"
+  echo "    cloudbuild.*       → roles/cloudbuild.builds.builder"
+  echo "    storage.objects.*  → roles/storage.objectAdmin  (scoped to the build bucket)"
   echo "    logging.*          → roles/logging.logWriter"
   exit 1
 }
@@ -172,14 +187,17 @@ fi
 # ---------------------------------------------------------------------------
 step "8/12  nginx + dhparam"
 # ---------------------------------------------------------------------------
-# Generate dhparam if missing. Skipped if already present — generation is
-# very slow on small VMs; see manual step 4 above to pre-generate locally.
+# dhparam is generated once by Cloud Build (cloudbuild.yml) and stored in GCS.
+# Download it here rather than generating on the VM — generation is very slow
+# on micro instances and effectively locks them up.
 if [ -f /etc/ssl/certs/dhparam.pem ]; then
-  echo "dhparam already exists — skipping generation."
+  echo "dhparam already exists — skipping download."
 else
-  echo "Generating dhparam (2048-bit) with low CPU priority..."
-  echo "TIP: Pre-generate locally to skip this: see manual step 4 in this script."
-  sudo nice -n 19 openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
+  PROJECT=$(gcloud config list --format 'value(core.project)' 2>/dev/null)
+  echo "Downloading dhparam from gs://${PROJECT}_cloudbuild/dhparam.pem ..."
+  gsutil cp "gs://${PROJECT}_cloudbuild/dhparam.pem" /tmp/dhparam.pem
+  sudo mv /tmp/dhparam.pem /etc/ssl/certs/dhparam.pem
+  echo "dhparam installed."
 fi
 
 # Deploy HTTP-only config if no cert yet (needed for certbot ACME challenge),

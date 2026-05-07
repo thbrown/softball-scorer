@@ -10,3 +10,16 @@ steps:
       "build",
       "gs://optimum-library-250223_cloudbuild/build",
     ]
+  - name: "gcr.io/cloud-builders/gcloud-slim"
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        if gsutil -q stat gs://optimum-library-250223_cloudbuild/dhparam.pem; then
+          echo "dhparam already in GCS — skipping generation."
+        else
+          echo "Generating dhparam (2048-bit)..."
+          openssl dhparam -out /tmp/dhparam.pem 2048
+          gsutil cp /tmp/dhparam.pem gs://optimum-library-250223_cloudbuild/dhparam.pem
+          echo "dhparam stored in GCS."
+        fi
