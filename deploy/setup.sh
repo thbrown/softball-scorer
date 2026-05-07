@@ -9,11 +9,22 @@
 #   bash /path/to/softball-scorer/deploy/setup.sh
 #
 # ---------------------------------------------------------------------------
+# BOOTSTRAP — on a brand-new VM, git won't be installed yet so you can't
+# clone this repo. Run this one-liner first:
+#
+#   sudo apt-get update -qq && sudo apt-get install -y git
+#   git clone https://github.com/thbrown/softball-scorer.git ~/softball-scorer
+#   cd ~/softball-scorer && bash deploy/setup.sh
+#
+# ---------------------------------------------------------------------------
 # MANUAL STEPS — this script cannot do these for you:
 #
-#   1. IAM: Grant the VM's service account roles/logging.logWriter so the
-#      Ops Agent can ship logs to Cloud Logging.
+#   1. IAM: Grant the VM's service account the following roles before running:
+#        roles/cloudbuild.builds.editor  (Cloud Build)
+#        roles/storage.objectAdmin       (on the build bucket)
+#        roles/logging.logWriter         (Ops Agent)
 #      GCP Console → IAM & Admin → find the VM service account → Add role.
+#      Step 0 of this script will verify permissions and exit if any are missing.
 #
 #   2. server/config.jsonc (logging): Enable structured file logging:
 #        "logging": { "toFile": true, "colorOff": false, "format": "json" }
