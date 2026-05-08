@@ -11,14 +11,31 @@
 # You can always build locally, but the f1-micro instance doesn't have enough resources to complete
 # the build successfully, hence this script.
 
-PROJECT=$(gcloud config list --format 'value(core.project)' 2>/dev/null)
+# Set FORCE_BUILD=1 to skip the cache check and always rebuild.
 
-# Delete contents of the build bucket
-echo "Deleting old build files in gs://${PROJECT}_cloudbuild"
-gsutil -m rm -r "gs://${PROJECT}_cloudbuild/*"
+PROJECT=$(gcloud config list --format 'value(core.project)' 2>/dev/null)
+COMMIT=$(git rev-parse HEAD)
+COMMIT_FILE="gs://${PROJECT}_cloudbuild/build-commit"
+
+# Check if the current commit was already built (unless FORCE_BUILD=1)
+if [ "${FORCE_BUILD:-0}" != "1" ]; then
+  BUILT_COMMIT=$(gsutil cat "${COMMIT_FILE}" 2>/dev/null || true)
+  if [ "${BUILT_COMMIT}" = "${COMMIT}" ]; then
+    echo "Artifacts for commit ${COMMIT} already in GCS — skipping build."
+    echo "Run with FORCE_BUILD=1 to rebuild anyway."
+    rm -rf ./build
+    gsutil cp -r "gs://${PROJECT}_cloudbuild/build" ./
+    exit 0
+  fi
+fi
+
+# Delete contents of the build bucket (but preserve dhparam if it exists)
+echo "Deleting old build files in gs://${PROJECT}_cloudbuild/build"
+gsutil -m rm -rf "gs://${PROJECT}_cloudbuild/build" 2>/dev/null || true
+gsutil rm "${COMMIT_FILE}" 2>/dev/null || true
 
 # Start a new build (async — the VM service account may lack log-streaming permission)
-echo "Building Project ${PROJECT}"
+echo "Building Project ${PROJECT} at commit ${COMMIT}"
 BUILD_ID=$(gcloud builds submit --config deploy/cloudbuild.yml --async --format='value(id)')
 echo "Build submitted: ${BUILD_ID}"
 
@@ -38,7 +55,10 @@ while true; do
   sleep 10
 done
 
+# Store the commit hash so future runs can skip the build if nothing changed
+echo "${COMMIT}" | gsutil cp - "${COMMIT_FILE}"
+
 ## Copy the build directory to local
 echo "Pulling build artifacts from storage bucket ${PROJECT}"
-rm -r ./build
+rm -rf ./build
 gsutil cp -r "gs://${PROJECT}_cloudbuild/build" ./

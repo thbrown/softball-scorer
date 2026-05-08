@@ -249,6 +249,25 @@ else
     echo "ERROR: certbot still running after 60s — aborting."
     exit 1
   fi
+  # GCP VMs often only have IPv4 but glibc prefers IPv6 by default, causing
+  # "Network is unreachable" when certbot tries acme-v02.api.letsencrypt.org.
+  # Prefer IPv4 mapped addresses for this session.
+  if ! grep -q "^precedence ::ffff:0:0/96  100" /etc/gai.conf 2>/dev/null; then
+    echo "precedence ::ffff:0:0/96  100" | sudo tee -a /etc/gai.conf > /dev/null
+  fi
+
+  # Wait for outbound HTTPS connectivity before handing off to certbot.
+  echo "Checking connectivity to Let's Encrypt..."
+  for i in $(seq 1 12); do
+    curl -sf --max-time 5 https://acme-v02.api.letsencrypt.org/directory > /dev/null && break
+    echo "  Not reachable yet (${i}/12) — waiting 5s..."
+    sleep 5
+    if [ "$i" -eq 12 ]; then
+      echo "ERROR: Cannot reach Let's Encrypt after 60s. Check firewall/network."
+      exit 1
+    fi
+  done
+
   echo "Obtaining certificate for ${DOMAIN}..."
   sudo certbot certonly --nginx -d "$DOMAIN" \
     --non-interactive --agree-tos -m "$CERTBOT_EMAIL" \
