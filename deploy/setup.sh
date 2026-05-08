@@ -238,16 +238,13 @@ if [ "${SKIP_SSL:-}" = "1" ]; then
 elif _cert_exists; then
   echo "Valid cert already exists — skipping acquisition."
 else
-  # Wait for any running certbot instance (e.g. the renewal timer) to finish.
-  echo "Waiting for any running certbot instance to finish..."
-  for i in $(seq 1 12); do
-    pgrep -x certbot > /dev/null || break
-    echo "  certbot still running (${i}/12) — waiting 5s..."
-    sleep 5
-  done
+  # Stop the systemd certbot renewal timer so it doesn't hold the lock while we run.
+  sudo systemctl stop certbot.timer certbot.service 2>/dev/null || true
+  # Kill any lingering certbot process (e.g. from a previous failed run).
   if pgrep -x certbot > /dev/null; then
-    echo "ERROR: certbot still running after 60s — aborting."
-    exit 1
+    echo "Killing lingering certbot process..."
+    sudo pkill -x certbot || true
+    sleep 2
   fi
   # GCP VMs often only have IPv4 but glibc prefers IPv6 by default, causing
   # "Network is unreachable" when certbot tries acme-v02.api.letsencrypt.org.
@@ -275,6 +272,8 @@ else
   echo "Cert obtained — deploying full nginx config."
   sudo cp "$REPO_DIR/deploy/nginx.conf" /etc/nginx/nginx.conf
   sudo nginx -t && sudo systemctl reload nginx
+  # Re-enable the renewal timer now that our certbot run is done.
+  sudo systemctl start certbot.timer 2>/dev/null || true
 fi
 
 # ---------------------------------------------------------------------------
