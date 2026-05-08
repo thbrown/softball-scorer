@@ -170,6 +170,10 @@ git show HEAD:yarn.lock > yarn.lock 2>/dev/null || git checkout -- yarn.lock 2>/
 # ---------------------------------------------------------------------------
 step "6/12  Yarn install"
 # ---------------------------------------------------------------------------
+# Remove stale install-state cache; a mismatch between it and yarn.lock causes
+# "package not present in lockfile" errors even when yarn.lock is correct.
+rm -f .yarn/install-state.gz
+unset CI  # prevent yarn from running in --immutable mode
 yarn install
 
 # ---------------------------------------------------------------------------
