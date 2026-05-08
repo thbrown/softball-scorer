@@ -264,11 +264,16 @@ export class SoftballServer {
         const accountId = extractSessionInfo(req, 'accountId');
         const cookieToken = req.cookies.nonHttpOnlyToken;
         const sessionToken = req.session.nonHttpOnlyToken;
+        const sid = req.sessionID ? `...${req.sessionID.slice(-8)}` : 'none';
+        logger.dev(
+          accountId,
+          `Auth token check on ${req.method} ${req.path} sid=${sid}: cookieToken=${cookieToken !== undefined ? 'present' : 'MISSING'} sessionToken=${sessionToken !== undefined ? 'present' : 'MISSING'}`
+        );
         if (sessionToken !== undefined) {
           if (cookieToken !== sessionToken) {
             logger.log(
               accountId,
-              `Logging out user due to token mismatch expected ${cookieToken} to be ${sessionToken}`
+              `Logging out user due to token mismatch on ${req.method} ${req.path} sid=${sid}: cookie=${cookieToken !== undefined ? 'present' : 'MISSING'} session=present`
             );
             await new Promise<void>((resolve, reject) => {
               req.logout(function () {});
@@ -725,6 +730,8 @@ export class SoftballServer {
       '/server/sync',
       wrapForErrorProcessing(async (req, res) => {
         if (!req.isAuthenticated()) {
+          const sid = req.sessionID ? `...${req.sessionID.slice(-8)}` : 'none';
+          logger.log('N/A', `Sync 403: not authenticated (sid=${sid}, hasCookies=${!!req.cookies})`);
           res.status(403).send();
           return;
         }
