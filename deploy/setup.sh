@@ -60,7 +60,7 @@ step() {
 }
 
 # ---------------------------------------------------------------------------
-step "0/12  IAM permissions check"
+step "1/12  IAM permissions check"
 # ---------------------------------------------------------------------------
 _check_permissions() {
   local project
@@ -135,13 +135,13 @@ _check_permissions() {
 _check_permissions
 
 # ---------------------------------------------------------------------------
-step "1/12  System packages"
+step "2/12  System packages"
 # ---------------------------------------------------------------------------
 sudo apt-get update -qq
 sudo apt-get install -y -qq git curl lsof screen nginx certbot python3-certbot-nginx
 
 # ---------------------------------------------------------------------------
-step "2/12  Node.js ${NODE_MAJOR}"
+step "3/12  Node.js ${NODE_MAJOR}"
 # ---------------------------------------------------------------------------
 if node --version 2>/dev/null | grep -q "^v${NODE_MAJOR}\."; then
   echo "Node $(node --version) already installed — skipping."
@@ -152,29 +152,29 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-step "3/12  Corepack (required for Yarn 4.x)"
+step "4/12  Corepack (required for Yarn 4.x)"
 # ---------------------------------------------------------------------------
 sudo corepack enable
 echo "corepack enabled."
 
 # ---------------------------------------------------------------------------
-step "4/12  Git pull"
+step "5/12  Git pull"
 # ---------------------------------------------------------------------------
 cd "$REPO_DIR"
 git pull
 
 # ---------------------------------------------------------------------------
-step "5/12  Yarn install"
+step "6/12  Yarn install"
 # ---------------------------------------------------------------------------
 yarn install
 
 # ---------------------------------------------------------------------------
-step "6/12  GCP Cloud Build (builds the client and downloads artifacts)"
+step "7/12  GCP Cloud Build (builds the client and downloads artifacts)"
 # ---------------------------------------------------------------------------
 "$REPO_DIR/gcp-build.sh"
 
 # ---------------------------------------------------------------------------
-step "7/12  Server config"
+step "8/12  Server config"
 # ---------------------------------------------------------------------------
 if grep -q '"secretkey": null' "$REPO_DIR/server/config.jsonc" 2>/dev/null; then
   echo ""
@@ -185,7 +185,7 @@ if grep -q '"secretkey": null' "$REPO_DIR/server/config.jsonc" 2>/dev/null; then
 fi
 
 # ---------------------------------------------------------------------------
-step "8/12  nginx + dhparam"
+step "9/12  nginx + dhparam"
 # ---------------------------------------------------------------------------
 # dhparam is generated once by Cloud Build (cloudbuild.yml) and stored in GCS.
 # Download it here rather than generating on the VM — generation is very slow
@@ -228,10 +228,15 @@ fi
 sudo nginx -t
 sudo systemctl enable nginx
 sudo systemctl reload-or-restart nginx
-echo "nginx configured and running."
+if ! sudo systemctl is-active --quiet nginx; then
+  echo "ERROR: nginx failed to start."
+  sudo systemctl status nginx --no-pager
+  exit 1
+fi
+echo "nginx is running."
 
 # ---------------------------------------------------------------------------
-step "9/12  SSL cert (Let's Encrypt)"
+step "10/12  SSL cert (Let's Encrypt)"
 # ---------------------------------------------------------------------------
 if [ "${SKIP_SSL:-}" = "1" ]; then
   echo "SKIP_SSL=1 — skipping cert acquisition (test mode)."
@@ -277,7 +282,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-step "10/12  Google Cloud Ops Agent (Cloud Logging)"
+step "11/12  Google Cloud Ops Agent (Cloud Logging)"
 # ---------------------------------------------------------------------------
 if ! systemctl is-active --quiet google-cloud-ops-agent 2>/dev/null; then
   echo "Installing Ops Agent..."
@@ -293,13 +298,29 @@ sudo systemctl restart google-cloud-ops-agent
 echo "Ops Agent config updated and restarted."
 
 # ---------------------------------------------------------------------------
-step "11/12  systemd service"
+step "12/12  systemd service"
 # ---------------------------------------------------------------------------
 sudo cp "$REPO_DIR/deploy/softball.service" /etc/systemd/system/${SERVICE_NAME}.service
 sudo systemctl daemon-reload
 sudo systemctl enable "$SERVICE_NAME"
 sudo systemctl restart "$SERVICE_NAME"
-echo "Service started. Attach with: screen -r ${SCREEN_SESSION}"
+echo "Service unit started — waiting for app server to accept connections on port 8888..."
+_app_ready=0
+for i in $(seq 1 20); do
+  if curl --connect-timeout 2 --max-time 3 -s -o /dev/null http://localhost:8888/; then
+    _app_ready=1
+    break
+  fi
+  echo "  Not ready yet (${i}/20) — waiting 3s..."
+  sleep 3
+done
+if [ "$_app_ready" -eq 0 ]; then
+  echo "ERROR: App server did not respond on port 8888 after 60s."
+  echo "  Check the screen session:  screen -r ${SCREEN_SESSION}"
+  echo "  Check systemd:             sudo systemctl status ${SERVICE_NAME}"
+  exit 1
+fi
+echo "App server is up on port 8888."
 
 # ---------------------------------------------------------------------------
 echo ""
