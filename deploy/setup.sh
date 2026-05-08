@@ -165,7 +165,7 @@ git pull
 # yarn.lock may be locally modified if a previous yarn install ran with the
 # wrong yarn major version. Always restore it so the Berry-format lockfile
 # from the repo is used, not a stale v1 lockfile from an old installation.
-git restore yarn.lock 2>/dev/null || true
+git checkout -- yarn.lock 2>/dev/null || true
 
 # ---------------------------------------------------------------------------
 step "6/12  Yarn install"
