@@ -1,7 +1,10 @@
 steps:
   - name: node:24
     entrypoint: bash
-    args: ['-c', 'corepack enable && yarn install && yarn build']
+    # YARN_ENABLE_IMMUTABLE_INSTALLS=false: Cloud Build sets CI=true which enables Yarn 4's
+    # immutable install mode, but Linux resolves some optional/platform deps differently than
+    # macOS, causing the lockfile to diverge. Allow updates during the build.
+    args: ['-c', 'corepack enable && YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install && yarn build']
   - name: "gcr.io/cloud-builders/gcloud-slim"
     args: [
       "storage",
