@@ -399,9 +399,17 @@ export class SoftballServer {
             return;
           }
           req.logIn(accountInfo, function () {
-            initSecondAuthToken(req, res); // This breaks sometimes
-            logger.log(accountInfo.accountId, 'Login Successful!');
-            res.status(204).send();
+            initSecondAuthToken(req, res, function (err) {
+              if (err) {
+                logger.error(
+                  accountInfo.accountId,
+                  '2nd auth token save failed on login',
+                  err
+                );
+              }
+              logger.log(accountInfo.accountId, 'Login Successful!');
+              res.status(204).send();
+            });
           });
         })(req, res, next);
       })
@@ -1370,20 +1378,23 @@ export class SoftballServer {
 
     // Helpers -- TODO use consistent declarations
 
-    function initSecondAuthToken(req, res) {
-      let sessData;
+    function initSecondAuthToken(req, res, callback?: (err?: any) => void) {
       try {
-        // Make the cookie
         const token = uuidv4();
         res.cookie('nonHttpOnlyToken', token, {
           expires: new Date(253402300000000),
           httpOnly: false,
         });
-        // Remember this cookie's token in the session
-        sessData = req.session;
-        sessData.nonHttpOnlyToken = token;
+        req.session.nonHttpOnlyToken = token;
+        req.session.save((err) => {
+          if (err) {
+            logger.error('?', '2nd auth token not persisted to session store', err);
+          }
+          callback?.(err);
+        });
       } catch (e) {
-        logger.error('?', '2nd auth token not registered', e, sessData);
+        logger.error('?', '2nd auth token not registered', e);
+        callback?.(e);
       }
     }
 
