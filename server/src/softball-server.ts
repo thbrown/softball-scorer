@@ -409,7 +409,8 @@ export class SoftballServer {
             req.logIn(accountInfo, (err) => (err ? reject(err) : resolve()))
           );
           await initSecondAuthToken(req, res);
-          logger.log(accountInfo.accountId, 'Login Successful!');
+          const newSid = req.sessionID ? `...${req.sessionID.slice(-8)}` : 'none';
+          logger.log(accountInfo.accountId, `Login Successful! (new sid=${newSid})`);
           res.status(204).send();
         })(req, res, next);
       })
@@ -731,7 +732,9 @@ export class SoftballServer {
       wrapForErrorProcessing(async (req, res) => {
         if (!req.isAuthenticated()) {
           const sid = req.sessionID ? `...${req.sessionID.slice(-8)}` : 'none';
-          logger.log('N/A', `Sync 403: not authenticated (sid=${sid}, hasCookies=${!!req.cookies})`);
+          const hasSidCookie = !!req.cookies?.['softball.sid'];
+          const hasTokenCookie = !!req.cookies?.['nonHttpOnlyToken'];
+          logger.log('N/A', `Sync 403: not authenticated (sid=${sid}, hasSidCookie=${hasSidCookie}, hasTokenCookie=${hasTokenCookie})`);
           res.status(403).send();
           return;
         }
