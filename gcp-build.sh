@@ -17,9 +17,26 @@ PROJECT=$(gcloud config list --format 'value(core.project)' 2>/dev/null)
 echo "Deleting old build files in gs://${PROJECT}_cloudbuild"
 gsutil -m rm -r "gs://${PROJECT}_cloudbuild/*"
 
-# Start a new build
+# Start a new build (async — the VM service account may lack log-streaming permission)
 echo "Building Project ${PROJECT}"
-gcloud builds submit --config deploy/cloudbuild.yml
+BUILD_ID=$(gcloud builds submit --config deploy/cloudbuild.yml --async --format='value(id)')
+echo "Build submitted: ${BUILD_ID}"
+
+# Poll until the build finishes
+echo "Waiting for build to complete..."
+while true; do
+  STATUS=$(gcloud builds describe "${BUILD_ID}" --format='value(status)')
+  echo "  Build status: ${STATUS}"
+  case "${STATUS}" in
+    SUCCESS) break ;;
+    FAILURE|INTERNAL_ERROR|TIMEOUT|CANCELLED)
+      echo "Build failed with status: ${STATUS}"
+      echo "Logs: https://console.cloud.google.com/cloud-build/builds/${BUILD_ID}?project=${PROJECT}"
+      exit 1
+      ;;
+  esac
+  sleep 10
+done
 
 ## Copy the build directory to local
 echo "Pulling build artifacts from storage bucket ${PROJECT}"
