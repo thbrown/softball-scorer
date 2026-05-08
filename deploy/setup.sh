@@ -162,10 +162,12 @@ step "5/12  Git pull"
 # ---------------------------------------------------------------------------
 cd "$REPO_DIR"
 git pull
-# yarn.lock may be locally modified if a previous yarn install ran with the
-# wrong yarn major version. Always restore it so the Berry-format lockfile
-# from the repo is used, not a stale v1 lockfile from an old installation.
+# Ensure the yarn.lock is the Berry v4 format committed in the repo.
+# A stale yarn v1 lockfile causes yarn 4 to fail with "package not in lockfile".
+# Try to restore from git; if that fails or produces a v1 file, delete it so
+# yarn regenerates a clean v4 lockfile on the next install.
 git show HEAD:yarn.lock > yarn.lock 2>/dev/null || git checkout -- yarn.lock 2>/dev/null || true
+head -1 yarn.lock 2>/dev/null | grep -q "^#" && rm -f yarn.lock || true
 
 # ---------------------------------------------------------------------------
 step "6/12  Yarn install"
@@ -174,7 +176,9 @@ step "6/12  Yarn install"
 # "package not present in lockfile" errors even when yarn.lock is correct.
 rm -f .yarn/install-state.gz
 unset CI  # prevent yarn from running in --immutable mode
-yarn install
+# Use `corepack yarn` to ensure yarn 4 is used. A system-installed yarn v1
+# may be earlier in PATH and would create a v1 lockfile that yarn 4 rejects.
+corepack yarn install
 
 # ---------------------------------------------------------------------------
 step "7/12  GCP Cloud Build (builds the client and downloads artifacts)"
