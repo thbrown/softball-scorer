@@ -155,6 +155,8 @@ export class SoftballServer {
     // Prep the app/web servers
     const app = express();
     const server = http.createServer(app);
+    // Required for secure session cookies to work behind nginx SSL termination
+    app.set('trust proxy', 1);
     // Middleware
     app.use(
       helmet({
