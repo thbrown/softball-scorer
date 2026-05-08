@@ -283,7 +283,9 @@ export class SoftballServer {
         } else {
           // No token stored in the session, assign one
           // This is only required for keeping existing sessions valid.
-          initSecondAuthToken(req, res);
+          await initSecondAuthToken(req, res).catch((err) =>
+            logger.error(accountId, 'Failed to assign second auth cookie', err)
+          );
           logger.log(accountId, `Assigned user a second auth cookie`);
         }
       }
@@ -398,19 +400,12 @@ export class SoftballServer {
             res.status(400).send();
             return;
           }
-          req.logIn(accountInfo, function () {
-            initSecondAuthToken(req, res, function (err) {
-              if (err) {
-                logger.error(
-                  accountInfo.accountId,
-                  '2nd auth token save failed on login',
-                  err
-                );
-              }
-              logger.log(accountInfo.accountId, 'Login Successful!');
-              res.status(204).send();
-            });
-          });
+          await new Promise<void>((resolve, reject) =>
+            req.logIn(accountInfo, (err) => (err ? reject(err) : resolve()))
+          );
+          await initSecondAuthToken(req, res);
+          logger.log(accountInfo.accountId, 'Login Successful!');
+          res.status(204).send();
         })(req, res, next);
       })
     );
@@ -1378,24 +1373,23 @@ export class SoftballServer {
 
     // Helpers -- TODO use consistent declarations
 
-    function initSecondAuthToken(req, res, callback?: (err?: any) => void) {
-      try {
-        const token = uuidv4();
-        res.cookie('nonHttpOnlyToken', token, {
-          expires: new Date(253402300000000),
-          httpOnly: false,
-        });
-        req.session.nonHttpOnlyToken = token;
+    async function initSecondAuthToken(req, res) {
+      const token = uuidv4();
+      res.cookie('nonHttpOnlyToken', token, {
+        expires: new Date(253402300000000),
+        httpOnly: false,
+      });
+      req.session.nonHttpOnlyToken = token;
+      await new Promise<void>((resolve, reject) => {
         req.session.save((err) => {
           if (err) {
             logger.error('?', '2nd auth token not persisted to session store', err);
+            reject(err);
+          } else {
+            resolve();
           }
-          callback?.(err);
         });
-      } catch (e) {
-        logger.error('?', '2nd auth token not registered', e);
-        callback?.(e);
-      }
+      });
     }
 
     async function generateToken(length = 30) {
@@ -1449,29 +1443,11 @@ export class SoftballServer {
 
     async function logIn(account, req, res) {
       logger.log(account.accountId, 'Logging in');
-      await new Promise<void>(function (resolve, reject) {
-        req.logIn(account, function () {
-          // We need to serialize some info to the session
-          const sessionInfo = {
-            accountId: account.accountId,
-            email: account.email,
-          };
-          const doneWrapper = function () {
-            const done = function (err, user) {
-              if (err) {
-                reject(err);
-                return;
-              }
-              initSecondAuthToken(req, res);
-              return;
-            };
-            return done;
-          };
-
-          passport.serializeUser(sessionInfo, doneWrapper());
-          resolve();
-        });
-      });
+      const sessionInfo = { accountId: account.accountId, email: account.email };
+      await new Promise<void>((resolve, reject) =>
+        req.logIn(sessionInfo, (err) => (err ? reject(err) : resolve()))
+      );
+      await initSecondAuthToken(req, res);
       logger.log(account.accountId, 'Login Successful -- backdoor!');
     }
 
