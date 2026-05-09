@@ -265,10 +265,6 @@ export class SoftballServer {
         const cookieToken = req.cookies.nonHttpOnlyToken;
         const sessionToken = req.session.nonHttpOnlyToken;
         const sid = req.sessionID ? `...${req.sessionID.slice(-8)}` : 'none';
-        logger.dev(
-          accountId,
-          `Auth token check on ${req.method} ${req.path} sid=${sid}: cookieToken=${cookieToken !== undefined ? 'present' : 'MISSING'} sessionToken=${sessionToken !== undefined ? 'present' : 'MISSING'}`
-        );
         if (sessionToken !== undefined) {
           if (cookieToken !== sessionToken) {
             logger.log(
