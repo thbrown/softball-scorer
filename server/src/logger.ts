@@ -26,7 +26,7 @@ const LOG_FORMAT = (): 'json' | 'text' => {
   const cfg = getConfig().logging as any;
   if (cfg && cfg.format === 'json') return 'json';
   if (cfg && cfg.format === 'text') return 'text';
-  return process.stdout.isTTY ? 'text' : 'json';
+  return (process.stdout.isTTY || process.env.DEVELOPMENT === 'true') ? 'text' : 'json';
 };
 
 let logFile: fs.WriteStream | null = null;
