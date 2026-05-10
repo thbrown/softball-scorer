@@ -1,4 +1,5 @@
 @import './variables.css';
+@import './wizard.css';
 
 
 body {
@@ -1355,17 +1356,28 @@ hr {
 
 /* Import Card Styles */
 .import-file-input-container {
-  display: flex;
-  justify-content: center;
-  flex-direction: row;
   position: relative;
+  width: 100%;
 }
 
 .import-file-input-button {
   width: 100%;
+  box-sizing: border-box;
+  margin: 0;
   color: var(--color-text-dark);
-  background: var(--color-background);
-  border: 2px dotted var(--color-primary-light);
+  background: var(--color-white);
+  border: 2px dashed var(--color-secondary-light);
+  border-radius: var(--border-radius-medium);
+}
+
+.import-file-input-button:hover {
+  border-color: var(--color-primary);
+}
+
+.import-file-input-button.has-file {
+  border-style: solid;
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
 }
 
 .import-file-input {
@@ -1381,17 +1393,16 @@ hr {
 .import-radio-buttons-container {
   display: flex;
   justify-content: center;
-  flex-direction: row;
-  margin-top: var(--spacing-small);
-  margin: 1rem;
+  align-items: center;
+  gap: var(--spacing-x-large);
+  width: 100%;
 }
 
-.import-load-button {
-  width: 120px;
+.import-radio-buttons-container .radio-button-option {
+  margin: 0;
 }
 
 .import-load-button-disabled {
-  width: 120px;
   background-color: var(--color-disabled);
   cursor: default;
 }

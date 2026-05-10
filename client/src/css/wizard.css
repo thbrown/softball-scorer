@@ -1,0 +1,28 @@
+/* Reusable styles for wizard / step-by-step flows */
+
+.wizard-step-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-primary-dark);
+  margin-top: var(--spacing-x-large);
+  margin-bottom: var(--spacing-small);
+}
+
+/* A bordered content panel — consistent surface for interactive sections */
+.wizard-panel {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--color-secondary-light);
+  border-radius: var(--border-radius-medium);
+  overflow: hidden;
+}
+
+/* Full-width button for the final action in a wizard flow */
+.wizard-action-button {
+  width: 100%;
+  box-sizing: border-box;
+  margin-left: 0;
+  margin-right: 0;
+}

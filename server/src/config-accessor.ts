@@ -251,6 +251,7 @@ export const getOptParams = function () {
 };
 
 export const getAppServerPort = function () {
+  if (process.env.APP_PORT_OVERRIDE) return parseInt(process.env.APP_PORT_OVERRIDE, 10);
   return (getConfig().app && getConfig().app.port) || 8888;
 };
 

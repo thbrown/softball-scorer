@@ -83,22 +83,18 @@ const PlayerMapping = ({
 
   return (
     <div
-      style={{
-        border: '1px solid var(--color-primary-dark)',
-        borderRadius: '6px',
-        margin: '12px 0',
-        overflow: 'hidden',
-      }}
+      className="wizard-panel"
+      style={{ marginTop: 'var(--spacing-large)' }}
     >
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '10px 14px',
+          padding: '0 14px',
           cursor: 'pointer',
-          background: 'var(--color-background-secondary, #f5f5f5)',
-          minHeight: '44px',
+          background: 'var(--color-background)',
+          height: '48px',
+          boxSizing: 'border-box',
         }}
         onClick={() => setExpanded((v) => !v)}
       >
@@ -115,25 +111,21 @@ const PlayerMapping = ({
             {mappedCount > 0 ? `, ${mappedCount} mapped` : ''})
           </span>
         </span>
-        {/* Always reserve space for the button to keep the header height stable */}
-        <div
-          className="button primary-button"
-          style={{
-            padding: '4px 12px',
-            fontSize: '0.85em',
-            visibility: expanded ? 'visible' : 'hidden',
-          }}
-          onClick={handleAutoMap}
-        >
-          Auto-map
-        </div>
       </div>
 
       {expanded && (
         <div style={{ padding: '8px 14px 12px' }}>
-          <div style={{ fontSize: '0.82em', color: '#666', marginBottom: '8px' }}>
-            Map each unrecognized player to an existing player, or leave as &quot;Keep as new
-            player&quot;. Mapped players will not be duplicated.
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <div style={{ fontSize: '0.82em', color: '#666' }}>
+              Map unrecognized players to existing ones. Mapped players won&apos;t be duplicated.
+            </div>
+            <div
+              className="button primary-button"
+              style={{ padding: '4px 12px', fontSize: '0.85em', flexShrink: 0, marginLeft: '12px' }}
+              onClick={handleAutoMap}
+            >
+              Auto-map
+            </div>
           </div>
           {unrecognized.map((imp) => (
             <div
