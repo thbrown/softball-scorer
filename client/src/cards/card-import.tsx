@@ -1,16 +1,45 @@
 import React from 'react';
 import dialog from 'dialog';
 import SharedLib from 'shared-lib';
-import type { TopLevelExport, PlateAppearance, PlayerId } from 'shared-lib';
+import type { TopLevelExport, PlateAppearance, PlayerId, TeamId, GameId } from 'shared-lib';
 import { getGlobalState } from 'state';
 import Card from 'elements/card';
 import CardSection from 'elements/card-section';
 import { setRoute } from 'actions/route';
 import PlayerMapping from 'components/player-mapping';
+import TeamMapping from 'components/team-mapping';
+import GameMapping from 'components/game-mapping';
+import type { Team } from 'shared-lib';
 
 const TLSchemas = SharedLib.schemaValidation.TLSchemas;
 
 type Runners = NonNullable<PlateAppearance['runners']>;
+
+function applyTeamMapping(
+  data: TopLevelExport,
+  mapping: Record<string, string>
+): TopLevelExport {
+  for (const team of data.teams) {
+    if (mapping[team.id]) {
+      team.id = mapping[team.id] as TeamId;
+    }
+  }
+  return data;
+}
+
+function applyGameMapping(
+  data: TopLevelExport,
+  mapping: Record<string, string>
+): TopLevelExport {
+  for (const team of data.teams) {
+    for (const game of team.games) {
+      if (mapping[game.id]) {
+        game.id = mapping[game.id] as GameId;
+      }
+    }
+  }
+  return data;
+}
 
 function applyPlayerMapping(
   data: TopLevelExport,
@@ -48,8 +77,11 @@ const CardImport = () => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [parsedData, setParsedData] = React.useState<TopLevelExport | null>(null);
   const [playerMapping, setPlayerMapping] = React.useState<Record<string, string | null>>({});
+  const [teamMapping, setTeamMapping] = React.useState<Record<string, string | null>>({});
+  const [gameMapping, setGameMapping] = React.useState<Record<string, string | null>>({});
 
   const localPlayers = getGlobalState().getAllPlayersAlphabetically();
+  const localTeams: Team[] = getGlobalState().getAllTeams();
 
   const handleFileInputChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     const file = ev.target.files?.[0];
@@ -57,6 +89,8 @@ const CardImport = () => {
     setFileName(file.name);
     setParsedData(null);
     setPlayerMapping({});
+    setTeamMapping({});
+    setGameMapping({});
     const reader = new FileReader();
     reader.onload = function (e) {
       let parsed: TopLevelExport;
@@ -72,13 +106,22 @@ const CardImport = () => {
         console.error(exception);
         return;
       }
-      const localIds = new Set(getGlobalState().getAllPlayers().map((p) => p.id));
-      const initialMapping: Record<string, string | null> = {};
+      const localPlayerIds = new Set(getGlobalState().getAllPlayers().map((p) => p.id));
+      const initialPlayerMapping: Record<string, string | null> = {};
       for (const p of parsed.players) {
-        if (!localIds.has(p.id)) initialMapping[p.id] = null;
+        if (!localPlayerIds.has(p.id)) initialPlayerMapping[p.id] = null;
       }
+
+      const localTeamIds = new Set(getGlobalState().getAllTeams().map((t) => t.id as string));
+      const initialTeamMapping: Record<string, string | null> = {};
+      for (const t of parsed.teams) {
+        if (!localTeamIds.has(t.id)) initialTeamMapping[t.id] = null;
+      }
+
       setParsedData(parsed);
-      setPlayerMapping(initialMapping);
+      setPlayerMapping(initialPlayerMapping);
+      setTeamMapping(initialTeamMapping);
+      setGameMapping({});
     };
     reader.readAsText(file);
   };
@@ -93,15 +136,37 @@ const CardImport = () => {
       return;
     }
 
-    const activeMapping: Record<string, string> = {};
-    for (const [importId, localId] of Object.entries(playerMapping)) {
-      if (localId) activeMapping[importId] = localId;
+    const activeTeamMapping: Record<string, string> = {};
+    for (const [importId, localId] of Object.entries(teamMapping)) {
+      if (localId) activeTeamMapping[importId] = localId;
     }
 
-    const data = applyPlayerMapping(
-      JSON.parse(JSON.stringify(parsedData)) as TopLevelExport,
-      activeMapping
-    );
+    const activeGameMapping: Record<string, string> = {};
+    for (const [importId, localId] of Object.entries(gameMapping)) {
+      if (localId) activeGameMapping[importId] = localId;
+    }
+
+    const activePlayerMapping: Record<string, string> = {};
+    for (const [importId, localId] of Object.entries(playerMapping)) {
+      if (localId) activePlayerMapping[importId] = localId;
+    }
+
+    const teamTargets = Object.values(activeTeamMapping);
+    if (new Set(teamTargets).size !== teamTargets.length) {
+      dialog.show_notification('Two imported teams cannot be mapped to the same local team.');
+      return;
+    }
+
+    const gameTargets = Object.values(activeGameMapping);
+    if (new Set(gameTargets).size !== gameTargets.length) {
+      dialog.show_notification('Two imported games cannot be mapped to the same local game.');
+      return;
+    }
+
+    let data = JSON.parse(JSON.stringify(parsedData)) as TopLevelExport;
+    data = applyTeamMapping(data, activeTeamMapping);
+    data = applyGameMapping(data, activeGameMapping);
+    data = applyPlayerMapping(data, activePlayerMapping);
 
     if (loadType === 'mine') {
       const patchToLocal = SharedLib.objectMerge.diff(data, getGlobalState().getLocalState());
@@ -142,6 +207,7 @@ const CardImport = () => {
               type="file"
               name="fileData"
               id="fileData"
+              accept=".json,application/json"
               onChange={handleFileInputChange}
             />
             <label
@@ -153,12 +219,27 @@ const CardImport = () => {
           </div>
 
           {parsedData && (
-            <PlayerMapping
-              importData={parsedData}
-              localPlayers={localPlayers}
-              mapping={playerMapping}
-              onMappingChange={setPlayerMapping}
-            />
+            <>
+              <PlayerMapping
+                importData={parsedData}
+                localPlayers={localPlayers}
+                mapping={playerMapping}
+                onMappingChange={setPlayerMapping}
+              />
+              <TeamMapping
+                importData={parsedData}
+                localTeams={localTeams}
+                mapping={teamMapping}
+                onMappingChange={setTeamMapping}
+              />
+              <GameMapping
+                importData={parsedData}
+                localTeams={localTeams}
+                teamMapping={teamMapping}
+                mapping={gameMapping}
+                onMappingChange={setGameMapping}
+              />
+            </>
           )}
 
           <div className="wizard-step-label">Step 2 — Resolve conflicts</div>

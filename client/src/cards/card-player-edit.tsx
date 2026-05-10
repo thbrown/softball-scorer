@@ -129,62 +129,40 @@ export default class CardPlayerEdit extends React.Component<
       }
     };
 
-    this.onYouTubeSelect = function () {
-      let timeout;
-      return async function (query) {
+    this.onYouTubeSelect = (function () {
+      let timeout: ReturnType<typeof setTimeout> | null = null;
+      return async (query: string): Promise<YouTubeOption[]> => {
         if (query.length === 0) {
-          return new Promise((resolve) => {
-            resolve([]);
-          });
+          return [];
         }
 
         // Don't call the API if the query is less than 4 characters
         if (query.length <= 3) {
-          return new Promise((resolve) => {
-            resolve([
-              {
-                label: 'Enter more than 3 characters to search',
-                value: undefined,
-                thumbnail: '/assets/alert.svg',
-              },
-            ]);
-          });
+          return [
+            {
+              label: 'Enter more than 3 characters to search',
+              value: undefined,
+              thumbnail: '/assets/alert.svg',
+            },
+          ];
         }
 
         // Don't call the API if the user entered a valid YouTube link
         if (this.isValidYouTubeVideoLink(query)) {
-          return new Promise((resolve) => {
-            resolve([
-              {
-                label: 'Link: ' + query,
-                value: query,
-                thumbnail: '/assets/link.svg',
-              },
-            ]);
-          });
+          return [{ label: 'Link: ' + query, value: query, thumbnail: '/assets/link.svg' }];
         }
 
         // Debounced Query
         return new Promise((resolve) => {
-          let args = arguments;
-
-          // Define the function we will be debouncing
-          let later = async function () {
+          if (timeout) clearTimeout(timeout);
+          timeout = setTimeout(async () => {
             timeout = null;
-            let result = await this.queryYouTube.apply(this, args);
+            const result = await this.queryYouTube(query);
             resolve(result);
-          }.bind(this);
-
-          // Clear the timeout if there is one
-          if (timeout) {
-            clearTimeout(timeout);
-          }
-
-          // Set a new timeout
-          timeout = setTimeout(later, 2000);
+          }, 2000);
         });
-      }.bind(this);
-    }.bind(this);
+      };
+    }).call(this);
 
     this.homeOrBack = (type) => (cb) => {
       if (!this.isPristine) {
@@ -261,7 +239,7 @@ export default class CardPlayerEdit extends React.Component<
           if (results && results.length === 1) {
             this.setState({
               playerSongLink: results[0],
-              youTubeKey: this.state.youtubeKey + 1, // force select to update
+              youTubeKey: this.state.youTubeKey + 1, // force select to update
             });
           }
         }
@@ -269,7 +247,7 @@ export default class CardPlayerEdit extends React.Component<
         // Not a link, search populated a video id, set state directly
         this.setState({
           playerSongLink: newValue,
-          youTubeKey: this.state.youtubeKey + 1, // force select to update
+          youTubeKey: this.state.youTubeKey + 1, // force select to update
         });
       }
     }.bind(this);
