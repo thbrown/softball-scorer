@@ -14,6 +14,7 @@ export default defineConfig((...args) => {
       },
     },
     test: {
+      env: { APP_PORT_OVERRIDE: '18888' },
       setupFiles: ['test/setup.ts'],
       reporters: process.env.GITHUB_ACTIONS
         ? new GithubActionsReporter()

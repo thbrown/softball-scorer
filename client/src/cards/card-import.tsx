@@ -125,24 +125,16 @@ const CardImport = () => {
   return (
     <Card title="Load from File">
       <CardSection isCentered={true}>
-        <div style={{ maxWidth: '500px' }}>
-          <div>
-            <b>
-              <div style={{ textAlign: 'left', margin: '0px 16px' }}>
-                Import data data that&apos;s been downloaded from{' '}
-                <span
-                  style={{
-                    textDecoration: 'underline',
-                    color: 'var(--color-primary-dark)',
-                  }}
-                >
-                  Softball.app&apos;s
-                </span>{' '}
-                export feature. Any data imported here will be merged with your existing data.
-              </div>
-            </b>
-          </div>
-          <br />
+        <div style={{ maxWidth: '500px', width: '100%', textAlign: 'left', padding: '0 var(--spacing-large)' }}>
+          <p style={{ color: 'var(--color-text-desc)', marginTop: 'var(--spacing-large)' }}>
+            Import data that&apos;s been downloaded from{' '}
+            <span style={{ textDecoration: 'underline', color: 'var(--color-primary-dark)' }}>
+              Softball.app&apos;s
+            </span>{' '}
+            export feature. Any data imported here will be merged with your existing data.
+          </p>
+
+          <div className="wizard-step-label">Step 1 — Choose a file</div>
           <div className="import-file-input-container">
             <input
               className="import-file-input"
@@ -152,10 +144,11 @@ const CardImport = () => {
               id="fileData"
               onChange={handleFileInputChange}
             />
-            <label htmlFor="fileData" className="button import-file-input-button">
-              {fileName
-                ? fileName
-                : 'First, tap to choose a file or click-and-drag one here.'}
+            <label
+              htmlFor="fileData"
+              className={'button import-file-input-button' + (fileName ? ' has-file' : '')}
+            >
+              {fileName ?? 'Tap to choose a file, or drag one here'}
             </label>
           </div>
 
@@ -168,47 +161,44 @@ const CardImport = () => {
             />
           )}
 
-          <div>Next, select what happens in case of a merge conflict:</div>
-          <div className="import-radio-buttons-container">
-            <div className="radio-button-option">
-              <input
-                id="myChoice"
-                type="radio"
-                name="loadType"
-                value="mine"
-                onChange={handleRadioClick}
-                checked={loadType === 'mine'}
-              />
-              <label className="dark-text" htmlFor="myChoice">
-                My changes win
-              </label>
-            </div>
-            <div className="radio-button-option">
-              <input
-                id="theirChoice"
-                type="radio"
-                name="loadType"
-                value="theirs"
-                onChange={handleRadioClick}
-                checked={loadType === 'theirs'}
-              />
-              <label className="dark-text" htmlFor="theirChoice">
-                Their changes win
-              </label>
+          <div className="wizard-step-label">Step 2 — Resolve conflicts</div>
+          <div className="wizard-panel" style={{ height: '48px', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
+            <div className="import-radio-buttons-container">
+              <div className="radio-button-option">
+                <input
+                  id="myChoice"
+                  type="radio"
+                  name="loadType"
+                  value="mine"
+                  onChange={handleRadioClick}
+                  checked={loadType === 'mine'}
+                />
+                <label className="dark-text" htmlFor="myChoice">My changes win</label>
+              </div>
+              <div className="radio-button-option">
+                <input
+                  id="theirChoice"
+                  type="radio"
+                  name="loadType"
+                  value="theirs"
+                  onChange={handleRadioClick}
+                  checked={loadType === 'theirs'}
+                />
+                <label className="dark-text" htmlFor="theirChoice">Their changes win</label>
+              </div>
             </div>
           </div>
-          <div>Lastly, click the load button to make it official:</div>
-          <div className="import-file-input-container">
-            <div
-              id="load"
-              className={
-                'button primary-button ' +
-                (fileName ? 'import-load-button' : 'import-load-button-disabled')
-              }
-              onClick={handleLoadClick}
-            >
-              Load
-            </div>
+
+          <div className="wizard-step-label">Step 3 — Import</div>
+          <div
+            id="load"
+            className={
+              'button primary-button wizard-action-button' +
+              (fileName ? '' : ' import-load-button-disabled')
+            }
+            onClick={handleLoadClick}
+          >
+            Load
           </div>
         </div>
       </CardSection>
