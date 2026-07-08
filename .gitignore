@@ -45,3 +45,5 @@ tmpclaude-*-cwd
 playwright-test/tmpclaude-*-cwd
 .claude/
 .*
+!/.yarnrc.yml
+!/.npmrc

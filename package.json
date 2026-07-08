@@ -6,6 +6,7 @@
   "private": true,
   "scripts": {
     "postinstall": "node scripts/init-configs.js",
+    "setup": "node scripts/init-configs.js",
     "start": "yarn start:dev",
     "start:dev": "concurrently --kill-others -n srv,client,css \"yarn start:server\" \"yarn start:client\" \"cd client && yarn watch:css\"",
     "start:client": "cd client && yarn start",
@@ -53,6 +54,14 @@
     "vitest-github-actions-reporter": "^0.11.1"
   },
   "packageManager": "yarn@4.14.0",
+  "dependenciesMeta": {
+    "bcrypt": {
+      "built": true
+    },
+    "esbuild": {
+      "built": true
+    }
+  },
   "resolutions": {
     "axios": "1.15.2",
     "fast-xml-builder": "1.1.7",
