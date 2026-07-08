@@ -4,6 +4,7 @@ build
 certs/
 assets/main.css
 .yarn
+!.yarn/releases
 
 server/config.jsonc
 client/src/config.ts
@@ -45,5 +46,9 @@ tmpclaude-*-cwd
 playwright-test/tmpclaude-*-cwd
 .claude/
 .*
+!/.yarn/
+!/.yarn/releases/
+!/.yarn/releases/**
+!/.yarnrc
 !/.yarnrc.yml
 !/.npmrc
