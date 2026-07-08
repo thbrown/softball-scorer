@@ -665,25 +665,11 @@ export default class CardOptimization extends React.Component<
       console.log('NOT STARTING ESTIMATE', this.props.optimization.status);
     }
 
-    // Attach listeners to the accordion (and click if necessary)
+    // Attach listeners to the accordion
     // TODO eww, this is gross and incompatible with tests
     let queryObject = getGlobalState().getQueryObj();
     let accordionToggles = document.querySelectorAll('.js-accordionTrigger');
     for (var i = 0, len = accordionToggles.length; i < len; i++) {
-      if ('ontouchstart' in window) {
-        accordionToggles[i].addEventListener(
-          'touchstart',
-          this.skipClickDelay as any,
-          false
-        );
-      }
-      if ('pointerdown' in window) {
-        accordionToggles[i].addEventListener(
-          'pointerdown',
-          this.skipClickDelay as any,
-          false
-        );
-      }
       accordionToggles[i].addEventListener(
         'click',
         this.switchAccordion.bind(this, i) as any,
@@ -744,11 +730,6 @@ export default class CardOptimization extends React.Component<
       })
       .catch((e: any) => console.warn('Error fetching optimizers:', e));
   }
-
-  skipClickDelay = (e: Event): void => {
-    e.preventDefault();
-    (e.target as HTMLElement).click();
-  };
 
   setAriaAttr = (el: HTMLElement, ariaType: string, newProperty: string): void => {
     el.setAttribute(ariaType, newProperty);

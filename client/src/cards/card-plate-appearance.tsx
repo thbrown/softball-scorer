@@ -1116,17 +1116,43 @@ class CardPlateAppearance extends React.Component<
   }
 
   renderWalkupSong() {
-    const noSongClickHandler = () => {
+    const editHandler = () => {
       setRoute(`/players/${this.props.player.id}/edit`);
     };
+    const hasSong = Boolean(this.props.player.songLink);
     return (
-      <WalkupSong
-        songLink={this.props.player.songLink ?? undefined}
-        songStart={this.props.player.songStart ?? undefined}
-        noSongClickHandler={noSongClickHandler}
-        width={100}
-        height={150}
-      ></WalkupSong>
+      <>
+        <WalkupSong
+          songLink={this.props.player.songLink ?? undefined}
+          songStart={this.props.player.songStart ?? undefined}
+          noSongClickHandler={editHandler}
+          width={100}
+          height={150}
+          showBorder={hasSong}
+        />
+        {hasSong ? (
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={editHandler}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                editHandler();
+              }
+            }}
+            style={{
+              fontSize: '24px',
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              textAlign: 'center',
+              marginTop: '4px',
+              color: 'var(--color-text-dark)',
+            }}
+          >
+            edit
+          </div>
+        ) : null}
+      </>
     );
   }
 
@@ -1167,6 +1193,9 @@ class CardPlateAppearance extends React.Component<
             {this.renderActionsButtons()}
             <div
               style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
                 transformOrigin: 'top',
                 transform: 'scale(0.5)',
               }}

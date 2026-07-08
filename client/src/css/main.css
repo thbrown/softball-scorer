@@ -1640,6 +1640,5 @@ hr {
 @media (max-width: 375px) {
   .button-list-pa {
     transform-origin: left;
-    transform: scale(0.9);
   }
 }
