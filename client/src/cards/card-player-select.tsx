@@ -2,6 +2,7 @@ import React from 'react';
 import { getGlobalState } from 'state';
 import Card from 'elements/card';
 import ListButton from 'elements/list-button';
+import IconButton from 'elements/icon-button';
 import Modal from 'elements/modal';
 import { goBack } from 'actions/route';
 import type { Player } from 'shared-lib';
@@ -446,20 +447,25 @@ export default class CardPlayerSelect extends React.Component<
                 }}
               />
               {this.state.search ? (
-                <img
-                  id="player-search-clear"
-                  src="/assets/cancel.svg"
-                  alt="clear search"
-                  className="lineup-row-button"
-                  onClick={this.handleClearSearch}
+                <div
                   style={{
                     position: 'absolute',
-                    right: '8px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    filter: 'invert(1)',
+                    right: 0,
+                    top: 0,
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
-                />
+                >
+                  <IconButton
+                    id="player-search-clear"
+                    src="/assets/cancel.svg"
+                    alt="clear search"
+                    invert
+                    onClick={this.handleClearSearch}
+                  />
+                </div>
               ) : null}
             </div>
             {this.renderSearchPopover()}
