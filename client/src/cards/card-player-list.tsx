@@ -6,6 +6,30 @@ import ListButton from 'elements/list-button';
 import IconButton from 'elements/icon-button';
 import type { Player } from 'shared-lib';
 
+const PLAYER_LIST_SEARCH_PARAM = 'q';
+
+function getPlayerListSearchFromUrl(): string | undefined {
+  const q = new URLSearchParams(window.location.search).get(
+    PLAYER_LIST_SEARCH_PARAM
+  );
+  return q || undefined;
+}
+
+function setPlayerListSearchInUrl(search: string | undefined) {
+  const params = new URLSearchParams(window.location.search);
+  if (search) {
+    params.set(PLAYER_LIST_SEARCH_PARAM, search);
+  } else {
+    params.delete(PLAYER_LIST_SEARCH_PARAM);
+  }
+  const queryString = params.toString();
+  window.history.replaceState(
+    {},
+    '',
+    window.location.pathname + (queryString ? `?${queryString}` : '')
+  );
+}
+
 interface CardPlayerListState {
   search: string | undefined;
 }
@@ -19,7 +43,7 @@ class CardPlayerList extends React.Component<Record<string, never>, CardPlayerLi
   constructor(props: Record<string, never>) {
     super(props);
     this.state = {
-      search: undefined,
+      search: getPlayerListSearchFromUrl(),
     };
 
     this.handlePlayerClick = function (player: Player) {
@@ -36,7 +60,9 @@ class CardPlayerList extends React.Component<Record<string, never>, CardPlayerLi
     };
 
     this.handleSearch = function (v: React.ChangeEvent<HTMLInputElement>) {
-      this.setState({ search: v.target.value });
+      const search = v.target.value || undefined;
+      setPlayerListSearchInUrl(search);
+      this.setState({ search });
     }.bind(this);
   }
 
@@ -57,12 +83,10 @@ class CardPlayerList extends React.Component<Record<string, never>, CardPlayerLi
           id="search"
           placeholder="Search Players"
           className="page-width-input"
+          value={this.state.search ?? ''}
           onChange={this.handleSearch}
           style={{
-            width: 'calc(100% - 41px)',
             marginLeft: '11px',
-            padding: '0px',
-            paddingLeft: '10px',
           }}
         />
         {getGlobalState()

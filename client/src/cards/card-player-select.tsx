@@ -1,15 +1,16 @@
 import React from 'react';
 import { getGlobalState } from 'state';
 import Card from 'elements/card';
-import Select from 'react-select';
 import ListButton from 'elements/list-button';
-import { goBack, setRoute } from 'actions/route';
+import IconButton from 'elements/icon-button';
+import Modal from 'elements/modal';
+import { goBack } from 'actions/route';
 import type { Player } from 'shared-lib';
 import { PlayerId } from 'types/branded-ids';
 
-interface PlayerSelectOption {
-  value: string;
-  label: string;
+interface SelectedPlayer {
+  id: string;
+  name: string;
   gender: string;
 }
 
@@ -21,233 +22,383 @@ interface CardPlayerSelectProps {
 }
 
 interface CardPlayerSelectState {
-  selectedPlayers: PlayerSelectOption[];
-  options: PlayerSelectOption[];
-  startingValues: PlayerSelectOption[];
-  typed: string;
-  gender: string;
-  menuIsOpen: boolean;
+  selectedPlayers: SelectedPlayer[];
+  search: string;
+  searchOpen: boolean;
+  createModalOpen: boolean;
+  newPlayerName: string;
+  newPlayerGender: string;
+}
+
+const GENDER_COLORS: Record<string, string> = {
+  M: '#ecf1f4',
+  F: '#f4ebee',
+};
+
+function mapPlayerIdsToSelected(players: string[]): SelectedPlayer[] {
+  return players
+    .map((playerId) => getGlobalState().getPlayer(playerId as PlayerId))
+    .filter((player): player is Player => player !== null)
+    .map((player) => ({
+      id: player.id,
+      name: player.name,
+      gender: player.gender,
+    }));
 }
 
 export default class CardPlayerSelect extends React.Component<
   CardPlayerSelectProps,
   CardPlayerSelectState
 > {
-  customStyles: Record<string, (base: any, state?: any) => any>;
-  onInputChange: (inputValue: string) => void;
-  handleRadioButtonChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  handleConfirmClick: () => void;
-  handleCancelClick: () => void;
-  handleBackClick: () => void;
-  handleBackOrHome: () => void;
-  onChange: (selectedOptions: PlayerSelectOption[] | null) => void;
-  adjustSpacerDivHeight: () => void;
-  onCreatePlayerClick: () => void;
-  noOptionsMessage: () => JSX.Element;
+  searchContainerRef: React.RefObject<HTMLDivElement>;
+  handleDocumentMouseDown: (event: MouseEvent) => void;
 
   constructor(props: CardPlayerSelectProps) {
     super(props);
 
-    const mapPlayersToEntry = (players: string[]): PlayerSelectOption[] => {
-      return players
-        .map((playerId) => getGlobalState().getPlayer(playerId as PlayerId))
-        .filter((player): player is Player => player !== null)
-        .map((player) => ({
-          value: player.id,
-          label: player.name,
-          gender: player.gender,
-        }));
-    };
-
-    const mapEntriesToPlayerId = (entries: PlayerSelectOption[]): string[] => {
-      return entries.map((entry) => entry.value);
-    };
-
-    const options = mapPlayersToEntry(this.props.players.map((p) => p.id));
-    const startingValues = mapPlayersToEntry(props.selected);
+    this.searchContainerRef = React.createRef();
 
     this.state = {
-      selectedPlayers: startingValues,
-      options: options,
-      startingValues: startingValues,
-      typed: '',
-      gender: 'M',
-      menuIsOpen: false,
+      selectedPlayers: mapPlayerIdsToSelected(props.selected),
+      search: '',
+      searchOpen: false,
+      createModalOpen: false,
+      newPlayerName: '',
+      newPlayerGender: 'M',
     };
 
-    this.onInputChange = (inputValue: string): void => {
-      this.adjustSpacerDivHeight();
-      this.setState({
-        typed: inputValue,
-      });
-
-      // Open menu if the user has type anything
-      let menuIsOpen = false;
-      if (inputValue) {
-        menuIsOpen = true;
+    this.handleDocumentMouseDown = (event: MouseEvent) => {
+      if (
+        this.state.searchOpen &&
+        this.searchContainerRef.current &&
+        !this.searchContainerRef.current.contains(event.target as Node)
+      ) {
+        this.setState({ searchOpen: false });
       }
-      this.setState({
-        menuIsOpen,
-      });
-    };
-
-    this.handleRadioButtonChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-      this.setState({
-        gender: event.target.value,
-      });
-    };
-
-    this.handleConfirmClick = (): void => {
-      props.onComplete(mapEntriesToPlayerId(this.state.selectedPlayers));
-      goBack();
-    };
-
-    this.handleCancelClick = (): void => {
-      goBack();
-    };
-
-    this.handleBackClick = (): void => {
-      goBack();
-    };
-
-    this.handleBackOrHome = (): void => {
-      props.onComplete(mapEntriesToPlayerId(this.state.selectedPlayers));
-    };
-
-    this.onChange = (selectedOptions: PlayerSelectOption[] | null): void => {
-      if (selectedOptions) {
-        this.setState({
-          selectedPlayers: selectedOptions,
-        });
-      } else {
-        this.setState({
-          selectedPlayers: [],
-        });
-      }
-    };
-
-    // Lots of bad code in this method, see comments
-    this.adjustSpacerDivHeight = (): void => {
-      const adjust = (): void => {
-        // Neither of these are good selectors, but I'm not sure how else to get the menu
-        // height from inside the component
-        //let menus = document.querySelectorAll('div[class$="-menu"]');
-        //if (!menus) {
-        // Idk why the '-menu' suffix is left off the css class for builds on some computers
-        // but not for builds on others, here is an alternative selector
-        const selectContainer = document.getElementById('select-container');
-        let menus: Element[] = [];
-        if (selectContainer?.children[0]?.children[2]) {
-          menus = [selectContainer.children[0].children[2]];
-        }
-        //}
-        let height = 10;
-        if (menus.length === 1 && menus[0]) {
-          height = (menus[0] as HTMLElement).clientHeight;
-        }
-        const spacer = document.getElementById('spacer');
-        if (spacer) {
-          spacer.style.height = `${height}px`; // inline style :(
-        }
-      };
-
-      // Lame way to make sure this gets the height after it's been rendered (Maybe this
-      // can go as a callback to setState instead?)
-      setTimeout(adjust, 10);
-    };
-
-    this.onCreatePlayerClick = (): void => {
-      const newPlayer = getGlobalState().addPlayer(
-        this.state.typed,
-        this.state.gender
-      );
-
-      // Duplicate options
-      const optionsCopy: PlayerSelectOption[] = JSON.parse(JSON.stringify(this.state.options));
-      optionsCopy.push({ label: newPlayer.name, value: newPlayer.id, gender: newPlayer.gender });
-      this.setState({
-        options: optionsCopy,
-      });
-
-      // Add the player to the selection list
-      this.setState((prevState) => ({
-        selectedPlayers: [
-          ...prevState.selectedPlayers,
-          {
-            value: newPlayer.id,
-            label: newPlayer.name,
-            gender: newPlayer.gender,
-          },
-        ],
-        typed: '',
-      }));
-    };
-
-    this.noOptionsMessage = (): JSX.Element => {
-      if (!this.state.typed) {
-        return <div>Type a name to add a new player</div>;
-      }
-      return (
-        <div>
-          Add a new player: <br />
-          First name: <b>{this.state.typed}</b>
-          <br />
-          <input
-            type="radio"
-            onClick={this.handleRadioButtonChange.bind(this)}
-            name="gender"
-            value="M"
-          />{' '}
-          Male
-          <input
-            type="radio"
-            onClick={this.handleRadioButtonChange.bind(this)}
-            name="gender"
-            value="F"
-          />{' '}
-          Female <br />
-          <button type="button" onClick={this.onCreatePlayerClick.bind(this)}>
-            Create
-          </button>
-        </div>
-      );
-    };
-
-    // https://react-select.com/styles
-    this.customStyles = {
-      option: (providedStyles: any): any => {
-        const modifications = {
-          padding: 15,
-        };
-        return Object.assign(providedStyles, modifications);
-      },
-      multiValue: (providedStyles: any, { data }: { data: PlayerSelectOption }): any => {
-        const modifications: any = {
-          padding: 8,
-        };
-        if (data.gender === 'M') {
-          modifications.backgroundColor = '#ecf1f4';
-        } else if (data.gender === 'F') {
-          modifications.backgroundColor = '#f4ebee';
-        }
-        return Object.assign(providedStyles, modifications);
-      },
-      menu: (providedStyles: any): any => {
-        const modifications = {
-          padding: 1,
-        };
-        return Object.assign(providedStyles, modifications);
-      },
     };
   }
+
+  componentDidMount() {
+    document.addEventListener('mousedown', this.handleDocumentMouseDown);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this.handleDocumentMouseDown);
+  }
+
+  getSelectedPlayerIds = (): string[] => {
+    return this.state.selectedPlayers.map((player) => player.id);
+  };
+
+  getSearchResults = (): Player[] => {
+    const selectedIds = new Set(this.getSelectedPlayerIds());
+    const search = this.state.search.trim().toLowerCase();
+
+    if (!search) {
+      return [];
+    }
+
+    return getGlobalState()
+      .getAllPlayersAlphabetically()
+      .filter((player) => {
+        return (
+          !selectedIds.has(player.id) &&
+          player.name.toLowerCase().includes(search)
+        );
+      });
+  };
+
+  handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const search = event.target.value;
+    this.setState({
+      search,
+      searchOpen: search.trim().length > 0,
+    });
+  };
+
+  handleSearchFocus = () => {
+    if (this.state.search.trim()) {
+      this.setState({ searchOpen: true });
+    }
+  };
+
+  handleClearSearch = () => {
+    this.setState({
+      search: '',
+      searchOpen: false,
+    });
+  };
+
+  handlePlayerSelect = (player: Player) => {
+    this.setState((prevState) => ({
+      selectedPlayers: [
+        ...prevState.selectedPlayers,
+        {
+          id: player.id,
+          name: player.name,
+          gender: player.gender,
+        },
+      ],
+      search: '',
+      searchOpen: false,
+    }));
+  };
+
+  handleRemovePlayer = (playerId: string) => {
+    this.setState((prevState) => ({
+      selectedPlayers: prevState.selectedPlayers.filter(
+        (player) => player.id !== playerId
+      ),
+    }));
+  };
+
+  handleOpenCreateModal = () => {
+    this.setState({
+      createModalOpen: true,
+      newPlayerName: '',
+      newPlayerGender: 'M',
+      searchOpen: false,
+    });
+  };
+
+  handleCloseCreateModal = () => {
+    this.setState({
+      createModalOpen: false,
+      newPlayerName: '',
+      newPlayerGender: 'M',
+    });
+  };
+
+  handleNewPlayerNameChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    this.setState({ newPlayerName: event.target.value });
+  };
+
+  handleNewPlayerGenderChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    this.setState({ newPlayerGender: event.target.value });
+  };
+
+  handleCreatePlayer = () => {
+    const newPlayer = getGlobalState().addPlayer(
+      this.state.newPlayerName.trim(),
+      this.state.newPlayerGender
+    );
+
+    this.setState((prevState) => ({
+      selectedPlayers: [
+        ...prevState.selectedPlayers,
+        {
+          id: newPlayer.id,
+          name: newPlayer.name,
+          gender: newPlayer.gender,
+        },
+      ],
+      createModalOpen: false,
+      newPlayerName: '',
+      newPlayerGender: 'M',
+    }));
+  };
+
+  handleConfirmClick = () => {
+    this.props.onComplete(this.getSelectedPlayerIds());
+    goBack();
+  };
+
+  handleCancelClick = () => {
+    goBack();
+  };
+
+  handleBackClick = () => {
+    goBack();
+  };
+
+  renderSearchPopover = (): JSX.Element | null => {
+    if (!this.state.searchOpen || !this.state.search.trim()) {
+      return null;
+    }
+
+    const results = this.getSearchResults();
+
+    return (
+      <div
+        id="player-search-results"
+        style={{
+          position: 'absolute',
+          top: 'calc(100% + 4px)',
+          left: 0,
+          right: 0,
+          backgroundColor: 'var(--color-white)',
+          border: 'var(--border)',
+          borderRadius: 'var(--border-radius-small)',
+          boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
+          zIndex: 2,
+          maxHeight: '240px',
+          overflowY: 'auto',
+        }}
+      >
+        {results.length === 0 ? (
+          <div style={{ padding: '12px 16px', color: 'var(--color-text-dark)' }}>
+            No matching players found
+          </div>
+        ) : (
+          results.map((player) => (
+            <div
+              key={player.id}
+              id={`player-search-result-${player.id}`}
+              className="hover"
+              onClick={() => this.handlePlayerSelect(player)}
+              style={{
+                padding: '12px 16px',
+                cursor: 'pointer',
+                borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+                backgroundColor: GENDER_COLORS[player.gender] ?? '#fff',
+              }}
+            >
+              {player.name}
+            </div>
+          ))
+        )}
+      </div>
+    );
+  };
+
+  renderCreatePlayerModal = (): JSX.Element | null => {
+    if (!this.state.createModalOpen) {
+      return null;
+    }
+
+    return (
+      <Modal
+        open={true}
+        title="Create New Player"
+        confirmText="Create"
+        cancelText="Cancel"
+        maxWidth="360px"
+        onConfirm={this.handleCreatePlayer}
+        onCancel={this.handleCloseCreateModal}
+        body={
+          <div>
+            <label
+              htmlFor="new-player-name"
+              style={{ display: 'block', marginBottom: '8px' }}
+            >
+              Name
+            </label>
+            <input
+              id="new-player-name"
+              type="text"
+              className="page-width-input"
+              value={this.state.newPlayerName}
+              onChange={this.handleNewPlayerNameChange}
+              autoFocus
+              style={{ margin: 0, width: '100%' }}
+            />
+            <div style={{ marginTop: '16px' }}>
+              <div style={{ marginBottom: '8px' }}>Gender</div>
+              <label style={{ marginRight: '16px' }}>
+                <input
+                  type="radio"
+                  name="new-player-gender"
+                  value="M"
+                  checked={this.state.newPlayerGender === 'M'}
+                  onChange={this.handleNewPlayerGenderChange}
+                />{' '}
+                Male
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="new-player-gender"
+                  value="F"
+                  checked={this.state.newPlayerGender === 'F'}
+                  onChange={this.handleNewPlayerGenderChange}
+                />{' '}
+                Female
+              </label>
+            </div>
+          </div>
+        }
+      />
+    );
+  };
+
+  renderSelectedPlayers = (): JSX.Element => {
+    if (this.state.selectedPlayers.length === 0) {
+      return (
+        <div
+          style={{
+            margin: '10px',
+            textAlign: 'center',
+            color: 'var(--color-text-dark)',
+          }}
+        >
+          No players added yet
+        </div>
+      );
+    }
+
+    return (
+      <div id="selected-players-list" style={{ marginTop: '8px' }}>
+        {this.state.selectedPlayers.map((player, index) => (
+          <div
+            key={player.id}
+            id={`selected-player-${player.id}`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: GENDER_COLORS[player.gender] ?? '#fff',
+              border: 'var(--border)',
+              borderRadius: 'var(--border-radius-small)',
+              margin: '5px 10px',
+              padding: '8px 4px 8px 12px',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                flex: 1,
+                minWidth: 0,
+              }}
+            >
+              <span
+                style={{
+                  width: '28px',
+                  flexShrink: 0,
+                  fontWeight: 'bold',
+                }}
+              >
+                {index + 1}.
+              </span>
+              <span className="prevent-overflow">{player.name}</span>
+            </div>
+            <img
+              id={'remove-' + player.id}
+              src="/assets/remove.svg"
+              alt="remove"
+              className="lineup-row-button"
+              style={{
+                filter: 'invert(1)',
+                flexShrink: 0,
+              }}
+              onClick={() => this.handleRemovePlayer(player.id)}
+            />
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   renderButtons = (): JSX.Element => {
     return (
       <div>
-        <div id="spacer" style={{ transition: 'height .25s' }} />
         <div>
           <ListButton
-            onClick={this.handleConfirmClick.bind(this)}
+            onClick={this.handleConfirmClick}
             type="primary-button"
           >
             Confirm Selection
@@ -263,32 +414,6 @@ export default class CardPlayerSelect extends React.Component<
     );
   };
 
-  renderPlayerSelection = (): JSX.Element => {
-    return (
-      <div id="select-container" className="buffer">
-        <Select
-          isMulti
-          styles={this.customStyles}
-          options={this.state.options}
-          closeMenuOnSelect={false}
-          blurInputOnSelect={false}
-          backspaceRemovesValue={false}
-          onMenuOpen={this.adjustSpacerDivHeight}
-          onMenuClose={this.adjustSpacerDivHeight}
-          onChange={this.onChange.bind(this)}
-          onInputChange={this.onInputChange.bind(this)}
-          noOptionsMessage={this.noOptionsMessage.bind(this)}
-          defaultValue={this.state.startingValues}
-          menuIsOpen={this.state.menuIsOpen}
-          placeholder={"Type a player's name..."}
-          value={this.state.selectedPlayers}
-          inputValue={this.state.typed}
-        />
-      </div>
-    );
-  };
-
-
   render(): JSX.Element {
     return (
       <Card
@@ -297,8 +422,66 @@ export default class CardPlayerSelect extends React.Component<
           onClick: this.handleBackClick,
         }}
       >
-        {this.renderPlayerSelection()}
+        <div id="player-select" className="buffer">
+          <div
+            ref={this.searchContainerRef}
+            style={{
+              position: 'relative',
+              margin: '10px',
+            }}
+          >
+            <div style={{ position: 'relative' }}>
+              <input
+                type="text"
+                id="player-search"
+                name="player-search"
+                placeholder="Search Players"
+                className="page-width-input"
+                value={this.state.search}
+                onChange={this.handleSearchChange}
+                onFocus={this.handleSearchFocus}
+                style={{
+                  margin: 0,
+                  width: '100%',
+                  paddingRight: this.state.search ? '48px' : undefined,
+                }}
+              />
+              {this.state.search ? (
+                <div
+                  style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: 0,
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <IconButton
+                    id="player-search-clear"
+                    src="/assets/cancel.svg"
+                    alt="clear search"
+                    invert
+                    onClick={this.handleClearSearch}
+                  />
+                </div>
+              ) : null}
+            </div>
+            {this.renderSearchPopover()}
+          </div>
+
+          <ListButton
+            id="newPlayer"
+            onClick={this.handleOpenCreateModal}
+          >
+            <div className="prevent-overflow">+ Add New Player</div>
+          </ListButton>
+
+          {this.renderSelectedPlayers()}
+        </div>
         {this.renderButtons()}
+        {this.renderCreatePlayerModal()}
       </Card>
     );
   }

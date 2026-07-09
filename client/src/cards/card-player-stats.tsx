@@ -5,6 +5,7 @@ import Spray from '../components/spray';
 import { getGlobalState } from 'state';
 import InnerSection from 'elements/inner-section';
 import IconButton from '../elements/icon-button';
+import ListButton from 'elements/list-button';
 import { showStatsHelp } from 'utils/help-functions';
 import RunnersInScoringPositionStats from '../components/runners-in-scoring-position-stats';
 import type { Player, PlateAppearance } from 'shared-lib';
@@ -226,6 +227,27 @@ export default class CardPlayerStats extends React.Component<
             stats={allTimeStats}
           ></RunnersInScoringPositionStats>
         </InnerSection>
+        <ListButton
+          id="edit-player"
+          type="edit-button"
+          style={{ justifyContent: 'center' }}
+          onClick={() => setRoute(`/players/${this.props.player.id}/edit`)}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <IconButton
+              src="/assets/edit.svg"
+              alt="edit"
+              id={`player-${this.props.player.id}-edit`}
+              invert
+            />
+            <span>Edit Player</span>
+          </div>
+        </ListButton>
       </Card>
     );
   }

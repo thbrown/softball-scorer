@@ -7,6 +7,7 @@ interface WalkupSongProps {
   width?: number | string;
   height?: number | string;
   noSongClickHandler?: () => void;
+  showBorder?: boolean;
 }
 
 interface WalkupSongState {
@@ -105,6 +106,9 @@ export default class WalkupSong extends expose.Component<WalkupSongProps, Walkup
             position: 'relative',
             display: 'inline-block',
             borderRadius: 'var(--border-radius-small)',
+            border: this.props.showBorder
+              ? '1px solid rgba(0, 0, 0, 0.15)'
+              : undefined,
           }}
         >
           <iframe
