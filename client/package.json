@@ -42,7 +42,7 @@
     "rollup-plugin-copy": "^3.5.0",
     "shared-lib": "1.0.0",
     "tsx": "^4.21.0",
-    "vite": "^8.0.8",
+    "vite": "^8.0.16",
     "vite-plugin-node-polyfills": "^0.26.0",
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^4.1.4",
