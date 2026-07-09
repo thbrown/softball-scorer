@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import dialog from 'dialog';
-import Draggable from 'react-draggable';
+import DraggableBase from 'react-draggable';
 import results from 'plate-appearance-results';
 import { getGlobalState } from 'state';
 import WalkupSong from 'components/walkup-song';
@@ -11,6 +11,22 @@ import Card from 'elements/card';
 import BallFieldSvg from 'components/ball-field-svg';
 import { PlateAppearance, Player } from 'shared-lib/types';
 import type { PlateAppearanceId } from 'types/branded-ids';
+
+// react-draggable's bundled typings and the DefinitelyTyped @types/react-draggable
+// disagree on which props are optional (the latter marks nearly all props required),
+// so the build breaks depending on which definitions get resolved. Wrap it with an
+// explicit, permissive prop type so we only depend on the props we actually use.
+const Draggable = DraggableBase as unknown as React.ComponentType<{
+  children?: React.ReactNode;
+  axis?: 'both' | 'x' | 'y' | 'none';
+  allowAnyClick?: boolean;
+  disabled?: boolean;
+  grid?: [number, number];
+  position?: { x: number; y: number };
+  onStart?: (...args: any[]) => void;
+  onDrag?: (...args: any[]) => void;
+  onStop?: (...args: any[]) => void;
+}>;
 
 const LOCATION_DENOMINATOR = 32767;
 
