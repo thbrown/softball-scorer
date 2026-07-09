@@ -6,10 +6,9 @@ Live at https://softball.app/
 
 ## Quick Start (local dev)
 
-1. Enable corepack: `corepack enable`
-2. `yarn install` (also copies config templates on first run)
-3. `yarn start`
-4. Visit http://localhost:8889
+1. `yarn install` (also copies config templates on first run; uses the Yarn 4 version pinned in `.yarn/releases/`)
+2. `yarn start`
+3. Visit http://localhost:8889
 
 ## Format / Lint
 

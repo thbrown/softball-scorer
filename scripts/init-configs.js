@@ -1,5 +1,5 @@
 // Copies config templates to their active locations if they don't already exist.
-// Runs automatically as a postinstall hook (see package.json).
+// Runs via the root postinstall hook (Yarn) or `yarn setup` / `npm run setup`.
 const fs = require('fs');
 const path = require('path');
 
