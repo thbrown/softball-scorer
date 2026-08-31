@@ -49,7 +49,7 @@
     "eslint-plugin-react": "^7.37.5",
     "prettier": "^3.8.3",
     "typescript": "^5.0.2",
-    "vite": "^8.0.8",
+    "vite": "^8.0.16",
     "vitest": "^4.1.4",
     "vitest-github-actions-reporter": "^0.11.1"
   },
