@@ -32,7 +32,7 @@
     "express": "^5.2.1",
     "express-session": "^1.19.0",
     "fast-json-patch": "^3.1.1",
-    "form-data": "^4.0.5",
+    "form-data": "^4.0.6",
     "gcp-bucket-session-store": "^0.2.0",
     "googleapis": "^171.4.0",
     "got": "^14.4.7",
